@@ -6,3 +6,4 @@ Esse documento visa exemplificar um possivel fluxo para a gestão dos processos,
 Para mais detalhes, veja a Documentação Oficial do NextCloud.
 
 - [Usuários, compartilhamento e controle de acesso](./usuario-compartilhamento-controle-de-acesso.md)
+- [Gestão de arquivos de processos](./gestao-arquivos.md)
