@@ -8,4 +8,5 @@ Para mais detalhes, veja a Documentação Oficial do NextCloud.
 - [Usuários, compartilhamento e controle de acesso](./usuario-compartilhamento-controle-de-acesso.md)
 - [Gestão de arquivos de processos](./gestao-arquivos.md)
 - [Gestão de contatos](./gestao-contatos.md)
+- [Gestão de agenda](./gestao-agenda.md)
 - [Gestão de tarefas](./gestao-tarefas.md)
