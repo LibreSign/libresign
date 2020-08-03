@@ -23,7 +23,7 @@ set-locale:
 set-configs:
 	docker-compose exec --user www-data app php occ config:system:set skeletondirectory --value  ""
 	docker-compose exec --user www-data app php occ db:add-missing-indices -n
-	docker-compose exec --user www-data app php occ db: convert-filecache-bigint -n
+	docker-compose exec --user www-data app php occ db:convert-filecache-bigint -n
 
 init-cron: 
 	docker-compose up -d cron
