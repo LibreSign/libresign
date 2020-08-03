@@ -1,0 +1,10 @@
+if ($request_method = 'OPTIONS') {
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Expose-Headers "Authorization, Bearer, Device";
+    add_header Access-Control-Allow-Methods "POST, PATCH, DELETE, PUT, GET, OPTIONS";
+    add_header Access-Control-Allow-Headers "Origin, Authorization, Bearer, Accept, Content-Type, Device";
+    add_header Access-Control-Allow-Credentials true;
+    add_header Content-Length 0;
+    add_header Content-Type text/plain;
+    return 204;
+}
