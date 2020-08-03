@@ -26,7 +26,12 @@ Neste painel é possivel visualizar todos os usuários cadastrados, e a que grup
 
 ![Formulário Novo Usuário](./imagens/usuarios-compartilhamento/formulario-novo-usuario.png)
 
-Ao cadastrar um novo usuário, é importante cadastrar uma senha, ou um email, para que, caso o usuário não tenha a senha, seja possivel para este usuário resetar através de um link que será enviado por email. Veja também: [configurando envio de emails](./configurar-email.md)
+Ao cadastrar um novo usuário, é importante cadastrar uma senha, ou um email, para que, caso o usuário não tenha a senha, seja possivel para este usuário resetar através de um link que será enviado por email.
+
+Para que seja possível enviar emails para os usuários, é necessário configurar os dados do servidor SMTP.
+Isso deve ser feito nas configurações do administrador, nas configurações gerais.
+
+![Configuraoções Gerais - SMTP](./imagens/usuarios-compartilhamento/configuracoes-gerais-smtp.png)
 
 Além de ser possivel cadastrar o usuário num grupo, também é possivel adicionar este usuário como administrador de um ou mais grupos, o que irá permitir que este usuário gerencie outros usuários destes grupos.
 
