@@ -12,7 +12,7 @@ Em todo diretório, é possivel adicionar um cabeçalho descritivo, clicando na 
 
 ![Espaço do Cabeçalho](./imagens/gestao-arquivos/espaco-cabecalho.png)
 
-Este cabeçalho será gravado num arquivo `Readme.md`, no diretório atual, e segue a formatação padrão Markdown, que permite títulos, imagens, listas e links, conforme formatação.
+Este cabeçalho será gravado num arquivo `Readme.md`, no diretório atual, e segue o padrão Markdown, que permite títulos, imagens, listas e links, conforme formatação.
 
 ![Cabeçalho Descritivo](./imagens/gestao-arquivos/cabecalho-descritivo.png)
 
@@ -20,13 +20,13 @@ Este cabeçalho será gravado num arquivo `Readme.md`, no diretório atual, e se
 
 ![Adicionar itens](./imagens/gestao-arquivos/menu-novo-arquivo.png)
 
-Também é possivel criar documentos de texto diretamente no NextCloud. Estes arquivos, assim como o cabeçalho, seguem a formatação padrão Markdown.
+Também é possivel criar documentos de texto diretamente no NextCloud. Estes arquivos, assim como o cabeçalho, seguem o padrão Markdown.
 
 ## Marcadores de estágio - Etiquetas
 
 É possivel controlar os estágios dos processos pelo uso de etiquetas.
 
-Qualquer pasta ou arquivo pode ter etiquetas, sejam colaborativas (criadas pelos usuários) ,restritas (criadas pelo administrador) ou invisiveis (criadas e visualizadas somente pelo administrador).
+Qualquer pasta ou arquivo pode ter etiquetas, sejam colaborativas (criadas pelos usuários), restritas (criadas pelo administrador) ou invisíveis (criadas e visualizadas somente pelo administrador).
 
 Para acessar ss etiquetas, abra o menu lateral de Detalhes da pasta/arquivo, que pode ser acessado clicando com o botão direito do mouse no item. Para adicionar uma etiqueta a pasta ou arquivo, selecione a opção `Etiquetas`.
 
