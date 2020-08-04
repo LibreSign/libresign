@@ -1,5 +1,8 @@
 # Assinador Digital
 
+## Depêndencias
+ - [docker-compose](https://docs.docker.com/compose/)
+
 ## Documentação de instalação
 
 - [instalação do ambiente](./docs/setup.md)
