@@ -6,7 +6,7 @@ Todo recurso dentro do NextCloud, seja um arquivo, pasta, calendário, catálogo
 
 É possivel compartilhar com um usuário específico ou com vários de uma vez, através dos grupos de usuário, cadastrados pelo administrador.
 
-As acões que podem ser tomadas em um recurso compartilhado (exibição, modificação, remoção) são definidas somente pelo dono do recurso. Assim, para que seja possivel manter um controle do que pode ser acessado e por quem, recomenda-se que todos os recursos bases (pastas de arquivos, catálogo de endereços principal, painéis do Deck etc) sejam criados por um usuário administrador, para que este administrador possa definir quais grupos e usuários terão acesso ao recurso, e que nivel de acesso cada um terá.
+As ações que podem ser tomadas em um recurso compartilhado (exibição, modificação, remoção) são definidas somente pelo dono do recurso. Assim, para que seja possivel manter um controle do que pode ser acessado e por quem, recomenda-se que todos os recursos bases (pastas de arquivos, catálogo de endereços principal, painéis do Deck etc) sejam criados por um usuário administrador, para que este administrador possa definir quais grupos e usuários terão acesso ao recurso, e que nivel de acesso cada um terá.
 
 ![Opções de Compartilhamento](./imagens/usuarios-compartilhamento/opcoes-compartilhamento.png)
 
