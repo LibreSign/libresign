@@ -2,3 +2,4 @@
 volumes
 .env
 certs
+.vscode

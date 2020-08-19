@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 
 volumes:
     html:
@@ -15,14 +15,17 @@ services:
             - POSTGRES_USER=${POSTGRES_USER:-nextcloud}
 
     app:
-        image: nextcloud:stable-fpm
+        build:
+            context: ./.docker/app
+            target: prod
         restart: always
         volumes:
             - ./.docker/app/conf.d/php.ini:/usr/local/etc/php/conf.d/php.ini
             - ./volumes/nextcloud:/var/www/html
+            - ./dsv:/tmp/dsv
         environment:
-            - POSTGRES_DB=db
-            - POSTGRES_HOST=${POSTGRES_HOST:-db}
+            - POSTGRES_HOST=db
+            - POSTGRES_DB=${POSTGRES_DB:-nextcloud}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-SECRET_PASSWORD}
             - POSTGRES_USER=${POSTGRES_USER:-nextcloud}
             - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER:-admin}

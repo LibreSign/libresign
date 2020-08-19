@@ -1,0 +1,33 @@
+#dsvTabView .signature {
+    margin-left: 1em;
+    text-align: left;
+}
+
+#dsvTabView details {
+    margin-left: 2em;
+    border: none;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+#dsvTabView .certItem {
+    background-color: transparent;
+}
+
+#dsvTabView summary {
+    color: #999;
+    padding-right: 1em;
+}
+
+#dsvTabView p {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin-left: 2em;
+}
+
+#dsvTabView p:hover {
+    white-space: pre-wrap;
+}
