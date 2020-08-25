@@ -1,7 +1,8 @@
 # Assinador Digital
 
 ## Depêndencias
- - [docker-compose](https://docs.docker.com/compose/)
+
+- [docker-compose](https://docs.docker.com/compose/)
 
 ## Documentação de instalação
 
@@ -10,5 +11,8 @@
 ## Documentação de uso
 
 - [Guia do usuário](./docs/guia-usuario/index.md)
-
 - [Documentação oficial NextCloud](./docs/NextcloudUserManual.pdf)
+
+## Documentação do app Digital Signature Validator
+
+- [Instalação e uso do app de validação de assinaturas](./docs/instalacao-uso-dsv.md)
