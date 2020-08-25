@@ -28,15 +28,18 @@ set-configs:
 init-cron: 
 	docker-compose up -d cron
 
-install-dsv: fix-database
+install-dsv: fix-database build-dsv
+
+fix-database:
+	docker-compose run --rm --user www-data app sh -c "php occ config:system:set dbname --value \$$POSTGRES_DB"
+	docker-compose exec db sh -c 'psql -U $$POSTGRES_USER postgres -c "DROP DATABASE $${POSTGRES_DB}"'
+	docker-compose exec db sh -c 'psql -U $$POSTGRES_USER postgres -c "ALTER DATABASE db RENAME TO $${POSTGRES_DB}"'
+
+build-dsv:
 	docker-compose build
 	docker-compose down
 	docker-compose up -d
 	docker-compose exec app bash -c "cd /tmp/dsv/lib; composer install --no-interaction --no-dev"
 	docker-compose exec app sh -c "cp -r /tmp/dsv /var/www/html/apps/"
 	docker-compose exec --user www-data app php occ app:enable dsv
-
-fix-database:
-	docker-compose run --rm --user www-data app sh -c "php occ config:system:set dbname --value \$$POSTGRES_DB"
-	docker-compose exec db sh -c 'psql -U $$POSTGRES_USER postgres -c "DROP DATABASE $${POSTGRES_DB}"'
-	docker-compose exec db sh -c 'psql -U $$POSTGRES_USER postgres -c "ALTER DATABASE db RENAME TO $${POSTGRES_DB}"'
+	

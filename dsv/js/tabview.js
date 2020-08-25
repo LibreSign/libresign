@@ -60,6 +60,13 @@
             }
 
             var signatures = data.signatures;
+            if (signatures.length <= 0) {
+                var msg = $('<p>').text("Nenhuma assinatura encontrada!");
+
+                tabView.append(msg);
+                return
+            }
+
             for (const key in signatures) {
                 if (!signatures.hasOwnProperty(key)) {
                     continue;

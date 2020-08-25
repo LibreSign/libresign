@@ -3,8 +3,8 @@
     <id>dsv</id>
     <namespace>Dsv</namespace>
     <name>Digital Signature Valitation</name>
-    <summary>A plugin for displaying and validate Digital Signatures </summary>
-    <description>A plugin for displaying and validate Digital Signatures </description>
+    <summary>A plugin for displaying and validate Digital Signatures.</summary>
+    <description>A plugin for displaying and validate Digital Signatures.</description>
 
     <version>0.10.0</version>
     <licence>agpl</licence>
