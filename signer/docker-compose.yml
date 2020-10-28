@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  node:
+    image: node
+    user: node
+    command: npm run watch
+    working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
