@@ -16,3 +16,7 @@
 ## Documentação do app Digital Signature Validator
 
 - [Instalação e uso do app de validação de assinaturas](./docs/instalacao-uso-dsv.md)
+
+## Documentação do app Signer
+
+- [Instalação e uso do app assinador e gerador de assinaturas](./docs/instalacao-uso-signer.md)
