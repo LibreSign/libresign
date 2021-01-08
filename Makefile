@@ -75,7 +75,7 @@ clean-dev:
 
 .PHONY: test
 test: composer
-	$(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.xml
+	$(CURDIR)/vendor/bin/phpunit -c phpunit.xml
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
