@@ -6,6 +6,7 @@ use OCA\Signer\Handler\JSignerHandler;
 use OCA\Signer\Service\SignerService;
 use OCA\Signer\Storage\ClientStorage;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * @internal
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class SignerServiceTest extends TestCase
 {
+    use ProphecyTrait;
     public function testSignFile()
     {
         $inputFilePath = '/path/to/someInputFilePath';

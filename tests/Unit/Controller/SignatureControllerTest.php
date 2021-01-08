@@ -6,6 +6,7 @@ use OCA\Signer\Controller\SignatureController;
 use OCA\Signer\Service\SignatureService;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * @internal
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class SignatureControllerTest extends TestCase
 {
+    use ProphecyTrait;
     public function testGenerate()
     {
         $userId = 'john';

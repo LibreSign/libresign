@@ -6,6 +6,7 @@ use OCA\Signer\Handler\CfsslHandler;
 use OCA\Signer\Service\SignatureService;
 use OCA\Signer\Storage\ClientStorage;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * @internal
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class SignatureServiceTest extends TestCase
 {
+    use ProphecyTrait;
     public function testGenerate()
     {
         $commonName = 'someCommonName';
