@@ -5,6 +5,7 @@ namespace OCA\Signer\Tests\Unit\Service;
 use OCA\Signer\Handler\CfsslHandler;
 use OCA\Signer\Service\SignatureService;
 use OCA\Signer\Storage\ClientStorage;
+use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -14,7 +15,17 @@ use Prophecy\PhpUnit\ProphecyTrait;
  */
 final class SignatureServiceTest extends TestCase
 {
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|IConfig
+     */
+    private $config;
     use ProphecyTrait;
+    public function setUp(): void
+    {
+        $this->config = $this->getMockBuilder(IConfig::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
     public function testGenerate()
     {
         $commonName = 'someCommonName';
@@ -49,7 +60,7 @@ final class SignatureServiceTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $service = new SignatureService($cfsslHandler->reveal(), $clientStorage->reveal());
+        $service = new SignatureService($cfsslHandler->reveal(), $clientStorage->reveal(), $this->config);
 
         $service->generate(
             $commonName,

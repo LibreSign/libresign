@@ -5,7 +5,7 @@ namespace OCA\Signer\Service;
 use OCA\Signer\AppInfo\Application;
 use OCA\Signer\Handler\CfsslHandler;
 use OCA\Signer\Storage\ClientStorage;
-use OCP\IAppConfig;
+use OCP\IConfig;
 
 class SignatureService
 {
@@ -21,7 +21,7 @@ class SignatureService
     public function __construct(
         CfsslHandler $cfsslHandler,
         ClientStorage $clientStorage,
-        IAppConfig $config
+        IConfig $config
     ) {
         $this->cfsslHandler = $cfsslHandler;
         $this->clientStorage = $clientStorage;
