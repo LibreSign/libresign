@@ -2,26 +2,26 @@
 	<SettingsSection
 		:title="title"
 		:description="description">
-		<AdminFormSigner />
+		<AdminFormLibresign />
 	</SettingsSection>
 </template>
 
 <script>
-import AdminFormSigner from './AdminFormSigner'
+import AdminFormLibresign from './AdminFormLibresign'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
 	name: 'Settings',
 	components: {
-		AdminFormSigner,
+		AdminFormLibresign,
 		SettingsSection,
 	},
 	data() {
 		return {
 			loading: true,
-			title: t('signer', 'Assinador Digital: Dados Certificado Raiz'),
-			description: t('signer', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
+			title: t('libresign', 'Assinador Digital: Dados Certificado Raiz'),
+			description: t('libresign', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
 		}
 	},
 	computed: {},
@@ -32,7 +32,7 @@ export default {
 
 </script>
 <style scoped>
-#signer-admin-settings {
+#libresign-admin-settings {
 	width: 100vw;
 	padding: 20px;
 	padding-top: 70px;

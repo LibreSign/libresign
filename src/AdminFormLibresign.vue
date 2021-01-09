@@ -1,7 +1,7 @@
 <template>
-	<div id="formSigner" class="form-signer">
+	<div id="formLibresign" class="form-libresign">
 		<div class="form-group">
-			<label for="commonName">{{ t('signer', 'Nome (CN)') }}</label>
+			<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
 			<input
 				id="commonName"
 				ref="commonName"
@@ -10,7 +10,7 @@
 				:disabled="formDisabled">
 		</div>
 		<div class="form-group">
-			<label for="country">{{ t('signer', 'País (C)') }}</label>
+			<label for="country">{{ t('libresign', 'País (C)') }}</label>
 			<input
 				id="country"
 				ref="country"
@@ -19,7 +19,7 @@
 				:disabled="formDisabled">
 		</div>
 		<div class="form-group">
-			<label for="organization">{{ t('signer', 'Organização (O)') }}</label>
+			<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
 			<input
 				id="organization"
 				ref="organization"
@@ -28,7 +28,7 @@
 				:disabled="formDisabled">
 		</div>
 		<div class="form-group">
-			<label for="organizationUnit">{{ t('signer', 'Unidade da organização (OU)') }}</label>
+			<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
 			<input
 				id="organizationUnit"
 				ref="organizationUnit"
@@ -53,7 +53,7 @@ import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
-	name: 'AdminFormSigner',
+	name: 'AdminFormLibresign',
 	components: {
 	},
 	data() {
@@ -64,7 +64,7 @@ export default {
 				organization: '',
 				organizationUnit: '',
 			},
-			submitLabel: t('signer', 'Gerar Certificado Raiz'),
+			submitLabel: t('libresign', 'Gerar Certificado Raiz'),
 			formDisabled: false,
 			loading: true,
 		}
@@ -91,7 +91,7 @@ export default {
 			this.submitLabel = 'Gerando Certificado...'
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/signer/api/0.1/admin/certificate'),
+					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
 					this.certificate
 				)
 
@@ -103,7 +103,7 @@ export default {
 				return
 			} catch (e) {
 				console.error(e)
-				showError(t('signer', 'Não foi possivel gerar certificado'))
+				showError(t('libresign', 'Não foi possivel gerar certificado'))
 				this.submitLabel = 'Gerar Certificado Raiz'
 
 			}
@@ -114,7 +114,7 @@ export default {
 			this.formDisabled = true
 			try {
 				const response = await axios.get(
-					generateUrl('/apps/signer/api/0.1/admin/certificate'),
+					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
 				)
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
@@ -139,7 +139,7 @@ export default {
 }
 </script>
 <style>
-#formSigner{
+#formLibresign{
 	width: 60%;
 	text-align: left;
 	margin: 20px;
