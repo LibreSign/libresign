@@ -1,7 +1,7 @@
 <template>
-	<div id="formSigner" class="form-signer">
+	<div id="formLibresign" class="form-libresign">
 		<div class="form-group">
-			<label for="hosts">{{ t('signer', 'Email') }}</label>
+			<label for="hosts">{{ t('libresign', 'Email') }}</label>
 			<input
 				id="hosts"
 				ref="hosts"
@@ -10,7 +10,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="commonName">{{ t('signer', 'Nome (CN)') }}</label>
+			<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
 			<input
 				id="commonName"
 				ref="commonName"
@@ -19,7 +19,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="country">{{ t('signer', 'País (C)') }}</label>
+			<label for="country">{{ t('libresign', 'País (C)') }}</label>
 			<input
 				id="country"
 				ref="country"
@@ -28,7 +28,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organization">{{ t('signer', 'Organização (O)') }}</label>
+			<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
 			<input
 				id="organization"
 				ref="organization"
@@ -37,7 +37,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organizationUnit">{{ t('signer', 'Unidade da organização (OU)') }}</label>
+			<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
 			<input
 				id="organizationUnit"
 				ref="organizationUnit"
@@ -46,7 +46,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="password">{{ t('signer', 'Senha da assinatura') }}</label>
+			<label for="password">{{ t('libresign', 'Senha da assinatura') }}</label>
 			<input
 				id="password"
 				v-model="signature.password"
@@ -54,7 +54,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="path">{{ t('signer', 'Armazenamento da assinatura') }}</label>
+			<label for="path">{{ t('libresign', 'Armazenamento da assinatura') }}</label>
 			<div>
 				<input
 					id="path"
@@ -65,17 +65,17 @@
 				<button
 					id="pickFromCloud"
 					:class="'icon-folder'"
-					:title="t('signer', 'Selecionar pasta onde assinatura será salva')"
+					:title="t('libresign', 'Selecionar pasta onde assinatura será salva')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('signer', 'Selecionar Pasta') }}
+					{{ t('libresign', 'Selecionar Pasta') }}
 				</button>
 			</div>
 		</div>
 		<input
 			type="button"
 			class="primary"
-			:value="t('signer', 'Gerar Assinatura')"
+			:value="t('libresign', 'Gerar Assinatura')"
 			:disabled="updating || !savePossible"
 			@click="saveSignature">
 		<Modal
@@ -83,7 +83,7 @@
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">
-				{{ t('signer','Assinatura gerada e disponivel em ') }} {{ signature.path }} !
+				{{ t('libresign','Assinatura gerada e disponivel em ') }} {{ signature.path }} !
 			</div>
 		</Modal>
 	</div>
@@ -97,7 +97,7 @@ import { showError, getFilePickerBuilder } from '@nextcloud/dialogs'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { translate as t } from '@nextcloud/l10n'
 export default {
-	name: 'FormSigner',
+	name: 'FormLibresign',
 	components: {
 		Modal,
 	},
@@ -141,7 +141,7 @@ export default {
 			this.updating = true
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/signer/api/0.1/signature/generate'),
+					generateUrl('/apps/libresign/api/0.1/signature/generate'),
 					this.signature
 				)
 				if (!response.data || !response.data.signature) {
@@ -151,7 +151,7 @@ export default {
 				this.showModal()
 			} catch (e) {
 				console.error(e)
-				showError(t('signer', 'Não foi possivel criar assinatura'))
+				showError(t('libresign', 'Não foi possivel criar assinatura'))
 			}
 			this.updating = false
 		},
@@ -171,7 +171,7 @@ export default {
 			}
 		},
 		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('signer', 'Escolha uma pasta para armazenar a assinatura'))
+			const picker = getFilePickerBuilder(t('libresign', 'Escolha uma pasta para armazenar a assinatura'))
 				.setMultiSelect(false)
 				.addMimeTypeFilter('httpd/unix-directory')
 				.setModal(true)

@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import FormSigner from './FormSigner'
+import FormSigner from './FormLibresign'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
