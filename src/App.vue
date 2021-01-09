@@ -4,15 +4,15 @@
 			<div class="icon icon-error" />
 			<h2>{{ error }}</h2>
 		</div>
-		<div v-else id="content" class="app-signer">
-			<h2>{{ t('signer', 'Criar nova assinatura') }}</h2>
-			<FormSigner />
+		<div v-else id="content" class="app-libresign">
+			<h2>{{ t('libresign', 'Criar nova assinatura') }}</h2>
+			<FormLibresign />
 		</div>
 	</AppContent>
 </template>
 
 <script>
-import FormSigner from './FormLibresign'
+import FormLibresign from './FormLibresign'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
@@ -23,7 +23,7 @@ import '@nextcloud/dialogs/styles/toast.scss'
 export default {
 	name: 'App',
 	components: {
-		FormSigner,
+		FormLibresign,
 		AppContent,
 	},
 	data() {
@@ -42,10 +42,10 @@ export default {
 			this.error = ''
 			try {
 				const response = await axios.get(
-					generateUrl('/apps/signer/api/0.1/signature/check'),
+					generateUrl('/apps/libresign/api/0.1/signature/check'),
 				)
 				if (!response.data || !response.data.hasRootCert) {
-					this.error = t('signer', 'Certificado raiz não foi configurado pelo Administrador!')
+					this.error = t('libresign', 'Certificado raiz não foi configurado pelo Administrador!')
 				}
 			} catch (e) {
 				console.error(e)

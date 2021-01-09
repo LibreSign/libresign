@@ -11,8 +11,8 @@
 			<div class="icon icon-checkmark" />
 			<h2>{{ response }}</h2>
 		</div>
-		<div v-else id="signerTabContent">
-			<label for="path">{{ t('signer', 'Local da assinatura') }}</label>
+		<div v-else id="libresignTabContent">
+			<label for="path">{{ t('libresign', 'Local da assinatura') }}</label>
 			<div class="form-group">
 				<input
 					id="path"
@@ -23,13 +23,13 @@
 				<button
 					id="pickFromCloud"
 					:class="'icon-folder'"
-					:title="t('signer', 'Selecionar local da assinatura')"
+					:title="t('libresign', 'Selecionar local da assinatura')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('signer', 'Selecionar Assinatura') }}
+					{{ t('libresign', 'Selecionar Assinatura') }}
 				</button>
 			</div>
-			<label for="password">{{ t('signer', 'Senha da assinatura') }}</label>
+			<label for="password">{{ t('libresign', 'Senha da assinatura') }}</label>
 			<div class="form-group">
 				<input
 					id="password"
@@ -40,7 +40,7 @@
 			<input
 				type="button"
 				class="primary"
-				:value="t('signer', 'Assinar Documento')"
+				:value="t('libresign', 'Assinar Documento')"
 				:disabled="updating || !savePossible"
 				@click="sign">
 		</div>
@@ -57,7 +57,7 @@ import { joinPaths } from '@nextcloud/paths'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
-	name: 'SignerTab',
+	name: 'LibresignTab',
 
 	components: {
 		AppSidebarTab,
@@ -79,13 +79,13 @@ export default {
 			icon: 'icon-rename',
 			updating: false,
 			loading: true,
-			name: t('signer', 'Assinar Documento'),
+			name: t('libresign', 'Assinar Documento'),
 		}
 	},
 
 	computed: {
 		id() {
-			return 'signerTab'
+			return 'libresignTab'
 		},
 		activeTab() {
 			return this.$parent.activeTab
@@ -104,7 +104,7 @@ export default {
 			this.error = ''
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/signer/api/0.1/sign'),
+					generateUrl('/apps/libresign/api/0.1/sign'),
 					{
 						inputFilePath: joinPaths(this.fileInfo.get('path'), this.fileInfo.get('name')),
 						outputFolderPath: this.fileInfo.get('path'),
@@ -115,17 +115,17 @@ export default {
 				if (!response.data || !response.data.fileSigned) {
 					throw new Error(response.data)
 				}
-				this.response = t('signer', 'Documento assinado disponivel em ') + response.data.fileSigned
+				this.response = t('libresign', 'Documento assinado disponivel em ') + response.data.fileSigned
 
 			} catch (e) {
 				console.error(e)
-				this.error = t('signer', 'Não foi possivel assinar documento!')
+				this.error = t('libresign', 'Não foi possivel assinar documento!')
 			}
 			this.updating = false
 		},
 
 		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('signer', 'Escolha o local da assinatura'))
+			const picker = getFilePickerBuilder(t('libresign', 'Escolha o local da assinatura'))
 				.setMultiSelect(false)
 				.addMimeTypeFilter('application/octet-stream')
 				.setModal(true)
@@ -143,7 +143,7 @@ export default {
 
 <style>
 
-#signerTabContent {
+#libresignTabContent {
 	display: flex;
 	flex-direction: column;
 }
