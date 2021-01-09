@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Handler;
+namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
-use OCA\Signer\Exception\SignerException;
+use OCA\Libresign\Exception\LibresignException;
 
 class CfsslHandler
 {
@@ -25,7 +25,7 @@ class CfsslHandler
         $certContent = null;
         $isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $password);
         if (!$isCertGenerated) {
-            throw new SignerException('Error while creating certificate file', 500);
+            throw new LibresignException('Error while creating certificate file', 500);
         }
 
         return $certContent;
@@ -65,7 +65,7 @@ class CfsslHandler
 
         $responseDecoded = json_decode($response->getBody(), true);
         if (!$responseDecoded['success']) {
-            throw new SignerException('Error while generating certificate keys!', 500);
+            throw new LibresignException('Error while generating certificate keys!', 500);
         }
 
         return $responseDecoded['result'];

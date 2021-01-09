@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Controller;
+namespace OCA\Libresign\Controller;
 
-use OCA\Signer\AppInfo\Application;
-use OCA\Signer\Service\SignatureService;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\SignatureService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;

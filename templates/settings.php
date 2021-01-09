@@ -1,5 +1,5 @@
 <?php
-    script('signer', 'signer-settings');
+    script('libresign', 'libresign-settings');
 ?>
-<div id="signer-admin-settings" class="section">
+<div id="libresign-admin-settings" class="section">
 </div>

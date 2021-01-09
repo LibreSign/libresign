@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Service;
+namespace OCA\Libresign\Service;
 
-use OCA\Signer\AppInfo\Application;
-use OCA\Signer\Handler\CfsslServerHandler;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CfsslServerHandler;
 use OCP\IAppConfig;
 
 class AdminSignatureService

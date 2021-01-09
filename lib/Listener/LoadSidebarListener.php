@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Listener;
+namespace OCA\Libresign\Listener;
 
 use OCA\Files\Event\LoadSidebar;
-use OCA\Signer\AppInfo\Application;
+use OCA\Libresign\AppInfo\Application;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
@@ -16,6 +16,6 @@ class LoadSidebarListener implements IEventListener
             return;
         }
 
-        Util::addScript(Application::APP_ID, 'signer-tab');
+        Util::addScript(Application::APP_ID, 'libresign-tab');
     }
 }

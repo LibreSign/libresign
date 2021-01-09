@@ -1,21 +1,21 @@
 <?php
 
-namespace OCA\Signer\Service;
+namespace OCA\Libresign\Service;
 
-use OCA\Signer\Handler\JSignerHandler;
-use OCA\Signer\Storage\ClientStorage;
+use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Storage\ClientStorage;
 
-class SignerService
+class LibresignService
 {
-    /** @var JSignerHandler */
-    private $signerHandler;
+    /** @var JLibresignHandler */
+    private $libresignHandler;
 
     /** @var ClientStorage */
     private $clientStorage;
 
-    public function __construct(JSignerHandler $signerHandler, ClientStorage $clientStorage)
+    public function __construct(JLibresignHandler $libresignHandler, ClientStorage $clientStorage)
     {
-        $this->signerHandler = $signerHandler;
+        $this->libresignHandler = $libresignHandler;
         $this->clientStorage = $clientStorage;
     }
 
@@ -23,7 +23,7 @@ class SignerService
         $file = $this->clientStorage->getFile($inputFilePath);
         $certificate = $this->clientStorage->getFile($certificatePath);
 
-        list($filename, $content) = $this->signerHandler->signExistingFile($file, $certificate, $password);
+        list($filename, $content) = $this->libresignHandler->signExistingFile($file, $certificate, $password);
         $folder = $this->clientStorage->createFolder($outputFolderPath);
         $certificateFile = $this->clientStorage->saveFile($filename, $content, $folder);
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Controller;
+namespace OCA\Libresign\Controller;
 
 use OC\Config;
-use OCA\Signer\AppInfo\Application;
+use OCA\Libresign\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\EmptyContentSecurityPolicy;
@@ -30,7 +30,7 @@ class PageController extends Controller
      */
     public function index()
     {
-        Util::addScript(Application::APP_ID, 'signer-main');
+        Util::addScript(Application::APP_ID, 'libresign-main');
 
         $response = new TemplateResponse(Application::APP_ID, 'main');
         

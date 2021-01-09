@@ -1,10 +1,10 @@
 <?php
 
-namespace OCA\Signer\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Signer\Handler\CfsslHandler;
-use OCA\Signer\Service\SignatureService;
-use OCA\Signer\Storage\ClientStorage;
+use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Service\SignatureService;
+use OCA\Libresign\Storage\ClientStorage;
 use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;

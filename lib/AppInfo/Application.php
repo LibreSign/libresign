@@ -1,16 +1,16 @@
 <?php
 
-namespace OCA\Signer\AppInfo;
+namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
-use OCA\Signer\Listener\LoadSidebarListener;
-use OCA\Signer\Storage\ClientStorage;
+use OCA\Libresign\Listener\LoadSidebarListener;
+use OCA\Libresign\Storage\ClientStorage;
 use OCP\AppFramework\App;
 use OCP\EventDispatcher\IEventDispatcher;
 
 class Application extends App
 {
-    public const APP_ID = 'signer';
+    public const APP_ID = 'libresign';
 
     public function __construct()
     {

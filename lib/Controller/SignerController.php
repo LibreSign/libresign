@@ -1,20 +1,20 @@
 <?php
 
-namespace OCA\Signer\Controller;
+namespace OCA\Libresign\Controller;
 
-use OCA\Signer\AppInfo\Application;
-use OCA\Signer\Exception\SignerException;
-use OCA\Signer\Service\SignerService;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\LibresignService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
-class SignerController extends Controller
+class LibresignController extends Controller
 {
     use HandleErrorsTrait;
     use HandleParamsTrait;
 
-    /** @var SignerService */
+    /** @var LibresignService */
     private $service;
 
     /** @var string */
@@ -22,7 +22,7 @@ class SignerController extends Controller
 
     public function __construct(
         IRequest $request,
-        SignerService $service,
+        LibresignService $service,
         $userId
     ) {
         parent::__construct(Application::APP_ID, $request);

@@ -1,8 +1,8 @@
 <?php
 
-namespace OCA\Signer\Controller;
+namespace OCA\Libresign\Controller;
 
-use OCA\Signer\Exception\SignerException;
+use OCA\Libresign\Exception\LibresignException;
 
 trait HandleParamsTrait
 {
@@ -10,7 +10,7 @@ trait HandleParamsTrait
     {
         foreach ($params as $key => $param) {
             if (empty($param)) {
-                throw new SignerException("parameter '{$key}' is required!", 400);
+                throw new LibresignException("parameter '{$key}' is required!", 400);
             }
         }
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace OCA\Signer\Settings;
+namespace OCA\Libresign\Settings;
 
-use OCA\Signer\AppInfo\Application;
+use OCA\Libresign\AppInfo\Application;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\BackgroundJob\IJobList;
 use OCP\IAppConfig;

@@ -1,10 +1,10 @@
 <?php
 
-namespace OCA\Signer\Exception;
+namespace OCA\Libresign\Exception;
 
 use JsonSerializable;
 
-class SignerException extends \Exception implements JsonSerializable
+class LibresignException extends \Exception implements JsonSerializable
 {
     public function jsonSerialize()
     {

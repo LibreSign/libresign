@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Signer\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OCA\Signer\Controller\SignatureController;
-use OCA\Signer\Service\SignatureService;
+use OCA\Libresign\Controller\SignatureController;
+use OCA\Libresign\Service\SignatureService;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;

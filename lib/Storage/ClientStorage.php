@@ -1,10 +1,10 @@
 <?php
 
-namespace OCA\Signer\Storage;
+namespace OCA\Libresign\Storage;
 
 use OC\Files\Node\File;
 use OC\Files\Node\Node;
-use OCA\Signer\Exception\SignerException;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\Files\Folder;
 
 class ClientStorage
@@ -21,7 +21,7 @@ class ClientStorage
     {
         $node = $this->getNode($path);
         if (!$node instanceof File) {
-            throw new SignerException("path {$path} is not a valid file!", 400);
+            throw new LibresignException("path {$path} is not a valid file!", 400);
         }
 
         return $node;
@@ -35,7 +35,7 @@ class ClientStorage
 
         $node = $this->storage->get($path);
         if (!$node instanceof Folder) {
-            throw new SignerException("path {$path} already exists and is not a folder!", 400);
+            throw new LibresignException("path {$path} already exists and is not a folder!", 400);
         }
 
         return $node;
@@ -50,7 +50,7 @@ class ClientStorage
             $node = $folder->get($filePath);
 
             if (!$node instanceof File) {
-                throw new SignerException("path {$filePath} already exists and is not a file!", 400);
+                throw new LibresignException("path {$filePath} already exists and is not a file!", 400);
             }
 
             $node->putContent($content);
@@ -71,7 +71,7 @@ class ClientStorage
     private function getNode(string $path): Node
     {
         if (!$this->storage->nodeExists($path)) {
-            throw new SignerException("path {$path} is not valid!", 400);
+            throw new LibresignException("path {$path} is not valid!", 400);
         }
 
         return $this->storage->get($path);

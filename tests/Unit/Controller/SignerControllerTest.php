@@ -1,10 +1,10 @@
 <?php
 
-namespace OCA\Signer\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OC\Files\Node\File;
-use OCA\Signer\Controller\SignerController;
-use OCA\Signer\Service\SignerService;
+use OCA\Libresign\Controller\LibresignController;
+use OCA\Libresign\Service\LibresignService;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -13,14 +13,14 @@ use Prophecy\PhpUnit\ProphecyTrait;
  * @internal
  * @coversNothing
  */
-final class SignerControllerTest extends TestCase
+final class LibresignControllerTest extends TestCase
 {
     use ProphecyTrait;
     public function testSignFile()
     {
         $userId = 'john';
         $request = $this->prophesize(IRequest::class);
-        $service = $this->prophesize(SignerService::class);
+        $service = $this->prophesize(LibresignService::class);
         $file = $this->prophesize(File::class);
         $file->getInternalPath()->willReturn("/path/to/someFileSigned");
         
@@ -34,7 +34,7 @@ final class SignerControllerTest extends TestCase
             ->willReturn($file->reveal())
         ;
         
-        $controller = new SignerController(
+        $controller = new LibresignController(
                 $request->reveal(),
                 $service->reveal(),
                 $userId
@@ -70,12 +70,12 @@ final class SignerControllerTest extends TestCase
     ){
         $userId = 'john';
         $request = $this->prophesize(IRequest::class);
-        $service = $this->prophesize(SignerService::class);
+        $service = $this->prophesize(LibresignService::class);
 
         $service->sign(\Prophecy\Argument::cetera())
             ->shouldNotBeCalled();
 
-        $controller = new SignerController(
+        $controller = new LibresignController(
             $request->reveal(),
             $service->reveal(),
             $userId

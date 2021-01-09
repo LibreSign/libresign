@@ -1,6 +1,6 @@
 {
-    "name": "lt/signer",
-    "description": "Signer",
+    "name": "lyseontech/libresign",
+    "description": "libresign",
     "type": "project",
     "license": "AGPL",
     "require": {
@@ -18,7 +18,7 @@
     },
     "autoload": {
       "psr-4": {
-        "OCA\\Signer\\": "lib/"
+        "OCA\\Libresign\\": "lib/"
       }
     }
 }

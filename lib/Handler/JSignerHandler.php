@@ -1,13 +1,13 @@
 <?php
 
-namespace OCA\Signer\Handler;
+namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OC\Files\Node\File;
-use OCA\Signer\Storage\ClientStorage;
+use OCA\Libresign\Storage\ClientStorage;
 
-class JSignerHandler
+class JLibresignHandler
 {
     public function signExistingFile(
         File $inputFile,

@@ -1,10 +1,10 @@
 <?php
 
-namespace OCA\Signer\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Signer\Handler\JSignerHandler;
-use OCA\Signer\Service\SignerService;
-use OCA\Signer\Storage\ClientStorage;
+use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Service\LibresignService;
+use OCA\Libresign\Storage\ClientStorage;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -12,7 +12,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
  * @internal
  * @coversNothing
  */
-final class SignerServiceTest extends TestCase
+final class LibresignServiceTest extends TestCase
 {
     use ProphecyTrait;
     public function testSignFile()
@@ -21,7 +21,7 @@ final class SignerServiceTest extends TestCase
         $outputFolderPath = '/path/to/someOutputFolderPath';
         $certificatePath = '/path/to/someCertificatePath';
         $password = 'somePassword';
-        $signerHandler = $this->prophesize(JSignerHandler::class);
+        $libresignHandler = $this->prophesize(JLibresignHandler::class);
         $clientStorage = $this->prophesize(ClientStorage::class);
 
         $filename = 'someFilename';
@@ -35,7 +35,7 @@ final class SignerServiceTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $signerHandler->signExistingFile(\Prophecy\Argument::any(), \Prophecy\Argument::any(), $password)
+        $libresignHandler->signExistingFile(\Prophecy\Argument::any(), \Prophecy\Argument::any(), $password)
             ->shouldBeCalled()
             ->willReturn([$filename, $content])
         ;
@@ -48,7 +48,7 @@ final class SignerServiceTest extends TestCase
             ->shouldBeCalled()
         ;
 
-        $service = new SignerService($signerHandler->reveal(), $clientStorage->reveal());
+        $service = new LibresignService($libresignHandler->reveal(), $clientStorage->reveal());
         $service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
     }
 }

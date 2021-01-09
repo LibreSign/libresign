@@ -1,8 +1,8 @@
 <?php
 
-namespace OCA\Signer\Handler;
+namespace OCA\Libresign\Handler;
 
-use OCA\Signer\Exception\SignerException;
+use OCA\Libresign\Exception\LibresignException;
 
 class CfsslServerHandler
 {
@@ -52,7 +52,7 @@ class CfsslServerHandler
         
         $response = file_put_contents($filename, json_encode($content));
         if ($response === false) {
-            throw new SignerException("Error while writing CSR server file!", 500);
+            throw new LibresignException("Error while writing CSR server file!", 500);
         }
     }
 
@@ -83,7 +83,7 @@ class CfsslServerHandler
 
         $response = file_put_contents($filename, json_encode($content));
         if ($response === false) {
-            throw new SignerException("Error while writing config server file!", 500);
+            throw new LibresignException("Error while writing config server file!", 500);
         }
     }
 }
