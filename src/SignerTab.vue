@@ -53,6 +53,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import { joinPaths } from '@nextcloud/paths'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
@@ -105,7 +106,7 @@ export default {
 				const response = await axios.post(
 					generateUrl('/apps/signer/api/0.1/sign'),
 					{
-						inputFilePath: OC.joinPaths(this.fileInfo.get('path'), this.fileInfo.get('name')),
+						inputFilePath: joinPaths(this.fileInfo.get('path'), this.fileInfo.get('name')),
 						outputFolderPath: this.fileInfo.get('path'),
 						certificatePath: this.signaturePath,
 						password: this.password,
