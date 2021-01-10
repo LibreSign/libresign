@@ -29,11 +29,6 @@ class AdminController extends Controller
         $this->userId = $userId;
     }
 
-    /**
-     * @NoCSRFRequired
-     *
-     * @todo remove NoCSRFRequired
-     */
     public function generateCertificate(
         string $commonName = null,
         string $country = null,
@@ -64,11 +59,6 @@ class AdminController extends Controller
         }
     }
 
-    /**
-     * @NoCSRFRequired
-     *
-     * @todo remove NoCSRFRequired
-     */
     public function loadCertificate(): DataResponse
     {
         try {
