@@ -27,11 +27,6 @@ class AdminSignatureService
         string $organizationUnit
     ) {
         $key = bin2hex(random_bytes(16));
-        $this->config->setValue(Application::APP_ID, 'authkey', $key);
-        $this->config->setValue(Application::APP_ID, 'commonName', $commonName);
-        $this->config->setValue(Application::APP_ID, 'country', $country);
-        $this->config->setValue(Application::APP_ID, 'organization', $organization);
-        $this->config->setValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
 
         $this->cfsslHandler->createConfigServer(
             $commonName,
@@ -40,6 +35,12 @@ class AdminSignatureService
             $organizationUnit,
             $key
         );
+
+        $this->config->setValue(Application::APP_ID, 'authkey', $key);
+        $this->config->setValue(Application::APP_ID, 'commonName', $commonName);
+        $this->config->setValue(Application::APP_ID, 'country', $country);
+        $this->config->setValue(Application::APP_ID, 'organization', $organization);
+        $this->config->setValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
     }
 
     public function loadKeys(){
