@@ -15,7 +15,7 @@ class SignatureService
     /** @var ClientStorage */
     private $clientStorage;
 
-    /** @var IAppConfig */
+    /** @var IConfig */
     private $config;
 
     public function __construct(

@@ -4,17 +4,17 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CfsslServerHandler;
-use OCP\IAppConfig;
+use OCP\IConfig;
 
 class AdminSignatureService
 {
     /** @var CfsslServerHandler */
     private $cfsslHandler;
 
-    /** @var IAppConfig */
+    /** @var IConfig */
     private $config;
 
-    public function __construct(CfsslServerHandler $cfsslHandler, IAppConfig $config)
+    public function __construct(CfsslServerHandler $cfsslHandler, IConfig $config)
     {
         $this->cfsslHandler = $cfsslHandler;
         $this->config = $config;
