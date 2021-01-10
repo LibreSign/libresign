@@ -77,13 +77,14 @@ class SignatureController extends Controller
      *
      * @todo remove NoCSRFRequired
      */
-    public function check(){
-    try{
-        $checkData = $this->service->check();
+    public function check()
+    {
+        try{
+            $checkData = $this->service->check();
 
-        return new DataResponse($checkData);
-    } catch (\Exception $exception) {
-        return $this->handleErrors($exception);
-    }
+            return new DataResponse($checkData);
+        } catch (\Exception $exception) {
+            return $this->handleErrors($exception);
+        }
     }
 }
