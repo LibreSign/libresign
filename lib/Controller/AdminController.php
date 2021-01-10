@@ -34,7 +34,8 @@ class AdminController extends Controller
         string $country = null,
         string $organization = null,
         string $organizationUnit = null,
-        string $cfsslUri = null
+        string $cfsslUri = null,
+        string $configPath = null
     ): DataResponse {
         try {
             $this->checkParams([
@@ -43,6 +44,7 @@ class AdminController extends Controller
                 'organization' => $organization,
                 'organizationUnit' => $organizationUnit,
                 'cfsslUri' => $cfsslUri,
+                'configPath' => $configPath
             ]);
 
             $this->service->generate(
@@ -50,7 +52,8 @@ class AdminController extends Controller
                 $country,
                 $organization,
                 $organizationUnit,
-                $cfsslUri
+                $cfsslUri,
+                $configPath
             );
 
             return new DataResponse([]);

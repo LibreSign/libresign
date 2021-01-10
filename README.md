@@ -9,4 +9,6 @@ CN: CommonName
 OU: OrganizationalUnit
 O: Organization
 C: CountryName
+API: http://cfssl:8888/api/v1/cfssl/
+Config path: /cfssl/
 ```

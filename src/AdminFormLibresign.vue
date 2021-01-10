@@ -45,6 +45,15 @@
 				type="text"
 				:disabled="formDisabled">
 		</div>
+		<div class="form-group">
+			<label for="configPath">{{ t('libresign', 'Config path') }}</label>
+			<input
+				id="configPath"
+				ref="configPath"
+				v-model="certificate.configPath"
+				type="text"
+				:disabled="formDisabled">
+		</div>
 		<input
 			type="button"
 			class="primary"
@@ -73,6 +82,7 @@ export default {
 				organization: '',
 				organizationUnit: '',
 				cfsslUri: '',
+				configPath: '',
 			},
 			submitLabel: t('libresign', 'Gerar Certificado Raiz'),
 			formDisabled: false,
@@ -88,6 +98,7 @@ export default {
                 && this.certificate.organization !== ''
                 && this.certificate.organizationUnit !== ''
                 && this.certificate.cfsslUri !== ''
+                && this.certificate.configPath !== ''
 			)
 		},
 	},
@@ -136,6 +147,7 @@ export default {
 				&& response.data.organization
 				&& response.data.organizationUnit
 				&& response.data.cfsslUri
+				&& response.data.configPath
 				) {
 					this.certificate = response.data
 					this.submitLabel = 'Certificado gerado!'
