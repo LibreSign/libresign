@@ -56,7 +56,7 @@ class SignatureService
     public function check()
     {
         return [
-            'hasRootCert' => null !== $this->config->getValue(Application::APP_ID, 'authkey'),
+            'hasRootCert' => !empty($this->config->getAppValue(Application::APP_ID, 'authkey')),
         ];
     }
 }

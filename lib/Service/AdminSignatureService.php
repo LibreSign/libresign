@@ -37,19 +37,21 @@ class AdminSignatureService
             $key
         );
 
-        $this->config->setValue(Application::APP_ID, 'authkey', $key);
-        $this->config->setValue(Application::APP_ID, 'commonName', $commonName);
-        $this->config->setValue(Application::APP_ID, 'country', $country);
-        $this->config->setValue(Application::APP_ID, 'organization', $organization);
-        $this->config->setValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
+        $this->config->setAppValue(Application::APP_ID, 'authkey', $key);
+        $this->config->setAppValue(Application::APP_ID, 'commonName', $commonName);
+        $this->config->setAppValue(Application::APP_ID, 'country', $country);
+        $this->config->setAppValue(Application::APP_ID, 'organization', $organization);
+        $this->config->setAppValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
+        $this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
     }
 
     public function loadKeys(){
         return [
-            'commonName' => $this->config->getValue(Application::APP_ID, 'commonName'),
-            'country' => $this->config->getValue(Application::APP_ID, 'country'),
-            'organization' => $this->config->getValue(Application::APP_ID, 'organization'),
-            'organizationUnit' => $this->config->getValue(Application::APP_ID, 'organizationUnit'),
+            'commonName' => $this->config->getAppValue(Application::APP_ID, 'commonName'),
+            'country' => $this->config->getAppValue(Application::APP_ID, 'country'),
+            'organization' => $this->config->getAppValue(Application::APP_ID, 'organization'),
+            'organizationUnit' => $this->config->getAppValue(Application::APP_ID, 'organizationUnit'),
+            'cfsslUri' => $this->config->getAppValue(Application::APP_ID, 'cfsslUri'),
         ];
     }
 }
