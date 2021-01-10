@@ -8,7 +8,7 @@ class CfsslServerHandler
 {
     const CSR_FILE = 'csr_server.json';
     const CONFIG_FILE = 'config_server.json';
-    const TMP_DIR = '/tmp/cfssl/';
+    const CFSSL_DIR = '/cfssl/';
 
     public function createConfigServer(
         $commonName,
@@ -33,7 +33,7 @@ class CfsslServerHandler
         $organizationUnit
     )
     {
-        $filename = self::TMP_DIR.self::CSR_FILE;
+        $filename = self::CFSSL_DIR.self::CSR_FILE;
         $content = [
             'CN' => $commonName,
             'key' => [
@@ -58,7 +58,7 @@ class CfsslServerHandler
 
     private function putConfigServer(string $key)
     {
-        $filename = self::TMP_DIR.self::CONFIG_FILE;
+        $filename = self::CFSSL_DIR.self::CONFIG_FILE;
         $content = [
             'signing' => [
                 'profiles' => [
