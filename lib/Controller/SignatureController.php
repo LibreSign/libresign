@@ -52,7 +52,7 @@ class SignatureController extends Controller
                 'organization' => $organization,
                 'organizationUnit' => $organizationUnit,
                 'path' => $path,
-                'password' => $password,
+                'password' => $password
             ]);
             $hosts = explode(',', $hosts);
             $signaturePath = $this->service->generate(
