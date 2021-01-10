@@ -42,7 +42,7 @@ export default {
 			this.error = ''
 			try {
 				const response = await axios.get(
-					generateUrl('/apps/libresign/api/0.1/signature/check'),
+					generateUrl('/apps/libresign/api/0.1/signature/has-root-cert'),
 				)
 				if (!response.data || !response.data.hasRootCert) {
 					this.error = t('libresign', 'Certificado raiz não foi configurado pelo Administrador!')

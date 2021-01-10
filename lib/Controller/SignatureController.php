@@ -77,10 +77,10 @@ class SignatureController extends Controller
      *
      * @todo remove NoCSRFRequired
      */
-    public function check()
+    public function hasRootCert()
     {
         try{
-            $checkData = $this->service->check();
+            $checkData = $this->service->hasRootCert();
 
             return new DataResponse($checkData);
         } catch (\Exception $exception) {

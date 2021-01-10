@@ -53,7 +53,7 @@ class SignatureService
         return $certificateFile->getInternalPath();
     }
 
-    public function check()
+    public function hasRootCert()
     {
         return [
             'hasRootCert' => !empty($this->config->getAppValue(Application::APP_ID, 'authkey')),
