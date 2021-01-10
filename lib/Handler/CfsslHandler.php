@@ -13,14 +13,16 @@ class CfsslHandler
         string $country,
         string $organization,
         string $organizationUnit,
-        string $password
+        string $password,
+        string $cfsslUri
     ) {
         $certKeys = $this->newCert(
             $commonName,
             $hosts,
             $country,
             $organization,
-            $organizationUnit
+            $organizationUnit,
+            $cfsslUri
         );
         $certContent = null;
         $isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $password);
@@ -36,9 +38,10 @@ class CfsslHandler
         array $hosts,
         string $country,
         string $organization,
-        string $organizationUnit
+        string $organizationUnit,
+        string $cfsslUri
     ) {
-        $response = (new Client(['base_uri' => 'http://cfssl:8888/api/v1/cfssl/']))
+        $response = (new Client(['base_uri' => $cfsslUri]))
             ->request('POST', 'newcert', [
                 'json' => [
                     'profile' => 'CA',

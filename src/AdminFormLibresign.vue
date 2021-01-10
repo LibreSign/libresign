@@ -36,6 +36,15 @@
 				type="text"
 				:disabled="formDisabled">
 		</div>
+		<div class="form-group">
+			<label for="cfsslUri">{{ t('libresign', 'CFSSL API Uri') }}</label>
+			<input
+				id="cfsslUri"
+				ref="cfsslUri"
+				v-model="certificate.cfsslUri"
+				type="text"
+				:disabled="formDisabled">
+		</div>
 		<input
 			type="button"
 			class="primary"
@@ -63,6 +72,7 @@ export default {
 				country: '',
 				organization: '',
 				organizationUnit: '',
+				cfsslUri: '',
 			},
 			submitLabel: t('libresign', 'Gerar Certificado Raiz'),
 			formDisabled: false,
@@ -77,6 +87,7 @@ export default {
                 && this.certificate.country !== ''
                 && this.certificate.organization !== ''
                 && this.certificate.organizationUnit !== ''
+                && this.certificate.cfsslUri !== ''
 			)
 		},
 	},
@@ -124,6 +135,7 @@ export default {
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
+				&& response.data.cfsslUri
 				) {
 					this.certificate = response.data
 					this.submitLabel = 'Certificado gerado!'

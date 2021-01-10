@@ -24,7 +24,8 @@ class AdminSignatureService
         string $commonName,
         string $country,
         string $organization,
-        string $organizationUnit
+        string $organizationUnit,
+        string $cfsslUri
     ) {
         $key = bin2hex(random_bytes(16));
 

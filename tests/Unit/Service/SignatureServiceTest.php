@@ -35,6 +35,7 @@ final class SignatureServiceTest extends TestCase
         $organizationUnit = 'someOrganizationUnit';
         $path = '/path/to/somePath';
         $password = 'somePassword';
+        $cfsslUri = 'http://fake';
 
         $content = 'someContent';
 
@@ -47,7 +48,8 @@ final class SignatureServiceTest extends TestCase
                 $country,
                 $organization,
                 $organizationUnit,
-                $password
+                $password,
+                $cfsslUri
             )
             ->shouldBeCalled()
             ->willReturn($content)
@@ -60,6 +62,13 @@ final class SignatureServiceTest extends TestCase
             ->shouldBeCalled()
         ;
 
+        $this->config
+            ->method('getAppValue')
+            ->with(
+                $this->equalTo('libresign'),
+                $this->equalTo('cfsslUri')
+            )
+            ->willReturn($cfsslUri);
         $service = new SignatureService($cfsslHandler->reveal(), $clientStorage->reveal(), $this->config);
 
         $service->generate(

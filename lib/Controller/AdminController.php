@@ -38,7 +38,8 @@ class AdminController extends Controller
         string $commonName = null,
         string $country = null,
         string $organization = null,
-        string $organizationUnit = null
+        string $organizationUnit = null,
+        string $cfsslUri = null
     ): DataResponse {
         try {
             $this->checkParams([
@@ -46,13 +47,15 @@ class AdminController extends Controller
                 'country' => $country,
                 'organization' => $organization,
                 'organizationUnit' => $organizationUnit,
+                'cfsslUri' => $cfsslUri,
             ]);
 
             $this->service->generate(
                 $commonName,
                 $country,
                 $organization,
-                $organizationUnit
+                $organizationUnit,
+                $cfsslUri
             );
 
             return new DataResponse([]);

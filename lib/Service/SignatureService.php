@@ -43,7 +43,8 @@ class SignatureService
             $country,
             $organization,
             $organizationUnit,
-            $password
+            $password,
+            $this->config->getAppValue(Application::APP_ID, 'cfsslUri')
         );
 
         $folder = $this->clientStorage->createFolder($certificatePath);
