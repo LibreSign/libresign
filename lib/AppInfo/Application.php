@@ -23,6 +23,7 @@ class Application extends App implements IBootstrap
     }
 
     public function register(IRegistrationContext $context): void {
+        include_once __DIR__ . '/../../vendor/autoload.php';
         $context->registerEventListener(
             LoadSidebar::class,
             LoadSidebarListener::class
