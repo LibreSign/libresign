@@ -2,7 +2,7 @@
 
 ## Setup
 
-### CFSS server
+### With CFSS server
 
 Up a cfssl server using this code:
 
@@ -10,7 +10,7 @@ https://github.com/cloudflare/cfssl
 
 The URL of server you will use in [Admin settings](#admin-settings)
 
-#### With docker-compose
+### With docker-compose
 * put the file `/cfssl/entrypoint.sh` in `cfssl` folder
 * Add the volume `./cfssl:/cfssl` in Nextcloud service
 * Create a new server using the following code:
