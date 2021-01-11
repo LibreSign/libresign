@@ -1,22 +1,39 @@
-# Assinador Digital
+# Libresign
 
-## Depêndencias
+## Setup
 
-- [docker-compose](https://docs.docker.com/compose/)
+### With CFSS server
 
-## Documentação de instalação
+Up a cfssl server using this code:
 
-- [instalação do ambiente](./docs/setup.md)
+https://github.com/cloudflare/cfssl
 
-## Documentação de uso
+The URL of server you will use in [Admin settings](#admin-settings)
 
-- [Guia do usuário](./docs/guia-usuario/index.md)
-- [Documentação oficial NextCloud](./docs/NextcloudUserManual.pdf)
+### With docker-compose
+* put the file `/cfssl/entrypoint.sh` in `cfssl` folder
+* Add the volume `./cfssl:/cfssl` in Nextcloud service
+* Create a new server using the following code:
+```yml
+  cfssl:
+    image: cfssl/cfssl
+    volumes:
+      - ./cfssl:/cfssl
+    working_dir: /cfssl
+    entrypoint: /bin/bash
+    command:
+      - /cfssl/entrypoint.sh
+```
 
-## Documentação do app Digital Signature Validator
+### Admin settings
 
-- [Instalação e uso do app de validação de assinaturas](./docs/instalacao-uso-dsv.md)
+Go to `Settings > Security` and fill the necessary values for root certificate:
 
-## Documentação do app Signer
-
-- [Instalação e uso do app assinador e gerador de assinaturas](./docs/instalacao-uso-signer.md)
+```
+CN: CommonName
+OU: OrganizationalUnit
+O: Organization
+C: CountryName
+API: http://cfssl:8888/api/v1/cfssl/
+Config path: /cfssl/
+```

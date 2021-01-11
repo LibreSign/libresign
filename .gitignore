@@ -1,5 +1,8 @@
-.data
-volumes
-.env
-certs
-.vscode
+.idea
+*.iml
+/vendor/
+/js/
+/build/
+node_modules/
+/.php_cs.cache
+.phpunit.result.cache

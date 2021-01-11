@@ -1,0 +1,24 @@
+{
+    "name": "lyseontech/libresign",
+    "description": "libresign",
+    "type": "project",
+    "license": "AGPL",
+    "require": {
+        "jeidison/jsignpdf-php": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "nextcloud/coding-standard": "^0.4.0",
+        "phpspec/prophecy-phpunit": "^2.0"
+    },
+    "scripts": {
+        "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
+        "cs:check": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix"
+    },
+    "autoload": {
+      "psr-4": {
+        "OCA\\Libresign\\": "lib/"
+      }
+    }
+}
