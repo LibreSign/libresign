@@ -4,10 +4,6 @@ namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\BackgroundJob\IJobList;
-use OCP\IConfig;
-use OCP\IDateTimeFormatter;
-use OCP\IL10N;
 use OCP\Settings\ISettings;
 
 class AdminSettings implements ISettings

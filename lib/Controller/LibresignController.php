@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\LibresignService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
