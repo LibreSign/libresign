@@ -2,11 +2,9 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Config;
+use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCP\AppFramework\Http\EmptyContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IConfig;
 use OCP\IRequest;
@@ -36,7 +34,7 @@ class PageController extends Controller
         
         if ($this->config->getSystemValue('debug')) {
             $csp = new ContentSecurityPolicy();
-            $csp->allowInlineScript(true);
+            $csp->setInlineScriptAllowed(true);
             $response->setContentSecurityPolicy($csp);
         }
 
