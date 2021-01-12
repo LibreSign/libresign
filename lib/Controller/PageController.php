@@ -37,4 +37,14 @@ class PageController extends Controller {
 
 		return $response;
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function external() {
+		Util::addScript(Application::APP_ID, 'libresign-external');
+		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
+		return $response;
+	}
 }

@@ -10,5 +10,6 @@ return [
 		['name' => 'admin#generateCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'POST'],
 		['name' => 'admin#loadCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#external', 'url' => '/external', 'verb' => 'GET'],
 	],
 ];
