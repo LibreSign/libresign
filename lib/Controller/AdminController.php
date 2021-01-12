@@ -28,6 +28,10 @@ class AdminController extends Controller {
 		$this->userId = $userId;
 	}
 
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
 	public function generateCertificate(
 		string $commonName = null,
 		string $country = null,
@@ -61,6 +65,10 @@ class AdminController extends Controller {
 		}
 	}
 
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
 	public function loadCertificate(): DataResponse {
 		try {
 			$certificate = $this->service->loadKeys();
