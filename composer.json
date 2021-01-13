@@ -3,6 +3,9 @@
     "description": "libresign",
     "type": "project",
     "license": "AGPL",
+    "require": {
+      "jeidison/jsignpdf-php": "dev-master"
+    },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
         "nextcloud/coding-standard": "^0.4.0",
@@ -23,8 +26,5 @@
         "type": "vcs",
         "url": "https://github.com/vitormattos/jsignpdf-php"
       }
-    ],
-    "require": {
-        "jeidison/jsignpdf-php": "dev-master"
-    }
+    ]
 }
