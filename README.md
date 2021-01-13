@@ -2,6 +2,8 @@
 
 # Libresign
 
+Nextcloud app to sign PDF documents 
+
 ## Setup
 
 ### With CFSS server
