@@ -1,3 +1,5 @@
+![Test Status](https://github.com/lyseontech/libresign/workflows/ci/badge.svg?branch=main)
+
 # Libresign
 
 ## Setup
