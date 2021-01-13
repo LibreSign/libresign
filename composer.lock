@@ -4,19 +4,19 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3d4d1b9430c1c224b3c59f1acb120cb9",
+    "content-hash": "5d335542355d1b98098d46d7186d9726",
     "packages": [
         {
             "name": "jeidison/jsignpdf-php",
             "version": "1.0.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/jeidison/jsignpdf-php.git",
+                "url": "https://github.com/vitormattos/jsignpdf-php.git",
                 "reference": "cbeb77c0cf101e1a03232a7966a0d8a104206fa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jeidison/jsignpdf-php/zipball/cbeb77c0cf101e1a03232a7966a0d8a104206fa6",
+                "url": "https://api.github.com/repos/vitormattos/jsignpdf-php/zipball/cbeb77c0cf101e1a03232a7966a0d8a104206fa6",
                 "reference": "cbeb77c0cf101e1a03232a7966a0d8a104206fa6",
                 "shasum": ""
             },
@@ -34,7 +34,11 @@
                     "Jeidison\\JSignPDF\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Jeidison\\JSignPDF\\Tests\\": "tests/"
+                }
+            },
             "license": [
                 "MIT"
             ],
@@ -46,16 +50,15 @@
             ],
             "description": "jsignpdf-php",
             "keywords": [
+                "JSignPdf",
+                "PDF",
                 "PDF Sign PHP",
+                "PHP",
                 "PHP Signature",
-                "jsignpdf",
-                "pdf",
-                "php",
-                "signature"
+                "Signature"
             ],
             "support": {
-                "issues": "https://github.com/jeidison/jsignpdf-php/issues",
-                "source": "https://github.com/jeidison/jsignpdf-php/tree/master"
+                "source": "https://github.com/vitormattos/jsignpdf-php/tree/1.0.4"
             },
             "time": "2020-07-07T17:46:55+00:00"
         }

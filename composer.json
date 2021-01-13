@@ -20,5 +20,11 @@
       "psr-4": {
         "OCA\\Libresign\\": "lib/"
       }
-    }
+    },
+    "repositories": [
+      {
+        "type": "vcs",
+        "url": "https://github.com/vitormattos/jsignpdf-php"
+      }
+    ]
 }
