@@ -1,4 +1,4 @@
-![Test Status](https://github.com/lyseontech/libresign/workflows/ci/badge.svg?branch=main)
+![Test Status](https://github.com/lyseontech/libresign/workflows/PHPUnit/badge.svg?branch=main)
 
 # Libresign
 
