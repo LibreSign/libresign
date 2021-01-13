@@ -3,6 +3,7 @@ on: pull_request
 
 jobs:
   php-cs-fixer:
+    runs-on: ubuntu-latest
     strategy:
       # do not stop on another job's failure
       fail-fast: false
@@ -10,16 +11,21 @@ jobs:
         php-versions: ['7.4']
         databases: ['sqlite']
         server-versions: ['stable20']
+
     name: php-cs check php${{ matrix.php-versions }}
-    runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
-    - name: Set up php
-      uses: shivammathur/setup-php@master
-      with:
-        ref: ${{ matrix.server-versions }}
-    - name: Install dependencies
-      run: composer i
-    - name: Run coding standards check
-      run: composer run cs:check
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Set up php
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer i
+
+      - name: Run coding standards check
+        run: composer run cs:check
