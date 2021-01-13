@@ -15,7 +15,7 @@ appstore_package_name=$(appstore_build_directory)/$(app_name)
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
 
-all: dev-setup build-production
+all: dev-setup build-js-production
 serve: dev-setup watch-js
 
 # a copy is fetched from the web
@@ -66,10 +66,12 @@ stylelint:
 .PHONY: clean
 clean:
 	rm -rf js/
+	rm -rf $(appstore_build_directory)
 
 clean-dev:
 	rm -rf node_modules
 	rm -rf vendor
+	rm -rf $(appstore_build_directory)
 
 .PHONY: test
 test: composer
@@ -80,6 +82,13 @@ test: composer
 appstore:
 	rm -rf $(appstore_build_directory)
 	mkdir -p $(appstore_build_directory)
-	tar cvzf $(appstore_package_name).tar.gz \
+	composer install --no-dev
+	tar -cvzf $(appstore_package_name).tar.gz \
 	--exclude-vcs \
-	$(project_directory)/appinfo
+	$(project_directory)/appinfo \
+	$(project_directory)/cfssl \
+	$(project_directory)/img \
+	$(project_directory)/js \
+	$(project_directory)/lib \
+	$(project_directory)/templates \
+	$(project_directory)/vendor
