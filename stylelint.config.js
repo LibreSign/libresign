@@ -3,6 +3,7 @@ module.exports = {
 	rules: {
 		indentation: 'tab',
 		'selector-type-no-unknown': null,
+		'scss/at-rule-no-unknown': null,
 		'number-leading-zero': null,
 		'rule-empty-line-before': [
 			'always',

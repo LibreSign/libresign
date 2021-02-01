@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Settings from './Settings'
+import Settings from './views/Settings'
 
 Vue.mixin({ methods: { t, n } })
 

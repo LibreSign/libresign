@@ -1,4 +1,4 @@
-import LibresignTab from './LibresignTab'
+import LibresignTab from './views/LibresignTab'
 
 window.addEventListener('DOMContentLoaded', () => {
 	if (OCA.Files && OCA.Files.Sidebar) {
