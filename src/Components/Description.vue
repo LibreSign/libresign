@@ -7,23 +7,6 @@
 		</header>
 		<div id="body">
 			<form @submit="e => e.preventDefault()">
-				<div class="form-group">
-					<label for="path">Selecionar assinatura</label>
-					<div class="form-ib-group">
-						<input id="path"
-							ref="path"
-							v-model="signaturePath"
-							type="text"
-							disabled>
-						<button
-							id="pickFromCloud"
-							:title="'Selecionar local da assinatura'"
-							:disabled="updating"
-							@click.stop="changeFilePath">
-							Selecionar Assinatura
-						</button>
-					</div>
-				</div>
 				<div v-show="signaturePath" class="form-group">
 					<label for="password">Senha da Assinatura</label>
 					<div class="form-ib-group">
@@ -43,7 +26,7 @@
 </template>
 
 <script>
-import { getFilePickerBuilder, showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import Image from '../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
@@ -104,19 +87,6 @@ export default {
 			}
 		},
 
-		changeFilePath() {
-
-			const picker = getFilePickerBuilder('Escolha o local da assinatura')
-				.setMultiSelect(false)
-				.setModal(true)
-				.setType(1)
-				.allowDirectories(false)
-				.build()
-
-			picker.pick().then((path) => {
-				this.signaturePath = path
-			})
-		},
 		checkAssign() {
 			if (this.hasSavePossible === true) {
 				showSuccess('Assinado!')
