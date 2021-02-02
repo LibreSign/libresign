@@ -17,7 +17,9 @@
 				}">
 					<input type="password" required placeholder="Senha PFX">
 				</div>
-				<button>Cadastrar</button>
+				<button @click="teste">
+					Cadastrar
+				</button>
 			</form>
 		</div>
 	</Content>
@@ -26,6 +28,7 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import { showSuccess } from '@nextcloud/dialogs'
 export default {
 	name: 'CreateUser',
 	components: {
@@ -47,6 +50,9 @@ export default {
 	methods: {
 		changeSizeAvatar() {
 			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
+		},
+		teste() {
+			showSuccess('Teste')
 		},
 	},
 }

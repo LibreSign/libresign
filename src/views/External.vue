@@ -21,11 +21,53 @@
   -
   -->
 <template>
-	<h1>External</h1>
+	<div id="container">
+		<div id="viewer" class="content">
+			<h1>PDF Viewer</h1>
+		</div>
+		<div id="description" class="content">
+			<Description pdf-name="PDF" :pdf-description="desc" />
+		</div>
+	</div>
 </template>
 
 <script>
+import Description from '../Components/Description'
+
 export default {
 	name: 'External',
+
+	components: { Description },
+	data: () => ({
+		desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+	}),
 }
 </script>
+
+<style lang="scss" scoped>
+	#container {
+		display: flex;
+		flex-direction: row;
+		width: 100%;
+		height: 100%;
+	}
+
+	.content{
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		height: 100%;
+	}
+
+	#description{
+		width: 38%;
+	}
+
+	#viewer{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: #cecece;
+	}
+
+</style>
