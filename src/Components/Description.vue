@@ -46,10 +46,6 @@ export default {
 			required: false,
 			default: 'Descrição',
 		},
-		pdfFile: {
-			type: Object,
-			required: true,
-		},
 	},
 
 	data() {
