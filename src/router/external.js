@@ -36,8 +36,14 @@ export default new Router({
 	routes: [
 		{
 			path: '/',
+			name: 'ExternalRoot',
+			redirect: {
+				name: 'AssignPDF',
+			},
+		}, {
+			path: '/assign-pdf',
 			component: External,
-			name: 'External',
+			name: 'AssignPDF',
 		}, {
 			path: '/create-user',
 			component: CreateUser,
