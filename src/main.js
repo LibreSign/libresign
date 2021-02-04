@@ -1,4 +1,3 @@
-/* eslint-disable vue/match-component-file-name */
 /**
  * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *

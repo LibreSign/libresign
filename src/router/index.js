@@ -1,4 +1,3 @@
-/* eslint-disable vue/match-component-file-name */
 /**
  * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *
@@ -27,8 +26,6 @@ import { generateUrl } from '@nextcloud/router'
 
 import Home from '../views/Home'
 import FormLibreSign from '../views/FormLibresign'
-import CreateUser from '../views/CreateUser'
-import External from '../views/External'
 
 Vue.use(Router)
 
@@ -44,14 +41,6 @@ export default new Router({
 		}, {
 			path: '/FormLibreSign',
 			component: FormLibreSign,
-		}, {
-			path: '/create-user',
-			name: 'CreateUser',
-			component: CreateUser,
-		}, {
-			path: '/external',
-			name: 'ExternalRoute',
-			component: External,
 		},
 	],
 })

@@ -1,3 +1,26 @@
+<!--
+  - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+  -
+  - @author Lyseon Tech <contato@lt.coop.br>
+  - @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+  -
+  - @license GNU AGPL version 3 or any later version
+  -
+  - This program is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU Affero General Public License as
+  - published by the Free Software Foundation, either version 3 of the
+  - License, or (at your option) any later version.
+  -
+  - This program is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU Affero General Public License for more details.
+  -
+  - You should have received a copy of the GNU Affero General Public License
+  - along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -
+  -->
+
 <template>
 	<div class="container">
 		<header>
@@ -28,7 +51,7 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import Image from '../assets/images/application-pdf.png'
+import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
 import { joinPaths } from '@nextcloud/paths'
 
@@ -60,8 +83,13 @@ export default {
 
 	computed: {
 		hasSavePossible() {
-			return !!(this.password.lenght > 0)
+			return !!this.password
 		},
+	},
+
+	mounted() {
+		// eslint-disable-next-line
+		console.log('Desc')
 	},
 
 	methods: {
@@ -93,80 +121,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-
-	width: 100%;
-	height: 100%;
-}
-
-header{
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	padding-top: 50px;
-	padding-bottom: 50px;
-
-	img {
-		width: 100px;
-		height: 130px;
-	}
-
-	p {
-		font-size: 16px;
-		font-weight:  bold;
-		padding-top: 10px;
-		padding-bottom: 30px;
-	}
-
-	span{
-		width: 80%;
-		font-size: 12px;
-		text-indent: 15px;
-		text-align: justify;
-		height: 116px;
-		text-justify: inter-word;
-
-		overflow-y: scroll;
-		scrollbar-width: 100px;
-		::-webkit-scrollbar{
-			width: 100px;
-		}
-	}
-}
-
-#body{
-	width: 80%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-
-	form{
-
-		input {
-			width: 100%;
-		}
-
-	}
-}
-
-.form-group{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-.form-group:first-child{
-	padding-bottom: 20px;
-}
-
-.form-ib-group{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
+@import './styles'
 </style>

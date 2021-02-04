@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2018 Lyseon Tech <contato@lt.coop.br>
+ * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *
  * @author Lyseon Tech <contato@lt.coop.br>
  *

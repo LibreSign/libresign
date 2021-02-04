@@ -23,28 +23,52 @@
 <template>
 	<div id="container">
 		<div id="viewer" class="content">
-			<PDFViewer :url="getPdf" />
+			<PDFViewer :url="urlPdf" />
 		</div>
 		<div id="description" class="content">
-			<Description pdf-name="PDF" :pdf-description="desc" />
+			<Description :pdf-name="name" :pdf-description="desc" />
 		</div>
 	</div>
 </template>
 
 <script>
+import { showInfo } from '@nextcloud/dialogs'
+import json from '../assets/dados.json'
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 
 export default {
-	name: 'External',
+	name: 'AssignExternal',
 
 	components: { Description, PDFViewer },
 	data: () => ({
-		desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+		dados: json,
+		desc: '',
+		urlPdf: '',
+		name: '',
+		user: false,
 	}),
-	computed: {
-		getPdf() {
-			return '/apps/libresign/img/sample-pdf.pdf'
+	created() {
+		this.getData()
+	},
+	mounted() {
+		this.checkHasUser()
+	},
+
+	methods: {
+		checkHasUser() {
+			if (this.user === false) {
+				showInfo('Usuario não existe, por favor crie uma nova conta!')
+				this.$router.push({ name: 'CreateUser' })
+			}
+			// eslint-disable-next-line
+			console.log(this.user)
+		},
+		getData() {
+			this.urlPdf = this.dados.pdf.urlPDF
+			this.name = this.dados.pdf.name
+			this.desc = this.dados.pdf.description
+			this.user = this.dados.user
 		},
 	},
 }

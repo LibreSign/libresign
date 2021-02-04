@@ -22,46 +22,26 @@
   -->
 
 <template>
-	<SettingsSection
-		:title="title"
-		:description="description">
-		<AdminFormLibresign />
-	</SettingsSection>
+	<iframe :src="url" />
 </template>
 
 <script>
-import AdminFormLibresign from './AdminFormLibresign'
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
-import { translate as t } from '@nextcloud/l10n'
-
 export default {
-	name: 'Settings',
-	components: {
-		AdminFormLibresign,
-		SettingsSection,
-	},
-	data() {
-		return {
-			loading: true,
-			title: t('libresign', 'Assinador Digital: Dados Certificado Raiz'),
-			description: t('libresign', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
-		}
-	},
-	computed: {},
-	async mounted() {},
+	name: 'PDFViewer',
 
-	methods: {},
+	props: {
+		url: {
+			type: String,
+			required: true,
+		},
+	},
 }
-
 </script>
+
 <style scoped>
-#libresign-admin-settings {
-	width: 100vw;
-	padding: 20px;
-	padding-top: 70px;
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-	align-items: center;
-}
+	iframe {
+		overflow: hidden;
+		height: 100%;
+		width: 100%;
+	}
 </style>
