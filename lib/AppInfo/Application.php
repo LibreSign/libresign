@@ -19,6 +19,7 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function boot(IBootContext $context): void {
+		$this->registerHooks();
 	}
 
 	public function register(IRegistrationContext $context): void {
@@ -33,6 +34,9 @@ class Application extends App implements IBootstrap {
 				$c->query('ServerContainer')->getUserFolder()
 			);
 		});
+	}	
+	
+	private function registerHooks(): void {
 		Util::connectHook('\OCP\Config', 'js', $this, 'extendJsConfig');
 	}
 
