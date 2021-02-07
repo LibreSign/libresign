@@ -57,18 +57,17 @@ export default {
 
 	methods: {
 		checkHasUser() {
-			if (this.user === false) {
+			if (this.user.length === 0) {
 				showInfo('Usuario não existe, por favor crie uma nova conta!')
 				this.$router.push({ name: 'CreateUser' })
 			}
-			// eslint-disable-next-line
-			console.log(this.user)
 		},
+
 		getData() {
-			this.urlPdf = this.dados.pdf.urlPDF
-			this.name = this.dados.pdf.name
-			this.desc = this.dados.pdf.description
-			this.user = this.dados.user
+			this.urlPdf = this.OC.appConfig.libresign.sign.pdf
+			this.name = this.OC.appConfig.libresign.sign.filename
+			this.desc = this.OC.appConfig.libresign.sign.description
+			this.user = this.OC.appConfig.libresign.user
 		},
 	},
 }
@@ -91,6 +90,13 @@ export default {
 
 	#description{
 		width: 38%;
+
+		@media (max-width: 1024px){
+			width: 40%;
+		}
+		@media (max-width: 650px) {
+			width: 100%;
+		}
 	}
 
 	#viewer{
@@ -98,6 +104,13 @@ export default {
 		justify-content: center;
 		align-items: center;
 		background: #cecece;
+
+		@media (max-width: 1024px){
+			width: 60%;
+		}
+		@media (max-width: 650px) {
+			display: none;
+		}
 	}
 
 </style>
