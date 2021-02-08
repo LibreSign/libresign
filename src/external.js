@@ -57,7 +57,7 @@ Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
 
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
-	router.push({ name: 'home' })
+	router.push({ name: 'ExternalRoot' })
 }
 
 export default new Vue({

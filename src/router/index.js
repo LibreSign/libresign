@@ -24,7 +24,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { generateUrl } from '@nextcloud/router'
 
-import Home from '../views/Home'
 import FormLibreSign from '../views/FormLibresign'
 
 Vue.use(Router)
@@ -35,10 +34,6 @@ export default new Router({
 	linkActiveClass: 'active',
 	routes: [
 		{
-			path: '/',
-			component: Home,
-			name: 'home',
-		}, {
 			path: '/FormLibreSign',
 			component: FormLibreSign,
 		},

@@ -41,11 +41,11 @@ export default new Router({
 				name: 'AssignPDF',
 			},
 		}, {
-			path: '#assign-pdf',
+			path: '/assign-pdf',
 			component: External,
 			name: 'AssignPDF',
 		}, {
-			path: '#create-user',
+			path: '/create-user',
 			component: CreateUser,
 			name: 'CreateUser',
 		},
