@@ -23,14 +23,15 @@
 
 <template>
 	<SettingsSection
-		:title="title"
-		:description="description">
+		:title="title">
 		<AdminFormLibresign />
+		<AllowedGroups />
 	</SettingsSection>
 </template>
 
 <script>
 import AdminFormLibresign from './AdminFormLibresign'
+import AllowedGroups from './AllowedGroups'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { translate as t } from '@nextcloud/l10n'
 
@@ -39,12 +40,12 @@ export default {
 	components: {
 		AdminFormLibresign,
 		SettingsSection,
+		AllowedGroups,
 	},
 	data() {
 		return {
 			loading: true,
-			title: t('libresign', 'Assinador Digital: Dados Certificado Raiz'),
-			description: t('libresign', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
+			title: t('libresign', 'Assinador Digital'),
 		}
 	},
 	computed: {},

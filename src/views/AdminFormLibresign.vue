@@ -22,71 +22,74 @@
   -->
 
 <template>
-	<div id="formLibresign" class="form-libresign">
-		<div class="form-group">
-			<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
+	<SettingsSection :title="title" :description="description">
+		<div id="formLibresign" class="form-libresign">
+			<div class="form-group">
+				<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
+				<input
+					id="commonName"
+					ref="commonName"
+					v-model="certificate.commonName"
+					type="text"
+					:disabled="formDisabled">
+			</div>
+			<div class="form-group">
+				<label for="country">{{ t('libresign', 'País (C)') }}</label>
+				<input
+					id="country"
+					ref="country"
+					v-model="certificate.country"
+					type="text"
+					:disabled="formDisabled">
+			</div>
+			<div class="form-group">
+				<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
+				<input
+					id="organization"
+					ref="organization"
+					v-model="certificate.organization"
+					type="text"
+					:disabled="formDisabled">
+			</div>
+			<div class="form-group">
+				<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
+				<input
+					id="organizationUnit"
+					ref="organizationUnit"
+					v-model="certificate.organizationUnit"
+					type="text"
+					:disabled="formDisabled">
+			</div>
+			<div class="form-group">
+				<label for="cfsslUri">{{ t('libresign', 'CFSSL API Uri') }}</label>
+				<input
+					id="cfsslUri"
+					ref="cfsslUri"
+					v-model="certificate.cfsslUri"
+					type="text"
+					:disabled="formDisabled">
+			</div>
+			<div class="form-group">
+				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
+				<input
+					id="configPath"
+					ref="configPath"
+					v-model="certificate.configPath"
+					type="text"
+					:disabled="formDisabled">
+			</div>
 			<input
-				id="commonName"
-				ref="commonName"
-				v-model="certificate.commonName"
-				type="text"
-				:disabled="formDisabled">
+				type="button"
+				class="primary"
+				:value="submitLabel"
+				:disabled="formDisabled || !savePossible"
+				@click="generateCertificate">
 		</div>
-		<div class="form-group">
-			<label for="country">{{ t('libresign', 'País (C)') }}</label>
-			<input
-				id="country"
-				ref="country"
-				v-model="certificate.country"
-				type="text"
-				:disabled="formDisabled">
-		</div>
-		<div class="form-group">
-			<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
-			<input
-				id="organization"
-				ref="organization"
-				v-model="certificate.organization"
-				type="text"
-				:disabled="formDisabled">
-		</div>
-		<div class="form-group">
-			<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
-			<input
-				id="organizationUnit"
-				ref="organizationUnit"
-				v-model="certificate.organizationUnit"
-				type="text"
-				:disabled="formDisabled">
-		</div>
-		<div class="form-group">
-			<label for="cfsslUri">{{ t('libresign', 'CFSSL API Uri') }}</label>
-			<input
-				id="cfsslUri"
-				ref="cfsslUri"
-				v-model="certificate.cfsslUri"
-				type="text"
-				:disabled="formDisabled">
-		</div>
-		<div class="form-group">
-			<label for="configPath">{{ t('libresign', 'Config path') }}</label>
-			<input
-				id="configPath"
-				ref="configPath"
-				v-model="certificate.configPath"
-				type="text"
-				:disabled="formDisabled">
-		</div>
-		<input
-			type="button"
-			class="primary"
-			:value="submitLabel"
-			:disabled="formDisabled || !savePossible"
-			@click="generateCertificate">
-	</div>
+	</SettingsSection>
 </template>
 
 <script>
+import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -96,6 +99,7 @@ import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'AdminFormLibresign',
 	components: {
+		SettingsSection,
 	},
 	data() {
 		return {
@@ -107,6 +111,8 @@ export default {
 				cfsslUri: '',
 				configPath: '',
 			},
+			title: t('libresign', 'Dados Certificado Raiz'),
+			description: t('libresign', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
 			submitLabel: t('libresign', 'Gerar Certificado Raiz'),
 			formDisabled: false,
 			loading: true,

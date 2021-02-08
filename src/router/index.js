@@ -34,7 +34,7 @@ export default new Router({
 	linkActiveClass: 'active',
 	routes: [
 		{
-			path: '/FormLibreSign',
+			path: '#FormLibreSign',
 			component: FormLibreSign,
 		},
 	],
