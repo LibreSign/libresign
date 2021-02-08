@@ -34,7 +34,7 @@ class Application extends App implements IBootstrap {
 				$c->query('ServerContainer')->getUserFolder()
 			);
 		});
-	}	
+	}
 	
 	private function registerHooks(): void {
 		Util::connectHook('\OCP\Config', 'js', $this, 'extendJsConfig');
