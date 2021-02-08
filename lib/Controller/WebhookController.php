@@ -59,7 +59,8 @@ class WebhookController extends ApiController {
 					Http::STATUS_FORBIDDEN
 				);
 			}
-		}try {
+		}
+		try {
 			$response = $this->service->validate([
 				'file'     => $file,
 				'users'    => $users,
