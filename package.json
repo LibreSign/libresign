@@ -23,6 +23,9 @@
         "@nextcloud/vue": "^2.6.5",
         "style-loader": "^1.2.1",
         "vue": "^2.6.12",
+        "vue-router": "^3.5.1",
+        "vuex": "^3.6.2",
+        "vuex-router-sync": "^5.0.0",
         "webpack-merge": "^5.2.0"
     },
     "browserslist": [
