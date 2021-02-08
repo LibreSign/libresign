@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\WebhookController;
+use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IConfig;
@@ -13,7 +14,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
-class WebhookControllerTest extends TestCase {
+final class WebhookControllerTest extends TestCase {
 	/** @var WebhookController */
 	private $controller;
 	/** @var IConfig */
@@ -21,7 +22,7 @@ class WebhookControllerTest extends TestCase {
 	/** @var IGroupManager */
 	private $groupManager;
 	/** @var IL10N */
-	private $l;
+	private $l10n;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var IRequest */
@@ -31,16 +32,18 @@ class WebhookControllerTest extends TestCase {
 		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->l = $this->createMock(IL10N::class);
+		$this->l10n = $this->createMock(IL10N::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->request = $this->createMock(IRequest::class);
+		$this->service = $this->createMock(WebhookService::class);
 
 		$this->controller = new WebhookController(
 			$this->request,
 			$this->config,
 			$this->groupManager,
 			$this->userSession,
-			$this->l
+			$this->l10n,
+			$this->service
 		);
 	}
 
@@ -56,12 +59,11 @@ class WebhookControllerTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->l
-			->expects($this->once())
+		$this->l10n
 			->method('t')
-			->willReturn('Insufficient permissions to use API');
+			->will($this->returnArgument(0));
 
-		$actual = $this->controller->register();
+		$actual = $this->controller->register([], []);
 		$expected = new JSONResponse([
 			'message' => 'Insufficient permissions to use API',
 		], Http::STATUS_FORBIDDEN);
@@ -70,12 +72,11 @@ class WebhookControllerTest extends TestCase {
 	}
 
 	public function testIndexSuccess() {
-		$this->l
-			->expects($this->once())
+		$this->l10n
 			->method('t')
-			->willReturn('Success');
+			->will($this->returnArgument(0));
 
-		$actual = $this->controller->register();
+		$actual = $this->controller->register([], []);
 		$expected = new JSONResponse([
 			'message' => 'Success',
 		], Http::STATUS_OK);

@@ -26,9 +26,16 @@ curl -X POST \
 
 | Parameter | Type          | Description                        |
 | --------- | ------------- | ---------------------------------- |
-| file      | string        | File to sign base64 encoded        |
+| file      | File          | File to sign                       |
 | users     | array of User | List of users to sign file         |
 | callback  | string        | Callback url when a user sign file |
+
+Parameters of File object
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| url       | string | **optional** Public URL of file |
+| base64    | string | **optional** File in base64     |
 
 Parameters of User object
 

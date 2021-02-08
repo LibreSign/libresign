@@ -34,7 +34,7 @@ class WebhookService {
 			);
 		}
 		if (!empty($data['file']['url'])) {
-			if (!filter_var($data['file_url'], FILTER_VALIDATE_URL)) {
+			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				return new DataResponse(
 					[
 						'message' => (string)$this->l10n->t('Invalid url file'),
@@ -44,7 +44,7 @@ class WebhookService {
 			}
 		}
 		if (!empty($data['file']['base64'])) {
-			$input = base64_decode($data['file_base64']);
+			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
 			if ($input != $base64) {
 				return new DataResponse(
