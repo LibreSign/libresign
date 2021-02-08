@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import MulutiSelect from '@nextcloud/vue/dist/Components/Multiselect'
 import axios from '@nextcloud/axios'
@@ -26,7 +26,7 @@ export default {
 
 	data: () => ({
 		title: t('libresign', 'Webhook'),
-		description: t('libresign', 'Selecionar grupos autorizados.'),
+		description: n('libresign', 'Selecionar grupos autorizados.'),
 		groupsSelected: [],
 		groups: [],
 	}),
