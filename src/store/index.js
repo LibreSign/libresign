@@ -20,17 +20,16 @@
  *
  */
 
-import LibresignTab from './views/LibresignTab'
+import Vue from 'vue'
+import Vuex, { Store } from 'vuex'
 
-window.addEventListener('DOMContentLoaded', () => {
-	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab('libresign', LibresignTab, (fileInfo) => {
-			if (!fileInfo || fileInfo.isDirectory()) {
-				return false
-			}
+Vue.use(Vuex)
 
-			const mimetype = fileInfo.get('mimetype') || ''
-			return mimetype === 'application/pdf'
-		}))
-	}
+const mutations = {}
+
+export default new Store({
+	 modules: {
+
+	 },
+	 mutations,
 })

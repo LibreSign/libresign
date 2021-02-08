@@ -20,17 +20,6 @@
  *
  */
 
-import LibresignTab from './views/LibresignTab'
+import Description from './Description'
 
-window.addEventListener('DOMContentLoaded', () => {
-	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab('libresign', LibresignTab, (fileInfo) => {
-			if (!fileInfo || fileInfo.isDirectory()) {
-				return false
-			}
-
-			const mimetype = fileInfo.get('mimetype') || ''
-			return mimetype === 'application/pdf'
-		}))
-	}
-})
+export default Description

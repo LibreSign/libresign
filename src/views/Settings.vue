@@ -22,64 +22,41 @@
   -->
 
 <template>
-	<AppContent>
-		<div v-if="error" class="emptycontent">
-			<div class="icon icon-error" />
-			<h2>{{ error }}</h2>
-		</div>
-		<div v-else id="content" class="app-libresign">
-			<h2>{{ t('libresign', 'Criar nova assinatura') }}</h2>
-			<FormLibresign />
-		</div>
-	</AppContent>
+	<SettingsSection
+		:title="title">
+		<AdminFormLibresign />
+		<AllowedGroups />
+	</SettingsSection>
 </template>
 
 <script>
-import FormLibresign from './views/FormLibresign'
-import AppContent from '@nextcloud/vue/dist/Components/AppContent'
+import AdminFormLibresign from './AdminFormLibresign'
+import AllowedGroups from './AllowedGroups'
+import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { translate as t } from '@nextcloud/l10n'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-
-import '@nextcloud/dialogs/styles/toast.scss'
 
 export default {
-	name: 'App',
+	name: 'Settings',
 	components: {
-		FormLibresign,
-		AppContent,
+		AdminFormLibresign,
+		SettingsSection,
+		AllowedGroups,
 	},
 	data() {
 		return {
 			loading: true,
-			error: '',
+			title: t('libresign', 'Assinador Digital'),
 		}
 	},
 	computed: {},
-	async mounted() {
-		await this.checkRootCertificate()
-	},
+	async mounted() {},
 
-	methods: {
-		async checkRootCertificate() {
-			this.error = ''
-			try {
-				const response = await axios.get(
-					generateUrl('/apps/libresign/api/0.1/signature/has-root-cert'),
-				)
-				if (!response.data || !response.data.hasRootCert) {
-					this.error = t('libresign', 'Certificado raiz não foi configurado pelo Administrador!')
-				}
-			} catch (e) {
-				console.error(e)
-			}
-		},
-	},
+	methods: {},
 }
 
 </script>
 <style scoped>
-#content {
+#libresign-admin-settings {
 	width: 100vw;
 	padding: 20px;
 	padding-top: 70px;

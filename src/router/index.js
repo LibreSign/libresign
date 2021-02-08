@@ -20,17 +20,22 @@
  *
  */
 
-import LibresignTab from './views/LibresignTab'
+import Vue from 'vue'
+import Router from 'vue-router'
+import { generateUrl } from '@nextcloud/router'
 
-window.addEventListener('DOMContentLoaded', () => {
-	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab('libresign', LibresignTab, (fileInfo) => {
-			if (!fileInfo || fileInfo.isDirectory()) {
-				return false
-			}
+import FormLibreSign from '../views/FormLibresign'
 
-			const mimetype = fileInfo.get('mimetype') || ''
-			return mimetype === 'application/pdf'
-		}))
-	}
+Vue.use(Router)
+
+export default new Router({
+	mode: 'history',
+	base: generateUrl('/apps/libresign/', ''),
+	linkActiveClass: 'active',
+	routes: [
+		{
+			path: '#FormLibreSign',
+			component: FormLibreSign,
+		},
+	],
 })
