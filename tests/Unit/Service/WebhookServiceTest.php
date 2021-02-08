@@ -3,8 +3,6 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\WebhookService;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
 
@@ -27,170 +25,127 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testEmptyFile() {
+		$this->expectExceptionMessage('Empty file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
+		$this->service->validate([]);
 	}
 
 	public function testValidateInvalidBase64File() {
+		$this->expectExceptionMessage('Invalid base64 file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' =>['base64' => 'qwert']
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Invalid base64 file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateFileUrl() {
+		$this->expectExceptionMessage('Invalid url file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'qwert']
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Invalid url file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateEmptyUserCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop']
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty users collection',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateEmptyUsersCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop']
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty users collection',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserCollectionNotArray() {
+		$this->expectExceptionMessage('User collection need is an array');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => 'asdfg'
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User collection need is an array',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserEmptyCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => null
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty users collection',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserInvalidCollection() {
+		$this->expectExceptionMessage('User collection need is an array: user 0');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				''
 			]
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User collection need is an array: user 0',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserEmpty() {
+		$this->expectExceptionMessage('User collection need is an array with values: user 0');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				[]
 			]
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User collection need is an array with values: user 0',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserWithoutEmail() {
+		$this->expectExceptionMessage('User need an email: user 0');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				[
@@ -198,21 +153,16 @@ final class WebhookServiceTest extends TestCase {
 				]
 			]
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User need an email: user 0',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserWithInvalidEmail() {
+		$this->expectExceptionMessage('Invalid email: user 0');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
+		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				[
@@ -220,12 +170,5 @@ final class WebhookServiceTest extends TestCase {
 				]
 			]
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Invalid email: user 0',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 }

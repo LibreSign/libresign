@@ -59,14 +59,19 @@ class WebhookController extends ApiController {
 					Http::STATUS_FORBIDDEN
 				);
 			}
-		}
-		$response = $this->service->validate([
-			'file'     => $file,
-			'users'    => $users,
-			'callback' => $callback
-		]);
-		if (!empty($response)) {
-			return $response;
+		}try {
+			$response = $this->service->validate([
+				'file'     => $file,
+				'users'    => $users,
+				'callback' => $callback
+			]);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
 		}
 		return new JSONResponse(
 			[

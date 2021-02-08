@@ -17,53 +17,27 @@ class WebhookService {
 	}
 
 	public function validate(array $data) {
-		$response = $this->validateFile($data);
-		if ($response) {
-			return $response;
-		}
-		$response = $this->validateUsers($data);
-		if ($response) {
-			return $response;
-		}
+		$this->validateFile($data);
+		$this->validateUsers($data);
 	}
 
 	public function validateFile($data) {
 		if (empty($data['file'])) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('Empty file'),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('Empty file'));
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64'])) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('Inform url or base64 to sign'),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('Inform url or base64 to sign'));
 		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				return new DataResponse(
-					[
-						'message' => (string)$this->l10n->t('Invalid url file'),
-					],
-					Http::STATUS_UNPROCESSABLE_ENTITY
-				);
+				throw new \Exception((string)$this->l10n->t('Invalid url file'));
 			}
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
 			if ($input != $base64) {
-				return new DataResponse(
-					[
-						'message' => (string)$this->l10n->t('Invalid base64 file'),
-					],
-					Http::STATUS_UNPROCESSABLE_ENTITY
-				);
+				throw new \Exception((string)$this->l10n->t('Invalid base64 file'));
 			}
 		}
 	}
@@ -71,61 +45,28 @@ class WebhookService {
 	public function validateUsers($data)
 	{
 		if (empty($data['users'])) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('Empty users collection'),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('Empty users collection'));
 		}
 		if (!is_array($data['users'])) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('User collection need is an array'),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('User collection need is an array'));
 		}
 		foreach ($data['users'] as $index => $user) {
-			$response = $this->validateUser($user, $index);
-			if ($response) {
-				return $response;
-			}
+			$this->validateUser($user, $index);
 		}
 	}
 
 	public function validateUser($user, $index) {
 		if (!is_array($user)) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('User collection need is an array: user ' . $index),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('User collection need is an array: user ' . $index));
 		}
 		if (!$user) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('User collection need is an array with values: user ' . $index),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('User collection need is an array with values: user ' . $index));
 		}
 		if (empty($user['email'])) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('User need an email: user ' . $index),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('User need an email: user ' . $index));
 		}
 		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
-			return new DataResponse(
-				[
-					'message' => (string)$this->l10n->t('Invalid email: user ' . $index),
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			throw new \Exception((string)$this->l10n->t('Invalid email: user ' . $index));
 		}
 	}
 }
