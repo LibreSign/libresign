@@ -41,7 +41,6 @@ export default {
 
 	components: { Description, PDFViewer },
 	data: () => ({
-		dados: json,
 		desc: '',
 		urlPdf: '',
 		name: '',
