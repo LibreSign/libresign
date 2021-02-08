@@ -33,7 +33,6 @@
 
 <script>
 import { showInfo } from '@nextcloud/dialogs'
-import json from '../assets/dados.json'
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 
