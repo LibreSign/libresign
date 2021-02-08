@@ -17,6 +17,17 @@ class WebhookService {
 	}
 
 	public function validate(array $data) {
+		$response = $this->validateFile($data);
+		if ($response) {
+			return $response;
+		}
+		$response = $this->validateUsers($data);
+		if ($response) {
+			return $response;
+		}
+	}
+
+	public function validateFile($data) {
 		if (empty($data['file'])) {
 			return new DataResponse(
 				[
@@ -55,6 +66,10 @@ class WebhookService {
 				);
 			}
 		}
+	}
+
+	public function validateUsers($data)
+	{
 		if (empty($data['users'])) {
 			return new DataResponse(
 				[
@@ -72,14 +87,42 @@ class WebhookService {
 			);
 		}
 		foreach ($data['users'] as $index => $user) {
+			$response = $this->validateUser($user, $index);
+			if ($response) {
+				return $response;
+			}
 		}
 	}
 
-	public function validateUser($user) {
-		if ($user) {
+	public function validateUser($user, $index) {
+		if (!is_array($user)) {
 			return new DataResponse(
 				[
-					'message' => (string)$this->l10n->t('User collection need is an array'),
+					'message' => (string)$this->l10n->t('User collection need is an array: user ' . $index),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		if (!$user) {
+			return new DataResponse(
+				[
+					'message' => (string)$this->l10n->t('User collection need is an array with values: user ' . $index),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		if (empty($user['email'])) {
+			return new DataResponse(
+				[
+					'message' => (string)$this->l10n->t('User need an email: user ' . $index),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+			return new DataResponse(
+				[
+					'message' => (string)$this->l10n->t('Invalid email: user ' . $index),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);

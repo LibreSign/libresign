@@ -127,8 +127,65 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertEquals($expected, $actual);
 	}
 
-	public function testValidateInvalidUserEmail() {
-		$this->markTestSkipped();
+	public function testValidateUserEmptyCollection() {
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$actual = $this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'users' => null
+		]);
+		$expected = new DataResponse(
+			[
+				'message' => 'Empty users collection',
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function testValidateUserInvalidCollection() {
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$actual = $this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'users' => [
+				''
+			]
+		]);
+		$expected = new DataResponse(
+			[
+				'message' => 'User collection need is an array: user 0',
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function testValidateUserEmpty() {
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$actual = $this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'users' => [
+				[]
+			]
+		]);
+		$expected = new DataResponse(
+			[
+				'message' => 'User collection need is an array with values: user 0',
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function testValidateUserWithoutEmail() {
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
@@ -137,14 +194,35 @@ final class WebhookServiceTest extends TestCase {
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				[
-					'name' => 'Jhon Doe',
-					'email' => 'jhon@test.coop'
+					''
 				]
 			]
 		]);
 		$expected = new DataResponse(
 			[
-				'message' => 'User email is necessary: Index 0',
+				'message' => 'User need an email: user 0',
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
+		$this->assertEquals($expected, $actual);
+	}
+
+	public function testValidateUserWithInvalidEmail() {
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$actual = $this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'users' => [
+				[
+					'email' => 'invalid'
+				]
+			]
+		]);
+		$expected = new DataResponse(
+			[
+				'message' => 'Invalid email: user 0',
 			],
 			Http::STATUS_UNPROCESSABLE_ENTITY
 		);
