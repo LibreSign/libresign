@@ -19,7 +19,7 @@ class WebhookService {
 		$this->validateUsers($data);
 	}
 
-	public function validateFile($data) {
+	private function validateFile($data) {
 		if (empty($data['file'])) {
 			throw new \Exception((string)$this->l10n->t('Empty file'));
 		}
@@ -40,7 +40,7 @@ class WebhookService {
 		}
 	}
 
-	public function validateUsers($data) {
+	private function validateUsers($data) {
 		if (empty($data['users'])) {
 			throw new \Exception((string)$this->l10n->t('Empty users collection'));
 		}
@@ -52,7 +52,7 @@ class WebhookService {
 		}
 	}
 
-	public function validateUser($user, $index) {
+	private function validateUser($user, $index) {
 		if (!is_array($user)) {
 			throw new \Exception((string)$this->l10n->t('User collection need is an array: user ' . $index));
 		}
