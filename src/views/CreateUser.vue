@@ -6,33 +6,31 @@
 					<Avatar id="avatar" :user="username.length ? username : 'User'" :size="sizeAvatar" />
 					<div class="group">
 						<input
-							ref="username"
 							v-model="username"
 							type="text"
 							:required="validator.name"
-							placeholder="Nome"
-							@blur="validationName(); validationBtn(); validationBtn()">
+							placeholder="Nome">
 						<div v-show="validator.name" class="submit-icon icon-error-white" />
 					</div>
 					<div class="group">
-						<input ref="pass"
+						<input
+							v-model="pass"
 							type="password"
 							:required="validator.pass"
-							placeholder="Senha"
-							@blur="validationPass(); validationPasswords(); validationBtn()">
+							placeholder="Senha">
 						<div v-show="validator.pass" class="submit-icon icon-error-white" />
 					</div>
 					<div class="group">
 						<input ref="passConfirm"
+							v-model="passConfirm"
 							v-tooltip.right="{
 								content: 'Assegure-se de que os campos Senha sejam iguais',
-								show: true,
-								// trigger: 'hover focus'
+								show: validator.passAlert,
+								trigger: ''
 							}"
 							type="password"
 							:required="validator.passConfirm"
-							placeholder="Confirmar senha"
-							@blur="validationPassConfirm(); validationPasswords(); validationBtn()">
+							placeholder="Confirmar senha">
 						<div v-show="validator.passConfirm" class="submit-icon icon-error-white" />
 					</div>
 
@@ -43,7 +41,7 @@
 							trigger: 'hover focus'
 						}"
 						class="group">
-						<input ref="pfx"
+						<input
 							v-model="pfx"
 							:required="validator.pfx"
 							placeholder="Senha PFX">
@@ -71,6 +69,8 @@ export default {
 	data() {
 		return {
 			username: '',
+			pass: '',
+			passConfirm: '',
 			pfx: '',
 			sizeAvatar: 100,
 			validator: {
@@ -79,11 +79,27 @@ export default {
 				passConfirm: false,
 				pfx: false,
 				btn: false,
+				passAlert: false,
 			},
 		}
 	},
 	watch: {
+		username() {
+			this.validationName()
+			this.validationBtn()
+		},
+		pass() {
+			this.validationPass()
+			this.validationPasswords()
+			this.validationBtn()
+		},
+		passConfirm() {
+			this.validationPassConfirm()
+			this.validationPasswords()
+			this.validationBtn()
+		},
 		pfx() {
+			this.validationPfx()
 			this.validationBtn()
 		},
 	},
@@ -96,21 +112,28 @@ export default {
 			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
 		},
 		validationName() {
-			if (this.$refs.username.value.length < 3) {
+			if (this.username.length < 2) {
 				this.validator.name = true
 			} else {
 				this.validator.name = false
 			}
 		},
 		validationPass() {
-			if (this.$refs.pass.value.length < 3) {
+			if (this.pass.length < 3) {
 				this.validator.pass = true
 			} else {
 				this.validator.pass = false
 			}
+			if (this.pass.length < 0 && this.passConfirm.length < 0 && this.pass !== this.passConfirm) {
+				this.validator.pass = true
+				this.validator.passConfirm = true
+			} else {
+				this.validator.pass = false
+				this.validator.passConfirm = false
+			}
 		},
 		validationPassConfirm() {
-			if (this.$refs.passConfirm.value.length < 3) {
+			if (this.passConfirm.length < 3) {
 				this.validator.passConfirm = true
 			} else {
 				this.validator.passConfirm = false
@@ -118,29 +141,29 @@ export default {
 			}
 		},
 		validationPfx() {
-			if (this.$refs.pfx.value.length < 3) {
+			if (this.pfx.length < 3) {
 				this.validator.pfx = true
 			} else {
 				this.validator.pfx = false
 			}
 		},
 		validationPasswords() {
-			if (this.$refs.pass.value !== this.$refs.passConfirm.value) {
+			if (this.pass !== this.passConfirm) {
 				this.validator.pass = true
 				this.validator.passConfirm = true
+				this.validator.passAlert = true
 			} else {
 				this.validator.pass = false
 				this.validator.passConfirm = false
+				this.validator.passAlert = false
 			}
 		},
 		validationBtn() {
-			const name = this.validator.name
-			const passConfirm = this.validator.passConfirm
-			const pfx = this.validator.pfx
-			if (name === false && passConfirm === false && pfx === false) {
-				this.validator.btn = false
-				if (this.$refs.username.value.length > 3 && this.$refs.passConfirm.value.length > 3 && this.$refs.pfx.value.length > 3) {
+			if (this.validator.name === false && this.validator.passConfirm === false && this.validator.pfx === false) {
+				if (this.username.length > 2 && this.passConfirm.length > 2 && this.pfx.length > 2) {
 					this.validator.btn = true
+				} else {
+					this.validator.btn = false
 				}
 			} else {
 				this.validator.btn = false
