@@ -82,5 +82,4 @@ final class WebhookControllerTest extends TestCase {
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
 	}
-
 }

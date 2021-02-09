@@ -42,7 +42,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' =>['base64' => 'qwert']
+			'file' => ['base64' => 'qwert']
 		]);
 	}
 

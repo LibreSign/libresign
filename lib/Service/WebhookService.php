@@ -40,8 +40,7 @@ class WebhookService {
 		}
 	}
 
-	public function validateUsers($data)
-	{
+	public function validateUsers($data) {
 		if (empty($data['users'])) {
 			throw new \Exception((string)$this->l10n->t('Empty users collection'));
 		}

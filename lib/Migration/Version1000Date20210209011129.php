@@ -43,7 +43,7 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 			'default' => '',
 		]);
 		$table->addColumn('created', Types::BIGINT, [
-			'notnull' =>  true,
+			'notnull' => true,
 			'length' => 20,
 			'unsigned' => true,
 		]);
@@ -58,5 +58,4 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 
 		return $schema;
 	}
-
 }
