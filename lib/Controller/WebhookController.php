@@ -7,6 +7,7 @@ use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -18,10 +19,10 @@ class WebhookController extends ApiController {
 	private $config;
 	/** @var IGroupManager */
 	private $groupManager;
-	/** @var IL10N */
-	private $l10n;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var IL10N */
+	private $l10n;
 	/** @var WebhookService */
 	private $service;
 

@@ -6,26 +6,27 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\Files\IRootFolder;
 use OCP\IL10N;
 
 class WebhookService {
 	/** @var IL10N */
 	private $l10n;
-	/**
-	 * @var FileMapper
-	 */
+	/** @var FileMapper */
 	private $fileMapper;
-	/**
-	 * @var FileUserMapper
-	 */
+	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var IRootFolder */
+	private $rootFolder;
 
 	public function __construct(
 		IL10N $l10n,
+		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper
 	) {
 		$this->l10n = $l10n;
+		$this->rootFolder = $rootFolder;
 		$this->file = $fileMapper;
 		$this->fileUser = $fileUserMapper;
 	}
