@@ -19,7 +19,7 @@ class FileUser extends Entity {
 	protected $userId;
 
 	/** @var string */
-	protected $created;
+	protected $createdAt;
 
 	/** @var string */
 	protected $signed;
@@ -29,7 +29,7 @@ class FileUser extends Entity {
 		$this->addType('libresignFileId', 'integer');
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
-		$this->addType('created', 'string');
+		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
 
 	}

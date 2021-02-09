@@ -36,7 +36,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 			'notnull' => true,
 			'length' => 64,
 		]);
-		$table->addColumn('created', Types::BIGINT, [
+		$table->addColumn('created_at', Types::BIGINT, [
 			'notnull' => true,
 			'length' => 20,
 			'unsigned' => true,

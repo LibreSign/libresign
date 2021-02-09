@@ -1,16 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
 
 /**
+ * @method void setId(int $id)
+ * @method int getId()
  * @method void setFileId(int $fileId)
  * @method int getFileId()
  */
 class File extends Entity {
 	/** @var integer */
-	protected $id;
+	public $id;
 
 	/** @var integer */
 	protected $fileId;
@@ -19,7 +23,7 @@ class File extends Entity {
 	protected $userId;
 
 	/** @var string */
-	protected $created;
+	protected $createdAt;
 
 	/** @var string */
 	protected $description;
@@ -37,7 +41,7 @@ class File extends Entity {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
 		$this->addType('userId', 'string');
-		$this->addType('created', 'string');
+		$this->addType('createdAt', 'string');
 		$this->addType('description', 'string');
 		$this->addType('name', 'string');
 		$this->addType('callback', 'string');
