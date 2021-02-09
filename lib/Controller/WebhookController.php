@@ -38,15 +38,17 @@ class WebhookController extends ApiController {
 	 * @NoCSRFRequired
 	 * @return JSONResponse
 	 */
-	public function register(array $file, array $users, ?string $callback = null) {
+	public function register(array $file, array $users, string $name, ?string $callback = null) {
 		$user = $this->userSession->getUser();
+		$data = [
+			'file' => $file,
+			'name' => $name,
+			'users' => $users,
+			'callback' => $callback,
+			'userManager' => $user
+		];
 		try {
-			$this->service->validate([
-				'file' => $file,
-				'users' => $users,
-				'callback' => $callback,
-				'userManager' => $user
-			]);
+			$this->service->validate($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -55,12 +57,7 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$this->service->save([
-			'file' => $file,
-			'users' => $users,
-			'callback' => $callback,
-			'userManager' => $user
-		]);
+		$this->service->save($data);
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),

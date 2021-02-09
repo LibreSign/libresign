@@ -45,7 +45,7 @@ final class WebhookControllerTest extends TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->controller->register([], []);
+		$actual = $this->controller->register([], [], '');
 		$expected = new JSONResponse([
 			'message' => 'Success',
 		], Http::STATUS_OK);
