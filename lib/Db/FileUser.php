@@ -31,6 +31,5 @@ class FileUser extends Entity {
 		$this->addType('uuid', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
-
 	}
 }

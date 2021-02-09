@@ -6,11 +6,9 @@ use OCA\Libresign\Controller\WebhookController;
 use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 

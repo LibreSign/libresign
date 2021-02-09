@@ -152,6 +152,7 @@ class WebhookService {
 		$file = new FileEntity();
 		$file->setFileId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
+		$file->setCreated
 		// $file = $this->mapper->insert($file);
 	}
 
