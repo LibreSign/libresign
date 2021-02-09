@@ -2,7 +2,9 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\IL10N;
 
@@ -12,20 +14,20 @@ class WebhookService {
 	/**
 	 * @var FileMapper
 	 */
-	private $file;
+	private $fileMapper;
 	/**
 	 * @var FileUserMapper
 	 */
-	private $fileUser;
+	private $fileUserMapper;
 
 	public function __construct(
 		IL10N $l10n,
-		FileMapper $file,
-		FileUserMapper $fileUser
+		FileMapper $fileMapper,
+		FileUserMapper $fileUserMapper
 	) {
 		$this->l10n = $l10n;
-		$this->file = $file;
-		$this->fileUser = $fileUser;
+		$this->file = $fileMapper;
+		$this->fileUser = $fileUserMapper;
 	}
 
 	public function validate(array $data) {
