@@ -118,11 +118,16 @@ class WebhookService {
 	}
 
 	public function save(array $data) {
-		$userFolder = $this->rootFolder->getUserFolder($this->userId);
+		// $userFolder = $this->rootFolder->getUserFolder($this->userId);
 
-		// $this->folderService
-
-		// $files = $userFolder->getById($fileId);
+		$userFolder = $this->folderService->getFolderForUser();
+		$folderName = $this->getFolderName($data);
+		if ($userFolder->nodeExists($folderName)) {
+			throw new \Exception('Another file like this already exists');
+		}
+		$folderToFile = $userFolder->newFolder($folderName);
+		$folderToFile->newFile($data['name'], $this->getFileRaw($data));
+		// $folderToFile->newFile
 
 		// if ($files === []) {
 		// 	throw new OCSNotFoundException();
@@ -130,5 +135,21 @@ class WebhookService {
 		// $file = new FileEntity();
 		// $file->setFileId($data);
 		// $file = $this->mapper->insert($file);
+	}
+
+	private function getFileRaw($data) {
+		if (!empty($data['file']['url'])) {
+			$file = file_get_contents($data['file']['url']);
+		}
+		return base64_decode($data['file']['base64']);
+	}
+
+	private function getFolderName(array $data) {
+		$folderName[] = date('Y-m-d\TH:i:s');
+		if (!empty($data['name'])) {
+			$folderName[] = $data['name'];
+		}
+		$folderName[] = $data['userManager']->getUID();
+		return implode('_', $folderName);
 	}
 }
