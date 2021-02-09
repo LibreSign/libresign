@@ -48,6 +48,10 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 			'notnull' => true,
 			'length' => 256
 		]);
+		$table->addColumn('callback', 'string', [
+			'notnull' => false,
+			'length' => 255,
+		]);
 		$table->addColumn('enabled', 'smallint', [
 			'notnull' => true,
 			'length' => 1,
