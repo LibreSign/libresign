@@ -1,10 +1,12 @@
+[<img src="./img/en_US.svg" width="30">](../README.md) [<img src="./img/pt_BR.svg" width="30">](./l10n/README_pt-BR.md)
+
 ![Test Status](https://github.com/lyseontech/libresign/workflows/PHPUnit/badge.svg?branch=main)
 
 # Libresign
 
 Nextcloud app to sign PDF documents 
 
-## Setup
+## Setupw
 
 ### With CFSS server
 
