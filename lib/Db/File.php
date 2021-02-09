@@ -5,8 +5,8 @@ namespace OCA\Libresign\Db;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * @method void setFile(int $fileId)
- * @method int getFile()
+ * @method void setFileId(int $fileId)
+ * @method int getFileId()
  */
 class File extends Entity {
 	/** @var integer */
