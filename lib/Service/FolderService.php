@@ -2,7 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
-class FileService {
+class FolderService {
 
 	/**
 	 * @return Folder
@@ -30,5 +30,19 @@ class FileService {
 			$folder = $this->root->newFolder($path);
 		}
 		return $folder;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getUserFolderPath() {
+		$path = $this->config->getUserValue($this->user_id, 'libresign', 'folder');
+
+		if (!$path) {
+			$path = '/' . $this->il10n->t('LibreSign');
+			$this->config->setUserValue($this->user_id, 'libresign', 'folder', $path);
+		}
+
+		return $path;
 	}
 }

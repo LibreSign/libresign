@@ -26,8 +26,8 @@ class WebhookService {
 	private $fileUserMapper;
 	/** @var IRootFolder */
 	private $rootFolder;
-	/** @var FileService */
-	private $fileService;
+	/** @var FolderService */
+	private $folderService;
 
 	public function __construct(
 		IConfig $config,
@@ -36,7 +36,7 @@ class WebhookService {
 		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
-		FileService $fileService
+		FolderService $folderService
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -44,7 +44,7 @@ class WebhookService {
 		$this->rootFolder = $rootFolder;
 		$this->file = $fileMapper;
 		$this->fileUser = $fileUserMapper;
-		$this->fileService = $fileService;
+		$this->folderService = $folderService;
 	}
 
 	public function validate(array $data) {
@@ -114,7 +114,7 @@ class WebhookService {
 	public function save(array $data) {
 		$userFolder = $this->rootFolder->getUserFolder($this->userId);
 
-		// $this->fileService
+		// $this->folderService
 
 		// $files = $userFolder->getById($fileId);
 
