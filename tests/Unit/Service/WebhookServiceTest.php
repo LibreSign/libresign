@@ -6,7 +6,10 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,6 +17,10 @@ use PHPUnit\Framework\TestCase;
  * @coversNothing
  */
 final class WebhookServiceTest extends TestCase {
+	/** @var IConfig */
+	private $config;
+	/** @var IGroupManager */
+	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var WebhookService */
@@ -24,13 +31,20 @@ final class WebhookServiceTest extends TestCase {
 	private $fileUser;
 	/** @var IRootFolder */
 	private $rootFolder;
+	/** @var IUser */
+	private $user;
 
 	public function setUp(): void {
+		$this->config = $this->createMock(IConfig::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
+		$this->user = $this->createMock(IUser::class);
 		$this->service = new WebhookService(
+			$this->config,
+			$this->groupManager,
 			$this->l10n,
 			$this->rootFolder,
 			$this->file,
@@ -45,7 +59,9 @@ final class WebhookServiceTest extends TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$this->service->validate([]);
+		$this->service->validate([
+			'userManager' => $this->user
+		]);
 	}
 
 	public function testValidateInvalidBase64File() {
@@ -56,7 +72,8 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['base64' => 'qwert']
+			'file' => ['base64' => 'qwert'],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -68,7 +85,8 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'qwert']
+			'file' => ['url' => 'qwert'],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -80,7 +98,8 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop']
+			'file' => ['url' => 'http://test.coop'],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -92,7 +111,8 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop']
+			'file' => ['url' => 'http://test.coop'],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -105,7 +125,8 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
-			'users' => 'asdfg'
+			'users' => 'asdfg',
+			'userManager' => $this->user
 		]);
 	}
 
@@ -118,7 +139,8 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
-			'users' => null
+			'users' => null,
+			'userManager' => $this->user
 		]);
 	}
 
@@ -133,7 +155,8 @@ final class WebhookServiceTest extends TestCase {
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				''
-			]
+			],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -148,7 +171,8 @@ final class WebhookServiceTest extends TestCase {
 			'file' => ['url' => 'http://test.coop'],
 			'users' => [
 				[]
-			]
+			],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -165,7 +189,8 @@ final class WebhookServiceTest extends TestCase {
 				[
 					''
 				]
-			]
+			],
+			'userManager' => $this->user
 		]);
 	}
 
@@ -182,7 +207,30 @@ final class WebhookServiceTest extends TestCase {
 				[
 					'email' => 'invalid'
 				]
-			]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testIndexWithoutPermission() {
+		$this->expectExceptionMessage('Insufficient permissions to use API');
+		$this->config
+			->expects($this->once())
+			->method('getAppValue')
+			->willReturn('["admin"]');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
 		]);
 	}
 }

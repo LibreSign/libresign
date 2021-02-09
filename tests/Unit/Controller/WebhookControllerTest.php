@@ -17,10 +17,6 @@ use PHPUnit\Framework\TestCase;
 final class WebhookControllerTest extends TestCase {
 	/** @var WebhookController */
 	private $controller;
-	/** @var IConfig */
-	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var IUserSession */
@@ -30,7 +26,6 @@ final class WebhookControllerTest extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -39,36 +34,10 @@ final class WebhookControllerTest extends TestCase {
 
 		$this->controller = new WebhookController(
 			$this->request,
-			$this->config,
-			$this->groupManager,
 			$this->userSession,
 			$this->l10n,
 			$this->service
 		);
-	}
-
-	public function testIndexWithoutPermission() {
-		$this->config
-			->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["admin"]');
-
-		$user = $this->createMock(IUser::class);
-		$this->userSession
-			->expects($this->once())
-			->method('getUser')
-			->willReturn($user);
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
-		$actual = $this->controller->register([], []);
-		$expected = new JSONResponse([
-			'message' => 'Insufficient permissions to use API',
-		], Http::STATUS_FORBIDDEN);
-
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testIndexSuccess() {

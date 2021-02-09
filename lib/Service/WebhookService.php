@@ -2,14 +2,22 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IUser;
 
 class WebhookService {
+	/** @var IConfig */
+	private $config;
+	/** @var IGroupManager */
+	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileMapper */
@@ -20,11 +28,15 @@ class WebhookService {
 	private $rootFolder;
 
 	public function __construct(
+		IConfig $config,
+		IGroupManager $groupManager,
 		IL10N $l10n,
 		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper
 	) {
+		$this->config = $config;
+		$this->groupManager = $groupManager;
 		$this->l10n = $l10n;
 		$this->rootFolder = $rootFolder;
 		$this->file = $fileMapper;
@@ -32,8 +44,19 @@ class WebhookService {
 	}
 
 	public function validate(array $data) {
+		$this->validateUserManager($data['userManager']);
 		$this->validateFile($data);
 		$this->validateUsers($data);
+	}
+
+	private function validateUserManager(IUser $user) {
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		if (!empty($authorized)) {
+			$userGroups = $this->groupManager->getUserGroupIds($user);
+			if (!array_intersect($userGroups, $authorized)) {
+				throw new \Exception($this->l10n->t('Insufficient permissions to use API'));
+			}
+		}
 	}
 
 	private function validateFile($data) {

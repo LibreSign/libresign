@@ -8,17 +8,11 @@ use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 class WebhookController extends ApiController {
-	/** @var IConfig */
-	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var IL10N */
@@ -28,15 +22,11 @@ class WebhookController extends ApiController {
 
 	public function __construct(
 		IRequest $request,
-		IConfig $config,
-		IGroupManager $groupManager,
 		IUserSession $userSession,
 		IL10N $l10n,
 		WebhookService $service
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->config = $config;
-		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
 		$this->l10n = $l10n;
 		$this->service = $service;
@@ -49,23 +39,13 @@ class WebhookController extends ApiController {
 	 * @return JSONResponse
 	 */
 	public function register(array $file, array $users, ?string $callback = null) {
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
-			if (!array_intersect($userGroups, $authorized)) {
-				return new JSONResponse(
-					[
-						'message' => $this->l10n->t('Insufficient permissions to use API'),
-					],
-					Http::STATUS_FORBIDDEN
-				);
-			}
-		}
+		$user = $this->userSession->getUser();
 		try {
 			$this->service->validate([
 				'file' => $file,
 				'users' => $users,
-				'callback' => $callback
+				'callback' => $callback,
+				'userManager' => $user
 			]);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
@@ -78,7 +58,8 @@ class WebhookController extends ApiController {
 		$this->service->save([
 			'file' => $file,
 			'users' => $users,
-			'callback' => $callback
+			'callback' => $callback,
+			'userManager' => $user
 		]);
 		return new JSONResponse(
 			[
