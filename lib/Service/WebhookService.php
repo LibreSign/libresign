@@ -26,6 +26,8 @@ class WebhookService {
 	private $fileUserMapper;
 	/** @var IRootFolder */
 	private $rootFolder;
+	/** @var FileService */
+	private $fileService;
 
 	public function __construct(
 		IConfig $config,
@@ -33,7 +35,8 @@ class WebhookService {
 		IL10N $l10n,
 		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper
+		FileUserMapper $fileUserMapper,
+		FileService $fileService
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -41,6 +44,7 @@ class WebhookService {
 		$this->rootFolder = $rootFolder;
 		$this->file = $fileMapper;
 		$this->fileUser = $fileUserMapper;
+		$this->fileService = $fileService;
 	}
 
 	public function validate(array $data) {
@@ -108,5 +112,17 @@ class WebhookService {
 	}
 
 	public function save(array $data) {
+		$userFolder = $this->rootFolder->getUserFolder($this->userId);
+
+		// $this->fileService
+
+		// $files = $userFolder->getById($fileId);
+
+		// if ($files === []) {
+		// 	throw new OCSNotFoundException();
+		// }
+		// $file = new FileEntity();
+		// $file->setFileId($data);
+		// $file = $this->mapper->insert($file);
 	}
 }
