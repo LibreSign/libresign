@@ -67,8 +67,8 @@ class WebhookService {
 		if (empty($data['name'])) {
 			throw new \Exception((string)$this->l10n->t('Name is mandatory'));
 		}
-		if (!preg_match('/^[\w \-_\.]+$/', $data['name'])) {
-			throw new \Exception((string)$this->l10n->t('The name can only contain "a-z", "A-Z", "0-9" and "-_." chars.'));
+		if (!preg_match('/^[\w \-_]+$/', $data['name'])) {
+			throw new \Exception((string)$this->l10n->t('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.'));
 		}
 		if (empty($data['file'])) {
 			throw new \Exception((string)$this->l10n->t('Empty file'));
