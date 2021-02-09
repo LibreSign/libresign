@@ -74,6 +74,11 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+		$this->service->save([
+			'file' => $file,
+			'users' => $users,
+			'callback' => $callback
+		]);
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),

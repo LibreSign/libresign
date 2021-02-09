@@ -2,16 +2,30 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUserMapper;
 use OCP\IL10N;
 
 class WebhookService {
 	/** @var IL10N */
 	private $l10n;
+	/**
+	 * @var FileMapper
+	 */
+	private $file;
+	/**
+	 * @var FileUserMapper
+	 */
+	private $fileUser;
 
 	public function __construct(
-		IL10N $l10n
+		IL10N $l10n,
+		FileMapper $file,
+		FileUserMapper $fileUser
 	) {
 		$this->l10n = $l10n;
+		$this->file = $file;
+		$this->fileUser = $fileUser;
 	}
 
 	public function validate(array $data) {
@@ -65,5 +79,8 @@ class WebhookService {
 		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception((string)$this->l10n->t('Invalid email: user ' . $index));
 		}
+	}
+
+	public function save(array $data) {
 	}
 }
