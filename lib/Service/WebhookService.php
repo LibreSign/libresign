@@ -2,8 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 
 class WebhookService {
