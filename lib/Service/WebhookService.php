@@ -12,6 +12,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use Symfony\Component\HttpClient\HttpClient;
 
 class WebhookService {
 	/** @var IConfig */
@@ -28,6 +29,8 @@ class WebhookService {
 	private $rootFolder;
 	/** @var FolderService */
 	private $folderService;
+	/** @var HttpClient */
+	private $client;
 
 	public function __construct(
 		IConfig $config,
@@ -80,6 +83,12 @@ class WebhookService {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception((string)$this->l10n->t('Invalid url file'));
 			}
+			$client = $this->getHttpClient();
+			$response = $client->request('GET', $data['file']['url']);
+			$contentType = $response->getHeaders()['content-type'][0];
+			if ($contentType != 'application/pdf') {
+				throw new \Exception((string)$this->l10n->t('The URL should be a PDF.'));
+			}
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
@@ -88,6 +97,14 @@ class WebhookService {
 				throw new \Exception((string)$this->l10n->t('Invalid base64 file'));
 			}
 		}
+	}
+
+	private function getHttpClient() {
+		if ($this->client) {
+			return $this->client;
+		}
+		$this->client = HttpClient::create();
+		return $this->client;
 	}
 
 	private function validateUsers($data) {
@@ -126,20 +143,22 @@ class WebhookService {
 			throw new \Exception('Another file like this already exists');
 		}
 		$folderToFile = $userFolder->newFolder($folderName);
-		$folderToFile->newFile($data['name'], $this->getFileRaw($data));
+		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 		// $folderToFile->newFile
 
 		// if ($files === []) {
 		// 	throw new OCSNotFoundException();
 		// }
-		// $file = new FileEntity();
-		// $file->setFileId($data);
+		$file = new FileEntity();
+		$file->setFileId($node->getId());
 		// $file = $this->mapper->insert($file);
 	}
 
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
-			$file = file_get_contents($data['file']['url']);
+			$client = $this->getHttpClient();
+			$response = $client->request('GET', $data['file']['url']);
+			return $response->getContent();
 		}
 		return base64_decode($data['file']['base64']);
 	}
