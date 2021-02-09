@@ -33,7 +33,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 			'notnull' => true,
 		]);
 		$table->addColumn('user_id', Types::STRING, [
-			'notnull' => false,
+			'notnull' => true,
 			'length' => 64,
 		]);
 		$table->addColumn('created', Types::BIGINT, [
