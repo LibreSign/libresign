@@ -61,7 +61,7 @@ class WebhookController extends ApiController {
 			}
 		}
 		try {
-			$response = $this->service->validate([
+			$this->service->validate([
 				'file'     => $file,
 				'users'    => $users,
 				'callback' => $callback
