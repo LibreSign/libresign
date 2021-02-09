@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\WebhookService;
+use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
 
@@ -21,13 +22,17 @@ final class WebhookServiceTest extends TestCase {
 	private $file;
 	/** @var FileUserMapper */
 	private $fileUser;
+	/** @var IRootFolder */
+	private $rootFolder;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->service = new WebhookService(
 			$this->l10n,
+			$this->rootFolder,
 			$this->file,
 			$this->fileUser
 		);
