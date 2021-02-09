@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\Files\Db;
+namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
 
