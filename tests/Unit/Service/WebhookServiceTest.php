@@ -65,6 +65,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
+			'name' => 'test',
 			'userManager' => $this->user
 		]);
 	}
@@ -78,6 +79,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['base64' => 'qwert'],
+			'name' => 'test',
 			'userManager' => $this->user
 		]);
 	}
@@ -91,7 +93,35 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
+			'name' => 'test',
 			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateNameIsMandatory() {
+		$this->expectExceptionMessage('Name is mandatory');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['url' => 'qwert'],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateInvalidName() {
+		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_." chars.');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['url' => 'qwert'],
+			'userManager' => $this->user,
+			'name' => '@#$%*('
 		]);
 	}
 
@@ -104,6 +134,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'userManager' => $this->user
 		]);
 	}
@@ -117,6 +148,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'userManager' => $this->user
 		]);
 	}
@@ -130,6 +162,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => 'asdfg',
 			'userManager' => $this->user
 		]);
@@ -144,6 +177,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => null,
 			'userManager' => $this->user
 		]);
@@ -158,6 +192,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => [
 				''
 			],
@@ -174,6 +209,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => [
 				[]
 			],
@@ -190,6 +226,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => [
 				[
 					''
@@ -208,6 +245,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => [
 				[
 					'email' => 'invalid'
@@ -230,6 +268,7 @@ final class WebhookServiceTest extends TestCase {
 
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
 			'users' => [
 				[
 					'email' => 'jhondoe@test.coop'

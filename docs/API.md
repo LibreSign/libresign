@@ -28,6 +28,7 @@ curl -X POST \
 | --------- | ------------- | ---------------------------------- |
 | file      | File          | File to sign                       |
 | users     | array of User | List of users to sign file         |
+| name      | string        | Name for file                      |
 | callback  | string        | Callback url when a user sign file |
 
 Parameters of File object
