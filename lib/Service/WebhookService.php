@@ -8,7 +8,6 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
-use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -27,8 +26,6 @@ class WebhookService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
-	/** @var IRootFolder */
-	private $rootFolder;
 	/** @var FolderService */
 	private $folderService;
 	/** @var ClientService */
@@ -38,7 +35,6 @@ class WebhookService {
 		IConfig $config,
 		IGroupManager $groupManager,
 		IL10N $l10n,
-		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
 		FolderService $folderService,
@@ -47,7 +43,6 @@ class WebhookService {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
 		$this->l10n = $l10n;
-		$this->rootFolder = $rootFolder;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->folderService = $folderService;
