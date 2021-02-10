@@ -24,7 +24,7 @@
 						<input
 							v-model="pass"
 							v-tooltip.right="{
-								content: 'Senha deve ter pelo menos 8 caracteres',
+								content: 'A senha deve ter no mínimo 8 caracteres',
 								show: tooltip.pass,
 								trigger: 'false'
 							}"
@@ -78,7 +78,6 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-// import isMobile from '../../../dashboard/src/mixins/isMobile'
 export default {
 	name: 'CreateUser',
 	components: {
@@ -109,7 +108,6 @@ export default {
 				passConfirmFocus: false,
 
 			},
-			isMobile: null,
 		}
 	},
 	watch: {
@@ -338,5 +336,4 @@ input {
 		max-width: 317px;
 	}
 }
-
 </style>
