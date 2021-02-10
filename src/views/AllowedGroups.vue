@@ -26,7 +26,7 @@ export default {
 
 	data: () => ({
 		title: t('libresign', 'Webhook'),
-		description: t('libresign', 'Selecionar grupos autorizados.'),
+		description: t('libresign', 'Select authorized groups.'),
 		groupsSelected: [],
 		groups: [],
 	}),

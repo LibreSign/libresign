@@ -25,7 +25,7 @@
 	<SettingsSection :title="title" :description="description">
 		<div id="formLibresign" class="form-libresign">
 			<div class="form-group">
-				<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
+				<label for="commonName">{{ t('libresign', 'Name (CN)') }}</label>
 				<input
 					id="commonName"
 					ref="commonName"
@@ -34,7 +34,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="country">{{ t('libresign', 'País (C)') }}</label>
+				<label for="country">{{ t('libresign', 'Country (C)') }}</label>
 				<input
 					id="country"
 					ref="country"
@@ -43,7 +43,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
+				<label for="organization">{{ t('libresign', 'Organization (O)') }}</label>
 				<input
 					id="organization"
 					ref="organization"
@@ -52,7 +52,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
+				<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
 				<input
 					id="organizationUnit"
 					ref="organizationUnit"
@@ -111,9 +111,9 @@ export default {
 				cfsslUri: '',
 				configPath: '',
 			},
-			title: t('libresign', 'Dados Certificado Raiz'),
-			description: t('libresign', 'Para gerar novas assinaturas, é preciso primeiro gerar o ceritificado raiz'),
-			submitLabel: t('libresign', 'Gerar Certificado Raiz'),
+			title: t('libresign', 'Root Certificate Data.'),
+			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
+			submitLabel: t('libresign', 'Generate Root Certificate.'),
 			formDisabled: false,
 			loading: true,
 		}
@@ -154,7 +154,7 @@ export default {
 				return
 			} catch (e) {
 				console.error(e)
-				showError(t('libresign', 'Não foi possivel gerar certificado'))
+				showError(t('libresign', 'Could not generate certificate.'))
 				this.submitLabel = 'Gerar Certificado Raiz'
 
 			}

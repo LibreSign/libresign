@@ -35,7 +35,7 @@
 			<h2>{{ response }}</h2>
 		</div>
 		<div v-else id="libresignTabContent">
-			<label for="path">{{ t('libresign', 'Local da assinatura') }}</label>
+			<label for="path">{{ t('libresign', 'Signature location.') }}</label>
 			<div class="form-group">
 				<input
 					id="path"
@@ -46,13 +46,13 @@
 				<button
 					id="pickFromCloud"
 					:class="'icon-folder'"
-					:title="t('libresign', 'Selecionar local da assinatura')"
+					:title="t('libresign', 'Select subscription location.')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Selecionar Assinatura') }}
+					{{ t('libresign', 'Select Subscription.') }}
 				</button>
 			</div>
-			<label for="password">{{ t('libresign', 'Senha da assinatura') }}</label>
+			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 			<div class="form-group">
 				<input
 					id="password"
@@ -63,7 +63,7 @@
 			<input
 				type="button"
 				class="primary"
-				:value="t('libresign', 'Assinar Documento')"
+				:value="t('libresign', 'Sign the document.')"
 				:disabled="updating || !savePossible"
 				@click="sign">
 		</div>
@@ -102,7 +102,7 @@ export default {
 			icon: 'icon-rename',
 			updating: false,
 			loading: true,
-			name: t('libresign', 'Assinar Documento'),
+			name: t('libresign', 'Sign the document'),
 		}
 	},
 
@@ -138,17 +138,17 @@ export default {
 				if (!response.data || !response.data.fileSigned) {
 					throw new Error(response.data)
 				}
-				this.response = t('libresign', 'Documento assinado disponivel em ') + response.data.fileSigned
+				this.response = t('libresign', 'Signed document available at ') + response.data.fileSigned
 
 			} catch (e) {
 				console.error(e)
-				this.error = t('libresign', 'Não foi possivel assinar documento!')
+				this.error = t('libresign', 'Could not sign document!')
 			}
 			this.updating = false
 		},
 
 		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('libresign', 'Escolha o local da assinatura'))
+			const picker = getFilePickerBuilder(t('libresign', 'Choose your subscription location!'))
 				.setMultiSelect(false)
 				.addMimeTypeFilter('application/octet-stream')
 				.setModal(true)
