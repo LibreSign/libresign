@@ -46,6 +46,7 @@ final class WebhookControllerTest extends TestCase {
 		$actual = $this->controller->register([], [], '');
 		$expected = new JSONResponse([
 			'message' => 'Success',
+			'data' => null
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
 	}
