@@ -33,7 +33,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="commonName">{{ t('libresign', 'Nome (CN)') }}</label>
+			<label for="commonName">{{ t('libresign', 'Name (CN)') }}</label>
 			<input
 				id="commonName"
 				ref="commonName"
@@ -42,7 +42,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="country">{{ t('libresign', 'País (C)') }}</label>
+			<label for="country">{{ t('libresign', 'Country (C)') }}</label>
 			<input
 				id="country"
 				ref="country"
@@ -51,7 +51,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organization">{{ t('libresign', 'Organização (O)') }}</label>
+			<label for="organization">{{ t('libresign', 'Organization (O)') }}</label>
 			<input
 				id="organization"
 				ref="organization"
@@ -60,7 +60,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organizationUnit">{{ t('libresign', 'Unidade da organização (OU)') }}</label>
+			<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
 			<input
 				id="organizationUnit"
 				ref="organizationUnit"
@@ -69,7 +69,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="password">{{ t('libresign', 'Senha da assinatura') }}</label>
+			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 			<input
 				id="password"
 				v-model="signature.password"
@@ -77,7 +77,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="path">{{ t('libresign', 'Armazenamento da assinatura') }}</label>
+			<label for="path">{{ t('libresign', 'Signature storage.') }}</label>
 			<div>
 				<input
 					id="path"
@@ -88,17 +88,17 @@
 				<button
 					id="pickFromCloud"
 					:class="'icon-folder'"
-					:title="t('libresign', 'Selecionar pasta onde assinatura será salva')"
+					:title="t('libresign', 'Select folder where signature will be saved.')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Selecionar Pasta') }}
+					{{ t('libresign', 'Select Folder.') }}
 				</button>
 			</div>
 		</div>
 		<input
 			type="button"
 			class="primary"
-			:value="t('libresign', 'Gerar Assinatura')"
+			:value="t('libresign', 'Generate Subscription.')"
 			:disabled="updating || !savePossible"
 			@click="saveSignature">
 		<Modal
@@ -106,7 +106,7 @@
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">
-				{{ t('libresign','Assinatura gerada e disponivel em ') }} {{ signature.path }} !
+				{{ t('libresign','Subscription generated and available at ') }} {{ signature.path }} !
 			</div>
 		</Modal>
 	</div>
@@ -174,7 +174,7 @@ export default {
 				this.showModal()
 			} catch (e) {
 				console.error(e)
-				showError(t('libresign', 'Não foi possivel criar assinatura'))
+				showError(t('libresign', 'Could not create signature.'))
 			}
 			this.updating = false
 		},
@@ -194,7 +194,7 @@ export default {
 			}
 		},
 		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('libresign', 'Escolha uma pasta para armazenar a assinatura'))
+			const picker = getFilePickerBuilder(t('libresign', 'Choose a folder to store your signature!'))
 				.setMultiSelect(false)
 				.addMimeTypeFilter('httpd/unix-directory')
 				.setModal(true)

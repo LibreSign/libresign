@@ -28,7 +28,7 @@
 			<h2>{{ error }}</h2>
 		</div>
 		<div v-else id="content" class="app-libresign">
-			<h2>{{ t('libresign', 'Criar nova assinatura') }}</h2>
+			<h2>{{ t('libresign', 'Create new subscription.') }}</h2>
 			<FormLibresign />
 		</div>
 	</AppContent>
@@ -68,7 +68,7 @@ export default {
 					generateUrl('/apps/libresign/api/0.1/signature/has-root-cert'),
 				)
 				if (!response.data || !response.data.hasRootCert) {
-					this.error = t('libresign', 'Certificado raiz não foi configurado pelo Administrador!')
+					this.error = t('libresign', 'Root certificate has not been configured by the Administrator!')
 				}
 			} catch (e) {
 				console.error(e)

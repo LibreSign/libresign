@@ -31,7 +31,7 @@
 		<div id="body">
 			<form @submit="e => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
-					<label for="password">{{ t('libresign', 'Senha da Assinatura') }}</label>
+					<label for="password">{{ t('libresign', 'Subscription Password') }}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
 						<button type="button"
@@ -39,7 +39,7 @@
 							class="primary"
 							:disabled="updating"
 							@click="checkAssign">
-							{{ t('libresign', 'Assinar Documento') }}
+							{{ t('libresign', 'Sign the Document.') }}
 						</button>
 					</div>
 				</div>
@@ -63,12 +63,12 @@ export default {
 		pdfName: {
 			type: String,
 			required: true,
-			default: 'Nome do PDF',
+			default: 'PDF Name',
 		},
 		pdfDescription: {
 			type: String,
 			required: false,
-			default: 'Descrição',
+			default: 'Description',
 		},
 	},
 
@@ -79,7 +79,7 @@ export default {
 			signaturePath: '2',
 			password: '',
 			asign: true,
-			buttonValue: t('libresign', 'Assinar Documento'),
+			buttonValue: t('libresign', 'Sign the Document'),
 		}
 	},
 
@@ -110,7 +110,7 @@ export default {
 
 		checkAssign() {
 			if (this.hasSavePossible === true) {
-				showSuccess(t('libresign', 'Assinado!'))
+				showSuccess(t('libresign', 'Signed!'))
 			}
 		},
 	},

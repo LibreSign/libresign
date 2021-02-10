@@ -28,16 +28,16 @@
 				<input v-model="username"
 					type="text"
 					required
-					placeholder="Nome">
-				<input type="password" required placeholder="Senha">
+					:placeholder="t('libresign', 'Username...')">
+				<input type="password" required :placeholder="t('libresign', 'Password...')">
 
 				<div v-tooltip.right="{
-					content: 'Senha para confirmar assinatura no documento!',
+					content: t('libresign', 'Password to confirm signature on the document!'),
 					show: true,
 					trigger: 'hover focus'
 
 				}">
-					<input type="password" required placeholder="Senha PFX">
+					<input type="password" required :placeholder="t('libresign', 'Password PFX')">
 				</div>
 				<button @click="teste">
 					Cadastrar

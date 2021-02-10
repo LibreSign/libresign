@@ -57,7 +57,7 @@ export default {
 	methods: {
 		checkHasUser() {
 			if (this.user.length === 0) {
-				showInfo(t('libresign', 'Usuario não existe, por favor crie uma nova conta!'))
+				showInfo(t('libresign', 'User does not exist, please create a new account!'))
 				this.$router.push({ name: 'CreateUser' })
 			}
 		},
