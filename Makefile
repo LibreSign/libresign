@@ -90,5 +90,6 @@ appstore:
 	$(project_directory)/img \
 	$(project_directory)/js \
 	$(project_directory)/lib \
+	$(project_directory)/node_modules \
 	$(project_directory)/templates \
 	$(project_directory)/vendor
