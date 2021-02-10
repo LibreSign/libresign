@@ -1,12 +1,12 @@
 <template>
 	<SettingsSection :title="title" :description="description">
 		<MulutiSelect
+			:key="idKey"
 			v-model="groupsSelected"
 			:options="groups"
 			:close-on-select="false"
 			:multiple="true"
-			:tag-width="300"
-			@change="saveGroups" />
+			@input="saveGroups" />
 	</SettingsSection>
 </template>
 
@@ -29,21 +29,28 @@ export default {
 		description: t('libresign', 'Select authorized groups.'),
 		groupsSelected: [],
 		groups: [],
+		idKey: 0,
 	}),
 
 	created() {
 		this.get()
+		this.getData()
 	},
 
 	methods: {
-		getData() {
-			const list = OC.AppConfig.getValue('libresign', 'webhook_authorized')
-			// eslint-disable-next-line
-			console.log(list)
+		async getData() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {}
+			)
+			this.groupsSelected = JSON.parse(response.data.ocs.data.data)
 		},
+
 		saveGroups() {
 			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected)
 			OCP.AppConfig.setValue('libresign', 'webhook_authorized', listOfInputGroupsSelected)
+			this.idKey += 1
+			// eslint-disable-next-line
+			console.log(this.groupsSelected)
 		},
 
 		async get() {
