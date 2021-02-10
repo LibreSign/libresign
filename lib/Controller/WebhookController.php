@@ -17,18 +17,18 @@ class WebhookController extends ApiController {
 	/** @var IL10N */
 	private $l10n;
 	/** @var WebhookService */
-	private $service;
+	private $webhook;
 
 	public function __construct(
 		IRequest $request,
 		IUserSession $userSession,
 		IL10N $l10n,
-		WebhookService $service
+		WebhookService $webhook
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->userSession = $userSession;
 		$this->l10n = $l10n;
-		$this->service = $service;
+		$this->webhook = $webhook;
 	}
 
 	/**
@@ -47,7 +47,7 @@ class WebhookController extends ApiController {
 			'userManager' => $user
 		];
 		try {
-			$this->service->validate($data);
+			$this->webhook->validate($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -56,7 +56,7 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$return = $this->service->save($data);
+		$return = $this->webhook->save($data);
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),

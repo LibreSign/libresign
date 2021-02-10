@@ -28,13 +28,13 @@ final class WebhookControllerTest extends TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->request = $this->createMock(IRequest::class);
-		$this->service = $this->createMock(WebhookService::class);
+		$this->webhook = $this->createMock(WebhookService::class);
 
 		$this->controller = new WebhookController(
 			$this->request,
 			$this->userSession,
 			$this->l10n,
-			$this->service
+			$this->webhook
 		);
 	}
 
