@@ -6,7 +6,7 @@
 
 Nextcloud app to sign PDF documents 
 
-## Setupw
+## Setup
 
 ### With CFSS server
 
