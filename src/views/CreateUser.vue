@@ -7,31 +7,50 @@
 					<div class="group">
 						<input
 							v-model="username"
+							v-tooltip.right="{
+								content: 'Insira seu nome ',
+								show: tooltip.name,
+								trigger: 'false',
+							}"
 							type="text"
 							:required="validator.name"
-							placeholder="Nome">
-						<div v-show="validator.name" class="submit-icon icon-error-white" />
+							placeholder="Nome"
+							@focus="tooltip.nameFocus = true; tooltip.name = false"
+							@blur="tooltip.nameFocus = false; validationName()">
+						<div v-show="validator.name"
+							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="pass"
+							v-tooltip.right="{
+								content: 'Senha deve ter pelo menos 8 caracteres',
+								show: tooltip.pass,
+								trigger: 'false'
+							}"
 							type="password"
 							:required="validator.pass"
-							placeholder="Senha">
-						<div v-show="validator.pass" class="submit-icon icon-error-white" />
+							placeholder="Senha"
+							@focus="tooltip.passFocus = true; tooltip.pass = false"
+							@blur="tooltip.passFocus = false; validationPass()">
+						<div v-show="validator.pass"
+							class="icon-error-white" />
 					</div>
 					<div class="group">
-						<input ref="passConfirm"
+						<input
 							v-model="passConfirm"
 							v-tooltip.right="{
-								content: 'Assegure-se de que os campos Senha sejam iguais',
-								show: validator.passAlert,
-								trigger: ''
+								content: 'Senhas não coincidem',
+								show: tooltip.passConfirm,
+								trigger: 'false'
 							}"
 							type="password"
 							:required="validator.passConfirm"
-							placeholder="Confirmar senha">
-						<div v-show="validator.passConfirm" class="submit-icon icon-error-white" />
+							placeholder="Confirmar senha"
+							@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
+							@blur="tooltip.passConfirmFocus = false; validationPasswords()">
+						<div v-show="validator.passConfirm"
+							class="icon-error-white" />
 					</div>
 
 					<div
@@ -45,9 +64,9 @@
 							v-model="pfx"
 							:required="validator.pfx"
 							placeholder="Senha PFX">
-						<div v-show="validator.pfx" class="submit-icon icon-error-white" />
+						<div v-show="validator.pfx" class="icon-error-white" />
 					</div>
-					<button :key="validator.btn" class="btn" :disabled="!validator.btn">
+					<button class="btn" :disabled="!validator.btn">
 						Cadastrar
 					</button>
 				</form>
@@ -59,6 +78,7 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+// import isMobile from '../../../dashboard/src/mixins/isMobile'
 export default {
 	name: 'CreateUser',
 	components: {
@@ -79,8 +99,17 @@ export default {
 				passConfirm: false,
 				pfx: false,
 				btn: false,
-				passAlert: false,
 			},
+			tooltip: {
+				name: false,
+				nameFocus: false,
+				pass: false,
+				passFocus: false,
+				passConfirm: false,
+				passConfirmFocus: false,
+
+			},
+			isMobile: null,
 		}
 	},
 	watch: {
@@ -111,20 +140,34 @@ export default {
 		changeSizeAvatar() {
 			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
 		},
+
 		validationName() {
-			if (this.username.length < 2) {
+			if (this.username.length < 3) {
 				this.validator.name = true
+				if (this.tooltip.nameFocus === false) {
+					this.tooltip.name = true
+				} else {
+					this.tooltip.name = false
+					this.tooltip.name = false
+				}
 			} else {
 				this.validator.name = false
+				this.tooltip.name = false
 			}
 		},
 		validationPass() {
-			if (this.pass.length < 3) {
+			if (this.pass.length < 8) {
 				this.validator.pass = true
+				if (this.tooltip.passFocus === false) {
+					this.tooltip.pass = true
+				} else {
+					this.tooltip.pass = false
+				}
 			} else {
 				this.validator.pass = false
+				this.tooltip.pass = false
 			}
-			if (this.pass.length < 0 && this.passConfirm.length < 0 && this.pass !== this.passConfirm) {
+			if (this.pass.length > 0 && this.passConfirm.length > 0 && this.pass !== this.passConfirm) {
 				this.validator.pass = true
 				this.validator.passConfirm = true
 			} else {
@@ -133,7 +176,7 @@ export default {
 			}
 		},
 		validationPassConfirm() {
-			if (this.passConfirm.length < 3) {
+			if (this.passConfirm.length < 8) {
 				this.validator.passConfirm = true
 			} else {
 				this.validator.passConfirm = false
@@ -151,11 +194,14 @@ export default {
 			if (this.pass !== this.passConfirm) {
 				this.validator.pass = true
 				this.validator.passConfirm = true
-				this.validator.passAlert = true
+				if (this.tooltip.passConfirmFocus === false && this.tooltip.passFocus === false) {
+					this.tooltip.passConfirm = true
+				} else {
+					this.tooltip.passConfirm = false
+				}
 			} else {
 				this.validator.pass = false
 				this.validator.passConfirm = false
-				this.validator.passAlert = false
 			}
 		},
 		validationBtn() {
@@ -207,15 +253,6 @@ input {
 	min-width: 317px;
 	width: 100%
 }
-@media screen and (max-width: 535px) {
-	form {width: 90%}
-	.jumbotron{
-		background-image: linear-gradient(#fff,#fff);
-		animation: 1s;
-		background-position-x: 50%;
-	}
-
-}
 
 #tooltip{
 	position: relative;
@@ -242,6 +279,7 @@ input {
 
 .btn{
 	margin-top: 10px;
+	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 }
 
 .bg{
@@ -251,11 +289,54 @@ input {
 	width: 400px;
 	border-radius: 5px;
 	box-shadow: rgba(0, 130, 201, 0.4) 5px 5px, rgba(0, 130, 201, 0.3) 10px 10px, rgba(0, 130, 201, 0.2) 15px 15px, rgba(0, 130, 201, 0.1) 20px 20px, rgba(0, 130, 201, 0.05) 25px 25px;
+
+	transition: all;
+	transition-duration: 1s;
 }
 
 .jumbotron{
 	background-image: url('../../img/bg.jpg');
 	background-size: cover;
+
+	transition: background-position-x;
+	transition-duration: 2s;
+}
+
+@media screen and (max-width: 750px) {
+	.jumbotron{
+		background-position-x: 50%
+	}
+}
+
+@media screen and (max-width: 535px) {
+	// form {width: 90%}
+	.bg{
+		transition: all;
+		transition-duration: 1s;
+		width: 99%;
+	}
+	input {
+		max-width: 90%
+	}
+}
+
+@media screen and (max-width: 380px) {
+	.bg{
+		transition: all;
+		transition-duration: 2s;
+		background-image: none;
+		background-color: #0082c9;
+		border-radius: 0;
+		width: 100%;
+		box-shadow: none;
+	}
+	.jumbotron{
+		background-image:none;
+		background-color:#0082c9;
+	}
+	input{
+		max-width: 317px;
+	}
 }
 
 </style>
