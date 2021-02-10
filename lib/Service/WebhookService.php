@@ -151,8 +151,8 @@ class WebhookService {
 			$fileUser->setEmail($user['email']);
 			$fileUser->setFirstName($user['first_name']);
 			$fileUser->setFullName($user['full_name']);
-			$fileUserInDb = $this->fileUserMapper->insert($fileUser);
-			$return[] = $fileUserInDb->getId();
+			$this->fileUserMapper->insert($fileUser);
+			$return[] = $user['email'];
 		}
 		return $return;
 	}
