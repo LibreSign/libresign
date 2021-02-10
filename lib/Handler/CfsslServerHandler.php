@@ -4,8 +4,6 @@ namespace OCA\Libresign\Handler;
 
 use OCA\Libresign\Exception\LibresignException;
 
-// use OCA\Libresign\Exception\LibresignException;
-
 class CfsslServerHandler {
 	public const CSR_FILE = 'csr_server.json';
 	public const CONFIG_FILE = 'config_server.json';
