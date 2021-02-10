@@ -56,10 +56,11 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$this->service->save($data);
+		$return = $this->service->save($data);
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),
+				'data' => $return
 			],
 			Http::STATUS_OK
 		);
