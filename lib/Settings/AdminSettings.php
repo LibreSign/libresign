@@ -8,7 +8,7 @@ use OCP\Settings\ISettings;
 
 class AdminSettings implements ISettings {
 	public function getForm() {
-		return new TemplateResponse(Application::APP_ID, 'settings');
+		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
 	public function getSection() {

@@ -2,10 +2,18 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\WebhookService;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\DataResponse;
+use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClient;
+use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
+use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,140 +21,301 @@ use PHPUnit\Framework\TestCase;
  * @coversNothing
  */
 final class WebhookServiceTest extends TestCase {
+	/** @var IConfig */
+	private $config;
+	/** @var IGroupManager */
+	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var WebhookService */
 	private $service;
+	/** @var FileMapper */
+	private $file;
+	/** @var FileUserMapper */
+	private $fileUser;
+	/** @var IRootFolder */
+	private $rootFolder;
+	/** @var IUser */
+	private $user;
+	/** @var FolderService */
+	private $folderService;
+	/** @var ClientService */
+	private $client;
 
 	public function setUp(): void {
-		$this->l10n = $this
-			->createMock(IL10N::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->l10n = $this->createMock(IL10N::class);
+		$this->rootFolder = $this->createMock(IRootFolder::class);
+		$this->file = $this->createMock(FileMapper::class);
+		$this->fileUser = $this->createMock(FileUserMapper::class);
+		$this->user = $this->createMock(IUser::class);
+		$this->folderService = $this->createMock(FolderService::class);
+		$this->client = $this->createMock(IClientService::class);
 		$this->service = new WebhookService(
-			$this->l10n
+			$this->config,
+			$this->groupManager,
+			$this->l10n,
+			$this->rootFolder,
+			$this->file,
+			$this->fileUser,
+			$this->folderService,
+			$this->client
 		);
 	}
 
 	public function testEmptyFile() {
+		$this->expectExceptionMessage('Empty file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
+		$this->service->validate([
+			'name' => 'test',
+			'userManager' => $this->user
+		]);
 	}
 
-	public function testValidateeFileBase64() {
+	public function testValidateInvalidBase64File() {
+		$this->expectExceptionMessage('Invalid base64 file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_base64' => 'qwert'
+		$this->service->validate([
+			'file' => ['base64' => 'qwert'],
+			'name' => 'test',
+			'userManager' => $this->user
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Invalid base64 file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
-	public function testValidateeFileUrl() {
+	public function testValidateFileUrl() {
+		$this->expectExceptionMessage('Invalid url file');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_url' => 'qwert'
+		$this->service->validate([
+			'file' => ['url' => 'qwert'],
+			'name' => 'test',
+			'userManager' => $this->user
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Invalid url file',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
-	public function testValidateeEmptyUserCollection() {
+	public function testValidateNameIsMandatory() {
+		$this->expectExceptionMessage('Name is mandatory');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_url' => 'http://test.coop'
+		$this->service->validate([
+			'file' => ['url' => 'qwert'],
+			'userManager' => $this->user
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty users collection',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
+	}
+
+	public function testValidateInvalidName() {
+		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['url' => 'qwert'],
+			'userManager' => $this->user,
+			'name' => '@#$%*('
+		]);
+	}
+
+	public function testValidateEmptyUserCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$response = $this->createMock(IResponse::class);
+		$response
+			->method('getHeaders')
+			->will($this->returnValue(['Content-Type' => ['application/pdf']]));
+		$client = $this->createMock(IClient::class);
+		$client
+			->method('get')
+			->will($this->returnValue($response));
+		$this->client
+			->method('newClient')
+			->will($this->returnValue($client));
+
+		$this->service->validate([
+			'file' => ['url' => 'http://test.coop'],
+			'name' => 'test',
+			'userManager' => $this->user
+		]);
 	}
 
 	public function testValidateEmptyUsersCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_url' => 'http://test.coop'
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'userManager' => $this->user
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'Empty users collection',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
 	public function testValidateUserCollectionNotArray() {
+		$this->expectExceptionMessage('User collection need to be an array');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_url' => 'http://test.coop',
-			'users' => 'asdfg'
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => 'asdfg',
+			'userManager' => $this->user
 		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User collection need is an array',
-			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
 	}
 
-	public function testValidateInvalidUserEmail() {
+	public function testValidateUserEmptyCollection() {
+		$this->expectExceptionMessage('Empty users collection');
+
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->service->validate([
-			'file_url' => 'http://test.coop',
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => null,
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateUserInvalidCollection() {
+		$this->expectExceptionMessage('User collection need to be an array: user 0');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				''
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateUserEmpty() {
+		$this->expectExceptionMessage('User collection need to be an array with values: user 0');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateUserWithoutEmail() {
+		$this->expectExceptionMessage('User need to be email: user 0');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
 			'users' => [
 				[
-					'name' => 'Jhon Doe',
-					'email' => 'jhon@test.coop'
+					''
 				]
-			]
-		]);
-		$expected = new DataResponse(
-			[
-				'message' => 'User email is necessary: Index 0',
 			],
-			Http::STATUS_UNPROCESSABLE_ENTITY
-		);
-		$this->assertEquals($expected, $actual);
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateUserWithInvalidEmail() {
+		$this->expectExceptionMessage('Invalid email: user 0');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'invalid'
+				]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testValidateUserDuplicatedEmail() {
+		$this->expectExceptionMessage('Remove duplicated users, email need to be unique');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				],
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testIndexWithoutPermission() {
+		$this->expectExceptionMessage('Insufficient permissions to use API');
+		$this->config
+			->expects($this->once())
+			->method('getAppValue')
+			->willReturn('["admin"]');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
+		]);
 	}
 }
