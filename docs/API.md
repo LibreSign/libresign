@@ -38,12 +38,13 @@ curl -X POST \
 
 #### Request body
 
-| Parameter | Type          | Description                        |
-| --------- | ------------- | ---------------------------------- |
-| file      | File          | File to sign                       |
-| users     | array of User | List of users to sign file         |
-| name      | string        | Name for file                      |
-| callback  | string        | Callback url when a user sign file |
+| Parameter   | Type          | Description                         |
+| ----------- | ------------- | ----------------------------------- |
+| file        | File          | File to sign                        |
+| users       | array of User | List of users to sign file          |
+| name        | string        | **optional** Name for file          |
+| description | string        | **optional** Description to signers |
+| callback    | string        | Callback url when a user sign file  |
 
 Parameters of File object
 

@@ -42,6 +42,21 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 			'length' => 255,
 			'default' => '',
 		]);
+		$table->addColumn('email', Types::STRING, [
+			'notnull' => false,
+			'length' => 255,
+			'default' => '',
+		]);
+		$table->addColumn('first_name', Types::STRING, [
+			'notnull' => true,
+			'length' => 255,
+			'default' => '',
+		]);
+		$table->addColumn('full_name', Types::STRING, [
+			'notnull' => true,
+			'length' => 255,
+			'default' => '',
+		]);
 		$table->addColumn('created_at', Types::BIGINT, [
 			'notnull' => true,
 			'length' => 20,

@@ -274,6 +274,28 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testValidateUserDuplicatedEmail() {
+		$this->expectExceptionMessage('Remove duplicated users, email need is unique');
+
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				],
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testIndexWithoutPermission() {
 		$this->expectExceptionMessage('Insufficient permissions to use API');
 		$this->config

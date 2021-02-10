@@ -11,6 +11,16 @@ use OCP\AppFramework\Db\Entity;
  * @method int getId()
  * @method void setFileId(int $fileId)
  * @method int getFileId()
+ * @method void setCreatedAt(string $createdAt)
+ * @method string getCreatedAt()
+ * @method void setDescription(string $description)
+ * @method string getDescription()
+ * @method void setName(string $name)
+ * @method string getName()
+ * @method void setCallback(string $callback)
+ * @method string getCallback()
+ * @method void setEnabled(int $enabled)
+ * @method int getEnabled()
  */
 class File extends Entity {
 	/** @var integer */

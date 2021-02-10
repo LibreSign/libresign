@@ -14,6 +14,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use Sabre\DAV\UUIDUtil;
 
 class WebhookService {
 	/** @var IConfig */
@@ -47,8 +48,8 @@ class WebhookService {
 		$this->groupManager = $groupManager;
 		$this->l10n = $l10n;
 		$this->rootFolder = $rootFolder;
-		$this->file = $fileMapper;
-		$this->fileUser = $fileUserMapper;
+		$this->fileMapper = $fileMapper;
+		$this->fileUserMapper = $fileUserMapper;
 		$this->folderService = $folderService;
 		$this->client = $client;
 	}
@@ -108,8 +109,14 @@ class WebhookService {
 		if (!is_array($data['users'])) {
 			throw new \Exception((string)$this->l10n->t('User collection need is an array'));
 		}
+		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateUser($user, $index);
+			$emails[$index] = $user['email'];
+		}
+		$uniques = array_unique($emails);
+		if (count($emails) > count($uniques)) {
+			throw new \Exception((string)$this->l10n->t('Remove duplicated users, email need is unique'));
 		}
 	}
 
@@ -129,8 +136,28 @@ class WebhookService {
 	}
 
 	public function save(array $data) {
-		// $userFolder = $this->rootFolder->getUserFolder($this->userId);
+		$return['fileId'] = $this->saveFile($data);
+		$return['users'][] = $this->associateToUsers($data, $return['fileId']);
+		return $return;
+	}
 
+	public function associateToUsers(array $data, int $fileId) {
+		$return = [];
+		foreach ($data['users'] as $user) {
+			$fileUser = new FileUserEntity();
+			$fileUser->setLibresignFileId($fileId);
+			$fileUser->setUuid(UUIDUtil::getUUID());
+			$fileUser->setCreatedAt(time());
+			$fileUser->setEmail($user['email']);
+			$fileUser->setFirstName($user['first_name']);
+			$fileUser->setFullName($user['full_name']);
+			$fileUserInDb = $this->fileUserMapper->insert($fileUser);
+			$return[] = $fileUserInDb->getId();
+		}
+		return $return;
+	}
+
+	public function saveFile(array $data) {
 		$userFolder = $this->folderService->getFolderForUser();
 		$folderName = $this->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
@@ -138,16 +165,21 @@ class WebhookService {
 		}
 		$folderToFile = $userFolder->newFolder($folderName);
 		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
-		// $folderToFile->newFile
 
-		// if ($files === []) {
-		// 	throw new OCSNotFoundException();
-		// }
 		$file = new FileEntity();
 		$file->setFileId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
-		// $file->setCreated
-		// $file = $this->mapper->insert($file);
+		$file->setCreatedAt(time());
+		if (!empty($data['description'])) {
+			$file->setDescription($data['description']);
+		}
+		$file->setName($data['name']);
+		if (!empty($data['callback'])) {
+			$file->setCallback($data['callback']);
+		}
+		$file->setEnabled(1);
+		$fileInDB = $this->fileMapper->insert($file);
+		return $fileInDB->getId();
 	}
 
 	private function getFileRaw($data) {
