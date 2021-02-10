@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import { translate as t } from '@nextcloud/l10n'
 import { showInfo } from '@nextcloud/dialogs'
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
@@ -56,7 +57,7 @@ export default {
 	methods: {
 		checkHasUser() {
 			if (this.user.length === 0) {
-				showInfo('Usuario não existe, por favor crie uma nova conta!')
+				showInfo(t('libresign', 'User does not exist, please create a new account!'))
 				this.$router.push({ name: 'CreateUser' })
 			}
 		},

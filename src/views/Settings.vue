@@ -45,7 +45,7 @@ export default {
 	data() {
 		return {
 			loading: true,
-			title: t('libresign', 'Assinador Digital'),
+			title: t('libresign', 'LibreSign'),
 		}
 	},
 	computed: {},

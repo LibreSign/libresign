@@ -25,21 +25,21 @@
 	<div class="container">
 		<header>
 			<img :src="image">
-			<p>{{ pdfName }}</p>
-			<span>{{ pdfDescription }}</span>
+			<p>{{ t('libresign', pdfName) }}</p>
+			<span>{{ t('libresign', pdfDescription) }}</span>
 		</header>
 		<div id="body">
 			<form @submit="e => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
-					<label for="password">Senha da Assinatura</label>
+					<label for="password">{{ t('libresign', 'Subscription Password') }}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
 						<button type="button"
-							:value="'Assinar Documento'"
+							:value="buttonValue"
 							class="primary"
 							:disabled="updating"
 							@click="checkAssign">
-							Assinar Documento
+							{{ t('libresign', 'Sign the Document.') }}
 						</button>
 					</div>
 				</div>
@@ -54,6 +54,7 @@ import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
 import { joinPaths } from '@nextcloud/paths'
+import { translate as t } from '@nextcloud/l10n'
 
 export default {
 	name: 'Description',
@@ -62,12 +63,12 @@ export default {
 		pdfName: {
 			type: String,
 			required: true,
-			default: 'Nome do PDF',
+			default: 'PDF Name',
 		},
 		pdfDescription: {
 			type: String,
 			required: false,
-			default: 'Descrição',
+			default: 'Description',
 		},
 	},
 
@@ -78,6 +79,7 @@ export default {
 			signaturePath: '2',
 			password: '',
 			asign: true,
+			buttonValue: t('libresign', 'Sign the Document'),
 		}
 	},
 
@@ -108,7 +110,7 @@ export default {
 
 		checkAssign() {
 			if (this.hasSavePossible === true) {
-				showSuccess('Assinado!')
+				showSuccess(t('libresign', 'Signed!'))
 			}
 		},
 	},
