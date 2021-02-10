@@ -2,17 +2,18 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\Http\Client\ClientService;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
-use Symfony\Component\HttpClient\HttpClient;
 
 class WebhookService {
 	/** @var IConfig */
@@ -29,7 +30,7 @@ class WebhookService {
 	private $rootFolder;
 	/** @var FolderService */
 	private $folderService;
-	/** @var HttpClient */
+	/** @var ClientService */
 	private $client;
 
 	public function __construct(
@@ -39,7 +40,8 @@ class WebhookService {
 		IRootFolder $rootFolder,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
-		FolderService $folderService
+		FolderService $folderService,
+		IClientService $client
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -48,6 +50,7 @@ class WebhookService {
 		$this->file = $fileMapper;
 		$this->fileUser = $fileUserMapper;
 		$this->folderService = $folderService;
+		$this->client = $client;
 	}
 
 	public function validate(array $data) {
@@ -83,9 +86,8 @@ class WebhookService {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception((string)$this->l10n->t('Invalid url file'));
 			}
-			$client = $this->getHttpClient();
-			$response = $client->request('GET', $data['file']['url']);
-			$contentType = $response->getHeaders()['content-type'][0];
+			$response = $this->client->newClient()->get($data['file']['url']);
+			$contentType = $response->getHeaders()['Content-Type'][0];
 			if ($contentType != 'application/pdf') {
 				throw new \Exception((string)$this->l10n->t('The URL should be a PDF.'));
 			}
@@ -93,18 +95,10 @@ class WebhookService {
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
-			if ($input != $base64) {
+			if ($data['file']['base64'] != $base64) {
 				throw new \Exception((string)$this->l10n->t('Invalid base64 file'));
 			}
 		}
-	}
-
-	private function getHttpClient() {
-		if ($this->client) {
-			return $this->client;
-		}
-		$this->client = HttpClient::create();
-		return $this->client;
 	}
 
 	private function validateUsers($data) {
@@ -152,15 +146,14 @@ class WebhookService {
 		$file = new FileEntity();
 		$file->setFileId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
-		$file->setCreated
+		// $file->setCreated
 		// $file = $this->mapper->insert($file);
 	}
 
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
-			$client = $this->getHttpClient();
-			$response = $client->request('GET', $data['file']['url']);
-			return $response->getContent();
+			$response = $this->client->newClient()->get($data['file']['url']);
+			return $response->getBody();
 		}
 		return base64_decode($data['file']['base64']);
 	}

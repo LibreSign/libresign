@@ -7,6 +7,9 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClient;
+use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -36,6 +39,8 @@ final class WebhookServiceTest extends TestCase {
 	private $user;
 	/** @var FolderService */
 	private $folderService;
+	/** @var ClientService */
+	private $client;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -46,6 +51,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->folderService = $this->createMock(FolderService::class);
+		$this->client = $this->createMock(IClientService::class);
 		$this->service = new WebhookService(
 			$this->config,
 			$this->groupManager,
@@ -53,7 +59,8 @@ final class WebhookServiceTest extends TestCase {
 			$this->rootFolder,
 			$this->file,
 			$this->fileUser,
-			$this->folderService
+			$this->folderService,
+			$this->client
 		);
 	}
 
@@ -112,7 +119,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateInvalidName() {
-		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_." chars.');
+		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.');
 
 		$this->l10n
 			->method('t')
@@ -132,6 +139,18 @@ final class WebhookServiceTest extends TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 
+		$response = $this->createMock(IResponse::class);
+		$response
+			->method('getHeaders')
+			->will($this->returnValue(['Content-Type' => ['application/pdf']]));
+		$client = $this->createMock(IClient::class);
+		$client
+			->method('get')
+			->will($this->returnValue($response));
+		$this->client
+			->method('newClient')
+			->will($this->returnValue($client));
+
 		$this->service->validate([
 			'file' => ['url' => 'http://test.coop'],
 			'name' => 'test',
@@ -147,7 +166,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'userManager' => $this->user
 		]);
@@ -161,7 +180,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => 'asdfg',
 			'userManager' => $this->user
@@ -176,7 +195,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => null,
 			'userManager' => $this->user
@@ -191,7 +210,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
 				''
@@ -208,7 +227,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
 				[]
@@ -225,7 +244,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
 				[
@@ -244,7 +263,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
 				[
@@ -267,7 +286,7 @@ final class WebhookServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 
 		$this->service->validate([
-			'file' => ['url' => 'http://test.coop'],
+			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
 				[
