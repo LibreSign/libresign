@@ -173,7 +173,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserCollectionNotArray() {
-		$this->expectExceptionMessage('User collection need is an array');
+		$this->expectExceptionMessage('User collection need to be an array');
 
 		$this->l10n
 			->method('t')
@@ -203,7 +203,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User collection need is an array: user 0');
+		$this->expectExceptionMessage('User collection need to be an array: user 0');
 
 		$this->l10n
 			->method('t')
@@ -220,7 +220,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User collection need is an array with values: user 0');
+		$this->expectExceptionMessage('User collection need to be an array with values: user 0');
 
 		$this->l10n
 			->method('t')
@@ -237,7 +237,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User need an email: user 0');
+		$this->expectExceptionMessage('User need to be email: user 0');
 
 		$this->l10n
 			->method('t')
@@ -275,7 +275,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserDuplicatedEmail() {
-		$this->expectExceptionMessage('Remove duplicated users, email need is unique');
+		$this->expectExceptionMessage('Remove duplicated users, email need to be unique');
 
 		$this->l10n
 			->method('t')
