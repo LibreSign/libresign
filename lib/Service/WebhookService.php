@@ -102,7 +102,7 @@ class WebhookService {
 			throw new \Exception((string)$this->l10n->t('Empty users collection'));
 		}
 		if (!is_array($data['users'])) {
-			throw new \Exception((string)$this->l10n->t('User collection need is an array'));
+			throw new \Exception((string)$this->l10n->t('User collection need to be an array'));
 		}
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
@@ -111,19 +111,19 @@ class WebhookService {
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
-			throw new \Exception((string)$this->l10n->t('Remove duplicated users, email need is unique'));
+			throw new \Exception((string)$this->l10n->t('Remove duplicated users, email need to be unique'));
 		}
 	}
 
 	private function validateUser($user, $index) {
 		if (!is_array($user)) {
-			throw new \Exception((string)$this->l10n->t('User collection need is an array: user ' . $index));
+			throw new \Exception((string)$this->l10n->t('User collection need to be an array: user ' . $index));
 		}
 		if (!$user) {
-			throw new \Exception((string)$this->l10n->t('User collection need is an array with values: user ' . $index));
+			throw new \Exception((string)$this->l10n->t('User collection need to be an array with values: user ' . $index));
 		}
 		if (empty($user['email'])) {
-			throw new \Exception((string)$this->l10n->t('User need an email: user ' . $index));
+			throw new \Exception((string)$this->l10n->t('User need to be email: user ' . $index));
 		}
 		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception((string)$this->l10n->t('Invalid email: user ' . $index));
