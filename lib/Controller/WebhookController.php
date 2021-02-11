@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -18,17 +19,21 @@ class WebhookController extends ApiController {
 	private $l10n;
 	/** @var WebhookService */
 	private $webhook;
+	/** @var MailService */
+	private $mail;
 
 	public function __construct(
 		IRequest $request,
 		IUserSession $userSession,
 		IL10N $l10n,
-		WebhookService $webhook
+		WebhookService $webhook,
+		MailService $mail
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->userSession = $userSession;
 		$this->l10n = $l10n;
 		$this->webhook = $webhook;
+		$this->mail = $mail;
 	}
 
 	/**
@@ -57,6 +62,7 @@ class WebhookController extends ApiController {
 			);
 		}
 		$return = $this->webhook->save($data);
+		$this->mail->notifyAllUnsigned();
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),
