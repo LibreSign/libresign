@@ -15,6 +15,6 @@ return [
 
 		// Pages
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#external', 'url' => '/external', 'verb' => 'GET'],
+		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET']
 	],
 ];
