@@ -3,12 +3,20 @@
 namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Helper\JSConfigHelper;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Storage\ClientStorage;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Files\IRootFolder;
+use OCP\IL10N;
+use OCP\IRequest;
+use OCP\ISession;
+use OCP\IURLGenerator;
 use OCP\Util;
 
 class Application extends App implements IBootstrap {
@@ -19,7 +27,7 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function boot(IBootContext $context): void {
-		$this->registerHooks();
+		$this->registerHooks($context);
 	}
 
 	public function register(IRegistrationContext $context): void {
@@ -36,27 +44,22 @@ class Application extends App implements IBootstrap {
 		});
 	}
 	
-	private function registerHooks(): void {
-		Util::connectHook('\OCP\Config', 'js', $this, 'extendJsConfig');
-	}
-
-	/**
-	 * @param array $settings
-	 */
-	public function extendJsConfig(array $settings) {
-		$appConfig = json_decode($settings['array']['oc_appconfig'], true);
-
-		$appConfig['libresign'] = [
-			'user' => [
-				'name' => 'Jhon Doe'
-			],
-			'sign' => [
-				'pdf' => 'http://asfadsf.asdfasdf',
-				'filename' => 'Contract',
-				'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-			]
-		];
-
-		$settings['array']['oc_appconfig'] = json_encode($appConfig);
+	private function registerHooks($context): void {
+		$request = $context->getServerContainer()->get(IRequest::class);
+		$path = $request->getRawPathInfo();
+		$regex = '/' . self::APP_ID . '\/sign\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/';
+		if (!preg_match($regex, $path)) {
+			return;
+		}
+		$jsConfigHelper = new JSConfigHelper(
+			$context->getServerContainer()->get(ISession::class),
+			$request,
+			$context->getServerContainer()->get(FileMapper::class),
+			$context->getServerContainer()->get(FileUserMapper::class),
+			$this->getContainer()->get(IL10N::class),
+			$context->getServerContainer()->get(IRootFolder::class),
+			$context->getServerContainer()->get(IURLGenerator::class)
+		);
+		Util::connectHook('\OCP\Config', 'js', $jsConfigHelper, 'extendJsConfig');
 	}
 }
