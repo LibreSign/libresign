@@ -67,42 +67,42 @@ class WebhookService {
 
 	private function validateFile($data) {
 		if (empty($data['name'])) {
-			throw new \Exception((string)$this->l10n->t('Name is mandatory'));
+			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
 		if (!preg_match('/^[\w \-_]+$/', $data['name'])) {
-			throw new \Exception((string)$this->l10n->t('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.'));
+			throw new \Exception($this->l10n->t('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.'));
 		}
 		if (empty($data['file'])) {
-			throw new \Exception((string)$this->l10n->t('Empty file'));
+			throw new \Exception($this->l10n->t('Empty file'));
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64'])) {
-			throw new \Exception((string)$this->l10n->t('Inform url or base64 to sign'));
+			throw new \Exception($this->l10n->t('Inform url or base64 to sign'));
 		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				throw new \Exception((string)$this->l10n->t('Invalid url file'));
+				throw new \Exception($this->l10n->t('Invalid url file'));
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
 			$contentType = $response->getHeaders()['Content-Type'][0];
 			if ($contentType != 'application/pdf') {
-				throw new \Exception((string)$this->l10n->t('The URL should be a PDF.'));
+				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
 			}
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
 			if ($data['file']['base64'] != $base64) {
-				throw new \Exception((string)$this->l10n->t('Invalid base64 file'));
+				throw new \Exception($this->l10n->t('Invalid base64 file'));
 			}
 		}
 	}
 
 	private function validateUsers($data) {
 		if (empty($data['users'])) {
-			throw new \Exception((string)$this->l10n->t('Empty users collection'));
+			throw new \Exception($this->l10n->t('Empty users collection'));
 		}
 		if (!is_array($data['users'])) {
-			throw new \Exception((string)$this->l10n->t('User collection need to be an array'));
+			throw new \Exception($this->l10n->t('User collection need to be an array'));
 		}
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
@@ -111,22 +111,22 @@ class WebhookService {
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
-			throw new \Exception((string)$this->l10n->t('Remove duplicated users, email need to be unique'));
+			throw new \Exception($this->l10n->t('Remove duplicated users, email need to be unique'));
 		}
 	}
 
 	private function validateUser($user, $index) {
 		if (!is_array($user)) {
-			throw new \Exception((string)$this->l10n->t('User collection need to be an array: user ' . $index));
+			throw new \Exception($this->l10n->t('User collection need to be an array: user ' . $index));
 		}
 		if (!$user) {
-			throw new \Exception((string)$this->l10n->t('User collection need to be an array with values: user ' . $index));
+			throw new \Exception($this->l10n->t('User collection need to be an array with values: user ' . $index));
 		}
 		if (empty($user['email'])) {
-			throw new \Exception((string)$this->l10n->t('User need to be email: user ' . $index));
+			throw new \Exception($this->l10n->t('User need to be email: user ' . $index));
 		}
 		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new \Exception((string)$this->l10n->t('Invalid email: user ' . $index));
+			throw new \Exception($this->l10n->t('Invalid email: user ' . $index));
 		}
 	}
 
