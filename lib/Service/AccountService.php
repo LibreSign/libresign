@@ -36,11 +36,11 @@ class AccountService {
 		if ($fileUser->getEmail() != $data['email']) {
 			throw new LibresignException($this->l10n->t('Dont is your file'), 1);
 		}
-		if ($data['password'] != $data['confirmPassword']) {
-			throw new LibresignException($this->l10n->t('Password and confirmation dont match'), 1);
+		if ($this->userManager->userExists($data['email'])) {
+			throw new LibresignException($this->l10n->t('User already exists'), 1);
 		}
-		if ($data['signPassword'] != $data['signConfirmPassword']) {
-			throw new LibresignException($this->l10n->t('Password and confirmation of signature dont match'), 1);
+		if (empty($data['password'])) {
+			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
 	}
 }

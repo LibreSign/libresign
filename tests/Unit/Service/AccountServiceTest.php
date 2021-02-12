@@ -73,7 +73,7 @@ final class AccountServiceTest extends TestCase {
 		]);
 	}
 
-	public function testValidatePasswordDontMatch() {
+	public function testValidateuserAlreadyExists() {
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
@@ -82,12 +82,30 @@ final class AccountServiceTest extends TestCase {
 		$this->fileUserMapper
 			->method('getByUuid')
 			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password and confirmation dont match');
+		$this->userManager
+			->method('userExists')
+			->will($this->returnValue(true));
+		$this->expectExceptionMessage('User already exists');
+		$this->service->validateCreateToSign([
+			'uuid' => '12345678-1234-1234-1234-123456789012',
+			'email' => 'valid@test.coop'
+		]);
+	}
+
+	public function testValidatePasswordEmpty() {
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->with($this->equalTo('getEmail'), $this->anything())
+			->will($this->returnValue('valid@test.coop'));
+		$this->fileUserMapper
+			->method('getByUuid')
+			->will($this->returnValue($fileUser));
+		$this->expectExceptionMessage('Password is mandatory');
 		$this->service->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'valid@test.coop',
-			'password' => '123456789',
-			'confirmPassword' => 'abcdefghi'
+			'password' => '',
 		]);
 	}
 
@@ -100,14 +118,12 @@ final class AccountServiceTest extends TestCase {
 		$this->fileUserMapper
 			->method('getByUuid')
 			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password and confirmation of signature dont match');
+		$this->expectExceptionMessage('Password to sign is mandatory');
 		$this->service->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'valid@test.coop',
 			'password' => '123456789',
-			'confirmPassword' => '123456789',
 			'signPassword' => '123456789',
-			'signConfirmPassword' => 'abcdefghi'
 		]);
 	}
 }
