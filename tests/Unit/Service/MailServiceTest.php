@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OC\Mail\Mailer;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
@@ -56,9 +57,29 @@ final class MailServiceTest extends TestCase {
 	}
 
 	public function testSuccessNotifyAllUnsigned() {
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUuid'), $this->anything()],
+				[$this->equalTo('getLibresignFileId'), $this->anything()]
+			)
+			->will($this->returnValueMap([
+				['getUuid', [], 'asdfg'],
+				['getLibresignFileId', [], 1]
+			]));
 		$this->fileUserMapper
 			->method('findUnsigned')
-			->will($this->returnValue([new FileUser()]));
+			->will($this->returnValue([$fileUser]));
+		
+		$file = $this->createMock(File::class);
+		$file
+			->method('__call')
+			->with($this->equalTo('getName'), $this->anything())
+			->will($this->returnValue('Filename'));
+		$this->fileMapper
+			->method('getById')
+			->will($this->returnValue($file));
 
 		$actual = $this->service->notifyAllUnsigned();
 		$this->assertTrue($actual);
@@ -67,15 +88,34 @@ final class MailServiceTest extends TestCase {
 	public function testFailToSendMailToUnsignedUser() {
 		$this->expectExceptionMessage('Notify unsigned notification mail could not be sent');
 
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUuid'), $this->anything()],
+				[$this->equalTo('getLibresignFileId'), $this->anything()]
+			)
+			->will($this->returnValueMap([
+				['getUuid', [], 'asdfg'],
+				['getLibresignFileId', [], 1]
+			]));
+		$this->fileUserMapper
+			->method('findUnsigned')
+			->will($this->returnValue([$fileUser]));
+
+		$file = $this->createMock(File::class);
+		$file
+			->method('__call')
+			->with($this->equalTo('getName'), $this->anything())
+			->will($this->returnValue('Filename'));
+		$this->fileMapper
+			->method('getById')
+			->will($this->returnValue($file));
 		$this->mailer
 			->method('send')
 			->willReturnCallback(function () {
 				throw new \Exception("Error Processing Request", 1);
 			});
-		// ->will($this->throwException(new \Exception()));
-		$this->fileUserMapper
-			->method('findUnsigned')
-			->will($this->returnValue([new FileUser()]));
 
 		$actual = $this->service->notifyAllUnsigned();
 		$this->assertTrue($actual);
