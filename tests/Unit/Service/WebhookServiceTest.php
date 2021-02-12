@@ -43,6 +43,9 @@ final class WebhookServiceTest extends TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
@@ -62,10 +65,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testEmptyFile() {
 		$this->expectExceptionMessage('Empty file');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'name' => 'test',
 			'userManager' => $this->user
@@ -74,10 +73,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateInvalidBase64File() {
 		$this->expectExceptionMessage('Invalid base64 file');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'qwert'],
@@ -89,10 +84,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateFileUrl() {
 		$this->expectExceptionMessage('Invalid url file');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
@@ -103,10 +94,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
 			'userManager' => $this->user
@@ -115,10 +102,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateInvalidName() {
 		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
@@ -129,10 +112,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateEmptyUserCollection() {
 		$this->expectExceptionMessage('Empty users collection');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$response = $this->createMock(IResponse::class);
 		$response
@@ -156,10 +135,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateEmptyUsersCollection() {
 		$this->expectExceptionMessage('Empty users collection');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
@@ -169,10 +144,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateUserCollectionNotArray() {
 		$this->expectExceptionMessage('User collection need to be an array');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -185,10 +156,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateUserEmptyCollection() {
 		$this->expectExceptionMessage('Empty users collection');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
@@ -199,10 +166,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateUserInvalidCollection() {
 		$this->expectExceptionMessage('User collection need to be an array: user 0');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -217,10 +180,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateUserEmpty() {
 		$this->expectExceptionMessage('User collection need to be an array with values: user 0');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
@@ -233,10 +192,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateUserWithoutEmail() {
 		$this->expectExceptionMessage('User need to be email: user 0');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -253,10 +208,6 @@ final class WebhookServiceTest extends TestCase {
 	public function testValidateUserWithInvalidEmail() {
 		$this->expectExceptionMessage('Invalid email: user 0');
 
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
@@ -271,10 +222,6 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateUserDuplicatedEmail() {
 		$this->expectExceptionMessage('Remove duplicated users, email need to be unique');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -297,10 +244,6 @@ final class WebhookServiceTest extends TestCase {
 			->expects($this->once())
 			->method('getAppValue')
 			->willReturn('["admin"]');
-
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
