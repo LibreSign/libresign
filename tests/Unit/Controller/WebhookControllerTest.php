@@ -33,7 +33,6 @@ final class WebhookControllerTest extends TestCase {
 		$this->request = $this->createMock(IRequest::class);
 		$this->webhook = $this->createMock(WebhookService::class);
 		$this->mail = $this->createMock(MailService::class);
-		$this->mail = $this->createMock(MailService::class);
 
 		$this->controller = new WebhookController(
 			$this->request,
