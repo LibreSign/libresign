@@ -4,8 +4,14 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\SignatureService;
+use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -17,6 +23,18 @@ final class AccountServiceTest extends TestCase {
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var IUserManager */
+	protected $userManager;
+	/** @var SignatureService */
+	private $signatureService;
+	/** @var FolderService */
+	private $folder;
+	/** @var IConfig */
+	private $config;
+	/** @var NewUserMailHelper */
+	private $newUserMail;
+	/** @var CfsslHandler */
+	private $cfsslHandler;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -24,9 +42,21 @@ final class AccountServiceTest extends TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
+		$this->userManager = $this->createMock(IUserManager::class);
+		$this->signature = $this->createMock(SignatureService::class);
+		$this->folder = $this->createMock(FolderService::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
+		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->service = new AccountService(
 			$this->l10n,
-			$this->fileUserMapper
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->signature,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
 		);
 	}
 
@@ -123,7 +153,7 @@ final class AccountServiceTest extends TestCase {
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'valid@test.coop',
 			'password' => '123456789',
-			'signPassword' => '123456789',
+			'signPassword' => '',
 		]);
 	}
 }

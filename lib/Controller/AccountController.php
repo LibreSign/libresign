@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -32,17 +33,21 @@ class AccountController extends ApiController {
 	 * @NoCSRFRequired
 	 * @return JSONResponse
 	 */
-	public function createToSign(string $uuid, string $email) {
+	public function createToSign(string $uuid, string $email, string $password, string $signPassword) {
 		try {
 			$data = [
 				'uuid' => $uuid,
-				'email' => $email
+				'email' => $email,
+				'password' => $password,
+				'signPassword' => $signPassword
 			];
 			$this->account->validateCreateToSign($data);
+			$this->account->createToSign($uuid, $email, $password, $signPassword);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
 					'message' => $th->getMessage(),
+					'action' => JSActions::ACTION_DO_NOTHING
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -50,7 +55,7 @@ class AccountController extends ApiController {
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),
-				'data' => $return
+				'action' => JSActions::ACTION_SIGN
 			],
 			Http::STATUS_OK
 		);

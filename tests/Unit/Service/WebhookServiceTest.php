@@ -34,9 +34,7 @@ final class WebhookServiceTest extends TestCase {
 	private $fileUser;
 	/** @var IUser */
 	private $user;
-	/** @var FolderService */
-	private $folderService;
-	/** @var ClientService */
+	/** @var IClientService */
 	private $client;
 
 	public function setUp(): void {
@@ -49,15 +47,15 @@ final class WebhookServiceTest extends TestCase {
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
-		$this->folderService = $this->createMock(FolderService::class);
 		$this->client = $this->createMock(IClientService::class);
+		$this->folder = $this->createMock(FolderService::class);
 		$this->service = new WebhookService(
 			$this->config,
 			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
-			$this->folderService,
+			$this->folder,
 			$this->client
 		);
 	}

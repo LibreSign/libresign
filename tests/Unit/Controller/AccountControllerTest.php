@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Controller\AccountController;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -35,10 +36,10 @@ final class AccountControllerTest extends TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->controller->createToSign('uuid', 'email');
+		$actual = $this->controller->createToSign('uuid', 'email', 'password', 'signPassword');
 		$expected = new JSONResponse([
 			'message' => 'Success',
-			'data' => null
+			'action' => JSActions::ACTION_SIGN
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
 	}
