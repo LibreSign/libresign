@@ -3,11 +3,14 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 
@@ -16,15 +19,23 @@ class AccountController extends ApiController {
 	private $l10n;
 	/** @var AccountService */
 	private $account;
+	/** @var FileMapper */
+	private $fileMapper;
+	/** @var IRootFolder */
+	private $root;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
-		AccountService $account
+		AccountService $account,
+		FileMapper $fileMapper,
+		IRootFolder $root
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->account = $account;
+		$this->fileMapper = $fileMapper;
+		$this->root = $root;
 	}
 
 	/**
@@ -43,6 +54,19 @@ class AccountController extends ApiController {
 			];
 			$this->account->validateCreateToSign($data);
 			$this->account->createToSign($uuid, $email, $password, $signPassword);
+			$fileUser = $this->account->getFileUserByUuid($uuid);
+			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			$fileToSign = $this->root->getById($fileData->getFileId());
+			if (count($fileToSign) < 1) {
+				return new JSONResponse(
+					[
+						'message' => $this->l10n->t('File not found'),
+						'action' => JSActions::ACTION_DO_NOTHING
+					],
+					Http::STATUS_UNPROCESSABLE_ENTITY
+				);
+			}
+			$fileToSign = $fileToSign[0];
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -55,7 +79,12 @@ class AccountController extends ApiController {
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),
-				'action' => JSActions::ACTION_SIGN
+				'action' => JSActions::ACTION_SIGN,
+				'pdf' => [
+					'base64' => $fileToSign->getContent()
+				],
+				'filename' => $fileData->getName(),
+				'description' => $fileData->getDescription()
 			],
 			Http::STATUS_OK
 		);
