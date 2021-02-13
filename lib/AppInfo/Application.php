@@ -17,6 +17,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\Util;
 
 class Application extends App implements IBootstrap {
@@ -58,7 +59,8 @@ class Application extends App implements IBootstrap {
 			$context->getServerContainer()->get(FileUserMapper::class),
 			$this->getContainer()->get(IL10N::class),
 			$context->getServerContainer()->get(IRootFolder::class),
-			$context->getServerContainer()->get(IURLGenerator::class)
+			$context->getServerContainer()->get(IURLGenerator::class),
+			$context->getServerContainer()->get(IUserManager::class)
 		);
 		Util::connectHook('\OCP\Config', 'js', $jsConfigHelper, 'extendJsConfig');
 	}

@@ -9,6 +9,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 
 class JSConfigHelper {
 	/** @var ISession */
@@ -25,6 +26,9 @@ class JSConfigHelper {
 	private $root;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IUserManager */
+	protected $userManager;
+
 	public function __construct(
 		ISession $session,
 		IRequest $request,
@@ -32,7 +36,8 @@ class JSConfigHelper {
 		FileUserMapper $fileUserMapper,
 		IL10N $l10n,
 		IRootFolder $root,
-		IURLGenerator $urlGenerator
+		IURLGenerator $urlGenerator,
+		IUserManager $userManager
 	) {
 		$this->session = $session;
 		$this->request = $request;
@@ -41,6 +46,7 @@ class JSConfigHelper {
 		$this->l10n = $l10n;
 		$this->root = $root;
 		$this->urlGenerator = $urlGenerator;
+		$this->userManager = $userManager;
 	}
 
 	/**
@@ -63,6 +69,18 @@ class JSConfigHelper {
 			if ($userId) {
 				$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
 				$appConfig['libresign']['errors'][] = $this->l10n->t('This is not your file');
+				$settings['array']['oc_appconfig'] = json_encode($appConfig);
+				return;
+			}
+			if ($this->userManager->userExists($data['email'])) {
+				$appConfig['libresign']['action'] = JSActions::ACTION_REDIRECT;
+				$appConfig['libresign']['errors'][] = $this->l10n->t('User already exists. Please loggin.');
+				$appConfig['libresign']['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+					'redirect_url' => $this->urlGenerator->linkToRoute(
+						'libresign.Page.sign',
+						['uuid' => $uuid]
+					),
+				]);
 				$settings['array']['oc_appconfig'] = json_encode($appConfig);
 				return;
 			}

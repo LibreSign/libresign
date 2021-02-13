@@ -27,6 +27,11 @@ class FolderService {
 		$this->l10n = $l10n;
 		$this->userId = $userId;
 	}
+
+	public function setUserId($userId) {
+		$this->userId = $userId;
+	}
+
 	/**
 	 * @return Folder
 	 */
