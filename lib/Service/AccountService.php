@@ -85,7 +85,7 @@ class AccountService {
 	 * @param string $uuid
 	 * @return FileUser
 	 */
-	private function getFileUserByUuid($uuid) {
+	public function getFileUserByUuid($uuid) {
 		if (!$this->fileUser) {
 			$this->fileUser = $this->fileUserMapper->getByUuid($uuid);
 		}
