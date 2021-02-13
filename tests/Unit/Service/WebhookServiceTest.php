@@ -6,7 +6,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\WebhookService;
-use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -33,8 +32,6 @@ final class WebhookServiceTest extends TestCase {
 	private $file;
 	/** @var FileUserMapper */
 	private $fileUser;
-	/** @var IRootFolder */
-	private $rootFolder;
 	/** @var IUser */
 	private $user;
 	/** @var FolderService */
@@ -46,7 +43,6 @@ final class WebhookServiceTest extends TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->l10n = $this->createMock(IL10N::class);
-		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
@@ -56,7 +52,6 @@ final class WebhookServiceTest extends TestCase {
 			$this->config,
 			$this->groupManager,
 			$this->l10n,
-			$this->rootFolder,
 			$this->file,
 			$this->fileUser,
 			$this->folderService,

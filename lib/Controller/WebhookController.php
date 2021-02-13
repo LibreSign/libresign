@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -17,18 +18,22 @@ class WebhookController extends ApiController {
 	/** @var IL10N */
 	private $l10n;
 	/** @var WebhookService */
-	private $service;
+	private $webhook;
+	/** @var MailService */
+	private $mail;
 
 	public function __construct(
 		IRequest $request,
 		IUserSession $userSession,
 		IL10N $l10n,
-		WebhookService $service
+		WebhookService $webhook,
+		MailService $mail
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->userSession = $userSession;
 		$this->l10n = $l10n;
-		$this->service = $service;
+		$this->webhook = $webhook;
+		$this->mail = $mail;
 	}
 
 	/**
@@ -47,7 +52,7 @@ class WebhookController extends ApiController {
 			'userManager' => $user
 		];
 		try {
-			$this->service->validate($data);
+			$this->webhook->validate($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -56,7 +61,8 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$return = $this->service->save($data);
+		$return = $this->webhook->save($data);
+		$this->mail->notifyAllUnsigned();
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),

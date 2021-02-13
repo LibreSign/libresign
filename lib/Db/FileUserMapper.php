@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
@@ -22,5 +23,34 @@ class FileUserMapper extends QBMapper {
 	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_file_user');
+	}
+
+	/**
+	 * Returns all users who have not signed
+	 *
+	 * @return Entity[] all fetched entities
+	 */
+	public function findUnsigned() {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->isNull('signed')
+			);
+
+		return $this->findEntities($qb);
+	}
+
+	public function getByUuid(string $uuid) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+			);
+
+		return $this->findEntity($qb);
 	}
 }

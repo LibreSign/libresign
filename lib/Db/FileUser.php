@@ -58,8 +58,8 @@ class FileUser extends Entity {
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('email', 'string');
-		$this->addType('first_name', 'string');
-		$this->addType('full_name', 'string');
+		$this->addType('firstName', 'string');
+		$this->addType('fullName', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
 	}
