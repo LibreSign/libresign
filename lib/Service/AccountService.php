@@ -22,8 +22,6 @@ class AccountService {
 	private $fileUserMapper;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var SignatureService */
-	private $signature;
 	/** @var FolderService */
 	private $folder;
 	/** @var IConfig */
@@ -39,7 +37,6 @@ class AccountService {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
-		SignatureService $signature,
 		FolderService $folder,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
@@ -48,7 +45,6 @@ class AccountService {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
-		$this->signature = $signature;
 		$this->folder = $folder;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
