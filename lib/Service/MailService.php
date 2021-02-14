@@ -92,9 +92,7 @@ class MailService {
 		try {
 			$this->mailer->send($message);
 		} catch (\Exception $e) {
-			$this->logger->error($e, [
-				'message' => 'Notify unsigned notification mail could not be sent: ' . $e->getMessage()
-			]);
+			$this->logger->error('Notify unsigned notification mail could not be sent: ' . $e->getMessage());
 			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
 		}
 	}

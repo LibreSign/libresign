@@ -53,6 +53,8 @@ class WebhookController extends ApiController {
 		];
 		try {
 			$this->webhook->validate($data);
+			$return = $this->webhook->save($data);
+			$this->mail->notifyAllUnsigned();
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -61,8 +63,6 @@ class WebhookController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$return = $this->webhook->save($data);
-		$this->mail->notifyAllUnsigned();
 		return new JSONResponse(
 			[
 				'message' => $this->l10n->t('Success'),
