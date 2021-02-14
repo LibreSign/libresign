@@ -93,6 +93,8 @@ final class LibresignControllerTest extends TestCase {
 		$l10n
 			->method('t')
 			->will($this->returnArgument(0));
+		$accountService = $this->createMock(AccountService::class);
+		$libresignHandler = $this->createMock(JLibresignHandler::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -104,6 +106,8 @@ final class LibresignControllerTest extends TestCase {
 			$fileMapper->reveal(),
 			$root->reveal(),
 			$l10n,
+			$accountService,
+			$libresignHandler,
 			$userId
 		);
 
