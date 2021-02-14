@@ -76,16 +76,17 @@ class AccountController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
-			[
-				'message' => $this->l10n->t('Success'),
-				'action' => JSActions::ACTION_SIGN,
-				'pdf' => [
-					'base64' => $fileToSign->getContent()
-				],
-				'filename' => $fileData->getName(),
-				'description' => $fileData->getDescription()
+		$data = [
+			'message' => $this->l10n->t('Success'),
+			'action' => JSActions::ACTION_SIGN,
+			'pdf' => [
+				'base64' => base64_encode($fileToSign->getContent())
 			],
+			'filename' => $fileData->getName(),
+			'description' => $fileData->getDescription()
+		];
+		return new JSONResponse(
+			$data,
 			Http::STATUS_OK
 		);
 	}
