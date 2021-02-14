@@ -141,4 +141,13 @@ class AccountService {
 		$file = $folder->newFile($this->pdfFilename);
 		$file->putContent($content);
 	}
+
+	public function getPfx($uid) {
+		Filesystem::initMountPoints($uid);
+		$folder = $this->folder->getFolderForUser();
+		if (!$folder->nodeExists($this->pdfFilename)) {
+			throw new LibresignException("Signature file not found!", 400);
+		}
+		return $folder->get($this->pdfFilename);
+	}
 }
