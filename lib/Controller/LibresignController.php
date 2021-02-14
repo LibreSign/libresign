@@ -120,10 +120,15 @@ class LibresignController extends Controller {
 				$inputFile->getPath()
 			);
 			if ($this->root->nodeExists($signedFilePath)) {
+				$signedFile = $this->root->get($signedFilePath);
 				$inputFile = $signedFilePath;
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
-			list($filename, $content) = $this->libresignHandler->signExistingFile($inputFile, $certificatePath, $password);
+			list(, $signedContent) = $this->libresignHandler->signExistingFile($inputFile, $certificatePath, $password);
+			if (!$signedFile) {
+				$signedFile = $this->root->newFile($signedFilePath);
+			}
+			$signedFile->putContent($signedContent);
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
