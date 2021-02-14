@@ -7,6 +7,7 @@ return [
 			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
 		['name' => 'webhook#register', 'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
 		['name' => 'libresign#sign', 'url' => '/api/0.1/sign', 'verb' => 'POST'],
+		['name' => 'libresign#signUsingUuid', 'url' => '/api/0.1/sign/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#createToSign', 'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'signature#generate', 'url' => '/api/0.1/signature/generate', 'verb' => 'POST'],
 		['name' => 'signature#hasRootCert', 'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
