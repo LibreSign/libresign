@@ -5,7 +5,10 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -30,6 +33,10 @@ class LibresignController extends Controller {
 	private $root;
 	/** @var IL10N */
 	private $l10n;
+	/** @var AccountService */
+	private $account;
+	/** @var JLibresignHandler */
+	private $libresignHandler;
 	/** @var string */
 	private $userId;
 
@@ -40,6 +47,8 @@ class LibresignController extends Controller {
 		FileMapper $fileMapper,
 		IRootFolder $root,
 		IL10N $l10n,
+		AccountService $account,
+		JLibresignHandler $libresignHandler,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -48,6 +57,8 @@ class LibresignController extends Controller {
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
 		$this->l10n = $l10n;
+		$this->account = $account;
+		$this->libresignHandler = $libresignHandler;
 		$this->userId = $userId;
 	}
 
@@ -92,21 +103,32 @@ class LibresignController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signUsingUuid($uuid): JSONResponse {
+	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		try {
 			$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
 			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
-			$filePreview = $this->root->getById($fileData->getFileId());
-			if (count($filePreview) < 1) {
-				return new JSONResponse(
-					[
-						'message' => $this->l10n->t('File not found'),
-						'action' => JSActions::ACTION_DO_NOTHING
-					],
-					Http::STATUS_UNPROCESSABLE_ENTITY
-				);
+			$inputFile = $this->root->getById($fileData->getFileId());
+			if (count($inputFile) < 1) {
+				throw new LibresignException($this->l10n->t('File not found'));
 			}
-			$filePreview = $filePreview[0];
+			$inputFile = $inputFile[0];
+			$signedFilePath = preg_replace(
+				'/' . $inputFile->getExtension() . '$/',
+				$this->l10n->t('signed').'.'.$inputFile->getExtension(),
+				$inputFile->getPath()
+			);
+			if ($this->root->nodeExists($signedFilePath)) {
+				$inputFile = $signedFilePath;
+			}
+			$certificatePath = $this->account->getPfx($fileUser->getUserId());
+			list($filename, $content) = $this->libresignHandler->signExistingFile($inputFile, $certificatePath, $password);
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'message' => $this->l10n->t('File signed')
+				],
+				Http::STATUS_OK
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
