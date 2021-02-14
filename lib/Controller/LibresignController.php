@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -107,6 +108,7 @@ class LibresignController extends Controller {
 		try {
 			$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
 			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			Filesystem::initMountPoints($fileData->getuserId());
 			$inputFile = $this->root->getById($fileData->getFileId());
 			if (count($inputFile) < 1) {
 				throw new LibresignException($this->l10n->t('File not found'));
