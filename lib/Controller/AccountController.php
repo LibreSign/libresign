@@ -68,6 +68,15 @@ class AccountController extends ApiController {
 				);
 			}
 			$fileToSign = $fileToSign[0];
+			$data = [
+				'message' => $this->l10n->t('Success'),
+				'action' => JSActions::ACTION_SIGN,
+				'pdf' => [
+					'base64' => base64_encode($fileToSign->getContent())
+				],
+				'filename' => $fileData->getName(),
+				'description' => $fileData->getDescription()
+			];
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -77,15 +86,6 @@ class AccountController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$data = [
-			'message' => $this->l10n->t('Success'),
-			'action' => JSActions::ACTION_SIGN,
-			'pdf' => [
-				'base64' => base64_encode($fileToSign->getContent())
-			],
-			'filename' => $fileData->getName(),
-			'description' => $fileData->getDescription()
-		];
 		return new JSONResponse(
 			$data,
 			Http::STATUS_OK
