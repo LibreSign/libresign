@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
@@ -57,6 +58,7 @@ class AccountController extends ApiController {
 			$this->account->createToSign($uuid, $email, $password, $signPassword);
 			$fileUser = $this->account->getFileUserByUuid($uuid);
 			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			Filesystem::initMountPoints($fileData->getuserId());
 			$fileToSign = $this->root->getById($fileData->getFileId());
 			if (count($fileToSign) < 1) {
 				return new JSONResponse(
