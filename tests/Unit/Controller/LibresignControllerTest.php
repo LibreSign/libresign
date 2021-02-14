@@ -6,6 +6,8 @@ use OC\Files\Node\File;
 use OCA\Libresign\Controller\LibresignController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
@@ -27,6 +29,8 @@ final class LibresignControllerTest extends TestCase {
 		$fileMapper = $this->prophesize(FileMapper::class);
 		$root = $this->prophesize(IRootFolder::class);
 		$l10n = $this->prophesize(IL10N::class);
+		$accountService = $this->createMock(AccountService::class);
+		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		
@@ -47,6 +51,8 @@ final class LibresignControllerTest extends TestCase {
 			$fileMapper->reveal(),
 			$root->reveal(),
 			$l10n->reveal(),
+			$accountService,
+			$libresignHandler,
 			$userId
 		);
 
