@@ -8,6 +8,19 @@ Nextcloud app to sign PDF documents
 
 ## Setup
 
+### Java and JSignPDF
+
+Add the follow to Nextcloud PHP container Dockerfile
+
+```Dockerfile
+# Install Java and JsignPDF
+RUN mkdir -p /usr/share/man/man1
+RUN apt-get install -y default-jre
+RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%201.6.4/JSignPdf-1.6.4.zip \
+    && unzip JSignPdf-1.6.4.zip -d /opt \
+    && rm JSignPdf-1.6.4.zip
+```
+
 ### With CFSS server
 
 Up a cfssl server using this code:
