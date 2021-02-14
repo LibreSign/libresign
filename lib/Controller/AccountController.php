@@ -42,6 +42,7 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @CORS
 	 * @NoCSRFRequired
+	 * @PublicPage
 	 * @return JSONResponse
 	 */
 	public function createToSign(string $uuid, string $email, string $password, string $signPassword) {
