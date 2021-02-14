@@ -32,6 +32,8 @@ class AccountService {
 	private $newUserMail;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
+	/** @var string */
+	private $pdfFilename = 'signature.pfx';
 
 	public function __construct(
 		IL10N $l10n,
@@ -127,17 +129,16 @@ class AccountService {
 	private function savePfx($uid, $content) {
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolderForUser();
-		$filename = 'signature.pfx';
-		if ($folder->nodeExists($filename)) {
-			$node = $folder->get($filename);
+		if ($folder->nodeExists($this->pdfFilename)) {
+			$node = $folder->get($this->pdfFilename);
 			if (!$node instanceof File) {
-				throw new LibresignException("path {$filename} already exists and is not a file!", 400);
+				throw new LibresignException("path {$this->pdfFilename} already exists and is not a file!", 400);
 			}
 			$node->putContent($content);
 			return $node;
 		}
 
-		$file = $folder->newFile($filename);
+		$file = $folder->newFile($this->pdfFilename);
 		$file->putContent($content);
 	}
 }
