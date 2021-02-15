@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use OC\Http\Client\ClientService;
+use OC\User\User;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -13,6 +14,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class WebhookService {
@@ -30,6 +32,8 @@ class WebhookService {
 	private $folderService;
 	/** @var ClientService */
 	private $client;
+	/** @var IUserManager */
+	private $userManager;
 
 	public function __construct(
 		IConfig $config,
@@ -38,7 +42,8 @@ class WebhookService {
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
 		FolderService $folderService,
-		IClientService $client
+		IClientService $client,
+		IUserManager $userManager
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -47,6 +52,7 @@ class WebhookService {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->folderService = $folderService;
 		$this->client = $client;
+		$this->userManager = $userManager;
 	}
 
 	public function validate(array $data) {
@@ -133,7 +139,7 @@ class WebhookService {
 	public function save(array $data) {
 		$file = $this->saveFile($data);
 		$return['uuid'] = $file->getUuid();
-		$return['users'][] = $this->associateToUsers($data, $file->getId());
+		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
 	}
 
@@ -146,8 +152,14 @@ class WebhookService {
 			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
 			$fileUser->setDisplayName($user['display_name']);
+			if (!$user['user_id']) {
+				$userToSign = $this->userManager->getByEmail($user['email']);
+				if ($userToSign) {
+					$fileUser->setUserId($userToSign[0]->getUID());
+				}
+			}
 			$this->fileUserMapper->insert($fileUser);
-			$return[] = $user['email'];
+			$return[] = $fileUser;
 		}
 		return $return;
 	}
