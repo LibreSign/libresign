@@ -41,4 +41,21 @@ class FileMapper extends QBMapper {
 
 		return $this->findEntity($qb);
 	}
+
+	/**
+	 * Return LibreSign file by UUID
+	 *
+	 * @return Entity Row of table libresign_file
+	 */
+	public function getByUuid($uuid) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('id', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntity($qb);
+	}
 }
