@@ -23,6 +23,8 @@ RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%201
 
 ### With CFSS server
 
+Don't is necessary if you use a docker setup
+
 Up a cfssl server using this code:
 
 https://github.com/cloudflare/cfssl
