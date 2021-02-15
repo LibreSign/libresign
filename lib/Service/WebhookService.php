@@ -131,8 +131,9 @@ class WebhookService {
 	}
 
 	public function save(array $data) {
-		$return['fileId'] = $this->saveFile($data);
-		$return['users'][] = $this->associateToUsers($data, $return['fileId']);
+		$file = $this->saveFile($data);
+		$return['uuid'] = $file->getUuid();
+		$return['users'][] = $this->associateToUsers($data, $file->getId());
 		return $return;
 	}
 
@@ -140,7 +141,7 @@ class WebhookService {
 		$return = [];
 		foreach ($data['users'] as $user) {
 			$fileUser = new FileUserEntity();
-			$fileUser->setLibresignFileId($fileId);
+			$fileUser->setFileId($fileId);
 			$fileUser->setUuid(UUIDUtil::getUUID());
 			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
@@ -151,7 +152,13 @@ class WebhookService {
 		return $return;
 	}
 
-	public function saveFile(array $data) {
+	/**
+	 * Save file data
+	 *
+	 * @param array $data
+	 * @return FileEntity
+	 */
+	public function saveFile(array $data): FileEntity {
 		$userFolder = $this->folderService->getFolderForUser();
 		$folderName = $this->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
@@ -161,8 +168,9 @@ class WebhookService {
 		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 
 		$file = new FileEntity();
-		$file->setFileId($node->getId());
+		$file->setNodeId($node->getId());
 		$file->setUserId($data['userManager']->getUID());
+		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
 		if (!empty($data['description'])) {
 			$file->setDescription($data['description']);
@@ -172,8 +180,8 @@ class WebhookService {
 			$file->setCallback($data['callback']);
 		}
 		$file->setEnabled(1);
-		$fileInDB = $this->fileMapper->insert($file);
-		return $fileInDB->getId();
+		$this->fileMapper->insert($file);
+		return $file;
 	}
 
 	private function getFileRaw($data) {

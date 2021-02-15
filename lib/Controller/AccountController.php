@@ -56,9 +56,9 @@ class AccountController extends ApiController {
 			$this->account->validateCreateToSign($data);
 			$this->account->createToSign($uuid, $email, $password, $signPassword);
 			$fileUser = $this->account->getFileUserByUuid($uuid);
-			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			Filesystem::initMountPoints($fileData->getUserId());
-			$fileToSign = $this->root->getById($fileData->getFileId());
+			$fileToSign = $this->root->getById($fileData->getNodeId());
 			if (count($fileToSign) < 1) {
 				return new JSONResponse(
 					[

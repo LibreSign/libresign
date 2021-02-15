@@ -107,8 +107,8 @@ class JSConfigHelper {
 			$settings['array']['oc_appconfig'] = json_encode($appConfig);
 			return;
 		}
-		$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
-		$fileToSign = $this->root->getById($fileData->getFileId());
+		$fileData = $this->fileMapper->getById($fileUser->getFileId());
+		$fileToSign = $this->root->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
 			$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
 			$appConfig['libresign']['errors'][] = $this->l10n->t('File not found');

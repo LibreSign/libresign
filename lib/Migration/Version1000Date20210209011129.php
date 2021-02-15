@@ -26,7 +26,7 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 			'autoincrement' => true,
 			'notnull' => true,
 		]);
-		$table->addColumn('libresign_file_id', Types::STRING, [
+		$table->addColumn('file_id', Types::STRING, [
 			'notnull' => true,
 			'length' => 64,
 		]);
