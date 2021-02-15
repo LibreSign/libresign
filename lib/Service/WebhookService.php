@@ -144,8 +144,7 @@ class WebhookService {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
-			$fileUser->setFirstName($user['first_name']);
-			$fileUser->setFullName($user['full_name']);
+			$fileUser->setDisplayName($user['display_name']);
 			$this->fileUserMapper->insert($fileUser);
 			$return[] = $user['email'];
 		}

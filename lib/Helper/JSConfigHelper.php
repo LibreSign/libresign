@@ -117,7 +117,7 @@ class JSConfigHelper {
 		}
 		$fileToSign = $fileToSign[0];
 		$appConfig['libresign']['action'] = JSActions::ACTION_SIGN;
-		$appConfig['libresign']['user']['name'] = $fileUser->getFirstName();
+		$appConfig['libresign']['user']['name'] = $fileUser->getDisplayName();
 		$appConfig['libresign']['sign'] = [
 			'pdf' => [
 				'base64' => $fileToSign->getContent()
