@@ -3,18 +3,18 @@
 		<div id="container">
 			<div class="bg">
 				<form>
-					<Avatar id="avatar" :user="username.length ? username : 'User'" :size="sizeAvatar" />
+					<Avatar id="avatar" :user="email.length ? email : 'User'" :size="sizeAvatar" />
 					<div class="group">
 						<input
-							v-model="username"
+							v-model="email"
 							v-tooltip.right="{
-								content: 'Insira seu nome ',
+								content: 'Insira seu email aqui.',
 								show: tooltip.name,
 								trigger: 'false',
 							}"
 							type="text"
 							:required="validator.name"
-							placeholder="Nome"
+							placeholder="Email"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
 						<div v-show="validator.name"
@@ -66,7 +66,7 @@
 							placeholder="Senha PFX">
 						<div v-show="validator.pfx" class="icon-error-white" />
 					</div>
-					<button class="btn" :disabled="!validator.btn">
+					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
 						Cadastrar
 					</button>
 				</form>
@@ -76,8 +76,12 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import { showError } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+
 export default {
 	name: 'CreateUser',
 	components: {
@@ -87,7 +91,7 @@ export default {
 
 	data() {
 		return {
-			username: '',
+			email: '',
 			pass: '',
 			passConfirm: '',
 			pfx: '',
@@ -111,7 +115,7 @@ export default {
 		}
 	},
 	watch: {
-		username() {
+		email() {
 			this.validationName()
 			this.validationBtn()
 		},
@@ -135,9 +139,20 @@ export default {
 	},
 
 	methods: {
-		comp1ositionValidation(function1, function2, valor) {
-			 function1(valor)
-			 function2(valor)
+		async createUser() {
+			// eslint-disable-next-line
+// console.log(this.$)
+			try {
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
+					email: this.email,
+					password: this.pass,
+					signPassword: this.pfx,
+				})
+				// eslint-disable-next-line
+				console.log(response)
+			} catch (err) {
+				showError(err)
+			}
 		},
 
 		changeSizeAvatar() {
@@ -145,7 +160,7 @@ export default {
 		},
 
 		validationName() {
-			if (this.username.length < 3) {
+			if (this.email.length < 3) {
 				this.validator.name = true
 				if (this.tooltip.nameFocus === false) {
 					this.tooltip.name = true
@@ -209,7 +224,7 @@ export default {
 		},
 		validationBtn() {
 			if (this.validator.name === false && this.validator.passConfirm === false && this.validator.pfx === false) {
-				if (this.username.length > 2 && this.passConfirm.length > 2 && this.pfx.length > 2) {
+				if (this.email.length > 2 && this.passConfirm.length > 2 && this.pfx.length > 2) {
 					this.validator.btn = true
 				} else {
 					this.validator.btn = false
