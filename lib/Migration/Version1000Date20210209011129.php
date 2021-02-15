@@ -10,9 +10,6 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-/**
- * Auto-generated migration step: Please modify to your needs!
- */
 class Version1000Date20210209011129 extends SimpleMigrationStep {
 
 	/**
@@ -47,12 +44,7 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 			'length' => 255,
 			'default' => '',
 		]);
-		$table->addColumn('first_name', Types::STRING, [
-			'notnull' => true,
-			'length' => 255,
-			'default' => '',
-		]);
-		$table->addColumn('full_name', Types::STRING, [
+		$table->addColumn('display_name', Types::STRING, [
 			'notnull' => true,
 			'length' => 255,
 			'default' => '',

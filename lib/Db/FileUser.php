@@ -19,8 +19,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getCreatedAt()
  * @method void setSigned(string $signed)
  * @method string getSigned()
- * @method void setFirstName(string $firstName)
- * @method string getFirstName()
+ * @method void setDisplayName(string $displayName)
+ * @method string getDisplayName()
  * @method void setFullName(string $fullName)
  * @method string getFullName()
  */
@@ -41,7 +41,7 @@ class FileUser extends Entity {
 	protected $email;
 
 	/** @var string */
-	protected $firstName;
+	protected $displayName;
 
 	/** @var string */
 	protected $fullName;
@@ -58,7 +58,7 @@ class FileUser extends Entity {
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('email', 'string');
-		$this->addType('firstName', 'string');
+		$this->addType('displayName', 'string');
 		$this->addType('fullName', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');

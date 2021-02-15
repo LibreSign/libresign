@@ -83,8 +83,8 @@ class MailService {
 			$link
 		);
 		$message = $this->mailer->createMessage();
-		if ($data->getFirstName()) {
-			$message->setTo([$data->getEmail() => $data->getFirstName()]);
+		if ($data->getDisplayName()) {
+			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
 		} else {
 			$message->setTo([$data->getEmail()]);
 		}

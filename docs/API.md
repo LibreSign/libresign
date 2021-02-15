@@ -23,7 +23,7 @@ curl -X POST \
 	"name": "test",
 	"users": [
 		{
-			"name": "Jhon Doe",
+			"display_name": "Jhon Doe",
 			"email": "jhondoe@test.coop"
 		}
 	]
@@ -55,11 +55,10 @@ Parameters of File object
 
 Parameters of User object
 
-| Parameter | Type   | Description                    |
-| --------- | ------ | ------------------------------ |
-| email     | string | Email of user                  |
-| firstName | string | **optional** Fist name of user |
-| fullName  | string | **optional** Full name of user |
+| Parameter   | Type   | Description                       |
+| ----------- | ------ | --------------------------------- |
+| email       | string | Email of user                     |
+| display_name | string | **optional** Display name of user |
 
 #### Response
 
