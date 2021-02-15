@@ -13,6 +13,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getNodeId()
  * @method void setUserId(int $userId)
  * @method int getUserId()
+ * @method void setUuid(int $uuid)
+ * @method int getUuid()
  * @method void setCreatedAt(string $createdAt)
  * @method string getCreatedAt()
  * @method void setDescription(string $description)
@@ -35,6 +37,9 @@ class File extends Entity {
 	protected $userId;
 
 	/** @var string */
+	protected $uuid;
+
+	/** @var string */
 	protected $createdAt;
 
 	/** @var string */
@@ -53,6 +58,7 @@ class File extends Entity {
 		$this->addType('id', 'integer');
 		$this->addType('nodeId', 'integer');
 		$this->addType('userId', 'string');
+		$this->addType('uuid', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('description', 'string');
 		$this->addType('name', 'string');
