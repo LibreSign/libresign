@@ -26,7 +26,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 			'autoincrement' => true,
 			'notnull' => true,
 		]);
-		$table->addColumn('file_id', Types::BIGINT, [
+		$table->addColumn('node_id', Types::BIGINT, [
 			'notnull' => true,
 		]);
 		$table->addColumn('user_id', Types::STRING, [
@@ -55,7 +55,8 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 		]);
 
 		$table->setPrimaryKey(['id']);
-		$table->addIndex(['file_id']);
+		$table->addIndex(['node_id']);
+		$table->addIndex(['uuid']);
 
 		return $schema;
 	}

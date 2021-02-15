@@ -77,7 +77,7 @@ class MailService {
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
 		$emailTemplate->addBodyText($this->l10n->t('There is a document for you to sign. Access the link below:'));
 		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
-		$file = $this->getFileById($data->getLibresignFileId());
+		$file = $this->getFileById($data->getFileId());
 		$emailTemplate->addBodyButton(
 			$this->l10n->t('Sign »%s«', [$file->getName()]),
 			$link

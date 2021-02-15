@@ -106,9 +106,9 @@ class LibresignController extends Controller {
 	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		try {
 			$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
-			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			Filesystem::initMountPoints($fileData->getuserId());
-			$inputFile = $this->root->getById($fileData->getFileId());
+			$inputFile = $this->root->getById($fileData->getNodeId());
 			if (count($inputFile) < 1) {
 				throw new LibresignException($this->l10n->t('File not found'));
 			}

@@ -9,8 +9,8 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method void setId(int $id)
  * @method int getId()
- * @method void setFileId(int $fileId)
- * @method int getFileId()
+ * @method void setNodeId(int $nodeId)
+ * @method int getNodeId()
  * @method void setUserId(int $userId)
  * @method int getUserId()
  * @method void setCreatedAt(string $createdAt)
@@ -29,7 +29,7 @@ class File extends Entity {
 	public $id;
 
 	/** @var integer */
-	protected $fileId;
+	protected $nodeId;
 
 	/** @var string */
 	protected $userId;
@@ -51,7 +51,7 @@ class File extends Entity {
 
 	public function __construct() {
 		$this->addType('id', 'integer');
-		$this->addType('fileId', 'integer');
+		$this->addType('nodeId', 'integer');
 		$this->addType('userId', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('description', 'string');

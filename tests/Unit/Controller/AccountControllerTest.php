@@ -54,7 +54,7 @@ final class AccountControllerTest extends TestCase {
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
-			->with($this->equalTo('getLibresignFileId'), $this->anything())
+			->with($this->equalTo('getFileId'), $this->anything())
 			->will($this->returnValue(1));
 		$this->account
 			->method('getFileUserByUuid')
@@ -65,12 +65,12 @@ final class AccountControllerTest extends TestCase {
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId'), $this->anything()],
-				[$this->equalTo('getFileId'), $this->anything()],
+				[$this->equalTo('getNodeId'), $this->anything()],
 				[$this->equalTo('getName'), $this->anything()]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], ''],
-				['getFileId', [], 1],
+				['getNodeId', [], 1],
 				['getName', [], 'Filename']
 			]));
 		$this->fileMapper

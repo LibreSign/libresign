@@ -7,8 +7,8 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method void setId(int $uid)
  * @method int getId()
- * @method void setLibresignFileId(int $libresignFileId)
- * @method int getLibresignFileId()
+ * @method void setFileId(int $fileId)
+ * @method int getFileId()
  * @method void setUserId(string $userId)
  * @method string getUserId()
  * @method void setEmail(string $email)
@@ -29,7 +29,7 @@ class FileUser extends Entity {
 	public $id;
 
 	/** @var integer */
-	protected $libresignFileId;
+	protected $fileId;
 
 	/** @var string */
 	protected $userId;
@@ -54,7 +54,7 @@ class FileUser extends Entity {
 
 	public function __construct() {
 		$this->addType('id', 'integer');
-		$this->addType('libresignFileId', 'integer');
+		$this->addType('fileId', 'integer');
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('email', 'string');

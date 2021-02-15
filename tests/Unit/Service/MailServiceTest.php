@@ -62,11 +62,11 @@ final class MailServiceTest extends TestCase {
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUuid'), $this->anything()],
-				[$this->equalTo('getLibresignFileId'), $this->anything()]
+				[$this->equalTo('getFileId'), $this->anything()]
 			)
 			->will($this->returnValueMap([
 				['getUuid', [], 'asdfg'],
-				['getLibresignFileId', [], 1]
+				['getFileId', [], 1]
 			]));
 		$this->fileUserMapper
 			->method('findUnsigned')
@@ -93,11 +93,11 @@ final class MailServiceTest extends TestCase {
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUuid'), $this->anything()],
-				[$this->equalTo('getLibresignFileId'), $this->anything()]
+				[$this->equalTo('getFileId'), $this->anything()]
 			)
 			->will($this->returnValueMap([
 				['getUuid', [], 'asdfg'],
-				['getLibresignFileId', [], 1]
+				['getFileId', [], 1]
 			]));
 		$this->fileUserMapper
 			->method('findUnsigned')
