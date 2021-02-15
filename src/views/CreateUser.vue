@@ -1,28 +1,6 @@
 <template>
 	<Content app-name="libresign" class="jumbotron">
 		<div id="container">
-<<<<<<< HEAD
-			<form>
-				<Avatar id="avatar" :user="username.length ? username : 'User'" :size="sizeAvatar" />
-				<input v-model="username"
-					type="text"
-					required
-					:placeholder="t('libresign', 'Username...')">
-				<input type="password" required :placeholder="t('libresign', 'Password...')">
-
-				<div v-tooltip.right="{
-					content: t('libresign', 'Password to confirm signature on the document!'),
-					show: true,
-					trigger: 'hover focus'
-
-				}">
-					<input type="password" required :placeholder="t('libresign', 'Password PFX')">
-				</div>
-				<button @click="teste">
-					Cadastrar
-				</button>
-			</form>
-=======
 			<div class="bg">
 				<form>
 					<Avatar id="avatar" :user="username.length ? username : 'User'" :size="sizeAvatar" />
@@ -93,7 +71,6 @@
 					</button>
 				</form>
 			</div>
->>>>>>> 71da2082b4abf292930a0eeb15c953574167bc90
 		</div>
 	</Content>
 </template>
@@ -158,6 +135,11 @@ export default {
 	},
 
 	methods: {
+		comp1ositionValidation(function1, function2, valor) {
+			 function1(valor)
+			 function2(valor)
+		},
+
 		changeSizeAvatar() {
 			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
 		},

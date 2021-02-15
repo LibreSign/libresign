@@ -26,7 +26,7 @@ import { sync } from 'vuex-router-sync'
 import Vue from 'vue'
 
 import External from './External'
-import router from './router/external'
+import router from './router'
 import store from './store'
 
 import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'

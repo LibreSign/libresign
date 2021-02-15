@@ -20,6 +20,7 @@
   - along with this program. If not, see <http://www.gnu.org/licenses/>.
   -
   -->
+
 <template>
 	<div id="container">
 		<div id="viewer" class="content">
@@ -38,20 +39,30 @@ import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 
 export default {
-	name: 'AssignExternal',
+	name: 'SignPDF',
 
 	components: { Description, PDFViewer },
+
+	props: {
+		uuid: {
+			type: String,
+			default: '',
+		},
+	},
 	data: () => ({
 		desc: '',
 		urlPdf: '',
 		name: '',
 		user: false,
 	}),
+
 	created() {
 		this.getData()
 	},
+
 	mounted() {
 		this.checkHasUser()
+		// eslint-disable-next-line
 	},
 
 	methods: {
