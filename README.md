@@ -56,3 +56,5 @@ C: CountryName
 API: http://cfssl:8888/api/v1/cfssl/
 Config path: /cfssl/
 ```
+
+Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
