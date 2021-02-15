@@ -60,3 +60,7 @@ Config path: /cfssl/
 ```
 
 Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
+
+## API documentation
+
+[API](docs/API.md)
