@@ -13,7 +13,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;

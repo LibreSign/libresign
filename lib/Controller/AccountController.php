@@ -5,7 +5,6 @@ namespace OCA\Libresign\Controller;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
