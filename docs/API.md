@@ -55,9 +55,9 @@ Parameters of File object
 
 Parameters of User object
 
-| Parameter   | Type   | Description                       |
-| ----------- | ------ | --------------------------------- |
-| email       | string | Email of user                     |
+| Parameter    | Type   | Description                       |
+| ------------ | ------ | --------------------------------- |
+| email        | string | Email of user                     |
 | display_name | string | **optional** Display name of user |
 
 #### Response
