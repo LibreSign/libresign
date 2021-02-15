@@ -146,7 +146,7 @@ class AccountService {
 		$this->folder->setUserId($uid);
 		$folder = $this->folder->getFolderForUser();
 		if (!$folder->nodeExists($this->pdfFilename)) {
-			throw new LibresignException("Signature file not found!", 400);
+			throw new LibresignException('Signature file not found!', 400);
 		}
 		return $folder->get($this->pdfFilename);
 	}

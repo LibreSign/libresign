@@ -105,7 +105,14 @@ class LibresignController extends Controller {
 	 */
 	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		try {
-			$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+			try {
+				$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+			}
+			if ($fileUser->getSigned()) {
+				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
+			}
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			Filesystem::initMountPoints($fileData->getuserId());
 			$inputFile = $this->root->getById($fileData->getNodeId());
@@ -120,7 +127,7 @@ class LibresignController extends Controller {
 			);
 			if ($this->root->nodeExists($signedFilePath)) {
 				$signedFile = $this->root->get($signedFilePath);
-				$inputFile = $signedFilePath;
+				$inputFile = $signedFile;
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($inputFile, $certificatePath, $password);
@@ -128,6 +135,8 @@ class LibresignController extends Controller {
 				$signedFile = $this->root->newFile($signedFilePath);
 			}
 			$signedFile->putContent($signedContent);
+			$fileUser->setSigned(time());
+			$this->fileUserMapper->update($fileUser);
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
@@ -135,11 +144,19 @@ class LibresignController extends Controller {
 				],
 				Http::STATUS_OK
 			);
+		} catch (LibresignException $e) {
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$e->getMessage()]
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('Invalid data to sign file')]
+					'errors' => [$this->l10n->t('Internal error')]
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
