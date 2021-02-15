@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Service;
 
 use OC\Http\Client\ClientService;
-use OC\User\User;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
