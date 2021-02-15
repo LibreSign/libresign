@@ -54,7 +54,10 @@ class WebhookController extends ApiController {
 		try {
 			$this->webhook->validate($data);
 			$return = $this->webhook->save($data);
-			$this->mail->notifyAllUnsigned();
+			foreach ($return['users'] as $key => $user) {
+				$this->mail->notifyUnsignedUser($user);
+			}
+			unset($return['users']);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

@@ -13,6 +13,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,6 +37,8 @@ final class WebhookServiceTest extends TestCase {
 	private $user;
 	/** @var IClientService */
 	private $client;
+	/** @var IUserManager */
+	private $userManager;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -48,6 +51,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->client = $this->createMock(IClientService::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->service = new WebhookService(
 			$this->config,
@@ -56,7 +60,8 @@ final class WebhookServiceTest extends TestCase {
 			$this->file,
 			$this->fileUser,
 			$this->folder,
-			$this->client
+			$this->client,
+			$this->userManager
 		);
 	}
 

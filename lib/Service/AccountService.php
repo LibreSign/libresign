@@ -92,11 +92,14 @@ class AccountService {
 
 	public function createToSign($uuid, $uid, $password, $signPassword) {
 		$fileUser = $this->getFileUserByUuid($uuid);
+
 		$newUser = $this->userManager->createUser($uid, $password);
+		$newUser->setDisplayName($fileUser->getDisplayName());
+		$newUser->setEMailAddress($fileUser->getEmail());
+
 		$fileUser->setUserId($newUser->getUID());
 		$this->fileUserMapper->update($fileUser);
 
-		$newUser->setEMailAddress($uid);
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
 				$emailTemplate = $this->newUserMail->generateTemplate($newUser, false);
@@ -105,7 +108,6 @@ class AccountService {
 				throw new LibresignException('Unable to send the invitation', 1);
 			}
 		}
-		$this->folder->setUserId($newUser->getUID());
 
 		$content = $this->cfsslHandler->generateCertificate(
 			$this->config->getAppValue(Application::APP_ID, 'commonName'),
@@ -123,6 +125,7 @@ class AccountService {
 	}
 
 	private function savePfx($uid, $content) {
+		$this->folder->setUserId($uid);
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolderForUser();
 		if ($folder->nodeExists($this->pdfFilename)) {
@@ -140,6 +143,7 @@ class AccountService {
 
 	public function getPfx($uid) {
 		Filesystem::initMountPoints($uid);
+		$this->folder->setUserId($uid);
 		$folder = $this->folder->getFolderForUser();
 		if (!$folder->nodeExists($this->pdfFilename)) {
 			throw new LibresignException("Signature file not found!", 400);
