@@ -22,8 +22,6 @@ class AccountService {
 	private $fileUserMapper;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var SignatureService */
-	private $signature;
 	/** @var FolderService */
 	private $folder;
 	/** @var IConfig */
@@ -32,12 +30,13 @@ class AccountService {
 	private $newUserMail;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
+	/** @var string */
+	private $pdfFilename = 'signature.pfx';
 
 	public function __construct(
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
-		SignatureService $signature,
 		FolderService $folder,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
@@ -46,7 +45,6 @@ class AccountService {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
-		$this->signature = $signature;
 		$this->folder = $folder;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
@@ -127,17 +125,25 @@ class AccountService {
 	private function savePfx($uid, $content) {
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolderForUser();
-		$filename = 'signature.pfx';
-		if ($folder->nodeExists($filename)) {
-			$node = $folder->get($filename);
+		if ($folder->nodeExists($this->pdfFilename)) {
+			$node = $folder->get($this->pdfFilename);
 			if (!$node instanceof File) {
-				throw new LibresignException("path {$filename} already exists and is not a file!", 400);
+				throw new LibresignException("path {$this->pdfFilename} already exists and is not a file!", 400);
 			}
 			$node->putContent($content);
 			return $node;
 		}
 
-		$file = $folder->newFile($filename);
+		$file = $folder->newFile($this->pdfFilename);
 		$file->putContent($content);
+	}
+
+	public function getPfx($uid) {
+		Filesystem::initMountPoints($uid);
+		$folder = $this->folder->getFolderForUser();
+		if (!$folder->nodeExists($this->pdfFilename)) {
+			throw new LibresignException("Signature file not found!", 400);
+		}
+		return $folder->get($this->pdfFilename);
 	}
 }

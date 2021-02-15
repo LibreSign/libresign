@@ -11,6 +11,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getId()
  * @method void setFileId(int $fileId)
  * @method int getFileId()
+ * @method void setUserId(int $userId)
+ * @method int getUserId()
  * @method void setCreatedAt(string $createdAt)
  * @method string getCreatedAt()
  * @method void setDescription(string $description)

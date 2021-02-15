@@ -17,6 +17,8 @@ class JLibresignHandler {
 			->setPdf($inputFile->getContent())
 			->setPassword($password)
 			->setTempPath('/tmp/')
+			->setIsUseJavaInstalled(true)
+			->setjSignPdfJarPath('/opt/jsignpdf-1.6.4/JSignPdf.jar')
 		;
 
 		$jSignPdf = new JSignPDF($param);

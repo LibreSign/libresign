@@ -7,7 +7,6 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\SignatureService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -25,8 +24,6 @@ final class AccountServiceTest extends TestCase {
 	private $fileUserMapper;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var SignatureService */
-	private $signatureService;
 	/** @var FolderService */
 	private $folder;
 	/** @var IConfig */
@@ -43,7 +40,6 @@ final class AccountServiceTest extends TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->signature = $this->createMock(SignatureService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
@@ -52,7 +48,6 @@ final class AccountServiceTest extends TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManager,
-			$this->signature,
 			$this->folder,
 			$this->config,
 			$this->newUserMail,

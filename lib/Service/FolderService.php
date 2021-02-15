@@ -20,7 +20,7 @@ class FolderService {
 		IRootFolder $root,
 		IConfig $config,
 		IL10N $l10n,
-		string $userId
+		?string $userId
 	) {
 		$this->root = $root;
 		$this->config = $config;

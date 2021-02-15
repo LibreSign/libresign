@@ -2,9 +2,9 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
@@ -42,6 +42,7 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @CORS
 	 * @NoCSRFRequired
+	 * @PublicPage
 	 * @return JSONResponse
 	 */
 	public function createToSign(string $uuid, string $email, string $password, string $signPassword) {
@@ -56,6 +57,7 @@ class AccountController extends ApiController {
 			$this->account->createToSign($uuid, $email, $password, $signPassword);
 			$fileUser = $this->account->getFileUserByUuid($uuid);
 			$fileData = $this->fileMapper->getById($fileUser->getLibresignFileId());
+			Filesystem::initMountPoints($fileData->getUserId());
 			$fileToSign = $this->root->getById($fileData->getFileId());
 			if (count($fileToSign) < 1) {
 				return new JSONResponse(
@@ -67,6 +69,15 @@ class AccountController extends ApiController {
 				);
 			}
 			$fileToSign = $fileToSign[0];
+			$data = [
+				'message' => $this->l10n->t('Success'),
+				'action' => JSActions::ACTION_SIGN,
+				'pdf' => [
+					'base64' => base64_encode($fileToSign->getContent())
+				],
+				'filename' => $fileData->getName(),
+				'description' => $fileData->getDescription()
+			];
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -77,15 +88,7 @@ class AccountController extends ApiController {
 			);
 		}
 		return new JSONResponse(
-			[
-				'message' => $this->l10n->t('Success'),
-				'action' => JSActions::ACTION_SIGN,
-				'pdf' => [
-					'base64' => $fileToSign->getContent()
-				],
-				'filename' => $fileData->getName(),
-				'description' => $fileData->getDescription()
-			],
+			$data,
 			Http::STATUS_OK
 		);
 	}
