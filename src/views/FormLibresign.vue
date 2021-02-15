@@ -212,7 +212,7 @@ export default {
 	},
 }
 </script>
-<style>
+<style scoped>
 #formLibresign{
 	width: 60%;
 	text-align: left;

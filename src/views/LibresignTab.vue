@@ -164,7 +164,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
 #libresignTabContent {
 	display: flex;

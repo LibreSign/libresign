@@ -23,8 +23,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { generateUrl } from '@nextcloud/router'
-
-import FormLibreSign from '../views/FormLibresign'
+import routes from './router'
 
 Vue.use(Router)
 
@@ -32,10 +31,5 @@ export default new Router({
 	mode: 'history',
 	base: generateUrl('/apps/libresign/', ''),
 	linkActiveClass: 'active',
-	routes: [
-		{
-			path: '#FormLibreSign',
-			component: FormLibreSign,
-		},
-	],
+	routes,
 })
