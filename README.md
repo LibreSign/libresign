@@ -2,7 +2,7 @@
 
 ![Test Status](https://github.com/lyseontech/libresign/workflows/PHPUnit/badge.svg?branch=main)
 
-# Libresign
+# LibreSign
 
 Nextcloud app to sign PDF documents 
 
