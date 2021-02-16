@@ -3,7 +3,8 @@ const redirectURL = OC.appConfig.libresign.redirect
 const selectAction = (action) => {
 	switch (action) {
 	case 100:
-		return window.location.replace(redirectURL.toString())
+		window.location.replace(redirectURL.toString())
+		break
 	case 150:
 		return 'CreateUser'
 	case 200:

@@ -18,7 +18,7 @@ const routes = [
 		name: 'CreateUser',
 		props: (route) => ({ params: route.params }),
 	}, {
-		path: '/error-sign-document',
+		path: '/sign/:uuid',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
 		props: () => ({ error: { message: config.errors } }),
