@@ -36,9 +36,9 @@
 						<input id="password" v-model="password" type="password">
 						<button type="button"
 							:value="buttonValue"
-							class="primary"
+							:class="!updating ? 'primary' : 'primary loading'"
 							:disabled="updating"
-							@click="checkAssign">
+							@click="sign">
 							{{ t('libresign', 'Sign the Document.') }}
 						</button>
 					</div>
@@ -53,7 +53,6 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
-import { joinPaths } from '@nextcloud/paths'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
@@ -69,6 +68,11 @@ export default {
 			type: String,
 			required: false,
 			default: 'Description',
+		},
+		uuid: {
+			type: String,
+			required: true,
+			default: '',
 		},
 	},
 
@@ -93,24 +97,22 @@ export default {
 
 		async sign() {
 			this.updating = true
+			// eslint-disable-next-line
+			console.log('uuid: ', this.uuid)
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign'), {
-					inputFilePath: joinPaths(
-						this.fileInfo.get('path'), this.fileInfo.get('name')
-					),
-					outputFolderPath: this.fileInfo.get('path'),
-					certificatePath: this.signaturePath,
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`), {
 					password: this.password,
 				})
 				showSuccess(response)
+				this.updating = false
+				// eslint-disable-next-line
+				console.log(response)
 			} catch (err) {
 				showError(err)
-			}
-		},
+				this.updating = false
+				// eslint-disable-next-line
+				console.log(err)
 
-		checkAssign() {
-			if (this.hasSavePossible === true) {
-				showSuccess(t('libresign', 'Signed!'))
 			}
 		},
 	},

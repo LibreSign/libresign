@@ -27,7 +27,7 @@
 			<PDFViewer :url="urlPdf" />
 		</div>
 		<div id="description" class="content">
-			<Description :pdf-name="name" :pdf-description="desc" />
+			<Description :uuid="uuid" :pdf-name="name" :pdf-description="desc" />
 		</div>
 	</div>
 </template>
