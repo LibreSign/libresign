@@ -1,6 +1,6 @@
 ---
 home: true
-actionText: Get Started →
+actionText: Seja livre →
 actionLink: /Getting-started
 features:
   - title: Digital Sign
@@ -15,4 +15,3 @@ features:
 
 - [Getting started guide](Getting-started.md)
 - [OpenApi Documentation](https://swagger.io/docs/)
-- [Related projects](Related-projects.md)
