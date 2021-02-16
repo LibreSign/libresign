@@ -4,7 +4,9 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jeidison/jsignpdf-php": "dev-master"
+    "jeidison/jsignpdf-php": "dev-master",
+    "setasign/fpdi": "^2.3",
+    "setasign/fpdf": "^1.8"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",
