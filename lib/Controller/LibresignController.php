@@ -148,7 +148,7 @@ class LibresignController extends Controller {
 			$this->fileUserMapper->update($fileUser);
 
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
-			$total = array_reduce($signers, function($carry, $signer) {
+			$total = array_reduce($signers, function ($carry, $signer) {
 				$carry += $signer->getSigned() ? 1 : 0;
 				return $carry;
 			});
