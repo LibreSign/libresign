@@ -133,7 +133,7 @@ class LibresignController extends Controller {
 			} else {
 				/** @var \OCP\Files\File */
 				$fileToSign = $this->root->newFile($signedFilePath);
-				$buffer = $this->writeFooter($uuid, $originalFile);
+				$buffer = $this->writeFooter($originalFile);
 				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
@@ -167,7 +167,7 @@ class LibresignController extends Controller {
 		}
 	}
 
-	private function writeFooter(string $uuid, $file) {
+	private function writeFooter($file) {
 		$pdf = new Fpdi();
 		$pageCount = $pdf->setSourceFile($file->fopen('r'));
 
