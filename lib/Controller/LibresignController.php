@@ -17,6 +17,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use setasign\Fpdi\Fpdi;
 
 class LibresignController extends Controller {
 	use HandleErrorsTrait;
@@ -115,26 +116,29 @@ class LibresignController extends Controller {
 			}
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			Filesystem::initMountPoints($fileData->getuserId());
-			$inputFile = $this->root->getById($fileData->getNodeId());
-			if (count($inputFile) < 1) {
+			$originalFile = $this->root->getById($fileData->getNodeId());
+			if (count($originalFile) < 1) {
 				throw new LibresignException($this->l10n->t('File not found'));
 			}
-			$inputFile = $inputFile[0];
+			$originalFile = $originalFile[0];
 			$signedFilePath = preg_replace(
-				'/' . $inputFile->getExtension() . '$/',
-				$this->l10n->t('signed').'.'.$inputFile->getExtension(),
-				$inputFile->getPath()
+				'/' . $originalFile->getExtension() . '$/',
+				$this->l10n->t('signed').'.'.$originalFile->getExtension(),
+				$originalFile->getPath()
 			);
+
 			if ($this->root->nodeExists($signedFilePath)) {
-				$signedFile = $this->root->get($signedFilePath);
-				$inputFile = $signedFile;
+				/** @var \OCP\Files\File */
+				$fileToSign = $this->root->get($signedFilePath);
+			} else {
+				/** @var \OCP\Files\File */
+				$fileToSign = $this->root->newFile($signedFilePath);
+				$buffer = $this->writeFooter($uuid, $originalFile);
+				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
-			list(, $signedContent) = $this->libresignHandler->signExistingFile($inputFile, $certificatePath, $password);
-			if (!$signedFile) {
-				$signedFile = $this->root->newFile($signedFilePath);
-			}
-			$signedFile->putContent($signedContent);
+			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
+			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());
 			$this->fileUserMapper->update($fileUser);
 			return new JSONResponse(
@@ -161,5 +165,28 @@ class LibresignController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	private function writeFooter(string $uuid, $file) {
+		$pdf = new Fpdi();
+		$pageCount = $pdf->setSourceFile($file->fopen('r'));
+
+		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+			$templateId = $pdf->importPage($pageNo);
+
+			$pdf->AddPage();
+			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+
+			$pdf->SetFont('Helvetica');
+			$pdf->SetFontSize(8);
+			$pdf->SetAutoPageBreak(false);
+			$pdf->SetXY(5, -10);
+
+			$pdf->Write(8, $this->l10n->t(
+				'Digital signed by LibreSign. Validate in http://validador.lt.coop.br'
+			));
+		}
+
+		return $pdf->Output('S');
 	}
 }
