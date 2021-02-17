@@ -61,6 +61,6 @@ Config path: /cfssl/
 
 Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 
-## API documentation
+## Full documentation
 
-[API](docs/API.md)
+[here](https://lyseontech.github.io/libresign/)
