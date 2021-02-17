@@ -1,6 +1,6 @@
 ---
 home: true
-actionText: Seja livre →
+actionText: To be libre →
 actionLink: /Getting-started
 features:
   - title: Digital Sign

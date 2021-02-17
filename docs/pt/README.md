@@ -1,6 +1,6 @@
 ---
 home: true
-actionText: To be Libre →
+actionText: Seja Libre →
 actionLink: /Getting-started
 features:
   - title: Assinatura digital

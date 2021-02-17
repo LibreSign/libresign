@@ -1,14 +1,14 @@
-# Prequisited
+# Pré-requisitos
 
-- All requests require a `Content-Type` of `application/json`.
-- The API is located at https://nextcloud.local/index.php/apps/libresign/api/v1.0
-- All request parameters are required, unless otherwise specified
+- Todas as requisições precisam ter `Content-Type` com `application/json`.
+- A API é acesívem em https://nextcloud.local/index.php/apps/libresign/api/v1.0
+- Todos os parâmetros são necesários exceto se for especificado que não são.
 
-# Headers
+# Cabeçalhos
 
-Read https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+Leia https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 
-Example:
+Exemplo:
 
 ```bash
 curl -X POST \
@@ -36,33 +36,33 @@ curl -X POST \
 
 ### webhook/register
 
-#### Request body
+#### Corpo da requisição
 
-| Parameter   | Type          | Description                         |
-| ----------- | ------------- | ----------------------------------- |
-| file        | File          | File to sign                        |
-| users       | array of User | List of users to sign file          |
-| name        | string        | **optional** Name for file          |
-| description | string        | **optional** Description to signers |
-| callback    | string        | Callback url when a user sign file  |
+| Parâmetro   | Tipo          | Descrição                                                           |
+| ----------- | ------------- | ------------------------------------------------------------------- |
+| file        | File          | Arquivo para assinar                                                |
+| users       | array of User | Lista de pessoas que irão assinar                                   |
+| name        | string        | **optional** Nome do arquivo a ser assinado                         |
+| description | string        | **optional** Descrição para quem irá assinar                        |
+| callback    | string        | URL de callback chamada quando todas as pessoas assinarem o arquivo |
 
-Parameters of File object
+Parâmetros do objeto File
 
-| Parameter | Type   | Description                     |
-| --------- | ------ | ------------------------------- |
-| url       | string | **optional** Public URL of file |
-| base64    | string | **optional** File in base64     |
+| Parâmetro | Tipo   | Descrição                           |
+| --------- | ------ | ----------------------------------- |
+| url       | string | **optional** URL pública do arquivo |
+| base64    | string | **optional** Arquivo em base64      |
 
-Parameters of User object
+Parâmetros do objeto User
 
-| Parameter    | Type   | Description                       |
-| ------------ | ------ | --------------------------------- |
-| email        | string | Email of user                     |
-| display_name | string | **optional** Display name of user |
+| Parâmetro    | Tipo   | Descrição                                |
+| ------------ | ------ | ---------------------------------------- |
+| email        | string | Email do usuário                         |
+| display_name | string | **optional** Nome de exibição do usuário |
 
-#### Response
+#### Respostas
 
-##### 200 Success
+##### 200 Sucesso
 
 ```json
 {
@@ -70,10 +70,11 @@ Parameters of User object
 }
 ```
 
-##### 403 Forbidden
+##### 4xx Forbidden
 
-A 403 response might be returned if the users ability to access webhook has been disabled by the administrator.
+Respostas `4xx` podem ser retornadas sempre que houverem erros ao procesar a requisição.
 
+Exemplo:
 ```json
 {
     "message": "Insufficient permissions to use API"
