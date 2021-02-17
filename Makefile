@@ -64,7 +64,10 @@ stylelint:
 
 .PHONY: docs
 docs:
-	./docs/node_modules/.bin/vuepress dev docs/
+	cd docs; npm run dev
+
+swagger-gen:
+	runuser --user www-data -- /usr/local/bin/php ../../occ libresign:swagger-gen > docs/src/specs/api.yaml
 
 # Cleaning
 .PHONY: clean

@@ -9,9 +9,11 @@
     "docs:build": "vuepress build ."
   },
   "devDependencies": {
-    "vuepress": "^1.8.1"
+    "vuepress": "^1.8.1",
+    "vuepress-theme-openapi": "^1.3.2"
   },
   "browserslist": [
     "defaults"
-  ]
+  ],
+  "dependencies": {}
 }

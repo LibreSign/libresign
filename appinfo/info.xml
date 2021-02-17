@@ -23,5 +23,7 @@
     <settings>
 		<admin>OCA\Libresign\Settings\AdminSettings</admin>
 	</settings>
-
+    <commands>
+        <command>OCA\Libresign\Command\DocsSwaggerGen</command>
+    </commands>
 </info>

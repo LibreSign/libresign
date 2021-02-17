@@ -1,0 +1,12 @@
+openapi: 3.0.0
+paths:
+  /api/0.1/webhook/register:
+    post:
+      operationId: 'OCA\Libresign\Controller\WebhookController::register'
+      requestBody:
+        description: 'Register file to sign and all users to sign the file'
+        required: true
+      responses:
+        '200':
+          description: 'An example resource'
+
