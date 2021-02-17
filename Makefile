@@ -62,6 +62,10 @@ lint-fix:
 stylelint:
 	npm run stylelint
 
+.PHONY: docs
+docs:
+	./docs/node_modules/.bin/vuepress dev docs/
+
 # Cleaning
 .PHONY: clean
 clean:
