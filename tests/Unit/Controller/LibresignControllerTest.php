@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
+use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -31,6 +32,7 @@ final class LibresignControllerTest extends TestCase {
 		$l10n = $this->prophesize(IL10N::class);
 		$accountService = $this->createMock(AccountService::class);
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
+		$webhook = $this->createMock(WebhookService::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		
@@ -53,6 +55,7 @@ final class LibresignControllerTest extends TestCase {
 			$l10n->reveal(),
 			$accountService,
 			$libresignHandler,
+			$webhook,
 			$userId
 		);
 
@@ -95,6 +98,7 @@ final class LibresignControllerTest extends TestCase {
 			->will($this->returnArgument(0));
 		$accountService = $this->createMock(AccountService::class);
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
+		$webhook = $this->createMock(WebhookService::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -108,6 +112,7 @@ final class LibresignControllerTest extends TestCase {
 			$l10n,
 			$accountService,
 			$libresignHandler,
+			$webhook,
 			$userId
 		);
 
