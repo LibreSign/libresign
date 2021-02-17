@@ -6,9 +6,12 @@
   "license": "AGPL",
   "scripts": {
     "dev": "vuepress dev .",
-    "build": "vuepress build ."
+    "docs:build": "vuepress build ."
   },
   "devDependencies": {
     "vuepress": "^1.8.1"
-  }
+  },
+  "browserslist": [
+    "defaults"
+  ]
 }
