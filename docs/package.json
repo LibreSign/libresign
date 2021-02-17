@@ -1,0 +1,14 @@
+{
+  "name": "libresign-docs",
+  "version": "1.0.0",
+  "description": "Documentation of LibreSign",
+  "main": "index.js",
+  "license": "AGPL",
+  "scripts": {
+    "dev": "vuepress dev .",
+    "build": "vuepress build ."
+  },
+  "devDependencies": {
+    "vuepress": "^1.8.1"
+  }
+}
