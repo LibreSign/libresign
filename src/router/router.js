@@ -3,11 +3,11 @@ import SelectAction from '../middlewares/SelectAction'
 const routes = [
 	{
 		path: '/',
-		name: 'CreateSubscription',
+		name: 'Home',
 		component: () => import('../views/CreateSubscription'),
 	}, {
 		path: '/sign/:uuid',
-		redirect: { name: OC.appConfig.libresign ? SelectAction(OC.appConfig.libresign.action) : 'CreateSubscription' },
+		redirect: { name: OC.appConfig.libresign ? SelectAction(OC.appConfig.libresign.action) : 'Home' },
 	}, {
 		path: '/sign/:uuid#Sign',
 		component: () => import('../views/SignPDF'),

@@ -1,4 +1,4 @@
-const redirectURL = OC.appConfig.libresign ? OC.appConfig.libresign.redirect : '/'
+const redirectURL = OC.appConfig.libresign ? OC.appConfig.libresign.redirect : 'Home'
 
 const selectAction = (action) => {
 	switch (action) {
