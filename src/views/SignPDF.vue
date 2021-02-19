@@ -58,8 +58,6 @@ export default {
 
 	created() {
 		this.getData()
-		// eslint-disable-next-line
-		console.log(this.OC)
 
 	},
 
