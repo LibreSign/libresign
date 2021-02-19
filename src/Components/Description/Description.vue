@@ -97,21 +97,15 @@ export default {
 
 		async sign() {
 			this.updating = true
-			// eslint-disable-next-line
-			console.log('uuid: ', this.uuid)
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`), {
 					password: this.password,
 				})
 				showSuccess(response)
 				this.updating = false
-				// eslint-disable-next-line
-				console.log(response)
 			} catch (err) {
 				showError(err)
 				this.updating = false
-				// eslint-disable-next-line
-				console.log(err)
 
 			}
 		},
