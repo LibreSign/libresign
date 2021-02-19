@@ -27,7 +27,7 @@
 			<PDFViewer :url="urlPdf" />
 		</div>
 		<div id="description" class="content">
-			<Description :pdf-name="name" :pdf-description="desc" />
+			<Description :uuid="uuid" :pdf-name="name" :pdf-description="desc" />
 		</div>
 	</div>
 </template>
@@ -74,10 +74,10 @@ export default {
 		},
 
 		getData() {
-			this.urlPdf = this.OC.appConfig.libresign.sign.pdf
+			this.urlPdf = this.OC.appConfig.libresign.sign.pdf.base64
 			this.name = this.OC.appConfig.libresign.sign.filename
 			this.desc = this.OC.appConfig.libresign.sign.description
-			this.user = this.OC.appConfig.libresign.user
+			this.user = this.OC.appConfig.libresign.user.name
 		},
 	},
 }

@@ -79,7 +79,7 @@
 import axios from '@nextcloud/axios'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import { showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -140,16 +140,14 @@ export default {
 
 	methods: {
 		async createUser() {
-			// eslint-disable-next-line
-// console.log(this.$)
 			try {
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
+				await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
 					password: this.pass,
 					signPassword: this.pfx,
 				})
-				// eslint-disable-next-line
-				console.log(response)
+				showSuccess('Usuario criado!')
+				this.$route.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err)
 			}

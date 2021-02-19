@@ -49,8 +49,6 @@ export default {
 			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected)
 			OCP.AppConfig.setValue('libresign', 'webhook_authorized', listOfInputGroupsSelected)
 			this.idKey += 1
-			// eslint-disable-next-line
-			console.log(this.groupsSelected)
 		},
 
 		async get() {

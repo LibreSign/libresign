@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Helper;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\IRootFolder;
@@ -108,6 +109,7 @@ class JSConfigHelper {
 			return;
 		}
 		$fileData = $this->fileMapper->getById($fileUser->getFileId());
+		Filesystem::initMountPoints($fileData->getUserId());
 		$fileToSign = $this->root->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
 			$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
@@ -120,7 +122,7 @@ class JSConfigHelper {
 		$appConfig['libresign']['user']['name'] = $fileUser->getDisplayName();
 		$appConfig['libresign']['sign'] = [
 			'pdf' => [
-				'base64' => $fileToSign->getContent()
+				'base64' => base64_encode($fileToSign->getContent())
 			],
 			'filename' => $fileData->getName(),
 			'description' => $fileData->getDescription()
