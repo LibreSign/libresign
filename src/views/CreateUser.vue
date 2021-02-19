@@ -77,6 +77,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -87,6 +88,13 @@ export default {
 	components: {
 		Content,
 		Avatar,
+	},
+
+	props: {
+		messageToast: {
+			type: String,
+			default: 'Create a user',
+		},
 	},
 
 	data() {
@@ -136,6 +144,7 @@ export default {
 	},
 	created() {
 		this.changeSizeAvatar()
+		showError(t('libresign', this.messageToast))
 	},
 
 	methods: {

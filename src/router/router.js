@@ -17,12 +17,14 @@ const routes = [
 		path: '/sign/:uuid#Create',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
-		props: (route) => ({ params: route.params }),
+		props: (route) => ({
+			messageToast: 'User not found for this email.',
+		}),
 	}, {
 		path: '/sign/:uuid#error',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
-		props: () => ({ error: { message: OC.appConfig.libresign.errors } }),
+		props: (route) => ({ error: { message: OC.appConfig.libresign.errors } }),
 	},
 ]
 
