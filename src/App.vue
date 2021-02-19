@@ -22,59 +22,12 @@
   -->
 
 <template>
-	<AppContent>
-		<div v-if="error" class="emptycontent">
-			<div class="icon icon-error" />
-			<h2>{{ error }}</h2>
-		</div>
-		<div v-else id="content" class="app-libresign">
-			<h2>{{ t('libresign', 'Create new subscription.') }}</h2>
-			<FormLibresign />
-		</div>
-	</AppContent>
+	<router-view />
 </template>
 
 <script>
-import FormLibresign from './views/FormLibresign'
-import AppContent from '@nextcloud/vue/dist/Components/AppContent'
-import { translate as t } from '@nextcloud/l10n'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-
-import '@nextcloud/dialogs/styles/toast.scss'
-
 export default {
 	name: 'App',
-	components: {
-		FormLibresign,
-		AppContent,
-	},
-	data() {
-		return {
-			loading: true,
-			error: '',
-		}
-	},
-	computed: {},
-	async mounted() {
-		await this.checkRootCertificate()
-	},
-
-	methods: {
-		async checkRootCertificate() {
-			this.error = ''
-			try {
-				const response = await axios.get(
-					generateUrl('/apps/libresign/api/0.1/signature/has-root-cert'),
-				)
-				if (!response.data || !response.data.hasRootCert) {
-					this.error = t('libresign', 'Root certificate has not been configured by the Administrator!')
-				}
-			} catch (e) {
-				console.error(e)
-			}
-		},
-	},
 }
 
 </script>
