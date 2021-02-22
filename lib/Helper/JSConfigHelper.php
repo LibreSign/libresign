@@ -94,7 +94,7 @@ class JSConfigHelper {
 
 			$appConfig['libresign']['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $this->urlGenerator->linkToRoute(
-					'libresign.Page.sign',
+					'libresign.page.sign',
 					['uuid' => $uuid]
 				),
 			]);
