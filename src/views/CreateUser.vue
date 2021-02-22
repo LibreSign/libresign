@@ -8,13 +8,13 @@
 						<input
 							v-model="email"
 							v-tooltip.right="{
-								content: 'Insira seu email aqui.',
+								content: t('libresign', 'Enter your email.'),
 								show: tooltip.name,
 								trigger: 'false',
 							}"
 							type="text"
 							:required="validator.name"
-							placeholder="Email"
+							:placeholder="t('libresign', 'E-mail')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
 						<div v-show="validator.name"
@@ -24,13 +24,13 @@
 						<input
 							v-model="pass"
 							v-tooltip.right="{
-								content: 'A senha deve ter no mínimo 8 caracteres',
+								content: t('libresign', 'Password must be at least 8 characters.'),
 								show: tooltip.pass,
 								trigger: 'false'
 							}"
 							type="password"
 							:required="validator.pass"
-							placeholder="Senha"
+							:placeholder="t('libresign', 'Password')"
 							@focus="tooltip.passFocus = true; tooltip.pass = false"
 							@blur="tooltip.passFocus = false; validationPass()">
 						<div v-show="validator.pass"
@@ -40,13 +40,13 @@
 						<input
 							v-model="passConfirm"
 							v-tooltip.right="{
-								content: 'Senhas não coincidem',
+								content: t('libresign', 'Password does not match'),
 								show: tooltip.passConfirm,
 								trigger: 'false'
 							}"
 							type="password"
 							:required="validator.passConfirm"
-							placeholder="Confirmar senha"
+							:placeholder="t('libresign', 'Confirm password')"
 							@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
 							@blur="tooltip.passConfirmFocus = false; validationPasswords()">
 						<div v-show="validator.passConfirm"
@@ -55,15 +55,16 @@
 
 					<div
 						v-tooltip.right="{
-							content: 'Senha para confirmar assinatura no documento!',
+							content: t('libresign', 'Password to confirm signature on the document!'),
 							show: false,
 							trigger: 'hover focus'
 						}"
 						class="group">
 						<input
 							v-model="pfx"
+							type="password"
 							:required="validator.pfx"
-							placeholder="Senha PFX">
+							:placeholder="t('libresign', 'Password for sign document.')">
 						<div v-show="validator.pfx" class="icon-error-white" />
 					</div>
 					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
@@ -81,6 +82,7 @@ import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -155,10 +157,10 @@ export default {
 					password: this.pass,
 					signPassword: this.pfx,
 				})
-				showSuccess('Usuario criado!')
+				showSuccess(t('libresigng', 'User created!'))
 				this.$route.push({ name: 'SignPDF' })
 			} catch (err) {
-				showError(err)
+				showError(`Error ${err.response.data.action}: ${err.response.data.message}`)
 			}
 		},
 
