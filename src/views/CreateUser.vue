@@ -1,6 +1,22 @@
 <template>
 	<Content app-name="libresign" class="jumbotron">
 		<div id="container">
+			<div ref="toastAlert" :class="toastClass">
+				<div class="inner">
+					<div class="colorBar" />
+					<div class="icon">
+						<div class="icon-info-white" />
+					</div>
+					<div class="toastText">
+						<div class="name">
+							Title
+						</div>
+						<div class="desc">
+							content
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="bg">
 				<form>
 					<Avatar id="avatar" :user="email.length ? email : 'User'" :size="sizeAvatar" />
@@ -112,6 +128,7 @@ export default {
 				passConfirmFocus: false,
 
 			},
+			toastClass: 'toast hidden',
 		}
 	},
 	watch: {
@@ -137,7 +154,11 @@ export default {
 	created() {
 		this.changeSizeAvatar()
 	},
-
+	mounted() {
+		this.$nextTick(function() {
+			this.toastShow()
+		})
+	},
 	methods: {
 		async createUser() {
 			try {
@@ -231,6 +252,9 @@ export default {
 				this.validator.btn = false
 			}
 		},
+		toastShow() {
+			this.toastClass = 'toast show'
+		},
 	},
 }
 </script>
@@ -316,6 +340,82 @@ input {
 
 	transition: background-position-x;
 	transition-duration: 2s;
+
+	overflow:hidden;
+}
+
+.toast{
+	position: absolute;
+	top: 0;
+	right: 0;
+	background-color: white;
+	margin: 10px 10px 0 0;
+	border-radius: 6px;
+	height: 58px;
+	width: 300px;
+
+	user-select: none;
+}
+
+.toast .inner{
+	display: flex;
+	padding: 5px 3px 5px 3px;
+	align-items: center;
+}
+
+.toast .inner .colorBar{
+	background-color: #F0A92E;
+	height: 45px;
+	width: 6px;
+	border-radius: 6px;
+	margin-left: 5px;
+}
+
+.toast .inner .icon{
+	background-color: #F0A92F;
+	margin-left: 10px;
+	border-radius: 100%;
+	width: 25px;
+	height: 25px;
+
+	display: flex;
+	justify-content: center;
+}
+
+.toast .inner .toastText{
+	margin-left: 10px;
+
+}
+
+.toast .inner .toastText .name{
+	font-weight: bold;
+}
+
+.toast .inner .toastText .desc{
+	margin-top: -8px;
+}
+
+.toast.hidden{
+	display: none;
+}
+
+.toast.show{
+	display: flex;
+	animation: toastShow 1s ease forwards;
+}
+@keyframes toastShow{
+	0%{
+		transform: translateX(100%);
+	}
+	40%{
+		transform: translateX(-10%);
+	}
+	80%{
+		transform: translateX(0%);
+	}
+	100%{
+		transform: translateX(-10px)
+	}
 }
 
 @media screen and (max-width: 750px) {
