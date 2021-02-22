@@ -35,7 +35,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 		]);
 		$table->addColumn('uuid', Types::STRING, [
 			'notnull' => true,
-			'length' => 255,
+			'length' => 36,
 			'default' => '',
 		]);
 		$table->addColumn('created_at', Types::BIGINT, [
