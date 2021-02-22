@@ -24,7 +24,7 @@
 <template>
 	<div id="container">
 		<div id="viewer" class="content">
-			<PDFViewer :url="urlPdf" />
+			<PDFViewer :url="pdfData" />
 		</div>
 		<div id="description" class="content">
 			<Description :uuid="uuid" :pdf-name="name" :pdf-description="desc" />
@@ -49,16 +49,17 @@ export default {
 			default: '',
 		},
 	},
-	data: () => ({
-		desc: '',
-		urlPdf: '',
-		name: '',
-		user: false,
-	}),
+	data() {
+		return {
+			desc: '',
+			pdfData: '',
+			name: '',
+			user: false,
+		}
+	},
 
 	created() {
 		this.getData()
-
 	},
 
 	mounted() {
@@ -74,10 +75,13 @@ export default {
 		},
 
 		getData() {
-			this.urlPdf = OC.appConfig.libresign.sign.pdf.base64
 			this.name = OC.appConfig.libresign.sign.filename
 			this.desc = OC.appConfig.libresign.sign.description
 			this.user = OC.appConfig.libresign.user.name
+
+			this.pdfData = OC.appConfig.libresign.sign.pdf.base64
+				? OC.appConfig.libresign.sign.pdf.base64
+				: OC.appConfig.libresign.sign.pdf.url
 		},
 	},
 }
