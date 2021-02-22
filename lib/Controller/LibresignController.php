@@ -179,10 +179,18 @@ class LibresignController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		} catch (\Throwable $th) {
+			$message = $th->getMessage();
+			switch ($message) {
+				case 'Certificate Password Invalid.':
+					$message = $this->l10n->t($message);
+					break;
+				default:
+					$message = $this->l10n->t('Internal error');
+			}
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('Internal error')]
+					'errors' => [$message]
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
