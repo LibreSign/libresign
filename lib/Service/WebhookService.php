@@ -8,6 +8,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\Files\File;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -210,5 +211,22 @@ class WebhookService {
 		}
 		$folderName[] = $data['userManager']->getUID();
 		return implode('_', $folderName);
+	}
+
+	public function notifyCallback(string $uri, string $uuid, File $file) {
+		$options = [
+			'multipart' => [
+				[
+					'name' => 'uuid',
+					'contents' => $uuid
+				],
+				[
+					'name' => 'file',
+					'contents' => $file->fopen('r'),
+					'filename' => $file->getName()
+				]
+			]
+		];
+		$response = $this->client->newClient()->post($uri, $options);
 	}
 }

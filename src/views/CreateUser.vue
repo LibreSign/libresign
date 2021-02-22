@@ -77,9 +77,10 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import { showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -87,6 +88,13 @@ export default {
 	components: {
 		Content,
 		Avatar,
+	},
+
+	props: {
+		messageToast: {
+			type: String,
+			default: 'Create a user',
+		},
 	},
 
 	data() {
@@ -136,20 +144,19 @@ export default {
 	},
 	created() {
 		this.changeSizeAvatar()
+		showError(t('libresign', this.messageToast))
 	},
 
 	methods: {
 		async createUser() {
-			// eslint-disable-next-line
-// console.log(this.$)
 			try {
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
+				await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
 					password: this.pass,
 					signPassword: this.pfx,
 				})
-				// eslint-disable-next-line
-				console.log(response)
+				showSuccess('Usuario criado!')
+				this.$route.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err)
 			}

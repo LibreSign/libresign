@@ -11,6 +11,7 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
+use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -38,6 +39,8 @@ class LibresignController extends Controller {
 	private $account;
 	/** @var JLibresignHandler */
 	private $libresignHandler;
+	/** @var WebhookService */
+	private $webhook;
 	/** @var string */
 	private $userId;
 
@@ -50,6 +53,7 @@ class LibresignController extends Controller {
 		IL10N $l10n,
 		AccountService $account,
 		JLibresignHandler $libresignHandler,
+		WebhookService $webhook,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -60,6 +64,7 @@ class LibresignController extends Controller {
 		$this->l10n = $l10n;
 		$this->account = $account;
 		$this->libresignHandler = $libresignHandler;
+		$this->webhook = $webhook;
 		$this->userId = $userId;
 	}
 
@@ -141,6 +146,23 @@ class LibresignController extends Controller {
 			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());
 			$this->fileUserMapper->update($fileUser);
+
+			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
+			$total = array_reduce($signers, function ($carry, $signer) {
+				$carry += $signer->getSigned() ? 1 : 0;
+				return $carry;
+			});
+			if (count($signers) == $total) {
+				$callbackUrl = $fileData->getCallback();
+				if ($callbackUrl) {
+					$this->webhook->notifyCallback(
+						$callbackUrl,
+						$fileData->getUuid(),
+						$fileToSign
+					);
+				}
+			}
+
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,

@@ -1,13 +1,14 @@
-import selectAction from '../middlewares/searchAction'
-
-const config = OC.appConfig.libresign
+import SelectAction from '../middlewares/SelectAction'
 
 const routes = [
 	{
+		path: '/',
+		name: 'Home',
+		component: () => import('../views/CreateSubscription'),
+	}, {
 		path: '/sign/:uuid',
-		redirect: { name: selectAction(config.action) },
-	},
-	{
+		redirect: { name: OC.appConfig.libresign ? SelectAction(OC.appConfig.libresign.action) : 'Home' },
+	}, {
 		path: '/sign/:uuid#Sign',
 		component: () => import('../views/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid }),
@@ -16,12 +17,14 @@ const routes = [
 		path: '/sign/:uuid#Create',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
-		props: (route) => ({ params: route.params }),
+		props: (route) => ({
+			messageToast: 'User not found for this email.',
+		}),
 	}, {
-		path: '/error-sign-document',
+		path: '/sign/:uuid#error',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
-		props: () => ({ error: { message: config.errors } }),
+		props: (route) => ({ error: { message: OC.appConfig.libresign.errors } }),
 	},
 ]
 
