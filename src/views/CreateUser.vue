@@ -82,7 +82,6 @@ import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -158,7 +157,7 @@ export default {
 					signPassword: this.pfx,
 				})
 				showSuccess(t('libresigng', 'User created!'))
-				this.$route.push({ name: 'SignPDF' })
+				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(`Error ${err.response.data.action}: ${err.response.data.message}`)
 			}

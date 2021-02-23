@@ -11,7 +11,7 @@ const routes = [
 	}, {
 		path: '/sign/:uuid#Sign',
 		component: () => import('../views/SignPDF'),
-		props: (route) => ({ uuid: route.params.uuid }),
+		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
 		path: '/sign/:uuid#Create',
@@ -25,6 +25,11 @@ const routes = [
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
 		props: (route) => ({ error: { message: OC.appConfig.libresign.errors } }),
+	},
+	{
+		path: '/success',
+		component: () => import('../views/DefaultPageSuccess'),
+		name: 'DefaultPageSuccess',
 	},
 ]
 
