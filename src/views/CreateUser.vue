@@ -315,9 +315,11 @@ input {
 .jumbotron{
 	background-image: url('../../img/bg.jpg');
 	background-size: cover;
-
+	-moz-background-size: cover;
 	transition: background-position-x;
 	transition-duration: 2s;
+	overflow: hidden;
+	-moz-overflow: hidden;
 }
 
 @media screen and (max-width: 750px) {
