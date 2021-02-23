@@ -2,6 +2,7 @@
  * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *
  * @author Lyseon Tech <contato@lt.coop.br>
+ * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

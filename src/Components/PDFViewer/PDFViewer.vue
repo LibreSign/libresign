@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
 -
 - @author Lyseon Tech <contato@lt.coop.br>
 - @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
