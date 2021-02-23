@@ -82,7 +82,6 @@ import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
