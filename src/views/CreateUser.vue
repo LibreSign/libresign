@@ -7,7 +7,7 @@
 					<div class="group">
 						<input
 							v-model="email"
-							v-tooltip.right="{
+							v-tooltip.top="{
 								content: t('libresign', 'Enter your email.'),
 								show: tooltip.name,
 								trigger: 'false',
@@ -17,14 +17,12 @@
 							:placeholder="t('libresign', 'E-mail')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
-						<div v-show="validator.name"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="pass"
-							v-tooltip.right="{
-								content: t('libresign', 'Password must be at least 8 characters.'),
+							v-tooltip.bottom="{
+								content: t('libresign', 'Password must be at least 3 characters.'),
 								show: tooltip.pass,
 								trigger: 'false'
 							}"
@@ -33,13 +31,11 @@
 							:placeholder="t('libresign', 'Password')"
 							@focus="tooltip.passFocus = true; tooltip.pass = false"
 							@blur="tooltip.passFocus = false; validationPass()">
-						<div v-show="validator.pass"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="passConfirm"
-							v-tooltip.right="{
+							v-tooltip.bottom="{
 								content: t('libresign', 'Password does not match'),
 								show: tooltip.passConfirm,
 								trigger: 'false'
@@ -49,8 +45,6 @@
 							:placeholder="t('libresign', 'Confirm password')"
 							@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
 							@blur="tooltip.passConfirmFocus = false; validationPasswords()">
-						<div v-show="validator.passConfirm"
-							class="icon-error-white" />
 					</div>
 
 					<div
@@ -65,7 +59,6 @@
 							type="password"
 							:required="validator.pfx"
 							:placeholder="t('libresign', 'Password for sign document.')">
-						<div v-show="validator.pfx" class="icon-error-white" />
 					</div>
 					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
 						Cadastrar
@@ -182,7 +175,7 @@ export default {
 			}
 		},
 		validationPass() {
-			if (this.pass.length < 8) {
+			if (this.pass.length < 3) {
 				this.validator.pass = true
 				if (this.tooltip.passFocus === false) {
 					this.tooltip.pass = true
@@ -202,7 +195,7 @@ export default {
 			}
 		},
 		validationPassConfirm() {
-			if (this.passConfirm.length < 8) {
+			if (this.passConfirm.length < 3) {
 				this.validator.passConfirm = true
 			} else {
 				this.validator.passConfirm = false
@@ -276,7 +269,6 @@ form > div{
 }
 
 input {
-	min-width: 317px;
 	width: 100%
 }
 
@@ -337,8 +329,7 @@ input {
 @media screen and (max-width: 535px) {
 	// form {width: 90%}
 	.bg{
-		transition: all;
-		transition-duration: 1s;
+		transition: ease all .5s;
 		width: 99%;
 	}
 	input {
@@ -348,17 +339,17 @@ input {
 
 @media screen and (max-width: 380px) {
 	.bg{
-		transition: all;
-		transition-duration: 2s;
+		transition: ease all .5s;
 		background-image: none;
 		background-color: #0082c9;
 		border-radius: 0;
 		width: 100%;
+		height: 100%;
 		box-shadow: none;
 	}
 	.jumbotron{
-		background-image:none;
-		background-color:#0082c9;
+		background-image: none;
+		background-color: #0082c9;
 	}
 	input{
 		max-width: 317px;
