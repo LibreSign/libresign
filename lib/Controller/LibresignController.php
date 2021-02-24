@@ -182,6 +182,7 @@ class LibresignController extends Controller {
 			$message = $th->getMessage();
 			switch ($message) {
 				case 'Certificate Password Invalid.':
+				case 'Certificate Password is Empty.':
 					$message = $this->l10n->t($message);
 					break;
 				default:
