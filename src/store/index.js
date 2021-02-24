@@ -26,11 +26,37 @@ import Vuex, { Store } from 'vuex'
 
 Vue.use(Vuex)
 
-const mutations = {}
-
 export default new Store({
-	modules: {
 
+	state: {
+		errors: [],
+		pdfData: {},
+		user: {},
 	},
-	mutations,
+
+	mutations: {
+		setUser(state, user) {
+			this.state.user = user
+		},
+		setPdfData(state, pdfData) {
+			this.state.pdfData = pdfData
+		},
+		setErrors(state, errors) {
+			this.state.errors = errors
+		},
+	},
+
+	getters: {
+		getErrors(state) {
+			return OC.appConfig.libresign.errors
+		},
+		getPdfData(state) {
+			return state.pdfData
+		},
+		getUser(state) {
+			return state.user
+		},
+	},
+
+	modules: {},
 })

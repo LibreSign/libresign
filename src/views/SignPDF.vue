@@ -51,10 +51,10 @@ export default {
 	},
 	data() {
 		return {
-			desc: '',
-			pdfData: '',
-			name: '',
-			user: false,
+			desc: this.$state.pdfData.description,
+			pdfData: this.$state.pdfData.base64,
+			name: this.$state.pdfData.filename,
+			user: this.$state.user,
 		}
 	},
 
@@ -75,13 +75,16 @@ export default {
 		},
 
 		getData() {
-			this.name = OC.appConfig.libresign.sign.filename
-			this.desc = OC.appConfig.libresign.sign.description
-			this.user = OC.appConfig.libresign.user.name
+			if (OC.appConfig.libresign.sign) {
 
-			this.pdfData = OC.appConfig.libresign.sign.pdf.base64
-				? OC.appConfig.libresign.sign.pdf.base64
-				: OC.appConfig.libresign.sign.pdf.url
+				this.name = OC.appConfig.libresign.sign.filename
+				this.desc = OC.appConfig.libresign.sign.description
+				this.user = OC.appConfig.libresign.user.name
+
+				this.pdfData = OC.appConfig.libresign.sign.pdf.base64
+					? OC.appConfig.libresign.sign.pdf.base64
+					: OC.appConfig.libresign.sign.pdf.url
+			}
 		},
 	},
 }
