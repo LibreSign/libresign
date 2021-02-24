@@ -42,7 +42,13 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
-	public function getByUuid(string $uuid) {
+	/**
+	 * Get file user by UUID
+	 *
+	 * @param string $uuid
+	 * @return FileUser
+	 */
+	public function getByUuid(string $uuid): FileUser {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
