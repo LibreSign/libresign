@@ -37,7 +37,7 @@
 						<button type="button"
 							:value="buttonValue"
 							:class="!updating ? 'primary' : 'primary loading'"
-							:disabled="updating"
+							:disabled="disableButton"
 							@click="sign">
 							{{ t('libresign', 'Sign the Document.') }}
 						</button>
@@ -80,6 +80,7 @@ export default {
 		return {
 			image: Image,
 			updating: false,
+			disableButton: false,
 			signaturePath: '2',
 			password: '',
 			asign: true,
@@ -97,15 +98,23 @@ export default {
 
 		async sign() {
 			this.updating = true
+			this.disableButton = true
+
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`), {
 					password: this.password,
 				})
-				showSuccess(response)
+
+				showSuccess(response.data.message)
+
+				this.$router.push({ name: 'DefaultPageSuccess' })
+
+				this.updating = false
+				this.disableButton = true
 			} catch (err) {
 				showError(err.response.data.errors[0])
 				this.updating = false
-
+				this.disableButton = false
 			}
 		},
 	},
