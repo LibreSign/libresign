@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use OC\Authentication\Login\Chain;
 use OCA\Libresign\Controller\AccountController;
 use OCA\Libresign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
@@ -30,6 +31,8 @@ final class AccountControllerTest extends TestCase {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var Chain */
+	private $loginChain;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -41,12 +44,14 @@ final class AccountControllerTest extends TestCase {
 		$this->account = $this->createMock(AccountService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->loginChain = $this->createMock(Chain::class);
 		$this->controller = new AccountController(
 			$this->request,
 			$this->l10n,
 			$this->account,
 			$this->fileMapper,
-			$this->root
+			$this->root,
+			$this->loginChain
 		);
 	}
 

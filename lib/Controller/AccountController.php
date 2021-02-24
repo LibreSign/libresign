@@ -2,6 +2,8 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Authentication\Login\Chain;
+use OC\Authentication\Login\LoginData;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
@@ -23,19 +25,23 @@ class AccountController extends ApiController {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var Chain */
+	private $loginChain;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
 		AccountService $account,
 		FileMapper $fileMapper,
-		IRootFolder $root
+		IRootFolder $root,
+		Chain $loginChain
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->account = $account;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
+		$this->loginChain = $loginChain;
 	}
 
 	/**
@@ -78,6 +84,13 @@ class AccountController extends ApiController {
 				'filename' => $fileData->getName(),
 				'description' => $fileUser->getDescription()
 			];
+
+			$loginData = new LoginData(
+				$this->request,
+				trim($email),
+				$password
+			);
+			$result = $this->loginChain->process($loginData);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
