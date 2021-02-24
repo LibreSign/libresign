@@ -54,6 +54,27 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	public function getByEmailAndFileId(string $email, int $fileId) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('email', $qb->createNamedParameter($email, IQueryBuilder::PARAM_STR))
+			)
+			->andWhere(
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntity($qb);
+	}
+
+	/**
+	 * Get all signers by fileId
+	 *
+	 * @param string $fileId
+	 * @return FileUser[]
+	 */
 	public function getByFileId(string $fileId) {
 		$qb = $this->db->getQueryBuilder();
 

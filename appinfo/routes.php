@@ -7,6 +7,7 @@ return [
 			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
 		['name' => 'webhook#register', 'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
 		['name' => 'webhook#update', 'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
+		['name' => 'webhook#removeSignature', 'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
 		['name' => 'libresign#sign', 'url' => '/api/0.1/sign', 'verb' => 'POST'],
 		['name' => 'libresign#validate', 'url' => '/api/0.1/file/validate/{uuid}', 'verb' => 'POST'],
 		['name' => 'libresign#signUsingUuid', 'url' => '/api/0.1/sign/{uuid}', 'verb' => 'POST'],

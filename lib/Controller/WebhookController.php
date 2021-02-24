@@ -115,4 +115,43 @@ class WebhookController extends ApiController {
 			Http::STATUS_OK
 		);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @return JSONResponse
+	 */
+	public function removeSignature(string $uuid, array $users) {
+		$user = $this->userSession->getUser();
+		$data = [
+			'uuid' => $uuid,
+			'users' => $users,
+			'userManager' => $user
+		];
+		try {
+			$this->webhook->validateUserManager($data);
+			$this->webhook->validateFileUuid($data);
+			$this->webhook->validateUsers($data);
+			$this->webhook->canDeleteSignRequest($data);
+			$this->webhook->deleteSignRequest($data);
+		} catch (\Throwable $th) {
+			$message = $th->getMessage();
+			if (preg_match('/Did expect one result but found none when executing/', $message)) {
+				$message = $this->l10n->t('UUID not found');
+			}
+			return new JSONResponse(
+				[
+					'message' => $message,
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
+	}
 }
