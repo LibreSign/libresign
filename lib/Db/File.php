@@ -17,8 +17,6 @@ use OCP\AppFramework\Db\Entity;
  * @method int getUuid()
  * @method void setCreatedAt(string $createdAt)
  * @method string getCreatedAt()
- * @method void setDescription(string $description)
- * @method string getDescription()
  * @method void setName(string $name)
  * @method string getName()
  * @method void setCallback(string $callback)
@@ -43,9 +41,6 @@ class File extends Entity {
 	protected $createdAt;
 
 	/** @var string */
-	protected $description;
-
-	/** @var string */
 	protected $name;
 
 	/** @var string */
@@ -60,7 +55,6 @@ class File extends Entity {
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('createdAt', 'string');
-		$this->addType('description', 'string');
 		$this->addType('name', 'string');
 		$this->addType('callback', 'string');
 		$this->addType('enabled', 'integer');

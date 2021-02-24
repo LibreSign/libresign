@@ -18,6 +18,8 @@ use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class WebhookService {
+	/** @var File */
+	private $file;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -71,7 +73,7 @@ class WebhookService {
 		}
 	}
 
-	private function validateFile($data) {
+	public function validateFile(array $data) {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
@@ -103,7 +105,13 @@ class WebhookService {
 		}
 	}
 
-	private function validateUsers($data) {
+	public function validateFileUuid(array $data) {
+		if (!$this->getFileByUuid($data['uuid'])) {
+			throw new \Exception($this->l10n->t('Invalid file UUID'));
+		}
+	}
+
+	public function validateUsers(array $data) {
 		if (empty($data['users'])) {
 			throw new \Exception($this->l10n->t('Empty users collection'));
 		}
@@ -136,8 +144,19 @@ class WebhookService {
 		}
 	}
 
+	private function getFileByUuid(string $uuid) {
+		if (!$this->file) {
+			$this->file = $this->fileMapper->getByUuid($uuid);
+		}
+		return $this->file;
+	}
+
 	public function save(array $data) {
-		$file = $this->saveFile($data);
+		if ($data['uuid']) {
+			$file = $this->getFileByUuid($data['uuid']);
+		} else {
+			$file = $this->saveFile($data);
+		}
 		$return['uuid'] = $file->getUuid();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
@@ -152,6 +171,9 @@ class WebhookService {
 			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
 			$fileUser->setDisplayName($user['display_name']);
+			if (!empty($data['description'])) {
+				$fileUser->setDescription($data['description']);
+			}
 			if (!$user['user_id']) {
 				$userToSign = $this->userManager->getByEmail($user['email']);
 				if ($userToSign) {
@@ -184,9 +206,6 @@ class WebhookService {
 		$file->setUserId($data['userManager']->getUID());
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
-		if (!empty($data['description'])) {
-			$file->setDescription($data['description']);
-		}
 		$file->setName($data['name']);
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);

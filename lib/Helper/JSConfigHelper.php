@@ -125,7 +125,7 @@ class JSConfigHelper {
 				'base64' => base64_encode($fileToSign->getContent())
 			],
 			'filename' => $fileData->getName(),
-			'description' => $fileData->getDescription()
+			'description' => $fileUser->getDescription()
 		];
 		$settings['array']['oc_appconfig'] = json_encode($appConfig);
 	}

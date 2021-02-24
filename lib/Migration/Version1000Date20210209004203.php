@@ -43,9 +43,6 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 			'length' => 20,
 			'unsigned' => true,
 		]);
-		$table->addColumn('description', Types::TEXT, [
-			'notnull' => false,
-		]);
 		$table->addColumn('name', Types::STRING, [
 			'notnull' => true,
 			'length' => 256

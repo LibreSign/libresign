@@ -54,8 +54,14 @@ final class AccountControllerTest extends TestCase {
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
-			->with($this->equalTo('getFileId'), $this->anything())
-			->will($this->returnValue(1));
+			->withConsecutive(
+				[$this->equalTo('getFileId'), $this->anything()],
+				[$this->equalTo('getDescription'), $this->anything()]
+			)
+			->will($this->returnValueMap([
+				[$this->returnValue(1)],
+				[$this->returnValue('Description')]
+			]));
 		$this->account
 			->method('getFileUserByUuid')
 			->will($this->returnValue($fileUser));

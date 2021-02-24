@@ -75,4 +75,45 @@ class WebhookController extends ApiController {
 			Http::STATUS_OK
 		);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @return JSONResponse
+	 */
+	public function update(string $uuid, array $users, string $name, ?string $callback = null) {
+		$user = $this->userSession->getUser();
+		$data = [
+			'uuid' => $uuid,
+			'name' => $name,
+			'users' => $users,
+			'callback' => $callback,
+			'userManager' => $user
+		];
+		try {
+			$this->webhook->validateUserManager($data);
+			$this->webhook->validateFileUuid($data);
+			$this->webhook->validateUsers($data);
+			$return = $this->webhook->save($data);
+			foreach ($return['users'] as $user) {
+				$this->mail->notifyUnsignedUser($user);
+			}
+			unset($return['users']);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Success'),
+				'data' => $return
+			],
+			Http::STATUS_OK
+		);
+	}
 }
