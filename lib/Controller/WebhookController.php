@@ -135,6 +135,9 @@ class WebhookController extends ApiController {
 			$this->webhook->validateUsers($data);
 			$this->webhook->canDeleteSignRequest($data);
 			$this->webhook->deleteSignRequest($data);
+			foreach ($data['user'] as $user) {
+				$this->mail->notifyUnsignedUser($user);
+			}
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
 			if (preg_match('/Did expect one result but found none when executing/', $message)) {
