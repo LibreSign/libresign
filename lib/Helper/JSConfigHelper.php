@@ -89,6 +89,12 @@ class JSConfigHelper {
 			$settings['array']['oc_appconfig'] = json_encode($appConfig);
 			return;
 		}
+		if ($fileUserId['signed']) {
+			$appConfig['libresign']['action'] = JSActions::ACTION_SHOW_ERROR;
+			$appConfig['libresign']['errors'][] = $this->l10n->t('File already signed.');
+			$settings['array']['oc_appconfig'] = json_encode($appConfig);
+			return;
+		}
 		if (!$userId) {
 			$appConfig['libresign']['action'] = JSActions::ACTION_REDIRECT;
 
