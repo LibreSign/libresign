@@ -34,6 +34,8 @@ const selectAction = (action) => {
 		return 'DefaultPageError'
 	case 250:
 		return 'SignPDF'
+	case 300:
+		return 'DefaultPageSuccess'
 	default:
 		break
 	}

@@ -174,15 +174,19 @@ export default {
 	methods: {
 		async createUser() {
 			try {
-				await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
 					password: this.pass,
 					signPassword: this.pfx,
 				})
+				this.$store.commit('setPdfData', response.data.pdf)
+
 				showSuccess(t('libresigng', 'User created!'))
+
 				this.$router.push({ name: 'SignPDF' })
+
 			} catch (err) {
-				showError(`Error ${err.response.data.action}: ${err.response.data.message}`)
+				showError(err.response.data.message)
 			}
 		},
 

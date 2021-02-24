@@ -64,5 +64,6 @@ export default new Vue({
 	// eslint-disable-next-line vue/match-component-file-name
 	name: 'LibreSignExternalRoot',
 	router,
+	store,
 	render: h => h(External),
 })
