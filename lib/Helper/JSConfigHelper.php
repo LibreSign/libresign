@@ -73,7 +73,7 @@ class JSConfigHelper {
 				$settings['array']['oc_appconfig'] = json_encode($appConfig);
 				return;
 			}
-			if ($this->userManager->userExists($data['email'])) {
+			if ($this->userManager->userExists($fileUser->getEmail())) {
 				$appConfig['libresign']['action'] = JSActions::ACTION_REDIRECT;
 				$appConfig['libresign']['errors'][] = $this->l10n->t('User already exists. Please loggin.');
 				$appConfig['libresign']['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
