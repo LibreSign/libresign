@@ -13,13 +13,14 @@ use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
-use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class WebhookService {
-	/** @var File */
+	/** @var FileEntity */
 	private $file;
+	/** @var FileUserEntity[] */
+	private $signatures;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -129,6 +130,57 @@ class WebhookService {
 		}
 	}
 
+	/**
+	 * Can delete sing request
+	 *
+	 * @param array $data
+	 */
+	public function canDeleteSignRequest(array $data) {
+		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		foreach ($signatures as $signature) {
+			if ($signature->getSigned()) {
+				throw new \Exception($this->l10n->t('Document already signed'));
+			}
+			$email = $signature->getEmail();
+			$exists = array_filter($data['users'], function ($val) use ($email) {
+				return $val['email'] == $email;
+			});
+			if (!$exists) {
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
+			}
+		}
+	}
+
+	public function deleteSignRequest(array $data) {
+		$fileData = $this->getFileByUuid($data['uuid']);
+		foreach ($data['users'] as $signer) {
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
+				$signer['email'],
+				$fileData->getId()
+			);
+			$this->fileUserMapper->delete($fileUser);
+		}
+		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		if (count($signatures) == count($data['users'])) {
+			$file = $this->getFileByUuid($data['uuid']);
+			$this->fileMapper->delete($file);
+		}
+	}
+
+	/**
+	 * Get all signatures by file UUID
+	 *
+	 * @param string $uuid
+	 * @return FileUserEntity[]
+	 */
+	private function getSignaturesByFileUuid(string $uuid): array {
+		if (!$this->signatures) {
+			$file = $this->getFileByUuid($uuid);
+			$this->signatures = $this->fileUserMapper->getByFileId($file->getId());
+		}
+		return $this->signatures;
+	}
+
 	private function validateUser($user, $index) {
 		if (!is_array($user)) {
 			throw new \Exception($this->l10n->t('User collection need to be an array: user ' . $index));
@@ -144,7 +196,13 @@ class WebhookService {
 		}
 	}
 
-	private function getFileByUuid(string $uuid) {
+	/**
+	 * Get LibreSign file entity by UUID
+	 *
+	 * @param string $uuid
+	 * @return FileEntity
+	 */
+	private function getFileByUuid(string $uuid): FileEntity {
 		if (!$this->file) {
 			$this->file = $this->fileMapper->getByUuid($uuid);
 		}
@@ -160,6 +218,9 @@ class WebhookService {
 		$return['uuid'] = $file->getUuid();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
+	}
+
+	public function deleteSignature(array $data) {
 	}
 
 	public function associateToUsers(array $data, int $fileId) {
@@ -196,7 +257,7 @@ class WebhookService {
 		$userFolder = $this->folderService->getFolderForUser();
 		$folderName = $this->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception('Another file like this already exists');
+			throw new \Exception($this->l10n->t('Another file like this already exists'));
 		}
 		$folderToFile = $userFolder->newFolder($folderName);
 		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
@@ -213,6 +274,11 @@ class WebhookService {
 		$file->setEnabled(1);
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	public function deleteFile(array $data) {
+		$fileData = $this->getFileByUuid($data['uuid']);
+		$this->folderService->deleteParentNodeOfNodeId($fileData->getNodeId());
 	}
 
 	private function getFileRaw($data) {
