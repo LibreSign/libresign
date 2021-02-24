@@ -20,6 +20,7 @@ return [
 
 		// Pages
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET']
+		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#getPdf', 'url' => '/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];

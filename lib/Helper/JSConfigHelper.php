@@ -5,6 +5,7 @@ namespace OCA\Libresign\Helper;
 use OC\Files\Filesystem;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -55,11 +56,17 @@ class JSConfigHelper {
 	 */
 	public function extendJsConfig(array $settings) {
 		$appConfig = json_decode($settings['array']['oc_appconfig'], true);
-		$appConfig['libresign'] = $this->getConfig();
+		$appConfig['libresign'] = $this->getConfig('url');
 		$settings['array']['oc_appconfig'] = json_encode($appConfig);
 	}
 
-	public function getConfig() {
+	/**
+	 * Undocumented function
+	 *
+	 * @param string $formatOfPdfOnSign (base64,url,file)
+	 * @return array|string
+	 */
+	public function getConfig(string $formatOfPdfOnSign): array {
 		$uuid = $this->request->getParam('uuid');
 		$userId = $this->session->get('user_id');
 		try {
@@ -120,13 +127,23 @@ class JSConfigHelper {
 			$return['errors'][] = $this->l10n->t('File not found');
 			return $return;
 		}
+		/** @var File */
 		$fileToSign = $fileToSign[0];
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['user']['name'] = $fileUser->getDisplayName();
+		switch ($formatOfPdfOnSign) {
+			case 'base64':
+				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
+				break;
+			case 'url':
+				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
+				break;
+			case 'file':
+				$pdf = ['file' => $fileToSign];
+				break;
+		}
 		$return['sign'] = [
-			'pdf' => [
-				'base64' => base64_encode($fileToSign->getContent())
-			],
+			'pdf' => $pdf,
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription()
 		];
