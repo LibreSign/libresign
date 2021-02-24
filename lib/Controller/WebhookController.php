@@ -42,13 +42,14 @@ class WebhookController extends ApiController {
 	 * @NoCSRFRequired
 	 * @return JSONResponse
 	 */
-	public function register(array $file, array $users, string $name, ?string $callback = null) {
+	public function register(array $file, array $users, string $name, ?string $description = null, ?string $callback = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
 			'callback' => $callback,
+			'description' => $description,
 			'userManager' => $user
 		];
 		try {
