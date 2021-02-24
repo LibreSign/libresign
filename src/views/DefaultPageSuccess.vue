@@ -73,6 +73,8 @@ export default {
 		text-align: left;
 		color: #FFFFFF;
 		width: 30%;
+		text-shadow: 2px 2px rgba(0, 0, 0, .8);
+
 	}
 	h2{
 		position: absolute;
@@ -84,7 +86,9 @@ export default {
 		text-align: left;
 		line-height: normal;
 		width: 40%;
+		text-shadow: 2px 2px 3px rgba(0, 0, 0, 1);
 	}
+
 	span{
 		position: absolute;
 		top: 92%;
