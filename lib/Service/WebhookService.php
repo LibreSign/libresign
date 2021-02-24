@@ -58,15 +58,15 @@ class WebhookService {
 	}
 
 	public function validate(array $data) {
-		$this->validateUserManager($data['userManager']);
+		$this->validateUserManager($data);
 		$this->validateFile($data);
 		$this->validateUsers($data);
 	}
 
-	public function validateUserManager(IUser $user) {
+	public function validateUserManager($user) {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user);
+			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
 			if (!array_intersect($userGroups, $authorized)) {
 				throw new \Exception($this->l10n->t('Insufficient permissions to use API'));
 			}
@@ -171,8 +171,8 @@ class WebhookService {
 			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
 			$fileUser->setDisplayName($user['display_name']);
-			if (!empty($data['description'])) {
-				$fileUser->setDescription($data['description']);
+			if (!empty($user['description'])) {
+				$fileUser->setDescription($user['description']);
 			}
 			if (!$user['user_id']) {
 				$userToSign = $this->userManager->getByEmail($user['email']);
