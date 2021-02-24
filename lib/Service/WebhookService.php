@@ -13,7 +13,6 @@ use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
-use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
