@@ -76,7 +76,7 @@ class AccountController extends ApiController {
 					'base64' => base64_encode($fileToSign->getContent())
 				],
 				'filename' => $fileData->getName(),
-				'description' => $fileData->getDescription()
+				'description' => $fileUser->getDescription()
 			];
 		} catch (\Throwable $th) {
 			return new JSONResponse(
