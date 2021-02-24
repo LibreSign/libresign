@@ -63,7 +63,7 @@ class WebhookService {
 		$this->validateUsers($data);
 	}
 
-	private function validateUserManager(IUser $user) {
+	public function validateUserManager(IUser $user) {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (!empty($authorized)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user);

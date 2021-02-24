@@ -82,13 +82,14 @@ class WebhookController extends ApiController {
 	 * @NoCSRFRequired
 	 * @return JSONResponse
 	 */
-	public function update(string $uuid, array $users, string $name, ?string $callback = null) {
+	public function update(string $uuid, array $users, string $name, ?string $description = null, ?string $callback = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
 			'name' => $name,
 			'users' => $users,
 			'callback' => $callback,
+			'description' => $description,
 			'userManager' => $user
 		];
 		try {
