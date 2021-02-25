@@ -37,6 +37,8 @@ class WebhookService {
 	private $client;
 	/** @var IUserManager */
 	private $userManager;
+	/** @var MailService */
+	private $mail;
 
 	public function __construct(
 		IConfig $config,
@@ -46,7 +48,8 @@ class WebhookService {
 		FileUserMapper $fileUserMapper,
 		FolderService $folderService,
 		IClientService $client,
-		IUserManager $userManager
+		IUserManager $userManager,
+		MailService $mail
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -56,6 +59,7 @@ class WebhookService {
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
+		$this->mail = $mail;
 	}
 
 	public function validate(array $data) {
@@ -226,16 +230,19 @@ class WebhookService {
 		$return = [];
 		foreach ($data['users'] as $user) {
 			try {
-				$fileData = $this->fileUserMapper->getByEmailAndFileId($data['email'], $fileId);
-			} catch (\Throwable $th) { }
-			$fileUser = new FileUserEntity();
+				$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+			} catch (\Throwable $th) {
+				$fileUser = new FileUserEntity();
+			}
 			$fileUser->setFileId($fileId);
-			$fileUser->setUuid(UUIDUtil::getUUID());
+			if (!$fileUser->getUuid()) {
+				$fileUser->setUuid(UUIDUtil::getUUID());
+			}
 			$fileUser->setEmail($user['email']);
 			if (!empty($user['display_name'])) {
 				$fileUser->setDisplayName($user['display_name']);
 			}
-			if (!empty($user['description'])) {
+			if (!empty($user['description']) && $fileUser->getDescription() != $user['description']) {
 				$fileUser->setDescription($user['description']);
 			}
 			if (empty($user['user_id'])) {
@@ -244,12 +251,13 @@ class WebhookService {
 					$fileUser->setUserId($userToSign[0]->getUID());
 				}
 			}
-			if ($fileData) {
-				$fileUser->setId($fileData->getId());
+			if ($fileUser->getId()) {
 				$this->fileUserMapper->update($fileUser);
+				$this->mail->notifySignDataUpdated($fileUser);
 			} else {
 				$fileUser->setCreatedAt(time());
 				$this->fileUserMapper->insert($fileUser);
+				$this->mail->notifyUnsignedUser($fileUser);
 			}
 			$return[] = $fileUser;
 		}

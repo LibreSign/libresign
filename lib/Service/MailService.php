@@ -70,6 +70,33 @@ class MailService {
 		return $this->files[$fileId];
 	}
 
+	public function notifySignDataUpdated(FileUser $data) {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate->setSubject($this->l10n->t('Changes into a file for you to sign'));
+		$emailTemplate->addHeader();
+		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
+		$emailTemplate->addBodyText($this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:'));
+		$link = $this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $data->getUuid()]);
+		$file = $this->getFileById($data->getFileId());
+		$emailTemplate->addBodyButton(
+			$this->l10n->t('Sign »%s«', [$file->getName()]),
+			$link
+		);
+		$message = $this->mailer->createMessage();
+		if ($data->getDisplayName()) {
+			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
+		} else {
+			$message->setTo([$data->getEmail()]);
+		}
+		$message->useTemplate($emailTemplate);
+		try {
+			$this->mailer->send($message);
+		} catch (\Exception $e) {
+			$this->logger->error('Notify changes in unsigned notification mail could not be sent: ' . $e->getMessage());
+			throw new LibresignException('Notify unsigned notification mail could not be sent', 1);
+		}
+	}
+
 	public function notifyUnsignedUser(FileUser $data) {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('There is a file for you to sign'));

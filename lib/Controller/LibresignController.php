@@ -18,6 +18,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
 class LibresignController extends Controller {
@@ -41,6 +42,8 @@ class LibresignController extends Controller {
 	private $libresignHandler;
 	/** @var WebhookService */
 	private $webhook;
+	/** @var LoggerInterface */
+	private $logger;
 	/** @var string */
 	private $userId;
 
@@ -54,6 +57,7 @@ class LibresignController extends Controller {
 		AccountService $account,
 		JLibresignHandler $libresignHandler,
 		WebhookService $webhook,
+		LoggerInterface $logger,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -65,6 +69,7 @@ class LibresignController extends Controller {
 		$this->account = $account;
 		$this->libresignHandler = $libresignHandler;
 		$this->webhook = $webhook;
+		$this->logger = $logger;
 		$this->userId = $userId;
 	}
 
@@ -180,7 +185,9 @@ class LibresignController extends Controller {
 			);
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
+			$this->logger->error($message);
 			switch ($message) {
+				case 'Host violates local access rules.':
 				case 'Certificate Password Invalid.':
 				case 'Certificate Password is Empty.':
 					$message = $this->l10n->t($message);
