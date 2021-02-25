@@ -107,7 +107,9 @@ class WebhookService {
 	}
 
 	public function validateFileUuid(array $data) {
-		if (!$this->getFileByUuid($data['uuid'])) {
+		try {
+			$this->getFileByUuid($data['uuid']);
+		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid file UUID'));
 		}
 	}
@@ -223,22 +225,32 @@ class WebhookService {
 	public function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
+			try {
+				$fileData = $this->fileUserMapper->getByEmailAndFileId($data['email'], $fileId);
+			} catch (\Throwable $th) { }
 			$fileUser = new FileUserEntity();
 			$fileUser->setFileId($fileId);
 			$fileUser->setUuid(UUIDUtil::getUUID());
-			$fileUser->setCreatedAt(time());
 			$fileUser->setEmail($user['email']);
-			$fileUser->setDisplayName($user['display_name']);
+			if (!empty($user['display_name'])) {
+				$fileUser->setDisplayName($user['display_name']);
+			}
 			if (!empty($user['description'])) {
 				$fileUser->setDescription($user['description']);
 			}
-			if (!$user['user_id']) {
+			if (empty($user['user_id'])) {
 				$userToSign = $this->userManager->getByEmail($user['email']);
 				if ($userToSign) {
 					$fileUser->setUserId($userToSign[0]->getUID());
 				}
 			}
-			$this->fileUserMapper->insertOrUpdate($fileUser);
+			if ($fileData) {
+				$fileUser->setId($fileData->getId());
+				$this->fileUserMapper->update($fileUser);
+			} else {
+				$fileUser->setCreatedAt(time());
+				$this->fileUserMapper->insert($fileUser);
+			}
 			$return[] = $fileUser;
 		}
 		return $return;
