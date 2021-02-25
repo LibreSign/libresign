@@ -52,6 +52,8 @@ header{
 
 	span{
 		width: 80%;
+		min-width: 150px;
+		max-width: 350px;
 		font-size: 17px;
 		text-indent: 15px;
 		text-align: justify;
@@ -59,6 +61,7 @@ header{
 		text-justify: inter-word;
 
 		overflow-y: scroll;
+		overflow-x: scroll;
 		scrollbar-width: 100px;
 		::-webkit-scrollbar{
 			width: 100px;
