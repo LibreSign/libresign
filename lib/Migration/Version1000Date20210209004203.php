@@ -59,6 +59,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 		$table->setPrimaryKey(['id']);
 		$table->addIndex(['node_id']);
 		$table->addIndex(['uuid']);
+		$table->addUniqueIndex(['uuid'], 'file_uuid_index');
 
 		return $schema;
 	}
