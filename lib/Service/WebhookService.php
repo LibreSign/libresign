@@ -220,9 +220,6 @@ class WebhookService {
 		return $return;
 	}
 
-	public function deleteSignature(array $data) {
-	}
-
 	public function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
@@ -241,7 +238,7 @@ class WebhookService {
 					$fileUser->setUserId($userToSign[0]->getUID());
 				}
 			}
-			$this->fileUserMapper->insert($fileUser);
+			$this->fileUserMapper->insertOrUpdate($fileUser);
 			$return[] = $fileUser;
 		}
 		return $return;
