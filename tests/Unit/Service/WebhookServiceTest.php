@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -52,6 +53,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->user = $this->createMock(IUser::class);
 		$this->client = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->service = new WebhookService(
 			$this->config,
@@ -61,7 +63,8 @@ final class WebhookServiceTest extends TestCase {
 			$this->fileUser,
 			$this->folder,
 			$this->client,
-			$this->userManager
+			$this->userManager,
+			$this->mail
 		);
 	}
 

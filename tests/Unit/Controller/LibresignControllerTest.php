@@ -15,6 +15,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
@@ -33,6 +34,7 @@ final class LibresignControllerTest extends TestCase {
 		$accountService = $this->createMock(AccountService::class);
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$webhook = $this->createMock(WebhookService::class);
+		$logger = $this->createMock(LoggerInterface::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		
@@ -56,6 +58,7 @@ final class LibresignControllerTest extends TestCase {
 			$accountService,
 			$libresignHandler,
 			$webhook,
+			$logger,
 			$userId
 		);
 
@@ -99,6 +102,7 @@ final class LibresignControllerTest extends TestCase {
 		$accountService = $this->createMock(AccountService::class);
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$webhook = $this->createMock(WebhookService::class);
+		$logger = $this->createMock(LoggerInterface::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -113,6 +117,7 @@ final class LibresignControllerTest extends TestCase {
 			$accountService,
 			$libresignHandler,
 			$webhook,
+			$logger,
 			$userId
 		);
 
