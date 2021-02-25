@@ -16,6 +16,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 
 final class AccountControllerTest extends TestCase {
@@ -33,6 +34,8 @@ final class AccountControllerTest extends TestCase {
 	private $root;
 	/** @var Chain */
 	private $loginChain;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -45,13 +48,15 @@ final class AccountControllerTest extends TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->loginChain = $this->createMock(Chain::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->controller = new AccountController(
 			$this->request,
 			$this->l10n,
 			$this->account,
 			$this->fileMapper,
 			$this->root,
-			$this->loginChain
+			$this->loginChain,
+			$this->urlGenerator
 		);
 	}
 
@@ -102,6 +107,11 @@ final class AccountControllerTest extends TestCase {
 			->method('getById')
 			->will($this->returnValue([$node]));
 
+			
+		$this->urlGenerator
+			->method('linkToRoute')
+			->will($this->returnValue('http://test.coop'));
+
 		$actual = $this->controller->createToSign('uuid', 'email', 'password', 'signPassword');
 		$expected = new JSONResponse([
 			'message' => 'Success',
@@ -109,7 +119,7 @@ final class AccountControllerTest extends TestCase {
 			'filename' => 'Filename',
 			'description' => null,
 			'pdf' => [
-				'base64' => 'UERG'
+				'url' => 'http://test.coop'
 			]
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
