@@ -75,6 +75,11 @@ class PageController extends Controller {
 		}
 		$resp = new FileDisplayResponse($config['sign']['pdf']['file']);
 		$resp->addHeader('Content-Type', 'application/pdf');
+
+		$csp = new ContentSecurityPolicy();
+		$csp->setInlineScriptAllowed(true);
+		$resp->setContentSecurityPolicy($csp);
+
 		return $resp;
 	}
 }
