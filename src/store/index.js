@@ -39,15 +39,21 @@ export default new Store({
 			this.state.user = user
 		},
 		setPdfData(state, pdfData) {
-			this.state.pdfData = pdfData
+			if (pdfData.url) {
+				Vue.set(state.pdfData, 'url', pdfData.pdf.url)
+			} else {
+				Vue.set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
+			}
+			Vue.set(state.pdfData, 'description', pdfData.description)
+			Vue.set(state.pdfData, 'filename', pdfData.filename)
 		},
-		setErrors(state, errors) {
-			this.state.errors = errors
+		setError(state, errors) {
+			Vue.set(state.errors, errors)
 		},
 	},
 
 	getters: {
-		getErrors(state) {
+		getError(state) {
 			return OC.appConfig.libresign.errors
 		},
 		getPdfData(state) {

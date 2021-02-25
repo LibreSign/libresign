@@ -180,11 +180,8 @@ export default {
 					signPassword: this.pfx,
 				})
 				this.$store.commit('setPdfData', response.data.pdf)
-
 				showSuccess(t('libresigng', 'User created!'))
-
 				this.$router.push({ name: 'SignPDF' })
-
 			} catch (err) {
 				showError(err.response.data.message)
 			}
