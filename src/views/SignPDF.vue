@@ -60,10 +60,6 @@ export default {
 		this.getData()
 	},
 
-	mounted() {
-		this.checkHasUser()
-	},
-
 	methods: {
 		getData() {
 			this.name = this.$store.getters.getPdfData.filename
