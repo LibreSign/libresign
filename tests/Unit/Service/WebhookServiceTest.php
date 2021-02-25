@@ -247,6 +247,10 @@ final class WebhookServiceTest extends TestCase {
 			->expects($this->once())
 			->method('getAppValue')
 			->willReturn('["admin"]');
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->willReturn([]);
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
