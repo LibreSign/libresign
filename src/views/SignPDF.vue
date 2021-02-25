@@ -33,8 +33,6 @@
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import { showInfo } from '@nextcloud/dialogs'
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 
@@ -51,10 +49,10 @@ export default {
 	},
 	data() {
 		return {
-			desc: this.$state.pdfData.description,
-			pdfData: this.$state.pdfData.base64,
-			name: this.$state.pdfData.filename,
-			user: this.$state.user,
+			desc: '',
+			pdfData: '',
+			name: '',
+			user: '',
 		}
 	},
 
@@ -62,29 +60,13 @@ export default {
 		this.getData()
 	},
 
-	mounted() {
-		this.checkHasUser()
-	},
-
 	methods: {
-		checkHasUser() {
-			if (this.user.length === 0) {
-				showInfo(t('libresign', 'User does not exist, please create a new account!'))
-				this.$router.push({ name: 'CreateUser' })
-			}
-		},
-
 		getData() {
-			if (OC.appConfig.libresign.sign) {
-
-				this.name = OC.appConfig.libresign.sign.filename
-				this.desc = OC.appConfig.libresign.sign.description
-				this.user = OC.appConfig.libresign.user.name
-
-				this.pdfData = OC.appConfig.libresign.sign.pdf.base64
-					? OC.appConfig.libresign.sign.pdf.base64
-					: OC.appConfig.libresign.sign.pdf.url
-			}
+			this.name = this.$store.getters.getPdfData.filename
+			this.desc = this.$store.getters.getPdfData.description
+			this.pdfData = this.$store.getters.getPdfData.url
+				? this.$store.getters.getPdfData.url
+				: this.$store.getters.getPdfData.base64
 		},
 	},
 }

@@ -20,7 +20,8 @@
  *
  */
 
-import SelectAction from '../middlewares/SelectAction'
+import { translate as t } from '@nextcloud/l10n'
+import SelectAction from '../helpers/SelectAction'
 
 const routes = [
 	{
@@ -31,22 +32,21 @@ const routes = [
 		path: '/sign/:uuid',
 		redirect: { name: OC.appConfig.libresign ? SelectAction(OC.appConfig.libresign.action) : 'Home' },
 	}, {
-		path: '/sign/:uuid#Sign',
+		path: '/sign/:uuid',
 		component: () => import('../views/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
-		path: '/sign/:uuid#Create',
+		path: '/sign/:uuid',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
 		props: (route) => ({
-			messageToast: 'User not found for this email.',
+			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
 	}, {
-		path: '/sign/:uuid#error',
+		path: '/sign/:uuid',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
-		props: (route) => ({ error: { message: OC.appConfig.libresign.errors } }),
 	},
 	{
 		path: '/success',

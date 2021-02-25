@@ -26,7 +26,9 @@
 		<div id="img" />
 		<div class="content">
 			<h1>404</h1>
-			<h2>{{ error.message ? t('libresign', error.message) : 'Oops! Page Not Be Found' }}</h2>
+			<h2 v-for="error in errors" :key="error">
+				{{ error }}
+			</h2>
 			<p>{{ paragth }}</p>
 		</div>
 	</div>
@@ -38,15 +40,11 @@ import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'DefaultPageError',
 
-	props: {
-		error: {
-			type: Object,
-			default: null,
-		},
-	},
-
 	data() {
 		return {
+			errors: this.$store.getters.getError.length > 0
+				? this.$store.getters.getError
+				: 'Page not found.',
 			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, have been removed, name changed or is temporarily unavailable.'),
 		}
 	},

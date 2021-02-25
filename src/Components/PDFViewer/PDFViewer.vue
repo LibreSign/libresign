@@ -41,7 +41,7 @@ export default {
 
 	data() {
 		return {
-			pdf: `data:application/pdf;base64,${this.url}`,
+			pdf: this.url,
 		}
 	},
 }
