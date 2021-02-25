@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<iframe :src="pdf" frame-src>
+	<iframe :src="pdf">
 		Este iframe não é suportado no seu navegador.
 	</iframe>
 </template>

@@ -39,7 +39,7 @@ export default new Store({
 			this.state.user = user
 		},
 		setPdfData(state, pdfData) {
-			if (pdfData.url) {
+			if (pdfData.pdf.url) {
 				Vue.set(state.pdfData, 'url', pdfData.pdf.url)
 			} else {
 				Vue.set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
