@@ -63,4 +63,4 @@ Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 
 ## Full documentation
 
-[here](https://lyseontech.github.io/libresign/)
+[here](https://librecode.github.io/libresign/)
