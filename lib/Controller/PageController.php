@@ -60,6 +60,11 @@ class PageController extends Controller {
 	public function sign($uuid) {
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
+
+		$policy = new ContentSecurityPolicy();
+		$policy->addAllowedFrameDomain('\'self\'');
+		$response->setContentSecurityPolicy($policy);
+
 		return $response;
 	}
 
