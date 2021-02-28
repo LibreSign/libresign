@@ -12,7 +12,7 @@
 								show: tooltip.name,
 								trigger: 'false',
 							}"
-							type="text"
+							type="email"
 							:required="validator.name"
 							:placeholder="t('libresign', 'E-mail')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
@@ -239,6 +239,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+:root{
+	--color-main-background: rgb(255, 255, 255);
+}
+
 #container{
 	display: flex;
 	flex-direction: row;
@@ -249,6 +253,7 @@ export default {
 
 #avatar{
 	margin-bottom: 20px;
+	color: rgb(255,255,255) !important;
 }
 
 #password{
@@ -269,7 +274,10 @@ form > div{
 }
 
 input {
-	width: 100%
+	width: 100%;
+	background-color: white;
+	color: black;
+	border-color: white;
 }
 
 #tooltip{
@@ -284,7 +292,6 @@ input {
 		opacity: 0;
 		transition: opacity 0.4s;
 		visibility: visible;
-
 		position: absolute;
 		bottom: calc(100% + 12px);
 		left: 50%;
@@ -293,6 +300,8 @@ input {
 
 .group{
 	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .btn{
@@ -303,55 +312,75 @@ input {
 .bg{
 	display: flex;
 	justify-content: center;
-	background-image: linear-gradient(40deg, #0082c9 0%, #1cafff 100%);
+	background: linear-gradient(134.01deg, rgba(196, 196, 196, 0.4) 5.27%, rgba(196, 196, 196, 0.1) 90.05%);
+	box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(20px);
 	width: 400px;
 	border-radius: 5px;
-	box-shadow: rgba(0, 130, 201, 0.4) 5px 5px, rgba(0, 130, 201, 0.3) 10px 10px, rgba(0, 130, 201, 0.2) 15px 15px, rgba(0, 130, 201, 0.1) 20px 20px, rgba(0, 130, 201, 0.05) 25px 25px;
-
 	transition: all;
 	transition-duration: 1s;
 }
 
 .jumbotron{
-	background-image: url('../../img/bg.jpg');
+	background-image: url('../../img/bgCreateUser.jpg');
 	background-size: cover;
 	-moz-background-size: cover;
 	transition: background-position-x;
 	transition-duration: 2s;
 	overflow: hidden;
 	-moz-overflow: hidden;
+	background-position: center;
 }
 
-@media screen and (max-width: 750px) {
+@-moz-document url-prefix()
+{
+	.bg:after{
+		content: '';
+		filter: blur(20px);
+	}
+}
+
+@media screen and (max-width: 1300px){
 	.jumbotron{
-		background-position-x: 50%
+		background-position-x: 60%;
+	}
+}
+@media screen and (max-width: 1300px){
+	.jumbotron{
+		background-position-x: 70%;
+	}
+}
+@media screen and (max-width: 768px) {
+	.jumbotron{
+		background-position-x: 30%;
 	}
 }
 
 @media screen and (max-width: 535px) {
-	// form {width: 90%}
 	.bg{
 		transition: ease all .5s;
-		width: 99%;
+		width: 100%;
+		height: 100%;
+		backdrop-filter: blur(10px);
 	}
 	input {
 		max-width: 90%
+	}
+	#content-vue{
+		padding-top: 0px;
+	}
+	.jumbotron{
+		background-position-x: 90%;
 	}
 }
 
 @media screen and (max-width: 380px) {
 	.bg{
 		transition: ease all .5s;
-		background-image: none;
-		background-color: #0082c9;
 		border-radius: 0;
 		width: 100%;
 		height: 100%;
 		box-shadow: none;
-	}
-	.jumbotron{
-		background-image: none;
-		background-color: #0082c9;
 	}
 	input{
 		max-width: 317px;
