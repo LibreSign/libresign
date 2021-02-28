@@ -239,10 +239,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-:root{
-	--color-main-background: rgb(255, 255, 255);
-}
-
 #container{
 	display: flex;
 	flex-direction: row;
@@ -253,7 +249,8 @@ export default {
 
 #avatar{
 	margin-bottom: 20px;
-	color: rgb(255,255,255) !important;
+	background-color: rgb(30, 120, 193);
+	// color: rgb(255,255,255) !important;
 }
 
 #password{
