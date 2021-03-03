@@ -7,6 +7,6 @@ use Symplify\ChangelogLinker\ValueObject\ChangelogFormat;
 use Symplify\ChangelogLinker\ValueObject\Option;
 
 return static function (ContainerConfigurator $containerConfigurator) : void {
-    $parameters = $containerConfigurator->parameters();
-    $parameters->set(Option::CHANGELOG_FORMAT, ChangelogFormat::CATEGORIES_ONLY);
+	$parameters = $containerConfigurator->parameters();
+	$parameters->set(Option::CHANGELOG_FORMAT, ChangelogFormat::CATEGORIES_ONLY);
 };
