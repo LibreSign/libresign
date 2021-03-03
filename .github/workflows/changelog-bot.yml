@@ -1,0 +1,23 @@
+name: Changelog Bot
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+    paths-ignore:
+      - CHANGELOG.md
+
+jobs:
+  changelog-bot:
+    runs-on: ubuntu-latest
+    name: Update CHANGELOG.md
+    steps:
+      - name: Update Changelog
+        uses: ponylang/changelog-bot-action@0.3.3
+        with:
+          git_user_name: "Changelot Bot"
+          git_user_email: "dev@librecode.coop"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
