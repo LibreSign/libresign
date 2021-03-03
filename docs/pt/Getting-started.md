@@ -24,7 +24,8 @@ curl -X POST \
 	"users": [
 		{
 			"display_name": "Jhon Doe",
-			"email": "jhondoe@test.coop"
+			"email": "jhondoe@test.coop",
+			"description": "Lorem ipsum"
 		}
 	]
 }'
@@ -38,13 +39,12 @@ curl -X POST \
 
 #### Corpo da requisição
 
-| Parâmetro   | Tipo          | Descrição                                                           |
-| ----------- | ------------- | ------------------------------------------------------------------- |
-| file        | File          | Arquivo para assinar                                                |
-| users       | array of User | Lista de pessoas que irão assinar                                   |
-| name        | string        | **optional** Nome do arquivo a ser assinado                         |
-| description | string        | **optional** Descrição para quem irá assinar                        |
-| callback    | string        | URL de callback chamada quando todas as pessoas assinarem o arquivo |
+| Parâmetro | Tipo          | Descrição                                                           |
+| --------- | ------------- | ------------------------------------------------------------------- |
+| file      | File          | Arquivo para assinar                                                |
+| users     | array of User | Lista de pessoas que irão assinar                                   |
+| name      | string        | **optional** Nome do arquivo a ser assinado                         |
+| callback  | string        | URL de callback chamada quando todas as pessoas assinarem o arquivo |
 
 Parâmetros do objeto File
 
@@ -55,10 +55,11 @@ Parâmetros do objeto File
 
 Parâmetros do objeto User
 
-| Parâmetro    | Tipo   | Descrição                                |
-| ------------ | ------ | ---------------------------------------- |
-| email        | string | Email do usuário                         |
-| display_name | string | **optional** Nome de exibição do usuário |
+| Parâmetro    | Tipo   | Descrição                                    |
+| ------------ | ------ | -------------------------------------------- |
+| email        | string | Email do usuário                             |
+| display_name | string | **optional** Nome de exibição do usuário     |
+| description  | string | **optional** Descrição para quem irá assinar |
 
 #### Respostas
 

@@ -4,7 +4,9 @@
 
 # LibreSign
 
-Nextcloud app to sign PDF documents 
+Nextcloud app to sign PDF documents.
+
+At the moment file signature requests must be requested via webhook. Read the documentation for more information.
 
 <img src="img/LibreSign.png" />
 
