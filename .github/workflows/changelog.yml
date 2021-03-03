@@ -1,0 +1,20 @@
+name: Create changelog
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Changelog generator
+        uses: TriPSs/conventional-changelog-action@v3
+        with:
+          github-token: ${{ secrets.github_token }}
+          git-message: 'Changelog generator, version: {version}'
+          git-user-name: 'Changelog generator'
+          git-user-email: 'changelog_generator@github.librecode.coop'
