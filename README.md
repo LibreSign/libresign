@@ -6,6 +6,8 @@
 
 Nextcloud app to sign PDF documents 
 
+<img src="img/LibreSign.png" />
+
 ## Setup
 
 ### Java and JSignPDF
