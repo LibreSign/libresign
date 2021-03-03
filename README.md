@@ -65,4 +65,4 @@ Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 
 ## Full documentation
 
-[here](https://librecode.github.io/libresign/)
+[here](https://libresign.github.io/libresign/)
