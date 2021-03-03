@@ -63,6 +63,10 @@ Config path: /cfssl/
 
 Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 
+## Integrations
+
+* [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
+
 ## Full documentation
 
 [here](https://libresign.github.io/libresign/)

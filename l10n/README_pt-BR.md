@@ -1,6 +1,3 @@
-[<img src="../img/en_US.svg" width="30">](../README.md) [<img src="../img/pt_BR.svg" width="30">](./l10n/README_pt-BR.md)
-
-
 ![Test Status](https://github.com/lyseontech/libresign/workflows/PHPUnit/badge.svg?branch=main)
 
 # Libresign
@@ -44,3 +41,11 @@ C: CountryName
 API: http://cfssl:8888/api/v1/cfssl/
 Config path: /cfssl/
 ```
+
+## Integrações
+
+* [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin para assinart tickets do GLPI
+
+## Documentação completa
+
+[aqui](https://libresign.github.io/libresign/)
