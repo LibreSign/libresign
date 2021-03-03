@@ -11,12 +11,14 @@
   "require-dev": {
     "phpunit/phpunit": "^9.5",
     "nextcloud/coding-standard": "^0.4.0",
-    "phpspec/prophecy-phpunit": "^2.0"
+    "phpspec/prophecy-phpunit": "^2.0",
+    "symplify/changelog-linker": "^9.2"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
     "cs:check": "php-cs-fixer fix --dry-run --diff",
-    "cs:fix": "php-cs-fixer fix"
+    "cs:fix": "php-cs-fixer fix",
+    "changelog:dump": "changelog-linker dump-merges"
   },
   "autoload": {
     "psr-4": {
