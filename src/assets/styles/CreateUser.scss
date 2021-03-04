@@ -100,7 +100,6 @@ input {
 	.bg::after{
 		content: '<- now this *is* exciting!';
 		position:absolute;
-		// background: linear-gradient(134.01deg, rgba(196, 196, 196, 0.4) 5.27%, rgba(196, 196, 196, 0.1) 90.05%);
 		background: rgba( 255, 255, 255, 0.25 );
 		box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.1);
 		backdrop-filter: blur( 20.0px );
