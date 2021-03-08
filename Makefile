@@ -117,3 +117,4 @@ appstore: clean
 		echo "Signing app files ... done"; \
 	fi
 	tar -czf $(appstore_package_name).tar.gz -C $(appstore_sign_dir) $(app_name)
+  
