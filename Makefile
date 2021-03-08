@@ -88,7 +88,7 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	npm install --production
+	npm install
 	npm run build
 	cp -r \
 		appinfo \
