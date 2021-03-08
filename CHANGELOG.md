@@ -16,11 +16,17 @@ Types of changes:
 
 ## Unreleased
 
-### Changed
+### Added
 
+- [#100] Feature publish app, Thanks to [@vitormattos]
+- [#97] Add automate generate changelog, Thanks to [@vitormattos]
 - [#96] Changelog workflow, Thanks to [@vitormattos]
 - [#95] Changelog workflow, Thanks to [@vitormattos]
 - [#22] External route, Thanks to [@vinicios-gomes]
+
+### Fixed
+
+- [#99] Fix package size, Thanks to [@vitormattos]
 
 ## [v2.0.0] - 2021-02-25
 
@@ -142,3 +148,6 @@ Types of changes:
 [#14]: https://github.com/LibreSign/libresign/pull/14
 [#13]: https://github.com/LibreSign/libresign/pull/13
 [#11]: https://github.com/LibreSign/libresign/pull/11
+[#100]: https://github.com/LibreSign/libresign/pull/100
+[#99]: https://github.com/LibreSign/libresign/pull/99
+[#97]: https://github.com/LibreSign/libresign/pull/97
