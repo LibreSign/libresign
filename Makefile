@@ -88,7 +88,7 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	npm install --production
+	npm install
 	npm run build
 	cp -r \
 		appinfo \
@@ -101,8 +101,11 @@ appstore: clean
 		vendor \
 		CHANGELOG.md \
 		LICENSE \
-		$(appstore_sign_dir)/$(app_name)
-	chown -R www-data:www-data $(appstore_sign_dir)/$(app_name)
+		$(appstore_sign_dir)/$(app_name) \
+
+	@if [ -z "$$GITHUB_ACTION" ]; then \
+		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
+	fi
 
 	mkdir -p $(cert_dir)
 	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
