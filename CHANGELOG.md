@@ -18,6 +18,8 @@ Types of changes:
 
 ### Changed
 
+- [#102] Makefile and change dependency repository, Thanks to [@vitormattos]
+- [#101] Clean package.json, Thanks to [@vitormattos]
 - [#100] Feature publish app, Thanks to [@vitormattos]
 - [#99] Fix package size, Thanks to [@vitormattos]
 - [#97] Add automate generate changelog, Thanks to [@vitormattos]
@@ -148,3 +150,5 @@ Types of changes:
 [#100]: https://github.com/LibreSign/libresign/pull/100
 [#99]: https://github.com/LibreSign/libresign/pull/99
 [#97]: https://github.com/LibreSign/libresign/pull/97
+[#102]: https://github.com/LibreSign/libresign/pull/102
+[#101]: https://github.com/LibreSign/libresign/pull/101
