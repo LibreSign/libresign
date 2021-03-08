@@ -16,7 +16,7 @@
     "test:unit": "jest"
   },
   "dependencies": {
-    "@nextcloud/axios": "^1.4.0",
+    "@nextcloud/axios": "^1.6.0",
     "@nextcloud/dialogs": "^2.0.1",
     "@nextcloud/l10n": "^1.4.1",
     "@nextcloud/logger": "^1.1.2",
