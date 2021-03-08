@@ -88,6 +88,7 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
+	npm install --production
 	npm run build
 	cp -r \
 		appinfo \
@@ -104,9 +105,9 @@ appstore: clean
 	chown -R www-data:www-data $(appstore_sign_dir)/$(app_name)
 
 	mkdir -p $(cert_dir)
-	@if [ -n "$$app_private_key" ]; then \
-		echo "$$app_private_key" > $(cert_dir)/$(app_name).key; \
-		echo "$$app_public_crt" > $(cert_dir)/$(app_name).crt; \
+	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
+		echo "$$APP_PRIVATE_KEY" > $(cert_dir)/$(app_name).key; \
+		echo "$$APP_PUBLIC_CRT" > $(cert_dir)/$(app_name).crt; \
 		echo "Signing app files…"; \
 		runuser -u www-data -- \
 		php ../../occ integrity:sign-app \
