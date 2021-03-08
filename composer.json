@@ -4,7 +4,7 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jeidison/jsignpdf-php": "dev-master",
+    "jsignpdf/jsignpdf-php": "^1",
     "setasign/fpdi": "^2.3",
     "setasign/fpdf": "^1.8"
   },
@@ -28,7 +28,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://github.com/vitormattos/jsignpdf-php"
+      "url": "https://github.com/jsignpdf/jsignpdf-php"
     }
   ]
 }

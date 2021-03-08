@@ -117,4 +117,7 @@ appstore: clean
 		echo "Signing app files ... done"; \
 	fi
 	tar -czf $(appstore_package_name).tar.gz -C $(appstore_sign_dir) $(app_name)
-  
+	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
+		echo "Signing package…"; \
+		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
+	fi
