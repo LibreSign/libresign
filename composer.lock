@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c2195cc26482f0901140c6087293762",
+    "content-hash": "0c378e4db02161f10cdfca74a19b5572",
     "packages": [
         {
-            "name": "jeidison/jsignpdf-php",
-            "version": "dev-master",
+            "name": "jsignpdf/jsignpdf-php",
+            "version": "1.0.5",
             "source": {
                 "type": "git",
-                "url": "https://github.com/vitormattos/jsignpdf-php.git",
-                "reference": "d8fc37c35c660d70c6833a2ac62e3978916cdcba"
+                "url": "https://github.com/JSignPDF/jsignpdf-php.git",
+                "reference": "b84fc9919cf1bab0792a9aa493abc102b1cf9d66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vitormattos/jsignpdf-php/zipball/d8fc37c35c660d70c6833a2ac62e3978916cdcba",
-                "reference": "d8fc37c35c660d70c6833a2ac62e3978916cdcba",
+                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/b84fc9919cf1bab0792a9aa493abc102b1cf9d66",
+                "reference": "b84fc9919cf1bab0792a9aa493abc102b1cf9d66",
                 "shasum": ""
             },
             "require": {
@@ -28,7 +28,6 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.5"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -59,9 +58,10 @@
                 "Signature"
             ],
             "support": {
-                "source": "https://github.com/vitormattos/jsignpdf-php/tree/master"
+                "source": "https://github.com/JSignPDF/jsignpdf-php/tree/1.0.5",
+                "issues": "https://github.com/JSignPDF/jsignpdf-php/issues"
             },
-            "time": "2021-02-25T13:53:54+00:00"
+            "time": "2021-03-04T23:39:47+00:00"
         },
         {
             "name": "setasign/fpdf",
@@ -6021,9 +6021,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "jeidison/jsignpdf-php": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
