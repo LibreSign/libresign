@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>libresign</id>
-    <name>libresign</name>
-    <summary>App for signing documents.</summary>
-    <description><![CDATA[This is a app for signing documents]]></description>
+    <name>LibreSign</name>
+    <summary>Libre digital signature app for Nextcloud.</summary>
+    <description><![CDATA[This is a libre digital signature app for Nextcloud]]></description>
     <version>2.0.1</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
