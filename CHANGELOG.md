@@ -16,17 +16,14 @@ Types of changes:
 
 ## Unreleased
 
-### Added
+### Changed
 
 - [#100] Feature publish app, Thanks to [@vitormattos]
+- [#99] Fix package size, Thanks to [@vitormattos]
 - [#97] Add automate generate changelog, Thanks to [@vitormattos]
 - [#96] Changelog workflow, Thanks to [@vitormattos]
 - [#95] Changelog workflow, Thanks to [@vitormattos]
 - [#22] External route, Thanks to [@vinicios-gomes]
-
-### Fixed
-
-- [#99] Fix package size, Thanks to [@vitormattos]
 
 ## [v2.0.0] - 2021-02-25
 
