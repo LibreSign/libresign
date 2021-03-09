@@ -3,7 +3,7 @@
     <id>libresign</id>
     <name>LibreSign</name>
     <summary>Libre digital signature app for Nextcloud.</summary>
-    <description><![CDATA[This is a libre digital signature app for Nextcloud]]></description>
+    <description><![CDATA[This is a libre digital PDF signature app for Nextcloud]]></description>
     <version>2.0.2</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
