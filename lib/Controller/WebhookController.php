@@ -149,4 +149,29 @@ class WebhookController extends ApiController {
 			Http::STATUS_OK
 		);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 * @return JSONResponse
+	 */
+	public function me() {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Invalid user or password')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'uid' => $user->getUID()
+			],
+			Http::STATUS_OK
+		);
+	}
 }
