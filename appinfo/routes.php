@@ -5,6 +5,7 @@ return [
 		// API
 		['name' => 'api#preflighted_cors', 'url' => '/api/0.1/{path}',
 			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
+		['name' => 'webhook#me', 'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
 		['name' => 'webhook#register', 'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
 		['name' => 'webhook#update', 'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
 		['name' => 'webhook#removeSignature', 'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
