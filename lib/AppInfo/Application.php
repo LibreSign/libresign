@@ -47,6 +47,10 @@ class Application extends App implements IBootstrap {
 	
 	private function registerHooks($context): void {
 		$request = $context->getServerContainer()->get(IRequest::class);
+		// prevent error on cron job
+		if (!$request) {
+			return;
+		}
 		$path = $request->getRawPathInfo();
 		$regex = '/' . self::APP_ID . '\/sign\/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/';
 		if (!preg_match($regex, $path)) {

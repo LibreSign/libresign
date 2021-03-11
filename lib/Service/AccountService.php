@@ -20,6 +20,8 @@ class AccountService {
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var FileUser */
+	private $fileUser;
 	/** @var IUserManager */
 	protected $userManager;
 	/** @var FolderService */
