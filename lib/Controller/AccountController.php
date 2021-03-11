@@ -95,7 +95,7 @@ class AccountController extends ApiController {
 				trim($email),
 				$password
 			);
-			$result = $this->loginChain->process($loginData);
+			$this->loginChain->process($loginData);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
