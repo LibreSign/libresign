@@ -14,7 +14,31 @@ Types of changes:
 
 <!-- changelog-linker -->
 
-## Unreleased
+## [v2.0.5] - 2021-03-11
+
+### Changed
+
+- [#113] Add health check, Thanks to [@vitormattos]
+- [#111] Remove unused var, Thanks to [@vitormattos]
+- [#112] Catch error, Thanks to [@vitormattos]
+- [#110] Rename property, Thanks to [@vitormattos]
+- [#109] Add route me, Thanks to [@vitormattos]
+- [#108] Bump version, Thanks to [@vitormattos]
+- [#107] Bump packages, Thanks to [@vitormattos]
+- [#103] Update changelog, Thanks to [@vitormattos]
+
+## [v2.0.4] - 2021-03-09
+
+### Changed
+
+- [#106] Add category, Thanks to [@vitormattos]
+- [#105] Fix app name, description and summary, Thanks to [@vitormattos]
+
+## [v2.0.1] - 2021-03-08
+
+
+- [#102] Makefile and change dependency repository, Thanks to [@vitormattos]
+- [#101] Clean package.json, Thanks to [@vitormattos]
 
 ### Changed
 
@@ -148,3 +172,18 @@ Types of changes:
 [#100]: https://github.com/LibreSign/libresign/pull/100
 [#99]: https://github.com/LibreSign/libresign/pull/99
 [#97]: https://github.com/LibreSign/libresign/pull/97
+[#113]: https://github.com/LibreSign/libresign/pull/113
+[#112]: https://github.com/LibreSign/libresign/pull/112
+[#111]: https://github.com/LibreSign/libresign/pull/111
+[#110]: https://github.com/LibreSign/libresign/pull/110
+[#109]: https://github.com/LibreSign/libresign/pull/109
+[#108]: https://github.com/LibreSign/libresign/pull/108
+[#107]: https://github.com/LibreSign/libresign/pull/107
+[#106]: https://github.com/LibreSign/libresign/pull/106
+[#105]: https://github.com/LibreSign/libresign/pull/105
+[#103]: https://github.com/LibreSign/libresign/pull/103
+[#102]: https://github.com/LibreSign/libresign/pull/102
+[#101]: https://github.com/LibreSign/libresign/pull/101
+[v2.0.4]: https://github.com/LibreSign/libresign/compare/v2.0.2...v2.0.4
+[v2.0.2]: https://github.com/LibreSign/libresign/compare/v2.0.1...v2.0.2
+[v2.0.1]: https://github.com/LibreSign/libresign/compare/v2.0.0...v2.0.1
