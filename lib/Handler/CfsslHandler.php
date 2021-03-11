@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\TransferException;
 use OCA\Libresign\Exception\LibresignException;
 
 class CfsslHandler {
@@ -40,33 +41,41 @@ class CfsslHandler {
 		string $organizationUnit,
 		string $cfsslUri
 	) {
-		$response = (new Client(['base_uri' => $cfsslUri]))
-			->request(
-				'POST',
-				'newcert',
-				[
-					'json' => [
-						'profile' => 'CA',
-						'request' => [
-							'hosts' => $hosts,
+		$json = [
+			'json' => [
+				'profile' => 'CA',
+				'request' => [
+					'hosts' => $hosts,
+					'CN' => $commonName,
+					'key' => [
+						'algo' => 'rsa',
+						'size' => 2048,
+					],
+					'names' => [
+						[
+							'C' => $country,
+							'O' => $organization,
+							'OU' => $organizationUnit,
 							'CN' => $commonName,
-							'key' => [
-								'algo' => 'rsa',
-								'size' => 2048,
-							],
-							'names' => [
-								[
-									'C' => $country,
-									'O' => $organization,
-									'OU' => $organizationUnit,
-									'CN' => $commonName,
-								],
-							],
 						],
 					],
-				]
-			)
-		;
+				],
+			],
+		];
+		try {
+			$response = (new Client(['base_uri' => $cfsslUri]))
+				->request(
+					'POST',
+					'newcert',
+					$json
+				)
+			;
+		} catch (TransferException $th) {
+			if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+				throw new \Exception($th->getHandlerContext()['error'], 1);
+			}
+			throw new LibresignException($th->getMessage(), 500);
+		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
 		if (!$responseDecoded['success']) {
