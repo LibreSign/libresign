@@ -13,18 +13,18 @@ class AdminController extends Controller {
 	use HandleParamsTrait;
 
 	/** @var AdminSignatureService */
-	private $service;
+	private $adminSignatureservice;
 
 	/** @var string */
 	private $userId;
 
 	public function __construct(
 		IRequest $request,
-		AdminSignatureService $service,
+		AdminSignatureService $adminSignatureService,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->service = $service;
+		$this->adminSignatureService = $adminSignatureService;
 		$this->userId = $userId;
 	}
 
@@ -50,7 +50,7 @@ class AdminController extends Controller {
 				'configPath' => $configPath
 			]);
 
-			$this->service->generate(
+			$this->adminSignatureService->generate(
 				$commonName,
 				$country,
 				$organization,

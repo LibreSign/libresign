@@ -28,7 +28,7 @@ class AdminSignatureService {
 	) {
 		$key = bin2hex(random_bytes(16));
 
-		$this->cfsslHandler->createConfigServer(
+		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$country,
 			$organization,

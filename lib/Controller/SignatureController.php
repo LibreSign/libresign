@@ -13,18 +13,18 @@ class SignatureController extends Controller {
 	use HandleParamsTrait;
 
 	/** @var SignatureService */
-	private $service;
+	private $signatureService;
 
 	/** @var string */
 	private $userId;
 
 	public function __construct(
 		IRequest $request,
-		SignatureService $service,
+		SignatureService $signatureService,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->service = $service;
+		$this->signatureService = $signatureService;
 		$this->userId = $userId;
 	}
 
@@ -54,7 +54,7 @@ class SignatureController extends Controller {
 				'password' => $password
 			]);
 			$hosts = explode(',', $hosts);
-			$signaturePath = $this->service->generate(
+			$signaturePath = $this->signatureService->generate(
 				$commonName,
 				$hosts,
 				$country,
@@ -78,7 +78,7 @@ class SignatureController extends Controller {
 	 */
 	public function hasRootCert() {
 		try {
-			$checkData = $this->service->hasRootCert();
+			$checkData = $this->signatureService->hasRootCert();
 
 			return new DataResponse($checkData);
 		} catch (\Exception $exception) {
