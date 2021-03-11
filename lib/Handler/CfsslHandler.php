@@ -75,4 +75,27 @@ class CfsslHandler {
 
 		return $responseDecoded['result'];
 	}
+
+	public function health(string $cfsslUri) {
+		try {
+			$response = (new Client(['base_uri' => $cfsslUri]))
+				->request(
+					'GET',
+					'health'
+				)
+			;
+		} catch (TransferException $th) {
+			if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+				throw new \Exception($th->getHandlerContext()['error'], 1);
+			}
+			throw new LibresignException($th->getMessage(), 500);
+		}
+
+		$responseDecoded = json_decode($response->getBody(), true);
+		if (!$responseDecoded['success']) {
+			throw new LibresignException('Error while check cfssl API health!', 500);
+		}
+
+		return $responseDecoded['result'];
+	}
 }
