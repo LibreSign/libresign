@@ -193,7 +193,7 @@ class LibresignController extends Controller {
 					$message = $this->l10n->t($message);
 					break;
 				default:
-					$message = $this->l10n->t('Internal error');
+					$message = $this->l10n->t('Internal error. Contact admins.');
 			}
 			return new JSONResponse(
 				[
