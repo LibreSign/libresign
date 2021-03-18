@@ -31,7 +31,7 @@
 		<div id="body">
 			<form @submit="e => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
-					<label for="password">{{ t('libresign', 'Subscription Password') }}</label>
+					<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
 						<button type="button"
@@ -39,7 +39,7 @@
 							:class="!updating ? 'primary' : 'primary loading'"
 							:disabled="disableButton"
 							@click="sign">
-							{{ t('libresign', 'Sign the Document.') }}
+							{{ t('libresign', 'Sign the document.') }}
 						</button>
 					</div>
 				</div>
@@ -84,7 +84,7 @@ export default {
 			signaturePath: '2',
 			password: '',
 			asign: true,
-			buttonValue: t('libresign', 'Sign the Document'),
+			buttonValue: t('libresign', 'Sign the document.'),
 		}
 	},
 

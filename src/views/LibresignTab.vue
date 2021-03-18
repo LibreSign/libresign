@@ -102,7 +102,7 @@ export default {
 			icon: 'icon-rename',
 			updating: false,
 			loading: true,
-			name: t('libresign', 'Sign the document'),
+			name: t('libresign', 'Sign the document.'),
 		}
 	},
 
@@ -138,7 +138,7 @@ export default {
 				if (!response.data || !response.data.fileSigned) {
 					throw new Error(response.data)
 				}
-				this.response = t('libresign', 'Signed document available at ') + response.data.fileSigned
+				this.response = t('libresign', 'Signed document available at {date}', { date: response.data.fileSigned })
 
 			} catch (e) {
 				console.error(e)
