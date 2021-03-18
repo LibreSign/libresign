@@ -14,6 +14,17 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## Unreleased
+
+### Changed
+
+- [#116] Backend translations, Thanks to [@vitormattos]
+- [#115] Review frontend translations, Thanks to [@vitormattos]
+
+## [v2.0.5] - 2021-03-11
+
+- [#114] Changelog, Thanks to [@vitormattos]
+
 ## [v2.0.5] - 2021-03-11
 
 ### Changed
@@ -35,8 +46,6 @@ Types of changes:
 - [#105] Fix app name, description and summary, Thanks to [@vitormattos]
 
 ## [v2.0.1] - 2021-03-08
-
-
 - [#102] Makefile and change dependency repository, Thanks to [@vitormattos]
 - [#101] Clean package.json, Thanks to [@vitormattos]
 
@@ -187,3 +196,7 @@ Types of changes:
 [v2.0.4]: https://github.com/LibreSign/libresign/compare/v2.0.2...v2.0.4
 [v2.0.2]: https://github.com/LibreSign/libresign/compare/v2.0.1...v2.0.2
 [v2.0.1]: https://github.com/LibreSign/libresign/compare/v2.0.0...v2.0.1
+[#116]: https://github.com/LibreSign/libresign/pull/116
+[#115]: https://github.com/LibreSign/libresign/pull/115
+[#114]: https://github.com/LibreSign/libresign/pull/114
+[v2.0.5]: https://github.com/LibreSign/libresign/compare/v2.0.4...v2.0.5
