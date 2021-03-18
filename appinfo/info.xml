@@ -22,7 +22,7 @@
     </dependencies>
     <navigations>
         <navigation>
-            <name>Libresign</name>
+            <name>LibreSign</name>
             <route>libresign.page.index</route>
         </navigation>
     </navigations>

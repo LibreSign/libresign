@@ -73,7 +73,7 @@ class JSConfigHelper {
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
 		} catch (\Throwable $th) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
-			$return['errors'][] = $this->l10n->t('Invalid uuid');
+			$return['errors'][] = $this->l10n->t('Invalid UUID');
 			return $return;
 		}
 		$fileUserId = $fileUser->getUserId();
