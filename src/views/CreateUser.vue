@@ -37,7 +37,7 @@
 							}"
 							type="text"
 							:required="validator.name"
-							:placeholder="t('libresign', 'E-mail')"
+							:placeholder="t('libresign', 'Email')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
 						<div v-show="validator.name"
