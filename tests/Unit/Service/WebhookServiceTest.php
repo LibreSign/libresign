@@ -171,7 +171,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User collection need to be an array: user 0');
+		$this->expectExceptionMessage('User collection need to be an array: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -184,7 +184,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User collection need to be an array with values: user 0');
+		$this->expectExceptionMessage('User collection need to be an array with values: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -197,7 +197,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User need to be email: user 0');
+		$this->expectExceptionMessage('User need to be email: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -212,7 +212,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithInvalidEmail() {
-		$this->expectExceptionMessage('Invalid email: user 0');
+		$this->expectExceptionMessage('Invalid email: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
