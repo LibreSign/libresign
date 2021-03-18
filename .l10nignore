@@ -1,1 +1,9 @@
+build/
+cfssl/
+docs/
+dsv/
+img/
 js/
+node_modules/
+tests/
+vendor/
