@@ -5,5 +5,5 @@ lang_map = bg_BG: bg, cs_CZ: cs, fi_FI: fi, hu_HU: hu, pt_BR: pt, nb_NO: nb, sk_
 [nextcloud.libresign]
 file_filter = translationfiles/<lang>/libresign.po
 source_file = translationfiles/templates/libresign.pot
-source_lang = en_US
+source_lang = en
 type = PO
