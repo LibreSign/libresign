@@ -23,7 +23,7 @@
     <website>https://github.com/LibreSign/libresign</website>
     <discussion>https://t.me/libresign</discussion>
     <bugs>https://github.com/LibreSign/libresign/issues</bugs>
-    <repository>https://github.com/LibreSign/libresign</repository>
+    <repository type="git">https://github.com/LibreSign/libresign</repository>
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <documentation>
         <admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
