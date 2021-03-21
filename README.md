@@ -16,6 +16,7 @@ Add the follow to Nextcloud PHP container Dockerfile
 
 ```Dockerfile
 # Install Java and JsignPDF
+RUN apt-get update # Only include this line if necessary
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get install -y default-jre unzip
 RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%201.6.4/JSignPdf-1.6.4.zip \
@@ -37,7 +38,7 @@ The URL of server you will use in [Admin settings](#admin-settings)
 * Create a folder named cfssl in the same folder as your `docker-compose.yml` file. This folder will be used on one volume of the cfssl service.
 * put the file [`/cfssl/entrypoint.sh`](https://github.com/LibreSign/libresign/blob/main/cfssl/entrypoint.sh) in `cfssl` folder
 * Add the volume `./cfssl:/cfssl` in Nextcloud service
-* Create a new server using the following code:
+* Create a new server using the following code in your `docker-compose.yml` file:
 ```yml
   cfssl:
     image: cfssl/cfssl
