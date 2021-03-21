@@ -2,19 +2,32 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>libresign</id>
     <name>LibreSign</name>
-    <summary>Libre digital signature app for Nextcloud.</summary>
-    <description><![CDATA[This is a libre digital PDF signature app for Nextcloud]]></description>
-    <version>2.1.0</version>
+    <summary>✍ Libre digital signature app for Nextcloud</summary>
+    <description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
+
+* ✍ Sign PDF documents using digital signature
+* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.
+* **Requirements :**
+    * CFSSL server
+    * Java
+    * JSignPDF
+
+]]>
+    </description>
+    <version>2.1.2</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
     <category>files</category>
     <category>office</category>
     <category>tools</category>
-    <website>https://github.com/lyseontech/libresign</website>
+    <website>https://github.com/LibreSign/libresign</website>
     <discussion>https://t.me/lyseontech</discussion>
-    <bugs>https://github.com/lyseontech/libresign/issues</bugs>
-    <repository>https://github.com/lyseontech/libresign</repository>
+    <bugs>https://github.com/LibreSign/libresign/issues</bugs>
+    <repository type="git">https://github.com/LibreSign/libresign</repository>
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
+    <documentation>
+        <admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
+    </documentation>
     <dependencies>
         <php min-version="7.4" />
         <nextcloud min-version="17" max-version="21"/>
