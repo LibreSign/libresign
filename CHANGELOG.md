@@ -14,12 +14,21 @@ Types of changes:
 
 <!-- changelog-linker -->
 
-## Unreleased
+## [v2.1.2] - 2021-03-21
 
 ### Changed
 
+- [#117] Bump release, Thanks to [@vitormattos]
 - [#116] Backend translations, Thanks to [@vitormattos]
 - [#115] Review frontend translations, Thanks to [@vitormattos]
+- [#124] Only include line if necessary, Thanks to [@vitormattos]
+- [#123] Instructions to create cfssl folder, Thanks to [@vitormattos]
+- [#122] Update README.md, Thanks to [@vitormattos]
+
+### Fixed
+
+- [#119] Fix transifex config, Thanks to [@vitormattos]
+- [#118] Fix langmap config, Thanks to [@MorrisJobke]
 
 ## [v2.0.5] - 2021-03-11
 
@@ -200,3 +209,11 @@ Types of changes:
 [#115]: https://github.com/LibreSign/libresign/pull/115
 [#114]: https://github.com/LibreSign/libresign/pull/114
 [v2.0.5]: https://github.com/LibreSign/libresign/compare/v2.0.4...v2.0.5
+[#118]: https://github.com/LibreSign/libresign/pull/118
+[#117]: https://github.com/LibreSign/libresign/pull/117
+[@MorrisJobke]: https://github.com/MorrisJobke
+[#124]: https://github.com/LibreSign/libresign/pull/124
+[#123]: https://github.com/LibreSign/libresign/pull/123
+[#122]: https://github.com/LibreSign/libresign/pull/122
+[#119]: https://github.com/LibreSign/libresign/pull/119
+[v2.1.2]: https://github.com/LibreSign/libresign/compare/v2.0.5...v2.1.2
