@@ -34,7 +34,7 @@ https://github.com/cloudflare/cfssl
 The URL of server you will use in [Admin settings](#admin-settings)
 
 ### With docker-compose
-* put the file `/cfssl/entrypoint.sh` in `cfssl` folder
+* put the file [`/cfssl/entrypoint.sh`](https://github.com/LibreSign/libresign/blob/main/cfssl/entrypoint.sh) in `cfssl` folder
 * Add the volume `./cfssl:/cfssl` in Nextcloud service
 * Create a new server using the following code:
 ```yml
