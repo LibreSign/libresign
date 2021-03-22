@@ -85,7 +85,7 @@ class JSConfigHelper {
 			}
 			if ($this->userManager->userExists($fileUser->getEmail())) {
 				$return['action'] = JSActions::ACTION_REDIRECT;
-				$return['errors'][] = $this->l10n->t('User already exists. Please logging.');
+				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
 				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(
 						'libresign.page.sign',
