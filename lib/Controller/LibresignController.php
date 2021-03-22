@@ -133,7 +133,7 @@ class LibresignController extends Controller {
 			$originalFile = $originalFile[0];
 			$signedFilePath = preg_replace(
 				'/' . $originalFile->getExtension() . '$/',
-				$this->l10n->t('signed.%s', $originalFile->getExtension()),
+				$this->l10n->t('signed') . '.', $originalFile->getExtension(),
 				$originalFile->getPath()
 			);
 
