@@ -274,7 +274,7 @@ class WebhookService {
 		$userFolder = $this->folderService->getFolderForUser();
 		$folderName = $this->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('Another file like this already exists'));
+			throw new \Exception($this->l10n->t('File already exists'));
 		}
 		$folderToFile = $userFolder->newFolder($folderName);
 		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
