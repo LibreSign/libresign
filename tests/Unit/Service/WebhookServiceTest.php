@@ -88,7 +88,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileUrl() {
-		$this->expectExceptionMessage('Invalid url file');
+		$this->expectExceptionMessage('Invalid URL file');
 
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
