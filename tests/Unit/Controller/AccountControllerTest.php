@@ -85,7 +85,7 @@ final class AccountControllerTest extends TestCase {
 				[$this->equalTo('getName'), $this->anything()]
 			)
 			->will($this->returnValueMap([
-				['getUserId', [], ''],
+				['getUserId', [], 1],
 				['getNodeId', [], 1],
 				['getName', [], 'Filename']
 			]));
