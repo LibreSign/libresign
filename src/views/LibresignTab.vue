@@ -49,7 +49,7 @@
 					:title="t('libresign', 'Select subscription location.')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Select Subscription.') }}
+					{{ t('libresign', 'Select subscription.') }}
 				</button>
 			</div>
 			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
