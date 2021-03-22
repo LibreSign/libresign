@@ -61,7 +61,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="cfsslUri">{{ t('libresign', 'CFSSL API Uri') }}</label>
+				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
 				<input
 					id="cfsslUri"
 					ref="cfsslUri"
