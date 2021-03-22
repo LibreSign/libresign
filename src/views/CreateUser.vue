@@ -59,7 +59,7 @@
 						<input
 							v-model="passConfirm"
 							v-tooltip.bottom="{
-								content: t('libresign', 'Password does not match'),
+								content: t('libresign', 'Passwords do not match'),
 								show: tooltip.passConfirm,
 								trigger: 'false'
 							}"
