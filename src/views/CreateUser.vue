@@ -30,24 +30,22 @@
 					<div class="group">
 						<input
 							v-model="email"
-							v-tooltip.right="{
+							v-tooltip.top="{
 								content: t('libresign', 'Enter your email.'),
 								show: tooltip.name,
 								trigger: 'false',
 							}"
-							type="text"
+							type="email"
 							:required="validator.name"
 							:placeholder="t('libresign', 'Email')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
-						<div v-show="validator.name"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="pass"
-							v-tooltip.right="{
-								content: t('libresign', 'Password must be at least 8 characters.'),
+							v-tooltip.bottom="{
+								content: t('libresign', 'Password must be at least 3 characters.'),
 								show: tooltip.pass,
 								trigger: 'false'
 							}"
@@ -56,13 +54,11 @@
 							:placeholder="t('libresign', 'Password')"
 							@focus="tooltip.passFocus = true; tooltip.pass = false"
 							@blur="tooltip.passFocus = false; validationPass()">
-						<div v-show="validator.pass"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="passConfirm"
-							v-tooltip.right="{
+							v-tooltip.bottom="{
 								content: t('libresign', 'Password does not match'),
 								show: tooltip.passConfirm,
 								trigger: 'false'
@@ -72,8 +68,6 @@
 							:placeholder="t('libresign', 'Confirm password')"
 							@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
 							@blur="tooltip.passConfirmFocus = false; validationPasswords()">
-						<div v-show="validator.passConfirm"
-							class="icon-error-white" />
 					</div>
 
 					<div
@@ -88,7 +82,6 @@
 							type="password"
 							:required="validator.pfx"
 							:placeholder="t('libresign', 'Password for sign document.')">
-						<div v-show="validator.pfx" class="icon-error-white" />
 					</div>
 					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
 						Cadastrar
@@ -206,7 +199,7 @@ export default {
 			}
 		},
 		validationPass() {
-			if (this.pass.length < 8) {
+			if (this.pass.length < 3) {
 				this.validator.pass = true
 				if (this.tooltip.passFocus === false) {
 					this.tooltip.pass = true
@@ -226,7 +219,7 @@ export default {
 			}
 		},
 		validationPassConfirm() {
-			if (this.passConfirm.length < 8) {
+			if (this.passConfirm.length < 3) {
 				this.validator.passConfirm = true
 			} else {
 				this.validator.passConfirm = false
@@ -270,122 +263,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-#container{
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-}
-
-#avatar{
-	margin-bottom: 20px;
-}
-
-#password{
-	margin-right: 3px;
-}
-
-form{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	width: 80%;
-	margin: 10px 0px 10px 0px;
-}
-
-form > div{
-	width: 100%;
-}
-
-input {
-	min-width: 317px;
-	width: 100%
-}
-
-#tooltip{
-	position: relative;
-
-	span{
-		width: 160px;
-		padding: 8px;
-		border-radius: 4px;
-		font-size: 14px;
-		font-weight: 500;
-		opacity: 0;
-		transition: opacity 0.4s;
-		visibility: visible;
-
-		position: absolute;
-		bottom: calc(100% + 12px);
-		left: 50%;
-	}
-}
-
-.group{
-	display: flex;
-}
-
-.btn{
-	margin-top: 10px;
-	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
-}
-
-.bg{
-	display: flex;
-	justify-content: center;
-	background-image: linear-gradient(40deg, #0082c9 0%, #1cafff 100%);
-	width: 400px;
-	border-radius: 5px;
-	box-shadow: rgba(0, 130, 201, 0.4) 5px 5px, rgba(0, 130, 201, 0.3) 10px 10px, rgba(0, 130, 201, 0.2) 15px 15px, rgba(0, 130, 201, 0.1) 20px 20px, rgba(0, 130, 201, 0.05) 25px 25px;
-
-	transition: all;
-	transition-duration: 1s;
-}
-
-.jumbotron{
-	background-image: url('../../img/bg.jpg');
-	background-size: cover;
-
-	transition: background-position-x;
-	transition-duration: 2s;
-}
-
-@media screen and (max-width: 750px) {
-	.jumbotron{
-		background-position-x: 50%
-	}
-}
-
-@media screen and (max-width: 535px) {
-	// form {width: 90%}
-	.bg{
-		transition: all;
-		transition-duration: 1s;
-		width: 99%;
-	}
-	input {
-		max-width: 90%
-	}
-}
-
-@media screen and (max-width: 380px) {
-	.bg{
-		transition: all;
-		transition-duration: 2s;
-		background-image: none;
-		background-color: #0082c9;
-		border-radius: 0;
-		width: 100%;
-		box-shadow: none;
-	}
-	.jumbotron{
-		background-image:none;
-		background-color:#0082c9;
-	}
-	input{
-		max-width: 317px;
-	}
-}
+@import '../assets/styles/CreateUser.scss';
 </style>
