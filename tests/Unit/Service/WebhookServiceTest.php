@@ -117,7 +117,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateEmptyUserCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$response = $this->createMock(IResponse::class);
 		$response
@@ -139,7 +139,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateEmptyUsersCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -149,7 +149,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserCollectionNotArray() {
-		$this->expectExceptionMessage('User collection need to be an array');
+		$this->expectExceptionMessage('User list need to be an array');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -160,7 +160,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmptyCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -171,7 +171,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User collection need to be an array: user %s');
+		$this->expectExceptionMessage('User list need to be an array: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -184,7 +184,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User collection need to be an array with values: user %s');
+		$this->expectExceptionMessage('User list need to be an array with values: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
