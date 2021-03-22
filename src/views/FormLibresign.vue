@@ -60,7 +60,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
+			<label for="organizationUnit">{{ t('libresign', 'Organizational Unit (OU)') }}</label>
 			<input
 				id="organizationUnit"
 				ref="organizationUnit"
