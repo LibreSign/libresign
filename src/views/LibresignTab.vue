@@ -138,7 +138,7 @@ export default {
 				if (!response.data || !response.data.fileSigned) {
 					throw new Error(response.data)
 				}
-				this.response = t('libresign', 'Signed document available at {date}', { date: response.data.fileSigned })
+				this.response = t('libresign', 'Signed document available on {place}', { place: response.data.fileSigned })
 
 			} catch (e) {
 				console.error(e)
