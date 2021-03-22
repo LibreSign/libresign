@@ -221,7 +221,8 @@ class LibresignController extends Controller {
 			$pdf->SetXY(5, -10);
 
 			$pdf->Write(8, $this->l10n->t(
-				'Digital signed by LibreSign. Validate in %s', 'http://validador.lt.coop.br'
+				'Digital signed by LibreSign. Validate in %s',
+				$this->config->getAppValue(Application::APP_ID, 'validation_site', 'https://validador.librecode.coop')
 			));
 		}
 
