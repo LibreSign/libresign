@@ -114,7 +114,7 @@ class WebhookService {
 		try {
 			$this->getFileByUuid($data['uuid']);
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid file UUID'));
+			throw new \Exception($this->l10n->t('Invalid UUID file'));
 		}
 	}
 
