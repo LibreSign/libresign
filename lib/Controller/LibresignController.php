@@ -11,12 +11,14 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
+use OCA\Libresign\Service\WebhookService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
 class LibresignController extends Controller {
@@ -38,6 +40,10 @@ class LibresignController extends Controller {
 	private $account;
 	/** @var JLibresignHandler */
 	private $libresignHandler;
+	/** @var WebhookService */
+	private $webhook;
+	/** @var LoggerInterface */
+	private $logger;
 	/** @var string */
 	private $userId;
 
@@ -50,6 +56,8 @@ class LibresignController extends Controller {
 		IL10N $l10n,
 		AccountService $account,
 		JLibresignHandler $libresignHandler,
+		WebhookService $webhook,
+		LoggerInterface $logger,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -60,6 +68,8 @@ class LibresignController extends Controller {
 		$this->l10n = $l10n;
 		$this->account = $account;
 		$this->libresignHandler = $libresignHandler;
+		$this->webhook = $webhook;
+		$this->logger = $logger;
 		$this->userId = $userId;
 	}
 
@@ -123,7 +133,7 @@ class LibresignController extends Controller {
 			$originalFile = $originalFile[0];
 			$signedFilePath = preg_replace(
 				'/' . $originalFile->getExtension() . '$/',
-				$this->l10n->t('signed').'.'.$originalFile->getExtension(),
+				$this->l10n->t('signed') . '.', $originalFile->getExtension(),
 				$originalFile->getPath()
 			);
 
@@ -141,6 +151,23 @@ class LibresignController extends Controller {
 			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());
 			$this->fileUserMapper->update($fileUser);
+
+			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
+			$total = array_reduce($signers, function ($carry, $signer) {
+				$carry += $signer->getSigned() ? 1 : 0;
+				return $carry;
+			});
+			if (count($signers) == $total) {
+				$callbackUrl = $fileData->getCallback();
+				if ($callbackUrl) {
+					$this->webhook->notifyCallback(
+						$callbackUrl,
+						$fileData->getUuid(),
+						$fileToSign
+					);
+				}
+			}
+
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
@@ -157,10 +184,21 @@ class LibresignController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		} catch (\Throwable $th) {
+			$message = $th->getMessage();
+			$this->logger->error($message);
+			switch ($message) {
+				case 'Host violates local access rules.':
+				case 'Certificate Password Invalid.':
+				case 'Certificate Password is Empty.':
+					$message = $this->l10n->t($message);
+					break;
+				default:
+					$message = $this->l10n->t('Internal error. Contact admin.');
+			}
 			return new JSONResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('Internal error')]
+					'errors' => [$message]
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -183,7 +221,8 @@ class LibresignController extends Controller {
 			$pdf->SetXY(5, -10);
 
 			$pdf->Write(8, $this->l10n->t(
-				'Digital signed by LibreSign. Validate in http://validador.lt.coop.br'
+				'Digital signed by LibreSign. Validate in %s',
+				$this->config->getAppValue(Application::APP_ID, 'validation_site', 'https://validador.librecode.coop')
 			));
 		}
 

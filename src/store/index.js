@@ -2,6 +2,7 @@
  * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *
  * @author Lyseon Tech <contato@lt.coop.br>
+ * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -25,11 +26,43 @@ import Vuex, { Store } from 'vuex'
 
 Vue.use(Vuex)
 
-const mutations = {}
-
 export default new Store({
-	 modules: {
 
-	 },
-	 mutations,
+	state: {
+		errors: [],
+		pdfData: {},
+		user: {},
+	},
+
+	mutations: {
+		setUser(state, user) {
+			this.state.user = user
+		},
+		setPdfData(state, pdfData) {
+			if (pdfData.pdf.url) {
+				Vue.set(state.pdfData, 'url', pdfData.pdf.url)
+			} else {
+				Vue.set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
+			}
+			Vue.set(state.pdfData, 'description', pdfData.description)
+			Vue.set(state.pdfData, 'filename', pdfData.filename)
+		},
+		setError(state, errors) {
+			Vue.set(state.errors, errors)
+		},
+	},
+
+	getters: {
+		getError(state) {
+			return OC.appConfig.libresign.errors
+		},
+		getPdfData(state) {
+			return state.pdfData
+		},
+		getUser(state) {
+			return state.user
+		},
+	},
+
+	modules: {},
 })

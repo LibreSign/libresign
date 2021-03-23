@@ -20,6 +20,8 @@ class AccountService {
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var FileUser */
+	private $fileUser;
 	/** @var IUserManager */
 	protected $userManager;
 	/** @var FolderService */
@@ -64,7 +66,7 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('Invalid email'), 1);
 		}
 		if ($fileUser->getEmail() != $data['email']) {
-			throw new LibresignException($this->l10n->t('Dont is your file'), 1);
+			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
 		if ($this->userManager->userExists($data['email'])) {
 			throw new LibresignException($this->l10n->t('User already exists'), 1);

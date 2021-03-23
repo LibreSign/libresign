@@ -5,7 +5,10 @@ return [
 		// API
 		['name' => 'api#preflighted_cors', 'url' => '/api/0.1/{path}',
 			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
+		['name' => 'webhook#me', 'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
 		['name' => 'webhook#register', 'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
+		['name' => 'webhook#update', 'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
+		['name' => 'webhook#removeSignature', 'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
 		['name' => 'libresign#sign', 'url' => '/api/0.1/sign', 'verb' => 'POST'],
 		['name' => 'libresign#validate', 'url' => '/api/0.1/file/validate/{uuid}', 'verb' => 'POST'],
 		['name' => 'libresign#signUsingUuid', 'url' => '/api/0.1/sign/{uuid}', 'verb' => 'POST'],
@@ -18,6 +21,7 @@ return [
 
 		// Pages
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET']
+		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#getPdf', 'url' => '/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];

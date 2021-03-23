@@ -1,25 +1,25 @@
 <!--
-  - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
-  -
-  - @author Lyseon Tech <contato@lt.coop.br>
-  - @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
-  -
-  - @license GNU AGPL version 3 or any later version
-  -
-  - This program is free software: you can redistribute it and/or modify
-  - it under the terms of the GNU Affero General Public License as
-  - published by the Free Software Foundation, either version 3 of the
-  - License, or (at your option) any later version.
-  -
-  - This program is distributed in the hope that it will be useful,
-  - but WITHOUT ANY WARRANTY; without even the implied warranty of
-  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  - GNU Affero General Public License for more details.
-  -
-  - You should have received a copy of the GNU Affero General Public License
-  - along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -
-  -->
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+- @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-->
 
 <template>
 	<div class="container">
@@ -31,15 +31,15 @@
 		<div id="body">
 			<form @submit="e => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
-					<label for="password">{{ t('libresign', 'Subscription Password') }}</label>
+					<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
 						<button type="button"
 							:value="buttonValue"
-							class="primary"
-							:disabled="updating"
-							@click="checkAssign">
-							{{ t('libresign', 'Sign the Document.') }}
+							:class="!updating ? 'primary' : 'primary loading'"
+							:disabled="disableButton"
+							@click="sign">
+							{{ t('libresign', 'Sign the document.') }}
 						</button>
 					</div>
 				</div>
@@ -53,7 +53,6 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
-import { joinPaths } from '@nextcloud/paths'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
@@ -70,16 +69,22 @@ export default {
 			required: false,
 			default: 'Description',
 		},
+		uuid: {
+			type: String,
+			required: true,
+			default: '',
+		},
 	},
 
 	data() {
 		return {
 			image: Image,
 			updating: false,
+			disableButton: false,
 			signaturePath: '2',
 			password: '',
 			asign: true,
-			buttonValue: t('libresign', 'Sign the Document'),
+			buttonValue: t('libresign', 'Sign the document.'),
 		}
 	},
 
@@ -93,24 +98,23 @@ export default {
 
 		async sign() {
 			this.updating = true
+			this.disableButton = true
+
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign'), {
-					inputFilePath: joinPaths(
-						this.fileInfo.get('path'), this.fileInfo.get('name')
-					),
-					outputFolderPath: this.fileInfo.get('path'),
-					certificatePath: this.signaturePath,
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`), {
 					password: this.password,
 				})
-				showSuccess(response)
-			} catch (err) {
-				showError(err)
-			}
-		},
 
-		checkAssign() {
-			if (this.hasSavePossible === true) {
-				showSuccess(t('libresign', 'Signed!'))
+				showSuccess(response.data.message)
+
+				this.$router.push({ name: 'DefaultPageSuccess' })
+
+				this.updating = false
+				this.disableButton = true
+			} catch (err) {
+				showError(err.response.data.errors[0])
+				this.updating = false
+				this.disableButton = false
 			}
 		},
 	},

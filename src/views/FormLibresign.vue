@@ -1,25 +1,25 @@
 <!--
-  - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
-  -
-  - @author Lyseon Tech <contato@lt.coop.br>
-  - @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
-  -
-  - @license GNU AGPL version 3 or any later version
-  -
-  - This program is free software: you can redistribute it and/or modify
-  - it under the terms of the GNU Affero General Public License as
-  - published by the Free Software Foundation, either version 3 of the
-  - License, or (at your option) any later version.
-  -
-  - This program is distributed in the hope that it will be useful,
-  - but WITHOUT ANY WARRANTY; without even the implied warranty of
-  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  - GNU Affero General Public License for more details.
-  -
-  - You should have received a copy of the GNU Affero General Public License
-  - along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -
-  -->
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+- @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-->
 
 <template>
 	<div id="formLibresign" class="form-libresign">
@@ -60,7 +60,7 @@
 				:disabled="updating">
 		</div>
 		<div class="form-group">
-			<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
+			<label for="organizationUnit">{{ t('libresign', 'Organizational Unit (OU)') }}</label>
 			<input
 				id="organizationUnit"
 				ref="organizationUnit"
@@ -106,7 +106,7 @@
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">
-				{{ t('libresign','Subscription generated and available at ') }} {{ signature.path }} !
+				{{ t('libresign','Subscription generated and available at {path}!', {path: signature.path}) }}
 			</div>
 		</Modal>
 	</div>

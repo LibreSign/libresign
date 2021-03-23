@@ -3,17 +3,25 @@
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCP\IConfig;
 
 class AdminSignatureService {
 	/** @var CfsslServerHandler */
+	private $cfsslServerHandler;
+	/** @var CfsslHandler */
 	private $cfsslHandler;
 
 	/** @var IConfig */
 	private $config;
 
-	public function __construct(CfsslServerHandler $cfsslHandler, IConfig $config) {
+	public function __construct(
+		CfsslServerHandler $cfsslServerHandler,
+		CfsslHandler $cfsslHandler,
+		IConfig $config
+	) {
+		$this->cfsslServerHandler = $cfsslServerHandler;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->config = $config;
 	}
@@ -28,7 +36,7 @@ class AdminSignatureService {
 	) {
 		$key = bin2hex(random_bytes(16));
 
-		$this->cfsslHandler->createConfigServer(
+		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$country,
 			$organization,
@@ -36,6 +44,12 @@ class AdminSignatureService {
 			$key,
 			$configPath
 		);
+		for ($i = 1;$i <= 2;$i++) {
+			sleep($i);
+			if ($this->cfsslHandler->health($cfsslUri)) {
+				break;
+			}
+		}
 
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
 		$this->config->setAppValue(Application::APP_ID, 'commonName', $commonName);

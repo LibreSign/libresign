@@ -1,9 +1,34 @@
+<!--
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+- @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-->
+
 <template>
 	<div class="container">
 		<div id="img" />
 		<div class="content">
 			<h1>404</h1>
-			<h2>{{ error.message ? t('libresign', error.message) : 'Oops! Page Not Be Found' }}</h2>
+			<h2 v-for="error in errors" :key="error">
+				{{ error }}
+			</h2>
 			<p>{{ paragth }}</p>
 		</div>
 	</div>
@@ -15,15 +40,11 @@ import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'DefaultPageError',
 
-	props: {
-		error: {
-			type: Object,
-			default: null,
-		},
-	},
-
 	data() {
 		return {
+			errors: this.$store.getters.getError.length > 0
+				? this.$store.getters.getError
+				: 'Page not found.',
 			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, have been removed, name changed or is temporarily unavailable.'),
 		}
 	},

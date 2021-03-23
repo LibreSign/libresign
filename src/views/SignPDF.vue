@@ -1,40 +1,38 @@
 
 <!--
-  - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
-  -
-  - @author Lyseon Tech <contato@lt.coop.br>
-  -
-  - @license GNU AGPL version 3 or any later version
-  -
-  - This program is free software: you can redistribute it and/or modify
-  - it under the terms of the GNU Affero General Public License as
-  - published by the Free Software Foundation, either version 3 of the
-  - License, or (at your option) any later version.
-  -
-  - This program is distributed in the hope that it will be useful,
-  - but WITHOUT ANY WARRANTY; without even the implied warranty of
-  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  - GNU Affero General Public License for more details.
-  -
-  - You should have received a copy of the GNU Affero General Public License
-  - along with this program. If not, see <http://www.gnu.org/licenses/>.
-  -
-  -->
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program. If not, see <http://www.gnu.org/licenses/>.
+-
+-->
 
 <template>
 	<div id="container">
 		<div id="viewer" class="content">
-			<PDFViewer :url="urlPdf" />
+			<PDFViewer :url="pdfData" />
 		</div>
 		<div id="description" class="content">
-			<Description :pdf-name="name" :pdf-description="desc" />
+			<Description :uuid="uuid" :pdf-name="name" :pdf-description="desc" />
 		</div>
 	</div>
 </template>
 
 <script>
-import { translate as t } from '@nextcloud/l10n'
-import { showInfo } from '@nextcloud/dialogs'
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 
@@ -49,35 +47,26 @@ export default {
 			default: '',
 		},
 	},
-	data: () => ({
-		desc: '',
-		urlPdf: '',
-		name: '',
-		user: false,
-	}),
+	data() {
+		return {
+			desc: '',
+			pdfData: '',
+			name: '',
+			user: '',
+		}
+	},
 
 	created() {
 		this.getData()
 	},
 
-	mounted() {
-		this.checkHasUser()
-		// eslint-disable-next-line
-	},
-
 	methods: {
-		checkHasUser() {
-			if (this.user.length === 0) {
-				showInfo(t('libresign', 'User does not exist, please create a new account!'))
-				this.$router.push({ name: 'CreateUser' })
-			}
-		},
-
 		getData() {
-			this.urlPdf = this.OC.appConfig.libresign.sign.pdf
-			this.name = this.OC.appConfig.libresign.sign.filename
-			this.desc = this.OC.appConfig.libresign.sign.description
-			this.user = this.OC.appConfig.libresign.user
+			this.name = this.$store.getters.getPdfData.filename
+			this.desc = this.$store.getters.getPdfData.description
+			this.pdfData = this.$store.getters.getPdfData.url
+				? this.$store.getters.getPdfData.url
+				: this.$store.getters.getPdfData.base64
 		},
 	},
 }

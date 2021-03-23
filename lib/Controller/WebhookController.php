@@ -63,9 +63,6 @@ class WebhookController extends ApiController {
 		try {
 			$this->webhook->validate($data);
 			$return = $this->webhook->save($data);
-			foreach ($return['users'] as $key => $user) {
-				$this->mail->notifyUnsignedUser($user);
-			}
 			unset($return['users']);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
@@ -79,6 +76,109 @@ class WebhookController extends ApiController {
 			[
 				'message' => $this->l10n->t('Success'),
 				'data' => $return
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @return JSONResponse
+	 */
+	public function update(string $uuid, array $users) {
+		$user = $this->userSession->getUser();
+		$data = [
+			'uuid' => $uuid,
+			'users' => $users,
+			'userManager' => $user
+		];
+		try {
+			$this->webhook->validateUserManager($data);
+			$this->webhook->validateFileUuid($data);
+			$this->webhook->validateUsers($data);
+			$return = $this->webhook->save($data);
+			unset($return['users']);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Success'),
+				'data' => $return
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @return JSONResponse
+	 */
+	public function removeSignature(string $uuid, array $users) {
+		$user = $this->userSession->getUser();
+		$data = [
+			'uuid' => $uuid,
+			'users' => $users,
+			'userManager' => $user
+		];
+		try {
+			$this->webhook->validateUserManager($data);
+			$this->webhook->validateFileUuid($data);
+			$this->webhook->validateUsers($data);
+			$this->webhook->canDeleteSignRequest($data);
+			$this->webhook->deleteSignRequest($data);
+			foreach ($data['user'] as $user) {
+				$this->mail->notifyUnsignedUser($user);
+			}
+		} catch (\Throwable $th) {
+			$message = $th->getMessage();
+			if (preg_match('/Did expect one result but found none when executing/', $message)) {
+				$message = $this->l10n->t('UUID not found');
+			}
+			return new JSONResponse(
+				[
+					'message' => $message,
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 * @return JSONResponse
+	 */
+	public function me() {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Invalid user or password')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'uid' => $user->getUID()
 			],
 			Http::STATUS_OK
 		);

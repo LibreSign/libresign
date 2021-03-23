@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use OC\Authentication\Login\Chain;
 use OCA\Libresign\Controller\AccountController;
 use OCA\Libresign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
@@ -15,6 +16,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 
 final class AccountControllerTest extends TestCase {
@@ -30,6 +32,10 @@ final class AccountControllerTest extends TestCase {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var Chain */
+	private $loginChain;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -41,12 +47,16 @@ final class AccountControllerTest extends TestCase {
 		$this->account = $this->createMock(AccountService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->loginChain = $this->createMock(Chain::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->controller = new AccountController(
 			$this->request,
 			$this->l10n,
 			$this->account,
 			$this->fileMapper,
-			$this->root
+			$this->root,
+			$this->loginChain,
+			$this->urlGenerator
 		);
 	}
 
@@ -54,8 +64,14 @@ final class AccountControllerTest extends TestCase {
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
-			->with($this->equalTo('getFileId'), $this->anything())
-			->will($this->returnValue(1));
+			->withConsecutive(
+				[$this->equalTo('getFileId'), $this->anything()],
+				[$this->equalTo('getDescription'), $this->anything()]
+			)
+			->will($this->returnValueMap([
+				[$this->returnValue(1)],
+				[$this->returnValue('Description')]
+			]));
 		$this->account
 			->method('getFileUserByUuid')
 			->will($this->returnValue($fileUser));
@@ -69,7 +85,7 @@ final class AccountControllerTest extends TestCase {
 				[$this->equalTo('getName'), $this->anything()]
 			)
 			->will($this->returnValueMap([
-				['getUserId', [], ''],
+				['getUserId', [], 1],
 				['getNodeId', [], 1],
 				['getName', [], 'Filename']
 			]));
@@ -91,6 +107,11 @@ final class AccountControllerTest extends TestCase {
 			->method('getById')
 			->will($this->returnValue([$node]));
 
+			
+		$this->urlGenerator
+			->method('linkToRoute')
+			->will($this->returnValue('http://test.coop'));
+
 		$actual = $this->controller->createToSign('uuid', 'email', 'password', 'signPassword');
 		$expected = new JSONResponse([
 			'message' => 'Success',
@@ -98,7 +119,7 @@ final class AccountControllerTest extends TestCase {
 			'filename' => 'Filename',
 			'description' => null,
 			'pdf' => [
-				'base64' => 'UERG'
+				'url' => 'http://test.coop'
 			]
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);

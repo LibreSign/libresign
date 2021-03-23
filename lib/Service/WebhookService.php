@@ -8,15 +8,19 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\Files\File;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
-use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
 class WebhookService {
+	/** @var FileEntity */
+	private $file;
+	/** @var FileUserEntity[] */
+	private $signatures;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -33,6 +37,8 @@ class WebhookService {
 	private $client;
 	/** @var IUserManager */
 	private $userManager;
+	/** @var MailService */
+	private $mail;
 
 	public function __construct(
 		IConfig $config,
@@ -42,7 +48,8 @@ class WebhookService {
 		FileUserMapper $fileUserMapper,
 		FolderService $folderService,
 		IClientService $client,
-		IUserManager $userManager
+		IUserManager $userManager,
+		MailService $mail
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -52,25 +59,26 @@ class WebhookService {
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
+		$this->mail = $mail;
 	}
 
 	public function validate(array $data) {
-		$this->validateUserManager($data['userManager']);
+		$this->validateUserManager($data);
 		$this->validateFile($data);
 		$this->validateUsers($data);
 	}
 
-	private function validateUserManager(IUser $user) {
+	public function validateUserManager($user) {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user);
+			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
 			if (!array_intersect($userGroups, $authorized)) {
 				throw new \Exception($this->l10n->t('Insufficient permissions to use API'));
 			}
 		}
 	}
 
-	private function validateFile($data) {
+	public function validateFile(array $data) {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
@@ -81,11 +89,11 @@ class WebhookService {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64'])) {
-			throw new \Exception($this->l10n->t('Inform url or base64 to sign'));
+			throw new \Exception($this->l10n->t('Inform URL or base64 to sign'));
 		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				throw new \Exception($this->l10n->t('Invalid url file'));
+				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
 			$contentType = $response->getHeaders()['Content-Type'][0];
@@ -102,12 +110,20 @@ class WebhookService {
 		}
 	}
 
-	private function validateUsers($data) {
+	public function validateFileUuid(array $data) {
+		try {
+			$this->getFileByUuid($data['uuid']);
+		} catch (\Throwable $th) {
+			throw new \Exception($this->l10n->t('Invalid UUID file'));
+		}
+	}
+
+	public function validateUsers(array $data) {
 		if (empty($data['users'])) {
-			throw new \Exception($this->l10n->t('Empty users collection'));
+			throw new \Exception($this->l10n->t('Empty users list'));
 		}
 		if (!is_array($data['users'])) {
-			throw new \Exception($this->l10n->t('User collection need to be an array'));
+			throw new \Exception($this->l10n->t('User list need to be an array'));
 		}
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
@@ -120,23 +136,91 @@ class WebhookService {
 		}
 	}
 
-	private function validateUser($user, $index) {
-		if (!is_array($user)) {
-			throw new \Exception($this->l10n->t('User collection need to be an array: user ' . $index));
-		}
-		if (!$user) {
-			throw new \Exception($this->l10n->t('User collection need to be an array with values: user ' . $index));
-		}
-		if (empty($user['email'])) {
-			throw new \Exception($this->l10n->t('User need to be email: user ' . $index));
-		}
-		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new \Exception($this->l10n->t('Invalid email: user ' . $index));
+	/**
+	 * Can delete sing request
+	 *
+	 * @param array $data
+	 */
+	public function canDeleteSignRequest(array $data) {
+		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		foreach ($signatures as $signature) {
+			if ($signature->getSigned()) {
+				throw new \Exception($this->l10n->t('Document already signed'));
+			}
+			$email = $signature->getEmail();
+			$exists = array_filter($data['users'], function ($val) use ($email) {
+				return $val['email'] == $email;
+			});
+			if (!$exists) {
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
+			}
 		}
 	}
 
+	public function deleteSignRequest(array $data) {
+		$fileData = $this->getFileByUuid($data['uuid']);
+		foreach ($data['users'] as $signer) {
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
+				$signer['email'],
+				$fileData->getId()
+			);
+			$this->fileUserMapper->delete($fileUser);
+		}
+		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		if (count($signatures) == count($data['users'])) {
+			$file = $this->getFileByUuid($data['uuid']);
+			$this->fileMapper->delete($file);
+		}
+	}
+
+	/**
+	 * Get all signatures by file UUID
+	 *
+	 * @param string $uuid
+	 * @return FileUserEntity[]
+	 */
+	private function getSignaturesByFileUuid(string $uuid): array {
+		if (!$this->signatures) {
+			$file = $this->getFileByUuid($uuid);
+			$this->signatures = $this->fileUserMapper->getByFileId($file->getId());
+		}
+		return $this->signatures;
+	}
+
+	private function validateUser($user, $index) {
+		if (!is_array($user)) {
+			throw new \Exception($this->l10n->t('User data need to be an array: user %s', [$index]));
+		}
+		if (!$user) {
+			throw new \Exception($this->l10n->t('User data need to be an array with values: user %s', [$index]));
+		}
+		if (empty($user['email'])) {
+			throw new \Exception($this->l10n->t('User need to be email: user %s', [$index]));
+		}
+		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+			throw new \Exception($this->l10n->t('Invalid email: user %s', [$index]));
+		}
+	}
+
+	/**
+	 * Get LibreSign file entity by UUID
+	 *
+	 * @param string $uuid
+	 * @return FileEntity
+	 */
+	private function getFileByUuid(string $uuid): FileEntity {
+		if (!$this->file) {
+			$this->file = $this->fileMapper->getByUuid($uuid);
+		}
+		return $this->file;
+	}
+
 	public function save(array $data) {
-		$file = $this->saveFile($data);
+		if ($data['uuid']) {
+			$file = $this->getFileByUuid($data['uuid']);
+		} else {
+			$file = $this->saveFile($data);
+		}
 		$return['uuid'] = $file->getUuid();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
@@ -145,19 +229,36 @@ class WebhookService {
 	public function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
-			$fileUser = new FileUserEntity();
+			try {
+				$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+			} catch (\Throwable $th) {
+				$fileUser = new FileUserEntity();
+			}
 			$fileUser->setFileId($fileId);
-			$fileUser->setUuid(UUIDUtil::getUUID());
-			$fileUser->setCreatedAt(time());
+			if (!$fileUser->getUuid()) {
+				$fileUser->setUuid(UUIDUtil::getUUID());
+			}
 			$fileUser->setEmail($user['email']);
-			$fileUser->setDisplayName($user['display_name']);
-			if (!$user['user_id']) {
+			if (!empty($user['display_name'])) {
+				$fileUser->setDisplayName($user['display_name']);
+			}
+			if (!empty($user['description']) && $fileUser->getDescription() != $user['description']) {
+				$fileUser->setDescription($user['description']);
+			}
+			if (empty($user['user_id'])) {
 				$userToSign = $this->userManager->getByEmail($user['email']);
 				if ($userToSign) {
 					$fileUser->setUserId($userToSign[0]->getUID());
 				}
 			}
-			$this->fileUserMapper->insert($fileUser);
+			if ($fileUser->getId()) {
+				$this->fileUserMapper->update($fileUser);
+				$this->mail->notifySignDataUpdated($fileUser);
+			} else {
+				$fileUser->setCreatedAt(time());
+				$this->fileUserMapper->insert($fileUser);
+				$this->mail->notifyUnsignedUser($fileUser);
+			}
 			$return[] = $fileUser;
 		}
 		return $return;
@@ -173,7 +274,7 @@ class WebhookService {
 		$userFolder = $this->folderService->getFolderForUser();
 		$folderName = $this->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception('Another file like this already exists');
+			throw new \Exception($this->l10n->t('File already exists'));
 		}
 		$folderToFile = $userFolder->newFolder($folderName);
 		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
@@ -183,9 +284,6 @@ class WebhookService {
 		$file->setUserId($data['userManager']->getUID());
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
-		if (!empty($data['description'])) {
-			$file->setDescription($data['description']);
-		}
 		$file->setName($data['name']);
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
@@ -193,6 +291,11 @@ class WebhookService {
 		$file->setEnabled(1);
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	public function deleteFile(array $data) {
+		$fileData = $this->getFileByUuid($data['uuid']);
+		$this->folderService->deleteParentNodeOfNodeId($fileData->getNodeId());
 	}
 
 	private function getFileRaw($data) {
@@ -210,5 +313,22 @@ class WebhookService {
 		}
 		$folderName[] = $data['userManager']->getUID();
 		return implode('_', $folderName);
+	}
+
+	public function notifyCallback(string $uri, string $uuid, File $file) {
+		$options = [
+			'multipart' => [
+				[
+					'name' => 'uuid',
+					'contents' => $uuid
+				],
+				[
+					'name' => 'file',
+					'contents' => $file->fopen('r'),
+					'filename' => $file->getName()
+				]
+			]
+		];
+		$response = $this->client->newClient()->post($uri, $options);
 	}
 }

@@ -12,6 +12,8 @@ project_directory=$(CURDIR)/../$(app_name)
 build_tools_directory=$(CURDIR)/build/tools
 appstore_build_directory=$(CURDIR)/build/artifacts/appstore
 appstore_package_name=$(appstore_build_directory)/$(app_name)
+appstore_sign_dir=$(appstore_build_directory)/sign
+cert_dir=$(build_tools_directory)/certificates
 npm=$(shell which npm 2> /dev/null)
 composer=$(shell which composer 2> /dev/null)
 
@@ -86,17 +88,42 @@ test: composer
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
-appstore:
-	rm -rf $(appstore_build_directory)
-	mkdir -p $(appstore_build_directory)
+appstore: clean
+	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	tar -cvzf $(appstore_package_name).tar.gz \
-	--exclude-vcs \
-	$(project_directory)/appinfo \
-	$(project_directory)/cfssl \
-	$(project_directory)/img \
-	$(project_directory)/js \
-	$(project_directory)/lib \
-	$(project_directory)/node_modules \
-	$(project_directory)/templates \
-	$(project_directory)/vendor
+	npm install
+	npm run build
+	cp -r \
+		appinfo \
+		cfssl \
+		img \
+		js \
+		l10n \
+		lib \
+		templates \
+		vendor \
+		CHANGELOG.md \
+		LICENSE \
+		$(appstore_sign_dir)/$(app_name) \
+
+	@if [ -z "$$GITHUB_ACTION" ]; then \
+		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
+	fi
+
+	mkdir -p $(cert_dir)
+	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
+		echo "$$APP_PRIVATE_KEY" > $(cert_dir)/$(app_name).key; \
+		echo "$$APP_PUBLIC_CRT" > $(cert_dir)/$(app_name).crt; \
+		echo "Signing app files…"; \
+		runuser -u www-data -- \
+		php ../../occ integrity:sign-app \
+			--privateKey=$(cert_dir)/$(app_name).key\
+			--certificate=$(cert_dir)/$(app_name).crt\
+			--path=$(appstore_sign_dir)/$(app_name); \
+		echo "Signing app files ... done"; \
+	fi
+	tar -czf $(appstore_package_name).tar.gz -C $(appstore_sign_dir) $(app_name)
+	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
+		echo "Signing package…"; \
+		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(appstore_package_name).tar.gz | openssl base64; \
+	fi

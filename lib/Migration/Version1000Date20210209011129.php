@@ -36,7 +36,7 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 		]);
 		$table->addColumn('uuid', Types::STRING, [
 			'notnull' => true,
-			'length' => 255,
+			'length' => 36,
 			'default' => '',
 		]);
 		$table->addColumn('email', Types::STRING, [
@@ -48,6 +48,9 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 			'notnull' => true,
 			'length' => 255,
 			'default' => '',
+		]);
+		$table->addColumn('description', Types::TEXT, [
+			'notnull' => false,
 		]);
 		$table->addColumn('created_at', Types::BIGINT, [
 			'notnull' => true,
@@ -62,6 +65,7 @@ class Version1000Date20210209011129 extends SimpleMigrationStep {
 
 		$table->setPrimaryKey(['id']);
 		$table->addIndex(['uuid']);
+		$table->addUniqueIndex(['uuid'], 'file_user_uuid_index');
 
 		return $schema;
 	}

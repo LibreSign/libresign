@@ -2,8 +2,10 @@
 
 namespace OCA\Libresign\Helper;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -54,77 +56,97 @@ class JSConfigHelper {
 	 */
 	public function extendJsConfig(array $settings) {
 		$appConfig = json_decode($settings['array']['oc_appconfig'], true);
+		$appConfig['libresign'] = $this->getConfig('url');
+		$settings['array']['oc_appconfig'] = json_encode($appConfig);
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param string $formatOfPdfOnSign (base64,url,file)
+	 * @return array|string
+	 */
+	public function getConfig(string $formatOfPdfOnSign): array {
 		$uuid = $this->request->getParam('uuid');
 		$userId = $this->session->get('user_id');
 		try {
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
 		} catch (\Throwable $th) {
-			$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
-			$appConfig['libresign']['errors'][] = $this->l10n->t('Invalid uuid');
-			$settings['array']['oc_appconfig'] = json_encode($appConfig);
-			return;
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('Invalid UUID');
+			return $return;
 		}
 		$fileUserId = $fileUser->getUserId();
 		if (!$fileUserId) {
 			if ($userId) {
-				$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
-				$appConfig['libresign']['errors'][] = $this->l10n->t('This is not your file');
-				$settings['array']['oc_appconfig'] = json_encode($appConfig);
-				return;
+				$return['action'] = JSActions::ACTION_DO_NOTHING;
+				$return['errors'][] = $this->l10n->t('This is not your file');
+				return $return;
 			}
-			if ($this->userManager->userExists($data['email'])) {
-				$appConfig['libresign']['action'] = JSActions::ACTION_REDIRECT;
-				$appConfig['libresign']['errors'][] = $this->l10n->t('User already exists. Please loggin.');
-				$appConfig['libresign']['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+			if ($this->userManager->userExists($fileUser->getEmail())) {
+				$return['action'] = JSActions::ACTION_REDIRECT;
+				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
+				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.Page.sign',
+						'libresign.page.sign',
 						['uuid' => $uuid]
 					),
 				]);
-				$settings['array']['oc_appconfig'] = json_encode($appConfig);
-				return;
+				return $return;
 			}
-			$appConfig['libresign']['action'] = JSActions::ACTION_CREATE_USER;
-			$settings['array']['oc_appconfig'] = json_encode($appConfig);
-			return;
+			$return['action'] = JSActions::ACTION_CREATE_USER;
+			return $return;
+		}
+		if ($fileUser->getSigned()) {
+			$return['action'] = JSActions::ACTION_SHOW_ERROR;
+			$return['errors'][] = $this->l10n->t('File already signed.');
+			return $return;
 		}
 		if (!$userId) {
-			$appConfig['libresign']['action'] = JSActions::ACTION_REDIRECT;
+			$return['action'] = JSActions::ACTION_REDIRECT;
 
-			$appConfig['libresign']['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+			$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $this->urlGenerator->linkToRoute(
-					'libresign.Page.sign',
+					'libresign.page.sign',
 					['uuid' => $uuid]
 				),
 			]);
-			$appConfig['libresign']['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
-			$settings['array']['oc_appconfig'] = json_encode($appConfig);
-			return;
+			$return['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
+			return $return;
 		}
 		if ($fileUserId != $userId) {
-			$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
-			$appConfig['libresign']['errors'][] = $this->l10n->t('Invalid user');
-			$settings['array']['oc_appconfig'] = json_encode($appConfig);
-			return;
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('Invalid user');
+			return $return;
 		}
 		$fileData = $this->fileMapper->getById($fileUser->getFileId());
+		Filesystem::initMountPoints($fileData->getUserId());
 		$fileToSign = $this->root->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
-			$appConfig['libresign']['action'] = JSActions::ACTION_DO_NOTHING;
-			$appConfig['libresign']['errors'][] = $this->l10n->t('File not found');
-			$settings['array']['oc_appconfig'] = json_encode($appConfig);
-			return;
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('File not found');
+			return $return;
 		}
+		/** @var File */
 		$fileToSign = $fileToSign[0];
-		$appConfig['libresign']['action'] = JSActions::ACTION_SIGN;
-		$appConfig['libresign']['user']['name'] = $fileUser->getDisplayName();
-		$appConfig['libresign']['sign'] = [
-			'pdf' => [
-				'base64' => $fileToSign->getContent()
-			],
+		$return['action'] = JSActions::ACTION_SIGN;
+		$return['user']['name'] = $fileUser->getDisplayName();
+		switch ($formatOfPdfOnSign) {
+			case 'base64':
+				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
+				break;
+			case 'url':
+				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
+				break;
+			case 'file':
+				$pdf = ['file' => $fileToSign];
+				break;
+		}
+		$return['sign'] = [
+			'pdf' => $pdf,
 			'filename' => $fileData->getName(),
-			'description' => $fileData->getDescription()
+			'description' => $fileUser->getDescription()
 		];
-		$settings['array']['oc_appconfig'] = json_encode($appConfig);
+		return $return;
 	}
 }

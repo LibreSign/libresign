@@ -1,3 +1,26 @@
+<!--
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+- @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-->
+
 <template>
 	<Content app-name="libresign" class="jumbotron">
 		<div id="container">
@@ -7,64 +30,58 @@
 					<div class="group">
 						<input
 							v-model="email"
-							v-tooltip.right="{
-								content: 'Insira seu email aqui.',
+							v-tooltip.top="{
+								content: t('libresign', 'Enter your email.'),
 								show: tooltip.name,
 								trigger: 'false',
 							}"
-							type="text"
+							type="email"
 							:required="validator.name"
-							placeholder="Email"
+							:placeholder="t('libresign', 'Email')"
 							@focus="tooltip.nameFocus = true; tooltip.name = false"
 							@blur="tooltip.nameFocus = false; validationName()">
-						<div v-show="validator.name"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="pass"
-							v-tooltip.right="{
-								content: 'A senha deve ter no mínimo 8 caracteres',
+							v-tooltip.bottom="{
+								content: t('libresign', 'Password must be at least 3 characters.'),
 								show: tooltip.pass,
 								trigger: 'false'
 							}"
 							type="password"
 							:required="validator.pass"
-							placeholder="Senha"
+							:placeholder="t('libresign', 'Password')"
 							@focus="tooltip.passFocus = true; tooltip.pass = false"
 							@blur="tooltip.passFocus = false; validationPass()">
-						<div v-show="validator.pass"
-							class="icon-error-white" />
 					</div>
 					<div class="group">
 						<input
 							v-model="passConfirm"
-							v-tooltip.right="{
-								content: 'Senhas não coincidem',
+							v-tooltip.bottom="{
+								content: t('libresign', 'Passwords do not match'),
 								show: tooltip.passConfirm,
 								trigger: 'false'
 							}"
 							type="password"
 							:required="validator.passConfirm"
-							placeholder="Confirmar senha"
+							:placeholder="t('libresign', 'Confirm password')"
 							@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
 							@blur="tooltip.passConfirmFocus = false; validationPasswords()">
-						<div v-show="validator.passConfirm"
-							class="icon-error-white" />
 					</div>
 
 					<div
 						v-tooltip.right="{
-							content: 'Senha para confirmar assinatura no documento!',
+							content: t('libresign', 'Password to confirm signature on the document!'),
 							show: false,
 							trigger: 'hover focus'
 						}"
 						class="group">
 						<input
 							v-model="pfx"
+							type="password"
 							:required="validator.pfx"
-							placeholder="Senha PFX">
-						<div v-show="validator.pfx" class="icon-error-white" />
+							:placeholder="t('libresign', 'Password for sign document.')">
 					</div>
 					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
 						Cadastrar
@@ -77,9 +94,10 @@
 
 <script>
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import { showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -87,6 +105,13 @@ export default {
 	components: {
 		Content,
 		Avatar,
+	},
+
+	props: {
+		messageToast: {
+			type: String,
+			default: 'Create a user',
+		},
 	},
 
 	data() {
@@ -136,22 +161,22 @@ export default {
 	},
 	created() {
 		this.changeSizeAvatar()
+		showError(t('libresign', this.messageToast))
 	},
 
 	methods: {
 		async createUser() {
-			// eslint-disable-next-line
-// console.log(this.$)
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
 					password: this.pass,
 					signPassword: this.pfx,
 				})
-				// eslint-disable-next-line
-				console.log(response)
+				this.$store.commit('setPdfData', response.data)
+				showSuccess(t('libresigng', 'User created!'))
+				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
-				showError(err)
+				showError(err.response.data.message)
 			}
 		},
 
@@ -174,7 +199,7 @@ export default {
 			}
 		},
 		validationPass() {
-			if (this.pass.length < 8) {
+			if (this.pass.length < 3) {
 				this.validator.pass = true
 				if (this.tooltip.passFocus === false) {
 					this.tooltip.pass = true
@@ -194,7 +219,7 @@ export default {
 			}
 		},
 		validationPassConfirm() {
-			if (this.passConfirm.length < 8) {
+			if (this.passConfirm.length < 3) {
 				this.validator.passConfirm = true
 			} else {
 				this.validator.passConfirm = false
@@ -238,122 +263,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-#container{
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-}
-
-#avatar{
-	margin-bottom: 20px;
-}
-
-#password{
-	margin-right: 3px;
-}
-
-form{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	width: 80%;
-	margin: 10px 0px 10px 0px;
-}
-
-form > div{
-	width: 100%;
-}
-
-input {
-	min-width: 317px;
-	width: 100%
-}
-
-#tooltip{
-	position: relative;
-
-	span{
-		width: 160px;
-		padding: 8px;
-		border-radius: 4px;
-		font-size: 14px;
-		font-weight: 500;
-		opacity: 0;
-		transition: opacity 0.4s;
-		visibility: visible;
-
-		position: absolute;
-		bottom: calc(100% + 12px);
-		left: 50%;
-	}
-}
-
-.group{
-	display: flex;
-}
-
-.btn{
-	margin-top: 10px;
-	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
-}
-
-.bg{
-	display: flex;
-	justify-content: center;
-	background-image: linear-gradient(40deg, #0082c9 0%, #1cafff 100%);
-	width: 400px;
-	border-radius: 5px;
-	box-shadow: rgba(0, 130, 201, 0.4) 5px 5px, rgba(0, 130, 201, 0.3) 10px 10px, rgba(0, 130, 201, 0.2) 15px 15px, rgba(0, 130, 201, 0.1) 20px 20px, rgba(0, 130, 201, 0.05) 25px 25px;
-
-	transition: all;
-	transition-duration: 1s;
-}
-
-.jumbotron{
-	background-image: url('../../img/bg.jpg');
-	background-size: cover;
-
-	transition: background-position-x;
-	transition-duration: 2s;
-}
-
-@media screen and (max-width: 750px) {
-	.jumbotron{
-		background-position-x: 50%
-	}
-}
-
-@media screen and (max-width: 535px) {
-	// form {width: 90%}
-	.bg{
-		transition: all;
-		transition-duration: 1s;
-		width: 99%;
-	}
-	input {
-		max-width: 90%
-	}
-}
-
-@media screen and (max-width: 380px) {
-	.bg{
-		transition: all;
-		transition-duration: 2s;
-		background-image: none;
-		background-color: #0082c9;
-		border-radius: 0;
-		width: 100%;
-		box-shadow: none;
-	}
-	.jumbotron{
-		background-image:none;
-		background-color:#0082c9;
-	}
-	input{
-		max-width: 317px;
-	}
-}
+@import '../assets/styles/CreateUser.scss';
 </style>

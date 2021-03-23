@@ -91,7 +91,7 @@ final class AccountServiceTest extends TestCase {
 		$this->fileUserMapper
 			->method('getByUuid')
 			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Dont is your file');
+		$this->expectExceptionMessage('This is not your file');
 		$this->service->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'invalid@test.coop'

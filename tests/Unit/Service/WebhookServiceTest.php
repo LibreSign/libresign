@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -52,6 +53,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->user = $this->createMock(IUser::class);
 		$this->client = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->service = new WebhookService(
 			$this->config,
@@ -61,7 +63,8 @@ final class WebhookServiceTest extends TestCase {
 			$this->fileUser,
 			$this->folder,
 			$this->client,
-			$this->userManager
+			$this->userManager,
+			$this->mail
 		);
 	}
 
@@ -85,7 +88,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileUrl() {
-		$this->expectExceptionMessage('Invalid url file');
+		$this->expectExceptionMessage('Invalid URL file');
 
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
@@ -114,7 +117,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateEmptyUserCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$response = $this->createMock(IResponse::class);
 		$response
@@ -136,7 +139,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateEmptyUsersCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -146,7 +149,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserCollectionNotArray() {
-		$this->expectExceptionMessage('User collection need to be an array');
+		$this->expectExceptionMessage('User list need to be an array');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -157,7 +160,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmptyCollection() {
-		$this->expectExceptionMessage('Empty users collection');
+		$this->expectExceptionMessage('Empty users list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -168,7 +171,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User collection need to be an array: user 0');
+		$this->expectExceptionMessage('User data need to be an array: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -181,7 +184,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User collection need to be an array with values: user 0');
+		$this->expectExceptionMessage('User data need to be an array with values: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -194,7 +197,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User need to be email: user 0');
+		$this->expectExceptionMessage('User need to be email: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -209,7 +212,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithInvalidEmail() {
-		$this->expectExceptionMessage('Invalid email: user 0');
+		$this->expectExceptionMessage('Invalid email: user %s');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -247,6 +250,10 @@ final class WebhookServiceTest extends TestCase {
 			->expects($this->once())
 			->method('getAppValue')
 			->willReturn('["admin"]');
+		$this->groupManager
+			->expects($this->once())
+			->method('getUserGroupIds')
+			->willReturn([]);
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],

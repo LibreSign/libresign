@@ -35,16 +35,13 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 		]);
 		$table->addColumn('uuid', Types::STRING, [
 			'notnull' => true,
-			'length' => 255,
+			'length' => 36,
 			'default' => '',
 		]);
 		$table->addColumn('created_at', Types::BIGINT, [
 			'notnull' => true,
 			'length' => 20,
 			'unsigned' => true,
-		]);
-		$table->addColumn('description', Types::TEXT, [
-			'notnull' => false,
 		]);
 		$table->addColumn('name', Types::STRING, [
 			'notnull' => true,
@@ -62,6 +59,7 @@ class Version1000Date20210209004203 extends SimpleMigrationStep {
 		$table->setPrimaryKey(['id']);
 		$table->addIndex(['node_id']);
 		$table->addIndex(['uuid']);
+		$table->addUniqueIndex(['uuid'], 'file_uuid_index');
 
 		return $schema;
 	}

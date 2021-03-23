@@ -2,6 +2,7 @@
  * @copyright Copyright (c) 2021 Lyseon Techh <contato@lt.coop.br>
  *
  * @author Lyseon Tech <contato@lt.coop.br>
+ * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -63,5 +64,6 @@ export default new Vue({
 	// eslint-disable-next-line vue/match-component-file-name
 	name: 'LibreSignExternalRoot',
 	router,
+	store,
 	render: h => h(External),
 })

@@ -2,6 +2,8 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Authentication\Login\Chain;
+use OC\Authentication\Login\LoginData;
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
@@ -13,6 +15,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 
 class AccountController extends ApiController {
 	/** @var IL10N */
@@ -23,19 +26,27 @@ class AccountController extends ApiController {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var Chain */
+	private $loginChain;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
 		AccountService $account,
 		FileMapper $fileMapper,
-		IRootFolder $root
+		IRootFolder $root,
+		Chain $loginChain,
+		IURLGenerator $urlGenerator
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->account = $account;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
+		$this->loginChain = $loginChain;
+		$this->urlGenerator = $urlGenerator;
 	}
 
 	/**
@@ -73,11 +84,18 @@ class AccountController extends ApiController {
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
-					'base64' => base64_encode($fileToSign->getContent())
+					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])
 				],
 				'filename' => $fileData->getName(),
-				'description' => $fileData->getDescription()
+				'description' => $fileUser->getDescription()
 			];
+
+			$loginData = new LoginData(
+				$this->request,
+				trim($email),
+				$password
+			);
+			$this->loginChain->process($loginData);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

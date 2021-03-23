@@ -1,10 +1,9 @@
 [main]
 host = https://www.transifex.com
-lang_map = bg_BG: bg, cs_CZ: cs, fi_FI: fi, hu_HU: hu, pt_BR: pt nb_NO: nb, sk_SK: sk, th_TH: th, ja_JP: ja
-
+lang_map = bg_BG: bg, cs_CZ: cs, fi_FI: fi, hu_HU: hu, pt_BR: pt, nb_NO: nb, sk_SK: sk, th_TH: th, ja_JP: ja
 
 [nextcloud.libresign]
 file_filter = translationfiles/<lang>/libresign.po
 source_file = translationfiles/templates/libresign.pot
-source_lang = en_US
+source_lang = en
 type = PO
