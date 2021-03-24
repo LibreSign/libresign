@@ -46,13 +46,13 @@
 				<button
 					id="pickFromCloud"
 					:class="'icon-folder'"
-					:title="t('libresign', 'Select subscription location.')"
+					:title="t('libresign', 'Select signature file location.')"
 					:disabled="updating"
 					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Select subscription.') }}
+					{{ t('libresign', 'Select signature.') }}
 				</button>
 			</div>
-			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
+			<label for="password">{{ t('libresign', 'Signature password.') }}</label>
 			<div class="form-group">
 				<input
 					id="password"
