@@ -72,7 +72,6 @@ OC.L10N.register(
     "Could not create signature." : "Podpis se nedaří vytvořit",
     "Choose a folder to store your signature!" : "Zvolte složku pro uložení vašeho podpisu!",
     "Signature location." : "Umístění podpisu.",
-    "Select subscription location." : "Vybrat umístění podpisu.",
     "Could not sign document!" : "Dokument nelze podepsat!",
     "Choose your subscription location!" : "Zvolte umístění vašeho podpisu!",
     "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet."
