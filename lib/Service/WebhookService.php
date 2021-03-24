@@ -189,10 +189,10 @@ class WebhookService {
 
 	private function validateUser($user, $index) {
 		if (!is_array($user)) {
-			throw new \Exception($this->l10n->t('User data need to be an array: user %s', [$index]));
+			throw new \Exception($this->l10n->t('User list needs to be an array: user %s', [$index]));
 		}
 		if (!$user) {
-			throw new \Exception($this->l10n->t('User data need to be an array with values: user %s', [$index]));
+			throw new \Exception($this->l10n->t('User list needs to be an array with values: user %s', [$index]));
 		}
 		if (empty($user['email'])) {
 			throw new \Exception($this->l10n->t('User need to be email: user %s', [$index]));
