@@ -123,7 +123,7 @@ class WebhookService {
 			throw new \Exception($this->l10n->t('Empty users list'));
 		}
 		if (!is_array($data['users'])) {
-			throw new \Exception($this->l10n->t('User list need to be an array'));
+			throw new \Exception($this->l10n->t('User list needs to be an array'));
 		}
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {

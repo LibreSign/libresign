@@ -149,7 +149,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserCollectionNotArray() {
-		$this->expectExceptionMessage('User list need to be an array');
+		$this->expectExceptionMessage('User list needs to be an array');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
