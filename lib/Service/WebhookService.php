@@ -132,7 +132,7 @@ class WebhookService {
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
-			throw new \Exception($this->l10n->t('Remove duplicated users, email need to be unique'));
+			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
 		}
 	}
 

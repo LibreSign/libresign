@@ -227,7 +227,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserDuplicatedEmail() {
-		$this->expectExceptionMessage('Remove duplicated users, email need to be unique');
+		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
