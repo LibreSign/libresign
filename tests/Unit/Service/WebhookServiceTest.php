@@ -197,7 +197,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User need to be email: user %s');
+		$this->expectExceptionMessage('User %s needs an email address');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
