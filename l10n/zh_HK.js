@@ -71,6 +71,10 @@ OC.L10N.register(
     "Could not create signature." : "無法建立簽署。",
     "Choose a folder to store your signature!" : "選擇儲存簽署的資料夾！",
     "Signature location." : "簽署位置。",
+    "Select signature file location." : "選擇簽署檔案位置。",
+    "Select signature." : "選擇簽名。",
+    "Signature password." : "簽署密碼。",
+    "Signed document available on {place}" : "已簽署的文件位於 {place}",
     "Could not sign document!" : "無法簽署文件！",
     "Choose your subscription location!" : "選擇訂閱位置。",
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
