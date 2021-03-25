@@ -128,7 +128,7 @@ class MailService {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('Signature request cancelled'));
 		$emailTemplate->addHeader();
-		$emailTemplate->addBodyText($this->l10n->t('The signature request has been cancelled.'));
+		$emailTemplate->addBodyText($this->l10n->t('The signature request has been canceled.'));
 		$message = $this->mailer->createMessage();
 		if ($data->getDisplayName()) {
 			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
