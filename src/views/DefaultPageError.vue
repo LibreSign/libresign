@@ -45,7 +45,7 @@ export default {
 			errors: this.$store.getters.getError.length > 0
 				? this.$store.getters.getError
 				: 'Page not found.',
-			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, have been removed, name changed or is temporarily unavailable.'),
+			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, name changed or is temporarily unavailable.'),
 		}
 	},
 }

@@ -132,7 +132,7 @@ class WebhookService {
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
-			throw new \Exception($this->l10n->t('Remove duplicated users, email need to be unique'));
+			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
 		}
 	}
 
@@ -189,13 +189,13 @@ class WebhookService {
 
 	private function validateUser($user, $index) {
 		if (!is_array($user)) {
-			throw new \Exception($this->l10n->t('User list needs to be an array: user %s', [$index]));
+			throw new \Exception($this->l10n->t('User data needs to be an array: user of position %s in list', [$index]));
 		}
 		if (!$user) {
-			throw new \Exception($this->l10n->t('User list needs to be an array with values: user %s', [$index]));
+			throw new \Exception($this->l10n->t('User data needs to be an array with values: user of position %s in list', [$index]));
 		}
 		if (empty($user['email'])) {
-			throw new \Exception($this->l10n->t('User need to be email: user %s', [$index]));
+			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
 		}
 		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception($this->l10n->t('Invalid email: user %s', [$index]));

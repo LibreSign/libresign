@@ -171,7 +171,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User list needs to be an array: user %s');
+		$this->expectExceptionMessage('User data needs to be an array: user of position %s in list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -184,7 +184,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User list needs to be an array with values: user %s');
+		$this->expectExceptionMessage('User data needs to be an array with values: user of position %s in list');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -197,7 +197,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User need to be email: user %s');
+		$this->expectExceptionMessage('User %s needs an email address');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
@@ -227,7 +227,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateUserDuplicatedEmail() {
-		$this->expectExceptionMessage('Remove duplicated users, email need to be unique');
+		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
 
 		$this->service->validate([
 			'file' => ['base64' => 'dGVzdA=='],
