@@ -36,6 +36,7 @@ OC.L10N.register(
     "Invalid UUID file" : "無效的 UUID 檔案",
     "Empty users list" : "空白的用戶清單",
     "Document already signed" : "文件已簽署",
+    "User %s needs an email address" : "用戶 %s 需要一個電郵地址",
     "Invalid email: user %s" : "無效的電郵地址：用戶 %s",
     "File already exists" : "檔案已存在",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre - Nextcloud 的數位簽署應用程式 ",
@@ -72,6 +73,7 @@ OC.L10N.register(
     "Select signature file location." : "選擇簽署檔案位置。",
     "Select signature." : "選擇簽名。",
     "Signature password." : "簽署密碼。",
+    "Signed document available at {place}" : "已簽署的文件位於 {place}",
     "Could not sign document!" : "無法簽署文件！",
     "Choose your subscription location!" : "選擇訂閱位置。",
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
