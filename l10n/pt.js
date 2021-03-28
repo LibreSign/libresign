@@ -76,6 +76,7 @@ OC.L10N.register(
     "Password to confirm signature on the document!" : "Senha para confirmar a assinatura do documento!",
     "Password for sign document." : "Senha para assinar documento.",
     "User created!" : "Usuário criado!",
+    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe mas a página que você está procurando não existe, foi removida, movida ou está temporariamente indisponível.",
     "Congratulations, you have successfully signed the digital document using an Open Source digital signer on Nextcloud." : "Parabéns, você assinou digitalmente um documento utilizando um assinador de licença livre no Nextcloud.",
     "Organizational Unit (OU)" : "Unidade da Organização (OU)",
     "Signature storage." : "Guardar assinatura.",

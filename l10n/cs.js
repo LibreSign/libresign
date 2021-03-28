@@ -76,6 +76,7 @@ OC.L10N.register(
     "Password to confirm signature on the document!" : "Heslo pro potvrzení podpisu dokumentu!",
     "Password for sign document." : "Heslo pro podepsání dokumentu.",
     "User created!" : "Uživatel vytvořen!",
+    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
     "Congratulations, you have successfully signed the digital document using an Open Source digital signer on Nextcloud." : "Gratulujeme, úspěšně jste podepsali digitální dokument pomocí open source nástroje pro digitální podepisování v Nextcloud.",
     "Organizational Unit (OU)" : "Organizační jednotka (OU)",
     "Signature storage." : "Úložiště podpisů.",
