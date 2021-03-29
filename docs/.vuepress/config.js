@@ -2,7 +2,9 @@ module.exports = {
   title: 'LibreSign',
   base: '/libresign/',
   description: 'Libre digital signature app for Nextcloud.',
+  theme: 'openapi',
   themeConfig: {
+    servers: ['{{APP_URL}}'],
     locales: {
       '/': {
         sidebar: 'auto',
@@ -46,5 +48,9 @@ module.exports = {
       lang: 'pt-BR',
       description: 'App de assinatura digital livre para Nextcloud.'
     }
-  }
+  },
+  plugins: [
+    '@vuepress/plugin-back-to-top',
+    '@vuepress/plugin-medium-zoom',
+  ]
 };
