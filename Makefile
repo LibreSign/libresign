@@ -20,6 +20,7 @@ composer=$(shell which composer 2> /dev/null)
 all: dev-setup build-js-production
 serve: dev-setup watch-js
 
+# Installs and updates the composer dependencies. If composer is not installed
 # a copy is fetched from the web
 .PHONY: composer
 composer:
