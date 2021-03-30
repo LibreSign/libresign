@@ -37,7 +37,7 @@ The URL of server you will use in [Admin settings](#admin-settings)
 ### With docker-compose
 * Create a folder named cfssl in the same folder as your `docker-compose.yml` file. This folder will be used on one volume of the cfssl service.
 * put the file [`/cfssl/entrypoint.sh`](https://github.com/LibreSign/libresign/blob/main/cfssl/entrypoint.sh) in `cfssl` folder
-* Add the volume `./cfssl:/cfssl` in Nextcloud service
+* Add the volume `./cfssl:/cfssl` in Nextcloud php service
 * Create a new server using the following code in your `docker-compose.yml` file:
 ```yml
   cfssl:
@@ -72,3 +72,29 @@ Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 ## Full documentation
 
 [here](https://libresign.github.io/libresign/)
+
+## Contributing
+
+Feel free to submit [Github Issues](https://github.com/lyseontech/libresign/issues) or pull requests.
+
+The documentation website is build from the docs folder with vuepress.
+
+### To start front and backend development environment
+
+```bash
+make serve
+```
+
+### To build documentation
+
+```bash
+make docs
+```
+
+### To run PHPUnit
+
+```bash
+make test
+```
+
+Read more in composer.json scripts section
