@@ -21,6 +21,7 @@ curl -X POST \
 		"url": "https://test.coop/test.pdf"
 	},
 	"name": "test",
+	"callback": "https://test.coop/callbackWebhook",
 	"users": [
 		{
 			"display_name": "Jhon Doe",
