@@ -228,4 +228,34 @@ class LibresignController extends Controller {
 
 		return $pdf->Output('S');
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function validate($uuid) {
+		try {
+			try {
+				$file = $this->fileMapper->getById($uuid);
+			} catch (\Throwable $th) {
+				throw new LibresignException('Invalid data to validate file', 1);
+			}
+			if (!$file) {
+				throw new LibresignException('Invalid file identifier', 1);
+			}
+
+			$return['name'] = $file->getName();
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			$message = $this->l10n->t($th->getMessage());
+			$this->logger->error($message);
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$message]
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+	}
 }
