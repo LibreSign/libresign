@@ -76,6 +76,7 @@ OC.L10N.register(
     "Password to confirm signature on the document!" : "Belge imzasını onaylamak için parola!",
     "Password for sign document." : "Belgeyi imzalamak için parola.",
     "User created!" : "Kullanıcı eklendi!",
+    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Maalesef aradığınız sayfa bulunamadı. Silinmiş, taşınmış ya da geçici olarak kullanılamıyor olabilir.",
     "Congratulations, you have successfully signed the digital document using an Open Source digital signer on Nextcloud." : "Tebrikler. Sayısal belgeyi, Nextcloud üzerinde Açık Kaynaklı bir sayısal imzalayıcı ile imzaladınız.",
     "Organizational Unit (OU)" : "Kuruluş Birimi (OU)",
     "Signature storage." : "İmza deposu.",

@@ -20,7 +20,7 @@
     "Password is mandatory" : "Passwort ist obligatorisch",
     "Password to sign is mandatory" : "Passwort zum Signieren ist obligatorisch",
     "LibreSign" : "LibreSign",
-    "Changes into a file for you to sign" : "Wechselt in eine Datei, die Sie signieren können.",
+    "Changes into a file for you to sign" : "Eine von Ihnen zu signierende Datei wurde geändert.",
     "File to sign" : "Datei zum Signieren",
     "Changes have been made in a file that you have to sign. Access the link below:" : "In einer Datei, die Sie signieren müssen, wurden Änderungen vorgenommen. Greifen Sie auf den folgenden Link zu: ",
     "Sign »%s«" : "»%s« signieren",
