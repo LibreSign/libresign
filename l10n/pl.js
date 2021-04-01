@@ -22,7 +22,7 @@ OC.L10N.register(
     "Password is mandatory" : "Hasło jest obowiązkowe",
     "Password to sign is mandatory" : "Hasło do podpisania jest obowiązkowe",
     "LibreSign" : "LibreSign",
-    "Changes into a file for you to sign" : "Zmienia się w plik do podpisania",
+    "Changes into a file for you to sign" : "Zmiany w pliku do podpisania",
     "File to sign" : "Plik do podpisania",
     "Changes have been made in a file that you have to sign. Access the link below:" : "Wprowadzono zmiany w pliku, który musisz podpisać. Uzyskaj dostęp do poniższego linku:",
     "Sign »%s«" : "Podpisz »%s«",

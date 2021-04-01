@@ -76,6 +76,7 @@ OC.L10N.register(
     "Password to confirm signature on the document!" : "Wachtwoordbevestiging voor de handtekening voor dit document!",
     "Password for sign document." : "Wachtwoord om documenten te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
+    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sorry maar de pagina die je zoekt bestaat niet, is verwijderd, verplaatst of is tijdelijk niet beschikbaar.",
     "Congratulations, you have successfully signed the digital document using an Open Source digital signer on Nextcloud." : "Gefeliciteerd, je hebt het digitale document met succes ondertekend met een Open Source digitale ondertekenaar op Nextcloud.",
     "Organizational Unit (OU)" : "Organizational Unit (OU)",
     "Signature storage." : "Handtekening opslag.",
