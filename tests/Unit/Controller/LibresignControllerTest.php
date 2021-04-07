@@ -13,6 +13,7 @@ use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Log\LoggerInterface;
@@ -37,6 +38,7 @@ final class LibresignControllerTest extends TestCase {
 		$logger = $this->createMock(LoggerInterface::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
+		$urlGenerator = $this->createMock(IURLGenerator::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
 		$outputFolderPath = '/path/to/someOutputFolderPath';
@@ -59,6 +61,7 @@ final class LibresignControllerTest extends TestCase {
 			$libresignHandler,
 			$webhook,
 			$logger,
+			$urlGenerator,
 			$userId
 		);
 
@@ -103,6 +106,7 @@ final class LibresignControllerTest extends TestCase {
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$webhook = $this->createMock(WebhookService::class);
 		$logger = $this->createMock(LoggerInterface::class);
+		$urlGenerator = $this->createMock(IURLGenerator::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -118,6 +122,7 @@ final class LibresignControllerTest extends TestCase {
 			$libresignHandler,
 			$webhook,
 			$logger,
+			$urlGenerator,
 			$userId
 		);
 

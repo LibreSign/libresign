@@ -10,7 +10,7 @@ return [
 		['name' => 'webhook#update', 'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
 		['name' => 'webhook#removeSignature', 'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
 		['name' => 'libresign#sign', 'url' => '/api/0.1/sign', 'verb' => 'POST'],
-		['name' => 'libresign#validate', 'url' => '/api/0.1/file/validate/{uuid}', 'verb' => 'POST'],
+		['name' => 'libresign#validate', 'url' => '/api/0.1/file/validate/{uuid}', 'verb' => 'GET'],
 		['name' => 'libresign#signUsingUuid', 'url' => '/api/0.1/sign/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#createToSign', 'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'signature#generate', 'url' => '/api/0.1/signature/generate', 'verb' => 'POST'],

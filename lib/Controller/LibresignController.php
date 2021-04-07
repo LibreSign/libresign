@@ -18,6 +18,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
@@ -46,6 +47,8 @@ class LibresignController extends Controller {
 	private $logger;
 	/** @var string */
 	private $userId;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 
 	public function __construct(
 		IRequest $request,
@@ -58,6 +61,7 @@ class LibresignController extends Controller {
 		JLibresignHandler $libresignHandler,
 		WebhookService $webhook,
 		LoggerInterface $logger,
+		IURLGenerator $urlGenerator,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -70,6 +74,7 @@ class LibresignController extends Controller {
 		$this->libresignHandler = $libresignHandler;
 		$this->webhook = $webhook;
 		$this->logger = $logger;
+		$this->urlGenerator = $urlGenerator;
 		$this->userId = $userId;
 	}
 
@@ -227,5 +232,44 @@ class LibresignController extends Controller {
 		}
 
 		return $pdf->Output('S');
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function validate($uuid) {
+		try {
+			try {
+				$file = $this->fileMapper->getById($uuid);
+			} catch (\Throwable $th) {
+				throw new LibresignException('Invalid data to validate file', 1);
+			}
+			if (!$file) {
+				throw new LibresignException('Invalid file identifier', 1);
+			}
+
+			$return['name'] = $file->getName();
+			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid]);
+			$signatures = $this->fileUserMapper->getByFileId($file->getFileId());
+			foreach ($signatures as $signature) {
+				$return['signatures'][] = [
+					'signed' => $signature->getSigned(),
+					'displayName' => $signature->getDisplayName(),
+					'fullName' => $signature->getFullName()
+				];
+			}
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			$message = $this->l10n->t($th->getMessage());
+			$this->logger->error($message);
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$message]
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 	}
 }
