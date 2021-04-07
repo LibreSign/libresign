@@ -20,6 +20,7 @@
     "Password is mandatory" : "La password è obbligatoria",
     "Password to sign is mandatory" : "La password per firmare è obbligatoria",
     "LibreSign" : "LibreSign",
+    "Changes into a file for you to sign" : "C'è da firmare un file che è stato modificato",
     "File to sign" : "File da firmare",
     "Changes have been made in a file that you have to sign. Access the link below:" : "Sono state fatte modifiche in un file che devi firmare. Accedi al collegamento sottostante:",
     "Sign »%s«" : "Firma «%s»",
