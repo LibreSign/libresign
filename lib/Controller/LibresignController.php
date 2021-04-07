@@ -237,6 +237,7 @@ class LibresignController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 * @PublicPage
 	 */
 	public function validate($uuid) {
 		try {
