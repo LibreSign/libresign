@@ -52,7 +52,7 @@ The URL of server you will use in [Admin settings](#admin-settings)
 
 ### Admin settings
 
-Go to `Settings > Security` and fill the necessary values for root certificate:
+Go to `Settings > LibreSign` and fill the necessary values for root certificate:
 
 ```
 CN: CommonName

@@ -40,8 +40,9 @@
         </navigation>
     </navigations>
     <settings>
-		    <admin>OCA\Libresign\Settings\AdminSettings</admin>
-	  </settings>
+        <admin>OCA\Libresign\Settings\Admin</admin>
+        <admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
+    </settings>
     <commands>
         <command>OCA\Libresign\Command\DocsSwaggerGen</command>
     </commands>
