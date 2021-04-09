@@ -57,6 +57,7 @@ OC.L10N.register(
     "Password" : "Geslo",
     "Passwords do not match" : "Gesli se ne skladata",
     "Confirm password" : "Potrdi geslo",
+    "Password to confirm signature on the document!" : "Geslo za potrditev podpisa dokumenta!",
     "User created!" : "Uporabnik je ustvarjen!",
     "Organizational Unit (OU)" : "Organizacijska enota (OE)",
     "Signature storage." : "Mesto shranjevanja podpisa.",
