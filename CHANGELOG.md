@@ -14,6 +14,50 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## [v2.2.0] - 2021-04-12
+
+### Changed
+
+- [#134] l10n: Add an apostrophe, Thanks to [@Valdnet]
+- [#164] Move settings to specific menu, Thanks to [@vitormattos]
+- [#160] Add callback url in examble of documentation, Thanks to [@vitormattos]
+- [#145] l10n: Change case of letter, Thanks to [@Valdnet]
+- [#126] Update info.xml, Thanks to [@vitormattos]
+- [#128] Update info xml, Thanks to [@vitormattos]
+- [#129] Custom validation site, Thanks to [@vitormattos]
+- [#132] l10n: Change to singular, Thanks to [@Valdnet]
+- [#133] l10n: Correct text string for login, Thanks to [@Valdnet]
+- [#135] l10n: Change to uppercase, Thanks to [@Valdnet]
+- [#136] Change text, Thanks to [@vitormattos]
+- [#139] l10n: Change order, Thanks to [@Valdnet]
+- [#141] l10n: Shorten message, Thanks to [@Valdnet]
+- [#142] l10n: Replace with adjective, Thanks to [@Valdnet]
+- [#143] l10n: Change to uppercase URI, Thanks to [@Valdnet]
+- [#147] Replace collection by list, Thanks to [@vitormattos]
+- [#163] Make validate endpoint public, Thanks to [@vitormattos]
+- [#148] l10n: Change message [#144], Thanks to [@Valdnet]
+- [#150] l10n: Change error message of file, Thanks to [@Valdnet]
+- [#152] Api documentation, Thanks to [@vitormattos]
+- [#157] Improvement in text, Thanks to [@vitormattos]
+- [#161] Validate by UUID, Thanks to [@vitormattos]
+- [#162] bump setup php, Thanks to [@vitormattos]
+- [#98] Create user design color, Thanks to [@raw-vitor]
+
+### Fixed
+
+- [#149] Change var name and fix translation, Thanks to [@vitormattos]
+- [#151] Fix definition, Thanks to [@vitormattos]
+- [#153] Fix text, Thanks to [@vitormattos]
+- [#154] Fix text, Thanks to [@vitormattos]
+- [#155] Fix text, Thanks to [@vitormattos]
+- [#156] Fix text, Thanks to [@vitormattos]
+
+## [v2.1.2] - 2021-03-21
+
+### Changed
+
+- [#125] Changelog, Thanks to [@vitormattos]
+
 ## [v2.1.2] - 2021-03-21
 
 ### Changed
@@ -217,3 +261,36 @@ Types of changes:
 [#122]: https://github.com/LibreSign/libresign/pull/122
 [#119]: https://github.com/LibreSign/libresign/pull/119
 [v2.1.2]: https://github.com/LibreSign/libresign/compare/v2.0.5...v2.1.2
+[#164]: https://github.com/LibreSign/libresign/pull/164
+[#163]: https://github.com/LibreSign/libresign/pull/163
+[#162]: https://github.com/LibreSign/libresign/pull/162
+[#161]: https://github.com/LibreSign/libresign/pull/161
+[#160]: https://github.com/LibreSign/libresign/pull/160
+[#157]: https://github.com/LibreSign/libresign/pull/157
+[#156]: https://github.com/LibreSign/libresign/pull/156
+[#155]: https://github.com/LibreSign/libresign/pull/155
+[#154]: https://github.com/LibreSign/libresign/pull/154
+[#153]: https://github.com/LibreSign/libresign/pull/153
+[#152]: https://github.com/LibreSign/libresign/pull/152
+[#151]: https://github.com/LibreSign/libresign/pull/151
+[#150]: https://github.com/LibreSign/libresign/pull/150
+[#149]: https://github.com/LibreSign/libresign/pull/149
+[#148]: https://github.com/LibreSign/libresign/pull/148
+[#147]: https://github.com/LibreSign/libresign/pull/147
+[#145]: https://github.com/LibreSign/libresign/pull/145
+[#144]: https://github.com/LibreSign/libresign/pull/144
+[#143]: https://github.com/LibreSign/libresign/pull/143
+[#142]: https://github.com/LibreSign/libresign/pull/142
+[#141]: https://github.com/LibreSign/libresign/pull/141
+[#139]: https://github.com/LibreSign/libresign/pull/139
+[#136]: https://github.com/LibreSign/libresign/pull/136
+[#135]: https://github.com/LibreSign/libresign/pull/135
+[#134]: https://github.com/LibreSign/libresign/pull/134
+[#133]: https://github.com/LibreSign/libresign/pull/133
+[#132]: https://github.com/LibreSign/libresign/pull/132
+[#129]: https://github.com/LibreSign/libresign/pull/129
+[#128]: https://github.com/LibreSign/libresign/pull/128
+[#126]: https://github.com/LibreSign/libresign/pull/126
+[#125]: https://github.com/LibreSign/libresign/pull/125
+[#98]: https://github.com/LibreSign/libresign/pull/98
+[@Valdnet]: https://github.com/Valdnet
