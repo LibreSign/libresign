@@ -62,6 +62,11 @@
     "Select Folder." : "Izbor mape.",
     "Generate Subscription." : "Ustvari naročnino.",
     "Could not create signature." : "Ni mogoče ustvariti podpisa.",
+    "Choose a folder to store your signature!" : "Izbrati je treba mapo za shranjevanje podpisa!",
+    "Signature location." : "Mesto podpisa",
+    "Select signature file location." : "Izbor mesta datoteke podpisa.",
+    "Select signature." : "Izbor podpisa",
+    "Signature password." : "Geslo podpisa",
     "Could not sign document!" : "Dokumenta ni mogoče podpisati!"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }
