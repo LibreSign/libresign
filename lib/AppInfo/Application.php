@@ -48,7 +48,7 @@ class Application extends App implements IBootstrap {
 	private function registerHooks($context): void {
 		$request = $context->getServerContainer()->get(IRequest::class);
 		// prevent error on cron job
-		if (!$request) {
+		if (!$request || PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') {
 			return;
 		}
 		$path = $request->getRawPathInfo();
