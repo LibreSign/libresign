@@ -97,14 +97,14 @@ class WebhookService {
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
 			$contentType = $response->getHeaders()['Content-Type'][0];
-			if ($contentType != 'application/pdf') {
+			if ($contentType !== 'application/pdf') {
 				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
 			}
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
-			if ($data['file']['base64'] != $base64) {
+			if ($data['file']['base64'] !== $base64) {
 				throw new \Exception($this->l10n->t('Invalid base64 file'));
 			}
 		}
@@ -149,7 +149,7 @@ class WebhookService {
 			}
 			$email = $signature->getEmail();
 			$exists = array_filter($data['users'], function ($val) use ($email) {
-				return $val['email'] == $email;
+				return $val['email'] === $email;
 			});
 			if (!$exists) {
 				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
@@ -167,7 +167,7 @@ class WebhookService {
 			$this->fileUserMapper->delete($fileUser);
 		}
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
-		if (count($signatures) == count($data['users'])) {
+		if (count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
 		}
@@ -242,7 +242,7 @@ class WebhookService {
 			if (!empty($user['display_name'])) {
 				$fileUser->setDisplayName($user['display_name']);
 			}
-			if (!empty($user['description']) && $fileUser->getDescription() != $user['description']) {
+			if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 				$fileUser->setDescription($user['description']);
 			}
 			if (empty($user['user_id'])) {

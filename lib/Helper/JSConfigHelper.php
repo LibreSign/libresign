@@ -114,7 +114,7 @@ class JSConfigHelper {
 			$return['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
 			return $return;
 		}
-		if ($fileUserId != $userId) {
+		if ($fileUserId !== $userId) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
 			$return['errors'][] = $this->l10n->t('Invalid user');
 			return $return;
