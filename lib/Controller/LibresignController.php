@@ -162,7 +162,7 @@ class LibresignController extends Controller {
 				$carry += $signer->getSigned() ? 1 : 0;
 				return $carry;
 			});
-			if (count($signers) == $total) {
+			if (count($signers) === $total) {
 				$callbackUrl = $fileData->getCallback();
 				if ($callbackUrl) {
 					$this->webhook->notifyCallback(

@@ -65,7 +65,7 @@ class AccountService {
 		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'), 1);
 		}
-		if ($fileUser->getEmail() != $data['email']) {
+		if ($fileUser->getEmail() !== $data['email']) {
 			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
 		if ($this->userManager->userExists($data['email'])) {
