@@ -1,0 +1,41 @@
+name: PHP AppCode Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['7.4']
+        nextcloud-versions: ['stable20']
+    name: AppCode check
+    steps:
+      - name: Set up php${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extension-csv: ctype,curl,dom,gd,iconv,intl,json,mbstring,openssl,posix,sqlite,xml,zip
+          coverage: xdebug
+      - name: Checkout server
+        uses: actions/checkout@v2
+        with:
+          repository: nextcloud/server
+          ref: ${{ matrix.server-versions }}
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Checkout app
+        uses: actions/checkout@v2
+        with:
+          path: apps/${{ env.APP_NAME }}
+      - name: App Code check
+        working-directory: nextcloud
+        run: php occ app:check-code libresign
