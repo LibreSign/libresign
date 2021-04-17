@@ -20,9 +20,9 @@ jobs:
         server-versions: ['stable20', 'stable21', 'master']
         include:
           - php-versions: '8.0'
-            nextcloud-versions: 'stable21'
+            server-versions: 'stable21'
           - php-versions: '8.0'
-            nextcloud-versions: 'master'
+            server-versions: 'master'
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
     steps:
