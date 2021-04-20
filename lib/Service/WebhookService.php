@@ -216,7 +216,7 @@ class WebhookService {
 	}
 
 	public function save(array $data) {
-		if ($data['uuid']) {
+		if (!empty($data['uuid'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 		} else {
 			$file = $this->saveFile($data);
