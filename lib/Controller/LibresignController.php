@@ -16,6 +16,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -49,6 +50,8 @@ class LibresignController extends Controller {
 	private $userId;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IConfig */
+	private $config;
 
 	public function __construct(
 		IRequest $request,
@@ -62,6 +65,7 @@ class LibresignController extends Controller {
 		WebhookService $webhook,
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
+		IConfig $config,
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -75,6 +79,7 @@ class LibresignController extends Controller {
 		$this->webhook = $webhook;
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
+		$this->config = $config;
 		$this->userId = $userId;
 	}
 

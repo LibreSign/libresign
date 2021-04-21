@@ -11,6 +11,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -39,6 +40,7 @@ final class LibresignControllerTest extends TestCase {
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$config = $this->createMock(IConfig::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
 		$outputFolderPath = '/path/to/someOutputFolderPath';
@@ -62,6 +64,7 @@ final class LibresignControllerTest extends TestCase {
 			$webhook,
 			$logger,
 			$urlGenerator,
+			$config,
 			$userId
 		);
 
@@ -107,6 +110,7 @@ final class LibresignControllerTest extends TestCase {
 		$webhook = $this->createMock(WebhookService::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$config = $this->createMock(IConfig::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -123,6 +127,7 @@ final class LibresignControllerTest extends TestCase {
 			$webhook,
 			$logger,
 			$urlGenerator,
+			$config,
 			$userId
 		);
 
