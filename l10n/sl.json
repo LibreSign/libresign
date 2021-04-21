@@ -39,6 +39,7 @@
     "User list needs to be an array" : "Seznam uporabnikov mora biti podatkovno polje",
     "Remove duplicated users, email address need to be unique" : "Odstranite podvojene uporabnike, elektronski naslovi morajo biti enoznačne vrednosti",
     "Document already signed" : "Dokument je že podpisan",
+    "No signature was requested to %s" : "Za %s podpisovanje ni bilo zahtevano",
     "User data needs to be an array: user of position %s in list" : "Seznam uporabnikov mora biti podatkovno polje: uporabnik na položaju %s na seznamu",
     "User data needs to be an array with values: user of position %s in list" : "Seznam uporabnikov mora biti podatkovno polje vrednosti: uporabnik na položaju %s na seznamu",
     "User %s needs an email address" : "Za račun %s je treba določiti elektronski naslov",
