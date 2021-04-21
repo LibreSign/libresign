@@ -87,4 +87,19 @@ class PageController extends Controller {
 
 		return $resp;
 	}
+
+	// /**
+	//  * @NoAdminRequired
+	//  * @NoCSRFRequired
+	//  */
+	// public function validation() {
+	// 	Util::addScript(Application::APP_ID, 'libresign-validation');
+	// 	$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
+
+	// 	$policy = new ContentSecurityPolicy();
+	// 	$policy->addAllowedFrameDomain('\'self\'');
+	// 	$response->setContentSecurityPolicy($policy);
+
+	// 	return $response;
+	// }
 }
