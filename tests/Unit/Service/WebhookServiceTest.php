@@ -16,6 +16,7 @@ use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
@@ -40,6 +41,8 @@ final class WebhookServiceTest extends TestCase {
 	private $client;
 	/** @var IUserManager */
 	private $userManager;
+	/** @var LoggerInterface */
+	private $logger;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -55,6 +58,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->service = new WebhookService(
 			$this->config,
 			$this->groupManager,
@@ -64,7 +68,8 @@ final class WebhookServiceTest extends TestCase {
 			$this->folder,
 			$this->client,
 			$this->userManager,
-			$this->mail
+			$this->mail,
+			$this->logger
 		);
 	}
 

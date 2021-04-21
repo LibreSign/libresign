@@ -14,7 +14,11 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUserManager;
+use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
+use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
+use setasign\Fpdi\PdfParser\PdfParserException;
 
 class WebhookService {
 	/** @var FileEntity */
@@ -39,6 +43,8 @@ class WebhookService {
 	private $userManager;
 	/** @var MailService */
 	private $mail;
+	/** @var LoggerInterface */
+	private $logger;
 
 	public function __construct(
 		IConfig $config,
@@ -49,7 +55,8 @@ class WebhookService {
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
-		MailService $mail
+		MailService $mail,
+		LoggerInterface $logger
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -60,6 +67,7 @@ class WebhookService {
 		$this->client = $client;
 		$this->userManager = $userManager;
 		$this->mail = $mail;
+		$this->logger = $logger;
 	}
 
 	public function validate(array $data) {
@@ -301,9 +309,37 @@ class WebhookService {
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
 			$response = $this->client->newClient()->get($data['file']['url']);
-			return $response->getBody();
+			$content = $response->getBody();
+			if (!$content) {
+				throw new \Exception($this->l10n->t('Empty file'));
+			}
+		} else {
+			$content = base64_decode($data['file']['base64']);
 		}
-		return base64_decode($data['file']['base64']);
+		$this->validatePdfStringWithFpdi($content);
+		return $content;
+	}
+
+	/**
+	 * Validates a PDF. Triggers error if invalid.
+	 *
+	 * @param string $string
+	 *
+	 * @throws Type\PdfTypeException
+	 * @throws CrossReferenceException
+	 * @throws PdfParserException
+	 */
+	private function validatePdfStringWithFpdi($string) {
+		$pdf = new Fpdi();
+		try {
+			$stream = fopen('php://memory','r+');
+			fwrite($stream, $string);
+			rewind($stream);
+			$pdf->setSourceFile($stream);
+		} catch (\Throwable $th) {
+			$this->logger->error($th->getMessage());
+			throw new \Exception($this->l10n->t('Invalid PDF'));
+		}
 	}
 
 	private function getFolderName(array $data) {
