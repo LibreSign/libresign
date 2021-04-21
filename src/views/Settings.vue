@@ -25,6 +25,7 @@
 	<SettingsSection
 		:title="title">
 		<AdminFormLibresign />
+		<UrlValidation />
 		<AllowedGroups />
 	</SettingsSection>
 </template>
@@ -32,6 +33,7 @@
 <script>
 import AdminFormLibresign from './AdminFormLibresign'
 import AllowedGroups from './AllowedGroups'
+import UrlValidation from './UrlValidation'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { translate as t } from '@nextcloud/l10n'
 
@@ -40,6 +42,7 @@ export default {
 	components: {
 		AdminFormLibresign,
 		SettingsSection,
+		UrlValidation,
 		AllowedGroups,
 	},
 	data() {
