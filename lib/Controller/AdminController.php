@@ -71,7 +71,7 @@ class AdminController extends Controller {
 	 */
 	public function loadCertificate(): DataResponse {
 		try {
-			$certificate = $this->service->loadKeys();
+			$certificate = $this->adminSignatureService->loadKeys();
 
 			return new DataResponse($certificate);
 		} catch (\Exception $exception) {
