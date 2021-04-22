@@ -182,8 +182,8 @@ export default {
 				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err.response.data.message)
+				this.btnAnimationNormal()
 			}
-			this.btnAnimationNormal()
 		},
 
 		changeSizeAvatar() {
