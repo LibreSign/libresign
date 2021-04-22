@@ -90,6 +90,8 @@
     "Signed document available at {place}" : "已签署文件在 {place} 可用",
     "Could not sign document!" : "无法签署文档！",
     "Choose your subscription location!" : "选择你的订阅位置！",
+    "Validation URL" : "验证用 URL",
+    "To validate signature of the documents" : "用于验证文档的签名",
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -93,6 +93,8 @@ OC.L10N.register(
     "Signed document available at {place}" : "已簽署的文件位於 {place}",
     "Could not sign document!" : "無法簽署文件！",
     "Choose your subscription location!" : "選擇訂閱位置。",
+    "Validation URL" : "驗證URL",
+    "To validate signature of the documents" : "驗證文件簽名",
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
 },
 "nplurals=1; plural=0;");

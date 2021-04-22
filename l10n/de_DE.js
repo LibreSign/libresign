@@ -93,6 +93,8 @@ OC.L10N.register(
     "Signed document available at {place}" : "Signiertes Dokument verfügbar auf {place}",
     "Could not sign document!" : "Dokument konnte nicht signiert werden!",
     "Choose your subscription location!" : "Ort Ihres Abonnements wählen!",
+    "Validation URL" : "Überprüfungs-URL",
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
 },
 "nplurals=2; plural=(n != 1);");
