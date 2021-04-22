@@ -111,9 +111,9 @@ export default {
 				cfsslUri: '',
 				configPath: '',
 			},
-			title: t('libresign', 'Root Certificate Data.'),
+			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
-			submitLabel: t('libresign', 'Generate Root Certificate.'),
+			submitLabel: t('libresign', 'Generate root certificate.'),
 			formDisabled: false,
 			loading: true,
 		}
@@ -139,7 +139,7 @@ export default {
 	methods: {
 		async generateCertificate() {
 			this.formDisabled = true
-			this.submitLabel = 'Gerando Certificado...'
+			this.submitLabel = t('libresign', 'Generating certificate...')
 			try {
 				const response = await axios.post(
 					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
@@ -149,13 +149,13 @@ export default {
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
 				}
-				this.submitLabel = 'Certificado gerado!'
+				this.submitLabel = t('libresign', 'Generated certificate!')
 
 				return
 			} catch (e) {
 				console.error(e)
 				showError(t('libresign', 'Could not generate certificate.'))
-				this.submitLabel = 'Gerar Certificado Raiz'
+				this.submitLabel = t('libresign', 'Generate root certificate')
 
 			}
 			this.formDisabled = false
@@ -179,7 +179,7 @@ export default {
 				&& response.data.configPath
 				) {
 					this.certificate = response.data
-					this.submitLabel = 'Certificado gerado!'
+					this.submitLabel = t('libresign', 'Generated certificate!')
 
 					return
 				}
