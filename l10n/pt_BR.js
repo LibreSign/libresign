@@ -1,4 +1,6 @@
-{ "translations": {
+OC.L10N.register(
+    "libresign",
+    {
     "File not found" : "Arquivo não encontrado",
     "Success" : "Sucesso",
     "Invalid data to sign file" : "Dados inválidos para assinar arquivo",
@@ -57,9 +59,7 @@
     "Organization Unit (OU)" : "Unidade da organização (OU)",
     "CFSSL API URI" : "URI da API CFSSL",
     "Config path" : "Diretório de configuração",
-    "Root Certificate Data." : "Dados do certificado raiz.",
     "To generate new signatures, you must first generate the root certificate." : "Para gerar novas assinaturas, você precisa primeiro gerar o certificado raiz.",
-    "Generate Root Certificate." : "Gerar certificado raiz.",
     "Could not generate certificate." : "Impossível gerar certificado.",
     "Webhook" : "Webhook",
     "Select authorized groups." : "Selecione os grupos autorizados.",
@@ -92,5 +92,5 @@
     "Could not sign document!" : "Impossível assinar documento!",
     "Choose your subscription location!" : "Selecione o local de sua assinatura!",
     "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento."
-},"pluralForm" :"nplurals=2; plural=(n > 1);"
-}
+},
+"nplurals=2; plural=(n > 1);");
