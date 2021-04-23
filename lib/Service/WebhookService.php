@@ -136,7 +136,7 @@ class WebhookService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateUser($user, $index);
-			$emails[$index] = $user['email'];
+			$emails[$index] = strtolower($user['email']);
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
@@ -237,6 +237,7 @@ class WebhookService {
 	public function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
+			$user['email'] = strtolower($user['email']);
 			try {
 				$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
 			} catch (\Throwable $th) {
