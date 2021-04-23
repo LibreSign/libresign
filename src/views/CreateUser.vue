@@ -84,7 +84,7 @@
 							:placeholder="t('libresign', 'Password for sign document.')">
 					</div>
 					<button ref="btn"
-						class="btn"
+						:class="hasLoading ? 'btn-load primary loading':'btn'"
 						:disabled="!validator.btn"
 						@click.prevent="createUser">
 						{{ btnRegisterName }}
@@ -120,6 +120,7 @@ export default {
 	data() {
 		return {
 			btnRegisterName: t('libresign', 'Register'),
+			hasLoading: false,
 			email: '',
 			pass: '',
 			passConfirm: '',
@@ -170,7 +171,7 @@ export default {
 
 	methods: {
 		async createUser() {
-			this.btnAnimationLoad()
+			this.hasLoading = true
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
@@ -182,7 +183,7 @@ export default {
 				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err.response.data.message)
-				this.btnAnimationNormal()
+				this.hasLoading = false
 			}
 		},
 
@@ -263,16 +264,6 @@ export default {
 			} else {
 				this.validator.btn = false
 			}
-		},
-		btnAnimationLoad() {
-			this.$refs.btn.className = 'btn-load primary loading'
-			this.$refs.btn.innerText = ''
-			this.validator.btn = false
-		},
-		btnAnimationNormal() {
-			this.$refs.btn.className = 'btn'
-			this.$refs.btn.innerText = this.btnRegisterName
-			this.validationBtn()
 		},
 	},
 }
