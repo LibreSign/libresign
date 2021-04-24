@@ -7,6 +7,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\WebhookService;
+use OCP\Files\Folder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -41,6 +42,8 @@ final class WebhookServiceTest extends TestCase {
 	private $client;
 	/** @var IUserManager */
 	private $userManager;
+	/** @var FolderService */
+	private $folder;
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -94,8 +97,20 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testValidateFileUrl() {
 		$this->expectExceptionMessage('Invalid URL file');
-
-		$this->service->validate([
+		$folder = $this->createMock(Folder::class);
+		$folder
+			->expects($this->once())
+			->method('nodeExists')
+			->willReturn(false);
+		$folder
+			->expects($this->once())
+			->method('newFolder')
+			->willReturn($folder);
+		$this->folder
+			->expects($this->once())
+			->method('getFolderForUser')
+			->willReturn($folder);
+		$this->service->save([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
 			'userManager' => $this->user
