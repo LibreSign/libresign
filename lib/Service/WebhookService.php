@@ -99,16 +99,6 @@ class WebhookService {
 		if (empty($data['file']['url']) && empty($data['file']['base64'])) {
 			throw new \Exception($this->l10n->t('Inform URL or base64 to sign'));
 		}
-		if (!empty($data['file']['url'])) {
-			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				throw new \Exception($this->l10n->t('Invalid URL file'));
-			}
-			$response = $this->client->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeaders()['Content-Type'][0];
-			if ($contentType !== 'application/pdf') {
-				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
-			}
-		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
 			$base64 = base64_encode($input);
@@ -309,7 +299,14 @@ class WebhookService {
 
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
+			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
+				throw new \Exception($this->l10n->t('Invalid URL file'));
+			}
 			$response = $this->client->newClient()->get($data['file']['url']);
+			$contentType = $response->getHeaders()['Content-Type'][0];
+			if ($contentType !== 'application/pdf') {
+				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
+			}
 			$content = $response->getBody();
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));

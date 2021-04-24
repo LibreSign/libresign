@@ -153,9 +153,11 @@ class LibresignController extends Controller {
 			} else {
 				/** @var \OCP\Files\File */
 				$fileToSign = $this->root->newFile($signedFilePath);
-				if ($buffer = $this->writeFooter($originalFile)) {
-					$fileToSign->putContent($buffer);
+				$buffer = $this->writeFooter($originalFile);
+				if (!$buffer) {
+					$buffer = $originalFile->getContent($originalFile);
 				}
+				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
