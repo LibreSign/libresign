@@ -155,7 +155,7 @@ export default {
 			} catch (e) {
 				console.error(e)
 				showError(t('libresign', 'Could not generate certificate.'))
-				this.submitLabel = t('libresign', 'Generate root certificate')
+				this.submitLabel = t('libresign', 'Generate root certificate.')
 
 			}
 			this.formDisabled = false
