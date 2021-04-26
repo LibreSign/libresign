@@ -253,7 +253,7 @@ class LibresignController extends Controller {
 	public function validate($uuid) {
 		try {
 			try {
-				$file = $this->fileMapper->getById($uuid);
+				$file = $this->fileMapper->getByUuid($uuid);
 			} catch (\Throwable $th) {
 				throw new LibresignException('Invalid data to validate file', 1);
 			}
@@ -263,7 +263,7 @@ class LibresignController extends Controller {
 
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid]);
-			$signatures = $this->fileUserMapper->getByFileId($file->getFileId());
+			$signatures = $this->fileUserMapper->getByFileId($file->id);
 			foreach ($signatures as $signature) {
 				$return['signatures'][] = [
 					'signed' => $signature->getSigned(),
