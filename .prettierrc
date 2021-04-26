@@ -1,0 +1,6 @@
+{
+  "trailingComma": "es6",
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "useTabs": false
+}
