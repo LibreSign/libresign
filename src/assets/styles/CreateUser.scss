@@ -69,6 +69,15 @@ input {
 	color: #222;
 	border: none;
 	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+	user-select: none;
+}
+
+.btn-load{
+	background-color: transparent !important;
+	font-size: 0;
+	pointer-events: none;
+	cursor: not-allowed;
+	margin-top: 10px;
 }
 
 .bg{

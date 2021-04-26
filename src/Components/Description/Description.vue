@@ -29,12 +29,15 @@
 			<span>{{ t('libresign', pdfDescription) }}</span>
 		</header>
 		<div id="body">
-			<form @submit="e => e.preventDefault()">
+			<form @submit="(e) => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
-					<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
+					<label for="password">{{
+						t('libresign', 'Subscription password.')
+					}}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
-						<button type="button"
+						<button
+							type="button"
 							:value="buttonValue"
 							:class="!updating ? 'primary' : 'primary loading'"
 							:disabled="disableButton"
@@ -95,20 +98,22 @@ export default {
 	},
 
 	methods: {
-
 		async sign() {
 			this.updating = true
 			this.disableButton = true
 
 			try {
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`), {
-					password: this.password,
-				})
+				const response = await axios.post(
+					generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`),
+					{
+						password: this.password,
+					}
+				)
 
 				showSuccess(response.data.message)
-
-				this.$router.push({ name: 'DefaultPageSuccess' })
-
+				if (response.data.action === 350) {
+					this.$router.push({ name: 'DefaultPageSuccess' })
+				}
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
@@ -122,5 +127,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import './styles'
+@import './styles';
 </style>

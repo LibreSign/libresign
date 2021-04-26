@@ -83,8 +83,11 @@
 							:required="validator.pfx"
 							:placeholder="t('libresign', 'Password for sign document.')">
 					</div>
-					<button class="btn" :disabled="!validator.btn" @click.prevent="createUser">
-						Cadastrar
+					<button ref="btn"
+						:class="hasLoading ? 'btn-load primary loading':'btn'"
+						:disabled="!validator.btn"
+						@click.prevent="createUser">
+						{{ btnRegisterName }}
 					</button>
 				</form>
 			</div>
@@ -116,6 +119,8 @@ export default {
 
 	data() {
 		return {
+			btnRegisterName: t('libresign', 'Register'),
+			hasLoading: false,
 			email: '',
 			pass: '',
 			passConfirm: '',
@@ -166,6 +171,7 @@ export default {
 
 	methods: {
 		async createUser() {
+			this.hasLoading = true
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
 					email: this.email,
@@ -177,6 +183,7 @@ export default {
 				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err.response.data.message)
+				this.hasLoading = false
 			}
 		},
 
