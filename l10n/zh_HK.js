@@ -79,6 +79,7 @@ OC.L10N.register(
     "Confirm password" : "確認密碼",
     "Password to confirm signature on the document!" : "確認文件上簽名的密碼！",
     "Password for sign document." : "簽署文件的密碼。",
+    "Register" : "註冊",
     "User created!" : "用戶創建了！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
     "Congratulations, you have successfully signed the digital document using an Open Source digital signer on Nextcloud." : "恭喜，您已經在 Nextcloud 上使用開源數位簽署器成功簽署了數位文件。",
