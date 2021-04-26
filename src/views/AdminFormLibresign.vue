@@ -139,7 +139,7 @@ export default {
 	methods: {
 		async generateCertificate() {
 			this.formDisabled = true
-			this.submitLabel = t('libresign', 'Generating certificate …')
+			this.submitLabel = t('libresign', 'Generating certificate.')
 			try {
 				const response = await axios.post(
 					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
