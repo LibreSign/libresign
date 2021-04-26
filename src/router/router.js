@@ -44,6 +44,10 @@ const routes = [
 			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
 	}, {
+		path: '/validation',
+		component: () => import('../views/Validation'),
+		name: 'validation',
+	}, {
 		path: '/sign/:uuid',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
