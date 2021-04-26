@@ -154,6 +154,9 @@ class LibresignController extends Controller {
 				/** @var \OCP\Files\File */
 				$fileToSign = $this->root->newFile($signedFilePath);
 				$buffer = $this->writeFooter($originalFile);
+				if (!$buffer) {
+					$buffer = $originalFile->getContent($originalFile);
+				}
 				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
@@ -180,7 +183,7 @@ class LibresignController extends Controller {
 
 			return new JSONResponse(
 				[
-					'action' => JSActions::ACTION_DO_NOTHING,
+					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed')
 				],
 				Http::STATUS_OK
@@ -216,6 +219,9 @@ class LibresignController extends Controller {
 	}
 
 	private function writeFooter($file) {
+		if (!$this->config->getAppValue(Application::APP_ID, 'validation_site')) {
+			return;
+		}
 		$pdf = new Fpdi();
 		$pageCount = $pdf->setSourceFile($file->fopen('r'));
 
@@ -232,7 +238,7 @@ class LibresignController extends Controller {
 
 			$pdf->Write(8, $this->l10n->t(
 				'Digital signed by LibreSign. Validate in %s',
-				$this->config->getAppValue(Application::APP_ID, 'validation_site', 'https://validador.librecode.coop')
+				$this->config->getAppValue(Application::APP_ID, 'validation_site')
 			));
 		}
 

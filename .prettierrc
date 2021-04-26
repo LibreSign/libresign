@@ -1,4 +1,6 @@
 {
 	"trailingComma": "es6",
-	"arrowParens": "always"
+	"arrowParens": "always",
+	"endOfLine": "lf",
+	"useTabs": false
 }
