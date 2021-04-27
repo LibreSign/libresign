@@ -136,7 +136,7 @@ class JSConfigHelper {
 				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
 				break;
 			case 'url':
-				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
+				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
 				break;
 			case 'file':
 				$pdf = ['file' => $fileToSign];

@@ -2,14 +2,17 @@
 
 namespace OCA\Libresign\Controller;
 
+use OC\Files\Filesystem;
 use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSConfigHelper;
+use OCA\Libresign\Db\FileMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\Util;
@@ -19,10 +22,16 @@ class PageController extends Controller {
 	private $config;
 	/** @var JSConfigHelper */
 	private $jsConfigHelper;
+	/** @var FileMapper */
+	private $fileMapper;
+	/** @var IRootFolder */
+	private $root;
 	private $userId;
 	public function __construct(
 		IRequest $request,
 		IConfig $config,
+		FileMapper $fileMapper,
+		IRootFolder $root,
 		JSConfigHelper $jsConfigHelper,
 		$userId
 	) {
@@ -30,6 +39,8 @@ class PageController extends Controller {
 		$this->config = $config;
 		$this->jsConfigHelper = $jsConfigHelper;
 		$this->userId = $userId;
+		$this->root = $root;
+		$this->fileMapper = $fileMapper;
 	}
 
 	/**
@@ -74,6 +85,30 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function getPdf($uuid) {
+		try {
+			$file = $this->fileMapper->getByUuid($uuid);
+			Filesystem::initMountPoints($file->getUserId());
+			$fileToSign = $this->root->getById($file->getNodeId());
+		} catch (\Throwable $th) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+
+		$resp = new FileDisplayResponse($fileToSign[0]);
+		$resp->addHeader('Content-Type', 'application/pdf');
+
+		$csp = new ContentSecurityPolicy();
+		$csp->setInlineScriptAllowed(true);
+		$resp->setContentSecurityPolicy($csp);
+
+		return $resp;
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function getPdfUser($uuid) {
 		$config = $this->jsConfigHelper->getConfig('file');
 		if (!isset($config['sign'])) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
@@ -88,18 +123,14 @@ class PageController extends Controller {
 		return $resp;
 	}
 
-	// /**
-	//  * @NoAdminRequired
-	//  * @NoCSRFRequired
-	//  */
-	// public function validation() {
-	// 	Util::addScript(Application::APP_ID, 'libresign-validation');
-	// 	$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function validation() {
+		Util::addScript(Application::APP_ID, 'libresign-validation');
+		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
-	// 	$policy = new ContentSecurityPolicy();
-	// 	$policy->addAllowedFrameDomain('\'self\'');
-	// 	$response->setContentSecurityPolicy($policy);
-
-	// 	return $response;
-	// }
+		return $response;
+	}
 }

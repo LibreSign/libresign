@@ -23,7 +23,8 @@
 							{{ document.name }}
 						</p>
 						<p>Descrição: </p>
-						<p>Arquivo: {{ document.file }}</p>
+						<p>Arquivo </p>
+						<a :href="linkToDownload(document.file)">LINK AQUI</a>
 						<p>
 							<strong>
 								Assinaturas:
@@ -82,6 +83,9 @@ export default {
 			} catch (err) {
 				showError(err.response.data.errors[0])
 			}
+		},
+		linkToDownload(val) {
+			return val
 		},
 		changeInfo() {
 			this.hasInfo = !this.hasInfo
