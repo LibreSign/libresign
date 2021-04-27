@@ -63,7 +63,7 @@ OC.L10N.register(
     "Root certificate data." : "Dane certyfikatu głównego.",
     "To generate new signatures, you must first generate the root certificate." : "Aby wygenerować nowe podpisy, musisz najpierw wygenerować certyfikat główny.",
     "Generate root certificate." : "Wygeneruj certyfikat główny.",
-    "Generating certificate..." : "Generowanie certyfikatu…`",
+    "Generating certificate..." : "Generowanie certyfikatu…",
     "Generated certificate!" : "Wygenerowano certyfikat!",
     "Could not generate certificate." : "Nie udało się wygenerować certyfikatu.",
     "Generate root certificate" : "Wygeneruj certyfikat główny",

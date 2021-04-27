@@ -41,6 +41,7 @@ OC.L10N.register(
     "Password" : "Pasahitza",
     "Passwords do not match" : "Pasahitzak ez datoz bat",
     "Confirm password" : "Pasahitza berretsi",
+    "Register" : "Erregistratu",
     "User created!" : "Erabiltzailea sortuta!",
     "Organizational Unit (OU)" : "Erakunde Atala (OU)",
     "Signature storage." : "Sinaduraren biltegia.",
