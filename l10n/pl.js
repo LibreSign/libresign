@@ -100,6 +100,9 @@ OC.L10N.register(
     "Choose your subscription location!" : "Wybierz lokalizację subskrypcji!",
     "Validation URL" : "Walidacja adresu URL",
     "To validate signature of the documents" : "W celu potwierdzenia podpisu dokumentów",
+    "Validate Subscription." : "Zatwierdź subskrypcję.",
+    "Enter the UUID of the document to validate." : "Wpisz identyfikator UUID dokumentu, aby zatwierdzić.",
+    "Validation" : "Walidacja",
     "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

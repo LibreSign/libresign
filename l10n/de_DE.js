@@ -100,6 +100,9 @@ OC.L10N.register(
     "Choose your subscription location!" : "Ort Ihres Abonnements wählen!",
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
+    "Validate Subscription." : "Abonnement überprüfen",
+    "Enter the UUID of the document to validate." : "Geben Sie die UUID des zu überprüfenden Dokuments ein.",
+    "Validation" : "Überprüfung",
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
 },
 "nplurals=2; plural=(n != 1);");

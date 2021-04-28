@@ -99,6 +99,9 @@ OC.L10N.register(
     "Choose your subscription location!" : "选择你的订阅位置！",
     "Validation URL" : "验证用 URL",
     "To validate signature of the documents" : "用于验证文档的签名",
+    "Validate Subscription." : "验证订阅",
+    "Enter the UUID of the document to validate." : "输入文档的 UUID 进行验证",
+    "Validation" : "验证 ",
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
 },
 "nplurals=1; plural=0;");
