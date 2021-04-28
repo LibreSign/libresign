@@ -1,3 +1,7 @@
+.jumbotron{
+	background-color: #ECEFFC;
+}
+
 .container{
 	display: flex;
 	align-items: center;
@@ -27,6 +31,7 @@
 }
 
 form{
+	background-color: #FFF;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -64,8 +69,8 @@ input{
 button{
 	background-color: #0082c9;
 	color: #FFF;
-	align-self: center;
-
+	float: right;
+	margin-top: 20px;
 	&:hover{
 		background-color: #286090;
 	}
@@ -74,12 +79,15 @@ button{
 .infor{
 	display: flex;
 	flex-direction: column;
-	height: 50vh;
-	width: 80%;
-
 	h1{
-		font-size: 2.5rem;
+		font-size: 2rem;
 	}
+}
+
+.infor-bg{
+	background-color: #FFF;
+	padding: 20px 60px;
+	border-radius: 8px;
 }
 
 .info-document{
@@ -87,11 +95,34 @@ button{
 	flex-direction: column;
 	width: 100%;
 	justify-content: center;
-	margin-top: 3rem;
+	margin-top: 2rem;
 	p{
 		font-size: 1rem;
+	}
+	a{
+		width: fit-content;
 	}
 	#sign{
 		display: flex;
 	}
 }
+
+.signed{
+	margin-top: 10px;
+	padding-right: 2px;
+	strong{
+		font-size: 22px;
+		margin-bottom: 10px;
+	}
+	button{
+		float: right;
+	}
+}
+
+.scroll{
+	max-height: 100px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+}
+

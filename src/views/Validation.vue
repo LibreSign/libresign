@@ -1,5 +1,5 @@
 <template>
-	<Content app-name="libresign">
+	<Content app-name="libresign" class="jumbotron">
 		<div class="container">
 			<div class="image">
 				<img :src="image">
@@ -13,27 +13,39 @@
 						{{ buttonTitle }}
 					</button>
 				</form>
-				<div v-if="hasInfo" class="infor">
-					<h1>{{ t('libresign', 'Document Informations') }}</h1>
-					<div class="info-document">
-						<p>
-							<strong>
-								Nome:
-							</strong>
-							{{ document.name }}
-						</p>
-						<p>Descrição: </p>
-						<p>Arquivo </p>
-						<a :href="linkToDownload(document.file)">LINK AQUI</a>
+				<div v-if="hasInfo" class="infor-container">
+					<div class="infor-bg">
+						<div class="infor">
+							<img src="../../img/info-circle-solid.svg" alt="">
+							<h1>{{ t('libresign', 'Document Informations') }}</h1>
+							<div class="info-document">
+								<p>
+									<strong>
+										Nome:
+									</strong>
+									{{ document.name }}
+								</p>
+								<p>Descrição: </p>
+								<p>Arquivo </p>
+								<a :href="linkToDownload(document.file)">LINK AQUI</a>
+							</div>
+						</div>
+					</div>
+					<div class="infor-bg signed">
 						<p>
 							<strong>
 								Assinaturas:
 							</strong>
 						</p>
-						<span>total:  {{ document.signatures.length }} </span>
-						<div v-for="item in document.signatures " id="sign" :key="item.fululName">
-							<span>Nome: {{ item.displayName ? item.displayName : "None" }}</span>
-							<span>Data de assinatura: {{ item.signed }}</span>
+						<!-- <span>total:  {{ document.signatures.length }} </span> -->
+						<div v-for="item in document.signatures "
+							id="sign"
+							:key="item.fululName"
+							class="scroll">
+							<div>
+								<span>Nome: {{ item.displayName ? item.displayName : "None" }}</span>
+								<span>Data de assinatura: {{ item.signed }}</span>
+							</div>
 						</div>
 					</div>
 					<button type="primary" class="btn-" @click.prevent="changeInfo">
