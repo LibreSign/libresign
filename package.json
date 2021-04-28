@@ -22,7 +22,7 @@
     "@nextcloud/logger": "^1.1.2",
     "@nextcloud/paths": "^1.1.2",
     "@nextcloud/router": "^1.2.0",
-    "@nextcloud/vue": "^2.6.5",
+    "@nextcloud/vue": "^3.9.0",
     "style-loader": "^1.2.1",
     "vue": "^2.6.12",
     "vue-router": "^3.5.1",
