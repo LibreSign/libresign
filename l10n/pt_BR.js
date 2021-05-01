@@ -63,6 +63,7 @@ OC.L10N.register(
     "Root certificate data." : "Dados do certificado raiz. ",
     "To generate new signatures, you must first generate the root certificate." : "Para gerar novas assinaturas, você precisa primeiro gerar o certificado raiz.",
     "Generate root certificate." : "Gere o certificado raiz. ",
+    "Generating certificate." : "Gerando certificado.",
     "Generated certificate!" : "Certificado gerado! ",
     "Could not generate certificate." : "Impossível gerar certificado.",
     "Webhook" : "Webhook",

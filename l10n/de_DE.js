@@ -63,6 +63,7 @@ OC.L10N.register(
     "Root certificate data." : "Daten für Root-Zertifikat.",
     "To generate new signatures, you must first generate the root certificate." : "Um neue Signaturen zu erstellen müssen Sie zunächst ein Root-Zertifikat erstellen.",
     "Generate root certificate." : "Root-Zertifikat erstellen.",
+    "Generating certificate." : "Erstelle Zertifikat.",
     "Generated certificate!" : "Zertifikat wurde erstellt",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
     "Webhook" : "Webhook",

@@ -60,6 +60,7 @@
     "Root certificate data." : "根证书数据",
     "To generate new signatures, you must first generate the root certificate." : "要生成新的签名，你必须首先生成根证书。",
     "Generate root certificate." : "生成根证书",
+    "Generating certificate." : "生成证书中",
     "Generated certificate!" : "已生成证书！",
     "Could not generate certificate." : "无法生成证书",
     "Webhook" : "Webhook ",
