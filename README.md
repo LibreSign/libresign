@@ -84,7 +84,7 @@ server {
         rewrite ^ $scheme://cloud.yourdomain.coop/apps/libresign/validation/$uuid;
     }
     location ~ / {
-        return 301 $scheme://nextcloud.local:8082/apps/libresign/validation;
+        return 301 $scheme://cloud.yourdomain.coop/apps/libresign/validation;
     }
 }
 ```
