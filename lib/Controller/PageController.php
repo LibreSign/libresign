@@ -61,6 +61,8 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Show signature page
+	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
@@ -77,6 +79,8 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Use UUID of file to get PDF
+	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
@@ -101,6 +105,8 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Use UUID of user to get PDF
+	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
@@ -121,8 +127,11 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Show validation page
+	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 * @PublicPage
 	 */
 	public function validation() {
 		Util::addScript(Application::APP_ID, 'libresign-validation');
