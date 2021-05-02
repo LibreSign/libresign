@@ -109,7 +109,6 @@ class PageController extends Controller {
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
 	public function getPdfUser($uuid) {
 		$config = $this->jsConfigHelper->getConfig('file');
