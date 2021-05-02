@@ -26,19 +26,16 @@ class PageController extends Controller {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
-	private $userId;
 	public function __construct(
 		IRequest $request,
 		IConfig $config,
 		FileMapper $fileMapper,
 		IRootFolder $root,
-		JSConfigHelper $jsConfigHelper,
-		$userId
+		JSConfigHelper $jsConfigHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->config = $config;
 		$this->jsConfigHelper = $jsConfigHelper;
-		$this->userId = $userId;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
 	}
