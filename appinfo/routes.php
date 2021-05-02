@@ -19,11 +19,11 @@ return [
 		['name' => 'admin#loadCertificate',     'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],
 
 		// Pages - restricted
-		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#getPdfUser', 'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#index',                'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#getPdfUser',           'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
 		// Pages - public
-		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET'],
-		['name' => 'page#validation', 'url' => '/validation', 'verb' => 'GET'],
-		['name' => 'page#getPdf', 'url' => '/pdf/{uuid}', 'verb' => 'GET']
+		['name' => 'page#sign',                 'url' => '/sign/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#validation',           'url' => '/validation', 'verb' => 'GET'],
+		['name' => 'page#getPdf',               'url' => '/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];
