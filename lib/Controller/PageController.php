@@ -205,14 +205,25 @@ class PageController extends Controller {
 	 */
 	public function getPdf($uuid) {
 		try {
-			$file = $this->fileMapper->getByUuid($uuid);
-			Filesystem::initMountPoints($file->getUserId());
-			$fileToSign = $this->root->getById($file->getNodeId());
+			$fileData = $this->fileMapper->getByUuid($uuid);
+			Filesystem::initMountPoints($fileData->getUserId());
+
+			$file = $this->root->getById($fileData->getNodeId())[0];
+
+			$signedFilePath = preg_replace(
+				'/' . $file->getExtension() . '$/',
+				$this->l10n->t('signed') . '.' . $file->getExtension(),
+				$file->getPath()
+			);
+			if ($this->root->nodeExists($signedFilePath)) {
+				/** @var \OCP\Files\File */
+				$file = $this->root->get($signedFilePath);
+			}
 		} catch (\Throwable $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		$resp = new FileDisplayResponse($fileToSign[0]);
+		$resp = new FileDisplayResponse($file);
 		$resp->addHeader('Content-Type', 'application/pdf');
 
 		$csp = new ContentSecurityPolicy();
