@@ -96,8 +96,19 @@ class WebhookService {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
-		if (empty($data['file']['url']) && empty($data['file']['base64'])) {
-			throw new \Exception($this->l10n->t('Inform URL or base64 to sign'));
+		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
+			throw new \Exception($this->l10n->t('Inform URL or base64 or fileId to sign'));
+		}
+		if (!empty($data['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
+			$node = $userFolder->getById($data['file']['fileId']);
+			if (!$node) {
+				throw new \Exception($this->l10n->t('Invalid fileId'));
+			}
+			$node = $node[0];
+			if ($node->getMimeType() !== 'application/pdf') {
+				throw new \Exception($this->l10n->t('Must be a fileId of a PDF'));
+			}
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
@@ -270,13 +281,7 @@ class WebhookService {
 	 * @return FileEntity
 	 */
 	public function saveFile(array $data): FileEntity {
-		$userFolder = $this->folderService->getFolderForUser();
-		$folderName = $this->getFolderName($data);
-		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
-		}
-		$folderToFile = $userFolder->newFolder($folderName);
-		$node = $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
+		$node = $this->getNodeFromData($data);
 
 		$file = new FileEntity();
 		$file->setNodeId($node->getId());
@@ -290,6 +295,20 @@ class WebhookService {
 		$file->setEnabled(1);
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	private function getNodeFromData(array $data) {
+		if (isset($data['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
+			return $userFolder->getById($data['file']['fileId'])[0];
+		}
+		$userFolder = $this->folderService->getFolder();
+		$folderName = $this->getFolderName($data);
+		if ($userFolder->nodeExists($folderName)) {
+			throw new \Exception($this->l10n->t('File already exists'));
+		}
+		$folderToFile = $userFolder->newFolder($folderName);
+		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 	}
 
 	public function deleteFile(array $data) {

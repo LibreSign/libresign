@@ -108,7 +108,7 @@ final class WebhookServiceTest extends TestCase {
 			->willReturn($folder);
 		$this->folder
 			->expects($this->once())
-			->method('getFolderForUser')
+			->method('getFolder')
 			->willReturn($folder);
 		$this->service->save([
 			'file' => ['url' => 'qwert'],

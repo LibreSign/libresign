@@ -49,10 +49,11 @@ curl -X POST \
 
 Parameters of File object
 
-| Parameter | Type   | Description                     |
-| --------- | ------ | ------------------------------- |
-| url       | string | **optional** Public URL of file |
-| base64    | string | **optional** File in base64     |
+| Parameter | Type    | Description                     |
+| --------- | ------- | ------------------------------- |
+| url       | string  | **optional** Public URL of file |
+| base64    | string  | **optional** File in base64     |
+| fileId    | integer | **optional** Nextcloud fileId   |
 
 Parameters of User object
 
