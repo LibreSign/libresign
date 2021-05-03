@@ -106,7 +106,7 @@ class WebhookService {
 				throw new \Exception($this->l10n->t('Invalid nodeId'));
 			}
 			$node = $node[0];
-			if ($node->getMimeType() != 'application/pdf') {
+			if ($node->getMimeType() !== 'application/pdf') {
 				throw new \Exception($this->l10n->t('Must be a nodeId of a PDF'));
 			}
 		}
