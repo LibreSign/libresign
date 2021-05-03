@@ -12,6 +12,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Storage\ClientStorage;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -26,9 +27,6 @@ use setasign\Fpdi\Fpdi;
 class LibresignController extends Controller {
 	use HandleErrorsTrait;
 	use HandleParamsTrait;
-
-	/** @var LibresignService */
-	private $service;
 
 	/** @var FileUserMapper */
 	private $fileUserMapper;
@@ -55,7 +53,6 @@ class LibresignController extends Controller {
 
 	public function __construct(
 		IRequest $request,
-		LibresignService $service,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IRootFolder $root,
@@ -69,7 +66,6 @@ class LibresignController extends Controller {
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->service = $service;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
@@ -103,7 +99,9 @@ class LibresignController extends Controller {
 				'password' => $password,
 			]);
 
-			$fileSigned = $this->service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
+			$clientStorage = new ClientStorage($this->root->getUserFolder($this->userId));
+			$service = new LibresignService($this->libresignHandler, $clientStorage);
+			$fileSigned = $service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 			return new JSONResponse(
 				['fileSigned' => $fileSigned->getInternalPath()],
