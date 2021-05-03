@@ -81,7 +81,7 @@ class FileUserMapper extends QBMapper {
 	 * @param string $fileId
 	 * @return FileUser[]
 	 */
-	public function getByFileId(string $fileId) {
+	public function getByFileId(int $fileId) {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
