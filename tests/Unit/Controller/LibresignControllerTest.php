@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OC\Files\Node\File;
+use OC\Files\Node\Folder;
 use OCA\Libresign\Controller\LibresignController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -31,15 +32,16 @@ final class LibresignControllerTest extends TestCase {
 		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
-		$root = $this->prophesize(IRootFolder::class);
-		$l10n = $this->prophesize(IL10N::class);
+		$root = $this->createMock(IRootFolder::class);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n
+			->method('t')
+			->will($this->returnArgument(0));
 		$accountService = $this->createMock(AccountService::class);
-		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$webhook = $this->createMock(WebhookService::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
-		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$config = $this->createMock(IConfig::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
@@ -47,18 +49,39 @@ final class LibresignControllerTest extends TestCase {
 		$certificatePath = '/path/to/someCertificatePath';
 		$password = 'somePassword';
 
-		$service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password)
-			->shouldBeCalled()
-			->willReturn($file->reveal())
-		;
-		
+		$folder = $this->createMock(Folder::class);
+		$folder
+			->method('nodeExists')
+			->willReturn(true);
+		$outputFolder = $this->createMock(Folder::class);
+		$signedFile = $this->createMock(File::class);
+		$signedFile
+			->method('getInternalPath')
+			->willReturn('/path/to/someFileSigned');
+		$outputFolder->method('newFile')->willReturn($signedFile);
+		$folder
+			->method('get')
+			->will($this->returnValueMap([
+				[$inputFilePath, $this->createMock(File::class)],
+				[$certificatePath, $this->createMock(File::class)],
+				[$outputFolderPath, $outputFolder]
+			]));
+
+		$root
+			->method('getUserFolder')
+			->willReturn($folder);
+		$libresignHandler = $this->createMock(JLibresignHandler::class);
+		$libresignHandler
+			->method('signExistingFile')
+			->willReturn(['signedFileName', 'contentOfSignedFile']);
+
+		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$controller = new LibresignController(
 			$request->reveal(),
-			$service->reveal(),
 			$fileUserMapper->reveal(),
 			$fileMapper->reveal(),
-			$root->reveal(),
-			$l10n->reveal(),
+			$root,
+			$l10n,
 			$accountService,
 			$libresignHandler,
 			$webhook,
@@ -100,7 +123,7 @@ final class LibresignControllerTest extends TestCase {
 		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
-		$root = $this->prophesize(IRootFolder::class);
+		$root = $this->createMock(IRootFolder::class);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
 			->method('t')
@@ -117,10 +140,9 @@ final class LibresignControllerTest extends TestCase {
 
 		$controller = new LibresignController(
 			$request->reveal(),
-			$service->reveal(),
 			$fileUserMapper->reveal(),
 			$fileMapper->reveal(),
-			$root->reveal(),
+			$root,
 			$l10n,
 			$accountService,
 			$libresignHandler,
