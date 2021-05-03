@@ -96,18 +96,18 @@ class WebhookService {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
-		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['nodeId'])) {
-			throw new \Exception($this->l10n->t('Inform URL or base64 or nodeId to sign'));
+		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
+			throw new \Exception($this->l10n->t('Inform URL or base64 or fileId to sign'));
 		}
-		if (!empty($data['file']['nodeId'])) {
-			$userFolder = $this->folderService->getFolder($data['file']['nodeId']);
-			$node = $userFolder->getById($data['file']['nodeId']);
+		if (!empty($data['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
+			$node = $userFolder->getById($data['file']['fileId']);
 			if (!$node) {
-				throw new \Exception($this->l10n->t('Invalid nodeId'));
+				throw new \Exception($this->l10n->t('Invalid fileId'));
 			}
 			$node = $node[0];
 			if ($node->getMimeType() !== 'application/pdf') {
-				throw new \Exception($this->l10n->t('Must be a nodeId of a PDF'));
+				throw new \Exception($this->l10n->t('Must be a fileId of a PDF'));
 			}
 		}
 		if (!empty($data['file']['base64'])) {
@@ -298,9 +298,9 @@ class WebhookService {
 	}
 
 	private function getNodeFromData(array $data) {
-		if (isset($data['file']['nodeId'])) {
-			$userFolder = $this->folderService->getFolder($data['file']['nodeId']);
-			return $userFolder->getById($data['file']['nodeId'])[0];
+		if (isset($data['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
+			return $userFolder->getById($data['file']['fileId'])[0];
 		}
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->getFolderName($data);

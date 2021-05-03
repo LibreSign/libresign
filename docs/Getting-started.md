@@ -53,7 +53,7 @@ Parameters of File object
 | --------- | ------- | ------------------------------- |
 | url       | string  | **optional** Public URL of file |
 | base64    | string  | **optional** File in base64     |
-| nodeId    | integer | **optional** Nextcloud nodeId   |
+| fileId    | integer | **optional** Nextcloud fileId   |
 
 Parameters of User object
 
