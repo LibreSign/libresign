@@ -129,7 +129,7 @@ class AccountService {
 	private function savePfx($uid, $content) {
 		$this->folder->setUserId($uid);
 		Filesystem::initMountPoints($uid);
-		$folder = $this->folder->getFolderForUser();
+		$folder = $this->folder->getFolder();
 		if ($folder->nodeExists($this->pdfFilename)) {
 			$node = $folder->get($this->pdfFilename);
 			if (!$node instanceof File) {
@@ -146,7 +146,7 @@ class AccountService {
 	public function getPfx($uid) {
 		Filesystem::initMountPoints($uid);
 		$this->folder->setUserId($uid);
-		$folder = $this->folder->getFolderForUser();
+		$folder = $this->folder->getFolder();
 		if (!$folder->nodeExists($this->pdfFilename)) {
 			throw new LibresignException('Signature file not found!', 400);
 		}
