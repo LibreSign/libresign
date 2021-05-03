@@ -150,11 +150,11 @@ class LibresignController extends Controller {
 				$fileToSign = $this->root->get($signedFilePath);
 			} else {
 				/** @var \OCP\Files\File */
-				$fileToSign = $this->root->newFile($signedFilePath);
-				$buffer = $this->writeFooter($originalFile);
+				$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
 				if (!$buffer) {
 					$buffer = $originalFile->getContent($originalFile);
 				}
+				$fileToSign = $this->root->newFile($signedFilePath);
 				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
@@ -216,10 +216,12 @@ class LibresignController extends Controller {
 		}
 	}
 
-	private function writeFooter($file) {
-		if (!$this->config->getAppValue(Application::APP_ID, 'validation_site')) {
+	private function writeFooter($file, $uuid) {
+		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
+		if (!$validation_site) {
 			return;
 		}
+		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 		$pdf = new Fpdi();
 		$pageCount = $pdf->setSourceFile($file->fopen('r'));
 
@@ -234,10 +236,10 @@ class LibresignController extends Controller {
 			$pdf->SetAutoPageBreak(false);
 			$pdf->SetXY(5, -10);
 
-			$pdf->Write(8, $this->l10n->t(
+			$pdf->Write(8, iconv('UTF-8', 'windows-1252', $this->l10n->t(
 				'Digital signed by LibreSign. Validate in %s',
-				$this->config->getAppValue(Application::APP_ID, 'validation_site')
-			));
+				$validation_site
+			)));
 		}
 
 		return $pdf->Output('S');
