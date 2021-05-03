@@ -63,6 +63,7 @@ OC.L10N.register(
     "Root certificate data." : "Kök sertifika verileri.",
     "To generate new signatures, you must first generate the root certificate." : "Yeni imzalar oluşturmak için, öncelikle bir kök sertifika üretmelisiniz.",
     "Generate root certificate." : "Kök sertifikası üret.",
+    "Generating certificate." : "Sertifika üretiliyor.",
     "Generated certificate!" : "Sertifika üretildi!",
     "Could not generate certificate." : "Sertifika üretilemedi.",
     "Webhook" : "Web bağlantısı",
