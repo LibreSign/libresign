@@ -24,7 +24,7 @@
 						</p>
 						<p>Descrição: </p>
 						<p>Arquivo </p>
-						<a :href="linkToDownload(document.file)">LINK AQUI</a>
+						<a :href="linkToDownload(document.file)" target="_blank">LINK AQUI</a>
 						<p>
 							<strong>
 								Assinaturas:
