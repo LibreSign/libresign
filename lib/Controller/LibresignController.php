@@ -250,27 +250,14 @@ class LibresignController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 */
-	public function validate($uuid) {
+	public function validateUuid($uuid) {
 		try {
 			try {
 				$file = $this->fileMapper->getByUuid($uuid);
 			} catch (\Throwable $th) {
 				throw new LibresignException('Invalid data to validate file', 1);
 			}
-			if (!$file) {
-				throw new LibresignException('Invalid file identifier', 1);
-			}
-
-			$return['name'] = $file->getName();
-			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid]);
-			$signatures = $this->fileUserMapper->getByFileId($file->id);
-			foreach ($signatures as $signature) {
-				$return['signatures'][] = [
-					'signed' => $signature->getSigned(),
-					'displayName' => $signature->getDisplayName(),
-					'fullName' => $signature->getFullName()
-				];
-			}
+			$return = $this->validate($file);
 			return new JSONResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
@@ -283,5 +270,50 @@ class LibresignController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function validateFileId($fileId) {
+		try {
+			try {
+				$file = $this->fileMapper->getByFileId($fileId);
+			} catch (\Throwable $th) {
+				throw new LibresignException('Invalid data to validate file', 1);
+			}
+			$return = $this->validate($file);
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			$message = $this->l10n->t($th->getMessage());
+			$this->logger->error($message);
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$message]
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+	}
+
+	private function validate($file) {
+		if (!$file) {
+			throw new LibresignException('Invalid file identifier', 1);
+		}
+
+		$return['name'] = $file->getName();
+		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
+		$signatures = $this->fileUserMapper->getByFileId($file->id);
+		foreach ($signatures as $signature) {
+			$return['signatures'][] = [
+				'signed' => $signature->getSigned(),
+				'displayName' => $signature->getDisplayName(),
+				'fullName' => $signature->getFullName()
+			];
+		}
+		return $return;
 	}
 }

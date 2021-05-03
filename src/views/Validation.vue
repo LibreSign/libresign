@@ -75,7 +75,7 @@ export default {
 			// eslint-disable-next-line no-console
 			console.log(this.uuid)
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/${this.uuid}`))
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${this.uuid}`))
 				console.info(response)
 				showSuccess('ok')
 				this.document = response.data
