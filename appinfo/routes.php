@@ -24,6 +24,7 @@ return [
 		// Pages - public
 		['name' => 'page#sign',                 'url' => '/sign/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#validation',           'url' => '/validation', 'verb' => 'GET'],
+		['name' => 'page#validationFile',       'url' => '/validation/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#getPdf',               'url' => '/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];

@@ -133,6 +133,23 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function validation() {
+		$this->initialState->provideInitialState('config', json_encode($this->getConfig('url')));
+
+		Util::addScript(Application::APP_ID, 'libresign-validation');
+		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
+
+		return $response;
+	}
+
+	/**
+	 * Show validation page for a specific file UUID
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function validationFile(string $uuid) {
+		Util::addScript(Application::APP_ID, 'libresign-validation-teste.js');
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
