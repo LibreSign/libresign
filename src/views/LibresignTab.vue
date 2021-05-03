@@ -79,7 +79,7 @@ export default {
 	data() {
 		return {
 			icon: 'icon-rename',
-			name: t('libresign', 'Sign the document.'),
+			name: t('libresign', 'LibreSign'),
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
@@ -115,12 +115,11 @@ export default {
 		async signRequest(param) {
 			const uuid = ''
 			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/sign/${uuid}`), {
-				password: this.param.password,
+				password: param,
 			})
 
 			// eslint-disable-next-line no-console
 			console.log(response)
-			// console.log(param)
 		},
 	},
 }

@@ -1,23 +1,23 @@
 <template>
 	<div class="form-rs-container">
-		<h1>Solicitação de assinaturas</h1>
+		<h1>{{ t('libresign', 'Request for signatures') }}</h1>
 		<form @submit="e => e.preventDefault()">
-			<input v-model="email" type="email" placeholder="Email">
-			<input v-model="description" type="text" placeholder="descrição">
-			<button class="primary icon-add" @click="addUser">
-				Incluir
+			<input v-model="email" type="email" :placeholder="placeholderEmail">
+			<input v-model="description" type="text" :placeholder="placeholderDescription">
+			<button class="primary btn-inc" @click="addUser">
+				{{ t('libresign', 'Add user') }}
 			</button>
 		</form>
 
 		<div v-if="hasUsers" class="list-users-selected">
 			<div id="title">
-				<span>Usuarios</span>
+				<span>{{ t('libresign', 'Users') }}</span>
 			</div>
 			<ul class="list-users">
 				<li v-for="values in inputValues" :key="values.email" class="list-uses-item">
 					<div class="list-users-header">
 						<Avatar id="avatar" :user="values.email" :display-name="values.email" />
-						<p id="list-users-header-title">
+						<p class="list-users-header-title">
 							{{ values.email }}
 						</p>
 					</div>
@@ -31,7 +31,7 @@
 			</ul>
 
 			<button class="primary" @click="send">
-				Enviar solicitação
+				{{ t('libresign', 'Submit Request') }}
 			</button>
 		</div>
 		<slot name="actions" />
@@ -39,9 +39,7 @@
 </template>
 
 <script>
-import { generateOcsUrl } from '@nextcloud/router'
 import { Avatar } from '@nextcloud/vue'
-import axios from '@nextcloud/axios'
 
 export default {
 	name: 'Request',
@@ -51,43 +49,23 @@ export default {
 	data() {
 		return {
 			inputValues: [],
-			options: [],
 			idKey: 0,
 			email: '',
 			description: '',
-			hasUser: false,
 		}
 	},
 	computed: {
 		hasUsers(val) {
 			return !(this.inputValues.length <= 0)
 		},
-	},
-	created() {
-		this.getUserAndGroups()
+		placeholderEmail() {
+			return t('libresign', 'E-mail.')
+		},
+		placeholderDescription() {
+			return t('libresign', 'Description.')
+		},
 	},
 	methods: {
-		nItem(item) {
-			this.inputValues.push(item)
-			// eslint-disable-next-line no-console
-			console.log(item)
-			// eslint-disable-next-line no-console
-			console.log(this.inputValues)
-		},
-		async getUserAndGroups() {
-			// const groups = await axios.get(generateOcsUrl('cloud/groups?', 3))
-			const users = await axios.get(generateOcsUrl('cloud/users?', 3))
-
-			this.options = users.data.ocs.data.users
-		},
-		asyncFind() {
-			// eslint-disable-next-line no-console
-			console.log(this.inputValues)
-		},
-		log(param) {
-			// eslint-disable-next-line no-console
-			console.log(param)
-		},
 		removeValue(value) {
 			this.inputValues = this.inputValues.filter(ft => {
 				return ft !== value
@@ -98,13 +76,23 @@ export default {
 				email: this.email,
 				description: this.description,
 			})
-			this.hasUser = true
 			this.email = ''
 			this.description = ''
 		},
 		send() {
 			// eslint-disable-next-line no-console
 			console.log(this.inputValues)
+
+			const file = {
+				url: 'https://www.ufms.br/wp-content/uploads/2017/09/PDF-teste.pdf',
+			}
+			const name = 'teste'
+			const users = this.inputValues
+
+			// eslint-disable-next-line no-console
+			console.log({
+				file, name, users,
+			})
 		},
 	},
 }
@@ -113,6 +101,19 @@ export default {
 .form-rs-container{
 	display: flex;
 	flex-direction: column;
+
+	form{
+		display: flex;
+		width: 100%;
+
+		input{
+			width: 40%
+		}
+
+		.btn-inc{
+			width: 20%;
+		}
+	}
 
 	h1{
 		align-self: center;
@@ -148,31 +149,38 @@ export default {
 			align-items: center;
 			width: 100%;
 			overflow-y: scroll;
+			overflow-x: hidden;
 			height: 250px;
 
 			li{
+				display: flex;
+				flex-direction: column;
 				padding: 10px;
 				border: 1px solid #cecece;
 				width: 90%;
 				border-radius: 10px;
-				display: flex;
-				flex-direction: column;
 				align-items: center;
 				justify-content: center;
 				margin: 5px;
 
 				#avatar{
-					left: 10%;
+					float: left;
+					left: 0;
 				}
 				#options{
 					right: 10%;
 				}
 			}
 
-			.list-users-head{
-				display: flex;
-				flex-direction: row;
+			.list-users-header{
+				display: inline-block;
+				width: 100%;
 				margin-bottom: 15px;
+				.list-users-header-title{
+					position: relative;
+					width: 100%;
+					text-align: center;
+				}
 			}
 
 			.list-users-header-description{
