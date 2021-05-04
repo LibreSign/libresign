@@ -40,7 +40,11 @@ class FolderService {
 	 */
 	public function getFolder(int $nodeId = null) {
 		if ($nodeId) {
-			return $this->root->getById($nodeId)[0]->getParent();
+			$node = $this->root->getById($nodeId);
+			if (!$node) {
+				throw new \Exception('Invalid node');
+			}
+			return $node[0]->getParent();
 		}
 		$path = '/' . $this->userId . '/files/' . $this->getLibreSignDefaultPath();
 		$path = str_replace('//', '/', $path);
