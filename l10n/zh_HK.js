@@ -34,7 +34,6 @@ OC.L10N.register(
     "Name is mandatory" : "必須有名字",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "該名稱只能包含 “a-z”，“A-Z”，“0-9” 和 “ -_” 字符。",
     "Empty file" : "空檔案",
-    "Inform URL or base64 to sign" : "通知進行簽署的 URL 或 base64",
     "Invalid base64 file" : "無效的 base64 檔案",
     "Invalid UUID file" : "無效的 UUID 檔案",
     "Empty users list" : "空白的用戶清單",

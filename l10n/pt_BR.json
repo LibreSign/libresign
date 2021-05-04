@@ -32,7 +32,6 @@
     "Name is mandatory" : "Nome é obrigatório",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "O nome apenas pode conter os caracteres \"a-z\", \"A-Z\", \"0-9\" and \"-_\".",
     "Empty file" : "Arquivo vazio",
-    "Inform URL or base64 to sign" : "Informe uma URL ou um base64 para assinar",
     "Invalid base64 file" : "Arquivo em base64 inválido",
     "Invalid UUID file" : "UUID de arquivo inválido",
     "Empty users list" : "Lista de usuários vazia",

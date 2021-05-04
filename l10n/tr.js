@@ -34,7 +34,6 @@ OC.L10N.register(
     "Name is mandatory" : "Adın yazılması zorunludur",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Ad içinde yalnız \"a-z\", \"A-Z\", \"0-9\" ve \"-_\" karakterleri bulunabilir.",
     "Empty file" : "Dosya boş",
-    "Inform URL or base64 to sign" : "İmzalamak için bilgi adresi ya da base64",
     "Invalid base64 file" : "Base64 dosyası geçersiz.",
     "Invalid UUID file" : "UUID dosyası geçersiz",
     "Empty users list" : "Kullanıcı listesi boş",
