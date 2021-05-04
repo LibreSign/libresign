@@ -2,7 +2,7 @@
 	<Content app-name="libresign" class="jumbotron">
 		<div class="container">
 			<div class="image">
-				<img :src="image">
+				<img :src="image" draggable="false">
 			</div>
 			<div id="dataUUID">
 				<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
@@ -16,39 +16,36 @@
 				<div v-if="hasInfo" class="infor-container">
 					<div class="infor-bg">
 						<div class="infor">
-							<img src="../../img/info-circle-solid.svg" alt="">
-							<h1>{{ t('libresign', 'Document Informations') }}</h1>
+							<div class="header">
+								<img class="icon" :src="infoIcon">
+								<h1>{{ t('libresign', 'Document Informations') }}</h1>
+							</div>
 							<div class="info-document">
 								<p>
-									<strong>
-										Nome:
-									</strong>
-									{{ document.name }}
+									<b>{{ document.name }}</b>
 								</p>
-								<p>Descrição: </p>
-								<p>Arquivo </p>
-								<a :href="linkToDownload(document.file)">LINK AQUI</a>
+								<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
 							</div>
 						</div>
 					</div>
 					<div class="infor-bg signed">
-						<p>
-							<strong>
-								Assinaturas:
-							</strong>
-						</p>
+						<div class="header">
+							<img class="icon" :src="signatureIcon">
+							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
+						</div>
+
 						<!-- <span>total:  {{ document.signatures.length }} </span> -->
 						<div v-for="item in document.signatures "
 							id="sign"
 							:key="item.fululName"
 							class="scroll">
-							<div>
-								<span>Nome: {{ item.displayName ? item.displayName : "None" }}</span>
-								<span>Data de assinatura: {{ item.signed }}</span>
+							<div class="subscriber">
+								<span><b>{{ item.displayName ? item.displayName : "None" }}</b></span>
+								<span>{{ t('libresign', 'signed on: ') }} {{ item.signed }}</span>
 							</div>
 						</div>
 					</div>
-					<button type="primary" class="btn-" @click.prevent="changeInfo">
+					<button type="primary" class="btn- btn-return" @click.prevent="changeInfo">
 						{{ t('libresign', 'Return') }}
 					</button>
 				</div>
@@ -61,8 +58,11 @@
 import axios from '@nextcloud/axios'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import BackgroundImage from '../assets/images/bg.png'
+import iconA from '../../img/info-circle-solid.svg'
+import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { translate as t } from '@nextcloud/l10n'
 
 export default {
 	name: 'Validation',
@@ -74,9 +74,12 @@ export default {
 	data() {
 		return {
 			image: BackgroundImage,
+			infoIcon: iconA,
+			signatureIcon: iconB,
 			title: t('libresign', 'Validate Subscription.'),
 			legend: t('libresign', 'Enter the UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
+
 			uuid: '',
 			hasInfo: false,
 			document: {},
