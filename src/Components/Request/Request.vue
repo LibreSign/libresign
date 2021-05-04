@@ -15,22 +15,11 @@
 			</div>
 			<ul class="list-users">
 				<li v-for="values in inputValues" :key="values.email" class="list-uses-item">
-					<div class="list-users-header">
-						<Avatar id="avatar" :user="values.email" :display-name="values.email" />
-						<p class="list-users-header-title">
-							{{ values.email }}
-						</p>
-					</div>
-					<p id="list-users-header-description">
-						{{ values.description }}
-					</p>
-					<button id="options" @click="removeValue(values)">
-						<div class="icon-close" />
-					</button>
+					<ListItem :user="values" :description="values.description" @remove-user="removeValue" />
 				</li>
 			</ul>
 
-			<button class="primary" @click="send">
+			<button class="primary btn" @click="send">
 				{{ t('libresign', 'Submit Request') }}
 			</button>
 		</div>
@@ -39,12 +28,11 @@
 </template>
 
 <script>
-import { Avatar } from '@nextcloud/vue'
-
+import ListItem from '../ListItem'
 export default {
 	name: 'Request',
 	components: {
-		Avatar,
+		ListItem,
 	},
 	data() {
 		return {
@@ -80,9 +68,6 @@ export default {
 			this.description = ''
 		},
 		send() {
-			// eslint-disable-next-line no-console
-			console.log(this.inputValues)
-
 			const file = {
 				url: 'https://www.ufms.br/wp-content/uploads/2017/09/PDF-teste.pdf',
 			}
@@ -137,6 +122,8 @@ export default {
 			display: flex;
 			flex-direction: row;
 			align-items: center;
+			margin: 10px 0;
+
 			span{
 				font-size: 1rem;
 				font-weight: 400;
@@ -150,47 +137,20 @@ export default {
 			width: 100%;
 			overflow-y: scroll;
 			overflow-x: hidden;
-			height: 250px;
+			max-height: 240px;
 
 			li{
+				width: 100%;
+				max-height: 90px;
 				display: flex;
-				flex-direction: column;
-				padding: 10px;
-				border: 1px solid #cecece;
-				width: 90%;
-				border-radius: 10px;
 				align-items: center;
 				justify-content: center;
-				margin: 5px;
-
-				#avatar{
-					float: left;
-					left: 0;
-				}
-				#options{
-					right: 10%;
-				}
 			}
+		}
 
-			.list-users-header{
-				display: inline-block;
-				width: 100%;
-				margin-bottom: 15px;
-				.list-users-header-title{
-					position: relative;
-					width: 100%;
-					text-align: center;
-				}
-			}
-
-			.list-users-header-description{
-				margin-top: 15px;
-			}
-
-			li:first-child{
-				margin-top: 15px;
-			}
-
+		.btn{
+			width: 80%;
+			margin: 12px 0;
 		}
 	}
 
