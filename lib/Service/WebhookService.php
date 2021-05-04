@@ -100,15 +100,10 @@ class WebhookService {
 			throw new \Exception($this->l10n->t('Inform URL or base64 or fileId to sign'));
 		}
 		if (!empty($data['file']['fileId'])) {
-			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
-			$node = $userFolder->getById($data['file']['fileId']);
-			if (!$node) {
+			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileId'));
 			}
-			$node = $node[0];
-			if ($node->getMimeType() !== 'application/pdf') {
-				throw new \Exception($this->l10n->t('Must be a fileId of a PDF'));
-			}
+			$this->validateFileByFileId((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
@@ -116,6 +111,30 @@ class WebhookService {
 			if ($data['file']['base64'] !== $base64) {
 				throw new \Exception($this->l10n->t('Invalid base64 file'));
 			}
+		}
+	}
+
+	public function validateFileByFileId(int $fileId) {
+		try {
+			$fileMapper = $this->fileMapper->getByFileId($fileId);
+		} catch (\Throwable $th) {
+		}
+		if ($fileMapper) {
+			throw new \Exception($this->l10n->t('Already asked to sign this document'));
+		}
+
+		try {
+			$userFolder = $this->folderService->getFolder($fileId);
+			$node = $userFolder->getById($fileId);
+		} catch (\Throwable $th) {
+			throw new \Exception($this->l10n->t('Invalid fileId'));
+		}
+		if (!$node) {
+			throw new \Exception($this->l10n->t('Invalid fileId'));
+		}
+		$node = $node[0];
+		if ($node->getMimeType() !== 'application/pdf') {
+			throw new \Exception($this->l10n->t('Must be a fileId of a PDF'));
 		}
 	}
 
