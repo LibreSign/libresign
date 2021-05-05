@@ -104,7 +104,7 @@ export default {
 
 			try {
 				const response = await axios.post(
-					generateUrl(`/apps/libresign/api/0.1/sign/${this.uuid}`),
+					generateUrl(`/apps/libresign/api/0.1/sign/uuid/${this.uuid}`),
 					{
 						password: this.password,
 					}

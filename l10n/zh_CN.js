@@ -62,10 +62,9 @@ OC.L10N.register(
     "Root certificate data." : "根证书数据",
     "To generate new signatures, you must first generate the root certificate." : "要生成新的签名，你必须首先生成根证书。",
     "Generate root certificate." : "生成根证书",
-    "Generating certificate..." : "生成证书中...",
+    "Generating certificate." : "生成证书中",
     "Generated certificate!" : "已生成证书！",
     "Could not generate certificate." : "无法生成证书",
-    "Generate root certificate" : "生成根证书",
     "Webhook" : "Webhook ",
     "Select authorized groups." : "选择授权组",
     "Create new subscription." : "创建新订阅",
@@ -99,6 +98,9 @@ OC.L10N.register(
     "Choose your subscription location!" : "选择你的订阅位置！",
     "Validation URL" : "验证用 URL",
     "To validate signature of the documents" : "用于验证文档的签名",
+    "Validate Subscription." : "验证订阅",
+    "Enter the UUID of the document to validate." : "输入文档的 UUID 进行验证",
+    "Validation" : "验证 ",
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
 },
 "nplurals=1; plural=0;");

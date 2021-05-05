@@ -4,9 +4,12 @@
 			<label class="title"> {{ labelTitle }} </label>
 			<label> {{ labelDesciption }}</label>
 			<input id="validation_site"
-				v-model="url"
+				ref="urlInput"
+				:placeholder="url"
 				type="text"
-				@input="saveGroups()">
+				@input="saveUrl()"
+				@click="fillUrlInput()"
+				@keypress.enter="validationUrlEnter()">
 		</div>
 	</div>
 </template>
@@ -19,6 +22,7 @@ export default {
 	data() {
 		return {
 			url: null,
+			paternValidadeUrl: 'https://validador.librecode.coop/',
 			labelTitle: t('libresign', 'Validation URL'),
 			labelDesciption: t('libresign', 'To validate signature of the documents'),
 		}
@@ -27,14 +31,31 @@ export default {
 		this.getData()
 	},
 	methods: {
+		validationUrlEnter() {
+			this.$refs.urlInput.blur()
+		},
 		async getData() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps' + '/' + 'libresign' + '/' + 'validation_site', {}
 			)
-			this.url = response.data.ocs.data.data
+			this.placeHolderUrl(response.data.ocs.data.data)
 		},
-		saveGroups() {
-			OCP.AppConfig.setValue('libresign', 'validation_site', this.url)
+		saveUrl() {
+			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
+		},
+		placeHolderUrl(data) {
+			if (data !== '') {
+				this.url = data
+			} else {
+				this.url = this.paternValidadeUrl
+			}
+		},
+		fillUrlInput() {
+			if (this.url !== this.paternValidadeUrl) {
+				if (this.$refs.urlInput.value.length === 0) {
+					this.$refs.urlInput.value = this.url
+				}
+			}
 		},
 	},
 }

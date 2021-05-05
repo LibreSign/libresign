@@ -61,10 +61,9 @@
     "Root certificate data." : "Dane certyfikatu głównego.",
     "To generate new signatures, you must first generate the root certificate." : "Aby wygenerować nowe podpisy, musisz najpierw wygenerować certyfikat główny.",
     "Generate root certificate." : "Wygeneruj certyfikat główny.",
-    "Generating certificate..." : "Generowanie certyfikatu…",
+    "Generating certificate." : "Generowanie certyfikatu.",
     "Generated certificate!" : "Wygenerowano certyfikat!",
     "Could not generate certificate." : "Nie udało się wygenerować certyfikatu.",
-    "Generate root certificate" : "Wygeneruj certyfikat główny",
     "Webhook" : "Webhook",
     "Select authorized groups." : "Wybierz autoryzowane grupy.",
     "Create new subscription." : "Utwórz nową subskrypcję.",
@@ -98,6 +97,9 @@
     "Choose your subscription location!" : "Wybierz lokalizację subskrypcji!",
     "Validation URL" : "Walidacja adresu URL",
     "To validate signature of the documents" : "W celu potwierdzenia podpisu dokumentów",
+    "Validate Subscription." : "Zatwierdź subskrypcję.",
+    "Enter the UUID of the document to validate." : "Wpisz identyfikator UUID dokumentu, aby zatwierdzić.",
+    "Validation" : "Walidacja",
     "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

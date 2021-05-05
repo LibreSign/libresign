@@ -23,8 +23,11 @@
 
 import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
+import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Vuex)
+
+const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 export default new Store({
 
@@ -54,7 +57,7 @@ export default new Store({
 
 	getters: {
 		getError(state) {
-			return OC.appConfig.libresign.errors
+			return libresignVar.errors
 		},
 		getPdfData(state) {
 			return state.pdfData

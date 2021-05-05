@@ -64,10 +64,34 @@ input{
 button{
 	background-color: #0082c9;
 	color: #FFF;
-	// width: min-content;
 	align-self: center;
 
 	&:hover{
 		background-color: #286090;
+	}
+}
+
+.infor{
+	display: flex;
+	flex-direction: column;
+	height: 50vh;
+	width: 80%;
+
+	h1{
+		font-size: 2.5rem;
+	}
+}
+
+.info-document{
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	justify-content: center;
+	margin-top: 3rem;
+	p{
+		font-size: 1rem;
+	}
+	#sign{
+		display: flex;
 	}
 }

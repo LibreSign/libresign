@@ -61,10 +61,9 @@
     "Root certificate data." : "Daten für Root-Zertifikat.",
     "To generate new signatures, you must first generate the root certificate." : "Um neue Signaturen zu erstellen müssen Sie zunächst ein Root-Zertifikat erstellen.",
     "Generate root certificate." : "Root-Zertifikat erstellen.",
-    "Generating certificate..." : "Zertifikat wird erstellt…",
+    "Generating certificate." : "Erstelle Zertifikat.",
     "Generated certificate!" : "Zertifikat wurde erstellt",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
-    "Generate root certificate" : "Root-Zertifikat erstellen",
     "Webhook" : "Webhook",
     "Select authorized groups." : "Berechtigte Gruppen wählen.",
     "Create new subscription." : "Neues Abonnement erstellen.",
@@ -98,6 +97,9 @@
     "Choose your subscription location!" : "Ort Ihres Abonnements wählen!",
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
+    "Validate Subscription." : "Abonnement überprüfen",
+    "Enter the UUID of the document to validate." : "Geben Sie die UUID des zu überprüfenden Dokuments ein.",
+    "Validation" : "Überprüfung",
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -33,10 +33,20 @@ class FolderService {
 	}
 
 	/**
+	 * Get folder for user
+	 *
+	 * @param int $nodeId
 	 * @return Folder
 	 */
-	public function getFolderForUser() {
-		$path = '/' . $this->userId . '/files/' . $this->getUserFolderPath();
+	public function getFolder(int $nodeId = null) {
+		if ($nodeId) {
+			$node = $this->root->getById($nodeId);
+			if (!$node) {
+				throw new \Exception('Invalid node');
+			}
+			return $node[0]->getParent();
+		}
+		$path = '/' . $this->userId . '/files/' . $this->getLibreSignDefaultPath();
 		$path = str_replace('//', '/', $path);
 
 		return $this->getOrCreateFolder($path);
@@ -63,7 +73,7 @@ class FolderService {
 	/**
 	 * @return string
 	 */
-	public function getUserFolderPath() {
+	public function getLibreSignDefaultPath() {
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');
 
 		if (!$path) {

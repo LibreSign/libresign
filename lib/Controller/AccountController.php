@@ -84,7 +84,7 @@ class AccountController extends ApiController {
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
-					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])
+					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])
 				],
 				'filename' => $fileData->getName(),
 				'description' => $fileUser->getDescription()

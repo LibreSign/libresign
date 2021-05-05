@@ -12,6 +12,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Storage\ClientStorage;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -26,9 +27,6 @@ use setasign\Fpdi\Fpdi;
 class LibresignController extends Controller {
 	use HandleErrorsTrait;
 	use HandleParamsTrait;
-
-	/** @var LibresignService */
-	private $service;
 
 	/** @var FileUserMapper */
 	private $fileUserMapper;
@@ -55,7 +53,6 @@ class LibresignController extends Controller {
 
 	public function __construct(
 		IRequest $request,
-		LibresignService $service,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IRootFolder $root,
@@ -69,7 +66,6 @@ class LibresignController extends Controller {
 		$userId
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->service = $service;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
@@ -88,8 +84,9 @@ class LibresignController extends Controller {
 	 * @NoCSRFRequired
 	 *
 	 * @todo remove NoCSRFRequired
+	 * @deprecated
 	 */
-	public function sign(
+	public function signDeprecated(
 		string $inputFilePath = null,
 		string $outputFolderPath = null,
 		string $certificatePath = null,
@@ -103,7 +100,9 @@ class LibresignController extends Controller {
 				'password' => $password,
 			]);
 
-			$fileSigned = $this->service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
+			$clientStorage = new ClientStorage($this->root->getUserFolder($this->userId));
+			$service = new LibresignService($this->libresignHandler, $clientStorage);
+			$fileSigned = $service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 			return new JSONResponse(
 				['fileSigned' => $fileSigned->getInternalPath()],
@@ -124,10 +123,26 @@ class LibresignController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signUsingUuid(string $uuid, string $password): JSONResponse {
+	public function signUsingFileid(string $password, string $file_id): JSONResponse {
+		return $this->sign($password, $file_id);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function signUsingUuid(string $password, string $uuid): JSONResponse {
+		return $this->sign($password, null, $uuid);
+	}
+
+	public function sign(string $password, string $file_id = null, string $uuid = null): JSONResponse {
 		try {
 			try {
-				$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+				if ($file_id) {
+					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($file_id, $this->userId);
+				} else {
+					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
@@ -152,11 +167,11 @@ class LibresignController extends Controller {
 				$fileToSign = $this->root->get($signedFilePath);
 			} else {
 				/** @var \OCP\Files\File */
-				$fileToSign = $this->root->newFile($signedFilePath);
-				$buffer = $this->writeFooter($originalFile);
+				$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
 				if (!$buffer) {
 					$buffer = $originalFile->getContent($originalFile);
 				}
+				$fileToSign = $this->root->newFile($signedFilePath);
 				$fileToSign->putContent($buffer);
 			}
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
@@ -218,10 +233,12 @@ class LibresignController extends Controller {
 		}
 	}
 
-	private function writeFooter($file) {
-		if (!$this->config->getAppValue(Application::APP_ID, 'validation_site')) {
+	private function writeFooter($file, $uuid) {
+		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
+		if (!$validation_site) {
 			return;
 		}
+		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 		$pdf = new Fpdi();
 		$pageCount = $pdf->setSourceFile($file->fopen('r'));
 
@@ -236,10 +253,10 @@ class LibresignController extends Controller {
 			$pdf->SetAutoPageBreak(false);
 			$pdf->SetXY(5, -10);
 
-			$pdf->Write(8, $this->l10n->t(
+			$pdf->Write(8, iconv('UTF-8', 'windows-1252', $this->l10n->t(
 				'Digital signed by LibreSign. Validate in %s',
-				$this->config->getAppValue(Application::APP_ID, 'validation_site')
-			));
+				$validation_site
+			)));
 		}
 
 		return $pdf->Output('S');
@@ -250,27 +267,14 @@ class LibresignController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 */
-	public function validate($uuid) {
+	public function validateUuid($uuid) {
 		try {
 			try {
-				$file = $this->fileMapper->getById($uuid);
+				$file = $this->fileMapper->getByUuid($uuid);
 			} catch (\Throwable $th) {
 				throw new LibresignException('Invalid data to validate file', 1);
 			}
-			if (!$file) {
-				throw new LibresignException('Invalid file identifier', 1);
-			}
-
-			$return['name'] = $file->getName();
-			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid]);
-			$signatures = $this->fileUserMapper->getByFileId($file->getFileId());
-			foreach ($signatures as $signature) {
-				$return['signatures'][] = [
-					'signed' => $signature->getSigned(),
-					'displayName' => $signature->getDisplayName(),
-					'fullName' => $signature->getFullName()
-				];
-			}
+			$return = $this->validate($file);
 			return new JSONResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
@@ -283,5 +287,50 @@ class LibresignController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function validateFileId($fileId) {
+		try {
+			try {
+				$file = $this->fileMapper->getByFileId($fileId);
+			} catch (\Throwable $th) {
+				throw new LibresignException('Invalid data to validate file', 1);
+			}
+			$return = $this->validate($file);
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			$message = $this->l10n->t($th->getMessage());
+			$this->logger->error($message);
+			return new JSONResponse(
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$message]
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+	}
+
+	private function validate($file) {
+		if (!$file) {
+			throw new LibresignException('Invalid file identifier', 1);
+		}
+
+		$return['name'] = $file->getName();
+		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
+		$signatures = $this->fileUserMapper->getByFileId($file->id);
+		foreach ($signatures as $signature) {
+			$return['signatures'][] = [
+				'signed' => $signature->getSigned(),
+				'displayName' => $signature->getDisplayName(),
+				'fullName' => $signature->getFullName()
+			];
+		}
+		return $return;
 	}
 }

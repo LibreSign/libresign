@@ -61,10 +61,9 @@
     "Root certificate data." : "Kök sertifika verileri.",
     "To generate new signatures, you must first generate the root certificate." : "Yeni imzalar oluşturmak için, öncelikle bir kök sertifika üretmelisiniz.",
     "Generate root certificate." : "Kök sertifikası üret.",
-    "Generating certificate..." : "Sertifika üretiliyor...",
+    "Generating certificate." : "Sertifika üretiliyor.",
     "Generated certificate!" : "Sertifika üretildi!",
     "Could not generate certificate." : "Sertifika üretilemedi.",
-    "Generate root certificate" : "Kök sertifikası üret",
     "Webhook" : "Web bağlantısı",
     "Select authorized groups." : "İzin verilen grupları seçin.",
     "Create new subscription." : "Yeni abonelik ekle.",
@@ -98,6 +97,9 @@
     "Choose your subscription location!" : "Abonelik konumunuzu seçin!",
     "Validation URL" : "Doğrulama adresi",
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
+    "Validate Subscription." : "Aboneliği doğrula.",
+    "Enter the UUID of the document to validate." : "Doğrulanacak belgenin UUID değerini yazın.",
+    "Validation" : "Doğrulama",
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

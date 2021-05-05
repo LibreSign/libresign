@@ -21,7 +21,10 @@
  */
 
 import { translate as t } from '@nextcloud/l10n'
+import { loadState } from '@nextcloud/initial-state'
 import SelectAction from '../helpers/SelectAction'
+
+const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const routes = [
 	{
@@ -30,7 +33,7 @@ const routes = [
 		component: () => import('../views/CreateSubscription'),
 	}, {
 		path: '/sign/:uuid',
-		redirect: { name: OC.appConfig.libresign ? SelectAction(OC.appConfig.libresign.action) : 'Home' },
+		redirect: { name: SelectAction(libresignVar.action) },
 	}, {
 		path: '/sign/:uuid',
 		component: () => import('../views/SignPDF'),
