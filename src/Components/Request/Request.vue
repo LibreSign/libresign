@@ -5,7 +5,7 @@
 			<input v-model="email" type="email" :placeholder="placeholderEmail">
 			<input v-model="description" type="text" :placeholder="placeholderDescription">
 			<button class="primary btn-inc" @click="addUser">
-				{{ t('libresign', 'Add user') }}
+				{{ t('libresign', 'Add') }}
 			</button>
 		</form>
 
@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
 import ListItem from '../ListItem'
 export default {
 	name: 'Request',
@@ -67,16 +69,28 @@ export default {
 			this.email = ''
 			this.description = ''
 		},
-		send() {
-			const file = {
-				url: 'https://www.ufms.br/wp-content/uploads/2017/09/PDF-teste.pdf',
-			}
+		async send() {
+
+			const id = window.location.href.split('fileid=')[1]
 			const name = 'teste'
 			const users = this.inputValues
-
+			try {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+					file: {
+						fileid: id,
+					},
+					name,
+					users,
+				})
+				// eslint-disable-next-line no-console
+				console.log(response)
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error(err)
+			}
 			// eslint-disable-next-line no-console
 			console.log({
-				file, name, users,
+				id, name, users,
 			})
 		},
 	},

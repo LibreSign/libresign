@@ -123,15 +123,15 @@ class LibresignController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signUsingFileid(string $password, string $file_id): JSONResponse {
-		return $this->sign($password, $file_id);
+	public function signUsingFileid(string $fileId, string $password): JSONResponse {
+		return $this->sign($password, $fileId);
 	}
 
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signUsingUuid(string $password, string $uuid): JSONResponse {
+	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		return $this->sign($password, null, $uuid);
 	}
 

@@ -10,7 +10,7 @@ return [
 		['name' => 'webhook#removeSignature',   'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
 		['name' => 'libresign#signDeprecated',  'url' => '/api/0.1/sign', 'verb' => 'POST'],
 		['name' => 'libresign#signUsingUuid',   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
-		['name' => 'libresign#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{uuid}', 'verb' => 'POST'],
+		['name' => 'libresign#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 		['name' => 'libresign#validateUuid',    'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libresign#validateFileId',  'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
 		['name' => 'account#createToSign',      'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],

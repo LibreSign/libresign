@@ -35,7 +35,7 @@
 			</button>
 		</div>
 
-		<Sign v-show="signShow" @sign:pdf="signRequest">
+		<Sign v-show="signShow" @sign:pdf="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="returnSign">
 					Retornar
@@ -98,6 +98,16 @@ export default {
 		sign() {
 			this.showButtons = false
 			this.signShow = true
+		},
+		async signDocument(param) {
+			// eslint-disable-next-line no-console
+			console.log(param)
+			const id = window.location.href.split('fileid=')[1]
+			const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${id}`), {
+				password: param,
+			})
+			// eslint-disable-next-line no-console
+			console.log(response)
 		},
 		returnSign() {
 			this.showButtons = true
