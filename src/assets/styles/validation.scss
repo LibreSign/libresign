@@ -1,7 +1,8 @@
 $text-color: #273849;
+$background: #ECEFFC;
 
 .jumbotron{
-	background-color: #ECEFFC;
+	background-color: $background;
 	padding: 0;
 }
 
@@ -49,6 +50,7 @@ form{
 	border-radius: 8px;
 	border: 1px solid var(--color-background-dark);
 	max-width: 500px;
+	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 
 	@media screen and (max-width: 900px) {
 		width: 100%;
@@ -101,6 +103,8 @@ button{
 	background-color: #FFF;
 	padding: 20px 60px 20px 20px;
 	border-radius: 8px;
+
+	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 }
 
 .info-document{
@@ -147,7 +151,7 @@ button{
 	display: flex;
 	flex-direction: column;
 	color: $text-color;
-	background-color: #D6D9DC;
+	background-color: $background;
 	border-radius: 8px;
 	padding: 5px 0px 5px 5px;
 	margin: 5px 5px 0px 0px;

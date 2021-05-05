@@ -41,7 +41,7 @@
 							class="scroll">
 							<div class="subscriber">
 								<span><b>{{ item.displayName ? item.displayName : "None" }}</b></span>
-								<span>{{ t('libresign', 'signed on: ') }} {{ item.signed }}</span>
+								<span>{{ formatDate(item.signed) }}</span>
 							</div>
 						</div>
 					</div>
@@ -63,6 +63,8 @@ import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
+// eslint-disable-next-line
+import {toDate, format} from 'date-fns'
 
 export default {
 	name: 'Validation',
@@ -104,6 +106,13 @@ export default {
 		},
 		changeInfo() {
 			this.hasInfo = !this.hasInfo
+		},
+		formatDate(date) {
+			if (date != null) {
+				return format(toDate(parseInt(date)), 'MM-dd-yyyy')
+			} else {
+				return t('libresign', 'no date')
+			}
 		},
 	},
 }
