@@ -26,64 +26,46 @@
 		:id="id"
 		:icon="icon"
 		:name="name">
-		<div v-if="error" class="emptycontent">
-			<div class="icon icon-error" />
-			<h2>{{ error }}</h2>
+		<div v-show="showButtons" class="buttons">
+			<button class="primary" @click="sign">
+				Assinar
+			</button>
+			<button class="primary" @click="request">
+				Solicitar assinatura
+			</button>
 		</div>
-		<div v-else-if="response" class="emptycontent">
-			<div class="icon icon-checkmark" />
-			<h2>{{ response }}</h2>
-		</div>
-		<div v-else id="libresignTabContent">
-			<label for="path">{{ t('libresign', 'Signature location.') }}</label>
-			<div class="form-group">
-				<input
-					id="path"
-					ref="path"
-					v-model="signaturePath"
-					type="text"
-					:disabled="1">
-				<button
-					id="pickFromCloud"
-					:class="'icon-folder'"
-					:title="t('libresign', 'Select signature file location.')"
-					:disabled="updating"
-					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Select signature.') }}
+
+		<Sign v-show="signShow" @sign:pdf="signRequest">
+			<template slot="actions">
+				<button class="return-button" @click="returnSign">
+					Retornar
 				</button>
-			</div>
-			<label for="password">{{ t('libresign', 'Signature password.') }}</label>
-			<div class="form-group">
-				<input
-					id="password"
-					v-model="password"
-					type="password"
-					:disabled="updating">
-			</div>
-			<input
-				type="button"
-				class="primary"
-				:value="t('libresign', 'Sign the document.')"
-				:disabled="updating || !savePossible"
-				@click="sign">
-		</div>
+			</template>
+		</Sign>
+		<Request v-show="requestShow">
+			<template slot="actions">
+				<button class="return-button" @click="returnRequest">
+					Retornar
+				</button>
+			</template>
+		</Request>
 	</AppSidebarTab>
 </template>
 
 <script>
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import Request from '../Components/Request'
 import axios from '@nextcloud/axios'
+import Sign from '../Components/Sign'
 import { generateUrl } from '@nextcloud/router'
-
-import { getFilePickerBuilder } from '@nextcloud/dialogs'
-import { joinPaths } from '@nextcloud/paths'
-import { translate as t } from '@nextcloud/l10n'
 
 export default {
 	name: 'LibresignTab',
 
 	components: {
 		AppSidebarTab,
+		Sign,
+		Request,
 	},
 	mixins: [],
 
@@ -96,13 +78,11 @@ export default {
 	},
 	data() {
 		return {
-			signaturePath: '',
-			password: '',
-			response: '',
 			icon: 'icon-rename',
-			updating: false,
-			loading: true,
-			name: t('libresign', 'Sign the document.'),
+			name: t('libresign', 'LibreSign'),
+			showButtons: true,
+			signShow: false,
+			requestShow: false,
 		}
 	},
 
@@ -113,78 +93,51 @@ export default {
 		activeTab() {
 			return this.$parent.activeTab
 		},
-		savePossible() {
-			return (
-				this.password !== ''
-				&& this.signaturePath !== ''
-			)
-		},
 	},
 	methods: {
-		async sign() {
-			this.updating = true
-			this.response = ''
-			this.error = ''
-			try {
-				const response = await axios.post(
-					generateUrl('/apps/libresign/api/0.1/sign'),
-					{
-						inputFilePath: joinPaths(this.fileInfo.get('path'), this.fileInfo.get('name')),
-						outputFolderPath: this.fileInfo.get('path'),
-						certificatePath: this.signaturePath,
-						password: this.password,
-					}
-				)
-				if (!response.data || !response.data.fileSigned) {
-					throw new Error(response.data)
-				}
-				this.response = t('libresign', 'Signed document available at {place}', { place: response.data.fileSigned })
-
-			} catch (e) {
-				console.error(e)
-				this.error = t('libresign', 'Could not sign document!')
-			}
-			this.updating = false
+		sign() {
+			this.showButtons = false
+			this.signShow = true
+		},
+		returnSign() {
+			this.showButtons = true
+			this.signShow = false
+		},
+		request() {
+			this.showButtons = false
+			this.requestShow = true
+		},
+		returnRequest() {
+			this.showButtons = true
+			this.requestShow = false
 		},
 
-		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('libresign', 'Choose your subscription location!'))
-				.setMultiSelect(false)
-				.addMimeTypeFilter('application/octet-stream')
-				.setModal(true)
-				.setType(1)
-				.allowDirectories(false)
-				.build()
-
-			picker.pick().then((path) => {
-				this.signaturePath = path
+		async signRequest(param) {
+			const uuid = ''
+			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/sign/${uuid}`), {
+				password: param,
 			})
+
+			// eslint-disable-next-line no-console
+			console.log(response)
 		},
 	},
 }
 </script>
-
-<style scoped>
-
-#libresignTabContent {
+<style lang="scss" scoped>
+.buttons{
 	display: flex;
 	flex-direction: column;
+	width: 100%;
+	button{
+		width: 100%
+	}
 }
 
-.form-group > input {
-	width: 50%;
-}
-
-.form-group > input[type='button'] {
+.return-button{
 	width: 80%;
-	margin: 2em;
+	align-self: center;
+	position:absolute;
+	bottom: 10px;
 }
-
-#pickFromCloud{
-	display: inline-block;
-	background-position: 16px center;
-	padding: 12px;
-	padding-left: 44px;
-}
-
 </style>
