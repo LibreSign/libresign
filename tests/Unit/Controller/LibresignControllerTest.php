@@ -91,7 +91,7 @@ final class LibresignControllerTest extends TestCase {
 			$userId
 		);
 
-		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
+		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 		static::assertSame(['fileSigned' => '/path/to/someFileSigned'], $result->getData());
 	}
@@ -153,7 +153,7 @@ final class LibresignControllerTest extends TestCase {
 			$userId
 		);
 
-		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
+		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 		static::assertSame(["parameter '{$paramenterMissing}' is required!"], $result->getData()['errors']);
 		static::assertSame(422, $result->getStatus());
