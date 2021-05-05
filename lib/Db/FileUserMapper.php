@@ -107,4 +107,19 @@ class FileUserMapper extends QBMapper {
 
 		return $this->findEntity($qb);
 	}
+
+	public function getByFileIdAndUserId(string $file_id, string $userId) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_STR))
+			)
+			->andWhere(
+				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+			);
+
+		return $this->findEntity($qb);
+	}
 }

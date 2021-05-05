@@ -84,8 +84,9 @@ class LibresignController extends Controller {
 	 * @NoCSRFRequired
 	 *
 	 * @todo remove NoCSRFRequired
+	 * @deprecated
 	 */
-	public function sign(
+	public function signDeprecated(
 		string $inputFilePath = null,
 		string $outputFolderPath = null,
 		string $certificatePath = null,
@@ -122,10 +123,26 @@ class LibresignController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signUsingUuid(string $uuid, string $password): JSONResponse {
+	public function signUsingFileid(string $password, string $file_id): JSONResponse {
+		return $this->sign($password, $file_id);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function signUsingUuid(string $password, string $uuid): JSONResponse {
+		return $this->sign($password, null, $uuid);
+	}
+
+	public function sign(string $password, string $file_id = null, string $uuid = null): JSONResponse {
 		try {
 			try {
-				$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+				if ($file_id) {
+					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($file_id, $this->userId);
+				} else {
+					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
