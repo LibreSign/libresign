@@ -69,9 +69,6 @@ stylelint:
 docs:
 	cd docs; yarn dev
 
-swagger-gen:
-	runuser --user www-data -- /usr/local/bin/php ../../occ libresign:swagger-gen > docs/src/specs/api.yaml
-
 # Cleaning
 .PHONY: clean
 clean:
