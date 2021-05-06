@@ -7,6 +7,7 @@
 
 		<InputLS class="input"
 			:type="'password'"
+			:disabled="disabled"
 			@submit="sign" />
 
 		<EmptyContent class="emp-content">
@@ -36,6 +37,13 @@ export default {
 		Avatar,
 		InputLS,
 		EmptyContent,
+	},
+	props: {
+		disabled: {
+			type: Boolean,
+			require: false,
+			default: false,
+		},
 	},
 	data() {
 		return {

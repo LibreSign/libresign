@@ -4,7 +4,8 @@
 			v-model="value"
 			class="input__input"
 			:placeholder="placeholder"
-			:type="type">
+			:type="type"
+			:disabled="disabled">
 		<button class="icon-confirm" @click="onSubmit" />
 	</form>
 </template>
@@ -22,6 +23,11 @@ export default {
 			type: String,
 			require: false,
 			default: '',
+		},
+		disabled: {
+			type: Boolean,
+			require: false,
+			default: false,
 		},
 	},
 

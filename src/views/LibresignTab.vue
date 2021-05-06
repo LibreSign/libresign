@@ -35,7 +35,7 @@
 			</button>
 		</div>
 
-		<Sign v-show="signShow" @sign:pdf="signDocument">
+		<Sign v-show="signShow" :disabled="disabledSign" @sign:pdf="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="returnSign">
 					Retornar
@@ -54,6 +54,7 @@
 
 <script>
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import Request from '../Components/Request'
 import axios from '@nextcloud/axios'
 import Sign from '../Components/Sign'
@@ -83,6 +84,7 @@ export default {
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
+			disabledSign: false,
 		}
 	},
 
@@ -94,20 +96,23 @@ export default {
 			return this.$parent.activeTab
 		},
 	},
+
 	methods: {
 		sign() {
 			this.showButtons = false
 			this.signShow = true
 		},
 		async signDocument(param) {
-			// eslint-disable-next-line no-console
-			console.log(param)
-			const id = window.location.href.split('fileid=')[1]
-			const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${id}`), {
-				password: param,
-			})
-			// eslint-disable-next-line no-console
-			console.log(response)
+			try {
+				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+					password: param,
+				})
+				showSuccess(response.data.message)
+				this.disabledSign = true
+			} catch (err) {
+				console.error(err.response)
+				showError(err.response.data.errors[0])
+			}
 		},
 		returnSign() {
 			this.showButtons = true
