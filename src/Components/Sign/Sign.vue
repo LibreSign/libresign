@@ -57,41 +57,12 @@ export default {
 	},
 	methods: {
 		sign(param) {
-			this.$emit('sign:pdf', param)
+			this.$emit('sign:document', param)
 		},
 	},
 }
 </script>
 
 <style lang="scss" scoped>
-.container{
-	display: flex;
-	flex-direction: column;
-
-	.avatar-local{
-		display: flex;
-		flex-direction: row;
-		align-self: flex-start;
-		margin: 10px 0;
-
-		span{
-			margin: 0 10px;
-		}
-	}
-
-	.input{
-		margin-left: 40px;
-	}
-	.emp-content{
-		margin-top: 10vh !important;
-
-		p{
-			opacity: .6;
-		}
-
-		img{
-			width: 400px;
-		}
-	}
-}
+@import './styles';
 </style>
