@@ -64,7 +64,11 @@ export default {
 		display: flex;
 		flex-direction: row;
 		align-self: flex-start;
-		margin-top: 10px;
+		margin: 10px 0;
+
+		span{
+			margin: 0 10px;
+		}
 	}
 
 	.input{
