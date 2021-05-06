@@ -28,17 +28,17 @@
 		:name="name">
 		<div v-show="showButtons" class="buttons">
 			<button class="primary" @click="option('sign')">
-				Assinar
+				{{ t('libresign', 'Sign') }}
 			</button>
 			<button class="primary" @click="option('request')">
-				Solicitar assinatura
+				{{ t('libresign', 'Request subscription') }}
 			</button>
 		</div>
 
 		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="option('sign')">
-					Retornar
+					{{ t('libresign', 'Turn back') }}
 				</button>
 			</template>
 		</Sign>
@@ -46,7 +46,7 @@
 		<Request v-show="requestShow" :fileinfo="info" @request:signatures="requestSignatures">
 			<template slot="actions">
 				<button class="return-button" @click="option('request')">
-					Retornar
+					{{ t('libresign', 'Turn back') }}
 				</button>
 			</template>
 		</Request>
