@@ -46,23 +46,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-form{
-	display: flex;
-	flex-direction: row !important;
-	border: 1px solid #cecece;
-	align-items: center;
-
-	input{
-		border: none;
-		width: 100%;
-		padding-left: 15px
-	}
-
-	button{
-		width: 24px;
-		height: 24px;
-		border: none;
-		background-color: transparent;
-	}
-}
+@import './styles';
 </style>

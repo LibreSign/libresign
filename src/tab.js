@@ -21,55 +21,17 @@
  *
  */
 
-import Vue from 'vue'
 import LibresignTab from './views/LibresignTab'
-
-const isEnabled = function(fileInfo) {
-	if (fileInfo && fileInfo.isDirectory()) {
-		return false
-	}
-
-	const mimetype = fileInfo.get('mimetype') || ''
-	if (mimetype === 'application/pdf') {
-		return true
-	}
-
-	return false
-}
-
-Vue.prototype.t = t
-
-// Init LibreSign tab component
-const View = Vue.extend(LibresignTab)
-let TabInstance = null
 
 window.addEventListener('DOMContentLoaded', () => {
 	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab({
-			id: 'libresign',
-			name: t('libresign', 'LibreSign'),
-			icon: 'icon-rename',
-			enabled: isEnabled,
+		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab('libresign', LibresignTab, (fileInfo) => {
+			if (!fileInfo || fileInfo.isDirectory()) {
+				return false
+			}
 
-			async mount(el, fileInfo, context) {
-				if (TabInstance) {
-					TabInstance.$destroy()
-				}
-				TabInstance = new View({
-					// Better integration with vue parent component
-					parent: context,
-				})
-				// Only mount after we have all the info we need
-				await TabInstance.update(fileInfo)
-				TabInstance.$mount(el)
-			},
-			update(fileInfo) {
-				TabInstance.update(fileInfo)
-			},
-			destroy() {
-				TabInstance.$destroy()
-				TabInstance = null
-			},
+			const mimetype = fileInfo.get('mimetype') || ''
+			return mimetype === 'application/pdf'
 		}))
 	}
 })

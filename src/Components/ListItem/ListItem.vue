@@ -11,9 +11,7 @@
 		</div>
 		<div id="options">
 			<Actions>
-				<ActionButton icon="icon-delete" @click="removeUser(user)">
-					{{ t('libresign', 'Delete user.') }}
-				</ActionButton>
+				<ActionButton icon="icon-delete" @click="removeUser(user)" />
 			</Actions>
 		</div>
 	</div>
@@ -53,35 +51,5 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-	.container{
-		width: 93%;
-		height: 100%;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-direction: row;
-
-		#content{
-			display: flex;
-			flex-direction: column;
-			max-width: 240px;
-			align-items: flex-start;
-			max-height: 70px;
-			padding-top: 0;
-			padding-left: 10px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			text-align: start;
-			color: #000;
-
-			.title{
-				font-weight: bold;
-			}
-			.description{
-				height: 10vh;
-				color: lighten(#000000, 10%)
-			}
-		}
-
-	}
+@import './styles';
 </style>

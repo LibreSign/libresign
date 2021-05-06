@@ -22,41 +22,38 @@
 -->
 
 <template>
-	<AppSidebar title="LibreSign">
-		<AppSidebarTab
-			:id="id"
-			:icon="icon"
-			:name="name">
-			<div v-show="showButtons" class="buttons">
-				<button class="primary" @click="sign">
-					Assinar
-				</button>
-				<button class="primary" @click="request">
-					Solicitar assinatura
-				</button>
-			</div>
+	<AppSidebarTab
+		:id="id"
+		:icon="icon"
+		:name="name">
+		<div v-show="showButtons" class="buttons">
+			<button class="primary" @click="option('sign')">
+				{{ t('libresign', 'Sign') }}
+			</button>
+			<button class="primary" @click="option('request')">
+				{{ t('libresign', 'Request subscription') }}
+			</button>
+		</div>
 
-			<Sign v-show="signShow" :disabled="disabledSign" @sign:pdf="signDocument">
-				<template slot="actions">
-					<button class="return-button" @click="returnSign">
-						Retornar
-					</button>
-				</template>
-			</Sign>
-			<Request v-show="requestShow" :fileinfo="info" @request:signature="request">
-				<template slot="actions">
-					<button class="return-button" @click="requestSignature">
-						Retornar
-					</button>
-					<template />
-				</template>
-			</request>
-		</AppSidebarTab>
-	</AppSidebar>
+		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
+			<template slot="actions">
+				<button class="return-button" @click="option('sign')">
+					{{ t('libresign', 'Turn back') }}
+				</button>
+			</template>
+		</Sign>
+
+		<Request v-show="requestShow" :fileinfo="info" @request:signatures="requestSignatures">
+			<template slot="actions">
+				<button class="return-button" @click="option('request')">
+					{{ t('libresign', 'Turn back') }}
+				</button>
+			</template>
+		</Request>
+	</AppSidebarTab>
 </template>
 
 <script>
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import Request from '../Components/Request'
@@ -68,112 +65,92 @@ export default {
 	name: 'LibresignTab',
 
 	components: {
-		AppSidebar,
 		AppSidebarTab,
 		Sign,
 		Request,
 	},
+
 	mixins: [],
+
+	props: {
+		fileInfo: {
+			type: Object,
+			default: () => {},
+			required: true,
+		},
+	},
 
 	data() {
 		return {
-			showButtons: false,
+			icon: 'icon-rename',
+			name: t('libresign', 'LibreSign'),
+			showButtons: true,
 			signShow: false,
 			requestShow: false,
 			disabledSign: false,
 			info: this.fileInfo,
-			fileInfo: null,
 		}
 	},
 
-	created() {
-		this.getInfo()
+	computed: {
+		id() {
+			return 'libresignTab'
+		},
+		activeTab() {
+			return this.$parent.activeTab
+		},
 	},
 
 	methods: {
-		/**
-		 * Update current fileInfo and fetch new data
-		 * @param {Object} fileInfo the current file FileInfo
-		 */
-		async update(fileInfo) {
-			this.fileInfo = fileInfo
-			this.resetState()
-		},
-		/**
-		 * Reset the current view to its default state
-		 */
-		resetState() {
-			this.showButtons = true
-			this.signShow = false
-		},
 		async getInfo() {
 			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 			// eslint-disable-next-line no-console
 			console.log(response)
 		},
-		sign() {
-			this.showButtons = false
-			this.signShow = true
-		},
+
 		async signDocument(param) {
 			try {
 				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 				showSuccess(response.data.message)
-				this.disabledSign = true
+				this.option('sign')
 			} catch (err) {
-				console.error(err.response)
 				showError(err.response.data.errors[0])
 			}
 		},
-		returnSign() {
-			this.showButtons = true
-			this.signShow = false
-		},
-		request() {
-			this.showButtons = false
-			this.requestShow = true
-		},
-		returnRequest() {
-			this.showButtons = true
-			this.requestShow = false
-		},
-		async requestSignature(param) {
-			// const id = this.fileInfo.id
-			// eslint-disable-next-line no-console
-			console.log(this.fileInfo)
-			const name = 'teste'
-			const users = param
+
+		async requestSignatures(users) {
 			try {
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
 					file: {
-						fileid: this.fileInfo.id,
+						fileId: this.info.id,
 					},
-					name,
+					name: this.info.name.split('.pdf')[0],
 					users,
 				})
 				// eslint-disable-next-line no-console
 				console.log(response)
+				showSuccess(response.data.message)
 			} catch (err) {
-				// eslint-disable-next-line no-console
 				console.error(err)
+				showError(err.response.data.errors[0])
 			}
 		},
 
-		async signRequest(param) {
-			const uuid = ''
-			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/sign/${uuid}`), {
-				password: param,
-			})
-
-			// eslint-disable-next-line no-console
-			console.log(response)
+		option(value) {
+			if (value === 'sign') {
+				this.showButtons = !this.showButtons
+				this.signShow = !this.signShow
+			} else if (value === 'request') {
+				this.showButtons = !this.showButtons
+				this.requestShow = !this.requestShow
+			}
 		},
 	},
 }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .buttons{
 	display: flex;
 	flex-direction: column;
@@ -186,9 +163,7 @@ export default {
 .return-button{
 	width: 80%;
 	align-self: center;
-}
-
-#tab-libresign .app-sidebar-header {
-	display: none;
+	position:absolute;
+	bottom: 10px;
 }
 </style>
