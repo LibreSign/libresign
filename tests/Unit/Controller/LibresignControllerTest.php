@@ -13,9 +13,11 @@ use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Log\LoggerInterface;
@@ -43,6 +45,8 @@ final class LibresignControllerTest extends TestCase {
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		$config = $this->createMock(IConfig::class);
+		$userSession = $this->createMock(IUserSession::class);
+		$groupManager = $this->createMock(IGroupManager::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
 		$outputFolderPath = '/path/to/someOutputFolderPath';
@@ -88,7 +92,8 @@ final class LibresignControllerTest extends TestCase {
 			$logger,
 			$urlGenerator,
 			$config,
-			$userId
+			$userSession,
+			$groupManager
 		);
 
 		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
@@ -134,6 +139,8 @@ final class LibresignControllerTest extends TestCase {
 		$logger = $this->createMock(LoggerInterface::class);
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$config = $this->createMock(IConfig::class);
+		$userSession = $this->createMock(IUserSession::class);
+		$groupManager = $this->createMock(IGroupManager::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -150,7 +157,8 @@ final class LibresignControllerTest extends TestCase {
 			$logger,
 			$urlGenerator,
 			$config,
-			$userId
+			$userSession,
+			$groupManager
 		);
 
 		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
