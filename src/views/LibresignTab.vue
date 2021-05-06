@@ -42,9 +42,9 @@
 				</button>
 			</template>
 		</Sign>
-		<Request v-show="requestShow">
+		<Request v-show="requestShow" :fileinfo="info" @request:signature="request">
 			<template slot="actions">
-				<button class="return-button" @click="returnRequest">
+				<button class="return-button" @click="requestSignature">
 					Retornar
 				</button>
 			</template>
@@ -85,6 +85,7 @@ export default {
 			signShow: false,
 			requestShow: false,
 			disabledSign: false,
+			info: this.fileInfo,
 		}
 	},
 
@@ -97,7 +98,16 @@ export default {
 		},
 	},
 
+	created() {
+		this.getInfo()
+	},
+
 	methods: {
+		async getInfo() {
+			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+			// eslint-disable-next-line no-console
+			console.log(response)
+		},
 		sign() {
 			this.showButtons = false
 			this.signShow = true
@@ -125,6 +135,27 @@ export default {
 		returnRequest() {
 			this.showButtons = true
 			this.requestShow = false
+		},
+		async requestSignature(param) {
+			// const id = this.fileInfo.id
+			// eslint-disable-next-line no-console
+			console.log(this.fileInfo)
+			const name = 'teste'
+			const users = param
+			try {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+					file: {
+						fileid: this.fileInfo.id,
+					},
+					name,
+					users,
+				})
+				// eslint-disable-next-line no-console
+				console.log(response)
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error(err)
+			}
 		},
 
 		async signRequest(param) {

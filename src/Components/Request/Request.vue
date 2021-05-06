@@ -4,7 +4,7 @@
 		<form @submit="e => e.preventDefault()">
 			<input v-model="email" type="email" :placeholder="placeholderEmail">
 			<input v-model="description" type="text" :placeholder="placeholderDescription">
-			<button class="primary btn-inc" @click="addUser">
+			<button :disabled="!hasEmail" class="primary btn-inc" @click="addUser">
 				{{ t('libresign', 'Add') }}
 			</button>
 		</form>
@@ -31,10 +31,18 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import ListItem from '../ListItem'
+import { validateEmail } from '../../utils/validators'
 export default {
 	name: 'Request',
 	components: {
 		ListItem,
+	},
+	props: {
+		fileinfo: {
+			type: Object,
+			default: () => {},
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -54,6 +62,9 @@ export default {
 		placeholderDescription() {
 			return t('libresign', 'Description.')
 		},
+		hasEmail(val) {
+			return validateEmail(this.email)
+		},
 	},
 	methods: {
 		removeValue(value) {
@@ -69,29 +80,17 @@ export default {
 			this.email = ''
 			this.description = ''
 		},
-		async send() {
-
-			const id = window.location.href.split('fileid=')[1]
-			const name = 'teste'
-			const users = this.inputValues
-			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
-					file: {
-						fileid: id,
-					},
-					name,
-					users,
-				})
-				// eslint-disable-next-line no-console
-				console.log(response)
-			} catch (err) {
-				// eslint-disable-next-line no-console
-				console.error(err)
-			}
-			// eslint-disable-next-line no-console
-			console.log({
-				id, name, users,
+		async send(param) {
+			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+				file: {
+					fileid: this.fileinfo.id,
+				},
+				name: this.fileinfo.name.split('.pdf')[0],
+				users: this.inputValues,
 			})
+			// eslint-disable-next-line no-console
+			console.log(response)
+
 		},
 	},
 }
