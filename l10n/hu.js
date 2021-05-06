@@ -34,7 +34,6 @@ OC.L10N.register(
     "Name is mandatory" : "A név megadása kötelező",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "A név csak \"a-z\", \"A-Z\", \"0-9\" és \"-_\" karaktereket tartalmazhat.",
     "Empty file" : "Üres fájl",
-    "Inform URL or base64 to sign" : "Tájékoztó az URL-t vagy a base64 az aláíráshoz",
     "Invalid base64 file" : "Érvénytelen base64 fájl",
     "Invalid UUID file" : "Érvénytelen UUID fájl",
     "Empty users list" : "Üres felhasználói lista",
