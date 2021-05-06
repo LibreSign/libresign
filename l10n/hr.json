@@ -31,7 +31,6 @@
     "Name is mandatory" : "Ime je obavezno",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Ime može sadržavati samo znakove „a – z”, „A – Z”, „0 – 9” i „-_”.",
     "Empty file" : "Prazna datoteka",
-    "Inform URL or base64 to sign" : "Inform URL ili base64 za potpisivanje",
     "Invalid base64 file" : "Nevažeća base64 datoteka",
     "Invalid UUID file" : "Nevažeća UUID datoteka",
     "Empty users list" : "Prazan popis korisnika",

@@ -34,7 +34,6 @@ OC.L10N.register(
     "Name is mandatory" : "Name ist erforderlich",
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Der Name darf nur \"a-z\", \"A-Z\", \"0-9\" und \"-_\" Zeichen enthalten.",
     "Empty file" : "Leere Datei",
-    "Inform URL or base64 to sign" : "URL oder base64 zum unterschreiben mitteilen",
     "Invalid base64 file" : "Ungültige Base64 Datei",
     "Invalid UUID file" : "Ungültige UUID Datei",
     "Empty users list" : "Leere Benutzerliste",
