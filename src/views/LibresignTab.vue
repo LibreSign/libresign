@@ -27,24 +27,25 @@
 		:icon="icon"
 		:name="name">
 		<div v-show="showButtons" class="buttons">
-			<button class="primary" @click="sign">
+			<button class="primary" @click="option('sign')">
 				Assinar
 			</button>
-			<button class="primary" @click="request">
+			<button class="primary" @click="option('request')">
 				Solicitar assinatura
 			</button>
 		</div>
 
-		<Sign v-show="signShow" :disabled="disabledSign" @sign:pdf="signDocument">
+		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
 			<template slot="actions">
-				<button class="return-button" @click="returnSign">
+				<button class="return-button" @click="option('sign')">
 					Retornar
 				</button>
 			</template>
 		</Sign>
-		<Request v-show="requestShow" :fileinfo="info" @request:signature="request">
+
+		<Request v-show="requestShow" :fileinfo="info" @request:signatures="requestSignatures">
 			<template slot="actions">
-				<button class="return-button" @click="requestSignature">
+				<button class="return-button" @click="option('request')">
 					Retornar
 				</button>
 			</template>
@@ -68,6 +69,7 @@ export default {
 		Sign,
 		Request,
 	},
+
 	mixins: [],
 
 	props: {
@@ -77,6 +79,7 @@ export default {
 			required: true,
 		},
 	},
+
 	data() {
 		return {
 			icon: 'icon-rename',
@@ -98,9 +101,9 @@ export default {
 		},
 	},
 
-	created() {
-		this.getInfo()
-	},
+	// created() {
+	// 	this.getInfo()
+	// },
 
 	methods: {
 		async getInfo() {
@@ -108,64 +111,45 @@ export default {
 			// eslint-disable-next-line no-console
 			console.log(response)
 		},
-		sign() {
-			this.showButtons = false
-			this.signShow = true
-		},
+
 		async signDocument(param) {
 			try {
 				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 				showSuccess(response.data.message)
-				this.disabledSign = true
+				this.option('sign')
 			} catch (err) {
-				console.error(err.response)
 				showError(err.response.data.errors[0])
 			}
 		},
-		returnSign() {
-			this.showButtons = true
-			this.signShow = false
-		},
-		request() {
-			this.showButtons = false
-			this.requestShow = true
-		},
-		returnRequest() {
-			this.showButtons = true
-			this.requestShow = false
-		},
-		async requestSignature(param) {
-			// const id = this.fileInfo.id
-			// eslint-disable-next-line no-console
-			console.log(this.fileInfo)
-			const name = 'teste'
-			const users = param
+
+		async requestSignatures(users) {
 			try {
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
 					file: {
-						fileid: this.fileInfo.id,
+						fileId: this.info.id,
 					},
-					name,
+					name: this.info.name.split('.pdf')[0],
 					users,
 				})
 				// eslint-disable-next-line no-console
 				console.log(response)
+				showSuccess(response.data.message)
 			} catch (err) {
-				// eslint-disable-next-line no-console
 				console.error(err)
+				showError(err.response.data.errors[0])
 			}
 		},
 
-		async signRequest(param) {
-			const uuid = ''
-			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/sign/${uuid}`), {
-				password: param,
-			})
-
-			// eslint-disable-next-line no-console
-			console.log(response)
+		option(value) {
+			if (value === 'sign') {
+				this.showButtons = !this.showButtons
+				this.signShow = !this.signShow
+			} else if (value === 'request') {
+				this.showButtons = !this.showButtons
+				this.requestShow = !this.requestShow
+			}
 		},
 	},
 }

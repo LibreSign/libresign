@@ -1,9 +1,8 @@
 <template>
 	<div class="form-rs-container">
-		<h1>{{ t('libresign', 'Request for signatures') }}</h1>
 		<form @submit="e => e.preventDefault()">
-			<input v-model="email" type="email" :placeholder="placeholderEmail">
-			<input v-model="description" type="text" :placeholder="placeholderDescription">
+			<input v-model="email" type="email" :placeholder="t('libresign', 'E-mail')">
+			<input v-model="description" type="text" :placeholder=" t('libresign', 'Description.')">
 			<button :disabled="!hasEmail" class="primary btn-inc" @click="addUser">
 				{{ t('libresign', 'Add') }}
 			</button>
@@ -14,12 +13,12 @@
 				<span>{{ t('libresign', 'Users') }}</span>
 			</div>
 			<ul class="list-users">
-				<li v-for="values in inputValues" :key="values.email" class="list-uses-item">
-					<ListItem :user="values" :description="values.description" @remove-user="removeValue" />
+				<li v-for="value in values" :key="value.email" class="list-uses-item">
+					<ListItem :user="value" :description="value.description" @remove-user="removeValue" />
 				</li>
 			</ul>
 
-			<button class="primary btn" @click="send">
+			<button class="primary btn" @click.prevent="send">
 				{{ t('libresign', 'Submit Request') }}
 			</button>
 		</div>
@@ -28,8 +27,7 @@
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+// import axios from tUrl } from '@nextcloud/router'
 import ListItem from '../ListItem'
 import { validateEmail } from '../../utils/validators'
 export default {
@@ -46,21 +44,14 @@ export default {
 	},
 	data() {
 		return {
-			inputValues: [],
-			idKey: 0,
+			values: [],
 			email: '',
 			description: '',
 		}
 	},
 	computed: {
 		hasUsers(val) {
-			return !(this.inputValues.length <= 0)
-		},
-		placeholderEmail() {
-			return t('libresign', 'E-mail.')
-		},
-		placeholderDescription() {
-			return t('libresign', 'Description.')
+			return !(this.values.length <= 0)
 		},
 		hasEmail(val) {
 			return validateEmail(this.email)
@@ -68,104 +59,37 @@ export default {
 	},
 	methods: {
 		removeValue(value) {
-			this.inputValues = this.inputValues.filter(ft => {
+			this.values = this.values.filter(ft => {
 				return ft !== value
 			})
 		},
 		addUser() {
-			this.inputValues.push({
+			this.values.push({
 				email: this.email,
 				description: this.description,
 			})
+			this.clearForm()
+		},
+		clearForm() {
 			this.email = ''
 			this.description = ''
 		},
 		async send(param) {
-			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
-				file: {
-					fileid: this.fileinfo.id,
-				},
-				name: this.fileinfo.name.split('.pdf')[0],
-				users: this.inputValues,
-			})
-			// eslint-disable-next-line no-console
-			console.log(response)
+			this.$emit('request:signatures', this.values)
+			// const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+			// : {
+			// fileid: this.fileinfo.id,
+			// },
+			// name: this.fileinfo.name.split('.pdf')[0],
+			// users: this.values,
+			// })
+			// // eslint-disable-next-line no-console
+			// console.log(response)
 
 		},
 	},
 }
 </script>
 <style lang="scss" scoped>
-.form-rs-container{
-	display: flex;
-	flex-direction: column;
-
-	form{
-		display: flex;
-		width: 100%;
-
-		input{
-			width: 40%
-		}
-
-		.btn-inc{
-			width: 20%;
-		}
-	}
-
-	h1{
-		align-self: center;
-		font-size: 1.4rem;
-		font-weight: bold;
-		margin-bottom: 20px;
-	}
-
-	.input-select{
-		margin-bottom: 20px;
-	}
-	.list-users-selected{
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		width: 100%;
-		border: 1px solid #cecece;
-		border-radius: 10px;
-
-		#title{
-			display: flex;
-			flex-direction: row;
-			align-items: center;
-			margin: 10px 0;
-
-			span{
-				font-size: 1rem;
-				font-weight: 400;
-			}
-		}
-
-		.list-users{
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			width: 100%;
-			overflow-y: scroll;
-			overflow-x: hidden;
-			max-height: 240px;
-
-			li{
-				width: 100%;
-				max-height: 90px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-			}
-		}
-
-		.btn{
-			width: 80%;
-			margin: 12px 0;
-		}
-	}
-
-}
+@import './styles';
 </style>
