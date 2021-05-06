@@ -101,10 +101,6 @@ export default {
 		},
 	},
 
-	// created() {
-	// 	this.getInfo()
-	// },
-
 	methods: {
 		async getInfo() {
 			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
