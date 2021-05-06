@@ -8467,7 +8467,7 @@ vuepress-plugin-smooth-scroll@^0.0.3:
   dependencies:
     smoothscroll-polyfill "^0.4.3"
 
-vuepress-theme-openapi@^1.3.2:
+vuepress-theme-openapi@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/vuepress-theme-openapi/-/vuepress-theme-openapi-1.6.0.tgz#33745770edbf788acdf9b6b006948b0916d1cf7a"
   integrity sha512-5suYK8Vnw6DflgLfkGMZqY+gmEuiKfjOCXE2S8l9uRcAsxwiw72yqQ/IJRHavflFWeHCFMyNjKP96PA2SyYGWw==
