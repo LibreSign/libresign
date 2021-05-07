@@ -701,6 +701,71 @@ paths:
                     type: string
                     description: Description of the failure that occurred
                     example: User 0 needs an email address
+  /signature/generate:
+    post:
+      tags:
+        - sign
+      summary: Generates signature key
+      description: Generates the personal signature key
+      security:
+        - basicAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commonName:
+                  type: string
+                  description: Common name
+                  example: CommonName
+                country:
+                  type: string
+                  description: Country name
+                  example: Brazil
+                organization:
+                  type: string
+                  description: Organization
+                  example: Organization
+                organizationUnit:
+                  type: string
+                  description: Organization unit
+                  example: organizationUnit
+                hosts:
+                  type: array
+                  description: Not used
+                  example: []
+                path:
+                  type: string
+                  description: Path to save pfx file
+                  example: /LibreSign
+                password:
+                  type: string
+                  format: password
+                  description: Password to pfx file
+                  example: MySecretP4ssword!
+      responses:
+        200:
+          description: Folder where the pfx file was saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signature:
+                    type: string
+                    description: Folder where the pfx file was saved
+                    example: /LibreSign
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Parameter 'country' is required
   /admin/certificate:
     post:
       tags:
