@@ -354,6 +354,8 @@ paths:
                 password:
                   type: string
                   example: Ultr4S3cretP3ssword!
+              required:
+                - password
       responses:
         200:
           description: Success!
@@ -411,6 +413,8 @@ paths:
                 password:
                   type: string
                   example: Ultr4S3cretP3ssword!
+              required:
+                - password
       responses:
         200:
           description: Success!
