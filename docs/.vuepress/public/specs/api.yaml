@@ -654,7 +654,7 @@ paths:
                 - signPassword
       responses:
         200:
-          description: Success!
+          description: Success! When you create a person, they are automatically authenticated.
           content:
             application/json:
               schema:
