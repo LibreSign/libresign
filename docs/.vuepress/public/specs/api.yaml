@@ -615,6 +615,94 @@ paths:
                     example: true
       security:
         - basicAuth: []
+  /account/create/{uuid}:
+    get:
+      tags:
+        - sign
+      summary: Create person account to sign a document
+      description: Accounts can only be created to sign documents..
+      parameters:
+        - name: uuid
+          in: path
+          description: File UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
+            example: 46d30465-ae11-484b-aad5-327249a1e8ef
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email of the person who owns the account
+                  example: user@test.coop
+                password:
+                  type: string
+                  format: password
+                  description: Password used to authenticate to Nextcloud
+                  example: Ultr4S3cretP3ssword!
+                signPassword:
+                  type: string
+                  format: password
+                  description: Password used to sign a document
+                  example: Ultr4S3cretP3ssword!
+              required:
+                - email
+                - password
+                - signPassword
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: Success
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 250
+                  pdf:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: URL to view PDF
+                        example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
+                  filename:
+                    type: string
+                    pattern: '^[\w \-_]+$'
+                    example: filename
+                    description: The name of file to sign
+                  description:
+                    type: string
+                    description: Description for the person who will sign the document
+                    example: As the company's CEO, you must sign this contract
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 200
+                  message:
+                    type: string
+                    description: Description of the failure that occurred
+                    example: User 0 needs an email address
 components:
   securitySchemes:
     basicAuth:
