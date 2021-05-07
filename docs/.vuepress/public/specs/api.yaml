@@ -618,7 +618,7 @@ paths:
       tags:
         - sign
       summary: Create person account to sign a document
-      description: Accounts can only be created to sign documents..
+      description: Accounts can only be created to sign documents.
       parameters:
         - name: uuid
           in: path
