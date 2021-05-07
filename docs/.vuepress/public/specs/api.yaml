@@ -301,6 +301,7 @@ paths:
                   type: string
                 password:
                   type: string
+                  format: password
               required:
                 - inputFilePath
                 - outputFolderPath
@@ -353,6 +354,7 @@ paths:
               properties:
                 password:
                   type: string
+                  format: password
                   example: Ultr4S3cretP3ssword!
               required:
                 - password
@@ -412,6 +414,7 @@ paths:
               properties:
                 password:
                   type: string
+                  format: password
                   example: Ultr4S3cretP3ssword!
               required:
                 - password
