@@ -37,17 +37,17 @@ class WebhookController extends ApiController {
 	}
 
 	/**
-	 * @OA\Post(
-	 *     path="/api/0.1/webhook/register",
-	 *     @OA\RequestBody(
-	 *         description="Register file to sign and all users to sign the file",
-	 *         required=true
-	 *     ),
-	 *     @OA\Response(response="200", description="An example resource")
-	 * )
+	 * Request signature
+	 *
+	 * Request that a file be signed by a group of people
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param array $file
+	 * @param array $users
+	 * @param string $name
+	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
 	public function register(array $file, array $users, string $name, ?string $callback = null) {
@@ -159,6 +159,10 @@ class WebhookController extends ApiController {
 	}
 
 	/**
+	 * Who am I.
+	 *
+	 * Validates API access data and returns the authenticated user's data.
+	 *
 	 * @NoAdminRequired
 	 * @CORS
 	 * @NoCSRFRequired
