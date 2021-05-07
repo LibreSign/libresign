@@ -577,7 +577,25 @@ paths:
                         type: string
       security:
         - basicAuth: []
-
+  /signature/has-root-cert:
+    get:
+      tags:
+        - sign
+      summary: Has root certificate
+      description: Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have been saved.
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasRootCert:
+                    type: boolean
+                    example: true
+      security:
+        - basicAuth: []
 components:
   securitySchemes:
     basicAuth:
