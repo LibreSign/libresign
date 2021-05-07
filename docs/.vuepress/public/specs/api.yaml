@@ -19,7 +19,7 @@ paths:
   /webhook:
     get:
       tags:
-      - webhook
+        - webhook
       summary: Who am I
       description: Validates API access data and returns the authenticated user's data.
       responses:
@@ -48,7 +48,7 @@ paths:
   /webhook/register:
     post:
       tags:
-      - webhook
+        - webhook
       summary: Request signature
       description: Request that a file be signed by a group of people
       requestBody:
@@ -147,7 +147,7 @@ paths:
         - basicAuth: []
     patch:
       tags:
-      - webhook
+        - webhook
       summary: Updates signatures data
       description: Is necessary to inform the UUID of the file and a list of people
       requestBody:
@@ -223,7 +223,7 @@ paths:
   /webhook/register/signature:
     delete:
       tags:
-      - webhook
+        - webhook
       summary: Delete sign request
       description: You can only request exclusion as any sign
       requestBody:
@@ -283,7 +283,7 @@ paths:
   /sign:
     post:
       tags:
-      - sign
+        - sign
       summary: Sign a file
       description: Request sign a file.
       deprecated: true
@@ -327,7 +327,7 @@ paths:
   /sign/uuid/{uuid}:
     post:
       tags:
-      - sign
+        - sign
       summary: Sign a file using user file UUUID
       description: The user UUID is what the person receives via email when asked to sign.
       parameters:
@@ -384,7 +384,7 @@ paths:
   /sign/file_id/{fileId}:
     post:
       tags:
-      - sign
+        - sign
       summary: Sign a file using Nextcloud node id
       description: Sign a file using Nextcloud node id.
       parameters:
@@ -441,7 +441,7 @@ paths:
   /validate/uuid/{uuid}:
     get:
       tags:
-      - sign
+        - sign
       summary: Validate a file using UUID
       description: Validate a file using file UUID returning file data.
       parameters:
@@ -511,7 +511,7 @@ paths:
   /validate/file_id/{fileId}:
     get:
       tags:
-      - sign
+        - sign
       summary: Validate a file using Nextcloud node id
       description: Validate a file using Nextcloud node id.
       parameters:
