@@ -1,0 +1,285 @@
+openapi: 3.0.1
+info:
+  title: LibreSign API
+  description: "Libre digital signature app for Nextcloud."
+  contact:
+    name: "Support"
+    url: "https://github.com/LibreSign/libresign/issues"
+  license:
+    name: "AGPLv3"
+    url: "https://www.gnu.org/licenses/agpl-3.0.en.html"
+  version: 2.2.2
+tags:
+- name: webhook
+  description: Everything about webhook
+
+paths:
+  /webhook:
+    get:
+      tags:
+      - webhook
+      summary: Who am I
+      description: Validates API access data and returns the authenticated user's data.
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid:
+                    type: integer
+                    example: 132564
+        404:
+          description: Invalid user or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid user or password.
+      security:
+        - basicAuth: []
+  /webhook/register:
+    post:
+      tags:
+      - webhook
+      summary: Request signature
+      description: Request that a file be signed by a group of people
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  pattern: '^[\w \-_]+$'
+                  example: filename
+                  description: The name of file to sign
+                file:
+                  type: object
+                  description: File to sign. Use one of these types
+                  properties:
+                    url:
+                      type: string
+                      description: URL of file
+                      example: http://cloud.test.coop/s/ry384r6t384/download/test_small.pdf
+                    fileId:
+                      type: integer
+                      description: Node id of a Nextcloud file
+                      example: 2312
+                    base64:
+                      type: string
+                      format: base64
+                      description: Node id of a Nextcloud file
+                      example: dGVzdA==
+                  example:
+                    url: http://cloud.test.coop/s/ry384r6t384/download/test_small.pdf
+                users:
+                  type: array
+                  description: Collection of users who must sign the document
+                  items:
+                    type: object
+                    description: Person who will sign
+                    properties:
+                      email:
+                        type: string
+                        format: email
+                        description: Unique email to identify user
+                        example: user@test.coop
+                      display_name:
+                        type: string
+                        description: Persons name
+                        example: John Doe
+                      description:
+                        type: string
+                        description: Description that will be displayed to the person
+                        example: As the company's CEO, you must sign this contract
+                    required:
+                      - email
+                callback:
+                  type: string
+                  description: URL that will receive a POST after the document is signed
+                  example: http://app.test.coop/callback_webhook
+              required:
+                - name
+                - file
+                - users
+        required: true
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: Success
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        format: uuid
+                        description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
+                        example: 46d30465-ae11-484b-aad5-327249a1e8ef
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Description of the failure that occurred
+                    example: User 0 needs an email address
+      security:
+        - basicAuth: []
+    patch:
+      tags:
+      - webhook
+      summary: Updates signatures data
+      description: Is necessary to inform the UUID of the file and a list of people
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                  description: Received from sign request
+                  example: 46d30465-ae11-484b-aad5-327249a1e8ef
+                users:
+                  type: array
+                  description: Collection of users who must sign the document
+                  items:
+                    type: object
+                    description: Person who will sign
+                    properties:
+                      email:
+                        type: string
+                        format: email
+                        description: Unique email to identify user
+                        example: user@test.coop
+                      display_name:
+                        type: string
+                        description: Persons name
+                        example: John Doe
+                      description:
+                        type: string
+                        description: Description that will be displayed to the person
+                        example: As the company's CEO, you must sign this contract
+                    required:
+                      - email
+              required:
+                - uuid
+                - users
+        required: true
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: Success
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        format: uuid
+                        description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
+                        example: 46d30465-ae11-484b-aad5-327249a1e8ef
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Description of the failure that occurred
+                    example: User 0 needs an email address
+      security:
+        - basicAuth: []
+  /webhook/register/signature:
+    delete:
+      tags:
+      - webhook
+      summary: Delete sign request
+      description: You can only request exclusion as any sign
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                  description: Received from sign request
+                  example: 46d30465-ae11-484b-aad5-327249a1e8ef
+                users:
+                  type: array
+                  description: Collection of persons
+                  items:
+                    type: object
+                    description: Person who will deleted
+                    properties:
+                      email:
+                        type: string
+                        format: email
+                        description: Unique email to identify user
+                        example: user@test.coop
+                    required:
+                      - email
+              required:
+                - uuid
+                - users
+        required: true
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success messagen
+                    example: Success
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Description of the failure that occurred
+                    example: UUID not found
+      security:
+        - basicAuth: []
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

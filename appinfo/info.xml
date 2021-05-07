@@ -33,9 +33,6 @@
         <command>java</command>
         <nextcloud min-version="20" max-version="22"/>
     </dependencies>
-    <commands>
-        <command>OCA\Libresign\Command\DocsSwaggerGen</command>
-    </commands>
     <settings>
         <admin>OCA\Libresign\Settings\Admin</admin>
         <admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
