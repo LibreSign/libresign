@@ -13,7 +13,7 @@ tags:
 - name: webhook
   description: Everything about webhook
 - name: sign
-  description: Sign an validate files
+  description: Sign and validate files
 
 paths:
   /webhook:
@@ -77,7 +77,7 @@ paths:
                     base64:
                       type: string
                       format: base64
-                      description: Node id of a Nextcloud file
+                      description: Base54 of PDF file content
                       example: dGVzdA==
                   example:
                     url: http://cloud.test.coop/s/ry384r6t384/download/test_small.pdf
@@ -130,7 +130,7 @@ paths:
                       uuid:
                         type: string
                         format: uuid
-                        description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
+                        description: 'File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.'
                         example: 46d30465-ae11-484b-aad5-327249a1e8ef
         422:
           description: Request failed
@@ -324,11 +324,125 @@ paths:
                     type: string
       security:
         - basicAuth: []
-  /validate/{uuid}:
+  /sign/uuid/{uuid}:
+    post:
+      tags:
+      - sign
+      summary: Sign a file using user file UUUID
+      description: The user UUID is what the person receives via email when asked to sign.
+      parameters:
+        - name: uuid
+          in: path
+          description: File UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign.
+            example: 46d30465-ae11-484b-aad5-327249a1e8ef
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: Ultr4S3cretP3ssword!
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: File signed
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    example: 200
+                  errors:
+                    type: array
+                    items:
+                        type: string
+                    example:
+                      - "File already signed by you"
+      security:
+        - basicAuth: []
+  /sign/file_id/{fileId}:
+    post:
+      tags:
+      - sign
+      summary: Sign a file using Nextcloud node id
+      description: Sign a file using Nextcloud node id.
+      parameters:
+        - name: fileId
+          in: path
+          description: Node id of a Nextcloud file
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: Node id of a Nextcloud file.
+            example: 564
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: Ultr4S3cretP3ssword!
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: File signed
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    example: 200
+                  errors:
+                    type: array
+                    items:
+                        type: string
+                    example:
+                      - "File already signed by you"
+      security:
+        - basicAuth: []
+  /validate/uuid/{uuid}:
     get:
       tags:
       - sign
-      summary: Validate a file
+      summary: Validate a file using UUID
       description: Validate a file using file UUID returning file data.
       parameters:
         - name: uuid
@@ -353,7 +467,8 @@ paths:
                     example: filename
                   file:
                     type: string
-
+                    description: URL to download signed file
+                    example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
                   signatures:
                     type: array
                     items:
@@ -370,6 +485,82 @@ paths:
                           type: string
                           description: The person full name
                           example: John Doe
+                  settings:
+                    type: object
+                    properties:
+                      canRequestSign:
+                        type: boolean
+                        description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
+                        example: true
+        422:
+            description: Request failed
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    action:
+                      type: integer
+                      example: 200
+                    errors:
+                      type: array
+                      items:
+                        type: string
+      security:
+        - basicAuth: []
+  /validate/file_id/{fileId}:
+    get:
+      tags:
+      - sign
+      summary: Validate a file using Nextcloud node id
+      description: Validate a file using Nextcloud node id.
+      parameters:
+        - name: fileId
+          in: path
+          description: Nextcloud node id
+          required: true
+          schema:
+            type: integer
+            description: Nextcloud node id.
+            example: 564
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: filename
+                  file:
+                    type: string
+                    description: URL to download signed file
+                    example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        signed:
+                          type: boolean
+                          description: Person signed?
+                        displayName:
+                          type: string
+                          description: The person display name
+                          example: John
+                        fullName:
+                          type: string
+                          description: The person full name
+                          example: John Doe
+                  settings:
+                    type: object
+                    properties:
+                      canRequestSign:
+                        type: boolean
+                        description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
+                        example: true
         422:
             description: Request failed
             content:
