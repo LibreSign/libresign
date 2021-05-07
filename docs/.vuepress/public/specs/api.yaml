@@ -14,6 +14,8 @@ tags:
   description: Everything about webhook
 - name: sign
   description: Sign and validate files
+- name: admin
+  description: Admin settings
 
 paths:
   /webhook:
@@ -699,6 +701,71 @@ paths:
                     type: string
                     description: Description of the failure that occurred
                     example: User 0 needs an email address
+  /admin/certificate:
+    post:
+      tags:
+        - admin
+      summary: Create root certificate
+      description: Create root certificate and enable execution of CFSSL
+      security:
+        - basicAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commonName:
+                  type: string
+                  description: Common name
+                  example: CommonName
+                country:
+                  type: string
+                  description: Country name
+                  example: Brazil
+                organization:
+                  type: string
+                  description: Organization
+                  example: Organization
+                organizationUnit:
+                  type: string
+                  description: Organization unit
+                  example: organizationUnit
+                cfsslUri:
+                  type: string
+                  description: CFSSL service URL
+                  example: http://cfssl:8888/api/v1/cfssl/
+                configPath:
+                  type: string
+                  description: The path that Nextcloud should save the CFSSL configuration files for and that the CFSSL service needs to read to generate the root certificate.
+                  example: /cfssl/
+              required:
+                - commonName
+                - country
+                - organization
+                - organizationUnit
+                - cfsslUri
+                - configPath
+      responses:
+        200:
+          description: If the response is successful, it is because the settings have been saved and the root certificate has been generated.
+          content:
+            application/json:
+              schema:
+                type: array
+                example: []
+        500:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: array
+                    description: List of failures that occurred
+                    example:
+                      - Error while writing CSR server file!
 components:
   securitySchemes:
     basicAuth:
