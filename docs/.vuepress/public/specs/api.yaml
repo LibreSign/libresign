@@ -524,8 +524,6 @@ paths:
                       type: array
                       items:
                         type: string
-      security:
-        - basicAuth: []
   /validate/file_id/{fileId}:
     get:
       tags:
@@ -594,8 +592,6 @@ paths:
                       type: array
                       items:
                         type: string
-      security:
-        - basicAuth: []
   /signature/has-root-cert:
     get:
       tags:
