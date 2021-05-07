@@ -766,6 +766,45 @@ paths:
                     description: List of failures that occurred
                     example:
                       - Error while writing CSR server file!
+    get:
+      tags:
+        - admin
+      summary: Get root certificate
+      description: Get root certificate settings
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: The certificate settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commonName:
+                    type: string
+                    description: Common name
+                    example: CommonName
+                  country:
+                    type: string
+                    description: Country name
+                    example: Brazil
+                  organization:
+                    type: string
+                    description: Organization
+                    example: Organization
+                  organizationUnit:
+                    type: string
+                    description: Organization unit
+                    example: organizationUnit
+                  cfsslUri:
+                    type: string
+                    description: CFSSL service URL
+                    example: http://cfssl:8888/api/v1/cfssl/
+                  configPath:
+                    type: string
+                    description: The path that Nextcloud should save the CFSSL configuration files for and that the CFSSL service needs to read to generate the root certificate.
+                    example: /cfssl/
 components:
   securitySchemes:
     basicAuth:
