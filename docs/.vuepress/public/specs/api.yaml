@@ -12,6 +12,8 @@ info:
 tags:
 - name: webhook
   description: Everything about webhook
+- name: sign
+  description: Sign an validate files
 
 paths:
   /webhook:
@@ -278,6 +280,113 @@ paths:
                     example: UUID not found
       security:
         - basicAuth: []
+  /sign:
+    post:
+      tags:
+      - sign
+      summary: Sign a file
+      description: Request sign a file.
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputFilePath:
+                  type: string
+                outputFolderPath:
+                  type: string
+                certificatePath:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileSigned:
+                    type: string
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: string
+                  errors:
+                    type: string
+      security:
+        - basicAuth: []
+  /validate/{uuid}:
+    get:
+      tags:
+      - sign
+      summary: Validate a file
+      description: Validate a file using file UUID returning file data.
+      parameters:
+        - name: uuid
+          in: path
+          description: File UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
+            example: 46d30465-ae11-484b-aad5-327249a1e8ef
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: filename
+                  file:
+                    type: string
+
+                  signatures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        signed:
+                          type: boolean
+                          description: Person signed?
+                        displayName:
+                          type: string
+                          description: The person display name
+                          example: John
+                        fullName:
+                          type: string
+                          description: The person full name
+                          example: John Doe
+        422:
+            description: Request failed
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    action:
+                      type: integer
+                      example: 200
+                    errors:
+                      type: array
+                      items:
+                        type: string
+      security:
+        - basicAuth: []
+
 components:
   securitySchemes:
     basicAuth:

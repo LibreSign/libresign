@@ -37,9 +37,18 @@ class WebhookController extends ApiController {
 	}
 
 	/**
+	 * Request signature
+	 *
+	 * Request that a file be signed by a group of people
+	 *
 	 * @NoAdminRequired
 	 * @CORS
 	 * @NoCSRFRequired
+	 *
+	 * @param array $file
+	 * @param array $users
+	 * @param string $name
+	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
 	public function register(array $file, array $users, string $name, ?string $callback = null) {
@@ -151,6 +160,10 @@ class WebhookController extends ApiController {
 	}
 
 	/**
+	 * Who am I.
+	 *
+	 * Validates API access data and returns the authenticated user's data.
+	 *
 	 * @NoAdminRequired
 	 * @CORS
 	 * @NoCSRFRequired

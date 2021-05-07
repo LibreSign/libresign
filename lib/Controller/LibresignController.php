@@ -88,6 +88,7 @@ class LibresignController extends Controller {
 	 * @NoCSRFRequired
 	 *
 	 * @todo remove NoCSRFRequired
+	 * @deprecated
 	 */
 	public function sign(
 		string $inputFilePath = null,
