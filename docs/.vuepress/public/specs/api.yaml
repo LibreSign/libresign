@@ -334,7 +334,7 @@ paths:
       tags:
         - sign
       summary: Sign a file using user file UUUID
-      description: The user UUID is what the person receives via email when asked to sign.
+      description: The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
       parameters:
         - name: uuid
           in: path
@@ -343,7 +343,7 @@ paths:
           schema:
             type: string
             format: uuid
-            description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign.
+            description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
             example: 46d30465-ae11-484b-aad5-327249a1e8ef
       requestBody:
         content:
