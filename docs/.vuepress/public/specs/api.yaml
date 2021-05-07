@@ -325,6 +325,7 @@ paths:
                 type: object
                 properties:
                   action:
+                    description: Numeric code representing what action should be taken with the response
                     type: string
                   errors:
                     type: string
@@ -368,6 +369,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
                     type: string
@@ -381,6 +383,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   errors:
                     type: array
@@ -428,6 +431,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
                     type: string
@@ -441,6 +445,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   errors:
                     type: array
@@ -513,6 +518,7 @@ paths:
                   properties:
                     action:
                       type: integer
+                      description: Numeric code representing what action should be taken with the response
                       example: 200
                     errors:
                       type: array
@@ -582,6 +588,7 @@ paths:
                   properties:
                     action:
                       type: integer
+                      description: Numeric code representing what action should be taken with the response
                       example: 200
                     errors:
                       type: array
