@@ -707,6 +707,7 @@ paths:
         - sign
       summary: Generates signature key
       description: Generates the personal signature key
+      deprecated: true
       security:
         - basicAuth: []
       requestBody:
