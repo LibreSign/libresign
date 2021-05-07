@@ -1227,7 +1227,7 @@
     core-js "^3.6.2"
     semver "^7.3.2"
 
-"@nextcloud/initial-state@^1.1.2":
+"@nextcloud/initial-state@^1.1.2", "@nextcloud/initial-state@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@nextcloud/initial-state/-/initial-state-1.2.0.tgz#da8aad90299d38375ee995dc73d54f60224f9126"
   integrity sha512-/ZN4f/gihvRPXa7S2mgV2Is5QyEGqb4/Z2OGHxilJV86ZKBnR9DlA5dFqtzdV86dHVsZ+PfthUI3vDPJ81hTJA==
@@ -3225,6 +3225,11 @@ date-fns@^1.27.2:
   version "1.30.1"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.30.1.tgz#2e71bf0b119153dbb4cc4e88d9ea5acfb50dc05c"
   integrity sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw==
+
+date-fns@^2.0.0, date-fns@^2.21.2:
+  version "2.21.2"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.21.2.tgz#9db92305cf00626e9122e56c72195b17725594aa"
+  integrity sha512-FMkG7pIPx64mGIpS2LOb3Wp3O606H/hatoiz7G0oiYWai1izdM4tF1dd7QABv2NogkIDI4wxsfLLFQSuVvDHgA==
 
 date-format-parse@^0.2.6:
   version "0.2.6"
@@ -9183,6 +9188,13 @@ vue-color@^2.7.1:
     lodash.throttle "^4.0.0"
     material-colors "^1.0.0"
     tinycolor2 "^1.1.2"
+
+vue-date-fns@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/vue-date-fns/-/vue-date-fns-2.0.1.tgz#a2a0d42552badd57f9ffd9a7a09d75331933495a"
+  integrity sha512-j2G97bVOKO0mVfFEnzCu5dQU0dgD8jLAAVU0dGRDqxZzzNXqep7d3WEGuuJ6mNOP5PM7GE+UqpKYfkL/LNmDKQ==
+  dependencies:
+    date-fns "^2.0.0"
 
 vue-eslint-parser@^7.0.0:
   version "7.6.0"
