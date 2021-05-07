@@ -301,6 +301,11 @@ paths:
                   type: string
                 password:
                   type: string
+              required:
+                - inputFilePath
+                - outputFolderPath
+                - certificatePath
+                - password
       responses:
         200:
           description: Success!
