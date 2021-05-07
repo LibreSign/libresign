@@ -614,7 +614,7 @@ paths:
       security:
         - basicAuth: []
   /account/create/{uuid}:
-    get:
+    post:
       tags:
         - sign
       summary: Create person account to sign a document
