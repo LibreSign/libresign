@@ -14,4 +14,4 @@ features:
 ## Links
 
 - [Guia para iniciantes](Getting-started.md)
-- [Documetnação OpenApi](https://swagger.io/docs/)
+- [Documetnação da Api](api)

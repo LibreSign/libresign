@@ -18,9 +18,11 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
@@ -44,12 +46,14 @@ class LibresignController extends Controller {
 	private $webhook;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var string */
-	private $userId;
+	/** @var IUserSession */
+	private $userSession;
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var IConfig */
 	private $config;
+	/** @var IGroupManager */
+	private $groupManager;
 
 	public function __construct(
 		IRequest $request,
@@ -63,7 +67,8 @@ class LibresignController extends Controller {
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
 		IConfig $config,
-		$userId
+		IUserSession $userSession,
+		IGroupManager $groupManager
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->fileUserMapper = $fileUserMapper;
@@ -76,7 +81,8 @@ class LibresignController extends Controller {
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
 		$this->config = $config;
-		$this->userId = $userId;
+		$this->userSession = $userSession;
+		$this->groupManager = $groupManager;
 	}
 
 	/**
@@ -138,10 +144,11 @@ class LibresignController extends Controller {
 	public function sign(string $password, string $file_id = null, string $uuid = null): JSONResponse {
 		try {
 			try {
+				$user = $this->userSession->getUser();
 				if ($file_id) {
-					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($file_id, $this->userId);
+					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($file_id, $user->getUID());
 				} else {
-					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $this->userId);
+					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $user->getUID());
 				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
@@ -268,25 +275,7 @@ class LibresignController extends Controller {
 	 * @PublicPage
 	 */
 	public function validateUuid($uuid) {
-		try {
-			try {
-				$file = $this->fileMapper->getByUuid($uuid);
-			} catch (\Throwable $th) {
-				throw new LibresignException('Invalid data to validate file', 1);
-			}
-			$return = $this->validate($file);
-			return new JSONResponse($return, Http::STATUS_OK);
-		} catch (\Throwable $th) {
-			$message = $this->l10n->t($th->getMessage());
-			$this->logger->error($message);
-			return new JSONResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$message]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
-		}
+		return $this->validate('Uuid', $uuid);
 	}
 
 	/**
@@ -295,42 +284,58 @@ class LibresignController extends Controller {
 	 * @PublicPage
 	 */
 	public function validateFileId($fileId) {
+		return $this->validate('File', $fileId);
+	}
+
+	private function validate(string $type, $identifier) {
 		try {
 			try {
-				$file = $this->fileMapper->getByFileId($fileId);
+				$file = call_user_func(
+					[$this->fileMapper, 'getBy' . $type . 'Id'],
+					$identifier
+				);
 			} catch (\Throwable $th) {
-				throw new LibresignException('Invalid data to validate file', 1);
+				throw new LibresignException('Invalid data to validate file', 404);
 			}
-			$return = $this->validate($file);
-			return new JSONResponse($return, Http::STATUS_OK);
+			if (!$file) {
+				throw new LibresignException('Invalid file identifier', 404);
+			}
+
+			$return['name'] = $file->getName();
+			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
+			$signatures = $this->fileUserMapper->getByFileId($file->id);
+			foreach ($signatures as $signature) {
+				$return['signatures'][] = [
+					'signed' => $signature->getSigned(),
+					'displayName' => $signature->getDisplayName(),
+					'fullName' => $signature->getFullName()
+				];
+			}
+			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
-			return new JSONResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$message]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
+			$return = [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$message]
+			];
+			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
+		$return['settings'] = [
+			'canRequestSign' => $this->canRequestSign()
+		];
+		return new JSONResponse($return, $statusCode);
 	}
 
-	private function validate($file) {
-		if (!$file) {
-			throw new LibresignException('Invalid file identifier', 1);
+	private function canRequestSign(): bool {
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		if (empty($authorized)) {
+			return false;
 		}
-
-		$return['name'] = $file->getName();
-		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
-		$signatures = $this->fileUserMapper->getByFileId($file->id);
-		foreach ($signatures as $signature) {
-			$return['signatures'][] = [
-				'signed' => $signature->getSigned(),
-				'displayName' => $signature->getDisplayName(),
-				'fullName' => $signature->getFullName()
-			];
+		$userGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
+		if (!array_intersect($userGroups, $authorized)) {
+			return false;
 		}
-		return $return;
+		return true;
 	}
 }

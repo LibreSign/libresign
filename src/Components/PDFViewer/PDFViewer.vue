@@ -47,10 +47,6 @@ export default {
 }
 </script>
 
-<style scoped>
-	iframe {
-		overflow: hidden;
-		height: 100%;
-		width: 100%;
-	}
+<style lang="scss" scoped>
+@import './styles';
 </style>

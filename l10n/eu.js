@@ -21,6 +21,9 @@ OC.L10N.register(
     "Sign »%s«" : "Sinatu »%s«",
     "Name is mandatory" : "Izena nahitaezkoa da",
     "Empty file" : "Fitxategi hutsa",
+    "Invalid fileId" : "FileId baliogabea",
+    "Invalid base64 file" : "base64 fitxategi baliogabea",
+    "Must be a fileId of a PDF" : "PDF baten fieldId izan behar da",
     "User list needs to be an array" : "Erabiltzaileen zerrenda matrizea izan behar da",
     "Document already signed" : "Dokumentua dagoeneko sinatuta",
     "Invalid email: user %s" : "E-posta baliogabea: erabiltzailea %s",
@@ -34,6 +37,7 @@ OC.L10N.register(
     "Organization (O)" : "Erakundea (O)",
     "Organization Unit (OU)" : "Erakunde Atala (OU)",
     "Config path" : "Konfigurazioaren bide-izena",
+    "Generating certificate." : "Ziurtagiria sortzen.",
     "Webhook" : "Webhook",
     "Create new subscription." : "Sortu harpidetza berria.",
     "Enter your email." : "Sartu zure e-posta.",
@@ -54,6 +58,8 @@ OC.L10N.register(
     "Signature password." : "Sinaduraren pasahitza.",
     "Could not sign document!" : "Ezin izan da dokumentua sinatu!",
     "Validation URL" : "Egiaztapen URLa",
-    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko"
+    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
+    "Validate Subscription." : "Egiaztapen harpidetza.",
+    "Validation" : "Egiaztapena"
 },
 "nplurals=2; plural=(n != 1);");

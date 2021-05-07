@@ -81,7 +81,7 @@ class WebhookService {
 		if (!empty($authorized)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
 			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('Insufficient permissions to use API'));
+				throw new \Exception($this->l10n->t('You are not allowed to request signing'), 405);
 			}
 		}
 	}

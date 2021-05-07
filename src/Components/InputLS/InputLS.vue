@@ -4,7 +4,8 @@
 			v-model="value"
 			class="input__input"
 			:placeholder="placeholder"
-			:type="type">
+			:type="type"
+			:disabled="disabled">
 		<button class="icon-confirm" @click="onSubmit" />
 	</form>
 </template>
@@ -23,6 +24,11 @@ export default {
 			require: false,
 			default: '',
 		},
+		disabled: {
+			type: Boolean,
+			require: false,
+			default: false,
+		},
 	},
 
 	data() {
@@ -40,23 +46,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-form{
-	display: flex;
-	flex-direction: row !important;
-	border: 1px solid #cecece;
-	align-items: center;
-
-	input{
-		border: none;
-		width: 100%;
-		padding-left: 15px
-	}
-
-	button{
-		width: 24px;
-		height: 24px;
-		border: none;
-		background-color: transparent;
-	}
-}
+@import './styles';
 </style>

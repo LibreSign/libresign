@@ -27,25 +27,26 @@
 		:icon="icon"
 		:name="name">
 		<div v-show="showButtons" class="buttons">
-			<button class="primary" @click="sign">
-				Assinar
+			<button class="primary" @click="option('sign')">
+				{{ t('libresign', 'Sign') }}
 			</button>
-			<button class="primary" @click="request">
-				Solicitar assinatura
+			<button class="primary" @click="option('request')">
+				{{ t('libresign', 'Request subscription') }}
 			</button>
 		</div>
 
-		<Sign v-show="signShow" @sign:pdf="signDocument">
+		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
 			<template slot="actions">
-				<button class="return-button" @click="returnSign">
-					Retornar
+				<button class="return-button" @click="option('sign')">
+					{{ t('libresign', 'Turn back') }}
 				</button>
 			</template>
 		</Sign>
-		<Request v-show="requestShow">
+
+		<Request v-show="requestShow" :fileinfo="info" @request:signatures="requestSignatures">
 			<template slot="actions">
-				<button class="return-button" @click="returnRequest">
-					Retornar
+				<button class="return-button" @click="option('request')">
+					{{ t('libresign', 'Turn back') }}
 				</button>
 			</template>
 		</Request>
@@ -54,6 +55,7 @@
 
 <script>
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import Request from '../Components/Request'
 import axios from '@nextcloud/axios'
 import Sign from '../Components/Sign'
@@ -67,6 +69,7 @@ export default {
 		Sign,
 		Request,
 	},
+
 	mixins: [],
 
 	props: {
@@ -76,6 +79,7 @@ export default {
 			required: true,
 		},
 	},
+
 	data() {
 		return {
 			icon: 'icon-rename',
@@ -83,6 +87,8 @@ export default {
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
+			disabledSign: false,
+			info: this.fileInfo,
 		}
 	},
 
@@ -94,42 +100,52 @@ export default {
 			return this.$parent.activeTab
 		},
 	},
+
 	methods: {
-		sign() {
-			this.showButtons = false
-			this.signShow = true
+		async getInfo() {
+			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+			// eslint-disable-next-line no-console
+			console.log(response)
 		},
+
 		async signDocument(param) {
-			// eslint-disable-next-line no-console
-			console.log(param)
-			const id = window.location.href.split('fileid=')[1]
-			const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${id}`), {
-				password: param,
-			})
-			// eslint-disable-next-line no-console
-			console.log(response)
-		},
-		returnSign() {
-			this.showButtons = true
-			this.signShow = false
-		},
-		request() {
-			this.showButtons = false
-			this.requestShow = true
-		},
-		returnRequest() {
-			this.showButtons = true
-			this.requestShow = false
+			try {
+				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+					password: param,
+				})
+				showSuccess(response.data.message)
+				this.option('sign')
+			} catch (err) {
+				showError(err.response.data.errors[0])
+			}
 		},
 
-		async signRequest(param) {
-			const uuid = ''
-			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/sign/${uuid}`), {
-				password: param,
-			})
+		async requestSignatures(users) {
+			try {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+					file: {
+						fileId: this.info.id,
+					},
+					name: this.info.name.split('.pdf')[0],
+					users,
+				})
+				// eslint-disable-next-line no-console
+				console.log(response)
+				showSuccess(response.data.message)
+			} catch (err) {
+				console.error(err)
+				showError(err.response.data.errors[0])
+			}
+		},
 
-			// eslint-disable-next-line no-console
-			console.log(response)
+		option(value) {
+			if (value === 'sign') {
+				this.showButtons = !this.showButtons
+				this.signShow = !this.signShow
+			} else if (value === 'request') {
+				this.showButtons = !this.showButtons
+				this.requestShow = !this.requestShow
+			}
 		},
 	},
 }
