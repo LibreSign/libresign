@@ -27,6 +27,12 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getCfsslUri()
  */
 class CfsslHandler {
+	private $commonName;
+	private $hosts = [];
+	private $country;
+	private $organization;
+	private $organizationUnit;
+	private $cfsslUri;
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
 			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
