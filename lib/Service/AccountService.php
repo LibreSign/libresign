@@ -125,7 +125,7 @@ class AccountService {
 	 * @param string $signPassword Password of signature
 	 * @return File
 	 */
-	private function generateCertificate(string $uid, string $signPassword): File {
+	public function generateCertificate(string $uid, string $signPassword): File {
 		$content = $this->cfsslHandler
 			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
 			->sethosts([])
