@@ -54,14 +54,7 @@ class CfsslHandler {
 	}
 
 	public function generateCertificate() {
-		$certKeys = $this->newCert(
-			$this->getCommonName(),
-			$this->getHosts(),
-			$this->getCountry(),
-			$this->getOrganization(),
-			$this->getOrganizationUnit(),
-			$this->getCfsslUri()
-		);
+		$certKeys = $this->newCert();
 		$certContent = null;
 		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
 		if (!$isCertGenerated) {
@@ -71,37 +64,30 @@ class CfsslHandler {
 		return $certContent;
 	}
 
-	private function newCert(
-		string $commonName,
-		array $hosts,
-		string $country,
-		string $organization,
-		string $organizationUnit,
-		string $cfsslUri
-	) {
+	private function newCert() {
 		$json = [
 			'json' => [
 				'profile' => 'CA',
 				'request' => [
-					'hosts' => $hosts,
-					'CN' => $commonName,
+					'hosts' => $this->getHosts(),
+					'CN' => $this->getCommonName(),
 					'key' => [
 						'algo' => 'rsa',
 						'size' => 2048,
 					],
 					'names' => [
 						[
-							'C' => $country,
-							'O' => $organization,
-							'OU' => $organizationUnit,
-							'CN' => $commonName,
+							'C' => $this->getCountry(),
+							'O' => $this->getOrganization(),
+							'OU' => $this->getOrganizationUnit(),
+							'CN' => $this->getCommonName(),
 						],
 					],
 				],
 			],
 		];
 		try {
-			$response = (new Client(['base_uri' => $cfsslUri]))
+			$response = (new Client(['base_uri' => $this->getCfsslUri()]))
 				->request(
 					'POST',
 					'newcert',
