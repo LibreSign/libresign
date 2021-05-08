@@ -109,4 +109,28 @@ class AccountController extends ApiController {
 			Http::STATUS_OK
 		);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function generate(
+		string $password = null
+	): JSONResponse {
+		try {
+			$this->checkParams([
+				'password' => $password
+			]);
+			$signaturePath = $this->signatureService->generate(
+				$password
+			);
+
+			return new JSONResponse(['signature' => $signaturePath], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			return new JSONResponse(
+				['message' => $exception->getMessage()],
+				Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
+	}
 }
