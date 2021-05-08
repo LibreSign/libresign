@@ -35,7 +35,7 @@ OC.L10N.register(
     "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Der Name darf ausschließlich \"a-z\", \"A-Z\", \"0-9\" und \"-_\" Buchstaben enthalten.",
     "Empty file" : "Leere Datei",
     "Inform URL or base64 or fileId to sign" : "URL, base64 oder fileId zum Signieren mitteilen",
-    "Invalid fileId" : "Ungültiges Feld",
+    "Invalid fileId" : "Ungültiges Datei-ID",
     "Invalid base64 file" : "Ungültige base64-Datei",
     "Already asked to sign this document" : "Bereits aufgefordert, dieses Dokument zu unterschreiben.",
     "Must be a fileId of a PDF" : "Dies muss eine fileId eines PDFs sein",
