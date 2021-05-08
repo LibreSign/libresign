@@ -115,11 +115,10 @@ class AccountService {
 			}
 		}
 
-		$content = $this->generateCertificate($signPassword);
-		$this->savePfx($uid, $content);
+		$content = $this->generateCertificate($uid, $signPassword);
 	}
 
-	private function generateCertificate(string $signPassword): string {
+	private function generateCertificate(string $uid, string $signPassword): File {
 		$content = $this->cfsslHandler
 			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
 			->sethosts([])
@@ -132,10 +131,10 @@ class AccountService {
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $content;
+		return $this->savePfx($uid, $content);
 	}
 
-	private function savePfx($uid, $content) {
+	private function savePfx($uid, $content): File {
 		$this->folder->setUserId($uid);
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolder();
@@ -150,6 +149,7 @@ class AccountService {
 
 		$file = $folder->newFile($this->pfxFilename);
 		$file->putContent($content);
+		return $file;
 	}
 
 	public function getPfx($uid) {
