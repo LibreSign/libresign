@@ -9,7 +9,6 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Settings\Mailer\NewUserMailHelper;
-use OCP\Files\File;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
