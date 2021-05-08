@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Files\File;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -32,7 +33,7 @@ class AccountService {
 	/** @var CfsslHandler */
 	private $cfsslHandler;
 	/** @var string */
-	private $pdfFilename = 'signature.pfx';
+	private $pfxFilename = 'signature.pfx';
 
 	public function __construct(
 		IL10N $l10n,
@@ -133,16 +134,16 @@ class AccountService {
 		$this->folder->setUserId($uid);
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolder();
-		if ($folder->nodeExists($this->pdfFilename)) {
-			$node = $folder->get($this->pdfFilename);
+		if ($folder->nodeExists($this->pfxFilename)) {
+			$node = $folder->get($this->pfxFilename);
 			if (!$node instanceof File) {
-				throw new LibresignException("path {$this->pdfFilename} already exists and is not a file!", 400);
+				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
 			$node->putContent($content);
 			return $node;
 		}
 
-		$file = $folder->newFile($this->pdfFilename);
+		$file = $folder->newFile($this->pfxFilename);
 		$file->putContent($content);
 	}
 
@@ -150,9 +151,9 @@ class AccountService {
 		Filesystem::initMountPoints($uid);
 		$this->folder->setUserId($uid);
 		$folder = $this->folder->getFolder();
-		if (!$folder->nodeExists($this->pdfFilename)) {
+		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException('Signature file not found!', 400);
 		}
-		return $folder->get($this->pdfFilename);
+		return $folder->get($this->pfxFilename);
 	}
 }
