@@ -140,12 +140,12 @@ class AccountService {
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
-			$node = $folder->get($this->pfxFilename);
-			if (!$node instanceof File) {
+			$file = $folder->get($this->pfxFilename);
+			if (!$file instanceof File) {
 				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
-			$node->putContent($content);
-			return $node;
+			$file->putContent($content);
+			return $file;
 		}
 
 		$file = $folder->newFile($this->pfxFilename);
