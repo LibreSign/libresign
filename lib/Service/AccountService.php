@@ -115,15 +115,15 @@ class AccountService {
 			}
 		}
 
-		$content = $this->cfsslHandler->generateCertificate(
-			$this->config->getAppValue(Application::APP_ID, 'commonName'),
-			[],
-			$this->config->getAppValue(Application::APP_ID, 'country'),
-			$this->config->getAppValue(Application::APP_ID, 'organization'),
-			$this->config->getAppValue(Application::APP_ID, 'organizationUnit'),
-			$signPassword,
-			$this->config->getAppValue(Application::APP_ID, 'cfsslUri')
-		);
+		$content = $this->cfsslHandler
+			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
+			->sethosts([])
+			->setCountry($this->config->getAppValue(Application::APP_ID, 'country'))
+			->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'))
+			->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'))
+			->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'))
+			->setPassword($signPassword)
+			->generateCertificate();
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
