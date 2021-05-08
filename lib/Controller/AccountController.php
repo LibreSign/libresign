@@ -118,7 +118,7 @@ class AccountController extends ApiController {
 		string $password = null
 	): JSONResponse {
 		try {
-			$this->checkParams([
+			$this->account->validateSignPassword([
 				'password' => $password
 			]);
 			$signaturePath = $this->signatureService->generate(
