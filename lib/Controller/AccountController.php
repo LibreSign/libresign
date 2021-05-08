@@ -79,7 +79,6 @@ class AccountController extends ApiController {
 					Http::STATUS_UNPROCESSABLE_ENTITY
 				);
 			}
-			$fileToSign = $fileToSign[0];
 			$data = [
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
