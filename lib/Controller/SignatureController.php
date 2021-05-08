@@ -15,17 +15,12 @@ class SignatureController extends Controller {
 	/** @var SignatureService */
 	private $signatureService;
 
-	/** @var string */
-	private $userId;
-
 	public function __construct(
 		IRequest $request,
-		SignatureService $signatureService,
-		$userId
+		SignatureService $signatureService
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->signatureService = $signatureService;
-		$this->userId = $userId;
 	}
 
 	/**
