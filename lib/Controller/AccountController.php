@@ -114,7 +114,7 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function generate(
+	public function signatureGenerate(
 		string $password = null
 	): JSONResponse {
 		try {
