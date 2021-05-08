@@ -27,27 +27,19 @@ class SignatureService {
 		$this->config = $config;
 	}
 
-	public function generate(
-		string $commonName,
-		array $hosts,
-		string $country,
-		string $organization,
-		string $organizationUnit,
-		string $certificatePath,
-		string $password
-	) {
-		$content = $this->cfsslHandler->generateCertificate(
-			$commonName,
-			$hosts,
-			$country,
-			$organization,
-			$organizationUnit,
-			$password,
-			$this->config->getAppValue(Application::APP_ID, 'cfsslUri')
-		);
+	public function generate(string $password) {
+		$content = $this->cfsslHandler
+			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
+			->sethosts([])
+			->setCountry($this->config->getAppValue(Application::APP_ID, 'country'))
+			->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'))
+			->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'))
+			->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'))
+			->setPassword($password)
+			->generateCertificate();
 
 		$folder = $this->clientStorage->createFolder($certificatePath);
-		$certificateFile = $this->clientStorage->saveFile($commonName.'.pfx', $content, $folder);
+		$certificateFile = $this->clientStorage->saveFile($this->cfsslHandler->getCommonName() . '.pfx', $content, $folder);
 
 		return $certificateFile->getInternalPath();
 	}
