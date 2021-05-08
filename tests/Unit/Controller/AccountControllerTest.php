@@ -4,7 +4,6 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OC\Authentication\Login\Chain;
 use OCA\Libresign\Controller\AccountController;
-use OCA\Libresign\Controller\SignatureController;
 use OCA\Libresign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
