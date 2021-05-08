@@ -115,7 +115,7 @@ class AccountService {
 			}
 		}
 
-		$content = $this->generateCertificate($uid, $signPassword);
+		$this->generateCertificate($uid, $signPassword);
 	}
 
 	private function generateCertificate(string $uid, string $signPassword): File {
