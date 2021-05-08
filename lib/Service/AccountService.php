@@ -74,6 +74,10 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
+		$this->validateSignPassword($data);
+	}
+
+	public function validateSignPassword(array $data) {
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
 		}
