@@ -118,6 +118,13 @@ class AccountService {
 		$this->generateCertificate($uid, $signPassword);
 	}
 
+	/**
+	 * Generate certificate
+	 *
+	 * @param string $uid User identifier
+	 * @param string $signPassword Password of signature
+	 * @return File
+	 */
 	private function generateCertificate(string $uid, string $signPassword): File {
 		$content = $this->cfsslHandler
 			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
