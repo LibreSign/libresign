@@ -100,10 +100,10 @@ OC.L10N.register(
     "Signed document available at {place}" : "Documento firmato disponibile in {place}",
     "Could not sign document!" : "Impossibile firmare il documento!",
     "Choose your subscription location!" : "Scegli la posizione della tua sottoscrizione!",
-    "Validation URL" : "URL di validazione",
-    "Validate Subscription." : "Valida sottoscrizione",
-    "Enter the UUID of the document to validate." : "Inserisci l'UUID del documento dal validare.",
-    "Validation" : "Validazione",
+    "Validation URL" : "URL di convalida",
+    "Validate Subscription." : "Convalida sottoscrizione.",
+    "Enter the UUID of the document to validate." : "Inserisci l'UUID del documento dal convalidare.",
+    "Validation" : "Convalida",
     "You need to create an account to sign this file." : "Devi creare un account per firmare questo file."
 },
 "nplurals=2; plural=(n != 1);");
