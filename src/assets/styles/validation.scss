@@ -1,22 +1,37 @@
+$text-color: #273849;
+$background: #ECEFFC;
+$title-font: 1.5rem;
+$title-font-mobile: 1.3rem;
+$date-signed-font: .7rem;
+
+.jumbotron{
+	background-color: $background;
+	padding: 0;
+}
+
 .container{
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	// height: %;
 	width: 100%;
 
 	.image{
-		width: 50%;
+		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		img{
+			width: 50%;
+			max-width: 422px;
+		}
 		@media screen and (max-width: 900px) {
 			display: none;
 			width: 0%;
 		}
+
 	}
 	#dataUUID{
-		width: 50%;
+		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -27,6 +42,8 @@
 }
 
 form{
+	background-color: #FFF;
+	color: $text-color;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -36,6 +53,7 @@ form{
 	border-radius: 8px;
 	border: 1px solid var(--color-background-dark);
 	max-width: 500px;
+	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 
 	@media screen and (max-width: 900px) {
 		width: 100%;
@@ -49,6 +67,7 @@ form{
 h1{
 	font-size: 24px;
 	font-weight: bold;
+	color: $text-color;
 }
 
 h3{
@@ -64,8 +83,8 @@ input{
 button{
 	background-color: #0082c9;
 	color: #FFF;
-	align-self: center;
-
+	float: right;
+	margin-top: 20px;
 	&:hover{
 		background-color: #286090;
 	}
@@ -74,24 +93,113 @@ button{
 .infor{
 	display: flex;
 	flex-direction: column;
-	height: 50vh;
-	width: 80%;
-
 	h1{
-		font-size: 2.5rem;
+		font-size: $title-font;
 	}
 }
 
+.infor-container{
+	margin-right: 20px;
+}
+
+.infor-bg{
+	background-color: #FFF;
+	padding: 20px 60px 20px 20px;
+	border-radius: 8px;
+
+	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+}
+
 .info-document{
+	color: $text-color;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+	margin-left: 30px;
 	justify-content: center;
-	margin-top: 3rem;
 	p{
 		font-size: 1rem;
 	}
-	#sign{
+	a{
+		width: fit-content;
+		align-self: flex-end;
+	}
+	#sign {
 		display: flex;
+	}
+}
+
+.signed {
+	width: 700px;
+	height: 300px;
+	margin-top: 10px;
+	padding-right: 2px;
+	strong {
+		font-size: 22px;
+		margin-bottom: 10px;
+	}
+	button {
+		float: right;
+	}
+}
+
+.scroll {
+	max-height: 200px;
+	overflow-y: scroll;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.subscriber {
+	display: flex;
+	flex-direction: column;
+	color: $text-color;
+	background-color: $background;
+	border-radius: 8px;
+	padding: 5px 0px 5px 5px;
+	margin: 5px 5px 0px 0px;
+	min-height: 50px;
+	width: 330px;
+	.data-signed {
+		font-size: $date-signed-font;
+	}
+}
+
+.header {
+	display: flex;
+	margin-bottom: 2rem;
+	h1{
+		font-size: $title-font;
+	}
+}
+
+.icon{
+	width: 30px;
+	margin-right: 10px;
+}
+
+@media screen and (max-width: 700px) {
+	.signed {
+		width: 100%;
+	}
+	.infor-container {
+		margin-right: 0px;
+		width: 100%;
+	}
+	.infor-bg {
+		box-shadow: none;
+	}
+	.container {
+		align-items: flex-start;
+	}
+	.infor {
+		h1 {
+			font-size: $title-font-mobile;	
+		}
+	}
+	.header {
+		h1 {
+			font-size: $title-font-mobile;
+		}
 	}
 }
