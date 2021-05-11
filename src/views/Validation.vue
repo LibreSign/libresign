@@ -30,7 +30,7 @@
 					</div>
 					<div class="infor-bg signed">
 						<div class="header">
-							<img class="icon" :src="signatureIcon">This 
+							<img class="icon" :src="signatureIcon">This
 							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
 						</div>
 						<div v-for="item in document.signatures"
