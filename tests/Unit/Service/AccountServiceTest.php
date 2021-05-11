@@ -46,25 +46,6 @@ final class AccountServiceTest extends TestCase {
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 	}
 
-	public function testValidateuserAlreadyExists() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->userManager
-			->method('userExists')
-			->will($this->returnValue(true));
-		$this->expectExceptionMessage('User already exists');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop'
-		]);
-	}
-
 	public function testValidatePasswordEmpty() {
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
@@ -167,6 +148,26 @@ final class AccountServiceTest extends TestCase {
 					];
 				},
 				'This is not your file'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					$self->userManager
+						->method('userExists')
+						->will($self->returnValue(true));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop'
+					];
+				},
+				'User already exists'
 			]
 		];
 	}
