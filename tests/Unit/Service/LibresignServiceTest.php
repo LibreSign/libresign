@@ -10,7 +10,6 @@ use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * @internal
- * @coversNothing
  */
 final class LibresignServiceTest extends TestCase {
 	use ProphecyTrait;

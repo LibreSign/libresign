@@ -147,6 +147,6 @@ final class AccountControllerTest extends TestCase {
 			$password
 		);
 
-		static::assertSame(['signature' => '/path/to/someSignature'], $result->getData());
+		$this->assertSame(['signature' => '/path/to/someSignature'], $result->getData());
 	}
 }

@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
- * @coversNothing
  */
 final class AccountServiceTest extends TestCase {
 	/** @var IL10N */
