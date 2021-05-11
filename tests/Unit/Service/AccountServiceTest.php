@@ -44,6 +44,16 @@ final class AccountServiceTest extends TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
+	}
+
+	/**
+	 * @dataProvider providerTestValidateCreateToSign
+	 */
+	public function testValidateCreateToSign($arguments, $expectedErrorMessage) {
+		if (is_callable($arguments)) {
+			$arguments = $arguments($this);
+		}
+
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
@@ -53,102 +63,114 @@ final class AccountServiceTest extends TestCase {
 			$this->newUserMail,
 			$this->cfsslHandler
 		);
+		$this->expectExceptionMessage($expectedErrorMessage);
+		$this->service->validateCreateToSign($arguments);
 	}
 
-	public function testValidateInvalidUuid() {
-		$this->expectExceptionMessage('Invalid UUID');
-		$this->service->validateCreateToSign([
-			'uuid' => 'invalid'
-		]);
-	}
-
-	public function testValidateUuidNotFound() {
-		$this->fileUserMapper
-			->method('getByUuid')
-			->willReturnCallback(function () {
-				throw new \Exception("Beep, beep, not found!", 1);
-			});
-		$this->expectExceptionMessage('UUID not found');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012'
-		]);
-	}
-
-	public function testValidateInvalidEmail() {
-		$this->expectExceptionMessage('Invalid email');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'invalid'
-		]);
-	}
-
-	public function testValidateDontIsYourFile() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('This is not your file');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'invalid@test.coop'
-		]);
-	}
-
-	public function testValidateuserAlreadyExists() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->userManager
-			->method('userExists')
-			->will($this->returnValue(true));
-		$this->expectExceptionMessage('User already exists');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop'
-		]);
-	}
-
-	public function testValidatePasswordEmpty() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password is mandatory');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
-			'password' => '',
-		]);
-	}
-
-	public function testValidateSignPasswordDontMatch() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password to sign is mandatory');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
-			'password' => '123456789',
-			'signPassword' => '',
-		]);
+	public function providerTestValidateCreateToSign() {
+		return [
+			[
+				[
+					'uuid' => 'invalid uuid'
+				],
+				'Invalid UUID'
+			],
+			[
+				function ($self) {
+					$uuid = '12345678-1234-1234-1234-123456789012';
+					$self->fileUserMapper = $self->createMock(FileUserMapper::class);
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnCallback(function () {
+							throw new \Exception("Beep, beep, not found!", 1);
+						}));
+					return [
+						'uuid' => $uuid
+					];
+				},
+				'UUID not found'
+			],
+			[
+				[
+					'uuid' => '12345678-1234-1234-1234-123456789012',
+					'email' => 'invalid'
+				],
+				'Invalid email'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'invalid@test.coop'
+					];
+				},
+				'This is not your file'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					$self->userManager
+						->method('userExists')
+						->will($self->returnValue(true));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop'
+					];
+				},
+				'User already exists'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop',
+						'password' => '',
+					];
+				},
+				'Password is mandatory'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop',
+						'password' => '123456789',
+						'signPassword' => '',
+					];
+				},
+				'Password to sign is mandatory'
+			]
+		];
 	}
 }

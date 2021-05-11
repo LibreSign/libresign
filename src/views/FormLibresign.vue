@@ -24,76 +24,12 @@
 <template>
 	<div id="formLibresign" class="form-libresign">
 		<div class="form-group">
-			<label for="hosts">{{ t('libresign', 'Email') }}</label>
-			<input
-				id="hosts"
-				ref="hosts"
-				v-model="signature.hosts"
-				type="email"
-				:disabled="updating">
-		</div>
-		<div class="form-group">
-			<label for="commonName">{{ t('libresign', 'Name (CN)') }}</label>
-			<input
-				id="commonName"
-				ref="commonName"
-				v-model="signature.commonName"
-				type="text"
-				:disabled="updating">
-		</div>
-		<div class="form-group">
-			<label for="country">{{ t('libresign', 'Country (C)') }}</label>
-			<input
-				id="country"
-				ref="country"
-				v-model="signature.country"
-				type="text"
-				:disabled="updating">
-		</div>
-		<div class="form-group">
-			<label for="organization">{{ t('libresign', 'Organization (O)') }}</label>
-			<input
-				id="organization"
-				ref="organization"
-				v-model="signature.organization"
-				type="text"
-				:disabled="updating">
-		</div>
-		<div class="form-group">
-			<label for="organizationUnit">{{ t('libresign', 'Organizational Unit (OU)') }}</label>
-			<input
-				id="organizationUnit"
-				ref="organizationUnit"
-				v-model="signature.organizationUnit"
-				type="text"
-				:disabled="updating">
-		</div>
-		<div class="form-group">
 			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 			<input
 				id="password"
 				v-model="signature.password"
 				type="text"
 				:disabled="updating">
-		</div>
-		<div class="form-group">
-			<label for="path">{{ t('libresign', 'Signature storage.') }}</label>
-			<div>
-				<input
-					id="path"
-					ref="path"
-					v-model="signature.path"
-					type="text"
-					:disabled="1">
-				<button
-					id="pickFromCloud"
-					:class="'icon-folder'"
-					:title="t('libresign', 'Select folder where signature will be saved.')"
-					:disabled="updating"
-					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Select Folder.') }}
-				</button>
-			</div>
 		</div>
 		<input
 			type="button"
@@ -127,11 +63,6 @@ export default {
 	data() {
 		return {
 			signature: {
-				commonName: '',
-				hosts: '',
-				country: '',
-				organization: '',
-				organizationUnit: '',
 				path: '',
 				password: '',
 			},
@@ -142,16 +73,7 @@ export default {
 	},
 	computed: {
 		savePossible() {
-			return (
-				this.signature
-                && this.signature.commonName !== ''
-                && this.signature.hosts !== ''
-                && this.signature.country !== ''
-                && this.signature.organization !== ''
-                && this.signature.organizationUnit !== ''
-                && this.signature.password !== ''
-                && this.signature.path !== ''
-			)
+			return (this.signature.password !== '')
 		},
 	},
 	async mounted() {
@@ -164,7 +86,7 @@ export default {
 			this.updating = true
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/libresign/api/0.1/signature/generate'),
+					generateUrl('/apps/libresign/api/0.1/account/signature'),
 					this.signature
 				)
 				if (!response.data || !response.data.signature) {
@@ -184,30 +106,8 @@ export default {
 		closeModal() {
 			this.modal = false
 			this.signature = {
-				commonName: '',
-				hosts: '',
-				country: '',
-				organization: '',
-				organizationUnit: '',
-				path: '',
 				password: '',
 			}
-		},
-		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('libresign', 'Choose a folder to store your signature!'))
-				.setMultiSelect(false)
-				.addMimeTypeFilter('httpd/unix-directory')
-				.setModal(true)
-				.setType(1)
-				.allowDirectories(true)
-				.build()
-
-			picker.pick().then((path) => {
-				if (!path) {
-					path = '/'
-				}
-				this.signature.path = path
-			})
 		},
 	},
 }
@@ -219,21 +119,8 @@ export default {
 	margin: 20px;
 }
 
-.form-group > input[type='text'],
-.form-group > input[type='email'] {
+.form-group > input[type='password'] {
 	width: 100%;
-}
-
-#path {
-	width: 80%;
-}
-
-#pickFromCloud{
-	display: inline-block;
-	margin: 16px;
-	background-position: 16px center;
-	padding: 12px;
-	padding-left: 44px;
 }
 
 .modal_content {

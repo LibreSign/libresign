@@ -15,6 +15,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\ISession;
 use OCP\IURLGenerator;
 
 class AccountController extends ApiController {
@@ -30,6 +31,8 @@ class AccountController extends ApiController {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var ISession */
+	private $session;
 
 	public function __construct(
 		IRequest $request,
@@ -38,7 +41,8 @@ class AccountController extends ApiController {
 		FileMapper $fileMapper,
 		IRootFolder $root,
 		Chain $loginChain,
-		IURLGenerator $urlGenerator
+		IURLGenerator $urlGenerator,
+		ISession $session
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -47,6 +51,7 @@ class AccountController extends ApiController {
 		$this->root = $root;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
+		$this->session = $session;
 	}
 
 	/**
@@ -79,7 +84,6 @@ class AccountController extends ApiController {
 					Http::STATUS_UNPROCESSABLE_ENTITY
 				);
 			}
-			$fileToSign = $fileToSign[0];
 			$data = [
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
@@ -109,5 +113,30 @@ class AccountController extends ApiController {
 			$data,
 			Http::STATUS_OK
 		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function signatureGenerate(
+		string $password = null
+	): JSONResponse {
+		try {
+			$this->account->validateSignPassword([
+				'password' => $password
+			]);
+			$signaturePath = $this->account->generateCertificate(
+				$this->session->get('user_id'),
+				$password
+			);
+
+			return new JSONResponse(['signature' => $signaturePath->getPath()], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			return new JSONResponse(
+				['message' => $exception->getMessage()],
+				Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
 	}
 }
