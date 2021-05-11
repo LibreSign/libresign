@@ -46,41 +46,6 @@ final class AccountServiceTest extends TestCase {
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 	}
 
-	public function testValidatePasswordEmpty() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password is mandatory');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
-			'password' => '',
-		]);
-	}
-
-	public function testValidateSignPasswordDontMatch() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
-		$this->fileUserMapper
-			->method('getByUuid')
-			->will($this->returnValue($fileUser));
-		$this->expectExceptionMessage('Password to sign is mandatory');
-		$this->service->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
-			'password' => '123456789',
-			'signPassword' => '',
-		]);
-	}
-
 	/**
 	 * @dataProvider providerTestValidateCreateToSign
 	 */
@@ -168,6 +133,43 @@ final class AccountServiceTest extends TestCase {
 					];
 				},
 				'User already exists'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop',
+						'password' => '',
+					];
+				},
+				'Password is mandatory'
+			],
+			[
+				function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->with($self->equalTo('getEmail'), $self->anything())
+						->will($self->returnValue('valid@test.coop'));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop',
+						'password' => '123456789',
+						'signPassword' => '',
+					];
+				},
+				'Password to sign is mandatory'
 			]
 		];
 	}
