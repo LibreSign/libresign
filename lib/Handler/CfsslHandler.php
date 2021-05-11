@@ -25,6 +25,8 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getOrganizationUnit()
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
+ * @method CfsslHandler setClient(Client $client)
+ * @method Client getClient()
  */
 class CfsslHandler {
 	private $commonName;
@@ -33,6 +35,10 @@ class CfsslHandler {
 	private $organization;
 	private $organizationUnit;
 	private $cfsslUri;
+	private $client;
+	public function __construct() {
+		$this->client = new Client(['base_uri' => $this->getCfsslUri()]);
+	}
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
 			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
@@ -87,7 +93,7 @@ class CfsslHandler {
 			],
 		];
 		try {
-			$response = (new Client(['base_uri' => $this->getCfsslUri()]))
+			$response = $this->getClient()
 				->request(
 					'POST',
 					'newcert',
