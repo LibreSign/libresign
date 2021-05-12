@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @internal
- * @coversNothing
  */
 final class LibresignControllerTest extends TestCase {
 	use ProphecyTrait;

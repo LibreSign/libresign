@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
- * @coversNothing
  */
 final class AccountServiceTest extends TestCase {
 	/** @var IL10N */
@@ -172,5 +171,22 @@ final class AccountServiceTest extends TestCase {
 				'Password to sign is mandatory'
 			]
 		];
+	}
+
+	public function testGenerateCertificateWithInvalidData() {
+		$this->cfsslHandler
+			->method('__call')
+			->will($this->returnValue($this->cfsslHandler));
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Failure on generate certificate');
+		$this->service->generateCertificate('uid', 'password');
 	}
 }
