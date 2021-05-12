@@ -51,7 +51,7 @@ class CfsslHandler {
 				break;
 
 			case 'set':
-				$this->$property = $arguments[0]??null;
+				$this->$property = $arguments[0] ?? null;
 				return $this;
 				break;
 		}
