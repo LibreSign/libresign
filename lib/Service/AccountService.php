@@ -62,9 +62,7 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'), 1);
-		}
+		$this->validateCertificateData($data);
 		if ($fileUser->getEmail() !== $data['email']) {
 			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
@@ -74,10 +72,12 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
-		$this->validateSignPassword($data);
 	}
 
-	public function validateSignPassword(array $data) {
+	public function validateCertificateData(array $data) {
+		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'), 1);
+		}
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
 		}
