@@ -115,20 +115,21 @@ class AccountService {
 			}
 		}
 
-		$this->generateCertificate($uid, $signPassword);
+		$this->generateCertificate($uid, $signPassword, $newUser->getUID());
 	}
 
 	/**
 	 * Generate certificate
 	 *
-	 * @param string $uid User identifier
+	 * @param string $email Email
 	 * @param string $signPassword Password of signature
+	 * @param string $uid User id
 	 * @return File
 	 */
-	public function generateCertificate(string $uid, string $signPassword): File {
+	public function generateCertificate(string $email, string $signPassword, string $uid): File {
 		$content = $this->cfsslHandler
 			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
-			->sethosts([])
+			->sethosts([$email])
 			->setCountry($this->config->getAppValue(Application::APP_ID, 'country'))
 			->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'))
 			->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'))
