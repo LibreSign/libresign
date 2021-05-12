@@ -1,5 +1,5 @@
 ![Test Status](https://github.com/lyseontech/libresign/workflows/PHPUnit/badge.svg?branch=main)
-[![Coverage Status](https://coveralls.io/repos/LibreSign/libresign/badge.svg?branch=master&service=github)](https://coveralls.io/github/LibreSign/libresign?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/LibreSign/libresign/badge.svg?branch=main)](https://coveralls.io/github/LibreSign/libresign?branch=main)
 
 # LibreSign
 
