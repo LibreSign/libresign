@@ -81,7 +81,7 @@ class WebhookService {
 		if (!empty($authorized)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
 			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('Insufficient permissions to use API'));
+				throw new \Exception($this->l10n->t('You are not allowed to request signing'), 405);
 			}
 		}
 	}
@@ -268,9 +268,6 @@ class WebhookService {
 				$fileUser->setUuid(UUIDUtil::getUUID());
 			}
 			$fileUser->setEmail($user['email']);
-			if (!empty($user['display_name'])) {
-				$fileUser->setDisplayName($user['display_name']);
-			}
 			if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 				$fileUser->setDescription($user['description']);
 			}
@@ -278,7 +275,13 @@ class WebhookService {
 				$userToSign = $this->userManager->getByEmail($user['email']);
 				if ($userToSign) {
 					$fileUser->setUserId($userToSign[0]->getUID());
+					if (empty($user['display_name'])) {
+						$user['display_name'] = $userToSign[0]->getDisplayName();
+					}
 				}
+			}
+			if (!empty($user['display_name'])) {
+				$fileUser->setDisplayName($user['display_name']);
 			}
 			if ($fileUser->getId()) {
 				$this->fileUserMapper->update($fileUser);

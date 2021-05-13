@@ -9,7 +9,7 @@ env:
   APP_NAME: libresign
 
 jobs:
-  php:
+  phpunit:
     runs-on: ubuntu-latest
     strategy:
       # do not stop on another job's failure
@@ -17,11 +17,13 @@ jobs:
       matrix:
         php-versions: ['7.4']
         databases: ['sqlite']
+        coverage: ['none']
         server-versions: ['stable20', 'stable21', 'master']
         include:
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'stable21'
+            coverage: 'xdebug'
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'master'
@@ -50,9 +52,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
+          coverage: ${{ matrix.coverage }}
           tools: phpunit
           extensions: mbstring, iconv, fileinfo, intl, sqlite, pdo_sqlite
-          coverage: none
 
       - name: Set up PHP dependencies
         working-directory: apps/${{ env.APP_NAME }}
@@ -79,3 +81,24 @@ jobs:
       - name: PHPUnit
         working-directory: apps/${{ env.APP_NAME }}
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
+
+      - name: Upload coverage results to Coveralls
+        working-directory: apps/${{ env.APP_NAME }}
+        if: matrix.php-versions == '8.0' && matrix.server-versions == 'stable21'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
+        run: |
+          composer global require php-coveralls/php-coveralls --no-progress --no-interaction
+          php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -vvv
+
+  finish-coverage:
+    needs: phpunit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Let Coveralls know that all tests have finished
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

@@ -35,42 +35,39 @@ else
 endif
 
 # Dev env management
-dev-setup: clean clean-dev composer npm-init
+dev-setup: clean clean-dev composer yarn-init
 
-npm-init:
-	npm ci
+yarn-init:
+	yarn
 
-npm-update:
-	npm update
+yarn-update:
+	yarn upgrade
 
 # Building
 build-js:
-	npm run dev
+	yarn dev
 
 build-js-production:
-	npm run build
+	yarn build
 
 watch-js:
-	npm run watch
+	yarn watch
 
 # Linting
 lint:
-	npm run lint
+	yarn lint
 
 lint-fix:
-	npm run lint:fix
-	npm run stylelint:fix
+	yarn lint:fix
+	yarn stylelint:fix
 
 # Style linting
 stylelint:
-	npm run stylelint
+	yarn stylelint
 
 .PHONY: docs
 docs:
-	cd docs; npm run dev
-
-swagger-gen:
-	runuser --user www-data -- /usr/local/bin/php ../../occ libresign:swagger-gen > docs/src/specs/api.yaml
+	cd docs; yarn dev
 
 # Cleaning
 .PHONY: clean
@@ -92,8 +89,8 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	npm install
-	npm run build
+	yarn
+	yarn build
 	cp -r \
 		appinfo \
 		cfssl \

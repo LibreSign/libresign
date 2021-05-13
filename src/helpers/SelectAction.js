@@ -21,7 +21,11 @@
  *
  */
 
-const redirectURL = OC.appConfig.libresign ? OC.appConfig.libresign.redirect : 'Home'
+import { loadState } from '@nextcloud/initial-state'
+
+const libresignVar = JSON.parse(loadState('libresign', 'config'))
+
+const redirectURL = libresignVar.redirect ? libresignVar.redirect : 'Home'
 
 const selectAction = (action) => {
 	switch (action) {

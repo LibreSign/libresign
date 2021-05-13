@@ -26,65 +26,59 @@
 		:id="id"
 		:icon="icon"
 		:name="name">
-		<div v-if="error" class="emptycontent">
-			<div class="icon icon-error" />
-			<h2>{{ error }}</h2>
-		</div>
-		<div v-else-if="response" class="emptycontent">
-			<div class="icon icon-checkmark" />
-			<h2>{{ response }}</h2>
-		</div>
-		<div v-else id="libresignTabContent">
-			<label for="path">{{ t('libresign', 'Signature location.') }}</label>
-			<div class="form-group">
-				<input
-					id="path"
-					ref="path"
-					v-model="signaturePath"
-					type="text"
-					:disabled="1">
-				<button
-					id="pickFromCloud"
-					:class="'icon-folder'"
-					:title="t('libresign', 'Select signature file location.')"
-					:disabled="updating"
-					@click.stop="pickFromCloud">
-					{{ t('libresign', 'Select signature.') }}
-				</button>
-			</div>
-			<label for="password">{{ t('libresign', 'Signature password.') }}</label>
-			<div class="form-group">
-				<input
-					id="password"
-					v-model="password"
-					type="password"
-					:disabled="updating">
-			</div>
-			<input
-				type="button"
+		<div v-show="showButtons" class="buttons">
+			<button class="primary" :disabled="!hasSign" @click="option('sign')">
+				{{ t('libresign', 'Sign') }}
+			</button>
+			<button
+				:disabled="!canRequestSign"
 				class="primary"
-				:value="t('libresign', 'Sign the document.')"
-				:disabled="updating || !savePossible"
-				@click="sign">
+				@click="option('request')">
+				{{ t('libresign', 'Request subscription') }}
+			</button>
+			<button v-if="hasSignatures" @click="option('verify')">
+				{{ t('libresign', 'Verify signatures.') }}
+			</button>
 		</div>
+
+		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
+			<template slot="actions">
+				<button class="return-button" @click="option('sign')">
+					{{ t('libresign', 'Turn back.') }}
+				</button>
+			</template>
+		</Sign>
+
+		<Request v-show="requestShow"
+			ref="request"
+			:fileinfo="info"
+			@request:signatures="requestSignatures">
+			<template slot="actions">
+				<button class="return-button" @click="option('request')">
+					{{ t('libresign', 'Turn back.') }}
+				</button>
+			</template>
+		</Request>
 	</AppSidebarTab>
 </template>
 
 <script>
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-
-import { getFilePickerBuilder } from '@nextcloud/dialogs'
-import { joinPaths } from '@nextcloud/paths'
-import { translate as t } from '@nextcloud/l10n'
+import Sign from '../Components/Sign'
+import Request from '../Components/Request'
 
 export default {
 	name: 'LibresignTab',
 
 	components: {
 		AppSidebarTab,
+		Sign,
+		Request,
 	},
+
 	mixins: [],
 
 	props: {
@@ -94,15 +88,18 @@ export default {
 			required: true,
 		},
 	},
+
 	data() {
 		return {
-			signaturePath: '',
-			password: '',
-			response: '',
 			icon: 'icon-rename',
-			updating: false,
-			loading: true,
-			name: t('libresign', 'Sign the document.'),
+			name: t('libresign', 'LibreSign'),
+			showButtons: true,
+			signShow: false,
+			requestShow: false,
+			disabledSign: false,
+			info: this.fileInfo,
+			canRequestSign: false,
+			canSign: false,
 		}
 	},
 
@@ -113,78 +110,88 @@ export default {
 		activeTab() {
 			return this.$parent.activeTab
 		},
-		savePossible() {
-			return (
-				this.password !== ''
-				&& this.signaturePath !== ''
-			)
+		hasSignatures() {
+			return !!(this.canRequestSign && this.signatures)
+		},
+		hasSign() {
+			return !!this.canSign
 		},
 	},
-	methods: {
-		async sign() {
-			this.updating = true
-			this.response = ''
-			this.error = ''
-			try {
-				const response = await axios.post(
-					generateUrl('/apps/libresign/api/0.1/sign'),
-					{
-						inputFilePath: joinPaths(this.fileInfo.get('path'), this.fileInfo.get('name')),
-						outputFolderPath: this.fileInfo.get('path'),
-						certificatePath: this.signaturePath,
-						password: this.password,
-					}
-				)
-				if (!response.data || !response.data.fileSigned) {
-					throw new Error(response.data)
-				}
-				this.response = t('libresign', 'Signed document available at {place}', { place: response.data.fileSigned })
 
-			} catch (e) {
-				console.error(e)
-				this.error = t('libresign', 'Could not sign document!')
+	created() {
+		this.getInfo()
+	},
+
+	methods: {
+		async getInfo() {
+			try {
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				this.canRequestSign = response.data.settings.canRequestSign
+				this.canSign = response.data.settings.canSign
+
+			} catch (err) {
+				this.canRequestSign = err.response.data.settings.canRequestSign
 			}
-			this.updating = false
 		},
 
-		pickFromCloud() {
-			const picker = getFilePickerBuilder(t('libresign', 'Choose your subscription location!'))
-				.setMultiSelect(false)
-				.addMimeTypeFilter('application/octet-stream')
-				.setModal(true)
-				.setType(1)
-				.allowDirectories(false)
-				.build()
+		async signDocument(param) {
+			try {
+				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+					password: param,
+				})
+				this.option('sign')
+				return showSuccess(response.data.message)
+			} catch (err) {
+				return showError(err.response.data.errors[0])
+			}
+		},
 
-			picker.pick().then((path) => {
-				this.signaturePath = path
-			})
+		async requestSignatures(users) {
+			try {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+					file: {
+						fileId: this.info.id,
+					},
+					name: this.info.name.split('.pdf')[0],
+					users,
+				})
+				this.option('request')
+				this.clearRequestList()
+				return showSuccess(response.data.message)
+			} catch (err) {
+				return showError(err.response.data.errors[0])
+			}
+		},
+
+		option(value) {
+			if (value === 'sign') {
+				this.showButtons = !this.showButtons
+				this.signShow = !this.signShow
+			} else if (value === 'request') {
+				this.showButtons = !this.showButtons
+				this.requestShow = !this.requestShow
+			}
+		},
+		clearRequestList() {
+			this.$refs.request.clearList()
 		},
 	},
 }
 </script>
-
-<style scoped>
-
-#libresignTabContent {
+<style lang="scss" scoped>
+.buttons{
 	display: flex;
 	flex-direction: column;
+	width: 100%;
+	button{
+		width: 100%
+	}
 }
 
-.form-group > input {
-	width: 50%;
-}
-
-.form-group > input[type='button'] {
+.return-button{
 	width: 80%;
-	margin: 2em;
+	align-self: center;
+	position:absolute;
+	bottom: 10px;
 }
-
-#pickFromCloud{
-	display: inline-block;
-	background-position: 16px center;
-	padding: 12px;
-	padding-left: 44px;
-}
-
 </style>

@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @internal
- * @coversNothing
  */
 final class WebhookServiceTest extends TestCase {
 	/** @var IConfig */
@@ -265,7 +264,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testIndexWithoutPermission() {
-		$this->expectExceptionMessage('Insufficient permissions to use API');
+		$this->expectExceptionMessage('You are not allowed to request signing');
 		$this->config
 			->expects($this->once())
 			->method('getAppValue')

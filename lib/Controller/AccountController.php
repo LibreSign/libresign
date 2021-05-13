@@ -16,6 +16,7 @@ use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserSession;
 
 class AccountController extends ApiController {
 	/** @var IL10N */
@@ -30,6 +31,8 @@ class AccountController extends ApiController {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IUserSession */
+	private $userSession;
 
 	public function __construct(
 		IRequest $request,
@@ -38,7 +41,8 @@ class AccountController extends ApiController {
 		FileMapper $fileMapper,
 		IRootFolder $root,
 		Chain $loginChain,
-		IURLGenerator $urlGenerator
+		IURLGenerator $urlGenerator,
+		IUserSession $userSession
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -47,6 +51,7 @@ class AccountController extends ApiController {
 		$this->root = $root;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
+		$this->userSession = $userSession;
 	}
 
 	/**
@@ -79,12 +84,11 @@ class AccountController extends ApiController {
 					Http::STATUS_UNPROCESSABLE_ENTITY
 				);
 			}
-			$fileToSign = $fileToSign[0];
 			$data = [
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
-					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])
+					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])
 				],
 				'filename' => $fileData->getName(),
 				'description' => $fileUser->getDescription()
@@ -109,5 +113,30 @@ class AccountController extends ApiController {
 			$data,
 			Http::STATUS_OK
 		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function signatureGenerate(
+		string $signPassword
+	): JSONResponse {
+		try {
+			$data = [
+				'email' => $this->userSession->getUser()->getEMailAddress(),
+				'signPassword' => $signPassword,
+				'userId' => $this->userSession->getUser()->getUID()
+			];
+			$this->account->validateCertificateData($data);
+			$signaturePath = $this->account->generateCertificate(...array_values($data));
+
+			return new JSONResponse(['signature' => $signaturePath->getPath()], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			return new JSONResponse(
+				['message' => $exception->getMessage()],
+				Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
 	}
 }

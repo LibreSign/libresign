@@ -4,7 +4,10 @@ module.exports = {
 	],
 	"rules": {
         "node/no-extraneous-import": ["error", {
-            "allowModules": ['@nextcloud/auth'],
+            "allowModules": [
+				'@nextcloud/auth',
+				'@nextcloud/initial-state'
+			],
             "resolvePaths": [],
             "tryExtensions": []
         }]
