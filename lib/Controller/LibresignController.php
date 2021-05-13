@@ -275,7 +275,7 @@ class LibresignController extends Controller {
 	 * @PublicPage
 	 */
 	public function validateUuid($uuid) {
-		return $this->validate('Uu', $uuid);
+		return $this->validate('Uuid', $uuid);
 	}
 
 	/**
