@@ -160,6 +160,12 @@ class AccountService {
 		return $file;
 	}
 
+	/**
+	 * Get pfx file
+	 *
+	 * @param string $uid user id
+	 * @return \OCP\Files\Node
+	 */
 	public function getPfx($uid) {
 		Filesystem::initMountPoints($uid);
 		$this->folder->setUserId($uid);
