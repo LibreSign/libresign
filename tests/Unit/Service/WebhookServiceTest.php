@@ -197,6 +197,17 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(1234564);
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$this->expectErrorMessage('Document already signed');
+		$this->service->canDeleteSignRequest(['uuid' => 'valid']);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
