@@ -12,7 +12,7 @@
 
 <script>
 export default {
-	name: 'InputLS',
+	name: 'InputAction',
 	props: {
 		type: {
 			type: String,
