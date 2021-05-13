@@ -3,26 +3,30 @@
 return [
 	'routes' => [
 		// API
-		['name' => 'api#preflighted_cors', 'url' => '/api/0.1/{path}',
-			'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
-		['name' => 'webhook#me', 'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
-		['name' => 'webhook#register', 'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
-		['name' => 'webhook#update', 'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
-		['name' => 'webhook#removeSignature', 'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
-		['name' => 'libresign#sign', 'url' => '/api/0.1/sign', 'verb' => 'POST'],
-		['name' => 'libresign#validate', 'url' => '/api/0.1/file/validate/{uuid}', 'verb' => 'GET'],
-		['name' => 'libresign#signUsingUuid', 'url' => '/api/0.1/sign/{uuid}', 'verb' => 'POST'],
-		['name' => 'account#createToSign', 'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
+		['name' => 'api#preflighted_cors',      'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
+		['name' => 'webhook#me',                'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
+		['name' => 'webhook#register',          'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
+		['name' => 'webhook#update',            'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
+		['name' => 'webhook#removeSignature',   'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
+		['name' => 'libresign#signDeprecated',  'url' => '/api/0.1/sign', 'verb' => 'POST'],
+		['name' => 'libresign#signUsingUuid',   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
+		['name' => 'libresign#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
+		['name' => 'libresign#validateUuid',    'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
+		['name' => 'libresign#validateFileId',  'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
+		['name' => 'account#createToSign',      'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#signatureGenerate', 'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
-		['name' => 'signature#hasRootCert', 'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
+		['name' => 'signature#hasRootCert',     'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
 		// Admin config
 		['name' => 'admin#generateCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'POST'],
-		['name' => 'admin#loadCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],
+		['name' => 'admin#loadCertificate',     'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],
 
-		// Pages
-		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-		['name' => 'page#sign', 'url' => '/sign/{uuid}', 'verb' => 'GET'],
-		['name' => 'page#getPdf', 'url' => '/pdf/{uuid}', 'verb' => 'GET'],
-		// ['name' => 'page#validation', 'url' => '/validation', 'verb' => 'GET']
+		// Pages - restricted
+		['name' => 'page#index',                'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#getPdfUser',           'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
+		// Pages - public
+		['name' => 'page#sign',                 'url' => '/sign/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#validation',           'url' => '/validation', 'verb' => 'GET'],
+		['name' => 'page#validationFile',       'url' => '/validation/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#getPdf',               'url' => '/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];

@@ -42,7 +42,6 @@ class WebhookController extends ApiController {
 	 * Request that a file be signed by a group of people
 	 *
 	 * @NoAdminRequired
-	 * @CORS
 	 * @NoCSRFRequired
 	 *
 	 * @param array $file
@@ -69,7 +68,7 @@ class WebhookController extends ApiController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
+				$th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 		return new JSONResponse(

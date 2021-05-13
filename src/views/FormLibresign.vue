@@ -52,7 +52,7 @@
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
-import { showError, getFilePickerBuilder } from '@nextcloud/dialogs'
+import { showError } from '@nextcloud/dialogs'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { translate as t } from '@nextcloud/l10n'
 export default {

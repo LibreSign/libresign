@@ -1264,7 +1264,7 @@
     core-js "^3.11.2"
     semver "^7.3.5"
 
-"@nextcloud/initial-state@^1.1.2":
+"@nextcloud/initial-state@^1.1.2", "@nextcloud/initial-state@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@nextcloud/initial-state/-/initial-state-1.2.0.tgz#da8aad90299d38375ee995dc73d54f60224f9126"
   integrity sha512-/ZN4f/gihvRPXa7S2mgV2Is5QyEGqb4/Z2OGHxilJV86ZKBnR9DlA5dFqtzdV86dHVsZ+PfthUI3vDPJ81hTJA==
@@ -1316,10 +1316,10 @@
   dependencies:
     "@types/jquery" "2.0.54"
 
-"@nextcloud/vue@^2.6.5":
-  version "2.9.0"
-  resolved "https://registry.yarnpkg.com/@nextcloud/vue/-/vue-2.9.0.tgz#85c3eff4fecef3362ec29f9d10844cb7550566f6"
-  integrity sha512-OaddUORB2MdrXtmqnXJlbftYMGBBX339utLe2b4jz2qaT/IvvaTmwet6qSl/736upLaJveIoPrdyn3FZea5CUg==
+"@nextcloud/vue@^3.9.0":
+  version "3.9.0"
+  resolved "https://registry.yarnpkg.com/@nextcloud/vue/-/vue-3.9.0.tgz#90ca3a6a7a8b7067f0c0b08ced5e38acf8103b84"
+  integrity sha512-zxT/Zq/Uvv27BX6Btx/vmsjPhPEVVkUuJuE4menP0h9PIDwepwQgYfr9XK2zHZFMpMJwXJeROPpGKni1+loCwQ==
   dependencies:
     "@nextcloud/auth" "^1.2.3"
     "@nextcloud/axios" "^1.3.2"
@@ -1330,7 +1330,7 @@
     "@nextcloud/l10n" "^1.2.3"
     "@nextcloud/router" "^1.0.2"
     core-js "^3.6.5"
-    debounce "1.2.0"
+    debounce "1.2.1"
     emoji-mart-vue-fast "^7.0.7"
     escape-html "^1.0.3"
     hammerjs "^2.0.8"
@@ -1339,6 +1339,7 @@
     regenerator-runtime "^0.13.5"
     string-length "^4.0.1"
     striptags "^3.1.1"
+    style-loader "^2.0.0"
     tributejs "^5.1.3"
     v-click-outside "^3.0.1"
     v-tooltip "^2.0.3"
@@ -1346,7 +1347,7 @@
     vue-color "^2.7.1"
     vue-multiselect "^2.1.6"
     vue-visible "^1.0.2"
-    vue2-datepicker "^3.6.2"
+    vue2-datepicker "^3.6.3"
 
 "@nextcloud/webpack-vue-config@^1.4.1":
   version "1.4.1"
@@ -2629,9 +2630,9 @@ camelcase@^6.0.0:
   integrity sha512-c7wVvbw3f37nuobQNtgsgG9POC9qMbNuMQmTCqZv23b6MIz0fcYpBiOlv9gEN/hdLdnZTDQhg6e9Dq5M1vKvfg==
 
 caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001219:
-  version "1.0.30001222"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001222.tgz#2789b8487282cbbe1700924f53951303d28086a9"
-  integrity sha512-rPmwUK0YMjfMlZVmH6nVB5U3YJ5Wnx3vmT5lnRO3nIKO8bJ+TRWMbGuuiSugDJqESy/lz+1hSrlQEagCtoOAWQ==
+  version "1.0.30001223"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001223.tgz#39b49ff0bfb3ee3587000d2f66c47addc6e14443"
+  integrity sha512-k/RYs6zc/fjbxTjaWZemeSmOjO0JJV+KguOBA3NwPup8uzxM1cMhR2BD9XmO86GuqaqTCO8CgkgH9Rz//vdDiA==
 
 capture-exit@^2.0.0:
   version "2.0.0"
@@ -3024,9 +3025,9 @@ copy-descriptor@^0.1.0:
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
 core-js-compat@^3.9.0, core-js-compat@^3.9.1:
-  version "3.11.3"
-  resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.11.3.tgz#031b4b4b92fe7066c4c56da6cf6b540c22849389"
-  integrity sha512-oNjHN/qUHOA0dPv+v5prqHfeSvIEJrk3hYVoaUK4MNzL9U433uu0MN+pImcdntV8o9pDq0r1v+9lTfKPjjbX/A==
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.12.0.tgz#a031e51fe411085e33cb629bfee2acaa53bc309a"
+  integrity sha512-vvaN8EOvYBEjrr+MN3vCKrMNc/xdYZI+Rt/uPMROi4T5Hj8Fz6TiPQm2mrB9aZoQVW1lCFHYmMrv99aUct9mkg==
   dependencies:
     browserslist "^4.16.6"
     semver "7.0.0"
@@ -3042,9 +3043,9 @@ core-js@^2.4.0, core-js@^2.5.7:
   integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
 
 core-js@^3.11.2, core-js@^3.6.4, core-js@^3.6.5:
-  version "3.11.3"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.11.3.tgz#2835b1f4d10f6d0400bf820cfe6fe64ad067dd3f"
-  integrity sha512-DFEW9BllWw781Op5KdYGtXfj3s9Cmykzt16bY6elaVuqXHCUwF/5pv0H3IJ7/I3BGjK7OeU+GrjD1ChCkBJPuA==
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.12.0.tgz#62bac86f7d7f087d40dba3e90a211c2c3c8559ea"
+  integrity sha512-SaMnchL//WwU2Ot1hhkPflE8gzo7uq1FGvUJ8GKmi3TOU7rGTHIU+eir1WGf6qOtTyxdfdcp10yPdGZ59sQ3hw==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -3277,10 +3278,10 @@ de-indent@^1.0.2:
   resolved "https://registry.yarnpkg.com/de-indent/-/de-indent-1.0.2.tgz#b2038e846dc33baa5796128d0804b455b8c1e21d"
   integrity sha1-sgOOhG3DO6pXlhKNCAS0VbjB4h0=
 
-debounce@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.0.tgz#44a540abc0ea9943018dc0eaa95cce87f65cd131"
-  integrity sha512-mYtLl1xfZLi1m4RtQYlZgJUNQjl4ZxVnHzIR8nLLgi4q1YT8o/WM+MK/f8yfcc9s5Ir5zRaPZyZU6xs1Syoocg==
+debounce@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
+  integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
 
 debug@4.3.2:
   version "4.3.2"
@@ -8486,6 +8487,14 @@ style-loader@^1.2.1:
     loader-utils "^2.0.0"
     schema-utils "^2.7.0"
 
+style-loader@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-2.0.0.tgz#9669602fd4690740eaaec137799a03addbbc393c"
+  integrity sha512-Z0gYUJmzZ6ZdRUqpg1r8GsaFKypE+3xAzuFeMuoHgjc9KZv3wMyCRjQIWEbhoFSq7+7yoHXySDJyyWQaPajeiQ==
+  dependencies:
+    loader-utils "^2.0.0"
+    schema-utils "^3.0.0"
+
 style-search@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/style-search/-/style-search-0.1.0.tgz#7958c793e47e32e07d2b5cafe5c0bf8e12e77902"
@@ -9302,7 +9311,7 @@ vue-visible@^1.0.2:
   resolved "https://registry.yarnpkg.com/vue-visible/-/vue-visible-1.0.2.tgz#4589036bbf3cfcf4cfbcb209ae8062e9b7cafa91"
   integrity sha512-yaX2its9XAJKGuQqf7LsiZHHSkxsIK8rmCOQOvEGEoF41blKRK8qr9my4qYoD6ikdLss4n8tKqYBecmaY0+WJg==
 
-vue2-datepicker@^3.6.2:
+vue2-datepicker@^3.6.3:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/vue2-datepicker/-/vue2-datepicker-3.9.0.tgz#239a251960bcff22d2a14b7e5fe0b1038cad9473"
   integrity sha512-nRqIZx5Ks0TDHFyzyHYIlfmuszEsEvRhwJ6HGuGGHQpjOfrIgkJ9B0pnEEJaVS3LKX6IWCVQMUq0H7I2UKmHqA==

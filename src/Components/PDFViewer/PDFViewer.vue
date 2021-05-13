@@ -23,7 +23,7 @@
 
 <template>
 	<iframe :src="pdf">
-		{{ t('libresign', 'This iframe is not supported in your browser.') }}
+		{{ t("libresign", "This iframe is not supported in your browser.") }}
 	</iframe>
 </template>
 
@@ -42,15 +42,11 @@ export default {
 	data() {
 		return {
 			pdf: this.url,
-		};
+		}
 	},
-};
+}
 </script>
 
-<style scoped>
-iframe {
-	overflow: hidden;
-	height: 100%;
-	width: 100%;
-}
+<style lang="scss" scoped>
+@import './styles';
 </style>
