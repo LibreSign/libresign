@@ -284,14 +284,14 @@ class LibresignController extends Controller {
 	 * @PublicPage
 	 */
 	public function validateFileId($fileId) {
-		return $this->validate('File', $fileId);
+		return $this->validate('FileId', $fileId);
 	}
 
 	private function validate(string $type, $identifier) {
 		try {
 			try {
 				$file = call_user_func(
-					[$this->fileMapper, 'getBy' . $type . 'Id'],
+					[$this->fileMapper, 'getBy' . $type],
 					$identifier
 				);
 			} catch (\Throwable $th) {
