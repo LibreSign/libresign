@@ -6,7 +6,7 @@ module.exports = {
         "node/no-extraneous-import": ["error", {
             "allowModules": [
 				'@nextcloud/auth',
-				'@nextcloud/inintial-state'
+				'@nextcloud/initial-state'
 			],
             "resolvePaths": [],
             "tryExtensions": []
