@@ -263,6 +263,20 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testValidateSuccess() {
+		$actual = $this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
+		]);
+		$this->assertNull($actual);
+	}
+
 	public function testIndexWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 		$this->config
