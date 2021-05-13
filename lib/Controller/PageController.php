@@ -73,6 +73,8 @@ class PageController extends Controller {
 	 * Render default template
 	 */
 	public function index() {
+		$this->initialState->provideInitialState('config', json_encode($this->getConfig('url')));
+
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
 		$response = new TemplateResponse(Application::APP_ID, 'main');
