@@ -417,7 +417,7 @@ final class AccountServiceTest extends TestCase {
 		$this->config->method('getAppValue')->will($this->returnValue('yes'));
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
-		$this->newUserMail->method('sendMail')->will($this->returnCallback(function(){
+		$this->newUserMail->method('sendMail')->will($this->returnCallback(function () {
 			throw new \Exception("Error Processing Request", 1);
 		}));
 		$service = new AccountService(
