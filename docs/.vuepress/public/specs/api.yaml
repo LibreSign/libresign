@@ -14,6 +14,8 @@ tags:
   description: Everything about webhook
 - name: sign
   description: Sign and validate files
+- name: admin
+  description: Admin settings
 
 paths:
   /webhook:
@@ -301,6 +303,12 @@ paths:
                   type: string
                 password:
                   type: string
+                  format: password
+              required:
+                - inputFilePath
+                - outputFolderPath
+                - certificatePath
+                - password
       responses:
         200:
           description: Success!
@@ -319,6 +327,7 @@ paths:
                 type: object
                 properties:
                   action:
+                    description: Numeric code representing what action should be taken with the response
                     type: string
                   errors:
                     type: string
@@ -329,7 +338,7 @@ paths:
       tags:
         - sign
       summary: Sign a file using user file UUUID
-      description: The user UUID is what the person receives via email when asked to sign.
+      description: The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
       parameters:
         - name: uuid
           in: path
@@ -338,7 +347,7 @@ paths:
           schema:
             type: string
             format: uuid
-            description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign.
+            description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
             example: 46d30465-ae11-484b-aad5-327249a1e8ef
       requestBody:
         content:
@@ -348,7 +357,10 @@ paths:
               properties:
                 password:
                   type: string
+                  format: password
                   example: Ultr4S3cretP3ssword!
+              required:
+                - password
       responses:
         200:
           description: Success!
@@ -359,6 +371,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
                     type: string
@@ -372,6 +385,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   errors:
                     type: array
@@ -405,7 +419,10 @@ paths:
               properties:
                 password:
                   type: string
+                  format: password
                   example: Ultr4S3cretP3ssword!
+              required:
+                - password
       responses:
         200:
           description: Success!
@@ -416,6 +433,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
                     type: string
@@ -429,6 +447,7 @@ paths:
                 properties:
                   action:
                     type: integer
+                    description: Numeric code representing what action should be taken with the response
                     example: 200
                   errors:
                     type: array
@@ -501,13 +520,12 @@ paths:
                   properties:
                     action:
                       type: integer
+                      description: Numeric code representing what action should be taken with the response
                       example: 200
                     errors:
                       type: array
                       items:
                         type: string
-      security:
-        - basicAuth: []
   /validate/file_id/{fileId}:
     get:
       tags:
@@ -570,13 +588,12 @@ paths:
                   properties:
                     action:
                       type: integer
+                      description: Numeric code representing what action should be taken with the response
                       example: 200
                     errors:
                       type: array
                       items:
                         type: string
-      security:
-        - basicAuth: []
   /signature/has-root-cert:
     get:
       tags:
@@ -596,6 +613,264 @@ paths:
                     example: true
       security:
         - basicAuth: []
+  /account/create/{uuid}:
+    post:
+      tags:
+        - sign
+      summary: Create person account to sign a document
+      description: Accounts can only be created to sign documents.
+      parameters:
+        - name: uuid
+          in: path
+          description: File UUID
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
+            example: 46d30465-ae11-484b-aad5-327249a1e8ef
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email of the person who owns the account
+                  example: user@test.coop
+                password:
+                  type: string
+                  format: password
+                  description: Password used to authenticate to Nextcloud
+                  example: Ultr4S3cretP3ssword!
+                signPassword:
+                  type: string
+                  format: password
+                  description: Password used to sign a document
+                  example: Ultr4S3cretP3ssword!
+              required:
+                - email
+                - password
+                - signPassword
+      responses:
+        200:
+          description: Success! When you create a person, they are automatically authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: Success
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 250
+                  pdf:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: URL to view PDF
+                        example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
+                  filename:
+                    type: string
+                    pattern: '^[\w \-_]+$'
+                    example: filename
+                    description: The name of file to sign
+                  description:
+                    type: string
+                    description: Description for the person who will sign the document
+                    example: As the company's CEO, you must sign this contract
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 200
+                  message:
+                    type: string
+                    description: Description of the failure that occurred
+                    example: User 0 needs an email address
+  /signature/generate:
+    post:
+      tags:
+        - sign
+      summary: Generates signature key
+      description: Generates the personal signature key
+      deprecated: true
+      security:
+        - basicAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commonName:
+                  type: string
+                  description: Common name
+                  example: CommonName
+                country:
+                  type: string
+                  description: Country name
+                  example: Brazil
+                organization:
+                  type: string
+                  description: Organization
+                  example: Organization
+                organizationUnit:
+                  type: string
+                  description: Organization unit
+                  example: organizationUnit
+                hosts:
+                  type: array
+                  description: Not used
+                  example: []
+                path:
+                  type: string
+                  description: Path to save pfx file
+                  example: /LibreSign
+                password:
+                  type: string
+                  format: password
+                  description: Password to pfx file
+                  example: MySecretP4ssword!
+      responses:
+        200:
+          description: Folder where the pfx file was saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signature:
+                    type: string
+                    description: Folder where the pfx file was saved
+                    example: /LibreSign
+        422:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Parameter 'country' is required
+  /admin/certificate:
+    post:
+      tags:
+        - admin
+      summary: Create root certificate
+      description: Create root certificate and enable execution of CFSSL
+      security:
+        - basicAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commonName:
+                  type: string
+                  description: Common name
+                  example: CommonName
+                country:
+                  type: string
+                  description: Country name
+                  example: Brazil
+                organization:
+                  type: string
+                  description: Organization
+                  example: Organization
+                organizationUnit:
+                  type: string
+                  description: Organization unit
+                  example: organizationUnit
+                cfsslUri:
+                  type: string
+                  description: CFSSL service URL
+                  example: http://cfssl:8888/api/v1/cfssl/
+                configPath:
+                  type: string
+                  description: The path that Nextcloud should save the CFSSL configuration files for and that the CFSSL service needs to read to generate the root certificate.
+                  example: /cfssl/
+              required:
+                - commonName
+                - country
+                - organization
+                - organizationUnit
+                - cfsslUri
+                - configPath
+      responses:
+        200:
+          description: If the response is successful, it is because the settings have been saved and the root certificate has been generated.
+          content:
+            application/json:
+              schema:
+                type: array
+                example: []
+        500:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: array
+                    description: List of failures that occurred
+                    example:
+                      - Error while writing CSR server file!
+    get:
+      tags:
+        - admin
+      summary: Get root certificate
+      description: Get root certificate settings
+      security:
+        - basicAuth: []
+      responses:
+        200:
+          description: The certificate settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commonName:
+                    type: string
+                    description: Common name
+                    example: CommonName
+                  country:
+                    type: string
+                    description: Country name
+                    example: Brazil
+                  organization:
+                    type: string
+                    description: Organization
+                    example: Organization
+                  organizationUnit:
+                    type: string
+                    description: Organization unit
+                    example: organizationUnit
+                  cfsslUri:
+                    type: string
+                    description: CFSSL service URL
+                    example: http://cfssl:8888/api/v1/cfssl/
+                  configPath:
+                    type: string
+                    description: The path that Nextcloud should save the CFSSL configuration files for and that the CFSSL service needs to read to generate the root certificate.
+                    example: /cfssl/
 components:
   securitySchemes:
     basicAuth:

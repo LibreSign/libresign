@@ -6,26 +6,68 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\TransferException;
 use OCA\Libresign\Exception\LibresignException;
 
+/**
+ * Class FileMapper
+ *
+ * @package OCA\Libresign\Handler
+ *
+ * @method CfsslHandler setPassword(string $password)
+ * @method string getPassword()
+ * @method CfsslHandler setCommonName(string $commonName)
+ * @method string getCommonName()
+ * @method CfsslHandler sethosts(string $hosts)
+ * @method array gethosts()
+ * @method CfsslHandler setCountry(string $country)
+ * @method string getCountry()
+ * @method CfsslHandler setOrganization(string $organization)
+ * @method string getOrganization()
+ * @method CfsslHandler setOrganizationUnit(string $organizationUnit)
+ * @method string getOrganizationUnit()
+ * @method CfsslHandler setCfsslUri(string $cfsslUri)
+ * @method string getCfsslUri()
+ * @method CfsslHandler setClient(Client $client)
+ * @method Client getClient()
+ */
 class CfsslHandler {
-	public function generateCertificate(
-		string $commonName,
-		array $hosts,
-		string $country,
-		string $organization,
-		string $organizationUnit,
-		string $password,
-		string $cfsslUri
-	) {
-		$certKeys = $this->newCert(
-			$commonName,
-			$hosts,
-			$country,
-			$organization,
-			$organizationUnit,
-			$cfsslUri
-		);
+	private $commonName;
+	private $hosts = [];
+	private $country;
+	private $organization;
+	private $organizationUnit;
+	private $cfsslUri;
+	private $password;
+	private $client;
+	public function __call($name, $arguments) {
+		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
+			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
+		}
+		$property = lcfirst($matches['property']);
+		if (!property_exists($this, $property)) {
+			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
+		}
+		switch ($matches['type']) {
+			case 'get':
+				return $this->$property;
+				break;
+
+			case 'set':
+				$this->$property = $arguments[0] ?? null;
+				return $this;
+				break;
+		}
+	}
+
+	public function getClient() {
+		if (!$this->client) {
+			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
+		}
+		return $this->client;
+	}
+
+	public function generateCertificate() {
+		$certKeys = $this->newCert();
 		$certContent = null;
-		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $password);
+		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
 		if (!$isCertGenerated) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
@@ -33,37 +75,30 @@ class CfsslHandler {
 		return $certContent;
 	}
 
-	private function newCert(
-		string $commonName,
-		array $hosts,
-		string $country,
-		string $organization,
-		string $organizationUnit,
-		string $cfsslUri
-	) {
+	private function newCert() {
 		$json = [
 			'json' => [
 				'profile' => 'CA',
 				'request' => [
-					'hosts' => $hosts,
-					'CN' => $commonName,
+					'hosts' => $this->getHosts(),
+					'CN' => $this->getCommonName(),
 					'key' => [
 						'algo' => 'rsa',
 						'size' => 2048,
 					],
 					'names' => [
 						[
-							'C' => $country,
-							'O' => $organization,
-							'OU' => $organizationUnit,
-							'CN' => $commonName,
+							'C' => $this->getCountry(),
+							'O' => $this->getOrganization(),
+							'OU' => $this->getOrganizationUnit(),
+							'CN' => $this->getCommonName(),
 						],
 					],
 				],
 			],
 		];
 		try {
-			$response = (new Client(['base_uri' => $cfsslUri]))
+			$response = $this->getClient()
 				->request(
 					'POST',
 					'newcert',
