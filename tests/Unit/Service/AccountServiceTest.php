@@ -432,4 +432,50 @@ final class AccountServiceTest extends TestCase {
 		$this->expectErrorMessage('Unable to send the invitation');
 		$service->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
 	}
+
+	public function testCreateToSignSuccess() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
+		$userToSign = $this->createMock(\OCP\IUser::class);
+		$userToSign->method('getUID')->will($this->returnValue('userToSignUid'));
+		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
+		$this->config->method('getAppValue')->will($this->returnValue('no'));
+
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(false));
+		$file = $this->createMock(\OCP\Files\File::class);
+		$node->method('newFile')->will($this->returnValue($file));
+		$folder = $this->createMock(FolderService::class);
+		$folder->method('getFolder')->will($this->returnValue($node));
+
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$this->cfsslHandler
+			->method('__call')
+			->will($this->returnValue($this->cfsslHandler));
+		$this->cfsslHandler
+			->method('generateCertificate')
+			->will($this->returnValue('raw content of pfx file'));
+
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $service->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
+		$this->assertNull($actual);
+	}
 }
