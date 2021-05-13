@@ -33,7 +33,7 @@ class AccountService {
 	/** @var CfsslHandler */
 	private $cfsslHandler;
 	/** @var string */
-	private $pdfFilename = 'signature.pfx';
+	private $pfxFilename = 'signature.pfx';
 
 	public function __construct(
 		IL10N $l10n,
@@ -74,6 +74,10 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
+		$this->validateSignPassword($data);
+	}
+
+	public function validateSignPassword(array $data) {
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
 		}
@@ -111,45 +115,57 @@ class AccountService {
 			}
 		}
 
-		$content = $this->cfsslHandler->generateCertificate(
-			$this->config->getAppValue(Application::APP_ID, 'commonName'),
-			[],
-			$this->config->getAppValue(Application::APP_ID, 'country'),
-			$this->config->getAppValue(Application::APP_ID, 'organization'),
-			$this->config->getAppValue(Application::APP_ID, 'organizationUnit'),
-			$signPassword,
-			$this->config->getAppValue(Application::APP_ID, 'cfsslUri')
-		);
+		$this->generateCertificate($uid, $signPassword);
+	}
+
+	/**
+	 * Generate certificate
+	 *
+	 * @param string $uid User identifier
+	 * @param string $signPassword Password of signature
+	 * @return File
+	 */
+	public function generateCertificate(string $uid, string $signPassword): File {
+		$content = $this->cfsslHandler
+			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
+			->sethosts([])
+			->setCountry($this->config->getAppValue(Application::APP_ID, 'country'))
+			->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'))
+			->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'))
+			->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'))
+			->setPassword($signPassword)
+			->generateCertificate();
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		$this->savePfx($uid, $content);
+		return $this->savePfx($uid, $content);
 	}
 
-	private function savePfx($uid, $content) {
+	private function savePfx($uid, $content): File {
 		$this->folder->setUserId($uid);
 		Filesystem::initMountPoints($uid);
 		$folder = $this->folder->getFolder();
-		if ($folder->nodeExists($this->pdfFilename)) {
-			$node = $folder->get($this->pdfFilename);
-			if (!$node instanceof File) {
-				throw new LibresignException("path {$this->pdfFilename} already exists and is not a file!", 400);
+		if ($folder->nodeExists($this->pfxFilename)) {
+			$file = $folder->get($this->pfxFilename);
+			if (!$file instanceof File) {
+				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
-			$node->putContent($content);
-			return $node;
+			$file->putContent($content);
+			return $file;
 		}
 
-		$file = $folder->newFile($this->pdfFilename);
+		$file = $folder->newFile($this->pfxFilename);
 		$file->putContent($content);
+		return $file;
 	}
 
 	public function getPfx($uid) {
 		Filesystem::initMountPoints($uid);
 		$this->folder->setUserId($uid);
 		$folder = $this->folder->getFolder();
-		if (!$folder->nodeExists($this->pdfFilename)) {
+		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException('Signature file not found!', 400);
 		}
-		return $folder->get($this->pdfFilename);
+		return $folder->get($this->pfxFilename);
 	}
 }
