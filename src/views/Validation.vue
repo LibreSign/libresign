@@ -9,7 +9,7 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="uuid" type="text">
-					<button class="btn" @click.prevent="validateByUUID">
+					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validateByUUID">
 						{{ buttonTitle }}
 					</button>
 				</form>
@@ -84,17 +84,20 @@ export default {
 			noDateMessage: t('libresign', 'no date'),
 			uuid: '',
 			hasInfo: false,
+			hasLoading: false,
 			document: {},
 		}
 	},
 	methods: {
 		async validateByUUID() {
+			this.hasLoading = true
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${this.uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true
 			} catch (err) {
+				this.hasLoading = false
 				showError(err.response.data.errors[0])
 			}
 		},
@@ -117,4 +120,5 @@ export default {
 
 <style lang="scss" scoped>
 @import '../assets/styles/validation.scss';
+@import '../assets/styles/loading.scss';
 </style>
