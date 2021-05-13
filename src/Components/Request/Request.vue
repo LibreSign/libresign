@@ -27,7 +27,6 @@
 </template>
 
 <script>
-// import axios from tUrl } from '@nextcloud/router'
 import ListItem from '../ListItem'
 import { validateEmail } from '../../utils/validators'
 export default {
@@ -67,6 +66,7 @@ export default {
 			this.values.push({
 				email: this.email,
 				description: this.description,
+				name: this.email,
 			})
 			this.clearForm()
 		},
@@ -76,16 +76,9 @@ export default {
 		},
 		async send(param) {
 			this.$emit('request:signatures', this.values)
-			// const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
-			// : {
-			// fileid: this.fileinfo.id,
-			// },
-			// name: this.fileinfo.name.split('.pdf')[0],
-			// users: this.values,
-			// })
-			// // eslint-disable-next-line no-console
-			// console.log(response)
-
+		},
+		clearList() {
+			this.values = []
 		},
 	},
 }
