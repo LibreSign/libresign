@@ -96,6 +96,7 @@ export default {
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true
+				this.hasLoading = false
 			} catch (err) {
 				this.hasLoading = false
 				showError(err.response.data.errors[0])
