@@ -175,6 +175,33 @@ final class AccountServiceTest extends TestCase {
 			]
 		];
 	}
+	public function testValidateCreateToSignSuccess() {
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->with($this->equalTo('getEmail'), $this->anything())
+			->will($this->returnValue('valid@test.coop'));
+		$this->fileUserMapper
+			->method('getByUuid')
+			->will($this->returnValue($fileUser));
+
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $this->service->validateCreateToSign([
+			'uuid' => '12345678-1234-1234-1234-123456789012',
+			'email' => 'valid@test.coop',
+			'password' => '123456789',
+			'signPassword' => '123456789',
+		]);
+		$this->assertNull($actual);
+	}
 
 	public function testGenerateCertificateWithInvalidData() {
 		$this->cfsslHandler
