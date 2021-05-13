@@ -166,9 +166,6 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileByFileIdWhenFileIsNotPDF() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function () {
-			throw new \Exception('not found');
-		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getMimeType')->will($this->returnValue('html'));
