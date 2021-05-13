@@ -147,7 +147,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileByFileIdWhenFileIdNotExists() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$this->expectExceptionMessage('Invalid fileId');
@@ -155,7 +155,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileByFileIdWhenFileNotExists() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
@@ -166,7 +166,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileByFileIdWhenFileIsNotPDF() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
@@ -179,7 +179,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileByFileIdWhenSuccess() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
