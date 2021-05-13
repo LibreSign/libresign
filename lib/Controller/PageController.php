@@ -217,7 +217,7 @@ class PageController extends Controller {
 			$signedUsers = array_filter($fileUser, function ($row) {
 				return !is_null($row->getSigned());
 			});
-			if (count($fileUser) == count($signedUsers)) {
+			if (count($fileUser) === count($signedUsers)) {
 				$filePath = preg_replace(
 					'/' . $file->getExtension() . '$/',
 					$this->l10n->t('signed') . '.' . $file->getExtension(),
