@@ -17,9 +17,13 @@ use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 final class AccountControllerTest extends TestCase {
+	use ProphecyTrait;
 	/** @var AccountController */
 	private $controller;
 	/** @var IRequest */
@@ -36,6 +40,8 @@ final class AccountControllerTest extends TestCase {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IUserSession */
+	private $session;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -49,6 +55,9 @@ final class AccountControllerTest extends TestCase {
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->loginChain = $this->createMock(Chain::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->session = $this->getMockBuilder(IUserSession::class)
+			->disableOriginalConstructor()
+			->getMock();
 		$this->controller = new AccountController(
 			$this->request,
 			$this->l10n,
@@ -56,7 +65,8 @@ final class AccountControllerTest extends TestCase {
 			$this->fileMapper,
 			$this->root,
 			$this->loginChain,
-			$this->urlGenerator
+			$this->urlGenerator,
+			$this->session
 		);
 	}
 
@@ -123,5 +133,24 @@ final class AccountControllerTest extends TestCase {
 			]
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
+	}
+	public function testGenerate() {
+		$password = 'somePassword';
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn('user@test.coop');
+		$user->method('getUID')->willReturn('user');
+		$this->session->method('getUser')->willReturn($user);
+		$node = $this->createMock(File::class);
+		$node->method('getPath')
+			->will($this->returnValue('/path/to/someSignature'));
+		$this->account
+			->method('generateCertificate')
+			->will($this->returnValue($node));
+		$result = $this->controller->signatureGenerate(
+			$password
+		);
+
+		$this->assertSame(['signature' => '/path/to/someSignature'], $result->getData());
 	}
 }

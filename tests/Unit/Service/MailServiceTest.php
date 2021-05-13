@@ -16,7 +16,6 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @internal
- * @coversNothing
  */
 final class MailServiceTest extends TestCase {
 	/** @var LoggerInterface */
