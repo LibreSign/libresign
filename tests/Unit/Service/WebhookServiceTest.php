@@ -116,6 +116,14 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testValidateFileUrlWithoutAllNecessaryData() {
+		$this->expectExceptionMessage('Inform URL or base64 or fileId to sign');
+		$this->service->validateFile([
+			'file' => ['invalid'],
+			'name' => 'test'
+		]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
