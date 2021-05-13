@@ -408,4 +408,28 @@ final class AccountServiceTest extends TestCase {
 		$actual = $service->getPfx('userId');
 		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}
+
+	public function testCreateToSignWithErrorInSendingEmail() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
+		$userToSign = $this->createMock(\OCP\IUser::class);
+		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
+		$this->config->method('getAppValue')->will($this->returnValue('yes'));
+		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
+		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
+		$this->newUserMail->method('sendMail')->will($this->returnCallback(function(){
+			throw new \Exception("Error Processing Request", 1);
+		}));
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Unable to send the invitation');
+		$service->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
+	}
 }
