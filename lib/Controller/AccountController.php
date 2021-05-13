@@ -15,8 +15,8 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\IUserSession;
 
 class AccountController extends ApiController {
 	/** @var IL10N */
@@ -31,8 +31,8 @@ class AccountController extends ApiController {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
-	/** @var ISession */
-	private $session;
+	/** @var IUserSession */
+	private $userSession;
 
 	public function __construct(
 		IRequest $request,
@@ -42,7 +42,7 @@ class AccountController extends ApiController {
 		IRootFolder $root,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
-		ISession $session
+		IUserSession $userSession
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -51,7 +51,7 @@ class AccountController extends ApiController {
 		$this->root = $root;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
-		$this->session = $session;
+		$this->userSession = $userSession;
 	}
 
 	/**
@@ -120,16 +120,16 @@ class AccountController extends ApiController {
 	 * @NoCSRFRequired
 	 */
 	public function signatureGenerate(
-		string $password = null
+		string $signPassword
 	): JSONResponse {
 		try {
-			$this->account->validateSignPassword([
-				'password' => $password
-			]);
-			$signaturePath = $this->account->generateCertificate(
-				$this->session->get('user_id'),
-				$password
-			);
+			$data = [
+				'email' => $this->userSession->getUser()->getEMailAddress(),
+				'signPassword' => $signPassword,
+				'userId' => $this->userSession->getUser()->getUID()
+			];
+			$this->account->validateCertificateData($data);
+			$signaturePath = $this->account->generateCertificate(...array_values($data));
 
 			return new JSONResponse(['signature' => $signaturePath->getPath()], Http::STATUS_OK);
 		} catch (\Exception $exception) {

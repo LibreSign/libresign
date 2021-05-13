@@ -26,8 +26,8 @@
 		<div class="form-group">
 			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
 			<input
-				id="password"
-				v-model="signature.password"
+				id="signPassword"
+				v-model="signature.signPassword"
 				type="text"
 				:disabled="updating">
 		</div>
@@ -64,7 +64,7 @@ export default {
 		return {
 			signature: {
 				path: '',
-				password: '',
+				signPassword: '',
 			},
 			updating: false,
 			loading: true,
@@ -73,7 +73,7 @@ export default {
 	},
 	computed: {
 		savePossible() {
-			return (this.signature.password !== '')
+			return (this.signature.signPassword !== '')
 		},
 	},
 	async mounted() {
@@ -106,7 +106,7 @@ export default {
 		closeModal() {
 			this.modal = false
 			this.signature = {
-				password: '',
+				signPassword: '',
 			}
 		},
 	},
