@@ -313,7 +313,7 @@ class LibresignController extends Controller {
 					'fullName' => $signature->getFullName(),
 					'me' => $uid === $signature->getUserId()
 				];
-				if ($uid === $signature->getUserId()) {
+				if ($uid === $signature->getUserId() && !$signature->getSigned()) {
 					$canSign = true;
 				}
 			}
