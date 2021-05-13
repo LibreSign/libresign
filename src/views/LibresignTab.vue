@@ -27,7 +27,7 @@
 		:icon="icon"
 		:name="name">
 		<div v-show="showButtons" class="buttons">
-			<button class="primary" @click="option('sign')">
+			<button class="primary" :disabled="!hasSign" @click="option('sign')">
 				{{ t('libresign', 'Sign') }}
 			</button>
 			<button
@@ -99,6 +99,7 @@ export default {
 			disabledSign: false,
 			info: this.fileInfo,
 			canRequestSign: false,
+			canSign: false,
 		}
 	},
 
@@ -112,6 +113,9 @@ export default {
 		hasSignatures() {
 			return !!(this.canRequestSign && this.signatures)
 		},
+		hasSign() {
+			return !!this.canSign
+		},
 	},
 
 	created() {
@@ -123,6 +127,8 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canRequestSign = response.data.settings.canRequestSign
+				this.canSign = response.data.settings.canSign
+
 			} catch (err) {
 				this.canRequestSign = err.response.data.settings.canRequestSign
 			}
