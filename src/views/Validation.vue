@@ -39,8 +39,8 @@
 							class="scroll">
 							<div class="subscriber">
 								<span><b>{{ item.displayName ? item.displayName : "None" }}</b></span>
-								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }}</span>
-								<span v-else>{{ t('libresign', 'No date') }}</span>
+								<span v-if="item.signed" class="data-signed"> {{ assignedMessage }} : {{ formatData(item.signed) }} </span>
+								<span v-else>{{ noDateMessage }}</span>
 							</div>
 						</div>
 					</div>
@@ -62,7 +62,7 @@ import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { format, fromUnixTime } from 'date-fns'
+import { fromUnixTime } from 'date-fns'
 
 export default {
 	name: 'Validation',
@@ -80,6 +80,8 @@ export default {
 			title: t('libresign', 'Validate Subscription.'),
 			legend: t('libresign', 'Enter the UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
+			assignedMessage: t('libresign', 'signed at'),
+			noDateMessage: t('libresign', 'no date'),
 			uuid: '',
 			hasInfo: false,
 			document: {},
@@ -104,9 +106,9 @@ export default {
 		},
 		formatData(data) {
 			try {
-				return format(fromUnixTime(data), 'MM/dd/yyyy')
+				return fromUnixTime(data).toLocaleDateString()
 			} catch {
-				return t('libresign', 'no date')
+				return this.noDateMessage
 			}
 		},
 	},
