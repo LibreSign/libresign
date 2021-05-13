@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Files_Versions\Versions\IVersionBackend;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\CfsslHandler;
@@ -11,6 +12,7 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
+use OCP\UserInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -191,5 +193,79 @@ final class AccountServiceTest extends TestCase {
 		);
 		$this->expectErrorMessage('Failure on generate certificate');
 		$this->service->generateCertificate('uid', 'password', 'username');
+	}
+
+	public function testGetPfxWithInvalidUser() {
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Backends provided no user object for invalidUser');
+		$this->service->getPfx('invalidUser');
+	}
+
+	public function testGetPfxWithInvalidPfx() {
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$folder = $this->createMock(FolderService::class);
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(false));
+		$folder->method('getFolder')->will($this->returnValue($node));
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Signature file not found!');
+		$this->expectExceptionCode(400);
+		$service->getPfx('userId');
+	}
+
+	public function testGetPfxOk() {
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$folder = $this->createMock(FolderService::class);
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(true));
+		$node->method('get')->will($this->returnValue($node));
+		$folder->method('getFolder')->will($this->returnValue($node));
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $service->getPfx('userId');
+		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}
 }
