@@ -193,6 +193,44 @@ final class AccountServiceTest extends TestCase {
 		$this->service->generateCertificate('uid', 'password', 'username');
 	}
 
+	public function testGenerateCertificateAndSaveToAFolderAndNotAFile() {
+		$folder = $this->createMock(FolderService::class);
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(true));
+		$node->method('get')->will($this->returnValue($node));
+		$folder->method('getFolder')->will($this->returnValue($node));
+
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$this->cfsslHandler
+			->method('__call')
+			->will($this->returnValue($this->cfsslHandler));
+		$this->cfsslHandler
+			->method('generateCertificate')
+			->will($this->returnValue('raw content of pfx file'));
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('path signature.pfx already exists and is not a file!');
+		$this->expectExceptionCode(400);
+		$this->service->generateCertificate('uid', 'password', 'username');
+	}
+
 	public function testGetPfxWithInvalidUser() {
 		$this->service = new AccountService(
 			$this->l10n,
