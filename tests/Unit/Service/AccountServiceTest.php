@@ -108,7 +108,8 @@ final class AccountServiceTest extends TestCase {
 						->will($self->returnValue($fileUser));
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'invalid@test.coop'
+						'email' => 'invalid@test.coop',
+						'signPassword' => '132456789'
 					];
 				},
 				'This is not your file'
@@ -128,7 +129,8 @@ final class AccountServiceTest extends TestCase {
 						->will($self->returnValue(true));
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop'
+						'email' => 'valid@test.coop',
+						'signPassword' => '123456789'
 					];
 				},
 				'User already exists'
@@ -146,7 +148,8 @@ final class AccountServiceTest extends TestCase {
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
 						'email' => 'valid@test.coop',
-						'password' => '',
+						'signPassword' => '132456789',
+						'password' => ''
 					];
 				},
 				'Password is mandatory'
@@ -187,6 +190,80 @@ final class AccountServiceTest extends TestCase {
 			$this->cfsslHandler
 		);
 		$this->expectErrorMessage('Failure on generate certificate');
-		$this->service->generateCertificate('uid', 'password');
+		$this->service->generateCertificate('uid', 'password', 'username');
+	}
+
+	public function testGetPfxWithInvalidUser() {
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Backends provided no user object for invalidUser');
+		$this->service->getPfx('invalidUser');
+	}
+
+	public function testGetPfxWithInvalidPfx() {
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$folder = $this->createMock(FolderService::class);
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(false));
+		$folder->method('getFolder')->will($this->returnValue($node));
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectErrorMessage('Signature file not found!');
+		$this->expectExceptionCode(400);
+		$service->getPfx('userId');
+	}
+
+	public function testGetPfxOk() {
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$folder = $this->createMock(FolderService::class);
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(true));
+		$node->method('get')->will($this->returnValue($node));
+		$folder->method('getFolder')->will($this->returnValue($node));
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $service->getPfx('userId');
+		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}
 }

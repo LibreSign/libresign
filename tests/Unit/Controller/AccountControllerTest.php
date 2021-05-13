@@ -16,8 +16,9 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -39,7 +40,7 @@ final class AccountControllerTest extends TestCase {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
-	/** @var ISession */
+	/** @var IUserSession */
 	private $session;
 
 	public function setUp(): void {
@@ -54,7 +55,7 @@ final class AccountControllerTest extends TestCase {
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->loginChain = $this->createMock(Chain::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->session = $this->getMockBuilder(ISession::class)
+		$this->session = $this->getMockBuilder(IUserSession::class)
 			->disableOriginalConstructor()
 			->getMock();
 		$this->controller = new AccountController(
@@ -136,7 +137,10 @@ final class AccountControllerTest extends TestCase {
 	public function testGenerate() {
 		$password = 'somePassword';
 
-		$this->session->method('get')->with('user_id')->willReturn('username');
+		$user = $this->createMock(IUser::class);
+		$user->method('getEMailAddress')->willReturn('user@test.coop');
+		$user->method('getUID')->willReturn('user');
+		$this->session->method('getUser')->willReturn($user);
 		$node = $this->createMock(File::class);
 		$node->method('getPath')
 			->will($this->returnValue('/path/to/someSignature'));

@@ -35,10 +35,8 @@ class CfsslHandler {
 	private $organization;
 	private $organizationUnit;
 	private $cfsslUri;
+	private $password;
 	private $client;
-	public function __construct() {
-		$this->client = new Client(['base_uri' => $this->getCfsslUri()]);
-	}
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
 			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
@@ -53,10 +51,17 @@ class CfsslHandler {
 				break;
 
 			case 'set':
-				$this->$property = $arguments;
+				$this->$property = $arguments[0] ?? null;
 				return $this;
 				break;
 		}
+	}
+
+	public function getClient() {
+		if (!$this->client) {
+			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
+		}
+		return $this->client;
 	}
 
 	public function generateCertificate() {

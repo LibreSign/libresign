@@ -62,9 +62,7 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'), 1);
-		}
+		$this->validateCertificateData($data);
 		if ($fileUser->getEmail() !== $data['email']) {
 			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
@@ -74,10 +72,12 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
-		$this->validateSignPassword($data);
 	}
 
-	public function validateSignPassword(array $data) {
+	public function validateCertificateData(array $data) {
+		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'), 1);
+		}
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
 		}
@@ -115,20 +115,21 @@ class AccountService {
 			}
 		}
 
-		$this->generateCertificate($uid, $signPassword);
+		$this->generateCertificate($uid, $signPassword, $newUser->getUID());
 	}
 
 	/**
 	 * Generate certificate
 	 *
-	 * @param string $uid User identifier
+	 * @param string $email Email
 	 * @param string $signPassword Password of signature
+	 * @param string $uid User id
 	 * @return File
 	 */
-	public function generateCertificate(string $uid, string $signPassword): File {
+	public function generateCertificate(string $email, string $signPassword, string $uid): File {
 		$content = $this->cfsslHandler
 			->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'))
-			->sethosts([])
+			->sethosts([$email])
 			->setCountry($this->config->getAppValue(Application::APP_ID, 'country'))
 			->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'))
 			->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'))
@@ -159,6 +160,12 @@ class AccountService {
 		return $file;
 	}
 
+	/**
+	 * Get pfx file
+	 *
+	 * @param string $uid user id
+	 * @return \OCP\Files\Node
+	 */
 	public function getPfx($uid) {
 		Filesystem::initMountPoints($uid);
 		$this->folder->setUserId($uid);
