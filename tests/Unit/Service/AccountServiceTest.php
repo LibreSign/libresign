@@ -296,6 +296,45 @@ final class AccountServiceTest extends TestCase {
 		$this->assertInstanceOf('\OCP\Files\File', $actual);
 	}
 
+	public function testGenerateCertificateAndSuccessfullySavedToANewFile() {
+		$node = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('nodeExists')->will($this->returnValue(false));
+		$file = $this->createMock(\OCP\Files\File::class);
+		$node->method('newFile')->will($this->returnValue($file));
+		$folder = $this->createMock(FolderService::class);
+		$folder->method('getFolder')->will($this->returnValue($node));
+		// $folder->method('newFile')->will($this->returnValue($file));
+
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
+		$this->cfsslHandler
+			->method('__call')
+			->will($this->returnValue($this->cfsslHandler));
+		$this->cfsslHandler
+			->method('generateCertificate')
+			->will($this->returnValue('raw content of pfx file'));
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$folder,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $this->service->generateCertificate('uid', 'password', 'username');
+		$this->assertInstanceOf('\OCP\Files\File', $actual);
+	}
+
 	public function testGetPfxWithInvalidUser() {
 		$this->service = new AccountService(
 			$this->l10n,
