@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Files_Versions\Versions\IVersionBackend;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\CfsslHandler;
@@ -12,7 +11,6 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
-use OCP\UserInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
