@@ -328,6 +328,9 @@ class LibresignController extends Controller {
 	}
 
 	private function canRequestSign(): bool {
+		if (!$this->userSession->getUser()) {
+			return false;
+		}
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized)) {
 			return false;
