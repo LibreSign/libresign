@@ -171,18 +171,16 @@ class WebhookService {
 	 */
 	public function canDeleteSignRequest(array $data) {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
-		foreach ($signatures as $signature) {
-			if ($signature->getSigned()) {
-				throw new \Exception($this->l10n->t('Document already signed'));
-			}
-			$email = $signature->getEmail();
-			$exists = array_filter($data['users'], function ($val) use ($email) {
-				return $val['email'] === $email;
-			});
-			if (!$exists) {
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
-			}
+		$signed = array_filter($signatures, fn($s)=>$s->getSigned());
+		if ($signed) {
+			throw new \Exception($this->l10n->t('Document already signed'));
 		}
+		array_walk($data['users'], function ($user) use ($signatures) {
+			$exists = array_filter($signatures, fn($s)=>$s->getEmail() === $user['email']);
+			if (!$exists) {
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
+			}
+		});
 	}
 
 	public function deleteSignRequest(array $data) {
