@@ -208,6 +208,44 @@ final class WebhookServiceTest extends TestCase {
 		$this->service->canDeleteSignRequest(['uuid' => 'valid']);
 	}
 
+	public function testCanDeleteSignRequestWhenNoSignatureWasRequested() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'otheremail@test.coop']
+			]));
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$this->expectErrorMessage('No signature was requested to %');
+		$this->service->canDeleteSignRequest([
+			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+	}
+
+	public function testCanDeleteSignRequestWhenSuccess() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(null);
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$actual = $this->service->canDeleteSignRequest(['uuid' => 'valid']);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
