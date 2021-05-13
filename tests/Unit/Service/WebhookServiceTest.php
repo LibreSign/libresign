@@ -185,6 +185,18 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testValidateFileUuidWithInvalidUuid() {
+		$this->expectExceptionMessage('Invalid UUID file');
+		$this->service->validateFileUuid([]);
+	}
+
+	public function testValidateFileUuidWithValidUuid() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$actual = $this->service->validateFileUuid(['uuid' => 'valid']);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
