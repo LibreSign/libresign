@@ -304,12 +304,18 @@ class LibresignController extends Controller {
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signatures = $this->fileUserMapper->getByFileId($file->id);
+			$canSign = false;
 			foreach ($signatures as $signature) {
+				$uid = $this->userSession->getUser()->getUID();
 				$return['signatures'][] = [
 					'signed' => $signature->getSigned(),
 					'displayName' => $signature->getDisplayName(),
-					'fullName' => $signature->getFullName()
+					'fullName' => $signature->getFullName(),
+					'me' => $uid === $signature->getUserId()
 				];
+				if ($uid === $signature->getUserId()) {
+					$canSign = true;
+				}
 			}
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
@@ -322,7 +328,8 @@ class LibresignController extends Controller {
 			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		$return['settings'] = [
-			'canRequestSign' => $this->canRequestSign()
+			'canRequestSign' => $this->canRequestSign(),
+			'canSign' => $canSign
 		];
 		return new JSONResponse($return, $statusCode);
 	}
