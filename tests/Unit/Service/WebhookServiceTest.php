@@ -284,6 +284,18 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
 	}
 
+	public function testSaveFileWhenFileAlreadyExists() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(true);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		$this->expectErrorMessage('File already exists');
+		$this->service->saveFile([
+			'file' => [],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
