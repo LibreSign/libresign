@@ -235,7 +235,7 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
-	public function testCanDeleteSignRequestWhenSuccess() {
+	public function testCanDeleteSignRequestSuccess() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
