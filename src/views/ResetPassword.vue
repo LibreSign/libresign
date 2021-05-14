@@ -33,6 +33,7 @@ import axios from '@nextcloud/axios'
 import ConfirmPassword from '../Components/ConfirmPassword/Confirm'
 import Input from '../Components/Input/Input'
 import { generateUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 export default {
 	name: 'ResetPassword',
 	components: {
@@ -68,14 +69,16 @@ export default {
 
 		},
 		async send() {
+			this.hasLoading = true
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
-					password: this.password,
+				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
+					signPassword: this.password,
 				})
-				console.info(response)
-
+				showSuccess(t('libresign', 'New password for sign document created'))
+				this.hasLoading = false
 			} catch (err) {
-				console.error(err.response)
+				showError(t('libresign', 'Error creating new password, please contact the administrator'))
+				this.hasLoading = false
 			}
 		},
 	},
