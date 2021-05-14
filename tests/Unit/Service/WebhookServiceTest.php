@@ -467,4 +467,10 @@ final class WebhookServiceTest extends TestCase {
 			'userManager' => $this->user
 		]);
 	}
+
+	public function testNotifyCallback() {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
+		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
+	}
 }
