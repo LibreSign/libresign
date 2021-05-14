@@ -462,6 +462,26 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
 	}
 
+	public function testSaveFileUserWhenUserExists() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->with('getId')
+			->willReturn(123);
+		$actual = $this->service->saveFileUser($fileUser);
+		$this->assertNull($actual);
+	}
+
+	public function testSaveFileUserWhenUserDontExists() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->with('getId')
+			->willReturn(null);
+		$actual = $this->service->saveFileUser($fileUser);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
