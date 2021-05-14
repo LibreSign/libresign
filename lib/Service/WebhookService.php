@@ -332,11 +332,6 @@ class WebhookService {
 		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 	}
 
-	public function deleteFile(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
-		$this->folderService->deleteParentNodeOfNodeId($fileData->getNodeId());
-	}
-
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
