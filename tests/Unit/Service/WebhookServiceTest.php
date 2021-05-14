@@ -249,6 +249,23 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testDeleteSignRequestSuccess() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$file]));
+		$this->fileUser->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$actual = $this->service->deleteSignRequest([
+			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+		$this->assertNull($actual);
+	}
+
 	public function testSaveFileUsingFileIdSuccess() {
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$folder->method('getById')->willReturn([$folder]);
