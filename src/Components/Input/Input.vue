@@ -64,6 +64,7 @@ export default {
 			box-shadow: inset 0 0 1em rgba(0, 130, 201, .5);
 		}
 	}
+
 	.error{
 		border: 1px solid #b40c0c !important;
 	}
