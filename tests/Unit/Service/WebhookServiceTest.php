@@ -402,6 +402,66 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
 	}
 
+	public function testSaveUsingUuid() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('getId')]
+			)
+			->will($this->returnValueMap([
+				['getUuid', [], 'uuid-here'],
+				['getId', [], 123]
+			]));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('setFileId')],
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('setUuid'), $this->callback(function($subject) {
+					$this->assertIsString($subject[0]);
+					$this->assertEquals(36, strlen($subject[0]));
+					return true;
+				})],
+				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
+				[$this->equalTo('getDescription')],
+				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
+			)
+			->will($this->returnValueMap([
+				['setFileId', [], null],
+				['getUuid', [], null],
+				['setUuid', [], null],
+				['setEmail', [], null],
+				['getDescription', [], null],
+				['setDescription', [], null]
+			]));
+		$this->fileUser
+			->method('getByEmailAndFileId')
+			->with('user@test.coop')
+			->will($this->returnValue($fileUser));
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$actual = $this->service->save([
+			'uuid' => 'the-uuid-here',
+			'users' => [
+				[
+					'email' => 'USER@TEST.COOP',
+					'description' => 'Please, sign'
+				]
+			]
+		]);
+		$this->assertArrayHasKey('uuid', $actual);
+		$this->assertEquals('uuid-here', $actual['uuid']);
+		$this->assertArrayHasKey('users', $actual);
+		$this->assertCount(1, $actual['users']);
+		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
