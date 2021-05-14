@@ -242,7 +242,10 @@ final class WebhookServiceTest extends TestCase {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(null);
 		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
-		$actual = $this->service->canDeleteSignRequest(['uuid' => 'valid']);
+		$actual = $this->service->canDeleteSignRequest([
+			'uuid' => 'valid',
+			'users' => []
+		]);
 		$this->assertNull($actual);
 	}
 
