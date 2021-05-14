@@ -253,7 +253,7 @@ class WebhookService {
 		return $return;
 	}
 
-	public function associateToUsers(array $data, int $fileId) {
+	private function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
 			$user['email'] = strtolower($user['email']);
