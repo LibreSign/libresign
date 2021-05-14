@@ -37,14 +37,14 @@
 				{{ t('libresign', 'Request subscription') }}
 			</button>
 			<button v-if="hasSignatures" @click="option('verify')">
-				{{ t('libresign', 'Verify signatures.') }}
+				{{ t('libresign', 'Verify signatures') }}
 			</button>
 		</div>
 
 		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="option('sign')">
-					{{ t('libresign', 'Turn back.') }}
+					{{ t('libresign', 'Return') }}
 				</button>
 			</template>
 		</Sign>
@@ -55,7 +55,7 @@
 			@request:signatures="requestSignatures">
 			<template slot="actions">
 				<button class="return-button" @click="option('request')">
-					{{ t('libresign', 'Turn back.') }}
+					{{ t('libresign', 'Return') }}
 				</button>
 			</template>
 		</Request>
