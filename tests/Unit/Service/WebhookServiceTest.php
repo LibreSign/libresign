@@ -246,6 +246,24 @@ final class WebhookServiceTest extends TestCase {
 		$this->assertNull($actual);
 	}
 
+	public function testSaveFileUsingFileIdSuccess() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('getById')->willReturn([$folder]);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$actual = $this->service->saveFile([
+			'file' => ['fileId' => 123],
+			'userManager' => $this->user
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+
+		$actual = $this->service->saveFile([
+			'file' => ['fileId' => 123],
+			'userManager' => $this->user,
+			'callback' => 'http://callback.coop'
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
