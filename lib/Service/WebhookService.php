@@ -253,46 +253,55 @@ class WebhookService {
 		return $return;
 	}
 
-	private function associateToUsers(array $data, int $fileId) {
+	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		foreach ($data['users'] as $user) {
-			$user['email'] = strtolower($user['email']);
-			try {
-				$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
-			} catch (\Throwable $th) {
-				$fileUser = new FileUserEntity();
-			}
-			$fileUser->setFileId($fileId);
-			if (!$fileUser->getUuid()) {
-				$fileUser->setUuid(UUIDUtil::getUUID());
-			}
-			$fileUser->setEmail($user['email']);
-			if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
-				$fileUser->setDescription($user['description']);
-			}
-			if (empty($user['user_id'])) {
-				$userToSign = $this->userManager->getByEmail($user['email']);
-				if ($userToSign) {
-					$fileUser->setUserId($userToSign[0]->getUID());
-					if (empty($user['display_name'])) {
-						$user['display_name'] = $userToSign[0]->getDisplayName();
-					}
-				}
-			}
-			if (!empty($user['display_name'])) {
-				$fileUser->setDisplayName($user['display_name']);
-			}
-			if ($fileUser->getId()) {
-				$this->fileUserMapper->update($fileUser);
-				$this->mail->notifySignDataUpdated($fileUser);
-			} else {
-				$fileUser->setCreatedAt(time());
-				$this->fileUserMapper->insert($fileUser);
-				$this->mail->notifyUnsignedUser($fileUser);
-			}
-			$return[] = $fileUser;
+			$return[] = $this->associateToUser($user, $fileId);
 		}
 		return $return;
+	}
+
+	private function associateToUser(array $user, int $fileId): FileUserEntity {
+		$user['email'] = strtolower($user['email']);
+		$fileUser = $this->getFileUser($user['email'], $fileId);
+		$fileUser->setFileId($fileId);
+		if (!$fileUser->getUuid()) {
+			$fileUser->setUuid(UUIDUtil::getUUID());
+		}
+		$fileUser->setEmail($user['email']);
+		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
+			$fileUser->setDescription($user['description']);
+		}
+		if (empty($user['user_id'])) {
+			$userToSign = $this->userManager->getByEmail($user['email']);
+			if ($userToSign) {
+				$fileUser->setUserId($userToSign[0]->getUID());
+				if (empty($user['display_name'])) {
+					$user['display_name'] = $userToSign[0]->getDisplayName();
+				}
+			}
+		}
+		if (!empty($user['display_name'])) {
+			$fileUser->setDisplayName($user['display_name']);
+		}
+		if ($fileUser->getId()) {
+			$this->fileUserMapper->update($fileUser);
+			$this->mail->notifySignDataUpdated($fileUser);
+		} else {
+			$fileUser->setCreatedAt(time());
+			$this->fileUserMapper->insert($fileUser);
+			$this->mail->notifyUnsignedUser($fileUser);
+		}
+		return $fileUser;
+	}
+
+	private function getFileUser(string $email, int $fileId): FileUserEntity {
+		try {
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+		} catch (\Throwable $th) {
+			$fileUser = new FileUserEntity();
+		}
+		return $fileUser;
 	}
 
 	/**
