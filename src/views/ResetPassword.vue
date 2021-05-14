@@ -15,7 +15,10 @@
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
 					<Input v-model="rPassword" :has-error="!hasEqualPassword" type="password" />
 				</div>
-				<button :disabled="!hableButton" class="primary btn-confirm" @click="checkPasswordForConfirm">
+				<button
+					:disabled="!hableButton"
+					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
+					@click="send">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
@@ -42,6 +45,7 @@ export default {
 			password: '',
 			rPassword: '',
 			modal: false,
+			hasLoading: false,
 		}
 	},
 	computed: {
@@ -60,10 +64,12 @@ export default {
 		},
 		changeModal() {
 			this.modal = !this.modal
+			this.hasLoading = !this.hasLoading
+
 		},
 		async send() {
 			try {
-				const response = await axios.post(generateUrl('/account/signature'), {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
 					password: this.password,
 				})
 				console.info(response)
@@ -111,6 +117,16 @@ export default {
 	.btn-confirm{
 		width: 100%;
 		max-width: 280px;
+	}
+
+	.btn-load{
+		background-color: transparent !important;
+		font-size: 0;
+		pointer-events: none;
+		cursor: not-allowed;
+		margin-top: 10px;
+		border: none;
+
 	}
 
 	.input-item{

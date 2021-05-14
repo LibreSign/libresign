@@ -6,8 +6,11 @@
 			<form @submit="e=> e.preventDefault()">
 				<span v-if="!!errorMessage">{{ errorMessage }}</span>
 				<label>{{ t('libresign','Password') }}</label>
-				<Input v-model="password" class="input-password" type="password" />
-				<button class="primary" @click="confirmPassword">
+				<Input v-model="password"
+					:has-error="!!errorMessage"
+					class="input-password"
+					type="password" />
+				<button :class=" hasLoading ? 'btn-load primary loading' : 'primary'" @click="confirmPassword">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</form>
@@ -30,17 +33,21 @@ export default {
 		return {
 			password: '',
 			errorMessage: '',
+			hasLoading: false,
 		}
 	},
 
 	methods: {
 		async confirmPassword() {
+			this.hasLoading = true
 			try {
 				await axios.post(generateUrl('/login/confirm'), {
 					password: this.password,
 				})
+				this.hasLoading = false
 				this.send()
 			} catch (err) {
+				this.hasLoading = false
 				this.errorMessage = t('libresign', 'Incorrect password!')
 			}
 		},
@@ -48,6 +55,7 @@ export default {
 			this.$emit('close', true)
 		},
 		send() {
+			this.closeModal()
 			this.$emit('submit', true)
 		},
 	},
@@ -92,5 +100,14 @@ export default {
 				margin-bottom: 10px;
 			}
 		}
+	}
+
+	.btn-load{
+		background-color: transparent !important;
+		font-size: 0;
+		pointer-events: none;
+		cursor: not-allowed;
+		margin-top: 10px;
+		border: none;
 	}
 </style>

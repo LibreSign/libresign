@@ -30,6 +30,7 @@ const routes = [
 	{
 		path: '/',
 		name: 'Home',
+		redirect: 'reset-password',
 		component: () => import('../views/CreateSubscription'),
 	}, {
 		path: '/sign/:uuid',
@@ -54,11 +55,14 @@ const routes = [
 		path: '/sign/:uuid',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
-	},
-	{
+	}, {
 		path: '/success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
+	}, {
+		path: '/reset-password',
+		component: () => import('../views/ResetPassword'),
+		name: 'ResetPassword',
 	},
 ]
 
