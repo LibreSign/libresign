@@ -38,7 +38,7 @@ final class WebhookServiceTest extends TestCase {
 	/** @var IUser */
 	private $user;
 	/** @var IClientService */
-	private $client;
+	private $clientService;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var FolderService */
@@ -56,7 +56,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
-		$this->client = $this->createMock(IClientService::class);
+		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
@@ -68,7 +68,7 @@ final class WebhookServiceTest extends TestCase {
 			$this->file,
 			$this->fileUser,
 			$this->folder,
-			$this->client,
+			$this->clientService,
 			$this->userManager,
 			$this->mail,
 			$this->logger
@@ -312,6 +312,176 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testSaveFileWhenUrlReturnEmptyBody() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		
+		$response = $this->createMock(IResponse::class);
+		$response->expects($this->once())
+			->method('getHeader')
+			->with('Content-Type')
+			->willReturn('application/pdf');
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($response);
+		$this->clientService->expects($this->once())
+			->method('newClient')
+			->with()
+			->willReturn($client);
+
+		$this->expectErrorMessage('Empty file');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'url' => 'https://vaild.coop/file.pdf'
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testSaveFileWithBase64ContainingInvalidPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+
+		$this->expectErrorMessage('Invalid PDF');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'base64' => 'dGVzdA=='
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testSaveFileWithValidPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder->method('newFile')->willReturn($file);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+
+		// $this->expectErrorMessage('Invalid PDF');
+		$actual = $this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'base64' => <<<PDF
+				JVBERi0xLjYKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURl
+				Y29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAw0DMwslAw0rMwMIOSRalc4VoKeVyGCiBYlM5lAJIw
+				NlHI5YIrA/JyoMohBuTAjQKxYCoyuNK0uAIVAMl8FhMKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9i
+				ago3NQplbmRvYmoKCjUgMCBvYmoKPDwKPj4KZW5kb2JqCgo2IDAgb2JqCjw8L0ZvbnQgNSAwIFIK
+				L1Byb2NTZXRbL1BERi9UZXh0XQo+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZS9QYWdlL1BhcmVu
+				dCA0IDAgUi9SZXNvdXJjZXMgNiAwIFIvTWVkaWFCb3hbMCAwIDIuODM0NjQ1NjY5MjkxMzQgMi44
+				MzQ2NDU2NjkyOTEzNF0vR3JvdXA8PC9TL1RyYW5zcGFyZW5jeS9DUy9EZXZpY2VSR0IvSSB0cnVl
+				Pj4vQ29udGVudHMgMiAwIFI+PgplbmRvYmoKCjQgMCBvYmoKPDwvVHlwZS9QYWdlcwovUmVzb3Vy
+				Y2VzIDYgMCBSCi9NZWRpYUJveFsgMCAwIDIgMiBdCi9LaWRzWyAxIDAgUiBdCi9Db3VudCAxPj4K
+				ZW5kb2JqCgo3IDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyA0IDAgUgovT3BlbkFjdGlvblsx
+				IDAgUiAvWFlaIG51bGwgbnVsbCAwXQo+PgplbmRvYmoKCjggMCBvYmoKPDwvQ3JlYXRvcjxGRUZG
+				MDA0NDAwNzIwMDYxMDA3Nz4KL1Byb2R1Y2VyPEZFRkYwMDRDMDA2OTAwNjIwMDcyMDA2NTAwNEYw
+				MDY2MDA2NjAwNjkwMDYzMDA2NTAwMjAwMDM3MDAyRTAwMzA+Ci9DcmVhdGlvbkRhdGUoRDoyMDIx
+				MDUxNDE0MzA1NS0wMycwMCcpPj4KZW5kb2JqCgp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYg
+				CjAwMDAwMDAyNTkgMDAwMDAgbiAKMDAwMDAwMDAxOSAwMDAwMCBuIAowMDAwMDAwMTY1IDAwMDAw
+				IG4gCjAwMDAwMDA0MjcgMDAwMDAgbiAKMDAwMDAwMDE4NCAwMDAwMCBuIAowMDAwMDAwMjA2IDAw
+				MDAwIG4gCjAwMDAwMDA1MjEgMDAwMDAgbiAKMDAwMDAwMDYwNCAwMDAwMCBuIAp0cmFpbGVyCjw8
+				L1NpemUgOS9Sb290IDcgMCBSCi9JbmZvIDggMCBSCi9JRCBbIDw0ODRCRUFEODVDNDI3MUJFNUM0
+				MEFGQkEwRDEzQ0U2Mz4KPDQ4NEJFQUQ4NUM0MjcxQkU1QzQwQUZCQTBEMTNDRTYzPiBdCi9Eb2ND
+				aGVja3N1bSAvRUUyMThGOURBRDY5RDU3RDNDNUYzRjFCRTQ5NzVBQjkKPj4Kc3RhcnR4cmVmCjc3
+				MAolJUVPRgo=
+				PDF
+			],
+			'userManager' => $this->user
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+	}
+
+	public function testSaveUsingUuid() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('getId')]
+			)
+			->will($this->returnValueMap([
+				['getUuid', [], 'uuid-here'],
+				['getId', [], 123]
+			]));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('setFileId')],
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('setUuid'), $this->callback(function ($subject) {
+					$this->assertIsString($subject[0]);
+					$this->assertEquals(36, strlen($subject[0]));
+					return true;
+				})],
+				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
+				[$this->equalTo('getDescription')],
+				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
+			)
+			->will($this->returnValueMap([
+				['setFileId', [], null],
+				['getUuid', [], null],
+				['setUuid', [], null],
+				['setEmail', [], null],
+				['getDescription', [], null],
+				['setDescription', [], null]
+			]));
+		$this->fileUser
+			->method('getByEmailAndFileId')
+			->with('user@test.coop')
+			->will($this->returnValue($fileUser));
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$actual = $this->service->save([
+			'uuid' => 'the-uuid-here',
+			'users' => [
+				[
+					'email' => 'USER@TEST.COOP',
+					'description' => 'Please, sign'
+				]
+			]
+		]);
+		$this->assertArrayHasKey('uuid', $actual);
+		$this->assertEquals('uuid-here', $actual['uuid']);
+		$this->assertArrayHasKey('users', $actual);
+		$this->assertCount(1, $actual['users']);
+		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
+	}
+
+	public function testSaveFileUserWhenUserExists() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->with('getId')
+			->willReturn(123);
+		$actual = $this->service->saveFileUser($fileUser);
+		$this->assertNull($actual);
+	}
+
+	public function testSaveFileUserWhenUserDontExists() {
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->with('getId')
+			->willReturn(null);
+		$actual = $this->service->saveFileUser($fileUser);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
@@ -342,7 +512,7 @@ final class WebhookServiceTest extends TestCase {
 		$client
 			->method('get')
 			->will($this->returnValue($response));
-		$this->client
+		$this->clientService
 			->method('newClient')
 			->will($this->returnValue($client));
 
