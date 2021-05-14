@@ -422,7 +422,7 @@ final class WebhookServiceTest extends TestCase {
 			->withConsecutive(
 				[$this->equalTo('setFileId')],
 				[$this->equalTo('getUuid')],
-				[$this->equalTo('setUuid'), $this->callback(function($subject) {
+				[$this->equalTo('setUuid'), $this->callback(function ($subject) {
 					$this->assertIsString($subject[0]);
 					$this->assertEquals(36, strlen($subject[0]));
 					return true;
