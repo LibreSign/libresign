@@ -318,7 +318,7 @@ class WebhookService {
 		return $file;
 	}
 
-	private function getNodeFromData(array $data) {
+	private function getNodeFromData(array $data): \OCP\Files\Node {
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];
