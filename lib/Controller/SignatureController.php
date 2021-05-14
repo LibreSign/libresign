@@ -31,7 +31,9 @@ class SignatureController extends Controller {
 	 */
 	public function hasRootCert() {
 		try {
-			$checkData = $this->signatureService->hasRootCert();
+			$checkData = [
+				'hasRootCert' => $this->signatureService->hasRootCert()
+			];
 
 			return new DataResponse($checkData);
 		} catch (\Exception $exception) {
