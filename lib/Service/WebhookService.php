@@ -256,14 +256,26 @@ class WebhookService {
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		foreach ($data['users'] as $user) {
-			$return[] = $this->associateToUser($user, $fileId);
+			$user['email'] = strtolower($user['email']);
+			$fileUser = $this->getFileUser($user['email'], $fileId);
+			$this->setDataToUser($fileUser, $user, $fileId);
+			$this->saveFileUser($fileUser);
+			$return[] = $fileUser;
 		}
 		return $return;
 	}
 
-	private function associateToUser(array $user, int $fileId): FileUserEntity {
-		$user['email'] = strtolower($user['email']);
-		$fileUser = $this->getFileUser($user['email'], $fileId);
+	public function saveFileUser(FileUserEntity $fileUser) {
+		if ($fileUser->getId()) {
+			$this->fileUserMapper->update($fileUser);
+			$this->mail->notifySignDataUpdated($fileUser);
+		} else {
+			$this->fileUserMapper->insert($fileUser);
+			$this->mail->notifyUnsignedUser($fileUser);
+		}
+	}
+
+	private function setDataToUser(FileUserEntity $fileUser, array $user, $fileId) {
 		$fileUser->setFileId($fileId);
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
@@ -284,15 +296,9 @@ class WebhookService {
 		if (!empty($user['display_name'])) {
 			$fileUser->setDisplayName($user['display_name']);
 		}
-		if ($fileUser->getId()) {
-			$this->fileUserMapper->update($fileUser);
-			$this->mail->notifySignDataUpdated($fileUser);
-		} else {
+		if (!$fileUser->getId()) {
 			$fileUser->setCreatedAt(time());
-			$this->fileUserMapper->insert($fileUser);
-			$this->mail->notifyUnsignedUser($fileUser);
 		}
-		return $fileUser;
 	}
 
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
