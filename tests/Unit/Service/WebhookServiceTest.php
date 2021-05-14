@@ -343,6 +343,65 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testSaveFileWithBase64ContainingInvalidPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+
+		$this->expectErrorMessage('Invalid PDF');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'base64' => 'dGVzdA=='
+			],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testSaveFileWithValidPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder->method('newFile')->willReturn($file);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+
+		// $this->expectErrorMessage('Invalid PDF');
+		$actual = $this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'base64' => <<<PDF
+				JVBERi0xLjYKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURl
+				Y29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAw0DMwslAw0rMwMIOSRalc4VoKeVyGCiBYlM5lAJIw
+				NlHI5YIrA/JyoMohBuTAjQKxYCoyuNK0uAIVAMl8FhMKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9i
+				ago3NQplbmRvYmoKCjUgMCBvYmoKPDwKPj4KZW5kb2JqCgo2IDAgb2JqCjw8L0ZvbnQgNSAwIFIK
+				L1Byb2NTZXRbL1BERi9UZXh0XQo+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZS9QYWdlL1BhcmVu
+				dCA0IDAgUi9SZXNvdXJjZXMgNiAwIFIvTWVkaWFCb3hbMCAwIDIuODM0NjQ1NjY5MjkxMzQgMi44
+				MzQ2NDU2NjkyOTEzNF0vR3JvdXA8PC9TL1RyYW5zcGFyZW5jeS9DUy9EZXZpY2VSR0IvSSB0cnVl
+				Pj4vQ29udGVudHMgMiAwIFI+PgplbmRvYmoKCjQgMCBvYmoKPDwvVHlwZS9QYWdlcwovUmVzb3Vy
+				Y2VzIDYgMCBSCi9NZWRpYUJveFsgMCAwIDIgMiBdCi9LaWRzWyAxIDAgUiBdCi9Db3VudCAxPj4K
+				ZW5kb2JqCgo3IDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyA0IDAgUgovT3BlbkFjdGlvblsx
+				IDAgUiAvWFlaIG51bGwgbnVsbCAwXQo+PgplbmRvYmoKCjggMCBvYmoKPDwvQ3JlYXRvcjxGRUZG
+				MDA0NDAwNzIwMDYxMDA3Nz4KL1Byb2R1Y2VyPEZFRkYwMDRDMDA2OTAwNjIwMDcyMDA2NTAwNEYw
+				MDY2MDA2NjAwNjkwMDYzMDA2NTAwMjAwMDM3MDAyRTAwMzA+Ci9DcmVhdGlvbkRhdGUoRDoyMDIx
+				MDUxNDE0MzA1NS0wMycwMCcpPj4KZW5kb2JqCgp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYg
+				CjAwMDAwMDAyNTkgMDAwMDAgbiAKMDAwMDAwMDAxOSAwMDAwMCBuIAowMDAwMDAwMTY1IDAwMDAw
+				IG4gCjAwMDAwMDA0MjcgMDAwMDAgbiAKMDAwMDAwMDE4NCAwMDAwMCBuIAowMDAwMDAwMjA2IDAw
+				MDAwIG4gCjAwMDAwMDA1MjEgMDAwMDAgbiAKMDAwMDAwMDYwNCAwMDAwMCBuIAp0cmFpbGVyCjw8
+				L1NpemUgOS9Sb290IDcgMCBSCi9JbmZvIDggMCBSCi9JRCBbIDw0ODRCRUFEODVDNDI3MUJFNUM0
+				MEFGQkEwRDEzQ0U2Mz4KPDQ4NEJFQUQ4NUM0MjcxQkU1QzQwQUZCQTBEMTNDRTYzPiBdCi9Eb2ND
+				aGVja3N1bSAvRUUyMThGOURBRDY5RDU3RDNDNUYzRjFCRTQ5NzVBQjkKPj4Kc3RhcnR4cmVmCjc3
+				MAolJUVPRgo=
+				PDF
+			],
+			'userManager' => $this->user
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
