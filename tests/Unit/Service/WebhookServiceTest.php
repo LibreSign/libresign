@@ -296,6 +296,22 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testSaveFileWhenNotIsAUrlOfPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		$this->expectErrorMessage('The URL should be a PDF.');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'url' => 'https://invalid.coop'
+			],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
