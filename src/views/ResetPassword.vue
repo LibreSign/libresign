@@ -1,6 +1,7 @@
+/* eslint-disable no-new */
 <template>
 	<Content app-name="libresign">
-		<form @submit="e => preventDefault()">
+		<form @submit="(e) => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password reset') }}</h1>
 				<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
@@ -8,42 +9,68 @@
 			<div class="container">
 				<div class="input-group">
 					<label for="new-password">{{ t('libresign', 'New password') }}</label>
-					<div class="input-item">
-						<label for="new-password" class="icon-category-security" />
-						<input id="new-password" v-model="password" type="password">
-					</div>
+					<Input v-model="password" type="password" />
 				</div>
 				<div class="input-group">
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-					<div class="input-item">
-						<label for="repeat-password" class="icon-category-security" />
-						<input id="repeat-password" v-model="rPassword" type="password">
-					</div>
+					<Input v-model="rPassword" :has-error="!hasEqualPassword" type="password" />
 				</div>
-				<button class="primary btn-confirm" @click="send">
+				<button :disabled="!hableButton" class="primary btn-confirm" @click="checkPasswordForConfirm">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
 		</form>
+		<ConfirmPassword v-if="modal" @submit="send" @close="changeModal" />
 	</Content>
 </template>
 
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
+import axios from '@nextcloud/axios'
+import ConfirmPassword from '../Components/ConfirmPassword/Confirm'
+import Input from '../Components/Input/Input'
+import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'ResetPassword',
 	components: {
 		Content,
+		Input,
+		ConfirmPassword,
 	},
 	data() {
 		return {
 			password: '',
 			rPassword: '',
+			modal: false,
 		}
 	},
 	computed: {
+		hableButton() {
+			return !!(this.hasEqualPassword && this.password)
+		},
 		hasEqualPassword(val) {
 			return this.password === this.rPassword
+		},
+	},
+	methods: {
+		checkPasswordForConfirm(param) {
+			if (!this.modal) {
+				this.changeModal()
+			}
+		},
+		changeModal() {
+			this.modal = !this.modal
+		},
+		async send() {
+			try {
+				const response = await axios.post(generateUrl('/account/signature'), {
+					password: this.password,
+				})
+				console.info(response)
+
+			} catch (err) {
+				console.error(err.response)
+			}
 		},
 	},
 }
