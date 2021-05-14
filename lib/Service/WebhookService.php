@@ -338,7 +338,7 @@ class WebhookService {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeaders()['Content-Type'][0];
+			$contentType = $response->getHeader('Content-Type');
 			if ($contentType !== 'application/pdf') {
 				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
 			}

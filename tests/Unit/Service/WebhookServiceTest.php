@@ -38,7 +38,7 @@ final class WebhookServiceTest extends TestCase {
 	/** @var IUser */
 	private $user;
 	/** @var IClientService */
-	private $client;
+	private $clientService;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var FolderService */
@@ -56,7 +56,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
-		$this->client = $this->createMock(IClientService::class);
+		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
@@ -68,7 +68,7 @@ final class WebhookServiceTest extends TestCase {
 			$this->file,
 			$this->fileUser,
 			$this->folder,
-			$this->client,
+			$this->clientService,
 			$this->userManager,
 			$this->mail,
 			$this->logger
@@ -312,6 +312,37 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testSaveFileWhenUrlReturnEmptyBody() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		
+		$response = $this->createMock(IResponse::class);
+		$response->expects($this->once())
+			->method('getHeader')
+			->with('Content-Type')
+			->willReturn('application/pdf');
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($response);
+		$this->clientService->expects($this->once())
+			->method('newClient')
+			->with()
+			->willReturn($client);
+
+		$this->expectErrorMessage('Empty file');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'url' => 'https://vaild.coop/file.pdf'
+			],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
@@ -342,7 +373,7 @@ final class WebhookServiceTest extends TestCase {
 		$client
 			->method('get')
 			->will($this->returnValue($response));
-		$this->client
+		$this->clientService
 			->method('newClient')
 			->will($this->returnValue($client));
 
