@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -388,7 +389,7 @@ class WebhookService {
 		return implode('_', $folderName);
 	}
 
-	public function notifyCallback(string $uri, string $uuid, File $file) {
+	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
 		$options = [
 			'multipart' => [
 				[
@@ -402,6 +403,6 @@ class WebhookService {
 				]
 			]
 		];
-		$response = $this->client->newClient()->post($uri, $options);
+		return $this->client->newClient()->post($uri, $options);
 	}
 }
