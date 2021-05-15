@@ -45,16 +45,11 @@ class CfsslHandler {
 		if (!property_exists($this, $property)) {
 			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
 		}
-		switch ($matches['type']) {
-			case 'get':
-				return $this->$property;
-				break;
-
-			case 'set':
-				$this->$property = $arguments[0] ?? null;
-				return $this;
-				break;
+		if ($matches['type'] === 'get') {
+			return $this->$property;
 		}
+		$this->$property = $arguments[0] ?? null;
+		return $this;
 	}
 
 	public function getClient() {
@@ -64,7 +59,7 @@ class CfsslHandler {
 		return $this->client;
 	}
 
-	public function generateCertificate() {
+	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
 		$certContent = null;
 		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
@@ -99,8 +94,7 @@ class CfsslHandler {
 		];
 		try {
 			$response = $this->getClient()
-				->request(
-					'POST',
+				->post(
 					'newcert',
 					$json
 				)
@@ -122,10 +116,12 @@ class CfsslHandler {
 
 	public function health(string $cfsslUri) {
 		try {
-			$response = (new Client(['base_uri' => $cfsslUri]))
-				->request(
-					'GET',
-					'health'
+			$response = $this->getClient()
+				->get(
+					'health',
+					[
+						'base_uri' => $cfsslUri
+					]
 				)
 			;
 		} catch (TransferException $th) {
