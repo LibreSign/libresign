@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use GuzzleHttp\Exception\ConnectException;
-use Http\Client\Exception\TransferException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IResponse;
