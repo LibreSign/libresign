@@ -2,6 +2,8 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use GuzzleHttp\Exception\ConnectException;
+use Http\Client\Exception\TransferException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IResponse;
@@ -85,9 +87,27 @@ final class CfsslHandlerTest extends TestCase {
 		$this->assertArrayHasKey('pkey', $actual);
 	}
 
-	public function testHealthWithInvalidUrl() {
+	public function testHealthWithMappedError() {
 		$class = new CfsslHandler();
-		$this->expectErrorMessageMatches('/Could not resolve host/');
+		$this->expectErrorMessage('invalid url');
+		$exception = $this->createMock(ConnectException::class);
+		$exception->method('getHandlerContext')->willReturn(['error' => 'invalid url']);
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willThrowException($exception);
+		$class->setClient($client);
+		$class->health('invalid_url');
+	}
+
+	public function testHealthWithUnexpectedError() {
+		$class = new CfsslHandler();
+		$this->expectExceptionCode(500);
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willThrowException($this->createMock(ConnectException::class));
+		$class->setClient($client);
 		$class->health('invalid_url');
 	}
 
