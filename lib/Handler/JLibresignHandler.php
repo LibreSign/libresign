@@ -7,6 +7,22 @@ use Jeidison\JSignPDF\Sign\JSignParam;
 use OC\Files\Node\File;
 
 class JLibresignHandler {
+	/** @var JSignPDF */
+	private $jSignPdf;
+
+	public function setJSignPdf($jSignPdf) {
+		$this->jSignPdf = $jSignPdf;
+	}
+
+	public function getJSignPdf() {
+		if (!$this->jSignPdf) {
+			// @codeCoverageIgnoreStart
+			$this->setJSignPdf(new JSignPDF());
+			// @codeCoverageIgnoreEnd
+		}
+		return $this->jSignPdf;
+	}
+
 	public function signExistingFile(
 		File $inputFile,
 		File $certificate,
@@ -21,7 +37,8 @@ class JLibresignHandler {
 			->setjSignPdfJarPath('/opt/jsignpdf-1.6.4/JSignPdf.jar')
 		;
 
-		$jSignPdf = new JSignPDF($param);
+		$jSignPdf = $this->getJSignPdf();
+		$jSignPdf->setParam($param);
 		$contentFileSigned = $jSignPdf->sign();
 
 		return [
