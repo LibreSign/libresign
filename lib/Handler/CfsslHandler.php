@@ -45,16 +45,11 @@ class CfsslHandler {
 		if (!property_exists($this, $property)) {
 			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
 		}
-		switch ($matches['type']) {
-			case 'get':
-				return $this->$property;
-				break;
-
-			case 'set':
-				$this->$property = $arguments[0] ?? null;
-				return $this;
-				break;
+		if ($matches['type'] == 'get') {
+			return $this->$property;
 		}
+		$this->$property = $arguments[0] ?? null;
+		return $this;
 	}
 
 	public function getClient() {
