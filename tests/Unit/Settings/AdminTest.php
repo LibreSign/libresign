@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Settings\Admin;
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 final class AdminTest extends TestCase {
 	public function testGetSessionReturningAppId() {
 		$admin = new Admin();
-		$this->assertEquals($admin->getSection(), 'libresign');
+		$this->assertEquals($admin->getSection(), Application::APP_ID);
 	}
 
 	public function testGetPriority() {
