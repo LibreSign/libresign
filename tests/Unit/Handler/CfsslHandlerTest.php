@@ -2,10 +2,8 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use Http\Client\Exception\TransferException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCP\Http\Client\IClient;
-use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use PHPUnit\Framework\TestCase;
 
