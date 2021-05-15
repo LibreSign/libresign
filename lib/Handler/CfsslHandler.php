@@ -59,7 +59,7 @@ class CfsslHandler {
 		return $this->client;
 	}
 
-	public function generateCertificate() {
+	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
 		$certContent = null;
 		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
@@ -94,8 +94,7 @@ class CfsslHandler {
 		];
 		try {
 			$response = $this->getClient()
-				->request(
-					'POST',
+				->post(
 					'newcert',
 					$json
 				)
@@ -117,10 +116,12 @@ class CfsslHandler {
 
 	public function health(string $cfsslUri) {
 		try {
-			$response = (new Client(['base_uri' => $cfsslUri]))
-				->request(
-					'GET',
-					'health'
+			$response = $this->getClient()
+				->get(
+					'health',
+					[
+						'base_uri' => $cfsslUri
+					]
 				)
 			;
 		} catch (TransferException $th) {
