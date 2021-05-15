@@ -54,9 +54,13 @@ final class CfsslHandlerTest extends TestCase {
 		$this->expectExceptionMessage('Error while creating certificate file');
 		$this->expectExceptionCode(500);
 		$response = $this->createMock(IResponse::class);
+		$cert = [
+			'certificate' => null,
+			'private_key' => null
+		];
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => 'success',
-			'result' => 'invalid result'
+			'result' => $cert
 		]));
 		$client = $this->createMock(IClient::class);
 		$client->expects($this->once())
