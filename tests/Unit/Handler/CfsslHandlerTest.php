@@ -43,9 +43,20 @@ final class CfsslHandlerTest extends TestCase {
 		$class->generateCertificate();
 	}
 
-	public function testGenerateCertificateWhenResponseIsWrong() {
+	public function testGenerateCertificateWithError() {
 		$class = new CfsslHandler();
 		$this->expectErrorMessageMatches('/Could not resolve host/');
+		$class->generateCertificate();
+	}
+
+	public function testGenerateCertificateWithUnexpectedError() {
+		$class = new CfsslHandler();
+		$this->expectExceptionCode(500);
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('post')
+			->willThrowException($this->createMock(ConnectException::class));
+		$class->setClient($client);
 		$class->generateCertificate();
 	}
 
@@ -90,7 +101,7 @@ final class CfsslHandlerTest extends TestCase {
 		$this->assertArrayHasKey('pkey', $actual);
 	}
 
-	public function testHealthWithMappedError() {
+	public function testHealthWithError() {
 		$class = new CfsslHandler();
 		$this->expectErrorMessage('invalid url');
 		$exception = $this->createMock(ConnectException::class);
