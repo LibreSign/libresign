@@ -106,7 +106,7 @@ export default {
 			try {
 				return format(fromUnixTime(data), 'MM/dd/yyyy')
 			} catch {
-				return t('libresign', 'no date')
+				return t('libresign', 'No date')
 			}
 		},
 	},

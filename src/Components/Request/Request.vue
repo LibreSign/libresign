@@ -1,8 +1,8 @@
 <template>
 	<div class="form-rs-container">
 		<form @submit="e => e.preventDefault()">
-			<input v-model="email" type="email" :placeholder="t('libresign', 'E-mail')">
-			<input v-model="description" type="text" :placeholder=" t('libresign', 'Description.')">
+			<input v-model="email" type="email" :placeholder="t('libresign', 'Email')">
+			<input v-model="description" type="text" :placeholder=" t('libresign', 'Description')">
 			<button :disabled="!hasEmail" class="primary btn-inc" @click="addUser">
 				{{ t('libresign', 'Add') }}
 			</button>
