@@ -58,8 +58,7 @@ OC.L10N.register(
     "Subscription password." : "Geslo za naročnino.",
     "Sign the document." : "Podpiši dokument.",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
-    "E-mail" : "Elektronski naslov",
-    "Description." : "Opis",
+    "Email" : "Elektronski naslov",
     "Add" : "Dodaj",
     "Users" : "Uporabniki",
     "Submit Request" : "Pošlji zahtevo",
@@ -81,7 +80,6 @@ OC.L10N.register(
     "Create new subscription." : "Ustvari novo naročnino.",
     "Root certificate has not been configured by the Administrator!" : "Ni nastavljenega skrbniškega korenskega potrdila!",
     "Enter your email." : "Vpis elektronskega naslova",
-    "Email" : "Elektronski naslov",
     "Password must be at least 3 characters." : "Geslo mora vsebovati najmanj 3 znake.",
     "Password" : "Geslo",
     "Passwords do not match" : "Gesli se ne skladata",
@@ -97,7 +95,6 @@ OC.L10N.register(
     "Could not create signature." : "Ni mogoče ustvariti podpisa.",
     "Sign" : "Podpiši",
     "Request subscription" : "Zahtevaj naročnino",
-    "Verify signatures." : "Preveri podpise.",
     "Validation URL" : "Naslov URL overjanja",
     "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
     "View" : "Pogled",
@@ -108,7 +105,6 @@ OC.L10N.register(
     "Enter the UUID of the document to validate." : "Vpišite določilo UUID doumenta za preverjanje.",
     "Validation" : "Potrjevanje",
     "This document is valid" : "Ta dokument je veljaven",
-    "no date" : "ni datuma",
     "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun."
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");
