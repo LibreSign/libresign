@@ -39,7 +39,7 @@
 							class="scroll">
 							<div class="subscriber">
 								<span><b>{{ item.displayName ? item.displayName : "None" }}</b></span>
-								<span v-if="item.signed" class="data-signed"> {{ assignedMessage }} : {{ formatData(item.signed) }} </span>
+								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
 								<span v-else>{{ noDateMessage }}</span>
 							</div>
 						</div>
@@ -80,7 +80,6 @@ export default {
 			title: t('libresign', 'Validate Subscription.'),
 			legend: t('libresign', 'Enter the UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
-			assignedMessage: t('libresign', 'signed at'),
 			noDateMessage: t('libresign', 'no date'),
 			uuid: '',
 			hasInfo: false,
