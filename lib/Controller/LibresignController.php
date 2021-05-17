@@ -168,6 +168,7 @@ class LibresignController extends Controller {
 				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 				$originalFile->getPath()
 			);
+			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 
 			if ($this->root->nodeExists($signedFilePath)) {
 				/** @var \OCP\Files\File */
@@ -181,7 +182,6 @@ class LibresignController extends Controller {
 				$fileToSign = $this->root->newFile($signedFilePath);
 				$fileToSign->putContent($buffer);
 			}
-			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());
