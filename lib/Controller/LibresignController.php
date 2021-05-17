@@ -221,7 +221,10 @@ class LibresignController extends Controller {
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
 			$this->logger->error($message);
+			$action = JSActions::ACTION_DO_NOTHING;
 			switch ($message) {
+				case 'Password to sign not defined. Create a password to sign':
+					$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
 				case 'Host violates local access rules.':
 				case 'Certificate Password Invalid.':
 				case 'Certificate Password is Empty.':
@@ -232,7 +235,7 @@ class LibresignController extends Controller {
 			}
 			return new JSONResponse(
 				[
-					'action' => JSActions::ACTION_DO_NOTHING,
+					'action' => $action,
 					'errors' => [$message]
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY

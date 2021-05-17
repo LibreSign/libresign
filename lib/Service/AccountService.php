@@ -171,7 +171,7 @@ class AccountService {
 		$this->folder->setUserId($uid);
 		$folder = $this->folder->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new LibresignException('Signature file not found!', 400);
+			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
 		}
 		return $folder->get($this->pfxFilename);
 	}
