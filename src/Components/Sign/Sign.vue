@@ -9,6 +9,9 @@
 			:type="'password'"
 			:disabled="disabled"
 			@submit="sign" />
+		<a :href="linkForgot" target="_blank" class="forgot">
+			{{ t('libresign', 'Forgot your password?') }}
+		</a>
 
 		<EmptyContent class="emp-content">
 			<template #desc>
@@ -30,6 +33,7 @@ import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Sign',
@@ -53,6 +57,9 @@ export default {
 	computed: {
 		userName() {
 			return getCurrentUser().uid
+		},
+		linkForgot() {
+			return generateUrl('/apps/libresign/reset-password')
 		},
 	},
 	methods: {
