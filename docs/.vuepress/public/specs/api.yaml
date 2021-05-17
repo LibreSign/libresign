@@ -701,13 +701,12 @@ paths:
                     type: string
                     description: Description of the failure that occurred
                     example: User 0 needs an email address
-  /signature/generate:
+  /account/signature:
     post:
       tags:
         - sign
       summary: Generates signature key
       description: Generates the personal signature key
-      deprecated: true
       security:
         - basicAuth: []
       requestBody:
@@ -716,30 +715,6 @@ paths:
             schema:
               type: object
               properties:
-                commonName:
-                  type: string
-                  description: Common name
-                  example: CommonName
-                country:
-                  type: string
-                  description: Country name
-                  example: Brazil
-                organization:
-                  type: string
-                  description: Organization
-                  example: Organization
-                organizationUnit:
-                  type: string
-                  description: Organization unit
-                  example: organizationUnit
-                hosts:
-                  type: array
-                  description: Not used
-                  example: []
-                path:
-                  type: string
-                  description: Path to save pfx file
-                  example: /LibreSign
                 password:
                   type: string
                   format: password
@@ -766,7 +741,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: Parameter 'country' is required
+                    description: Password to sign is mandatory
+                    example: Password to sign is mandatory
   /admin/certificate:
     post:
       tags:

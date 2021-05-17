@@ -27,26 +27,35 @@
 		:icon="icon"
 		:name="name">
 		<div v-show="showButtons" class="buttons">
-			<button class="primary" @click="option('sign')">
+			<button class="primary" :disabled="!hasSign" @click="option('sign')">
 				{{ t('libresign', 'Sign') }}
 			</button>
-			<button class="primary" @click="option('request')">
+			<button
+				:disabled="!canRequestSign"
+				class="primary"
+				@click="option('request')">
 				{{ t('libresign', 'Request subscription') }}
+			</button>
+			<button v-if="hasSignatures" @click="option('verify')">
+				{{ t('libresign', 'Verify signatures') }}
 			</button>
 		</div>
 
 		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="option('sign')">
-					{{ t('libresign', 'Turn back') }}
+					{{ t('libresign', 'Return') }}
 				</button>
 			</template>
 		</Sign>
 
-		<Request v-show="requestShow" :fileinfo="info" @request:signatures="requestSignatures">
+		<Request v-show="requestShow"
+			ref="request"
+			:fileinfo="info"
+			@request:signatures="requestSignatures">
 			<template slot="actions">
 				<button class="return-button" @click="option('request')">
-					{{ t('libresign', 'Turn back') }}
+					{{ t('libresign', 'Return') }}
 				</button>
 			</template>
 		</Request>
@@ -56,10 +65,10 @@
 <script>
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Request from '../Components/Request'
 import axios from '@nextcloud/axios'
-import Sign from '../Components/Sign'
 import { generateUrl } from '@nextcloud/router'
+import Sign from '../Components/Sign'
+import Request from '../Components/Request'
 
 export default {
 	name: 'LibresignTab',
@@ -89,6 +98,8 @@ export default {
 			requestShow: false,
 			disabledSign: false,
 			info: this.fileInfo,
+			canRequestSign: false,
+			canSign: false,
 		}
 	},
 
@@ -99,13 +110,28 @@ export default {
 		activeTab() {
 			return this.$parent.activeTab
 		},
+		hasSignatures() {
+			return !!(this.canRequestSign && this.signatures)
+		},
+		hasSign() {
+			return !!this.canSign
+		},
+	},
+
+	created() {
+		this.getInfo()
 	},
 
 	methods: {
 		async getInfo() {
-			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
-			// eslint-disable-next-line no-console
-			console.log(response)
+			try {
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				this.canRequestSign = response.data.settings.canRequestSign
+				this.canSign = response.data.settings.canSign
+
+			} catch (err) {
+				this.canRequestSign = err.response.data.settings.canRequestSign
+			}
 		},
 
 		async signDocument(param) {
@@ -113,10 +139,10 @@ export default {
 				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
-				showSuccess(response.data.message)
 				this.option('sign')
+				return showSuccess(response.data.message)
 			} catch (err) {
-				showError(err.response.data.errors[0])
+				return showError(err.response.data.errors[0])
 			}
 		},
 
@@ -129,12 +155,11 @@ export default {
 					name: this.info.name.split('.pdf')[0],
 					users,
 				})
-				// eslint-disable-next-line no-console
-				console.log(response)
-				showSuccess(response.data.message)
+				this.option('request')
+				this.clearRequestList()
+				return showSuccess(response.data.message)
 			} catch (err) {
-				console.error(err)
-				showError(err.response.data.errors[0])
+				return showError(err.response.data.errors[0])
 			}
 		},
 
@@ -146,6 +171,9 @@ export default {
 				this.showButtons = !this.showButtons
 				this.requestShow = !this.requestShow
 			}
+		},
+		clearRequestList() {
+			this.$refs.request.clearList()
 		},
 	},
 }

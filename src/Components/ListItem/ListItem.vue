@@ -5,11 +5,11 @@
 		</div>
 		<div id="content">
 			<p class="title">
-				{{ user.name ? user.name : user.email }}
+				{{ user.displayName ? user.displayName : user.email }}
 			</p>
 			<span class="description"> {{ description }}</span>
 		</div>
-		<div id="options">
+		<div v-if="hasOptions" id="options">
 			<Actions>
 				<ActionButton icon="icon-delete" @click="removeUser(user)" />
 			</Actions>
@@ -40,12 +40,15 @@ export default {
 			require: false,
 			default: null,
 		},
+		hasOptions: {
+			type: Boolean,
+			default: true,
+			require: false,
+		},
 	},
 	methods: {
 		removeUser(user) {
 			this.$emit('remove-user', user)
-			// eslint-disable-next-line no-console
-			console.log(user)
 		},
 	},
 }

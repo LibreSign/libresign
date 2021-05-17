@@ -11,6 +11,7 @@ use OCP\IDBConnection;
  *
  * @package OCA\Libresign\DB
  *
+ * @codeCoverageIgnore
  * @method File insert(File $entity)
  * @method File update(File $entity)
  * @method File insertOrUpdate(File $entity)

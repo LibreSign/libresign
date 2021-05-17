@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -171,18 +172,16 @@ class WebhookService {
 	 */
 	public function canDeleteSignRequest(array $data) {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
-		foreach ($signatures as $signature) {
-			if ($signature->getSigned()) {
-				throw new \Exception($this->l10n->t('Document already signed'));
-			}
-			$email = $signature->getEmail();
-			$exists = array_filter($data['users'], function ($val) use ($email) {
-				return $val['email'] === $email;
-			});
-			if (!$exists) {
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
-			}
+		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
+		if ($signed) {
+			throw new \Exception($this->l10n->t('Document already signed'));
 		}
+		array_walk($data['users'], function ($user) use ($signatures) {
+			$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $user['email']);
+			if (!$exists) {
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
+			}
+		});
 	}
 
 	public function deleteSignRequest(array $data) {
@@ -254,43 +253,61 @@ class WebhookService {
 		return $return;
 	}
 
-	public function associateToUsers(array $data, int $fileId) {
+	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		foreach ($data['users'] as $user) {
 			$user['email'] = strtolower($user['email']);
-			try {
-				$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
-			} catch (\Throwable $th) {
-				$fileUser = new FileUserEntity();
-			}
-			$fileUser->setFileId($fileId);
-			if (!$fileUser->getUuid()) {
-				$fileUser->setUuid(UUIDUtil::getUUID());
-			}
-			$fileUser->setEmail($user['email']);
-			if (!empty($user['display_name'])) {
-				$fileUser->setDisplayName($user['display_name']);
-			}
-			if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
-				$fileUser->setDescription($user['description']);
-			}
-			if (empty($user['user_id'])) {
-				$userToSign = $this->userManager->getByEmail($user['email']);
-				if ($userToSign) {
-					$fileUser->setUserId($userToSign[0]->getUID());
-				}
-			}
-			if ($fileUser->getId()) {
-				$this->fileUserMapper->update($fileUser);
-				$this->mail->notifySignDataUpdated($fileUser);
-			} else {
-				$fileUser->setCreatedAt(time());
-				$this->fileUserMapper->insert($fileUser);
-				$this->mail->notifyUnsignedUser($fileUser);
-			}
+			$fileUser = $this->getFileUser($user['email'], $fileId);
+			$this->setDataToUser($fileUser, $user, $fileId);
+			$this->saveFileUser($fileUser);
 			$return[] = $fileUser;
 		}
 		return $return;
+	}
+
+	public function saveFileUser(FileUserEntity $fileUser) {
+		if ($fileUser->getId()) {
+			$this->fileUserMapper->update($fileUser);
+			$this->mail->notifySignDataUpdated($fileUser);
+		} else {
+			$this->fileUserMapper->insert($fileUser);
+			$this->mail->notifyUnsignedUser($fileUser);
+		}
+	}
+
+	private function setDataToUser(FileUserEntity $fileUser, array $user, $fileId) {
+		$fileUser->setFileId($fileId);
+		if (!$fileUser->getUuid()) {
+			$fileUser->setUuid(UUIDUtil::getUUID());
+		}
+		$fileUser->setEmail($user['email']);
+		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
+			$fileUser->setDescription($user['description']);
+		}
+		if (empty($user['user_id'])) {
+			$userToSign = $this->userManager->getByEmail($user['email']);
+			if ($userToSign) {
+				$fileUser->setUserId($userToSign[0]->getUID());
+				if (empty($user['display_name'])) {
+					$user['display_name'] = $userToSign[0]->getDisplayName();
+				}
+			}
+		}
+		if (!empty($user['display_name'])) {
+			$fileUser->setDisplayName($user['display_name']);
+		}
+		if (!$fileUser->getId()) {
+			$fileUser->setCreatedAt(time());
+		}
+	}
+
+	private function getFileUser(string $email, int $fileId): FileUserEntity {
+		try {
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+		} catch (\Throwable $th) {
+			$fileUser = new FileUserEntity();
+		}
+		return $fileUser;
 	}
 
 	/**
@@ -316,7 +333,7 @@ class WebhookService {
 		return $file;
 	}
 
-	private function getNodeFromData(array $data) {
+	private function getNodeFromData(array $data): \OCP\Files\Node {
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];
@@ -330,18 +347,13 @@ class WebhookService {
 		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 	}
 
-	public function deleteFile(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
-		$this->folderService->deleteParentNodeOfNodeId($fileData->getNodeId());
-	}
-
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeaders()['Content-Type'][0];
+			$contentType = $response->getHeader('Content-Type');
 			if ($contentType !== 'application/pdf') {
 				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
 			}
@@ -387,7 +399,7 @@ class WebhookService {
 		return implode('_', $folderName);
 	}
 
-	public function notifyCallback(string $uri, string $uuid, File $file) {
+	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
 		$options = [
 			'multipart' => [
 				[
@@ -401,6 +413,6 @@ class WebhookService {
 				]
 			]
 		];
-		$response = $this->client->newClient()->post($uri, $options);
+		return $this->client->newClient()->post($uri, $options);
 	}
 }

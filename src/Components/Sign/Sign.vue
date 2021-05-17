@@ -5,7 +5,7 @@
 			<span>{{ userName }}</span>
 		</div>
 
-		<InputLS class="input"
+		<InputAction class="input"
 			:type="'password'"
 			:disabled="disabled"
 			@submit="sign" />
@@ -27,7 +27,7 @@
 <script>
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
-import InputLS from '../InputLS'
+import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
 
@@ -35,7 +35,7 @@ export default {
 	name: 'Sign',
 	components: {
 		Avatar,
-		InputLS,
+		InputAction,
 		EmptyContent,
 	},
 	props: {

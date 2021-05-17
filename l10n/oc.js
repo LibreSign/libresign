@@ -7,7 +7,7 @@ OC.L10N.register(
     "File already signed by you" : "Avètz ja signat lo fichièr",
     "signed" : "signat",
     "File signed" : "Fichièr signat",
-    "UUID not found" : "UUID pas trobat",
-    "Invalid UUID" : "UUID invalid"
+    "Invalid UUID" : "UUID invalid",
+    "UUID not found" : "UUID pas trobat"
 },
 "nplurals=2; plural=(n > 1);");
