@@ -225,6 +225,7 @@ class LibresignController extends Controller {
 			switch ($message) {
 				case 'Password to sign not defined. Create a password to sign':
 					$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
+					// no break
 				case 'Host violates local access rules.':
 				case 'Certificate Password Invalid.':
 				case 'Certificate Password is Empty.':
