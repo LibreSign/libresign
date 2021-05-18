@@ -40,6 +40,10 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
+	if (to.query.redirect === 'CreatePassword') {
+		next({ name: 'CreatePassword' })
+	}
+
 	if (libresignVar) {
 		if (libresignVar.sign) {
 			store.commit('setPdfData', libresignVar.sign)

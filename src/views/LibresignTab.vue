@@ -142,6 +142,10 @@ export default {
 				this.option('sign')
 				return showSuccess(response.data.message)
 			} catch (err) {
+				if (err.response.data.action === 400) {
+					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
+				}
+				console.error(err.response)
 				return showError(err.response.data.errors[0])
 			}
 		},
