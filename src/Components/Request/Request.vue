@@ -66,7 +66,6 @@ export default {
 			this.values.push({
 				email: this.email,
 				description: this.description,
-				name: this.email,
 			})
 			this.clearForm()
 		},

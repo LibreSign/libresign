@@ -38,6 +38,9 @@ export default {
 	},
 
 	methods: {
+		clearInput() {
+			this.value = ''
+		},
 		onSubmit(event) {
 			this.$emit('submit', this.value)
 		},

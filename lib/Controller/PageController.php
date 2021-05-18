@@ -280,6 +280,22 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Show validation page
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function resetPassword() {
+		$this->initialState->provideInitialState('config', json_encode($this->getConfig('url')));
+
+		Util::addScript(Application::APP_ID, 'libresign-main');
+		$response = new TemplateResponse(Application::APP_ID, 'reset_password');
+
+		return $response;
+	}
+
+	/**
 	 * Show validation page for a specific file UUID
 	 *
 	 * @NoAdminRequired

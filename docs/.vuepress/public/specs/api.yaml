@@ -715,7 +715,7 @@ paths:
             schema:
               type: object
               properties:
-                password:
+                signPassword:
                   type: string
                   format: password
                   description: Password to pfx file

@@ -42,7 +42,7 @@
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">
-				{{ t('libresign','Subscription generated and available at {path}!', {path: signature.path}) }}
+				{{ t('libresign','Subscription generated and available at {path}!', { path: signature.path }) }}
 			</div>
 		</Modal>
 	</div>

@@ -23,6 +23,7 @@ return [
 		// Pages - restricted
 		['name' => 'page#index',                'url' => '/', 'verb' => 'GET'],
 		['name' => 'page#getPdfUser',           'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#resetPassword',		'url' => '/reset-password', 'verb' => 'GET'],
 		// Pages - public
 		['name' => 'page#sign',                 'url' => '/sign/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#validation',           'url' => '/validation', 'verb' => 'GET'],

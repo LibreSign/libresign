@@ -5,10 +5,15 @@
 			<span>{{ userName }}</span>
 		</div>
 
-		<InputAction class="input"
+		<InputAction
+			ref="input"
+			class="input"
 			:type="'password'"
 			:disabled="disabled"
 			@submit="sign" />
+		<a :href="linkForgot" target="_blank" class="forgot">
+			{{ t('libresign', 'Forgot your password?') }}
+		</a>
 
 		<EmptyContent class="emp-content">
 			<template #desc>
@@ -30,6 +35,7 @@ import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Sign',
@@ -54,8 +60,14 @@ export default {
 		userName() {
 			return getCurrentUser().uid
 		},
+		linkForgot() {
+			return generateUrl('/apps/libresign/reset-password')
+		},
 	},
 	methods: {
+		clearInput() {
+			this.$refs.input.clearInput()
+		},
 		sign(param) {
 			this.$emit('sign:document', param)
 		},

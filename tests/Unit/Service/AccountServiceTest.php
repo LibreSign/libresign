@@ -374,7 +374,7 @@ final class AccountServiceTest extends TestCase {
 			$this->newUserMail,
 			$this->cfsslHandler
 		);
-		$this->expectErrorMessage('Signature file not found!');
+		$this->expectErrorMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
 		$service->getPfx('userId');
 	}

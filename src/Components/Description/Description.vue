@@ -36,6 +36,9 @@
 					}}</label>
 					<div class="form-ib-group">
 						<input id="password" v-model="password" type="password">
+						<router-link class="forgot" to="/reset-password" target="_blank">
+							{{ t('libresign', 'Forgot your password?') }}
+						</router-link>
 						<button
 							type="button"
 							:value="buttonValue"

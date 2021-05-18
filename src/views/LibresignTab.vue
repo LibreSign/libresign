@@ -41,7 +41,10 @@
 			</button>
 		</div>
 
-		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
+		<Sign v-show="signShow"
+			ref="sign"
+			:disabled="disabledSign"
+			@sign:document="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="option('sign')">
 					{{ t('libresign', 'Return') }}
@@ -142,6 +145,10 @@ export default {
 				this.option('sign')
 				return showSuccess(response.data.message)
 			} catch (err) {
+				if (err.response.data.action === 400) {
+					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
+				}
+				console.error(err.response)
 				return showError(err.response.data.errors[0])
 			}
 		},
@@ -171,6 +178,9 @@ export default {
 				this.showButtons = !this.showButtons
 				this.requestShow = !this.requestShow
 			}
+		},
+		clearSiginPassword() {
+			this.$refs.sign.clearInput()
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()
