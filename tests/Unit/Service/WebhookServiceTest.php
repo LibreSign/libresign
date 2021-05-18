@@ -116,6 +116,202 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testValidateFileWithoutAllNecessaryData() {
+		$this->expectExceptionMessage('Inform URL or base64 or fileId to sign');
+		$this->service->validateFile([
+			'file' => ['invalid'],
+			'name' => 'test'
+		]);
+	}
+
+	public function testValidateFileWithInvalidFileId() {
+		$this->expectExceptionMessage('Invalid fileId');
+		$this->service->validateFile([
+			'file' => ['fileId' => 'invalid'],
+			'name' => 'test'
+		]);
+	}
+
+	public function testValidateFileWhenFileIdDoesNotExist() {
+		$this->expectExceptionMessage('Invalid fileId');
+		$this->service->validateFile([
+			'file' => ['fileId' => 123],
+			'name' => 'test'
+		]);
+	}
+
+	public function testValidateFileByFileIdWhenAlreadyAskedToSignThisDocument() {
+		$this->file->method('getByFileId')->will($this->returnValue('exists'));
+		$this->expectExceptionMessage('Already asked to sign this document');
+		$this->service->validateFileByFileId(1);
+	}
+
+	public function testValidateFileByFileIdWhenFileIdNotExists() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
+		$this->expectExceptionMessage('Invalid fileId');
+		$this->service->validateFileByFileId(1);
+	}
+
+	public function testValidateFileByFileIdWhenFileNotExists() {
+		$this->file->method('getByFileId')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('getById')->will($this->returnValue(null));
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->expectExceptionMessage('Invalid fileId');
+		$this->service->validateFileByFileId(1);
+	}
+
+	public function testValidateFileByFileIdWhenFileIsNotPDF() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getMimeType')->will($this->returnValue('html'));
+		$folder->method('getById')->will($this->returnValue([$file]));
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->expectExceptionMessage('Must be a fileId of a PDF');
+		$this->service->validateFileByFileId(1);
+	}
+
+	public function testValidateFileByFileIdWhenSuccess() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getMimeType')->will($this->returnValue('application/pdf'));
+		$folder->method('getById')->will($this->returnValue([$file]));
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$actual = $this->service->validateFileByFileId(1);
+		$this->assertNull($actual);
+	}
+
+	public function testValidateFileUuidWithInvalidUuid() {
+		$this->expectExceptionMessage('Invalid UUID file');
+		$this->service->validateFileUuid([]);
+	}
+
+	public function testValidateFileUuidWithValidUuid() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$actual = $this->service->validateFileUuid(['uuid' => 'valid']);
+		$this->assertNull($actual);
+	}
+
+	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(1234564);
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$this->expectErrorMessage('Document already signed');
+		$this->service->canDeleteSignRequest(['uuid' => 'valid']);
+	}
+
+	public function testCanDeleteSignRequestWhenNoSignatureWasRequested() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'otheremail@test.coop']
+			]));
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$this->expectErrorMessage('No signature was requested to %');
+		$this->service->canDeleteSignRequest([
+			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+	}
+
+	public function testCanDeleteSignRequestSuccess() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(null);
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$actual = $this->service->canDeleteSignRequest([
+			'uuid' => 'valid',
+			'users' => []
+		]);
+		$this->assertNull($actual);
+	}
+
+	public function testDeleteSignRequestSuccess() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$this->file->method('getByUuid')->will($this->returnValue($file));
+		$this->fileUser->method('getByFileId')->will($this->returnValue([$file]));
+		$this->fileUser->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$actual = $this->service->deleteSignRequest([
+			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+		$this->assertNull($actual);
+	}
+
+	public function testSaveFileUsingFileIdSuccess() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('getById')->willReturn([$folder]);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$actual = $this->service->saveFile([
+			'file' => ['fileId' => 123],
+			'userManager' => $this->user
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+
+		$actual = $this->service->saveFile([
+			'file' => ['fileId' => 123],
+			'userManager' => $this->user,
+			'callback' => 'http://callback.coop'
+		]);
+		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
+	}
+
+	public function testSaveFileWhenFileAlreadyExists() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(true);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		$this->expectErrorMessage('File already exists');
+		$this->service->saveFile([
+			'file' => [],
+			'userManager' => $this->user
+		]);
+	}
+
+	public function testSaveFileWhenNotIsAUrlOfPdf() {
+		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$folder->method('nodeExists')->willReturn(false);
+		$folder->method('newFolder')->willReturn($folder);
+		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user->method('getUID')->willReturn('uuid');
+		$this->expectErrorMessage('The URL should be a PDF.');
+		$this->service->saveFile([
+			'name' => 'Name',
+			'file' => [
+				'url' => 'https://invalid.coop'
+			],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
@@ -263,6 +459,20 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
+	public function testValidateSuccess() {
+		$actual = $this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'jhondoe@test.coop'
+				]
+			],
+			'userManager' => $this->user
+		]);
+		$this->assertNull($actual);
+	}
+
 	public function testIndexWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 		$this->config
@@ -284,5 +494,11 @@ final class WebhookServiceTest extends TestCase {
 			],
 			'userManager' => $this->user
 		]);
+	}
+
+	public function testNotifyCallback() {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
+		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
 	}
 }

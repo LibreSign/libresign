@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -171,18 +172,16 @@ class WebhookService {
 	 */
 	public function canDeleteSignRequest(array $data) {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
-		foreach ($signatures as $signature) {
-			if ($signature->getSigned()) {
-				throw new \Exception($this->l10n->t('Document already signed'));
-			}
-			$email = $signature->getEmail();
-			$exists = array_filter($data['users'], function ($val) use ($email) {
-				return $val['email'] === $email;
-			});
-			if (!$exists) {
-				throw new \Exception($this->l10n->t('No signature was requested to %s', $email));
-			}
+		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
+		if ($signed) {
+			throw new \Exception($this->l10n->t('Document already signed'));
 		}
+		array_walk($data['users'], function ($user) use ($signatures) {
+			$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $user['email']);
+			if (!$exists) {
+				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
+			}
+		});
 	}
 
 	public function deleteSignRequest(array $data) {
@@ -254,7 +253,7 @@ class WebhookService {
 		return $return;
 	}
 
-	public function associateToUsers(array $data, int $fileId) {
+	private function associateToUsers(array $data, int $fileId) {
 		$return = [];
 		foreach ($data['users'] as $user) {
 			$user['email'] = strtolower($user['email']);
@@ -333,11 +332,6 @@ class WebhookService {
 		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 	}
 
-	public function deleteFile(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
-		$this->folderService->deleteParentNodeOfNodeId($fileData->getNodeId());
-	}
-
 	private function getFileRaw($data) {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
@@ -390,7 +384,7 @@ class WebhookService {
 		return implode('_', $folderName);
 	}
 
-	public function notifyCallback(string $uri, string $uuid, File $file) {
+	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
 		$options = [
 			'multipart' => [
 				[
@@ -404,6 +398,6 @@ class WebhookService {
 				]
 			]
 		];
-		$response = $this->client->newClient()->post($uri, $options);
+		return $this->client->newClient()->post($uri, $options);
 	}
 }

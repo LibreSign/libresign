@@ -21,6 +21,9 @@
         <include>
             <directory suffix=".php">lib</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">lib/Migration</directory>
+        </exclude>
         <report>
             <clover outputFile="build/logs/clover.xml"/>
             <html outputDirectory="build/logs/html-coverage" lowUpperBound="50" highLowerBound="90"/>

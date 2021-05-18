@@ -168,6 +168,7 @@ class LibresignController extends Controller {
 				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
 				$originalFile->getPath()
 			);
+			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 
 			if ($this->root->nodeExists($signedFilePath)) {
 				/** @var \OCP\Files\File */
@@ -181,7 +182,6 @@ class LibresignController extends Controller {
 				$fileToSign = $this->root->newFile($signedFilePath);
 				$fileToSign->putContent($buffer);
 			}
-			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());
@@ -221,7 +221,11 @@ class LibresignController extends Controller {
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
 			$this->logger->error($message);
+			$action = JSActions::ACTION_DO_NOTHING;
 			switch ($message) {
+				case 'Password to sign not defined. Create a password to sign':
+					$action = JSActions::ACTION_CREATE_SIGNATURE_PASSWORD;
+					// no break
 				case 'Host violates local access rules.':
 				case 'Certificate Password Invalid.':
 				case 'Certificate Password is Empty.':
@@ -232,7 +236,7 @@ class LibresignController extends Controller {
 			}
 			return new JSONResponse(
 				[
-					'action' => JSActions::ACTION_DO_NOTHING,
+					'action' => $action,
 					'errors' => [$message]
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
