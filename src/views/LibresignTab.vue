@@ -41,7 +41,10 @@
 			</button>
 		</div>
 
-		<Sign v-show="signShow" :disabled="disabledSign" @sign:document="signDocument">
+		<Sign v-show="signShow"
+			ref="sign"
+			:disabled="disabledSign"
+			@sign:document="signDocument">
 			<template slot="actions">
 				<button class="return-button" @click="option('sign')">
 					{{ t('libresign', 'Turn back.') }}
@@ -175,6 +178,9 @@ export default {
 				this.showButtons = !this.showButtons
 				this.requestShow = !this.requestShow
 			}
+		},
+		clearSiginPassword() {
+			this.$refs.sign.clearInput()
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()

@@ -5,7 +5,9 @@
 			<span>{{ userName }}</span>
 		</div>
 
-		<InputAction class="input"
+		<InputAction
+			ref="input"
+			class="input"
 			:type="'password'"
 			:disabled="disabled"
 			@submit="sign" />
@@ -63,6 +65,9 @@ export default {
 		},
 	},
 	methods: {
+		clearInput() {
+			this.$refs.input.clearInput()
+		},
 		sign(param) {
 			this.$emit('sign:document', param)
 		},
