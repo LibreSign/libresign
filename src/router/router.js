@@ -28,10 +28,6 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const routes = [
 	{
-		path: '/',
-		name: 'Home',
-		component: () => import('../views/CreateSubscription'),
-	}, {
 		path: '/sign/:uuid',
 		redirect: { name: SelectAction(libresignVar.action) },
 	}, {
