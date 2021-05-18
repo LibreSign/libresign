@@ -3,7 +3,7 @@
 		<form @submit="e => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password Creation') }}</h1>
-				<p>{{ t('libresign', 'For security reasonns, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
+				<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 			</header>
 			<div class="container">
 				<div class="input-group">
