@@ -18,7 +18,7 @@
 				<button
 					:disabled="!hableButton"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
-					@click="send">
+					@click="checkPasswordForConfirm">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
@@ -66,7 +66,6 @@ export default {
 		changeModal() {
 			this.modal = !this.modal
 			this.hasLoading = !this.hasLoading
-
 		},
 		async send() {
 			this.hasLoading = true
@@ -76,6 +75,7 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password for sign document created'))
 				this.hasLoading = false
+				this.$router.push({ name: 'Home' })
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false
