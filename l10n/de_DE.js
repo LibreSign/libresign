@@ -96,7 +96,7 @@ OC.L10N.register(
     "Could not create signature." : "Signatur konnte nicht erstellt werden.",
     "Sign" : "Signieren",
     "Request subscription" : "Abonnement anfordern",
-    "Verify signatures" : "Signaturen verifizieren",
+    "Verify signatures" : "Signaturen überprüfen",
     "Return" : "Zurück",
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
