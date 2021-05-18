@@ -30,7 +30,6 @@ const routes = [
 	{
 		path: '/',
 		name: 'Home',
-		redirect: 'reset-password',
 		component: () => import('../views/CreateSubscription'),
 	}, {
 		path: '/sign/:uuid',
