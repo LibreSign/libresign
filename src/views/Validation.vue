@@ -9,7 +9,7 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="uuid" type="text">
-					<button class="btn" @click.prevent="validateByUUID">
+					<button class="btn" @click.prevent="validateByUUID(uuid)">
 						{{ buttonTitle }}
 					</button>
 				</form>
@@ -83,12 +83,23 @@ export default {
 			uuid: '',
 			hasInfo: false,
 			document: {},
+			documentUuid: '',
 		}
 	},
+	watch: {
+		'$route.params'(toParams, previousParams) {
+			this.uuid = toParams.uuid
+		},
+	},
+	created() {
+		setTimeout(() => {
+			this.validateByUUID(this.uuid)
+		}, 100)
+	},
 	methods: {
-		async validateByUUID() {
+		async validateByUUID(uuid) {
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${this.uuid}`))
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true

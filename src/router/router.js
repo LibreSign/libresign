@@ -47,6 +47,10 @@ const routes = [
 		component: () => import('../views/Validation'),
 		name: 'validation',
 	}, {
+		path: '/validation/:uuid',
+		component: () => import('../views/Validation'),
+		name: 'validationFile',
+	}, {
 		path: '/sign/:uuid',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
