@@ -117,7 +117,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileWithoutAllNecessaryData() {
-		$this->expectExceptionMessage('Inform URL or base64 or fileId to sign');
+		$this->expectExceptionMessage('Inform URL or base64 or fileID to sign');
 		$this->service->validateFile([
 			'file' => ['invalid'],
 			'name' => 'test'
@@ -125,7 +125,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileWithInvalidFileId() {
-		$this->expectExceptionMessage('Invalid fileId');
+		$this->expectExceptionMessage('Invalid fileID');
 		$this->service->validateFile([
 			'file' => ['fileId' => 'invalid'],
 			'name' => 'test'
@@ -133,7 +133,7 @@ final class WebhookServiceTest extends TestCase {
 	}
 
 	public function testValidateFileWhenFileIdDoesNotExist() {
-		$this->expectExceptionMessage('Invalid fileId');
+		$this->expectExceptionMessage('Invalid fileID');
 		$this->service->validateFile([
 			'file' => ['fileId' => 123],
 			'name' => 'test'
