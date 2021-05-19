@@ -8,6 +8,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
@@ -40,6 +41,8 @@ class PageController extends Controller {
 	private $initialState;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var AccountService */
+	private $accountService;
 	/** @var IRootFolder */
 	private $root;
 	public function __construct(
@@ -52,6 +55,7 @@ class PageController extends Controller {
 		IL10N $l10n,
 		IInitialState $initialState,
 		IURLGenerator $urlGenerator,
+		AccountService $accountService,
 		IRootFolder $root
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -63,6 +67,7 @@ class PageController extends Controller {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->l10n = $l10n;
 		$this->userManager = $userManager;
+		$this->accountService = $accountService;
 		$this->urlGenerator = $urlGenerator;
 	}
 
@@ -195,7 +200,22 @@ class PageController extends Controller {
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription()
 		];
+		$return['settings'] = [
+			'hasSignatureFile' => $this->hasSignatureFile($userId)
+		];
 		return $return;
+	}
+
+	private function hasSignatureFile(?string $userId) {
+		if (!$userId) {
+			return false;
+		}
+		try {
+			$this->accountService->getPfx($userId);
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
 	}
 
 	/**
