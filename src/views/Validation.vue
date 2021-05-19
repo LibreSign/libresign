@@ -80,7 +80,7 @@ export default {
 			title: t('libresign', 'Validate Subscription.'),
 			legend: t('libresign', 'Enter the UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
-			noDateMessage: t('libresign', 'no date'),
+			noDateMessage: t('libresign', 'No date'),
 			uuid: '',
 			hasInfo: false,
 			hasLoading: false,
