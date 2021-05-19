@@ -303,7 +303,8 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function validationFile(string $uuid) {
-		Util::addScript(Application::APP_ID, 'libresign-validation-teste.js');
+		$this->initialState->provideInitialState('config', json_encode($this->getConfig('url')));
+
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
