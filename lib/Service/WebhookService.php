@@ -98,11 +98,11 @@ class WebhookService {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new \Exception($this->l10n->t('Inform URL or base64 or fileId to sign'));
+			throw new \Exception($this->l10n->t('Inform URL or base64 or fileID to sign'));
 		}
 		if (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileId'));
+				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateFileByFileId((int)$data['file']['fileId']);
 		}
@@ -128,14 +128,14 @@ class WebhookService {
 			$userFolder = $this->folderService->getFolder($fileId);
 			$node = $userFolder->getById($fileId);
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid fileId'));
+			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
 		if (!$node) {
-			throw new \Exception($this->l10n->t('Invalid fileId'));
+			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
 		$node = $node[0];
 		if ($node->getMimeType() !== 'application/pdf') {
-			throw new \Exception($this->l10n->t('Must be a fileId of a PDF'));
+			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
 		}
 	}
 
