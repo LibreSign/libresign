@@ -150,7 +150,7 @@ final class WebhookServiceTest extends TestCase {
 		$this->file->method('getByFileId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
-		$this->expectExceptionMessage('Invalid fileId');
+		$this->expectExceptionMessage('Invalid fileID');
 		$this->service->validateFileByFileId(1);
 	}
 
@@ -161,7 +161,7 @@ final class WebhookServiceTest extends TestCase {
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$folder->method('getById')->will($this->returnValue(null));
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$this->expectExceptionMessage('Invalid fileId');
+		$this->expectExceptionMessage('Invalid fileID');
 		$this->service->validateFileByFileId(1);
 	}
 
@@ -171,7 +171,7 @@ final class WebhookServiceTest extends TestCase {
 		$file->method('getMimeType')->will($this->returnValue('html'));
 		$folder->method('getById')->will($this->returnValue([$file]));
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$this->expectExceptionMessage('Must be a fileId of a PDF');
+		$this->expectExceptionMessage('Must be a fileID of a PDF');
 		$this->service->validateFileByFileId(1);
 	}
 
