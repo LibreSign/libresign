@@ -54,6 +54,7 @@ import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'App',
@@ -70,6 +71,10 @@ export default {
 			loading: false,
 			icon: Icon,
 		}
+	},
+	created() {
+		const libresignVar = JSON.parse(loadState('libresign', 'config'))
+		console.info('in: ', libresignVar)
 	},
 }
 </script>
