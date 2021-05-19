@@ -120,9 +120,21 @@ class PageController extends Controller {
 	 * @return array|string
 	 */
 	public function getConfig(string $formatOfPdfOnSign): array {
+		$info = $this->getInfoOfFileToSign($formatOfPdfOnSign);
+		$info['settings'] = [
+			'hasSignatureFile' => $this->hasSignatureFile()
+		];
+		return $info;
+	}
+
+	private function getInfoOfFileToSign(string $formatOfPdfOnSign): array {
 		$uuid = $this->request->getParam('uuid');
 		$userId = $this->session->get('user_id');
+		$return = [];
 		try {
+			if (!$uuid) {
+				return $return;
+			}
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
 		} catch (\Throwable $th) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
@@ -200,13 +212,11 @@ class PageController extends Controller {
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription()
 		];
-		$return['settings'] = [
-			'hasSignatureFile' => $this->hasSignatureFile($userId)
-		];
 		return $return;
 	}
 
-	private function hasSignatureFile(?string $userId) {
+	private function hasSignatureFile() {
+		$userId = $this->session->get('user_id');
 		if (!$userId) {
 			return false;
 		}
