@@ -9,7 +9,7 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="uuid" type="text">
-					<button class="btn" @click.prevent="validateByUUID">
+					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validateByUUID">
 						{{ buttonTitle }}
 					</button>
 				</form>
@@ -39,8 +39,8 @@
 							class="scroll">
 							<div class="subscriber">
 								<span><b>{{ item.displayName ? item.displayName : "None" }}</b></span>
-								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }}</span>
-								<span v-else>{{ t('libresign', 'No date') }}</span>
+								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
+								<span v-else>{{ noDateMessage }}</span>
 							</div>
 						</div>
 					</div>
@@ -62,7 +62,7 @@ import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { format, fromUnixTime } from 'date-fns'
+import { fromUnixTime } from 'date-fns'
 
 export default {
 	name: 'Validation',
@@ -80,19 +80,24 @@ export default {
 			title: t('libresign', 'Validate Subscription.'),
 			legend: t('libresign', 'Enter the UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
+			noDateMessage: t('libresign', 'no date'),
 			uuid: '',
 			hasInfo: false,
+			hasLoading: false,
 			document: {},
 		}
 	},
 	methods: {
 		async validateByUUID() {
+			this.hasLoading = true
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${this.uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true
+				this.hasLoading = false
 			} catch (err) {
+				this.hasLoading = false
 				showError(err.response.data.errors[0])
 			}
 		},
@@ -104,9 +109,9 @@ export default {
 		},
 		formatData(data) {
 			try {
-				return format(fromUnixTime(data), 'MM/dd/yyyy')
+				return fromUnixTime(data).toLocaleDateString()
 			} catch {
-				return t('libresign', 'No date')
+				return this.noDateMessage
 			}
 		},
 	},
@@ -115,4 +120,5 @@ export default {
 
 <style lang="scss" scoped>
 @import '../assets/styles/validation.scss';
+@import '../assets/styles/loading.scss';
 </style>
