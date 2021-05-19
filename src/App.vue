@@ -38,7 +38,7 @@
 				</template>
 				<template #desc>
 					<p>
-						{{ t('libresign', 'LibreSign, your free license document signer.') }}
+						{{ t('libresign', 'LibreSign, digital signature app for Nextcloud.') }}
 					</p>
 				</template>
 			</EmptyContent>
