@@ -4,7 +4,7 @@ const webpackConfig = require('@nextcloud/webpack-vue-config')
 
 const config = {
 	mode: 'development',
-	devtool: 'cheap-source-map',
+	devtool: '#cheap-source-map',
 	entry: {
 		tab: path.resolve(path.join('src', 'tab.js')),
 		settings: path.resolve(path.join('src', 'settings.js')),
