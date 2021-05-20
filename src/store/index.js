@@ -35,7 +35,7 @@ export default new Store({
 		errors: [],
 		pdfData: {},
 		user: {},
-		infoSignatureFile: false,
+		settings: {},
 	},
 
 	mutations: {
@@ -51,8 +51,11 @@ export default new Store({
 			Vue.set(state.pdfData, 'description', pdfData.description)
 			Vue.set(state.pdfData, 'filename', pdfData.filename)
 		},
-		setHasSignatureFile(state, hasSignature) {
-			Vue.set(state.infoSignatureFile, hasSignature)
+		setSettings(state, settings) {
+			Vue.set(state.settings, 'data', settings)
+		},
+		setHasPfx(state, haspfx) {
+			Vue.set(state.settings.data, 'hasSignatureFile', haspfx)
 		},
 		setError(state, errors) {
 			Vue.set(state.errors, errors)
@@ -63,8 +66,11 @@ export default new Store({
 		getError(state) {
 			return libresignVar.errors
 		},
-		getInfoSignatureFile(state) {
-			return state.infoSignatureFile
+		getSettings(state) {
+			return state.settings
+		},
+		getHasPfx(state) {
+			return state.settings.data.hasSignatureFile
 		},
 		getPdfData(state) {
 			return state.pdfData

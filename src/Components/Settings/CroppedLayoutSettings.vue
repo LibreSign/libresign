@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 
@@ -43,10 +44,10 @@ export default {
 	components: {
 		AppNavigationItem,
 	},
-	data() {
-		return {
-			hasSignature: false,
-		}
+	computed: {
+		...mapGetters({
+			hasSignature: 'getHasPfx',
+		}),
 	},
 	created() {
 		this.checkHasSignature()
@@ -54,10 +55,7 @@ export default {
 	methods: {
 		checkHasSignature() {
 			const libresignSettings = JSON.parse(loadState('libresign', 'config'))
-			this.$store.commit('setHasSignatureFile', libresignSettings.settings.hasSignatureFile)
-		},
-		getSignatureInfo() {
-			this.hasSignature = this.$store.getters.getInfoSignatureFile
+			this.$store.commit('setSettings', libresignSettings.settings)
 		},
 	},
 }
