@@ -54,7 +54,10 @@ export default {
 	methods: {
 		checkHasSignature() {
 			const libresignSettings = JSON.parse(loadState('libresign', 'config'))
-			this.hasSignature = libresignSettings.settings.hasSignatureFile
+			this.$store.commit('setHasSignatureFile', libresignSettings.settings.hasSignatureFile)
+		},
+		getSignatureInfo() {
+			this.hasSignature = this.$store.getters.getInfoSignatureFile
 		},
 	},
 }
