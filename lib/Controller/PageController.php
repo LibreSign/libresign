@@ -8,6 +8,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
@@ -40,6 +41,8 @@ class PageController extends Controller {
 	private $initialState;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var AccountService */
+	private $accountService;
 	/** @var IRootFolder */
 	private $root;
 	public function __construct(
@@ -52,6 +55,7 @@ class PageController extends Controller {
 		IL10N $l10n,
 		IInitialState $initialState,
 		IURLGenerator $urlGenerator,
+		AccountService $accountService,
 		IRootFolder $root
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -63,6 +67,7 @@ class PageController extends Controller {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->l10n = $l10n;
 		$this->userManager = $userManager;
+		$this->accountService = $accountService;
 		$this->urlGenerator = $urlGenerator;
 	}
 
@@ -115,9 +120,21 @@ class PageController extends Controller {
 	 * @return array|string
 	 */
 	public function getConfig(string $formatOfPdfOnSign): array {
+		$info = $this->getInfoOfFileToSign($formatOfPdfOnSign);
+		$info['settings'] = [
+			'hasSignatureFile' => $this->hasSignatureFile()
+		];
+		return $info;
+	}
+
+	private function getInfoOfFileToSign(string $formatOfPdfOnSign): array {
 		$uuid = $this->request->getParam('uuid');
 		$userId = $this->session->get('user_id');
+		$return = [];
 		try {
+			if (!$uuid) {
+				return $return;
+			}
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
 		} catch (\Throwable $th) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
@@ -196,6 +213,19 @@ class PageController extends Controller {
 			'description' => $fileUser->getDescription()
 		];
 		return $return;
+	}
+
+	private function hasSignatureFile() {
+		$userId = $this->session->get('user_id');
+		if (!$userId) {
+			return false;
+		}
+		try {
+			$this->accountService->getPfx($userId);
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
 	}
 
 	/**

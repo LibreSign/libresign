@@ -60,6 +60,7 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password for sign document created'))
 				this.hasLoading = false
+				this.$store.commit('setHasPfx', true)
 				this.$router.push({ name: 'Home' })
 				this.clear()
 			} catch (err) {
