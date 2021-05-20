@@ -27,7 +27,10 @@
 			icon="icon-add"
 			:title="t('libresigng', 'Create Password Key')"
 			:to="{name: 'CreatePassword'}" />
-		<AppNavigationItem icon="icon-password" :title="t('libresigng', 'Reset Password')" :to="{name: 'ResetPassword'}" />
+		<AppNavigationItem v-else
+			icon="icon-password"
+			:title="t('libresigng', 'Reset Password')"
+			:to="{name: 'ResetPassword'}" />
 	</ul>
 </template>
 
