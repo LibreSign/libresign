@@ -303,7 +303,7 @@ class WebhookService {
 
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
 		} catch (\Throwable $th) {
 			$fileUser = new FileUserEntity();
 		}
