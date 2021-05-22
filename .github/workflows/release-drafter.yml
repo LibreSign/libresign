@@ -9,11 +9,6 @@ jobs:
   update_release_draft:
     runs-on: ubuntu-latest
     steps:
-      - uses: scottbrenner/generate-changelog-action@master
-        id: Changelog
-        with:
-          from-tag: v1.0
-          to-tag: HEAD
       - uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
