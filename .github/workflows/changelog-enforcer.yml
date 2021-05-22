@@ -11,5 +11,3 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: saadmk11/changelog-ci@v0.8.0
-      with:
-        config_file: .github/workflows/changelog-ci-config.yml
