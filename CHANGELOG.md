@@ -14,6 +14,10 @@ Types of changes:
 
 <!-- changelog-linker -->
 
+## Draft
+
+- GitHub action to add a changelog reminder
+
 ## 2.3.0 - 2021-05-22
 
 ### Added and changed
