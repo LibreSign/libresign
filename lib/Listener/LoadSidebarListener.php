@@ -17,7 +17,7 @@ class LoadSidebarListener implements IEventListener {
 			return;
 		}
 
-		if (version_compare(\OC_Util::getVersionString(), '20', '<=')) {
+		if (\OCP\Util::getVersion()[0] <= '20') {
 			Util::addScript(Application::APP_ID, 'libresign-tab-20');
 		} else {
 			Util::addScript(Application::APP_ID, 'libresign-tab');
