@@ -57,7 +57,7 @@ OC.L10N.register(
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Este é um app Nextcloud livre para assinar PDF digitalmente**\n\n* ✍️ Assine documentos PDF usando uma assinatura digital\n* ⚠️ A instalação deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Veja [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para mais detalhes.\n* **Requisitos:**\n    * Servidor CFSSL\n    * Java\n    * JSignPDF",
     "Settings" : "Configurações ",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicativo de assinatura digital para Nextcloud. ",
-    "Authentication required" : "Autentificação requerida ",
+    "Authentication required" : "Autentificação necessária ",
     "This action requires you to confirm your password" : "Esta ação requer que você confirme sua senha ",
     "Password" : "Senha",
     "Confirm" : "Confirme ",
