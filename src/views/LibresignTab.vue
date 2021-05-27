@@ -27,9 +27,14 @@
 			id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSIgn')">
-			<Tooltip v-if="validateError.hasError" :type="validateError.type" :message="validateError.message" />
+			<Tooltip v-if="validateError.hasError"
+				refs="tooltip"
+				:type="validateError.type"
+				:message="validateError.message" />
 			<div v-show="showButtons" class="lb-ls-buttons">
-				<button class="primary" :disabled="!hasSign" @click="option('sign')">
+				<button class="primary"
+					:disabled="!hasSign"
+					@click="option('sign')">
 					{{ t('libresign', 'Sign') }}
 				</button>
 				<button
@@ -147,7 +152,7 @@ export default {
 
 		async getInfo() {
 			try {
-				const response = await axios.get(generateUrl(`/apsps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 
 				this.canRequestSign = response.data.settings.canRequestSign
 				this.canSign = response.data.settings.canSign

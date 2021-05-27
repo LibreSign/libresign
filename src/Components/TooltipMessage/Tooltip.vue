@@ -1,5 +1,5 @@
 <template>
-	<div class="container">
+	<div v-show="hasVisible" class="container">
 		<span :class="icon" />
 		<span>{{ message }}</span>
 	</div>
@@ -12,7 +12,7 @@ export default {
 		icon: {
 			type: String,
 			required: false,
-			default: 'info',
+			default: 'icon-details',
 			validator: (value) => {
 				return ['icon-error', 'icon-details'].includes(value)
 			},
@@ -25,10 +25,34 @@ export default {
 				return ['info', 'error'].includes(value)
 			},
 		},
+		time: {
+			type: Number,
+			default: 10,
+			required: false,
+		},
 		message: {
 			type: String,
 			required: true,
 			default: 'Error',
+		},
+	},
+	data() {
+		return {
+			hasVisible: true,
+		}
+	},
+	created() {
+		this.timerVisible()
+	},
+	methods: {
+		enabled() {
+			this.hasVisible = true
+			this.timerVisible()
+		},
+		timerVisible() {
+			setTimeout(() => {
+				this.hasVisible = false
+			}, this.time * 1000)
 		},
 	},
 }
