@@ -22,50 +22,54 @@
 -->
 
 <template>
-	<AppSidebarTab
-		:id="id"
-		:icon="icon"
-		:name="name">
-		<div v-show="showButtons" class="buttons">
-			<button class="primary" :disabled="!hasSign" @click="option('sign')">
-				{{ t('libresign', 'Sign') }}
-			</button>
-			<button
-				:disabled="!canRequestSign"
-				class="primary"
-				@click="option('request')">
-				{{ t('libresign', 'Request subscription') }}
-			</button>
-			<button v-if="hasSignatures" @click="option('verify')">
-				{{ t('libresign', 'Verify signatures') }}
-			</button>
-		</div>
-
-		<Sign v-show="signShow"
-			ref="sign"
-			:disabled="disabledSign"
-			@sign:document="signDocument">
-			<template slot="actions">
-				<button class="return-button" @click="option('sign')">
-					{{ t('libresign', 'Return') }}
+	<AppSidebar :class="{'app-sidebar--without-background root' : 'root'}" title="LibreSign" :header="false">
+		<AppSidebarTab
+			id="libresign-tab"
+			icon="icon-rename"
+			:name="t('libresign', 'LibreSIgn')"
+			has-figure>
+			<div v-show="showButtons" class="buttons">
+				<button class="primary" :disabled="!hasSign" @click="option('sign')">
+					{{ t('libresign', 'Sign') }}
 				</button>
-			</template>
-		</Sign>
-
-		<Request v-show="requestShow"
-			ref="request"
-			:fileinfo="info"
-			@request:signatures="requestSignatures">
-			<template slot="actions">
-				<button class="return-button" @click="option('request')">
-					{{ t('libresign', 'Return') }}
+				<button
+					:disabled="!canRequestSign"
+					class="primary"
+					@click="option('request')">
+					{{ t('libresign', 'Request subscription') }}
 				</button>
-			</template>
-		</Request>
-	</AppSidebarTab>
+				<button v-if="hasSignatures" @click="option('verify')">
+					{{ t('libresign', 'Verify signatures') }}
+				</button>
+			</div>
+
+			<Sign v-show="signShow"
+				ref="sign"
+				:disabled="disabledSign"
+				@sign:document="signDocument">
+				<template slot="actions">
+					<button class="return-button" @click="option('sign')">
+						{{ t('libresign', 'Return') }}
+					</button>
+				</template>
+			</Sign>
+
+			<Request v-show="requestShow"
+				ref="request"
+				:fileinfo="info"
+				@request:signatures="requestSignatures">
+				<template slot="actions">
+					<button class="return-button" @click="option('request')">
+						{{ t('libresign', 'Return') }}
+					</button>
+				</template>
+			</Request>
+		</AppSidebarTab>
+	</AppSidebar>
 </template>
 
 <script>
+import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -77,6 +81,7 @@ export default {
 	name: 'LibresignTab',
 
 	components: {
+		AppSidebar,
 		AppSidebarTab,
 		Sign,
 		Request,
@@ -84,18 +89,8 @@ export default {
 
 	mixins: [],
 
-	props: {
-		fileInfo: {
-			type: Object,
-			default: () => {},
-			required: true,
-		},
-	},
-
 	data() {
 		return {
-			icon: 'icon-rename',
-			name: t('libresign', 'LibreSign'),
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
@@ -103,13 +98,11 @@ export default {
 			info: this.fileInfo,
 			canRequestSign: false,
 			canSign: false,
+			fileInfo: null,
 		}
 	},
 
 	computed: {
-		id() {
-			return 'libresignTab'
-		},
 		activeTab() {
 			return this.$parent.activeTab
 		},
@@ -126,6 +119,23 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Update current fileInfo and fetch new data
+		 * @param {Object} fileInfo the current file FileInfo
+		 */
+		async update(fileInfo) {
+			this.fileInfo = fileInfo
+			this.resetState()
+		},
+
+		/**
+		 * Reset the current view to its default state
+		 */
+		resetState() {
+			this.showButtons = true
+			this.signShow = false
+		},
+
 		async getInfo() {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
@@ -189,6 +199,18 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.root{
+	width: 100%;
+
+	header{
+		display: none !important;
+	}
+
+	.app-sidebar-header {
+		display: none !important;
+	}
+}
+
 .buttons{
 	display: flex;
 	flex-direction: column;
@@ -201,7 +223,7 @@ export default {
 .return-button{
 	width: 80%;
 	align-self: center;
-	position:absolute;
-	bottom: 10px;
+	/* position:absolute;
+	bottom: 10px; */
 }
 </style>
