@@ -280,6 +280,7 @@ final class WebhookServiceTest extends TestCase {
 		$actual = $this->service->saveFile([
 			'file' => ['fileId' => 123],
 			'userManager' => $this->user,
+			'name' => 'nameOfFile',
 			'callback' => 'http://callback.coop'
 		]);
 		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
