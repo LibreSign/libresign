@@ -17,6 +17,7 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -44,7 +45,12 @@ final class LibresignControllerTest extends TestCase {
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
 		$config = $this->createMock(IConfig::class);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('user');
 		$userSession = $this->createMock(IUserSession::class);
+		$userSession
+			->method('getUser')
+			->willReturn($user);
 		$groupManager = $this->createMock(IGroupManager::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
