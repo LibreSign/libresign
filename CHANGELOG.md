@@ -23,7 +23,8 @@ Types of changes:
 - Removed dsv folder
 
 # Fixed
-- rendering files tab
+- Rendering files tab in Nextcloud 20 and 21
+- Invalid method name when validating if a file signature has already been requested
 
 ## 2.3.0 - 2021-05-22
 
