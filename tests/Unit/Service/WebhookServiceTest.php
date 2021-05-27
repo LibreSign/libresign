@@ -272,7 +272,8 @@ final class WebhookServiceTest extends TestCase {
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$actual = $this->service->saveFile([
 			'file' => ['fileId' => 123],
-			'userManager' => $this->user
+			'userManager' => $this->user,
+			'name' => 'nameOfFile'
 		]);
 		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
 
