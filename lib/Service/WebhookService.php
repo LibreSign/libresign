@@ -113,8 +113,11 @@ class WebhookService {
 	}
 
 	public function validateFileByNodeId(int $nodeId) {
-		$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
-		if ($fileMapper) {
+		try {
+			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
+		} catch (\Throwable $th) {
+		}
+		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
 		}
 
