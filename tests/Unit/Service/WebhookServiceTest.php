@@ -140,48 +140,48 @@ final class WebhookServiceTest extends TestCase {
 		]);
 	}
 
-	public function testValidateFileByFileIdWhenAlreadyAskedToSignThisDocument() {
-		$this->file->method('getByFileId')->will($this->returnValue('exists'));
+	public function testValidateFileByNodeIdWhenAlreadyAskedToSignThisDocument() {
+		$this->fileUser->method('getByNodeId')->will($this->returnValue('exists'));
 		$this->expectExceptionMessage('Already asked to sign this document');
-		$this->service->validateFileByFileId(1);
+		$this->service->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByFileIdWhenFileIdNotExists() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function () {
+	public function testValidateFileByNodeIdWhenFileIdNotExists() {
+		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFileByFileId(1);
+		$this->service->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByFileIdWhenFileNotExists() {
-		$this->file->method('getByFileId')->will($this->returnCallback(function () {
+	public function testValidateFileByNodeIdWhenFileNotExists() {
+		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$folder->method('getById')->will($this->returnValue(null));
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFileByFileId(1);
+		$this->service->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByFileIdWhenFileIsNotPDF() {
+	public function testValidateFileByNodeIdWhenFileIsNotPDF() {
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getMimeType')->will($this->returnValue('html'));
 		$folder->method('getById')->will($this->returnValue([$file]));
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->expectExceptionMessage('Must be a fileID of a PDF');
-		$this->service->validateFileByFileId(1);
+		$this->service->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByFileIdWhenSuccess() {
+	public function testValidateFileByNodeIdWhenSuccess() {
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file->method('getMimeType')->will($this->returnValue('application/pdf'));
 		$folder->method('getById')->will($this->returnValue([$file]));
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$actual = $this->service->validateFileByFileId(1);
+		$actual = $this->service->validateFileByNodeId(1);
 		$this->assertNull($actual);
 	}
 
@@ -318,7 +318,7 @@ final class WebhookServiceTest extends TestCase {
 		$folder->method('newFolder')->willReturn($folder);
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
-		
+
 		$response = $this->createMock(IResponse::class);
 		$response->expects($this->once())
 			->method('getHeader')
@@ -488,16 +488,6 @@ final class WebhookServiceTest extends TestCase {
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
 			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateInvalidName() {
-		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.');
-
-		$this->service->validate([
-			'file' => ['url' => 'qwert'],
-			'userManager' => $this->user,
-			'name' => '@#$%*('
 		]);
 	}
 

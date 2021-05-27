@@ -21,17 +21,67 @@
  *
  */
 
+import Vue from 'vue'
+import Vuex from 'vuex'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/LibresignTab'
+import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
+
+import '@nextcloud/dialogs/styles/toast.scss'
+
+Vue.prototype.t = t
+Vue.prototype.n = n
+Vue.use(Vuex)
+Vue.directive('Tooltip', VTooltip)
+if (!window.OCA.Libresign) {
+	window.OCA.Libresign = {}
+}
+
+const isEnabled = function(fileInfo) {
+	if (fileInfo && fileInfo.isDirectory()) {
+		return false
+	}
+
+	window.OCA.Libresign.fileInfo = fileInfo
+
+	const mimetype = fileInfo.get('mimetype') || ''
+	if (mimetype === 'application/pdf') {
+		return true
+	}
+
+	return false
+}
+
+const View = Vue.extend(LibresignTab)
+let TabInstance = null
 
 window.addEventListener('DOMContentLoaded', () => {
 	if (OCA.Files && OCA.Files.Sidebar) {
-		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab('libresign', LibresignTab, (fileInfo) => {
-			if (!fileInfo || fileInfo.isDirectory()) {
-				return false
-			}
+		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab({
+			id: 'libresign',
+			name: t('libresign', 'LibreSign'),
+			icon: 'icon-rename',
+			enabled: isEnabled,
 
-			const mimetype = fileInfo.get('mimetype') || ''
-			return mimetype === 'application/pdf'
+			async mount(el, fileInfo, context) {
+				if (TabInstance) {
+					TabInstance.$destroy()
+				}
+				TabInstance = new View({
+					// Better integration with vue parent component
+					parent: context,
+				})
+				// Only mount after we hahve all theh info we need
+				await TabInstance.update(fileInfo)
+				TabInstance.$mount(el)
+			},
+			update(fileInfo) {
+				TabInstance.update(fileInfo)
+			},
+			destroy() {
+				TabInstance.$destroy()
+				TabInstance = null
+			},
 		}))
 	}
 })

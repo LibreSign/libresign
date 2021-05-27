@@ -91,9 +91,6 @@ class WebhookService {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
-		if (!preg_match('/^[\w \-_]+$/', $data['name'])) {
-			throw new \Exception($this->l10n->t('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.'));
-		}
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -104,7 +101,7 @@ class WebhookService {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
-			$this->validateFileByFileId((int)$data['file']['fileId']);
+			$this->validateFileByNodeId((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
@@ -115,9 +112,9 @@ class WebhookService {
 		}
 	}
 
-	public function validateFileByFileId(int $fileId) {
+	public function validateFileByNodeId(int $nodeId) {
 		try {
-			$fileMapper = $this->fileMapper->getByFileId($fileId);
+			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
 		} catch (\Throwable $th) {
 		}
 		if ($fileMapper) {
@@ -125,8 +122,8 @@ class WebhookService {
 		}
 
 		try {
-			$userFolder = $this->folderService->getFolder($fileId);
-			$node = $userFolder->getById($fileId);
+			$userFolder = $this->folderService->getFolder($nodeId);
+			$node = $userFolder->getById($nodeId);
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}

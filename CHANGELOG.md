@@ -16,7 +16,15 @@ Types of changes:
 
 ## Draft
 
+# Added
 - GitHub action to add a changelog reminder
+
+# Removed
+- Removed dsv folder
+
+# Fixed
+- Rendering files tab in Nextcloud 20 and 21
+- Invalid method name when validating if a file signature has already been requested
 
 ## 2.3.0 - 2021-05-22
 
