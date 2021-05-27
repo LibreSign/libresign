@@ -20,6 +20,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 import Vue from 'vue'
 import LibresignTab from './views/LibresignTab20'
 import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
