@@ -107,7 +107,7 @@ class CfsslHandler {
 		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
-		if (!$responseDecoded['success']) {
+		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while generating certificate keys!', 500);
 		}
 
@@ -132,7 +132,7 @@ class CfsslHandler {
 		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
-		if (!$responseDecoded['success']) {
+		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while check cfssl API health!', 500);
 		}
 
