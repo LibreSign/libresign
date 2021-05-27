@@ -22,6 +22,9 @@ Types of changes:
 # Removed
 - Removed dsv folder
 
+# Fixed
+- rendering files tab
+
 ## 2.3.0 - 2021-05-22
 
 ### Added and changed
