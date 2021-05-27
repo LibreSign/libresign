@@ -117,7 +117,7 @@ class WebhookService {
 			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
 		} catch (\Throwable $th) {
 		}
-		if ($fileMapper) {
+		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
 		}
 
