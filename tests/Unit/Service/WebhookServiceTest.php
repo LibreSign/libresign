@@ -318,7 +318,7 @@ final class WebhookServiceTest extends TestCase {
 		$folder->method('newFolder')->willReturn($folder);
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
-		
+
 		$response = $this->createMock(IResponse::class);
 		$response->expects($this->once())
 			->method('getHeader')
@@ -488,16 +488,6 @@ final class WebhookServiceTest extends TestCase {
 		$this->service->validate([
 			'file' => ['url' => 'qwert'],
 			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateInvalidName() {
-		$this->expectExceptionMessage('The name can only contain "a-z", "A-Z", "0-9" and "-_" chars.');
-
-		$this->service->validate([
-			'file' => ['url' => 'qwert'],
-			'userManager' => $this->user,
-			'name' => '@#$%*('
 		]);
 	}
 

@@ -16,7 +16,14 @@ Types of changes:
 
 ## Draft
 
+# Added
 - GitHub action to add a changelog reminder
+
+# Removed
+- Removed dsv folder
+
+# Fixed
+- rendering files tab
 
 ## 2.3.0 - 2021-05-22
 

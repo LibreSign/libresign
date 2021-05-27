@@ -22,53 +22,50 @@
 -->
 
 <template>
-	<AppSidebar :class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}" title="LibreSign" :header="false">
-		<AppSidebarTab
-			id="libresign-tab"
-			icon="icon-rename"
-			:name="t('libresign', 'LibreSIgn')">
-			<div v-show="showButtons" class="lb-ls-buttons">
-				<button class="primary" :disabled="!hasSign" @click="option('sign')">
-					{{ t('libresign', 'Sign') }}
-				</button>
-				<button
-					:disabled="!canRequestSign"
-					class="primary"
-					@click="option('request')">
-					{{ t('libresign', 'Request subscription') }}
-				</button>
-				<button v-if="hasSignatures" @click="option('verify')">
-					{{ t('libresign', 'Verify signatures') }}
-				</button>
-			</div>
+	<AppSidebarTab
+		:id="id"
+		:icon="icon"
+		:name="name">
+		<div v-show="showButtons" class="buttons">
+			<button class="primary" :disabled="!hasSign" @click="option('sign')">
+				{{ t('libresign', 'Sign') }}
+			</button>
+			<button
+				:disabled="!canRequestSign"
+				class="primary"
+				@click="option('request')">
+				{{ t('libresign', 'Request subscription') }}
+			</button>
+			<button v-if="hasSignatures" @click="option('verify')">
+				{{ t('libresign', 'Verify signatures') }}
+			</button>
+		</div>
 
-			<Sign v-show="signShow"
-				ref="sign"
-				:disabled="disabledSign"
-				@sign:document="signDocument">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('sign')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Sign>
+		<Sign v-show="signShow"
+			ref="sign"
+			:disabled="disabledSign"
+			@sign:document="signDocument">
+			<template slot="actions">
+				<button class="return-button" @click="option('sign')">
+					{{ t('libresign', 'Return') }}
+				</button>
+			</template>
+		</Sign>
 
-			<Request v-show="requestShow"
-				ref="request"
-				:fileinfo="info"
-				@request:signatures="requestSignatures">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('request')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Request>
-		</AppSidebarTab>
-	</AppSidebar>
+		<Request v-show="requestShow"
+			ref="request"
+			:fileinfo="info"
+			@request:signatures="requestSignatures">
+			<template slot="actions">
+				<button class="return-button" @click="option('request')">
+					{{ t('libresign', 'Return') }}
+				</button>
+			</template>
+		</Request>
+	</AppSidebarTab>
 </template>
 
 <script>
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -77,10 +74,9 @@ import Sign from '../Components/Sign'
 import Request from '../Components/Request'
 
 export default {
-	name: 'LibresignTab',
+	name: 'LibresignTab20',
 
 	components: {
-		AppSidebar,
 		AppSidebarTab,
 		Sign,
 		Request,
@@ -88,19 +84,32 @@ export default {
 
 	mixins: [],
 
+	props: {
+		fileInfo: {
+			type: Object,
+			default: () => {},
+			required: true,
+		},
+	},
+
 	data() {
 		return {
+			icon: 'icon-rename',
+			name: t('libresign', 'LibreSign'),
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
 			disabledSign: false,
+			info: this.fileInfo,
 			canRequestSign: false,
 			canSign: false,
-			fileInfo: null,
 		}
 	},
 
 	computed: {
+		id() {
+			return 'libresignTab'
+		},
 		activeTab() {
 			return this.$parent.activeTab
 		},
@@ -113,29 +122,10 @@ export default {
 	},
 
 	created() {
-		this.fileInfo = window.OCA.Libresign.fileInfo
-		console.info(this.fileInfo)
 		this.getInfo()
 	},
 
 	methods: {
-		/**
-		 * Update current fileInfo and fetch new data
-		 * @param {Object} fileInfo the current file FileInfo
-		 */
-		async update(fileInfo) {
-			this.fileInfo = fileInfo
-			this.resetState()
-		},
-
-		/**
-		 * Reset the current view to its default state
-		 */
-		resetState() {
-			this.showButtons = true
-			this.signShow = false
-		},
-
 		async getInfo() {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
@@ -163,24 +153,20 @@ export default {
 			}
 		},
 
-		async requestSignatures(users, fileInfo) {
+		async requestSignatures(users) {
 			try {
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
 					file: {
-						fileId: this.fileInfo.id,
+						fileId: this.info.id,
 					},
-					name: this.fileInfo.name.split('.pdf')[0],
+					name: this.info.name.split('.pdf')[0],
 					users,
 				})
-				console.info(response)
 				this.option('request')
 				this.clearRequestList()
 				return showSuccess(response.data.message)
 			} catch (err) {
-				if (err.response.data.errors) {
-					return showError(err.response.data.errors[0])
-				}
-				return showError(err.response.data.message)
+				return showError(err.response.data.errors[0])
 			}
 		},
 
@@ -202,26 +188,17 @@ export default {
 	},
 }
 </script>
-<style lang="scss">
-.lb-ls-root{
-	width: 100% !important;
-
-	.app-sidebar-header {
-		display: none !important;
-	}
-}
-
-.lb-ls-buttons{
+<style lang="scss" scoped>
+.buttons{
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-
 	button{
 		width: 100%
 	}
 }
 
-.lb-ls-return-button{
+.return-button{
 	width: 80%;
 	align-self: center;
 	position:absolute;
