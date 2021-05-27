@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Handler;
 
 use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
