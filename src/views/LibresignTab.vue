@@ -177,8 +177,10 @@ export default {
 				this.clearRequestList()
 				return showSuccess(response.data.message)
 			} catch (err) {
-				console.info(err)
-				return showError(err.response.data.errors[0])
+				if (err.response.data.errors) {
+					return showError(err.response.data.errors[0])
+				}
+				return showError(err.response.data.message)
 			}
 		},
 
