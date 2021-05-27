@@ -22,13 +22,12 @@
 -->
 
 <template>
-	<AppSidebar :class="{'app-sidebar--without-background root' : 'root'}" title="LibreSign" :header="false">
+	<AppSidebar :class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}" title="LibreSign" :header="false">
 		<AppSidebarTab
 			id="libresign-tab"
 			icon="icon-rename"
-			:name="t('libresign', 'LibreSIgn')"
-			has-figure>
-			<div v-show="showButtons" class="buttons">
+			:name="t('libresign', 'LibreSIgn')">
+			<div v-show="showButtons" class="lb-ls-buttons">
 				<button class="primary" :disabled="!hasSign" @click="option('sign')">
 					{{ t('libresign', 'Sign') }}
 				</button>
@@ -48,7 +47,7 @@
 				:disabled="disabledSign"
 				@sign:document="signDocument">
 				<template slot="actions">
-					<button class="return-button" @click="option('sign')">
+					<button class="lb-ls-return-button" @click="option('sign')">
 						{{ t('libresign', 'Return') }}
 					</button>
 				</template>
@@ -59,7 +58,7 @@
 				:fileinfo="info"
 				@request:signatures="requestSignatures">
 				<template slot="actions">
-					<button class="return-button" @click="option('request')">
+					<button class="lb-ls-return-button" @click="option('request')">
 						{{ t('libresign', 'Return') }}
 					</button>
 				</template>
@@ -95,7 +94,6 @@ export default {
 			signShow: false,
 			requestShow: false,
 			disabledSign: false,
-			info: this.fileInfo,
 			canRequestSign: false,
 			canSign: false,
 			fileInfo: null,
@@ -115,6 +113,8 @@ export default {
 	},
 
 	created() {
+		this.fileInfo = window.OCA.Libresign.fileInfo
+		console.info(this.fileInfo)
 		this.getInfo()
 	},
 
@@ -163,19 +163,21 @@ export default {
 			}
 		},
 
-		async requestSignatures(users) {
+		async requestSignatures(users, fileInfo) {
 			try {
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
 					file: {
-						fileId: this.info.id,
+						fileId: this.fileInfo.id,
 					},
-					name: this.info.name.split('.pdf')[0],
+					name: this.fileInfo.name.split('.pdf')[0],
 					users,
 				})
+				console.info(response)
 				this.option('request')
 				this.clearRequestList()
 				return showSuccess(response.data.message)
 			} catch (err) {
+				console.info(err)
 				return showError(err.response.data.errors[0])
 			}
 		},
@@ -198,32 +200,29 @@ export default {
 	},
 }
 </script>
-<style lang="scss" scoped>
-.root{
-	width: 100%;
-
-	header{
-		display: none !important;
-	}
+<style lang="scss">
+.lb-ls-root{
+	width: 100% !important;
 
 	.app-sidebar-header {
 		display: none !important;
 	}
 }
 
-.buttons{
+.lb-ls-buttons{
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+
 	button{
 		width: 100%
 	}
 }
 
-.return-button{
+.lb-ls-return-button{
 	width: 80%;
 	align-self: center;
-	/* position:absolute;
-	bottom: 10px; */
+	position:absolute;
+	bottom: 10px;
 }
 </style>

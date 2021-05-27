@@ -22,16 +22,24 @@
  */
 
 import Vue from 'vue'
+import Vuex from 'vuex'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/LibresignTab'
 
 Vue.prototype.t = t
 Vue.prototype.n = n
+Vue.use(Vuex)
+
+if (!window.OCA.Libresign) {
+	window.OCA.Libresign = {}
+}
 
 const isEnabled = function(fileInfo) {
 	if (fileInfo && fileInfo.isDirectory()) {
 		return false
 	}
+
+	window.OCA.Libresign.fileInfo = fileInfo
 
 	const mimetype = fileInfo.get('mimetype') || ''
 	if (mimetype === 'application/pdf') {
