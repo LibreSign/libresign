@@ -27,6 +27,7 @@
 			id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSIgn')">
+			<Tooltip v-if="validateError.hasError" :type="validateError.type" :message="validateError.message" />
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button class="primary" :disabled="!hasSign" @click="option('sign')">
 					{{ t('libresign', 'Sign') }}
@@ -75,6 +76,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
 import Request from '../Components/Request'
+import Tooltip from '../Components/TooltipMessage/Tooltip'
 
 export default {
 	name: 'LibresignTab',
@@ -83,6 +85,7 @@ export default {
 		AppSidebar,
 		AppSidebarTab,
 		Sign,
+		Tooltip,
 		Request,
 	},
 
@@ -97,6 +100,13 @@ export default {
 			canRequestSign: false,
 			canSign: false,
 			fileInfo: null,
+			validateError: {
+				hasError: false,
+				message: '',
+				icon: '',
+				type: '',
+			},
+			errorMessage: '',
 		}
 	},
 
@@ -114,7 +124,6 @@ export default {
 
 	created() {
 		this.fileInfo = window.OCA.Libresign.fileInfo
-		console.info(this.fileInfo)
 		this.getInfo()
 	},
 
@@ -138,11 +147,34 @@ export default {
 
 		async getInfo() {
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				const response = await axios.get(generateUrl(`/apsps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+
 				this.canRequestSign = response.data.settings.canRequestSign
 				this.canSign = response.data.settings.canSign
 
+				if (response.data.settings.canSign === false) {
+					this.validateError = {
+						hasError: true,
+						message: t('libresign', 'There is no prompt to sign this file'),
+						icon: 'icon-details',
+						type: 'info',
+					}
+				}
+				if (response.data.settings.canRequestSign === false) {
+					this.validateError = {
+						hasError: true,
+						message: t('libresign', 'You are not allowed to request subscriptions, report to administrator'),
+						icon: 'icon-details',
+						type: 'info',
+					}
+				}
 			} catch (err) {
+				this.validateError = {
+					type: 'error',
+					message: t('libresign', 'Sorry, there was an error collecting information from the file.'),
+					icon: 'icon-error',
+					hasError: true,
+				}
 				this.canRequestSign = err.response.data.settings.canRequestSign
 			}
 		},
@@ -158,7 +190,6 @@ export default {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
-				console.error(err.response)
 				return showError(err.response.data.errors[0])
 			}
 		},
@@ -172,7 +203,6 @@ export default {
 					name: this.fileInfo.name.split('.pdf')[0],
 					users,
 				})
-				console.info(response)
 				this.option('request')
 				this.clearRequestList()
 				return showSuccess(response.data.message)
