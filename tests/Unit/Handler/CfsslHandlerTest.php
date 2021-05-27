@@ -133,7 +133,7 @@ final class CfsslHandlerTest extends TestCase {
 		$this->expectExceptionMessage('Error while check cfssl API health!');
 		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn(json_encode([
-			'success' => 'success',
+			'success' => false,
 			'result' => true
 		]));
 		$client = $this->createMock(IClient::class);
