@@ -29,7 +29,6 @@
     "Signature request cancelled" : "Richiesta di firma annullata",
     "The signature request has been canceled." : "La richiesta di firma è stata annullata.",
     "Name is mandatory" : "Il nome è obbligatorio",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Il nome può contenere solo caratteri \"a-z\", \"A-Z\", \"0-9\" e \"-_\".",
     "Empty file" : "File vuoto",
     "Invalid base64 file" : "File base64 non valido",
     "Already asked to sign this document" : "Già chiesto di firmare questo documento",

@@ -32,7 +32,6 @@ OC.L10N.register(
     "The signature request has been canceled." : "Die Signaturanforderung wurde abgebrochen.",
     "You are not allowed to request signing" : "Sie haben nicht das Recht zu signieren",
     "Name is mandatory" : "Name ist obligatorisch",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Der Name darf ausschließlich \"a-z\", \"A-Z\", \"0-9\" und \"-_\" Buchstaben enthalten.",
     "Empty file" : "Leere Datei",
     "Inform URL or base64 or fileID to sign" : "URL oder base64 oder fileID zum Signieren mitteilen",
     "Invalid fileID" : "Ungültige Datei-ID",
