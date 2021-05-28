@@ -26,7 +26,7 @@
 		<AppSidebarTab
 			id="libresign-tab"
 			icon="icon-rename"
-			:name="t('libresign', 'LibreSIgn')">
+			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button class="primary" :disabled="!hasSign" @click="option('sign')">
 					{{ t('libresign', 'Sign') }}
