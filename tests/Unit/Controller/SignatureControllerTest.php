@@ -17,4 +17,18 @@ final class SignatureControllerTest extends TestCase {
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testHasRootCertReturnSuccess() {
+		$request = new \OCA\Libresign\Tests\Unit\ApiRequester();
+		$request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('admin:admin')
+			])
+			->withPath('/signature/has-root-cert');
+
+		$this->assertRequest($request);
+	}
 }
