@@ -3,9 +3,12 @@
 namespace OCA\Libresign\Tests\Unit;
 
 use ByJG\ApiTools\AbstractRequester;
+use ByJG\Util\Psr7\Response;
+use GuzzleHttp\Psr7\Stream;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Request handler based on ByJG HttpClient (WebRequest)
@@ -14,11 +17,23 @@ class ApiRequester extends AbstractRequester
 {
     /**
      * @param RequestInterface $request
+     * @return Response|ResponseInterface
      */
     protected function handleRequest(RequestInterface $request)
     {
         $this->setupRequest($request);
-        $this->doRequest();
+        $body = $this->doRequest();
+
+        $response = Response::getInstance(http_response_code());
+        $response = $response->withBody(new Stream($body));
+
+        $headers = xdebug_get_headers();
+        foreach ($headers as $header) {
+            $header = explode(': ', $header, 2);
+            $response = $response->withHeader($header[0], $header[1]);
+        }
+
+        return $response;
     }
 
     private function doRequest() {
