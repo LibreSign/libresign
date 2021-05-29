@@ -15,24 +15,31 @@ trait UserTrait {
 
 	private $testGroup;
 
-	/** @var IUser */
-	private $user;
+	/** @var array<IUser> */
+	private $users;
+
+	/** @var \Test\Util\User\Dummy */
+	private $userBackend;
 
 	protected function userSetUp(): void {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
 
-		$backend = new \Test\Util\User\Dummy();
-		\OC_User::useBackend($backend);
-		$backend->createUser('username', 'password');
+		$this->backend = new \Test\Util\User\Dummy();
+		\OC_User::useBackend($this->backend);
 		$this->testGroup = $this->groupManager->createGroup('testGroup');
-		$this->user = $this->userManager->get('username');
-		// $this->user->setDisplayName()
-		$this->testGroup->addUser($this->user);
+	}
+
+	private function createUser($username, $password) {
+		$this->backend->createUser($username, $password);
+		$this->users[$username] = $this->userManager->get($username);
+		$this->testGroup->addUser($this->users[$username]);
 	}
 
 	public function tearDown(): void {
 		parent::tearDown();
-		$this->testGroup->removeUser($this->user);
+		foreach ($this->users as $user) {
+			$this->testGroup->removeUser($user);
+		}
 	}
 }
