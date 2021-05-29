@@ -51,7 +51,8 @@ class ApiRequester extends AbstractRequester {
 			'REQUEST_URI' => $request->getUri()->getPath(),
 			'SCRIPT_NAME' => '/index.php',
 			'REQUEST_METHOD' => $request->getMethod(),
-			'SERVER_PROTOCOL' => $request->getProtocolVersion()
+			'SERVER_PROTOCOL' => $request->getProtocolVersion(),
+			'REMOTE_ADDR' => '127.0.0.1'
 		];
 		$_SERVER = array_merge($_SERVER, $server);
 		foreach ($request->getHeaders() as $key => $value) {
