@@ -7,6 +7,7 @@ use ByJG\Util\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
+use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -75,6 +76,15 @@ class ApiRequester extends AbstractRequester
             'urlParams' => $get,
         ];
         $stream = '';
+        if ($request->getBody()) {
+            if (isset($server['HTTP_CONTENT_TYPE']) && $server['HTTP_CONTENT_TYPE'] === 'application/json') {
+                vfsStream::setup('home');
+                $stream = vfsStream::url('home/test.txt');
+                file_put_contents($stream, $request->getBody()->getContents());
+            } else {
+                $vars['post'] = $request->getBody()->getContents();
+            }
+        }
         $mockRequest = new Request(
             $vars,
             \OC::$server->get(\OCP\Security\ISecureRandom::class),
