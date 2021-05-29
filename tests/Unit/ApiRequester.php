@@ -5,7 +5,6 @@ namespace OCA\Libresign\Tests\Unit;
 use ByJG\ApiTools\AbstractRequester;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
-use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\RequestInterface;
 
 /**
@@ -19,6 +18,17 @@ class ApiRequester extends AbstractRequester
     protected function handleRequest(RequestInterface $request)
     {
         $this->setupRequest($request);
+        $this->doRequest();
+    }
+
+    private function doRequest() {
+        ob_start();
+        \OC::handleRequest();
+        $handler = fopen('php://memory','r+');
+        fwrite($handler, ob_get_contents());
+        ob_end_clean();
+        rewind($handler);
+        return $handler;
     }
 
     private function setupRequest(RequestInterface $request) {
