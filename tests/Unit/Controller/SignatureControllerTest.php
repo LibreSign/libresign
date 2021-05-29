@@ -12,8 +12,8 @@ final class SignatureControllerTest extends TestCase {
 	public function setUp(): void
 	{
 		$data = Yaml::parse(file_get_contents('docs/.vuepress/public/specs/api.yaml'));
-		/** @var OpenApiSchema */
 		$data['servers'][] = ['url' => 'http://localhost/apps/libresign/api/0.1'];
+		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
 	}
