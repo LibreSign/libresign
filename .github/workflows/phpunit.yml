@@ -17,13 +17,12 @@ jobs:
       matrix:
         php-versions: ['7.4']
         databases: ['sqlite']
-        coverage: ['none']
+        coverage: ['xdebug']
         server-versions: ['stable20', 'stable21', 'master']
         include:
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'stable21'
-            coverage: 'xdebug'
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'master'
