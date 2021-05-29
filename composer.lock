@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a73a313630d34e1f788319ce32a13da",
+    "content-hash": "147177d8b0d7f9887303612f47fb43b6",
     "packages": [
         {
             "name": "jsignpdf/jsignpdf-php",
@@ -183,6 +183,144 @@
         }
     ],
     "packages-dev": [
+        {
+            "name": "byjg/swagger-test",
+            "version": "3.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/byjg/php-swagger-test.git",
+                "reference": "9e58e213221fae5b17ffead298811d88266840e6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/9e58e213221fae5b17ffead298811d88266840e6",
+                "reference": "9e58e213221fae5b17ffead298811d88266840e6",
+                "shasum": ""
+            },
+            "require": {
+                "byjg/webrequest": "2.0.*",
+                "ext-json": "*",
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "byjg/restserver": "4.0.*",
+                "phpunit/phpunit": "^5.7|^7.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ByJG\\ApiTools\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "João Gilberto Magalhães",
+                    "email": "joao@byjg.com.br"
+                }
+            ],
+            "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
+            "support": {
+                "issues": "https://github.com/byjg/php-swagger-test/issues",
+                "source": "https://github.com/byjg/php-swagger-test/tree/3.1.2"
+            },
+            "time": "2021-03-03T17:36:42+00:00"
+        },
+        {
+            "name": "byjg/uri",
+            "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/byjg/uri.git",
+                "reference": "ffab82fe2aac8dcce7270849d3336a9ac72547c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/byjg/uri/zipball/ffab82fe2aac8dcce7270849d3336a9ac72547c4",
+                "reference": "ffab82fe2aac8dcce7270849d3336a9ac72547c4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0",
+                "psr/http-message": "~1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.7.*|7.4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ByJG\\Util\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "João Gilberto Magalhães",
+                    "email": "joao@byjg.com.br"
+                }
+            ],
+            "description": "An implementation of PSR UriInterface ",
+            "support": {
+                "issues": "https://github.com/byjg/uri/issues",
+                "source": "https://github.com/byjg/uri/tree/2.1.0"
+            },
+            "time": "2020-05-10T16:00:56+00:00"
+        },
+        {
+            "name": "byjg/webrequest",
+            "version": "2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/byjg/webrequest.git",
+                "reference": "165df607eb954e0dd3dc2166b043d994baf7cd3d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/byjg/webrequest/zipball/165df607eb954e0dd3dc2166b043d994baf7cd3d",
+                "reference": "165df607eb954e0dd3dc2166b043d994baf7cd3d",
+                "shasum": ""
+            },
+            "require": {
+                "byjg/uri": "2.1.*",
+                "ext-curl": "*",
+                "ext-json": "*",
+                "mintware-de/streams": "1.0.*",
+                "php": ">=5.4.0",
+                "psr/http-message": "1.0.*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.7.*|7.4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ByJG\\Util\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "João Gilberto Magalhães",
+                    "email": "joao@byjg.com.br"
+                }
+            ],
+            "description": "A lightweight and highly customized CURL wrapper for making RESt calls and a wrapper for call dynamically SOAP requests.",
+            "support": {
+                "issues": "https://github.com/byjg/webrequest/issues",
+                "source": "https://github.com/byjg/webrequest/tree/2.0.1"
+            },
+            "time": "2021-01-09T22:32:36+00:00"
+        },
         {
             "name": "composer/semver",
             "version": "3.2.4",
@@ -655,6 +793,62 @@
                 }
             ],
             "time": "2021-05-03T21:43:24+00:00"
+        },
+        {
+            "name": "mintware-de/streams",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mintware-de/streams.git",
+                "reference": "8a0fc82c1728dd4f0d211a7a6ff53421409e00cf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mintware-de/streams/zipball/8a0fc82c1728dd4f0d211a7a6ff53421409e00cf",
+                "reference": "8a0fc82c1728dd4f0d211a7a6ff53421409e00cf",
+                "shasum": ""
+            },
+            "require": {
+                "php": "5.6.* || ^7.0",
+                "psr/http-message": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MintWare\\Streams\\": "src/",
+                    "MintWare\\Tests\\Streams\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julian Finkler",
+                    "email": "julian@mintware.de"
+                }
+            ],
+            "description": "A implementation of the PSR-7 StreamInterface",
+            "keywords": [
+                "FileStream",
+                "InputStream",
+                "MemoryStream",
+                "OutputStream",
+                "ResourceStream",
+                "StreamInterface",
+                "psr",
+                "psr-7",
+                "resource"
+            ],
+            "support": {
+                "issues": "https://github.com/mintware-de/streams/issues",
+                "source": "https://github.com/mintware-de/streams/tree/master"
+            },
+            "time": "2019-08-21T19:04:07+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -1772,6 +1966,59 @@
                 "source": "https://github.com/php-fig/event-dispatcher/tree/1.0.0"
             },
             "time": "2019-01-08T18:20:26+00:00"
+        },
+        {
+            "name": "psr/http-message",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-message.git",
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP messages",
+            "homepage": "https://github.com/php-fig/http-message",
+            "keywords": [
+                "http",
+                "http-message",
+                "psr",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/master"
+            },
+            "time": "2016-08-06T14:39:51+00:00"
         },
         {
             "name": "psr/log",
