@@ -6,12 +6,6 @@ use OCA\Libresign\Tests\Unit\ApiTestCase;
 use OCA\Libresign\Tests\Unit\UserTrait;
 
 final class SignatureControllerTest extends ApiTestCase {
-	use UserTrait;
-	public function setUp(): void {
-		parent::setUp();
-		$this->userSetUp();
-	}
-
 	/**
 	 * @runInSeparateProcess
 	 */
