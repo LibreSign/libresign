@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e50f3d38b48c2651b744da0d50e7590f",
+    "content-hash": "f3bbe613634f16cd36788c2c674e9a6b",
     "packages": [
         {
             "name": "jsignpdf/jsignpdf-php",
@@ -185,26 +185,27 @@
     "packages-dev": [
         {
             "name": "byjg/swagger-test",
-            "version": "3.1.2",
+            "version": "dev-php8",
             "source": {
                 "type": "git",
-                "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "9e58e213221fae5b17ffead298811d88266840e6"
+                "url": "https://github.com/LyseonTech/php-swagger-test.git",
+                "reference": "543074fafa4516ec7dca3a799fb6047d96a842db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/9e58e213221fae5b17ffead298811d88266840e6",
-                "reference": "9e58e213221fae5b17ffead298811d88266840e6",
+                "url": "https://api.github.com/repos/LyseonTech/php-swagger-test/zipball/543074fafa4516ec7dca3a799fb6047d96a842db",
+                "reference": "543074fafa4516ec7dca3a799fb6047d96a842db",
                 "shasum": ""
             },
             "require": {
                 "byjg/webrequest": "2.0.*",
                 "ext-json": "*",
-                "php": ">=5.6"
+                "guzzlehttp/psr7": "^1.8",
+                "php": ">=7.3"
             },
             "require-dev": {
                 "byjg/restserver": "4.0.*",
-                "phpunit/phpunit": "^5.7|^7.4"
+                "phpunit/phpunit": "^9.5"
             },
             "type": "library",
             "autoload": {
@@ -212,7 +213,11 @@
                     "ByJG\\ApiTools\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Test\\": "tests/"
+                }
+            },
             "license": [
                 "MIT"
             ],
@@ -224,10 +229,9 @@
             ],
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
-                "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/3.1.2"
+                "source": "https://github.com/LyseonTech/php-swagger-test/tree/php8"
             },
-            "time": "2021-03-03T17:36:42+00:00"
+            "time": "2021-05-29T21:58:01+00:00"
         },
         {
             "name": "byjg/uri",
@@ -275,28 +279,28 @@
         },
         {
             "name": "byjg/webrequest",
-            "version": "2.0.1",
+            "version": "2.0.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/byjg/webrequest.git",
-                "reference": "165df607eb954e0dd3dc2166b043d994baf7cd3d"
+                "url": "https://github.com/LyseonTech/webrequest.git",
+                "reference": "23706825a29a5f15ca271dc0f9f31ead5272d745"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/webrequest/zipball/165df607eb954e0dd3dc2166b043d994baf7cd3d",
-                "reference": "165df607eb954e0dd3dc2166b043d994baf7cd3d",
+                "url": "https://api.github.com/repos/LyseonTech/webrequest/zipball/23706825a29a5f15ca271dc0f9f31ead5272d745",
+                "reference": "23706825a29a5f15ca271dc0f9f31ead5272d745",
                 "shasum": ""
             },
             "require": {
                 "byjg/uri": "2.1.*",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "mintware-de/streams": "1.0.*",
-                "php": ">=5.4.0",
+                "guzzlehttp/psr7": "^1.8",
+                "php": ">=7.3",
                 "psr/http-message": "1.0.*"
             },
             "require-dev": {
-                "phpunit/phpunit": "5.7.*|7.4.*"
+                "phpunit/phpunit": "^9.5"
             },
             "type": "library",
             "autoload": {
@@ -304,7 +308,6 @@
                     "ByJG\\Util\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -316,10 +319,9 @@
             ],
             "description": "A lightweight and highly customized CURL wrapper for making RESt calls and a wrapper for call dynamically SOAP requests.",
             "support": {
-                "issues": "https://github.com/byjg/webrequest/issues",
-                "source": "https://github.com/byjg/webrequest/tree/2.0.1"
+                "source": "https://github.com/LyseonTech/webrequest/tree/2.0.3"
             },
-            "time": "2021-01-09T22:32:36+00:00"
+            "time": "2021-05-29T23:58:28+00:00"
         },
         {
             "name": "composer/semver",
@@ -921,62 +923,6 @@
                 "wiki": "https://github.com/bovigo/vfsStream/wiki"
             },
             "time": "2019-10-30T15:31:00+00:00"
-        },
-        {
-            "name": "mintware-de/streams",
-            "version": "v1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mintware-de/streams.git",
-                "reference": "8a0fc82c1728dd4f0d211a7a6ff53421409e00cf"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mintware-de/streams/zipball/8a0fc82c1728dd4f0d211a7a6ff53421409e00cf",
-                "reference": "8a0fc82c1728dd4f0d211a7a6ff53421409e00cf",
-                "shasum": ""
-            },
-            "require": {
-                "php": "5.6.* || ^7.0",
-                "psr/http-message": "^1.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^5.7"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "MintWare\\Streams\\": "src/",
-                    "MintWare\\Tests\\Streams\\": "tests/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Julian Finkler",
-                    "email": "julian@mintware.de"
-                }
-            ],
-            "description": "A implementation of the PSR-7 StreamInterface",
-            "keywords": [
-                "FileStream",
-                "InputStream",
-                "MemoryStream",
-                "OutputStream",
-                "ResourceStream",
-                "StreamInterface",
-                "psr",
-                "psr-7",
-                "resource"
-            ],
-            "support": {
-                "issues": "https://github.com/mintware-de/streams/issues",
-                "source": "https://github.com/mintware-de/streams/tree/master"
-            },
-            "time": "2019-08-21T19:04:07+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -1999,20 +1945,20 @@
         },
         {
             "name": "psr/cache",
-            "version": "1.0.1",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/cache.git",
-                "reference": "d11b50ad223250cf17b86e38383413f5a6764bf8"
+                "reference": "aa5030cfa5405eccfdcb1083ce040c2cb8d253bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/cache/zipball/d11b50ad223250cf17b86e38383413f5a6764bf8",
-                "reference": "d11b50ad223250cf17b86e38383413f5a6764bf8",
+                "url": "https://api.github.com/repos/php-fig/cache/zipball/aa5030cfa5405eccfdcb1083ce040c2cb8d253bf",
+                "reference": "aa5030cfa5405eccfdcb1083ce040c2cb8d253bf",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=8.0.0"
             },
             "type": "library",
             "extra": {
@@ -2032,7 +1978,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
+                    "homepage": "https://www.php-fig.org/"
                 }
             ],
             "description": "Common interface for caching libraries",
@@ -2042,9 +1988,9 @@
                 "psr-6"
             ],
             "support": {
-                "source": "https://github.com/php-fig/cache/tree/master"
+                "source": "https://github.com/php-fig/cache/tree/3.0.0"
             },
-            "time": "2016-08-06T20:24:11+00:00"
+            "time": "2021-02-03T23:26:27+00:00"
         },
         {
             "name": "psr/container",
@@ -4877,7 +4823,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "byjg/swagger-test": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

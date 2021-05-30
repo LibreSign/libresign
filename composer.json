@@ -12,7 +12,7 @@
     "phpunit/phpunit": "^9.5",
     "nextcloud/coding-standard": "^0.4.0",
     "phpspec/prophecy-phpunit": "^2.0",
-    "byjg/swagger-test": "^3.1",
+    "byjg/swagger-test": "dev-php8",
     "symfony/yaml": "^5.2",
     "guzzlehttp/psr7": "^1.8",
     "mikey179/vfsstream": "^1.6"
@@ -31,6 +31,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/jsignpdf/jsignpdf-php"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/lyseontech/php-swagger-test"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/LyseonTech/webrequest"
     }
   ]
 }
