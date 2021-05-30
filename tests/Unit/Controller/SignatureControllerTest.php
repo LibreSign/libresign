@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Tests\Unit\ApiTestCase;
-use OCA\Libresign\Tests\Unit\UserTrait;
 
 final class SignatureControllerTest extends ApiTestCase {
 	/**
