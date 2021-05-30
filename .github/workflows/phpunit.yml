@@ -79,6 +79,8 @@ jobs:
 
       - name: PHPUnit
         working-directory: apps/${{ env.APP_NAME }}
+        env:
+          XDEBUG_MODE: debug
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
       - name: Upload coverage results to Coveralls
