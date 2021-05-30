@@ -10,13 +10,12 @@ final class SignatureControllerTest extends ApiTestCase {
 	 */
 	public function testHasRootCertReturnSuccess() {
 		$this->createUser('username', 'password');
-		$request = new \OCA\Libresign\Tests\Unit\ApiRequester();
-		$request
+		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
 			->withPath('/signature/has-root-cert');
 
-		$this->assertRequest($request);
+		$this->assertRequest();
 	}
 }

@@ -30,6 +30,11 @@ class ApiTestCase extends TestCase {
 	 */
 	protected $requester = null;
 
+	/**
+	 * @var \OCA\Libresign\Tests\Unit\ApiRequester
+	 */
+	public $request;
+
 	public function setUp(): void {
 		parent::setUp();
 		$this->userSetUp();
@@ -38,6 +43,7 @@ class ApiTestCase extends TestCase {
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
+		$this->request = new \OCA\Libresign\Tests\Unit\ApiRequester();
 	}
 
 	/**
@@ -123,7 +129,10 @@ class ApiTestCase extends TestCase {
 	 * @throws StatusCodeNotMatchedException
 	 * @throws MessageException
 	 */
-	public function assertRequest(AbstractRequester $request) {
+	public function assertRequest(AbstractRequester $request = null) {
+		if (!$request) {
+			$request = $this->request;
+		}
 		// Add own schema if nothing is passed.
 		if (!$request->hasSchema()) {
 			$this->checkSchema();
