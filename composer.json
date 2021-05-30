@@ -12,7 +12,7 @@
     "phpunit/phpunit": "^9.5",
     "nextcloud/coding-standard": "^0.4.0",
     "phpspec/prophecy-phpunit": "^2.0",
-    "byjg/swagger-test": "dev-php8",
+    "byjg/swagger-test": "dev-latest",
     "symfony/yaml": "^5.2",
     "guzzlehttp/psr7": "^1.8",
     "mikey179/vfsstream": "^1.6"
