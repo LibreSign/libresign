@@ -15,7 +15,8 @@
     "byjg/swagger-test": "dev-latest",
     "symfony/yaml": "^5.2",
     "guzzlehttp/psr7": "^1.8",
-    "mikey179/vfsstream": "^1.6"
+    "mikey179/vfsstream": "^1.6",
+    "donatj/mock-webserver": "^2.2"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
