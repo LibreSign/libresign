@@ -59,7 +59,9 @@ class AdminController extends Controller {
 				$configPath
 			);
 
-			return new DataResponse([]);
+			return new DataResponse([
+				'success' => true
+			]);
 		} catch (\Exception $exception) {
 			return $this->handleErrors($exception);
 		}
