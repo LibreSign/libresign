@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f3bbe613634f16cd36788c2c674e9a6b",
+    "content-hash": "0f664a80b2bb38a15fc0d3103d1d6317",
     "packages": [
         {
             "name": "jsignpdf/jsignpdf-php",
@@ -185,16 +185,16 @@
     "packages-dev": [
         {
             "name": "byjg/swagger-test",
-            "version": "dev-php8",
+            "version": "dev-latest",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LyseonTech/php-swagger-test.git",
-                "reference": "543074fafa4516ec7dca3a799fb6047d96a842db"
+                "reference": "f996429e530b236f865a390f3dda0800599ea7ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LyseonTech/php-swagger-test/zipball/543074fafa4516ec7dca3a799fb6047d96a842db",
-                "reference": "543074fafa4516ec7dca3a799fb6047d96a842db",
+                "url": "https://api.github.com/repos/LyseonTech/php-swagger-test/zipball/f996429e530b236f865a390f3dda0800599ea7ba",
+                "reference": "f996429e530b236f865a390f3dda0800599ea7ba",
                 "shasum": ""
             },
             "require": {
@@ -229,9 +229,9 @@
             ],
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
-                "source": "https://github.com/LyseonTech/php-swagger-test/tree/php8"
+                "source": "https://github.com/LyseonTech/php-swagger-test/tree/latest"
             },
-            "time": "2021-05-29T21:58:01+00:00"
+            "time": "2021-05-30T16:47:10+00:00"
         },
         {
             "name": "byjg/uri",
@@ -688,6 +688,65 @@
                 }
             ],
             "time": "2020-05-25T17:44:05+00:00"
+        },
+        {
+            "name": "donatj/mock-webserver",
+            "version": "v2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/donatj/mock-webserver.git",
+                "reference": "f440b543e85edd1c4b64094b32ad70451d97a228"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/f440b543e85edd1c4b64094b32ad70451d97a228",
+                "reference": "f440b543e85edd1c4b64094b32ad70451d97a228",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-sockets": "*",
+                "php": ">=5.4",
+                "ralouphie/getallheaders": "~2.0 || ~3.0"
+            },
+            "require-dev": {
+                "donatj/drop": "^1.0",
+                "phpunit/phpunit": "~4|~9"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "donatj\\MockWebServer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jesse G. Donat",
+                    "email": "donatj@gmail.com",
+                    "homepage": "https://donatstudios.com",
+                    "role": "Lead"
+                }
+            ],
+            "description": "Simple mock web server for unit testing",
+            "support": {
+                "issues": "https://github.com/donatj/mock-webserver/issues",
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/donatj/15",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/donatj",
+                    "type": "github"
+                }
+            ],
+            "time": "2020-12-02T18:34:01+00:00"
         },
         {
             "name": "friendsofphp/php-cs-fixer",

@@ -44,11 +44,11 @@ class AdminSignatureService {
 			$key,
 			$configPath
 		);
-		for ($i = 1;$i <= 2;$i++) {
-			sleep($i);
+		for ($i = 1;$i <= 3;$i++) {
 			if ($this->cfsslHandler->health($cfsslUri)) {
 				break;
 			}
+			sleep($i);
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);

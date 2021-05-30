@@ -794,8 +794,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: []
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: CFSSL server is up?
+                required:
+                  - success
+                example:
+                  success: true
         500:
           description: Request failed
           content:

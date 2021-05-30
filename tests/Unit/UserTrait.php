@@ -16,12 +16,12 @@ trait UserTrait {
 	private $testGroup;
 
 	/** @var array<IUser> */
-	private $users;
+	private $users = [];
 
 	/** @var \Test\Util\User\Dummy */
 	private $userBackend;
 
-	protected function userSetUp(): void {
+	public function userSetUp(): void {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
 
@@ -30,7 +30,7 @@ trait UserTrait {
 		$this->testGroup = $this->groupManager->createGroup('testGroup');
 	}
 
-	private function createUser($username, $password) {
+	public function createUser($username, $password) {
 		$this->backend->createUser($username, $password);
 		$this->users[$username] = $this->userManager->get($username);
 		$this->testGroup->addUser($this->users[$username]);

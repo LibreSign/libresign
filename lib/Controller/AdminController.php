@@ -59,7 +59,9 @@ class AdminController extends Controller {
 				$configPath
 			);
 
-			return new DataResponse([]);
+			return new DataResponse([
+				'success' => true
+			]);
 		} catch (\Exception $exception) {
 			return $this->handleErrors($exception);
 		}
@@ -70,12 +72,8 @@ class AdminController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function loadCertificate(): DataResponse {
-		try {
-			$certificate = $this->adminSignatureService->loadKeys();
+		$certificate = $this->adminSignatureService->loadKeys();
 
-			return new DataResponse($certificate);
-		} catch (\Exception $exception) {
-			return $this->handleErrors($exception);
-		}
+		return new DataResponse($certificate);
 	}
 }
