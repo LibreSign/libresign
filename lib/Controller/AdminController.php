@@ -5,11 +5,11 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AdminSignatureService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class AdminController extends Controller {
-	use HandleErrorsTrait;
 	use HandleParamsTrait;
 
 	/** @var AdminSignatureService */
@@ -63,7 +63,13 @@ class AdminController extends Controller {
 				'success' => true
 			]);
 		} catch (\Exception $exception) {
-			return $this->handleErrors($exception);
+			return new DataResponse(
+				[
+					'success' => false,
+					'message' => $exception->getMessage()
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
 		}
 	}
 
