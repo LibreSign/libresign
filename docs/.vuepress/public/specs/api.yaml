@@ -803,18 +803,25 @@ paths:
                   - success
                 example:
                   success: true
-        500:
+        401:
           description: Request failed
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: CFSSL server is up?
                   message:
                     type: array
                     description: List of failures that occurred
-                    example:
-                      - Error while writing CSR server file!
+                required:
+                  - success
+                  - message
+                example:
+                  success: false
+                  message: parameter 'cfsslUri' is required!
     get:
       tags:
         - admin
