@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use donatj\MockWebServer\Response;
 use OC\Authentication\Login\Chain;
 use OCA\Libresign\Controller\AccountController;
 use OCA\Libresign\Db\File as LibresignFile;
@@ -9,6 +10,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\User\Dummy;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use OCP\AppFramework\Http;
@@ -130,5 +132,43 @@ final class AccountControllerTest extends ApiTestCase {
 			]
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountSignatureEndpointWithSuccess() {
+		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+
+		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
+			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
+		));
+
+		\OC::$server->registerService(\OC\AppConfig::class, function () {
+			return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), [
+				'libresign' => [
+					'commonName' => 'CommonName',
+					'country' => 'Brazil',
+					'organization' => 'Organization',
+					'organizationUnit' => 'organizationUnit',
+					'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
+					'configPath' => 'vfs://home/'
+				]
+			]);
+		});
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'signPassword' => 'password'
+			])
+			->withPath('/account/signature');
+
+		$this->assertRequest();
 	}
 }
