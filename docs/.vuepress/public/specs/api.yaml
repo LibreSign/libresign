@@ -730,7 +730,7 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    description: Uhuuu!
+                    description: Uhuuu! Need true vale.
                   signature:
                     type: string
                     description: Folder where the pfx file was saved
@@ -748,6 +748,11 @@ paths:
                     type: string
                     description: Password to sign is mandatory
                     example: Password to sign is mandatory
+                  success:
+                    type: boolean
+                    description: Beep! Failure on generate certificate.
+                required:
+                  - success
   /admin/certificate:
     post:
       tags:
