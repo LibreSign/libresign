@@ -18,14 +18,17 @@ jobs:
         php-versions: ['7.4']
         databases: ['sqlite']
         coverage: ['xdebug']
+        xdebug_mode: ['debug']
         server-versions: ['stable20', 'stable21', 'master']
         include:
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'stable21'
+            xdebug_mode: coverage
           - php-versions: '8.0'
             databases: 'sqlite'
             server-versions: 'master'
+            xdebug_mode: debug
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
     steps:
@@ -79,6 +82,8 @@ jobs:
 
       - name: PHPUnit
         working-directory: apps/${{ env.APP_NAME }}
+        env:
+          XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
       - name: Upload coverage results to Coveralls
