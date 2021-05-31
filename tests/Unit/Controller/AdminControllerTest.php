@@ -33,7 +33,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testGenerateCertificate() {
+	public function testGenerateCertificateWithSuccess() {
 		// Mock data
 		$this->createUser('username', 'password');
 		vfsStream::setup('home');
@@ -70,6 +70,35 @@ final class AdminControllerTest extends ApiTestCase {
 
 		$configServerJson = file_get_contents('vfs://home/config_server.json');
 		$this->assertJson($configServerJson);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testGenerateCertificateWithFailure() {
+		// Mock data
+		$this->createUser('username', 'password');
+
+		// Configure request
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/admin/certificate')
+			->withRequestBody([
+				'commonName' => 'CommonName',
+				'country' => 'Brazil',
+				'organization' => 'Organization',
+				'organizationUnit' => 'organizationUnit',
+				'cfsslUri' => '',
+				'configPath' => ''
+			])
+			->assertResponseCode(401);
+
+		// Make and test request mach with schema
+		$this->assertRequest();
 	}
 
 	public static function tearDownAfterClass(): void {
