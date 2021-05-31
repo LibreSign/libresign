@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Tests\lib\User\Dummy;
+use OCA\Libresign\Tests\Unit\ApiTestCase;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\File;
@@ -18,15 +19,12 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
-final class AccountControllerTest extends TestCase {
+final class AccountControllerTest extends ApiTestCase {
 	use ProphecyTrait;
 	/** @var AccountController */
 	private $controller;
-	/** @var IRequest */
-	private $request;
 	/** @var IL10N */
 	private $l10n;
 	/** @var AccountService */
@@ -44,7 +42,7 @@ final class AccountControllerTest extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->request = $this->createMock(IRequest::class);
+		$request = $this->createMock(IRequest::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -58,7 +56,7 @@ final class AccountControllerTest extends TestCase {
 			->disableOriginalConstructor()
 			->getMock();
 		$this->controller = new AccountController(
-			$this->request,
+			$request,
 			$this->l10n,
 			$this->account,
 			$this->fileMapper,
