@@ -137,7 +137,10 @@ class AccountController extends ApiController {
 			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new JSONResponse(
-				['message' => $exception->getMessage()],
+				[
+					'success' => false,
+					'message' => $exception->getMessage()
+				],
 				Http::STATUS_INTERNAL_SERVER_ERROR
 			);
 		}
