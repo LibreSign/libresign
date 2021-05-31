@@ -9,7 +9,6 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class SignatureController extends Controller {
-	use HandleErrorsTrait;
 	use HandleParamsTrait;
 
 	/** @var SignatureService */

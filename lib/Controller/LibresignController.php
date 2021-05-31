@@ -27,7 +27,6 @@ use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
 class LibresignController extends Controller {
-	use HandleErrorsTrait;
 	use HandleParamsTrait;
 
 	/** @var FileUserMapper */
