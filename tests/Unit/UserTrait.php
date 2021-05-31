@@ -15,9 +15,6 @@ trait UserTrait {
 
 	private $testGroup;
 
-	/** @var array<IUser> */
-	private $users = [];
-
 	/** @var \Test\Util\User\Dummy */
 	private $userBackend;
 
@@ -30,15 +27,24 @@ trait UserTrait {
 		$this->testGroup = $this->groupManager->createGroup('testGroup');
 	}
 
+	/**
+	 * Create user
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @return \OC\User\User
+	 */
 	public function createUser($username, $password) {
 		$this->backend->createUser($username, $password);
-		$this->users[$username] = $this->userManager->get($username);
-		$this->testGroup->addUser($this->users[$username]);
+		$user = $this->userManager->get($username);
+		$this->testGroup->addUser($user);
+		return $user;
 	}
 
 	public function tearDown(): void {
 		parent::tearDown();
-		foreach ($this->users as $user) {
+		foreach ($this->backend->getUsers() as $username) {
+			$user = $this->userManager->get($username);
 			$this->testGroup->removeUser($user);
 		}
 	}
