@@ -30,7 +30,6 @@
     "The signature request has been canceled." : "De handtekeningaanvraag is geannuleerd.",
     "You are not allowed to request signing" : "Je bent niet bevoegd om ondertekening aan te vragen.",
     "Name is mandatory" : "Naam is verplicht",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "De naam kan uitsluitend de tekens \"a-z\", \"A-Z\", \"0-9\" en \"-_\" bevatten.",
     "Empty file" : "Leeg bestand",
     "Inform URL or base64 or fileID to sign" : "Inform URL of base64 of fileID om te tekenen",
     "Invalid fileID" : "Ongeldig veldID",

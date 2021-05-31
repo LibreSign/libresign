@@ -30,7 +30,6 @@
     "The signature request has been canceled." : "La solicitud de firma ha sido cancelada.",
     "You are not allowed to request signing" : "Usted no está autorizado a solicitar la firma",
     "Name is mandatory" : "El nombre es obligatorio",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "El nombre solo puede contener los caracteres: \"a-z\", \"A-Z\", \"0-9\" y \"-_\"",
     "Empty file" : "Archivo vacío",
     "Inform URL or base64 or fileID to sign" : "URL de informe, base64 o fileID a firmar",
     "Invalid fileID" : "fileID no válido",
