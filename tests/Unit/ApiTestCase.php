@@ -15,6 +15,7 @@ use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
 use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
+use donatj\MockWebServer\MockWebServer;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -34,6 +35,16 @@ class ApiTestCase extends TestCase {
 	 * @var \OCA\Libresign\Tests\Unit\ApiRequester
 	 */
 	public $request;
+
+	/**
+	 * @var MockWebServer
+	 */
+	protected static $server;
+
+	public static function setUpBeforeClass(): void {
+		self::$server = new MockWebServer();
+		self::$server->start();
+	}
 
 	public function setUp(): void {
 		parent::setUp();

@@ -2,20 +2,11 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use org\bovigo\vfs\vfsStream;
 
 final class AdminControllerTest extends ApiTestCase {
-	/** @var MockWebServer */
-	protected static $server;
-
-	public static function setUpBeforeClass(): void {
-		self::$server = new MockWebServer;
-		self::$server->start();
-	}
-
 	/**
 	 * @runInSeparateProcess
 	 */
