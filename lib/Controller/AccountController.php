@@ -131,7 +131,10 @@ class AccountController extends ApiController {
 			$this->account->validateCertificateData($data);
 			$signaturePath = $this->account->generateCertificate(...array_values($data));
 
-			return new JSONResponse(['signature' => $signaturePath->getPath()], Http::STATUS_OK);
+			return new JSONResponse([
+				'success' => true,
+				'signature' => $signaturePath->getPath()
+			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new JSONResponse(
 				['message' => $exception->getMessage()],
