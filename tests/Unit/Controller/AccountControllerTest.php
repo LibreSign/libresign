@@ -17,7 +17,6 @@ use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
-use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -133,24 +132,5 @@ final class AccountControllerTest extends TestCase {
 			]
 		], Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
-	}
-	public function testGenerate() {
-		$password = 'somePassword';
-
-		$user = $this->createMock(IUser::class);
-		$user->method('getEMailAddress')->willReturn('user@test.coop');
-		$user->method('getUID')->willReturn('user');
-		$this->session->method('getUser')->willReturn($user);
-		$node = $this->createMock(File::class);
-		$node->method('getPath')
-			->will($this->returnValue('/path/to/someSignature'));
-		$this->account
-			->method('generateCertificate')
-			->will($this->returnValue($node));
-		$result = $this->controller->signatureGenerate(
-			$password
-		);
-
-		$this->assertSame(['signature' => '/path/to/someSignature'], $result->getData());
 	}
 }
