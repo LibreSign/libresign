@@ -728,10 +728,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Uhuuu!
                   signature:
                     type: string
                     description: Folder where the pfx file was saved
                     example: /LibreSign
+                required:
+                  - success
         422:
           description: Request failed
           content:
