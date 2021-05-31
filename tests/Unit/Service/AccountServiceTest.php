@@ -97,6 +97,13 @@ final class AccountServiceTest extends TestCase {
 				'Invalid email'
 			],
 			[
+				[
+					'uuid' => '12345678-1234-1234-1234-123456789012',
+					'email' => ''
+				],
+				'You must have an email. You can define the email in your profile.'
+			],
+			[
 				function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
 					$fileUser
