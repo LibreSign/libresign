@@ -7,6 +7,7 @@ const config = {
 	devtool: '#cheap-source-map',
 	entry: {
 		tab: path.resolve(path.join('src', 'tab.js')),
+		tab20: path.resolve(path.join('src', 'tab-20.js')),
 		settings: path.resolve(path.join('src', 'settings.js')),
 		external: path.resolve(path.join('src', 'external.js')),
 		validation: path.resolve(path.join('src', 'validation.js')),
