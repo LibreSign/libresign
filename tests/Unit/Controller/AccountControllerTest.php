@@ -23,6 +23,9 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Prophecy\PhpUnit\ProphecyTrait;
 
+/**
+ * @group DB
+ */
 final class AccountControllerTest extends ApiTestCase {
 	use ProphecyTrait;
 	/** @var AccountController */

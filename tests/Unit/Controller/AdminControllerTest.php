@@ -7,6 +7,9 @@ use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use org\bovigo\vfs\vfsStream;
 
+/**
+ * @group DB
+ */
 final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess

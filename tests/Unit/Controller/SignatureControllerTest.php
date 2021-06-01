@@ -4,6 +4,9 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 
+/**
+ * @group DB
+ */
 final class SignatureControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
