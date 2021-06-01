@@ -15,7 +15,7 @@ trait UserTrait {
 	private $testGroup;
 
 	/** @var \Test\Util\User\Dummy */
-	private $userBackend;
+	private $backend;
 
 	public function userSetUp(): void {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
