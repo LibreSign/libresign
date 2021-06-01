@@ -10,7 +10,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\User\Dummy;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use OCP\AppFramework\Http;

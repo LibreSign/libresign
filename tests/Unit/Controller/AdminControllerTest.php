@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit\Controller;
 
 use donatj\MockWebServer\Response;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use org\bovigo\vfs\vfsStream;
 
