@@ -28,6 +28,14 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const routes = [
 	{
+		path: '/timeline',
+		component: () => import('../views/Timeline'),
+		props: route => ({
+			files: null,
+		}),
+		name: 'timeline',
+	},
+	{
 		path: '/sign/:uuid',
 		redirect: { name: SelectAction(libresignVar.action) },
 	}, {
