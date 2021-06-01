@@ -171,4 +171,25 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountSignatureEndpointWithFailure() {
+		$this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'signPassword' => ''
+			])
+			->withPath('/account/signature')
+			->assertResponseCode(401);
+
+		$this->assertRequest();
+	}
 }
