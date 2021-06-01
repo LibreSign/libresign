@@ -26,11 +26,7 @@
 		<AppSidebarTab
 			id="libresign-tab"
 			icon="icon-rename"
-			:name="t('libresign', 'LibreSIgn')">
-			<Tooltip v-if="validateError.hasError"
-				refs="tooltip"
-				:type="validateError.type"
-				:message="validateError.message" />
+			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button class="primary"
 					:disabled="!hasSign"

@@ -101,7 +101,7 @@ class WebhookService {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
-			$this->validateFileByFileId((int)$data['file']['fileId']);
+			$this->validateFileByNodeId((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
 			$input = base64_decode($data['file']['base64']);
@@ -112,18 +112,18 @@ class WebhookService {
 		}
 	}
 
-	public function validateFileByFileId(int $fileId) {
+	public function validateFileByNodeId(int $nodeId) {
 		try {
-			$fileMapper = $this->fileMapper->getByFileId($fileId);
+			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
 		} catch (\Throwable $th) {
 		}
-		if ($fileMapper) {
+		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
 		}
 
 		try {
-			$userFolder = $this->folderService->getFolder($fileId);
-			$node = $userFolder->getById($fileId);
+			$userFolder = $this->folderService->getFolder($nodeId);
+			$node = $userFolder->getById($nodeId);
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
@@ -300,7 +300,7 @@ class WebhookService {
 
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId($user['email'], $fileId);
+			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
 		} catch (\Throwable $th) {
 			$fileUser = new FileUserEntity();
 		}

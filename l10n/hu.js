@@ -31,7 +31,6 @@ OC.L10N.register(
     "Signature request cancelled" : "Az aláírási kérelem törölve",
     "The signature request has been canceled." : "Az aláírási kérelem törölve.",
     "Name is mandatory" : "A név megadása kötelező",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "A név csak \"a-z\", \"A-Z\", \"0-9\" és \"-_\" karaktereket tartalmazhat.",
     "Empty file" : "Üres fájl",
     "Invalid base64 file" : "Érvénytelen base64 fájl",
     "Invalid UUID file" : "Érvénytelen UUID fájl",

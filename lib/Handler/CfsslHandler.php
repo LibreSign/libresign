@@ -62,8 +62,9 @@ class CfsslHandler {
 	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
 		$certContent = null;
-		$isCertGenerated = openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
-		if (!$isCertGenerated) {
+		try {
+			openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
+		} catch (\Throwable $th) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
 
@@ -107,7 +108,7 @@ class CfsslHandler {
 		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
-		if (!$responseDecoded['success']) {
+		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while generating certificate keys!', 500);
 		}
 
@@ -132,7 +133,7 @@ class CfsslHandler {
 		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
-		if (!$responseDecoded['success']) {
+		if (!isset($responseDecoded['success']) || !$responseDecoded['success']) {
 			throw new LibresignException('Error while check cfssl API health!', 500);
 		}
 
