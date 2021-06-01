@@ -24,6 +24,13 @@
 <template>
 	<Content app-name="libresign">
 		<AppNavigation>
+			<template #list>
+				<AppNavigationItem :to="{ name: 'timeline' }"
+					:title="t('libresign', 'Sign')"
+					icon="icon-files-dark"
+					exact />
+				<AppNavigtionItem :to="{ name: 'signed'}" :title="t('libresign', 'Signed')" icon="icon-files-dark" />
+			</template>
 			<template #footer>
 				<AppNavigationSettings :title="t('libresign', 'Settings')">
 					<CroppedLayoutSettings />
@@ -32,7 +39,7 @@
 		</AppNavigation>
 		<AppContent :class="{'icon-loading' : loading }">
 			<router-view v-show="!loading" :loading.sync="loading" />
-			<EmptyContent class="emp-content">
+			<EmptyContent v-show="isRoot" class="emp-content">
 				<template #icon>
 					<img :src="icon">
 				</template>
@@ -49,6 +56,7 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
 import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
+import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationSettings'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
@@ -60,6 +68,7 @@ export default {
 	components: {
 		Content,
 		AppNavigation,
+		AppNavigationItem,
 		AppNavigationSettings,
 		AppContent,
 		EmptyContent,
@@ -70,6 +79,11 @@ export default {
 			loading: false,
 			icon: Icon,
 		}
+	},
+	computed: {
+		isRoot() {
+			return this.$route.path === '/'
+		},
 	},
 }
 </script>
