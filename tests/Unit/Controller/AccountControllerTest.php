@@ -148,18 +148,16 @@ final class AccountControllerTest extends ApiTestCase {
 			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		\OC::$server->registerService(\OC\AppConfig::class, function () {
-			return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), [
-				'libresign' => [
-					'commonName' => 'CommonName',
-					'country' => 'Brazil',
-					'organization' => 'Organization',
-					'organizationUnit' => 'organizationUnit',
-					'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-					'configPath' => 'vfs://home/'
-				]
-			]);
-		});
+		$this->mockConfig([
+			'libresign' => [
+				'commonName' => 'CommonName',
+				'country' => 'Brazil',
+				'organization' => 'Organization',
+				'organizationUnit' => 'organizationUnit',
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
+				'configPath' => 'vfs://home/'
+			]
+		]);
 
 		$this->request
 			->withMethod('POST')

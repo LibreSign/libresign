@@ -43,11 +43,7 @@ final class AdminControllerTest extends ApiTestCase {
 			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 			'configPath' => 'vfs://home/'
 		];
-		\OC::$server->registerService(\OC\AppConfig::class, function () use ($cfsslConfig) {
-			return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), [
-				'libresign' => $cfsslConfig
-			]);
-		});
+		$this->mockConfig(['libresign' => $cfsslConfig]);
 
 		// Configure request
 		$this->request

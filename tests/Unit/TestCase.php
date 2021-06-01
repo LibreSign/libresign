@@ -2,6 +2,9 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use OCA\Libresign\Tests\lib\AppConfigOverwrite;
+use OCA\Libresign\Tests\lib\AppConfigOverwrite20;
+
 class TestCase extends \Test\TestCase {
 	protected function IsDatabaseAccessAllowed() {
 		// on travis-ci.org we allow database access in any case - otherwise
@@ -17,5 +20,15 @@ class TestCase extends \Test\TestCase {
 		}
 
 		return false;
+	}
+
+	public function mockConfig($config) {
+		\OC::$server->registerService(\OC\AppConfig::class, function () use ($config) {
+			if (\OCP\Util::getVersion()[0] <= '20') {
+				return new AppConfigOverwrite20(\OC::$server->get(\OCP\IDBConnection::class), $config);
+			} else {
+				return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), $config);
+			}
+		});
 	}
 }
