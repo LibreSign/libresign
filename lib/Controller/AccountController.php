@@ -103,6 +103,7 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
+					'success' => false,
 					'message' => $th->getMessage(),
 					'action' => JSActions::ACTION_DO_NOTHING
 				],

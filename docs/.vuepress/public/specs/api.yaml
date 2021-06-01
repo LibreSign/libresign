@@ -693,6 +693,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -701,6 +704,10 @@ paths:
                     type: string
                     description: Description of the failure that occurred
                     example: User 0 needs an email address
+                required:
+                  - success
+                  - action
+                  - message
   /account/signature:
     post:
       tags:
