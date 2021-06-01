@@ -13,7 +13,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
-final class WebhookControllerTest extends TestCase {
+final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var WebhookController */
 	private $controller;
 	/** @var IL10N */

@@ -11,12 +11,11 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-final class AccountServiceTest extends TestCase {
+final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileUserMapper */

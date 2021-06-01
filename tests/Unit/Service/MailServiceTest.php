@@ -11,13 +11,12 @@ use OCA\Libresign\Service\MailService;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
-final class MailServiceTest extends TestCase {
+final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var Mailer */

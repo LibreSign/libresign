@@ -16,7 +16,6 @@ use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use donatj\MockWebServer\MockWebServer;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
 class ApiTestCase extends TestCase {

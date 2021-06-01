@@ -16,13 +16,12 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
-final class WebhookServiceTest extends TestCase {
+final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */

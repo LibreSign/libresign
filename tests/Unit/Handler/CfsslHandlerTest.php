@@ -6,12 +6,11 @@ use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IResponse;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-final class CfsslHandlerTest extends TestCase {
+final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGenerateCertificateWithInvalidHost() {
 		$class = new CfsslHandler();
 		$this->expectErrorMessageMatches('/Could not resolve host/');

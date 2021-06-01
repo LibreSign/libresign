@@ -19,14 +19,13 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
-final class LibresignControllerTest extends TestCase {
+final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	use ProphecyTrait;
 	public function testSignFile() {
 		$userId = 'john';
