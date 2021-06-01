@@ -30,7 +30,6 @@
     "The signature request has been canceled." : "簽署請求已被取消",
     "You are not allowed to request signing" : "你無權請求簽署",
     "Name is mandatory" : "必須有名字",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "該名稱只能包含 “a-z”，“A-Z”，“0-9” 和 “ -_” 字符。",
     "Empty file" : "空檔案",
     "Inform URL or base64 or fileID to sign" : "通知進行簽署的 URL 或 base64 或 fileID",
     "Invalid fileID" : "無效的 fileID",

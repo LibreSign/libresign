@@ -31,7 +31,6 @@ OC.L10N.register(
     "The signature request has been canceled." : "La demande de signature a été annulée.",
     "You are not allowed to request signing" : "Vous n'êtes pas autorisé à demander la signature ",
     "Name is mandatory" : "Le nom est obligatoire",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Le nom ne peut contenir que les caractères \"a-z\", \"A-Z\", \"0-9\" et \"-_\".",
     "Empty file" : "Fichier vide",
     "Invalid UUID file" : "Fichier UUID invalide",
     "Empty users list" : "Liste d'utilisateurs vide ",

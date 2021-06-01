@@ -18,10 +18,16 @@ Types of changes:
 
 # Added
 - GitHub action to add a changelog reminder
-- List Docs
+- List of documents
+- Test for validation of Swagger documentation
 
 # Removed
 - Removed dsv folder
+
+# Fixed
+- Rendering files tab in Nextcloud 20 and 21
+- Invalid method name when validating if a file signature has already been requested
+- Tests autoload
 
 ## 2.3.0 - 2021-05-22
 

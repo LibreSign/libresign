@@ -32,7 +32,6 @@ OC.L10N.register(
     "The signature request has been canceled." : "Požadavek na podepsání byl zrušen.",
     "You are not allowed to request signing" : "Nemáte povoleno požadovat podepisování",
     "Name is mandatory" : "Název je třeba zadat",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Název může obsahovat pouze znaky „a-z“, „A-Z“, „0-9“ a „-_“.",
     "Empty file" : "Prázdný soubor",
     "Invalid base64 file" : "Neplatný base64 soubor",
     "Already asked to sign this document" : "Už požádáni o podepsání tohoto dokumentu",

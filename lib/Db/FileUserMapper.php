@@ -94,6 +94,25 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	/**
+	 * Get all signers by fileId
+	 *
+	 * @param string $nodeId
+	 * @return FileUser[]
+	 */
+	public function getByNodeId(int $nodeId) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('fu.*')
+			->from($this->getTableName(), 'fu')
+			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
+			->where(
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_STR))
+			);
+
+		return $this->findEntities($qb);
+	}
+
 	public function getByUuidAndUserId(string $uuid, string $userId) {
 		$qb = $this->db->getQueryBuilder();
 

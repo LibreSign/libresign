@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Service;
+namespace OCA\Libresign\Tests\Unit\Handler;
 
 use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
@@ -35,6 +35,9 @@ final class CfsslHandlerTest extends TestCase {
 		$this->expectErrorMessage('Error while generating certificate keys!');
 		$this->expectExceptionCode(500);
 		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode([
+			'success' => false
+		]));
 		$client = $this->createMock(IClient::class);
 		$client->expects($this->once())
 			->method('post')
@@ -128,7 +131,15 @@ final class CfsslHandlerTest extends TestCase {
 	public function testHealthWithoutSuccess() {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('Error while check cfssl API health!');
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode([
+			'success' => false,
+			'result' => true
+		]));
 		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('get')
+			->willReturn($response);
 		$class->setClient($client);
 		$class->health('http://cfssl.coop');
 	}

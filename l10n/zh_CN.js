@@ -32,7 +32,6 @@ OC.L10N.register(
     "The signature request has been canceled." : "签名请求已被取消 ",
     "You are not allowed to request signing" : "系统不允许你请求签名",
     "Name is mandatory" : "名称是强制的",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "名称只能包含 \"a-z\"、\"A-Z\"、 \"0-9\" 和 \"-_\" 字符",
     "Empty file" : "空文件",
     "Inform URL or base64 or fileID to sign" : "通知进行签字的 URL 或 base64 或 fileID",
     "Invalid fileID" : "无效的 fileID",
