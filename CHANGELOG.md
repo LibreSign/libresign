@@ -18,6 +18,7 @@ Types of changes:
 
 # Added
 - GitHub action to add a changelog reminder
+- List Docs
 
 # Removed
 - Removed dsv folder
