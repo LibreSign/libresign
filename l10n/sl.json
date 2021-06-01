@@ -30,7 +30,6 @@
     "The signature request has been canceled." : "Zahteva za podpisovanje je bila preklicana.",
     "You are not allowed to request signing" : "Nimate ustreznih dovoljenj za zahtevo podpisovanja.",
     "Name is mandatory" : "Ime je obvezno",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Ime lahko vključuje le znake »a–z«, »A–Z«, »0–9« in »-_«.",
     "Empty file" : "Prazna datoteka",
     "Inform URL or base64 or fileID to sign" : "Naslov URL, base64  oziroma ID datoteke za podpis",
     "Invalid fileID" : "Neveljaven ID datoteke",

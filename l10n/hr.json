@@ -28,7 +28,6 @@
     "There is a document for you to sign. Access the link below:" : "Postoji dokument koji trebate potpisati. Pristupite putem sljedeće poveznice:",
     "Signature request cancelled" : "Otkazan zahtjev za potpisivanje",
     "Name is mandatory" : "Ime je obavezno",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Ime može sadržavati samo znakove „a – z”, „A – Z”, „0 – 9” i „-_”.",
     "Empty file" : "Prazna datoteka",
     "Invalid base64 file" : "Nevažeća base64 datoteka",
     "Invalid UUID file" : "Nevažeća UUID datoteka",

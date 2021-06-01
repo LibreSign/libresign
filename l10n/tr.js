@@ -32,7 +32,6 @@ OC.L10N.register(
     "The signature request has been canceled." : "İmza isteği iptal edildi.",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
     "Name is mandatory" : "Adın yazılması zorunludur",
-    "The name can only contain \"a-z\", \"A-Z\", \"0-9\" and \"-_\" chars." : "Ad içinde yalnız \"a-z\", \"A-Z\", \"0-9\" ve \"-_\" karakterleri bulunabilir.",
     "Empty file" : "Dosya boş",
     "Inform URL or base64 or fileID to sign" : "İmzalanacak bilgi adresi, base64 ya da dosya kodu",
     "Invalid fileID" : "Dosya kodu geçersiz",

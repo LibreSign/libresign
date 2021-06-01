@@ -106,7 +106,9 @@ class LibresignController extends Controller {
 				'password' => $password,
 			]);
 
-			$clientStorage = new ClientStorage($this->root->getUserFolder($this->userId));
+			$clientStorage = new ClientStorage($this->root->getUserFolder(
+				$this->userSession->getUser()->getUID()
+			));
 			$service = new LibresignService($this->libresignHandler, $clientStorage);
 			$fileSigned = $service->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
