@@ -20,6 +20,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use org\bovigo\vfs\vfsStream;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
@@ -142,7 +143,6 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testAccountSignatureEndpointWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
-
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
 			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
@@ -153,8 +153,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'country' => 'Brazil',
 				'organization' => 'Organization',
 				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-				'configPath' => 'vfs://home/'
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 			]
 		]);
 
@@ -169,7 +168,10 @@ final class AccountControllerTest extends ApiTestCase {
 			])
 			->withPath('/account/signature');
 
+		$home = $user->getHome();
+		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
 		$this->assertRequest();
+		$this->assertFileExists($home . '/files/LibreSign/signature.pfx');
 	}
 
 	/**
