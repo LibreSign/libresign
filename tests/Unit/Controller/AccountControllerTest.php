@@ -20,7 +20,6 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
-use org\bovigo\vfs\vfsStream;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
