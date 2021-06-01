@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit;
 
 use OCP\IGroupManager;
-use OCP\IUser;
 use OCP\IUserManager;
 
 trait UserTrait {

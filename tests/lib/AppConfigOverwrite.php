@@ -47,8 +47,7 @@ class AppConfigOverwrite extends AppConfig {
 		return parent::getValue($app, $key, $default);
 	}
 
-	public function setValue($app, $key, $value)
-	{
+	public function setValue($app, $key, $value) {
 		$this->overWrite[$app][$key] = $value;
 	}
 }

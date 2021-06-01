@@ -101,8 +101,6 @@ class ApiRequester extends AbstractRequester {
 			return $router;
 		});
 		// Just to work with Nextcloud 20
-		\OC::$server->registerService(\OCP\Route\IRouter::class, function () use ($router) {
-			return $router;
-		});
+		\OC::$server->registerAlias(\OCP\Route\IRouter::class, \OC\Route\Router::class);
 	}
 }

@@ -11,7 +11,6 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
 
 final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var WebhookController */
