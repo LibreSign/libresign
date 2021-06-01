@@ -78,6 +78,7 @@ class AccountController extends ApiController {
 			if (count($fileToSign) < 1) {
 				return new JSONResponse(
 					[
+						'success' => true,
 						'message' => $this->l10n->t('File not found'),
 						'action' => JSActions::ACTION_DO_NOTHING
 					],
@@ -85,6 +86,7 @@ class AccountController extends ApiController {
 				);
 			}
 			$data = [
+				'success' => true,
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [

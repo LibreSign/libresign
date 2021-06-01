@@ -662,6 +662,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Uhuuu! Need true vale.
                   message:
                     type: string
                     description: Success message
@@ -686,6 +689,10 @@ paths:
                     type: string
                     description: Description for the person who will sign the document
                     example: As the company's CEO, you must sign this contract
+                required:
+                  - success
+                  - message
+                  - action
         422:
           description: Request failed
           content:
