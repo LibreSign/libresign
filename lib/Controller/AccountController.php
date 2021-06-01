@@ -141,7 +141,7 @@ class AccountController extends ApiController {
 					'success' => false,
 					'message' => $exception->getMessage()
 				],
-				Http::STATUS_INTERNAL_SERVER_ERROR
+				Http::STATUS_UNAUTHORIZED
 			);
 		}
 	}

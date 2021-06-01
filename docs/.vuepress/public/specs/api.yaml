@@ -737,7 +737,7 @@ paths:
                     example: /LibreSign
                 required:
                   - success
-        422:
+        401:
           description: Request failed
           content:
             application/json:
