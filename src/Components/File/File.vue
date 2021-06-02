@@ -1,5 +1,5 @@
 <template>
-	<div class="content-file">
+	<div class="content-file" @click="log">
 		<img :src="srcImg">
 		<div class="enDot">
 			<div :class="'dot ' + status" />
@@ -31,6 +31,14 @@ export default {
 			srcImg: ApplicationImagePdf,
 		}
 	},
+	methods: {
+		log() {
+			this.$emit('sidebar', true)
+		},
+		openSidebar() {
+			this.$store.commit('setSidebar', true)
+		},
+	},
 }
 </script>
 
@@ -43,9 +51,12 @@ export default {
 	min-width: 62px;
 	min-height: 180px;
 	margin: 20px;
+	padding: 10px 20px 10px 20px;
+	cursor: pointer;
 
 	img{
 		width: 90px;
+		cursor: inherit;
 	}
 
 	.enDot{
@@ -55,12 +66,14 @@ export default {
 		margin: 5px;
 		align-items: center;
 		justify-content: center;
+		cursor: inherit;
 
 		.dot{
 			width: 10px;
 			height: 10px;
 			border-radius: 50%;
 			margin-right: 10px;
+			cursor: inherit;
 		}
 
 		.done{
@@ -80,6 +93,7 @@ export default {
 			font-weight: normal;
 			text-align: center;
 			color: rgba(0,0,0,.7);
+			cursor: inherit;
 		}
 	}
 
@@ -87,6 +101,7 @@ export default {
 		font-size: 23px;
 		width: 100%;
 		text-align: center;
+		cursor: inherit;
 	}
 }
 </style>
