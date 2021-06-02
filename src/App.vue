@@ -25,11 +25,11 @@
 	<Content app-name="libresign">
 		<AppNavigation>
 			<template #list>
-				<AppNavigationItem :to="{ name: 'timeline' }"
+				<AppNavigationItem
+					:to="{ name: 'signFiles' }"
 					:title="t('libresign', 'Sign')"
 					icon="icon-files-dark"
 					exact />
-				<AppNavigtionItem :to="{ name: 'signed'}" :title="t('libresign', 'Signed')" icon="icon-files-dark" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings :title="t('libresign', 'Settings')">
