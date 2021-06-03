@@ -214,6 +214,7 @@ class LibresignController extends Controller {
 		} catch (LibresignException $e) {
 			return new JSONResponse(
 				[
+					'success' => false,
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [$e->getMessage()]
 				],
@@ -237,6 +238,7 @@ class LibresignController extends Controller {
 			}
 			return new JSONResponse(
 				[
+					'success' => false,
 					'action' => $action,
 					'errors' => [$message]
 				],

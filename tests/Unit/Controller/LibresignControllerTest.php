@@ -25,7 +25,7 @@ use Psr\Log\LoggerInterface;
 /**
  * @internal
  */
-final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
 	use ProphecyTrait;
 	public function testSignFile() {
 		$request = $this->prophesize(IRequest::class);

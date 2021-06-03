@@ -382,6 +382,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -392,6 +395,10 @@ paths:
                         type: string
                     example:
                       - "File already signed by you"
+                required:
+                  - success
+                  - action
+                  - errors
       security:
         - basicAuth: []
   /sign/file_id/{fileId}:
@@ -444,6 +451,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -454,6 +464,10 @@ paths:
                         type: string
                     example:
                       - "File already signed by you"
+                required:
+                  - success
+                  - action
+                  - errors
       security:
         - basicAuth: []
   /validate/uuid/{uuid}:
