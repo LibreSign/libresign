@@ -9,6 +9,7 @@ use OCA\Libresign\Tests\Unit\ApiTestCase;
  * @group DB
  */
 final class AccountControllerTest extends ApiTestCase {
+	private $files = [];
 
 	/**
 	 * @runInSeparateProcess
@@ -116,5 +117,20 @@ final class AccountControllerTest extends ApiTestCase {
 			->assertResponseCode(401);
 
 		$this->assertRequest();
+	}
+
+	public function tearDown(): void {
+		parent::tearDown();
+		/** @var \OCA\Libresign\Service\WebhookService */
+		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
+		foreach ($this->files as $file) {
+			$toRemove['uuid'] = $file['uuid'];
+			foreach ($file['users'] as $user) {
+				$toRemove['users'][] = [
+					'email' => $user->getEmail()
+				];
+			}
+			$webhook->deleteSignRequest($toRemove);
+		}
 	}
 }
