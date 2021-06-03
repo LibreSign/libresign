@@ -252,4 +252,42 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('File already signed by you', $body['errors'][0]);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithNotFoundFile() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$folderService = \OC::$server->get(\OCA\Libresign\Service\FolderService::class);
+		$libresignFolder = $folderService->getFolder();
+		$libresignFolder->delete();
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('File not found', $body['errors'][0]);
+	}
 }
