@@ -24,6 +24,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @internal
+ * @group DB
  */
 final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
 	use ProphecyTrait;
@@ -166,5 +167,27 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 
 		static::assertSame(["parameter '{$paramenterMissing}' is required!"], $result->getData()['errors']);
 		static::assertSame(422, $result->getStatus());
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithInvalidFileToSign() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/file_id/invalid')
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
 	}
 }
