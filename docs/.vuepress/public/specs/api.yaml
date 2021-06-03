@@ -61,7 +61,6 @@ paths:
               properties:
                 name:
                   type: string
-                  pattern: '^[\w \-_]+$'
                   example: filename
                   description: The name of file to sign
                 file:
@@ -682,11 +681,11 @@ paths:
                         example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
                   filename:
                     type: string
-                    pattern: '^[\w \-_]+$'
                     example: filename
                     description: The name of file to sign
                   description:
                     type: string
+                    nullable: true
                     description: Description for the person who will sign the document
                     example: As the company's CEO, you must sign this contract
                 required:
