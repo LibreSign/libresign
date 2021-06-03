@@ -23,6 +23,10 @@ trait UserTrait {
 
 		$this->backend = new \Test\Util\User\Dummy();
 		\OC_User::useBackend($this->backend);
+
+		$groupBackend = new \Test\Util\Group\Dummy();
+		$this->groupManager->addBackend($groupBackend);
+
 		$this->testGroup = $this->groupManager->createGroup('testGroup');
 	}
 
