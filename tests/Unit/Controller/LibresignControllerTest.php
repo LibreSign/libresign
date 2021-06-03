@@ -11,6 +11,7 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -27,6 +28,7 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
+	use LibresignFileTrait;
 	use ProphecyTrait;
 	public function testSignFile() {
 		$request = $this->prophesize(IRequest::class);
@@ -211,5 +213,43 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithAlreadySignedFile() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$file['users'][0]->setSigned(time());
+		$fileUser = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
+		$fileUser->update($file['users'][0]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('File already signed by you', $body['errors'][0]);
 	}
 }
