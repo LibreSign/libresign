@@ -42,14 +42,25 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testAccountCreateWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
+
+		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
+			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
+		));
+
 		$this->mockConfig([
 			'core' => [
 				'newUser.sendEmail' => 'no'
 			],
 			'libresign' => [
-				'notifyUnsignedUser' => 0
+				'notifyUnsignedUser' => 0,
+				'commonName' => 'CommonName',
+				'country' => 'Brazil',
+				'organization' => 'Organization',
+				'organizationUnit' => 'organizationUnit',
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 			]
 		]);
+
 		/** @var \OCA\Libresign\Service\WebhookService */
 		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
 		$this->files[] = $file = $webhook->save([
