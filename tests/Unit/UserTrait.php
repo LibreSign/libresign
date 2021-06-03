@@ -24,9 +24,11 @@ trait UserTrait {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
 
+		$this->userManager->clearBackends();
 		$this->backendUser = new \Test\Util\User\Dummy();
 		\OC_User::useBackend($this->backendUser);
 
+		$this->groupManager->clearBackends();
 		$this->backendGroup = new \Test\Util\Group\Dummy();
 		$this->groupManager->addBackend($this->backendGroup);
 
