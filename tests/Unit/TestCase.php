@@ -23,6 +23,15 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function mockConfig($config) {
+		$service = \OC::$server->get(\OC\AppConfig::class);
+		if (is_subclass_of($service, \OC\AppConfig::class)) {
+			foreach ($config as $app => $keys) {
+				foreach ($keys as $key => $value) {
+					$service->setValue($app, $key, $value);
+				}
+			}
+			return;
+		}
 		\OC::$server->registerService(\OC\AppConfig::class, function () use ($config) {
 			if (\OCP\Util::getVersion()[0] <= '20') {
 				return new AppConfigOverwrite20(\OC::$server->get(\OCP\IDBConnection::class), $config);
