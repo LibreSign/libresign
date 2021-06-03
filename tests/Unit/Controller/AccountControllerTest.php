@@ -4,13 +4,13 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 
 use donatj\MockWebServer\Response;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 
 /**
  * @group DB
  */
 final class AccountControllerTest extends ApiTestCase {
-	private $files = [];
-
+	use LibresignFileTrait;
 	/**
 	 * @runInSeparateProcess
 	 */
@@ -43,27 +43,7 @@ final class AccountControllerTest extends ApiTestCase {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'core' => [
-				'newUser.sendEmail' => 'no'
-			],
-			'libresign' => [
-				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
-
-		/** @var \OCA\Libresign\Service\WebhookService */
-		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
-		$this->files[] = $file = $webhook->save([
+		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
@@ -146,20 +126,5 @@ final class AccountControllerTest extends ApiTestCase {
 			->assertResponseCode(401);
 
 		$this->assertRequest();
-	}
-
-	public function tearDown(): void {
-		parent::tearDown();
-		/** @var \OCA\Libresign\Service\WebhookService */
-		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
-		foreach ($this->files as $file) {
-			$toRemove['uuid'] = $file['uuid'];
-			foreach ($file['users'] as $user) {
-				$toRemove['users'][] = [
-					'email' => $user->getEmail()
-				];
-			}
-			$webhook->deleteSignRequest($toRemove);
-		}
 	}
 }

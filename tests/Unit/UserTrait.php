@@ -50,7 +50,6 @@ trait UserTrait {
 	}
 
 	public function tearDown(): void {
-		parent::tearDown();
 		foreach ($this->backendUser->getUsers() as $username) {
 			$user = $this->userManager->get($username);
 			$this->testGroup->removeUser($user);
