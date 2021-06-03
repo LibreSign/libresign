@@ -40,7 +40,25 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testAccountCreateWithSuccess() {
-		$this->createUser('username', 'password');
+		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+		/** @var \OCA\Libresign\Service\WebhookService */
+		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
+		$this->files[] = $file = $webhook->save([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$this->mockConfig([
+			'core' => [
+				'newUser.sendEmail' => 'no'
+			]
+		]);
 
 		$this->request
 			->withMethod('POST')
@@ -49,16 +67,13 @@ final class AccountControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'email' => 'testuser01@test.coop',
+				'email' => 'person@test.coop',
 				'password' => 'secret',
 				'signPassword' => 'secretToSign'
 			])
-			->withPath('/account/create/1234564789')
-			->assertResponseCode(422);
+			->withPath('/account/create/' . $file['users'][0]->getUuid());
 
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid UUID', $body['message']);
+		$this->assertRequest();
 	}
 
 	/**
