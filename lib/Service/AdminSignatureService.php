@@ -58,6 +58,7 @@ class AdminSignatureService {
 		$this->config->setAppValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
 		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
 		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
+		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
 
 	public function loadKeys() {

@@ -182,8 +182,8 @@ class WebhookService {
 	}
 
 	public function deleteSignRequest(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		$fileData = $this->getFileByUuid($data['uuid']);
 		foreach ($data['users'] as $signer) {
 			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
 				$signer['email'],
@@ -268,7 +268,9 @@ class WebhookService {
 			$this->mail->notifySignDataUpdated($fileUser);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
-			$this->mail->notifyUnsignedUser($fileUser);
+			if ($this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true)) {
+				$this->mail->notifyUnsignedUser($fileUser);
+			}
 		}
 	}
 
