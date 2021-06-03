@@ -42,6 +42,14 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testAccountCreateWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
+		$this->mockConfig([
+			'core' => [
+				'newUser.sendEmail' => 'no'
+			],
+			'libresign' => [
+				'notifyUnsignedUser' => 0
+			]
+		]);
 		/** @var \OCA\Libresign\Service\WebhookService */
 		$webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
 		$this->files[] = $file = $webhook->save([
@@ -53,14 +61,6 @@ final class AccountControllerTest extends ApiTestCase {
 				]
 			],
 			'userManager' => $user
-		]);
-		$this->mockConfig([
-			'core' => [
-				'newUser.sendEmail' => 'no'
-			],
-			'libresign' => [
-				'notifyUnsignedUser' => 0
-			]
 		]);
 
 		$this->request
