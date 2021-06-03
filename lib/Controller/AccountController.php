@@ -71,7 +71,7 @@ class AccountController extends ApiController {
 				'signPassword' => $signPassword
 			];
 			$this->account->validateCreateToSign($data);
-			$this->account->createToSign($uuid, $email, $password, $signPassword);
+
 			$fileUser = $this->account->getFileUserByUuid($uuid);
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			Filesystem::initMountPoints($fileData->getUserId());
@@ -86,6 +86,8 @@ class AccountController extends ApiController {
 					Http::STATUS_UNPROCESSABLE_ENTITY
 				);
 			}
+
+			$this->account->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
 				'success' => true,
 				'message' => $this->l10n->t('Success'),
