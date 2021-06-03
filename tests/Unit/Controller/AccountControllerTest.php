@@ -41,8 +41,8 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testAccountCreateWithSuccess() {
 		$user = $this->createUser('username', 'password');
-		$user->setEMailAddress('person@test.coop');
 
+		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
