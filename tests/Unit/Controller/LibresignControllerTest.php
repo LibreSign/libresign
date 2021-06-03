@@ -190,4 +190,26 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithInvalidUuidToSign() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/invalid')
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+	}
 }
