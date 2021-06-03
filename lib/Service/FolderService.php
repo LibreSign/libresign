@@ -32,6 +32,10 @@ class FolderService {
 		$this->userId = $userId;
 	}
 
+	public function getUserId() {
+		return $this->userId;
+	}
+
 	/**
 	 * Get folder for user
 	 *
@@ -62,6 +66,7 @@ class FolderService {
 	 * @throws NotPermittedException
 	 */
 	private function getOrCreateFolder($path) {
+		\OC\Files\Filesystem::initMountPoints($this->userId);
 		if ($this->root->nodeExists($path)) {
 			$folder = $this->root->get($path);
 		} else {
