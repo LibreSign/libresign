@@ -233,7 +233,7 @@ class WebhookService {
 	 * @return FileEntity
 	 */
 	private function getFileByUuid(string $uuid): FileEntity {
-		if (!$this->file) {
+		if (!$this->file || $this->file->getUuid() != $uuid) {
 			$this->file = $this->fileMapper->getByUuid($uuid);
 		}
 		return $this->file;
