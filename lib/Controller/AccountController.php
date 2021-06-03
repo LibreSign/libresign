@@ -79,7 +79,7 @@ class AccountController extends ApiController {
 			if (count($fileToSign) < 1) {
 				return new JSONResponse(
 					[
-						'success' => true,
+						'success' => false,
 						'message' => $this->l10n->t('File not found'),
 						'action' => JSActions::ACTION_DO_NOTHING
 					],
