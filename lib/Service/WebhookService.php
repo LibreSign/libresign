@@ -183,6 +183,7 @@ class WebhookService {
 
 	public function deleteSignRequest(array $data) {
 		$fileData = $this->getFileByUuid($data['uuid']);
+		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
 		foreach ($data['users'] as $signer) {
 			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
 				$signer['email'],
@@ -190,7 +191,6 @@ class WebhookService {
 			);
 			$this->fileUserMapper->delete($fileUser);
 		}
-		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
 		if (count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
