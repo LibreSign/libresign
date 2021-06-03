@@ -98,9 +98,8 @@ class ApiRequester extends AbstractRequester {
 		\OC::$CLI = false;
 
 		$router = \OC::$server->get(\OC\Route\Router::class);
-
 		$reflectionClass = new \ReflectionClass($router);
-		$property        = $reflectionClass->getProperty('context');
+		$property = $reflectionClass->getProperty('context');
 		$property->setAccessible(true);
 		$property->setValue($router, new RequestContext(
 			'/index.php',
