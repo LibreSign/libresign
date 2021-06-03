@@ -28,9 +28,7 @@ use Psr\Log\LoggerInterface;
 final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	use ProphecyTrait;
 	public function testSignFile() {
-		$userId = 'john';
 		$request = $this->prophesize(IRequest::class);
-		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
 		$root = $this->createMock(IRootFolder::class);
@@ -127,7 +125,6 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$password,
 		$paramenterMissing
 	) {
-		$userId = 'john';
 		$request = $this->prophesize(IRequest::class);
 		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
