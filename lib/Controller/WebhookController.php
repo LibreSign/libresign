@@ -68,7 +68,7 @@ class WebhookController extends ApiController {
 				[
 					'message' => $th->getMessage(),
 				],
-				$th->getCode() > 0 ? $th->getCode() : Http::STATUS_UNPROCESSABLE_ENTITY
+				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 		return new JSONResponse(
