@@ -18,7 +18,7 @@ tags:
   description: Admin settings
 
 paths:
-  /webhook:
+  /webhook/me:
     get:
       tags:
         - webhook
