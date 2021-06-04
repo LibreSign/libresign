@@ -296,6 +296,7 @@ class LibresignController extends Controller {
 	}
 
 	private function validate(string $type, $identifier) {
+		$canSign = false;
 		try {
 			try {
 				$file = call_user_func(
@@ -312,7 +313,6 @@ class LibresignController extends Controller {
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signatures = $this->fileUserMapper->getByFileId($file->id);
-			$canSign = false;
 			foreach ($signatures as $signature) {
 				$uid = $this->userSession->getUser()->getUID();
 				$return['signatures'][] = [
@@ -330,6 +330,7 @@ class LibresignController extends Controller {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
 			$return = [
+				'success' => false,
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];
