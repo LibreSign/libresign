@@ -431,4 +431,27 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccess() {
+		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+	}
 }
