@@ -518,6 +518,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   name:
                     type: string
                     example: filename
@@ -531,16 +536,28 @@ paths:
                       type: object
                       properties:
                         signed:
-                          type: boolean
-                          description: Person signed?
+                          type: string
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Signing date, when signed
                         displayName:
                           type: string
                           description: The person display name
                           example: John
                         fullName:
                           type: string
+                          nullable: true
                           description: The person full name
                           example: John Doe
+                        me:
+                          type: boolean
+                          description: It's me?
+                          example: true
+                      required:
+                        - signed
+                        - displayName
+                        - fullName
+                        - me
                   settings:
                     type: object
                     properties:
@@ -552,6 +569,11 @@ paths:
                         type: boolean
                         description: Can request sign this file
                         example: true
+                required:
+                  - success
+                  - name
+                  - file
+                  - settings
         404:
           description: Request failed
           content:
@@ -613,6 +635,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   name:
                     type: string
                     example: filename
@@ -626,16 +653,28 @@ paths:
                       type: object
                       properties:
                         signed:
-                          type: boolean
-                          description: Person signed?
+                          type: string
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Signing date, when signed
                         displayName:
                           type: string
                           description: The person display name
                           example: John
                         fullName:
                           type: string
+                          nullable: true
                           description: The person full name
                           example: John Doe
+                        me:
+                          type: boolean
+                          description: It's me?
+                          example: true
+                      required:
+                        - signed
+                        - displayName
+                        - fullName
+                        - me
                   settings:
                     type: object
                     properties:
@@ -647,6 +686,11 @@ paths:
                         type: boolean
                         description: Can request sign this file
                         example: true
+                required:
+                  - success
+                  - name
+                  - file
+                  - settings
         404:
           description: Request failed
           content:
