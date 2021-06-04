@@ -42,20 +42,6 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testAccountCreateWithSuccess() {
 		$user = $this->createUser('username', 'password');
 
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'libresign' => [
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
-
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -90,19 +76,6 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testAccountSignatureEndpointWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'libresign' => [
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
 
 		$this->request
 			->withMethod('POST')

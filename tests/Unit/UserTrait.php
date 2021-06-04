@@ -46,9 +46,6 @@ trait UserTrait {
 		$this->mockConfig([
 			'core' => [
 				'newUser.sendEmail' => 'no'
-			],
-			'libresign' => [
-				'notifyUnsignedUser' => 0
 			]
 		]);
 		$this->backendUser->createUser($username, $password);
