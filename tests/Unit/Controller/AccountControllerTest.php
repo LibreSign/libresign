@@ -48,7 +48,6 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',
 				'country' => 'Brazil',
 				'organization' => 'Organization',
