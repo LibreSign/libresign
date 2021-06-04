@@ -368,6 +368,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Uhuuu! Need true vale.
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -375,6 +378,10 @@ paths:
                   message:
                     type: string
                     example: File signed
+                required:
+                  - success
+                  - action
+                  - message
         422:
           description: Request failed
           content:
@@ -437,6 +444,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Uhuuu! Need true vale.
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -444,6 +454,10 @@ paths:
                   message:
                     type: string
                     example: File signed
+                required:
+                  - success
+                  - action
+                  - message
         422:
           description: Request failed
           content:

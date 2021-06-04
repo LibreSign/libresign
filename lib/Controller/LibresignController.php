@@ -206,6 +206,7 @@ class LibresignController extends Controller {
 
 			return new JSONResponse(
 				[
+					'success' => true,
 					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed')
 				],
