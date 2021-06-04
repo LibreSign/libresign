@@ -47,7 +47,19 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
+
+		$this->config
+			->expects($this->any())
+			->method('getAppValue')
+			->willReturn('["admin"]');
+
 		$this->groupManager = $this->createMock(IGroupManager::class);
+
+		$this->groupManager
+			->expects($this->any())
+			->method('getUserGroupIds')
+			->willReturn(['admin']);
+
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -614,25 +626,8 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testIndexWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
-		$this->config
-			->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["admin"]');
-		$this->groupManager
-			->expects($this->once())
-			->method('getUserGroupIds')
-			->willReturn([]);
 
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'jhondoe@test.coop'
-				]
-			],
-			'userManager' => $this->user
-		]);
+		$this->service->validate([]);
 	}
 
 	public function testNotifyCallback() {
