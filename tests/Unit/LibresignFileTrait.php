@@ -33,20 +33,39 @@ trait LibresignFileTrait {
 			]
 		]);
 
-		$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
-		$this->files[] = $file = $this->webhook->save($data);
+		$this->files[] = $file = $this->getWebhook()->save($data);
 		return $file;
+	}
+
+	/**
+	 * @return \OCA\Libresign\Service\WebhookService
+	 */
+	private function getWebhook(): \OCA\Libresign\Service\WebhookService {
+		if (!$this->webhook) {
+			$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
+		}
+		return $this->webhook;
+	}
+
+	public function addFile($file) {
+		$this->files[] = $file;
 	}
 
 	public function tearDown(): void {
 		foreach ($this->files as $file) {
 			$toRemove['uuid'] = $file['uuid'];
 			foreach ($file['users'] as $user) {
-				$toRemove['users'][] = [
-					'email' => $user->getEmail()
-				];
+				if (is_array($user)) {
+					$toRemove['users'][] = [
+						'email' => $user['email']
+					];
+				} else {
+					$toRemove['users'][] = [
+						'email' => $user->getEmail()
+					];
+				}
 			}
-			$this->webhook->deleteSignRequest($toRemove);
+			$this->getWebhook()->deleteSignRequest($toRemove);
 		}
 	}
 }
