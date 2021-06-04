@@ -454,15 +454,15 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertFalse($body['signatures'][0]['me']);
-		$this->assertFalse($body['settings']['canRequestSign']);
-		$this->assertFalse($body['settings']['canSign']);
+		$this->assertFalse($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertFalse($body['settings']['canSign'], 'Can permission to sign');
 	}
 
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateWithSuccessUsingLoggedUserAndWithoutPermissionToRequestSign() {
+	public function testValidateWithSuccessUsingLoggedUserWithoutPermissionToRequestSign() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
