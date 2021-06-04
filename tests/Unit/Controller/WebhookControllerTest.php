@@ -32,4 +32,29 @@ final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase 
 		], \OCP\AppFramework\Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithoutAuthenticatedUser() {
+		$this->request
+			->withPath('/webhook/me')
+			->assertResponseCode(404);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithAuthenticatedUser() {
+		$user = $this->createUser('username', 'password');
+		$this->request
+			->withPath('/webhook/me')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			]);
+
+		$this->assertRequest();
+	}
 }
