@@ -16,11 +16,6 @@ trait LibresignFileTrait {
 	private $webhook;
 
 	public function requestSignFile($data): array {
-		$this->mockConfig([
-			'core' => [
-				'newUser.sendEmail' => 'no'
-			]
-		]);
 		$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
 		$this->files[] = $file = $this->webhook->save($data);
 		return $file;

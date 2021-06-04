@@ -43,6 +43,11 @@ trait UserTrait {
 	 * @return \OC\User\User
 	 */
 	public function createUser($username, $password) {
+		$this->mockConfig([
+			'core' => [
+				'newUser.sendEmail' => 'no'
+			]
+		]);
 		$this->backendUser->createUser($username, $password);
 		$user = $this->userManager->get($username);
 		$this->testGroup->addUser($user);
