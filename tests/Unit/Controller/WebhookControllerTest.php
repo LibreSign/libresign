@@ -48,7 +48,7 @@ final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase 
 	 * @runInSeparateProcess
 	 */
 	public function testMeWithAuthenticatedUser() {
-		$user = $this->createUser('username', 'password');
+		$this->createUser('username', 'password');
 		$this->request
 			->withPath('/webhook/me')
 			->withRequestHeader([
