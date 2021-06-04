@@ -370,6 +370,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - true
                     description: Uhuuu! Need true vale.
                   action:
                     type: integer
@@ -393,6 +395,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - false
                     description: Beep! Failure!
                   action:
                     type: integer
@@ -448,6 +452,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - true
                     description: Uhuuu! Need true vale.
                   action:
                     type: integer
@@ -469,6 +475,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - false
                     description: Beep! Failure!
                   action:
                     type: integer
@@ -693,6 +701,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - true
                     description: Uhuuu! Need true vale.
                   message:
                     type: string
@@ -731,6 +741,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - false
                     description: Beep! Failure!
                   action:
                     type: integer
@@ -773,6 +785,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - true
                     description: Uhuuu! Need true vale.
                   signature:
                     type: string
@@ -851,6 +865,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - true
                     description: CFSSL server is up?
                 required:
                   - success
@@ -865,6 +881,8 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    enum:
+                      - false
                     description: CFSSL server is up?
                   message:
                     type: array
