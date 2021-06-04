@@ -373,6 +373,7 @@ paths:
                     description: Uhuuu! Need true vale.
                   action:
                     type: integer
+                    enum: [350]
                     description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
