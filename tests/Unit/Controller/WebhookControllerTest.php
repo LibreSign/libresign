@@ -2,35 +2,68 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
+
 /**
  * @group DB
  */
 final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
-	public function testIndexSuccess() {
-		$l10n = $this->createMock(\OCP\IL10N::class);
-		$userSession = $this->createMock(\OCP\IUserSession::class);
-		$request = $this->createMock(\OCP\IRequest::class);
-		$webhook = $this->createMock(\OCA\Libresign\Service\WebhookService::class);
-		$mail = $this->createMock(\OCA\Libresign\Service\MailService::class);
+	use LibresignFileTrait;
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostRegisterWithValidationFailure() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'name' => 'filename',
+				'file' => [],
+				'users' => []
+			])
+			->assertResponseCode(422);
 
-		$controller = new \OCA\Libresign\Controller\WebhookController(
-			$request,
-			$userSession,
-			$l10n,
-			$webhook,
-			$mail
-		);
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('You are not allowed to request signing', $body['message']);
+	}
 
-		$l10n
-			->method('t')
-			->will($this->returnArgument(0));
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostRegisterWithSuccess() {
+		$this->createUser('username', 'password');
 
-		$actual = $controller->register([], [], '');
-		$expected = new \OCP\AppFramework\Http\JSONResponse([
-			'message' => 'Success',
-			'data' => null
-		], \OCP\AppFramework\Http::STATUS_OK);
-		$this->assertEquals($expected, $actual);
+		$this->mockConfig(['libresign' => ['webhook_authorized' => '["admin","testGroup"]']]);
+
+		$this->request
+			->withMethod('POST')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'name' => 'filename',
+				'file' => [
+					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+				],
+				'users' => [
+					[
+						'email' => 'user@test.coop'
+					]
+				]
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$body['data']['users'][] = ['email' => 'user@test.coop'];
+		$this->addFile($body['data']);
 	}
 
 	/**
