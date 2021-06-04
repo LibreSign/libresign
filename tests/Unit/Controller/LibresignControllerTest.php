@@ -418,4 +418,17 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateUsignFileIdWithInvalidData() {
+		$this->request
+			->withPath('/file/validate/file_id/171')
+			->assertResponseCode(404);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+	}
 }
