@@ -435,7 +435,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateWithSuccess() {
+	public function testValidateWithSuccessUsingUnloggedUser() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -453,5 +453,39 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			->withPath('/file/validate/uuid/' . $file['uuid']);
 
 		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertFalse($body['signatures'][0]['me']);
+		$this->assertFalse($body['settings']['canRequestSign']);
+		$this->assertFalse($body['settings']['canSign']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingLoggedUserAndWithoutPermissionToRequestSign() {
+		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertTrue($body['signatures'][0]['me']);
+		$this->assertFalse($body['settings']['canRequestSign']);
+		$this->assertTrue($body['settings']['canSign']);
 	}
 }
