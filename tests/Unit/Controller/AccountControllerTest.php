@@ -47,9 +47,6 @@ final class AccountControllerTest extends ApiTestCase {
 		));
 
 		$this->mockConfig([
-			'core' => [
-				'newUser.sendEmail' => 'no'
-			],
 			'libresign' => [
 				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',
