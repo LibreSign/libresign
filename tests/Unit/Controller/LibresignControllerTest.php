@@ -405,4 +405,17 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateUsignUuidWithInvalidData() {
+		$this->request
+			->withPath('/file/validate/uuid/invalid')
+			->assertResponseCode(404);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+	}
 }
