@@ -590,7 +590,7 @@ paths:
                   - settings
                   - errors
                   - action
-  /validate/file_id/{fileId}:
+  /file/validate/file_id/{fileId}:
     get:
       tags:
         - sign
