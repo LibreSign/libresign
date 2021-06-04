@@ -78,7 +78,7 @@ final class AccountControllerTest extends ApiTestCase {
 		$user->setEMailAddress('person@test.coop');
 
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
+			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
 
 		$this->mockConfig([
