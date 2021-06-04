@@ -80,11 +80,12 @@ class WebhookService {
 
 	public function validateUserManager($user) {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
-			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
-			}
+		if (empty($authorized) || !is_array($authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
+		if (!array_intersect($userGroups, $authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 	}
 
