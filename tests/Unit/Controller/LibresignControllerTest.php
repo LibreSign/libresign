@@ -295,6 +295,78 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	/**
 	 * @runInSeparateProcess
 	 */
+	public function testSignUsingFileIdWithoutPfx() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => ''
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Password to sign not defined. Create a password to sign', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithEmptyCertificatePassword() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
+		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => ''
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Certificate Password is Empty.', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testSignUsingFileIdWithSuccess() {
 		$user = $this->createUser('username', 'password');
 
