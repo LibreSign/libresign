@@ -79,6 +79,9 @@ class WebhookService {
 	}
 
 	public function validateUserManager($user) {
+		if (!isset($user['userManager'])) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized) || !is_array($authorized)) {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
