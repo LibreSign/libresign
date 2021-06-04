@@ -2,56 +2,34 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OCA\Libresign\Controller\WebhookController;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\WebhookService;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\JSONResponse;
-use OCP\IGroupManager;
-use OCP\IL10N;
-use OCP\IRequest;
-use OCP\IUserSession;
-
-final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var WebhookController */
-	private $controller;
-	/** @var IL10N */
-	private $l10n;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var IRequest */
-	private $request;
-	/** @var MailService */
-	private $mail;
-
-	public function setUp(): void {
-		parent::setUp();
-		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->l10n = $this->createMock(IL10N::class);
-		$this->userSession = $this->createMock(IUserSession::class);
-		$this->request = $this->createMock(IRequest::class);
-		$this->webhook = $this->createMock(WebhookService::class);
-		$this->mail = $this->createMock(MailService::class);
-
-		$this->controller = new WebhookController(
-			$this->request,
-			$this->userSession,
-			$this->l10n,
-			$this->webhook,
-			$this->mail
-		);
-	}
-
+/**
+ * @group DB
+ */
+final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
 	public function testIndexSuccess() {
-		$this->l10n
+		$l10n = $this->createMock(\OCP\IL10N::class);
+		$userSession = $this->createMock(\OCP\IUserSession::class);
+		$request = $this->createMock(\OCP\IRequest::class);
+		$webhook = $this->createMock(\OCA\Libresign\Service\WebhookService::class);
+		$mail = $this->createMock(\OCA\Libresign\Service\MailService::class);
+
+		$controller = new \OCA\Libresign\Controller\WebhookController(
+			$request,
+			$userSession,
+			$l10n,
+			$webhook,
+			$mail
+		);
+
+		$l10n
 			->method('t')
 			->will($this->returnArgument(0));
 
-		$actual = $this->controller->register([], [], '');
-		$expected = new JSONResponse([
+		$actual = $controller->register([], [], '');
+		$expected = new \OCP\AppFramework\Http\JSONResponse([
 			'message' => 'Success',
 			'data' => null
-		], Http::STATUS_OK);
+		], \OCP\AppFramework\Http::STATUS_OK);
 		$this->assertEquals($expected, $actual);
 	}
 }
