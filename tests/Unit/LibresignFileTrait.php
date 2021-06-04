@@ -16,7 +16,6 @@ trait LibresignFileTrait {
 	private $webhook;
 
 	public function requestSignFile($data): array {
-
 		$this->mockConfig([
 			'core' => [
 				'newUser.sendEmail' => 'no'
