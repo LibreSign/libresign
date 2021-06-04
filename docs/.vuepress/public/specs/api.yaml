@@ -378,6 +378,7 @@ paths:
                     example: 200
                   message:
                     type: string
+                    enum: [File signed]
                     example: File signed
                 required:
                   - success
