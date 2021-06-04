@@ -39,7 +39,12 @@ final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase 
 	public function testPostRegisterWithSuccess() {
 		$this->createUser('username', 'password');
 
-		$this->mockConfig(['libresign' => ['webhook_authorized' => '["admin","testGroup"]']]);
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
 
 		$this->request
 			->withMethod('POST')
