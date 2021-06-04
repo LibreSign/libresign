@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use donatj\MockWebServer\Response;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 
