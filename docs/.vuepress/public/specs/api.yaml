@@ -33,8 +33,10 @@ paths:
                 type: object
                 properties:
                   uid:
-                    type: integer
-                    example: 132564
+                    type: string
+                    example: username
+                required:
+                  - uid
         404:
           description: Invalid user or password
           content:
@@ -44,7 +46,11 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Invalid user or password.
+                    enum:
+                      - Invalid user or password
+                    example: Invalid user or password
+                required:
+                  - message
       security:
         - basicAuth: []
   /webhook/register:
