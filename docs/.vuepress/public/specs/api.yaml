@@ -494,7 +494,7 @@ paths:
                   - errors
       security:
         - basicAuth: []
-  /validate/uuid/{uuid}:
+  /file/validate/uuid/{uuid}:
     get:
       tags:
         - sign
