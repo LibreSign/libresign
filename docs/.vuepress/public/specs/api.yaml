@@ -643,21 +643,48 @@ paths:
                         type: boolean
                         description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
                         example: true
-        422:
-            description: Request failed
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    action:
-                      type: integer
-                      description: Numeric code representing what action should be taken with the response
-                      example: 200
-                    errors:
-                      type: array
-                      items:
-                        type: string
+                      canSign:
+                        type: boolean
+                        description: Can request sign this file
+                        example: true
+        404:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
+                  settings:
+                    type: object
+                    properties:
+                      canRequestSign:
+                        type: boolean
+                        description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
+                        example: true
+                      canSign:
+                        type: boolean
+                        enum:
+                          - false
+                        description: Can request sign this file
+                        example: false
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 200
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - success
+                  - settings
+                  - errors
+                  - action
   /signature/has-root-cert:
     get:
       tags:
