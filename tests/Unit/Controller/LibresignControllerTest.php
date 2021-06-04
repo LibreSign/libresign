@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use Jeidison\JSignPDF\JSignPDF;
 use OC\Files\Node\File;
 use OC\Files\Node\Folder;
 use OCA\Libresign\Controller\LibresignController;
@@ -289,5 +290,47 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertEquals('File not found', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithSuccess() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
+		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->method('sign')->willReturn('content');
+		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JLibresignHandler::class);
+		$jsignHandler->setJSignPdf($mock);
+		\OC::$server->registerService(\OCA\Libresign\Handler\JLibresignHandler::class, function () use ($mock) {
+			return $mock;
+		});
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			]);
+
+		$this->assertRequest();
 	}
 }
