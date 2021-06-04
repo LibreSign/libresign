@@ -8,6 +8,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\AppFramework\Http;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -82,7 +83,7 @@ class WebhookService {
 		if (!empty($authorized)) {
 			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
 			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('You are not allowed to request signing'), 405);
+				throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 			}
 		}
 	}
