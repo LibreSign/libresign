@@ -437,6 +437,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	 */
 	public function testValidateWithSuccessUsingUnloggedUser() {
 		$user = $this->createUser('username', 'password');
+
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -464,6 +465,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	 */
 	public function testValidateWithSuccessUsingLoggedUserWithoutPermissionToRequestSign() {
 		$user = $this->createUser('username', 'password');
+
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -494,6 +496,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	 */
 	public function testValidateWithSuccessUsingLoggedUserWithPermissionToRequestSign() {
 		$user = $this->createUser('username', 'password');
+
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -505,6 +508,8 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			],
 			'userManager' => $user
 		]);
+
+		$this->mockConfig(['libresign' => ['webhook_authorized' => '["admin","testGroup"]']]);
 
 		$this->request
 			->withRequestHeader([
