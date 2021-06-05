@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -209,5 +210,120 @@ class AccountService {
 			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
 		}
 		return $folder->get($this->pfxFilename);
+	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param string $formatOfPdfOnSign (base64,url,file)
+	 * @return array|string
+	 */
+	public function getConfig(string $formatOfPdfOnSign): array {
+		$info = $this->getInfoOfFileToSign($formatOfPdfOnSign);
+		$info['settings'] = [
+			'hasSignatureFile' => $this->hasSignatureFile()
+		];
+		return $info;
+	}
+
+	private function getInfoOfFileToSign(string $formatOfPdfOnSign): array {
+		$uuid = $this->request->getParam('uuid');
+		$userId = $this->session->get('user_id');
+		$return = [];
+		try {
+			if (!$uuid) {
+				return $return;
+			}
+			$fileUser = $this->fileUserMapper->getByUuid($uuid);
+		} catch (\Throwable $th) {
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('Invalid UUID');
+			return $return;
+		}
+		$fileUserId = $fileUser->getUserId();
+		if (!$fileUserId) {
+			if ($userId) {
+				$return['action'] = JSActions::ACTION_DO_NOTHING;
+				$return['errors'][] = $this->l10n->t('This is not your file');
+				return $return;
+			}
+			if ($this->userManager->userExists($fileUser->getEmail())) {
+				$return['action'] = JSActions::ACTION_REDIRECT;
+				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
+				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+					'redirect_url' => $this->urlGenerator->linkToRoute(
+						'libresign.page.sign',
+						['uuid' => $uuid]
+					),
+				]);
+				return $return;
+			}
+			$return['action'] = JSActions::ACTION_CREATE_USER;
+			return $return;
+		}
+		if ($fileUser->getSigned()) {
+			$return['action'] = JSActions::ACTION_SHOW_ERROR;
+			$return['errors'][] = $this->l10n->t('File already signed.');
+			return $return;
+		}
+		if (!$userId) {
+			$return['action'] = JSActions::ACTION_REDIRECT;
+
+			$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+				'redirect_url' => $this->urlGenerator->linkToRoute(
+					'libresign.page.sign',
+					['uuid' => $uuid]
+				),
+			]);
+			$return['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
+			return $return;
+		}
+		if ($fileUserId !== $userId) {
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('Invalid user');
+			return $return;
+		}
+		$fileData = $this->fileMapper->getById($fileUser->getFileId());
+		Filesystem::initMountPoints($fileData->getUserId());
+		$fileToSign = $this->root->getById($fileData->getNodeId());
+		if (count($fileToSign) < 1) {
+			$return['action'] = JSActions::ACTION_DO_NOTHING;
+			$return['errors'][] = $this->l10n->t('File not found');
+			return $return;
+		}
+		/** @var File */
+		$fileToSign = $fileToSign[0];
+		$return['action'] = JSActions::ACTION_SIGN;
+		$return['user']['name'] = $fileUser->getDisplayName();
+		switch ($formatOfPdfOnSign) {
+			case 'base64':
+				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
+				break;
+			case 'url':
+				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
+				break;
+			case 'file':
+				$pdf = ['file' => $fileToSign];
+				break;
+		}
+		$return['sign'] = [
+			'pdf' => $pdf,
+			'filename' => $fileData->getName(),
+			'description' => $fileUser->getDescription()
+		];
+		return $return;
+	}
+
+	private function hasSignatureFile() {
+		$userId = $this->session->get('user_id');
+		if (!$userId) {
+			return false;
+		}
+		try {
+			$this->accountService->getPfx($userId);
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
 	}
 }
