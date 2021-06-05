@@ -95,4 +95,27 @@ final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase 
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPatchRegisterWithValidationFailure() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => '12345678-1234-1234-1234-123456789012',
+				'users' => []
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('You are not allowed to request signing', $body['message']);
+	}
 }
