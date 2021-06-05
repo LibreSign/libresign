@@ -523,4 +523,37 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$this->assertTrue($body['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingLoggedUserAndOutsideAllowedRequestSignGroups() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->mockConfig(['libresign' => ['webhook_authorized' => '[]']]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertTrue($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
+	}
 }
