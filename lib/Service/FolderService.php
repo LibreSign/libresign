@@ -88,13 +88,4 @@ class FolderService {
 
 		return $path;
 	}
-
-	public function deleteParentNodeOfNodeId(int $nodeId) {
-		$node = $this->root->getById($nodeId);
-		if (count($node) < 1) {
-			throw new \Exception('Invalid node');
-		}
-		$parent = $node[0]->getParent();
-		$parent->delete();
-	}
 }
