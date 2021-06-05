@@ -273,9 +273,7 @@ class WebhookService {
 			$this->mail->notifySignDataUpdated($fileUser);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
-			if ($this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true)) {
-				$this->mail->notifyUnsignedUser($fileUser);
-			}
+			$this->mail->notifyUnsignedUser($fileUser);
 		}
 	}
 
