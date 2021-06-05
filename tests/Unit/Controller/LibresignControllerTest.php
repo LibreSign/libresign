@@ -494,7 +494,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateWithSuccessUsingLoggedUserWithPermissionToRequestSign() {
+	public function testValidateWithSuccessUsingLoggedUserAndWithPermissionToRequestSign() {
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
