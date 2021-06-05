@@ -4,15 +4,12 @@ namespace OCA\Libresign\Controller;
 
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -23,10 +20,6 @@ class AccountController extends ApiController {
 	private $l10n;
 	/** @var AccountService */
 	private $account;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var IRootFolder */
-	private $root;
 	/** @var Chain */
 	private $loginChain;
 	/** @var IURLGenerator */
@@ -38,8 +31,6 @@ class AccountController extends ApiController {
 		IRequest $request,
 		IL10N $l10n,
 		AccountService $account,
-		FileMapper $fileMapper,
-		IRootFolder $root,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession
@@ -47,8 +38,6 @@ class AccountController extends ApiController {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->account = $account;
-		$this->fileMapper = $fileMapper;
-		$this->root = $root;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
@@ -71,21 +60,10 @@ class AccountController extends ApiController {
 				'signPassword' => $signPassword
 			];
 			$this->account->validateCreateToSign($data);
+			$this->account->validateCertificateData($data);
 
+			$fileToSign = $this->account->getFileByUuid($uuid);
 			$fileUser = $this->account->getFileUserByUuid($uuid);
-			$fileData = $this->fileMapper->getById($fileUser->getFileId());
-			Filesystem::initMountPoints($fileData->getUserId());
-			$fileToSign = $this->root->getById($fileData->getNodeId());
-			if (count($fileToSign) < 1) {
-				return new JSONResponse(
-					[
-						'success' => false,
-						'message' => $this->l10n->t('File not found'),
-						'action' => JSActions::ACTION_DO_NOTHING
-					],
-					Http::STATUS_UNPROCESSABLE_ENTITY
-				);
-			}
 
 			$this->account->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
@@ -95,7 +73,7 @@ class AccountController extends ApiController {
 				'pdf' => [
 					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])
 				],
-				'filename' => $fileData->getName(),
+				'filename' => $fileToSign['fileData']->getName(),
 				'description' => $fileUser->getDescription()
 			];
 

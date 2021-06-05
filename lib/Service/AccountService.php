@@ -4,12 +4,14 @@ namespace OCA\Libresign\Service;
 
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -26,20 +28,30 @@ class AccountService {
 	protected $userManager;
 	/** @var FolderService */
 	private $folder;
+	/** @var IRootFolder */
+	private $root;
 	/** @var IConfig */
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
+	/** @var FileMapper */
+	private $fileMapper;
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
+	/** @var \OCA\Libresign\DbFile */
+	private $fileData;
+	/** @var \OCA\Files\Node\File */
+	private $fileToSign;
 
 	public function __construct(
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
 		FolderService $folder,
+		IRootFolder $root,
+		FileMapper $fileMapper,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		CfsslHandler $cfsslHandler
@@ -48,6 +60,8 @@ class AccountService {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
 		$this->folder = $folder;
+		$this->root = $root;
+		$this->fileMapper = $fileMapper;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->cfsslHandler = $cfsslHandler;
@@ -62,7 +76,6 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		$this->validateCertificateData($data);
 		if ($fileUser->getEmail() !== $data['email']) {
 			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
@@ -72,6 +85,25 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
+		$file = $this->getFileByUuid($data['uuid']);
+		if (empty($file['fileToSign'])) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+	}
+
+	public function getFileByUuid(string $uuid) {
+		$fileUser = $this->getFileUserByUuid($uuid);
+		if (!$this->fileData) {
+			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
+			$fileToSign = $this->root->getById($this->fileData->getNodeId());
+			if (count($fileToSign)) {
+				$this->fileToSign = $fileToSign[0];
+			}
+		}
+		return [
+			'fileData' => $this->fileData,
+			'fileToSign' => $this->fileToSign
+		];
 	}
 
 	public function validateCertificateData(array $data) {

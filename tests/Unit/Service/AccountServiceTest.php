@@ -2,12 +2,14 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -39,15 +41,17 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folder = $this->createMock(FolderService::class);
+		$this->root = $this->createMock(IRootFolder::class);
+		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 	}
 
 	/**
-	 * @dataProvider providerTestValidateCreateToSign
+	 * @dataProvider providerTestValidateCreateToSignUsingDataProvider
 	 */
-	public function testValidateCreateToSign($arguments, $expectedErrorMessage) {
+	public function testValidateCreateToSignUsingDataProvider($arguments, $expectedErrorMessage) {
 		if (is_callable($arguments)) {
 			$arguments = $arguments($this);
 		}
@@ -57,6 +61,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -65,7 +71,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->validateCreateToSign($arguments);
 	}
 
-	public function providerTestValidateCreateToSign() {
+	public function providerTestValidateCreateToSignUsingDataProvider() {
 		return [
 			[
 				[
@@ -87,20 +93,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					];
 				},
 				'UUID not found'
-			],
-			[
-				[
-					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'email' => 'invalid'
-				],
-				'Invalid email'
-			],
-			[
-				[
-					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'email' => ''
-				],
-				'You must have an email. You can define the email in your profile.'
 			],
 			[
 				function ($self) {
@@ -162,6 +154,84 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				function ($self) {
+					$fileUser = $this->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$this->equalTo('getEmail')],
+							[$this->equalTo('getFileId')],
+							[$this->equalTo('getNodeId')],
+							[$this->equalTo('getUserId')],
+						)
+						->will($this->returnValueMap([
+							['getEmail', [], 'valid@test.coop'],
+							['getFileId', [], 171],
+							['getNodeId', [], 171],
+							['getUserId', [], 'username'],
+						]));
+					$self->fileMapper
+						->method('getById')
+						->will($self->returnValue($fileUser));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+
+					$self->root
+						->method('getById')
+						->will($self->returnValue([]));
+					return [
+						'uuid' => '12345678-1234-1234-1234-123456789012',
+						'email' => 'valid@test.coop',
+						'signPassword' => '132456789',
+						'password' => '123456789'
+					];
+				},
+				'File not found'
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider providerTestValidateCertificateDataUsingDataProvider
+	 */
+	public function testValidateCertificateDataUsingDataProvider($arguments, $expectedErrorMessage) {
+		if (is_callable($arguments)) {
+			$arguments = $arguments($this);
+		}
+
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->root,
+			$this->fileMapper,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$this->expectExceptionMessage($expectedErrorMessage);
+		$this->service->validateCertificateData($arguments);
+	}
+
+	public function providerTestValidateCertificateDataUsingDataProvider() {
+		return [
+			[
+				[
+					'uuid' => '12345678-1234-1234-1234-123456789012',
+					'email' => ''
+				],
+				'You must have an email. You can define the email in your profile.'
+			],
+			[
+				[
+					'uuid' => '12345678-1234-1234-1234-123456789012',
+					'email' => 'invalid'
+				],
+				'Invalid email'
+			],
+			[
+				function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
 					$fileUser
 						->method('__call')
@@ -181,21 +251,56 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]
 		];
 	}
-	public function testValidateCreateToSignSuccess() {
+
+	private function mockValidateWithSuccess() {
+		$backend = $this->createMock(\OC\User\Database::class);
+		$backend->method('implementsActions')
+			->willReturn(true);
+		$backend->method('userExists')
+			->willReturn(true);
+		$backend->method('getRealUID')
+			->willReturn('userId');
+		$userManager = \OC::$server->getUserManager();
+		$userManager->clearBackends();
+		$userManager->registerBackend($backend);
+
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
-			->with($this->equalTo('getEmail'), $this->anything())
-			->will($this->returnValue('valid@test.coop'));
+			->withConsecutive(
+				[$this->equalTo('getEmail')],
+				[$this->equalTo('getFileId')],
+				[$this->equalTo('getNodeId')],
+				[$this->equalTo('getUserId')],
+			)
+			->will($this->returnValueMap([
+				['getEmail', [], 'valid@test.coop'],
+				['getFileId', [], 171],
+				['getNodeId', [], 171],
+				['getUserId', [], 'username'],
+			]));
+		$this->fileMapper
+			->method('getById')
+			->will($this->returnValue($fileUser));
 		$this->fileUserMapper
 			->method('getByUuid')
 			->will($this->returnValue($fileUser));
+
+		$this->root
+			->method('getById')
+			->will($this->returnValue(['fileToSign']));
+	}
+
+	public function testValidateCreateToSignSuccess() {
+		$this->mockValidateWithSuccess();
 
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -218,6 +323,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -255,6 +362,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -294,6 +403,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -333,6 +444,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -347,6 +460,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -376,6 +491,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -407,6 +524,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -431,6 +550,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
@@ -477,6 +598,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileUserMapper,
 			$this->userManager,
 			$folder,
+			$this->root,
+			$this->fileMapper,
 			$this->config,
 			$this->newUserMail,
 			$this->cfsslHandler
