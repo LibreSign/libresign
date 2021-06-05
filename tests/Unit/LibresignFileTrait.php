@@ -33,14 +33,14 @@ trait LibresignFileTrait {
 			]
 		]);
 
-		$this->files[] = $file = $this->getWebhook()->save($data);
+		$this->files[] = $file = $this->getWebhookService()->save($data);
 		return $file;
 	}
 
 	/**
 	 * @return \OCA\Libresign\Service\WebhookService
 	 */
-	private function getWebhook(): \OCA\Libresign\Service\WebhookService {
+	public function getWebhookService(): \OCA\Libresign\Service\WebhookService {
 		if (!$this->webhook) {
 			$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
 		}
@@ -65,7 +65,7 @@ trait LibresignFileTrait {
 					];
 				}
 			}
-			$this->getWebhook()->deleteSignRequest($toRemove);
+			$this->getWebhookService()->deleteSignRequest($toRemove);
 		}
 	}
 }
