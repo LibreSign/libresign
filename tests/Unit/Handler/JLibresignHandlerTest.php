@@ -4,12 +4,11 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Handler\JLibresignHandler;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-final class JLibresignHandlerTest extends TestCase {
+final class JLibresignHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var JLibresignHandler */
 	private $class;
 	public function setUp(): void {

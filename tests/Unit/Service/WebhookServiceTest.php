@@ -16,13 +16,12 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
-final class WebhookServiceTest extends TestCase {
+final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -48,7 +47,19 @@ final class WebhookServiceTest extends TestCase {
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
+
+		$this->config
+			->expects($this->any())
+			->method('getAppValue')
+			->willReturn('["admin"]');
+
 		$this->groupManager = $this->createMock(IGroupManager::class);
+
+		$this->groupManager
+			->expects($this->any())
+			->method('getUserGroupIds')
+			->willReturn(['admin']);
+
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -263,7 +274,8 @@ final class WebhookServiceTest extends TestCase {
 				]
 			]
 		]);
-		$this->assertNull($actual);
+		$this->assertIsArray($actual);
+		$this->assertCount(1, $actual);
 	}
 
 	public function testSaveFileUsingFileIdSuccess() {
@@ -375,29 +387,7 @@ final class WebhookServiceTest extends TestCase {
 		$actual = $this->service->saveFile([
 			'name' => 'Name',
 			'file' => [
-				'base64' => <<<PDF
-				JVBERi0xLjYKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURl
-				Y29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAw0DMwslAw0rMwMIOSRalc4VoKeVyGCiBYlM5lAJIw
-				NlHI5YIrA/JyoMohBuTAjQKxYCoyuNK0uAIVAMl8FhMKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9i
-				ago3NQplbmRvYmoKCjUgMCBvYmoKPDwKPj4KZW5kb2JqCgo2IDAgb2JqCjw8L0ZvbnQgNSAwIFIK
-				L1Byb2NTZXRbL1BERi9UZXh0XQo+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZS9QYWdlL1BhcmVu
-				dCA0IDAgUi9SZXNvdXJjZXMgNiAwIFIvTWVkaWFCb3hbMCAwIDIuODM0NjQ1NjY5MjkxMzQgMi44
-				MzQ2NDU2NjkyOTEzNF0vR3JvdXA8PC9TL1RyYW5zcGFyZW5jeS9DUy9EZXZpY2VSR0IvSSB0cnVl
-				Pj4vQ29udGVudHMgMiAwIFI+PgplbmRvYmoKCjQgMCBvYmoKPDwvVHlwZS9QYWdlcwovUmVzb3Vy
-				Y2VzIDYgMCBSCi9NZWRpYUJveFsgMCAwIDIgMiBdCi9LaWRzWyAxIDAgUiBdCi9Db3VudCAxPj4K
-				ZW5kb2JqCgo3IDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyA0IDAgUgovT3BlbkFjdGlvblsx
-				IDAgUiAvWFlaIG51bGwgbnVsbCAwXQo+PgplbmRvYmoKCjggMCBvYmoKPDwvQ3JlYXRvcjxGRUZG
-				MDA0NDAwNzIwMDYxMDA3Nz4KL1Byb2R1Y2VyPEZFRkYwMDRDMDA2OTAwNjIwMDcyMDA2NTAwNEYw
-				MDY2MDA2NjAwNjkwMDYzMDA2NTAwMjAwMDM3MDAyRTAwMzA+Ci9DcmVhdGlvbkRhdGUoRDoyMDIx
-				MDUxNDE0MzA1NS0wMycwMCcpPj4KZW5kb2JqCgp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYg
-				CjAwMDAwMDAyNTkgMDAwMDAgbiAKMDAwMDAwMDAxOSAwMDAwMCBuIAowMDAwMDAwMTY1IDAwMDAw
-				IG4gCjAwMDAwMDA0MjcgMDAwMDAgbiAKMDAwMDAwMDE4NCAwMDAwMCBuIAowMDAwMDAwMjA2IDAw
-				MDAwIG4gCjAwMDAwMDA1MjEgMDAwMDAgbiAKMDAwMDAwMDYwNCAwMDAwMCBuIAp0cmFpbGVyCjw8
-				L1NpemUgOS9Sb290IDcgMCBSCi9JbmZvIDggMCBSCi9JRCBbIDw0ODRCRUFEODVDNDI3MUJFNUM0
-				MEFGQkEwRDEzQ0U2Mz4KPDQ4NEJFQUQ4NUM0MjcxQkU1QzQwQUZCQTBEMTNDRTYzPiBdCi9Eb2ND
-				aGVja3N1bSAvRUUyMThGOURBRDY5RDU3RDNDNUYzRjFCRTQ5NzVBQjkKPj4Kc3RhcnR4cmVmCjc3
-				MAolJUVPRgo=
-				PDF
+				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 			],
 			'userManager' => $this->user
 		]);
@@ -637,25 +627,8 @@ final class WebhookServiceTest extends TestCase {
 
 	public function testIndexWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
-		$this->config
-			->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["admin"]');
-		$this->groupManager
-			->expects($this->once())
-			->method('getUserGroupIds')
-			->willReturn([]);
 
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'jhondoe@test.coop'
-				]
-			],
-			'userManager' => $this->user
-		]);
+		$this->service->validate([]);
 	}
 
 	public function testNotifyCallback() {

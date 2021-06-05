@@ -20,6 +20,9 @@ Types of changes:
 - GitHub action to add a changelog reminder
 - Test for validation of Swagger documentation
 
+# Changed
+- Increment coverage and refactors
+
 # Removed
 - Removed dsv folder
 

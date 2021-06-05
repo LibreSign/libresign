@@ -32,6 +32,10 @@ class FolderService {
 		$this->userId = $userId;
 	}
 
+	public function getUserId() {
+		return $this->userId;
+	}
+
 	/**
 	 * Get folder for user
 	 *
@@ -62,6 +66,7 @@ class FolderService {
 	 * @throws NotPermittedException
 	 */
 	private function getOrCreateFolder($path) {
+		\OC\Files\Filesystem::initMountPoints($this->userId);
 		if ($this->root->nodeExists($path)) {
 			$folder = $this->root->get($path);
 		} else {
@@ -82,14 +87,5 @@ class FolderService {
 		}
 
 		return $path;
-	}
-
-	public function deleteParentNodeOfNodeId(int $nodeId) {
-		$node = $this->root->getById($nodeId);
-		if (count($node) < 1) {
-			throw new \Exception('Invalid node');
-		}
-		$parent = $node[0]->getParent();
-		$parent->delete();
 	}
 }

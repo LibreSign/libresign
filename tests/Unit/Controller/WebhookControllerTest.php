@@ -2,57 +2,234 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OCA\Libresign\Controller\WebhookController;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\WebhookService;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\JSONResponse;
-use OCP\IGroupManager;
-use OCP\IL10N;
-use OCP\IRequest;
-use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 
-final class WebhookControllerTest extends TestCase {
-	/** @var WebhookController */
-	private $controller;
-	/** @var IL10N */
-	private $l10n;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var IRequest */
-	private $request;
-	/** @var MailService */
-	private $mail;
+/**
+ * @group DB
+ */
+final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
+	use LibresignFileTrait;
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostRegisterWithValidationFailure() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'name' => 'filename',
+				'file' => [],
+				'users' => []
+			])
+			->assertResponseCode(422);
 
-	public function setUp(): void {
-		parent::setUp();
-		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->l10n = $this->createMock(IL10N::class);
-		$this->userSession = $this->createMock(IUserSession::class);
-		$this->request = $this->createMock(IRequest::class);
-		$this->webhook = $this->createMock(WebhookService::class);
-		$this->mail = $this->createMock(MailService::class);
-
-		$this->controller = new WebhookController(
-			$this->request,
-			$this->userSession,
-			$this->l10n,
-			$this->webhook,
-			$this->mail
-		);
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('You are not allowed to request signing', $body['message']);
 	}
 
-	public function testIndexSuccess() {
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostRegisterWithSuccess() {
+		$this->createUser('username', 'password');
 
-		$actual = $this->controller->register([], [], '');
-		$expected = new JSONResponse([
-			'message' => 'Success',
-			'data' => null
-		], Http::STATUS_OK);
-		$this->assertEquals($expected, $actual);
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
+
+		$this->request
+			->withMethod('POST')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'name' => 'filename',
+				'file' => [
+					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+				],
+				'users' => [
+					[
+						'email' => 'user@test.coop'
+					]
+				]
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$body['data']['users'][] = ['email' => 'user@test.coop'];
+		$this->addFile($body['data']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithoutAuthenticatedUser() {
+		$this->request
+			->withPath('/webhook/me')
+			->assertResponseCode(404);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithAuthenticatedUser() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withPath('/webhook/me')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			]);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPatchRegisterWithValidationFailure() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => '12345678-1234-1234-1234-123456789012',
+				'users' => []
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('You are not allowed to request signing', $body['message']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPatchRegisterWithSuccess() {
+		$user = $this->createUser('username', 'password');
+
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => $file['uuid'],
+				'users' => [
+					[
+						'email' => 'user@test.coop'
+					]
+				]
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$body['data']['users'][] = ['email' => 'user@test.coop'];
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteRegisterWithValidationFailure() {
+		$user = $this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('DELETE')
+			->withPath('/webhook/register/signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => 'invalid',
+				'users' => []
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('You are not allowed to request signing', $body['message']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteRegisterWithSuccess() {
+		$user = $this->createUser('username', 'password');
+
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'user01@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withMethod('DELETE')
+			->withPath('/webhook/register/signature')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => $file['uuid'],
+				'users' => [
+					[
+						'email' => 'user01@test.coop'
+					]
+				]
+			]);
+
+		$this->assertRequest();
 	}
 }

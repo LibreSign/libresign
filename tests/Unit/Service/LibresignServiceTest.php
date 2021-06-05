@@ -5,13 +5,12 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Storage\ClientStorage;
-use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /**
  * @internal
  */
-final class LibresignServiceTest extends TestCase {
+final class LibresignServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	use ProphecyTrait;
 	public function testSignFile() {
 		$inputFilePath = '/path/to/someInputFilePath';
