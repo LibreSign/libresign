@@ -140,9 +140,6 @@ class WebhookController extends ApiController {
 			}
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
-			if (preg_match('/Did expect one result but found none when executing/', $message)) {
-				$message = $this->l10n->t('UUID not found');
-			}
 			return new JSONResponse(
 				[
 					'message' => $message,
