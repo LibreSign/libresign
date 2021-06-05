@@ -186,20 +186,27 @@ class WebhookService {
 		});
 	}
 
-	public function deleteSignRequest(array $data) {
+	public function deleteSignRequest(array $data): array {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
 		$fileData = $this->getFileByUuid($data['uuid']);
-		foreach ($data['users'] as $signer) {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
-				$signer['email'],
-				$fileData->getId()
-			);
-			$this->fileUserMapper->delete($fileUser);
+		$deletedUsers = [];
+		foreach ($data['users'] as $key => $signer) {
+			try {
+				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
+					$signer['email'],
+					$fileData->getId()
+				);
+				$this->fileUserMapper->delete($fileUser);
+				$deletedUsers[] = $fileUser;
+			} catch (\Throwable $th) {
+				// already deleted
+			}
 		}
 		if (count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
 		}
+		return $deletedUsers;
 	}
 
 	/**

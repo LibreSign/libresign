@@ -134,8 +134,8 @@ class WebhookController extends ApiController {
 			$this->webhook->validateFileUuid($data);
 			$this->webhook->validateUsers($data);
 			$this->webhook->canDeleteSignRequest($data);
-			$this->webhook->deleteSignRequest($data);
-			foreach ($data['user'] as $user) {
+			$deletedUsers = $this->webhook->deleteSignRequest($data);
+			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
 			}
 		} catch (\Throwable $th) {

@@ -274,7 +274,8 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			]
 		]);
-		$this->assertNull($actual);
+		$this->assertIsArray($actual);
+		$this->assertCount(1, $actual);
 	}
 
 	public function testSaveFileUsingFileIdSuccess() {
