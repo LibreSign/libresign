@@ -221,7 +221,7 @@ class AccountService {
 	public function getConfig(string $uuid, string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
 		$info['settings'] = [
-			'hasSignatureFile' => $this->hasSignatureFile()
+			'hasSignatureFile' => $this->hasSignatureFile($userId)
 		];
 		return $info;
 	}
@@ -312,13 +312,12 @@ class AccountService {
 		return $return;
 	}
 
-	private function hasSignatureFile() {
-		$userId = $this->session->get('user_id');
+	private function hasSignatureFile(string $userId = null) {
 		if (!$userId) {
 			return false;
 		}
 		try {
-			$this->accountService->getPfx($userId);
+			$this->getPfx($userId);
 			return true;
 		} catch (\Throwable $th) {
 		}
