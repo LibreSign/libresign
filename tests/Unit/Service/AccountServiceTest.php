@@ -607,4 +607,32 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $service->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
 		$this->assertNull($actual);
 	}
+
+	public function testGetConfigWithInvalidUuuid() {
+		$service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManager,
+			$this->folder,
+			$this->root,
+			$this->fileMapper,
+			$this->config,
+			$this->newUserMail,
+			$this->cfsslHandler
+		);
+		$actual = $service->getConfig('uuid', 'userid', 'filetype');
+		$actual = json_encode($actual);
+		$this->assertJsonStringEqualsJsonString(
+			$actual,
+			json_encode([
+				'action' => 200,
+				'errors' => [
+					'This is not your file'
+				],
+				'settings' => [
+					'hasSignatureFile' => false
+				]
+			])
+		);
+	}
 }
