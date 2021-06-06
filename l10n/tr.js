@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Dosya bulunamadı",
     "Success" : "Tamamlandı",
     "Invalid data to sign file" : "Dosyayı imzalamak için veriler geçersiz",
     "File already signed by you" : "Dosyayı zaten imzalamışsınız",
+    "File not found" : "Dosya bulunamadı",
     "signed" : "imzalanmış",
     "File signed" : "Dosya imzalanmış",
     "Internal error. Contact admin." : "İçeride bir sorun çıktı. BT yöneticiniz ile görüşün.",
@@ -15,8 +15,8 @@ OC.L10N.register(
     "File already signed." : "Dosya zaten imzalanmış.",
     "You are not logged in. Please log in." : "Oturum açmamışsınız. Lütfen oturum açın.",
     "Invalid user" : "Kullanıcı adı geçersiz",
-    "UUID not found" : "UUID bulunamadı",
     "Invalid user or password" : "Kullanıcı adı ya da parola geçersiz",
+    "UUID not found" : "UUID bulunamadı",
     "User already exists" : "Kullanıcı zaten var",
     "Password is mandatory" : "Parola yazılması zorunludur",
     "Invalid email" : "E-posta adresi geçersiz",

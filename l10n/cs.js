@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Soubor nenalezen",
     "Success" : "Úspěch",
     "Invalid data to sign file" : "Neplatná data pro podepsání souboru",
     "File already signed by you" : "Soubor jste už podepsali",
+    "File not found" : "Soubor nenalezen",
     "signed" : "přihlášen",
     "File signed" : "Soubor podepsán",
     "Internal error. Contact admin." : "Systémová chyba. Kontaktujte podporu.",
@@ -15,8 +15,8 @@ OC.L10N.register(
     "File already signed." : "Soubor už je podepsaný.",
     "You are not logged in. Please log in." : "Nejste přihlášení. Napravte to.",
     "Invalid user" : "Neplatný uživatel",
-    "UUID not found" : "UUID identifikátor nenalezen",
     "Invalid user or password" : "Neplatný uživatel nebo heslo",
+    "UUID not found" : "UUID identifikátor nenalezen",
     "User already exists" : "Uživatel už existuje",
     "Password is mandatory" : "Heslo je třeba zadat",
     "Invalid email" : "Neplatný e-mail",

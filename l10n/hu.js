@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Fájl nem található",
     "Success" : "Siker",
     "Invalid data to sign file" : "Érvénytelen adatok a fájl aláírásához",
     "File already signed by you" : "A fájlt Ön már aláírta",
+    "File not found" : "Fájl nem található",
     "signed" : "aláírva",
     "File signed" : "Fájl aláírva",
     "Internal error. Contact admin." : "Belső hiba. Lépjen kapcsolatba az adminisztrátorral.",
@@ -15,8 +15,8 @@ OC.L10N.register(
     "File already signed." : "A fájl már alá van írva.",
     "You are not logged in. Please log in." : "Nincs bejelentkezve. Kérjük, jelentkezzen be.",
     "Invalid user" : "Érvénytelen felhasználó",
-    "UUID not found" : "Az UUID nem található",
     "Invalid user or password" : "Érvénytelen felhasználó vagy jelszó",
+    "UUID not found" : "Az UUID nem található",
     "User already exists" : "A felhasználó már létezik",
     "Password is mandatory" : "A jelszó megadása kötelező",
     "Invalid email" : "Érvénytelen e-mail",
