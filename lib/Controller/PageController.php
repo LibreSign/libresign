@@ -77,7 +77,11 @@ class PageController extends Controller {
 	 * Render default template
 	 */
 	public function index() {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig('url')));
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			$this->request->getParam('uuid'),
+			$this->session->get('user_id'),
+			'url'
+		)));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
@@ -100,7 +104,11 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function sign($uuid) {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig('url')));
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			$uuid,
+			$this->session->get('user_id'),
+			'url'
+		)));
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -163,7 +171,11 @@ class PageController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function getPdfUser($uuid) {
-		$config = $this->accountService->getConfig('file');
+		$config = $this->accountService->getConfig(
+			$uuid,
+			$this->session->get('user_id'),
+			'file'
+		);
 		if (!isset($config['sign'])) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
@@ -185,7 +197,11 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function validation() {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig('url')));
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			$this->request->getParam('uuid'),
+			$this->session->get('user_id'),
+			'url'
+		)));
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
@@ -201,7 +217,11 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function resetPassword() {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig('url')));
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			$this->request->getParam('uuid'),
+			$this->session->get('user_id'),
+			'url'
+		)));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'reset_password');
@@ -217,7 +237,11 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function validationFile(string $uuid) {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig('url')));
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			$uuid,
+			$this->session->get('user_id'),
+			'url'
+		)));
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
