@@ -15,6 +15,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 
@@ -35,6 +36,8 @@ class AccountService {
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
 	/** @var FileMapper */
@@ -55,6 +58,7 @@ class AccountService {
 		FileMapper $fileMapper,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
+		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler
 	) {
 		$this->l10n = $l10n;
@@ -65,6 +69,7 @@ class AccountService {
 		$this->fileMapper = $fileMapper;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
+		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
 	}
 

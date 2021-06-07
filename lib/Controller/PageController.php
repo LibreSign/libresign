@@ -19,7 +19,6 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
-use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\Util;
 
@@ -38,8 +37,6 @@ class PageController extends Controller {
 	private $l10n;
 	/** @var IInitialState */
 	private $initialState;
-	/** @var IURLGenerator */
-	private $urlGenerator;
 	/** @var AccountService */
 	private $accountService;
 	/** @var IRootFolder */
@@ -53,7 +50,6 @@ class PageController extends Controller {
 		IUserManager $userManager,
 		IL10N $l10n,
 		IInitialState $initialState,
-		IURLGenerator $urlGenerator,
 		AccountService $accountService,
 		IRootFolder $root
 	) {
@@ -67,7 +63,6 @@ class PageController extends Controller {
 		$this->l10n = $l10n;
 		$this->userManager = $userManager;
 		$this->accountService = $accountService;
-		$this->urlGenerator = $urlGenerator;
 	}
 
 	/**
