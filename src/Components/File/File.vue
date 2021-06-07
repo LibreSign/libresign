@@ -1,11 +1,11 @@
 <template>
-	<div class="content-file" @click="log">
+	<div class="content-file" @click="openSidebar">
 		<img :src="srcImg">
 		<div class="enDot">
 			<div :class="'dot ' + status" />
 			<span>pendente</span>
 		</div>
-		<h1>{{ name }}</h1>
+		<h1>{{ file.name }}</h1>
 	</div>
 </template>
 
@@ -14,9 +14,9 @@ import ApplicationImagePdf from '../../assets/images/application-pdf.png'
 export default {
 	name: 'File',
 	props: {
-		name: {
-			type: String,
-			default: '',
+		file: {
+			type: Object,
+			default: () => { },
 			required: true,
 		},
 		status: {
@@ -32,11 +32,8 @@ export default {
 		}
 	},
 	methods: {
-		log() {
-			this.$emit('sidebar', true)
-		},
 		openSidebar() {
-			this.$store.commit('setSidebar', true)
+			this.$emit('sidebar', this.file)
 		},
 	},
 }
@@ -49,8 +46,8 @@ export default {
 	justify-content: center;
 	align-items: center;
 	min-width: 62px;
-	min-height: 180px;
-	margin: 20px;
+	max-height: 196px;
+	margin: 30px 40px 20px 20px;
 	padding: 10px 20px 10px 20px;
 	cursor: pointer;
 

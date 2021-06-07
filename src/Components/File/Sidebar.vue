@@ -1,35 +1,44 @@
 <template>
-	<AppSidebar v-if="currentFile"
-		title="teste"
-		:active="tabId"
+	<AppSidebar
+		v-if="currentFile"
+		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
+		:title="getCurrentFile.file.name ? getCurrentFile.file.name : ''"
+		:active="getCurrentFile.file.id ? `libresign-tab-${getCurrentFile.file.id}` : 'id-'"
+		:header="false"
 		@close="closeSidebar">
-		<template #secondary-actions>
-			<ActionButton>
-				ok
-			</ActionButton>
-		</template>
+		<AppSidebarTab id="signantures"
+			:order="1"
+			:name="t('libresign', 'Signatures')"
+			icon="icon-rename">
+			<Signatures />
+		</AppSidebarTab>
+		<AppSidebarTab id="Request"
+			:order="2"
+			:name="t('libresign', 'Request')"
+			icon="icon-rename">
+			<h2>Olá Request</h2>
+		</AppSidebarTab>
+		<AppSidebarTab id="sign"
+			:order="3"
+			:name="t('libresign', 'Signatures')"
+			icon="icon-rename">
+			<h2>Olá Signatures</h2>
+		</AppSidebarTab>
 	</AppSidebar>
 </template>
 
 <script>
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
-// import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
+import Signatures from './Signatures.vue'
 
 export default {
 	name: 'Sidebar',
 	components: {
 		AppSidebar,
-		ActionButton,
-		// AppSidebarTab,
-	},
-	props: {
-		tabId: {
-			type: String,
-			required: false,
-			default: null,
-		},
+		AppSidebarTab,
+		Signatures,
 	},
 	computed: {
 		...mapState({
