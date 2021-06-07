@@ -218,7 +218,7 @@ class AccountService {
 	 * @param string $formatOfPdfOnSign (base64,url,file)
 	 * @return array|string
 	 */
-	public function getConfig(string $uuid, string $userId, string $formatOfPdfOnSign): array {
+	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
 		$info['settings'] = [
 			'hasSignatureFile' => $this->hasSignatureFile($userId)
@@ -226,7 +226,7 @@ class AccountService {
 		return $info;
 	}
 
-	private function getInfoOfFileToSign(string $uuid, string $userId, string $formatOfPdfOnSign): array {
+	private function getInfoOfFileToSign(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$return = [];
 		try {
 			if (!$uuid) {
@@ -312,7 +312,7 @@ class AccountService {
 		return $return;
 	}
 
-	private function hasSignatureFile(string $userId = null) {
+	private function hasSignatureFile(?string $userId = null) {
 		if (!$userId) {
 			return false;
 		}
