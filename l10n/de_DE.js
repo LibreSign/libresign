@@ -19,6 +19,7 @@ OC.L10N.register(
     "UUID not found" : "UUID nicht gefunden",
     "User already exists" : "Benutzer existiert bereits",
     "Password is mandatory" : "Passwort ist obligatorisch",
+    "You must have an email. You can define the email in your profile." : "Sie müssen eine E-Mail-Adresse haben. Sie können die E-Mail-Adresse in Ihrem Profil definieren.",
     "Invalid email" : "Ungültige E-Mail-Adresse",
     "Password to sign is mandatory" : "Passwort zum Signieren ist obligatorisch",
     "LibreSign" : "LibreSign",

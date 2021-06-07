@@ -96,6 +96,7 @@ OC.L10N.register(
     "Generate Subscription." : "Genera sottoscrizione.",
     "Subscription generated and available at {path}!" : "Sottoscrizione generata e disponibile in {path}!",
     "Could not create signature." : "Creazione della firma non riuscita.",
+    "Sign" : "Firma",
     "New password" : "Nuova password",
     "Repeat password" : "Ripeti la password",
     "Validation URL" : "URL di convalida",

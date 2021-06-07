@@ -19,6 +19,7 @@ OC.L10N.register(
     "UUID not found" : "UUID 未找到",
     "User already exists" : "用户已存在",
     "Password is mandatory" : "密码是强制的",
+    "You must have an email. You can define the email in your profile." : "你必须有一个电子邮箱。你可以在你的个人资料中定义邮箱",
     "Invalid email" : "无效电子邮件",
     "Password to sign is mandatory" : "登录密码是强制的",
     "LibreSign" : "LibreSign ",

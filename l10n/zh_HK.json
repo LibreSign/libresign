@@ -17,6 +17,7 @@
     "UUID not found" : "未找到 UUID",
     "User already exists" : "用戶已存在",
     "Password is mandatory" : "必須有密碼",
+    "You must have an email. You can define the email in your profile." : "你必須有一個電郵地址。 您可以在您的個人資料中定義電郵地址。",
     "Invalid email" : "無效的電郵地址",
     "Password to sign is mandatory" : "簽署密碼是必填項",
     "LibreSign" : "LibreSign",
