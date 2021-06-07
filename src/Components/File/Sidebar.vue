@@ -5,24 +5,14 @@
 		:title="getCurrentFile.file.name ? getCurrentFile.file.name : ''"
 		:active="getCurrentFile.file.id ? `libresign-tab-${getCurrentFile.file.id}` : 'id-'"
 		:header="false"
+		name="sidebar"
 		@close="closeSidebar">
-		<AppSidebarTab id="signantures"
-			:order="1"
+		<AppSidebarTab
+			id="signantures"
 			:name="t('libresign', 'Signatures')"
-			icon="icon-rename">
-			<Signatures />
-		</AppSidebarTab>
-		<AppSidebarTab id="Request"
-			:order="2"
-			:name="t('libresign', 'Request')"
-			icon="icon-rename">
-			<h2>Olá Request</h2>
-		</AppSidebarTab>
-		<AppSidebarTab id="sign"
-			:order="3"
-			:name="t('libresign', 'Signatures')"
-			icon="icon-rename">
-			<h2>Olá Signatures</h2>
+			icon="icon-rename"
+			:order="1">
+			<SignaturesTab :items="it" />
 		</AppSidebarTab>
 	</AppSidebar>
 </template>
@@ -31,14 +21,25 @@
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
-import Signatures from './Signatures.vue'
+import SignaturesTab from './SignaturesTab.vue'
 
 export default {
 	name: 'Sidebar',
 	components: {
 		AppSidebar,
 		AppSidebarTab,
-		Signatures,
+		SignaturesTab,
+	},
+	data() {
+		return {
+			it: [
+				{
+					name: 'Vinicios Gomes',
+					status: 'done',
+					data: 1616586633,
+				},
+			],
+		}
 	},
 	computed: {
 		...mapState({
