@@ -677,9 +677,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->fileUserMapper
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
-					$self->userManagerInstance
-						->method('userExists')
-						->willReturn(true);
 				}
 			]
 		];
