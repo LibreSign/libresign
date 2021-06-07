@@ -2,11 +2,13 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
@@ -25,6 +27,8 @@ class MailService {
 	private $l10n;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IConfig */
+	private $config;
 	
 	public function __construct(
 		LoggerInterface $logger,
@@ -32,7 +36,8 @@ class MailService {
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
 		IL10N $l10n,
-		IURLGenerator $urlGenerator
+		IURLGenerator $urlGenerator,
+		IConfig $config
 	) {
 		$this->logger = $logger;
 		$this->mailer = $mailer;
@@ -40,6 +45,7 @@ class MailService {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->l10n = $l10n;
 		$this->urlGenerator = $urlGenerator;
+		$this->config = $config;
 	}
 
 	public function notifyAllUnsigned() {
@@ -98,6 +104,9 @@ class MailService {
 	}
 
 	public function notifyUnsignedUser(FileUser $data) {
+		if (!$this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true)) {
+			return;
+		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('There is a file for you to sign'));
 		$emailTemplate->addHeader();

@@ -8,6 +8,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\AppFramework\Http;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -78,12 +79,16 @@ class WebhookService {
 	}
 
 	public function validateUserManager($user) {
+		if (!isset($user['userManager'])) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
-			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('You are not allowed to request signing'), 405);
-			}
+		if (empty($authorized) || !is_array($authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
+		if (!array_intersect($userGroups, $authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 	}
 
@@ -181,20 +186,27 @@ class WebhookService {
 		});
 	}
 
-	public function deleteSignRequest(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
-		foreach ($data['users'] as $signer) {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
-				$signer['email'],
-				$fileData->getId()
-			);
-			$this->fileUserMapper->delete($fileUser);
-		}
+	public function deleteSignRequest(array $data): array {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		$fileData = $this->getFileByUuid($data['uuid']);
+		$deletedUsers = [];
+		foreach ($data['users'] as $key => $signer) {
+			try {
+				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
+					$signer['email'],
+					$fileData->getId()
+				);
+				$this->fileUserMapper->delete($fileUser);
+				$deletedUsers[] = $fileUser;
+			} catch (\Throwable $th) {
+				// already deleted
+			}
+		}
 		if (count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
 		}
+		return $deletedUsers;
 	}
 
 	/**
@@ -331,6 +343,9 @@ class WebhookService {
 	}
 
 	private function getNodeFromData(array $data): \OCP\Files\Node {
+		if (!$this->folderService->getUserId()) {
+			$this->folderService->setUserId($data['userManager']->getUID());
+		}
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];

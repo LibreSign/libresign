@@ -68,7 +68,7 @@ class WebhookController extends ApiController {
 				[
 					'message' => $th->getMessage(),
 				],
-				$th->getCode() > 0 ? $th->getCode() : Http::STATUS_UNPROCESSABLE_ENTITY
+				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 		return new JSONResponse(
@@ -134,15 +134,12 @@ class WebhookController extends ApiController {
 			$this->webhook->validateFileUuid($data);
 			$this->webhook->validateUsers($data);
 			$this->webhook->canDeleteSignRequest($data);
-			$this->webhook->deleteSignRequest($data);
-			foreach ($data['user'] as $user) {
+			$deletedUsers = $this->webhook->deleteSignRequest($data);
+			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
 			}
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
-			if (preg_match('/Did expect one result but found none when executing/', $message)) {
-				$message = $this->l10n->t('UUID not found');
-			}
 			return new JSONResponse(
 				[
 					'message' => $message,

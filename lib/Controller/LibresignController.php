@@ -27,7 +27,6 @@ use Psr\Log\LoggerInterface;
 use setasign\Fpdi\Fpdi;
 
 class LibresignController extends Controller {
-	use HandleErrorsTrait;
 	use HandleParamsTrait;
 
 	/** @var FileUserMapper */
@@ -207,6 +206,7 @@ class LibresignController extends Controller {
 
 			return new JSONResponse(
 				[
+					'success' => true,
 					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed')
 				],
@@ -215,6 +215,7 @@ class LibresignController extends Controller {
 		} catch (LibresignException $e) {
 			return new JSONResponse(
 				[
+					'success' => false,
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [$e->getMessage()]
 				],
@@ -238,6 +239,7 @@ class LibresignController extends Controller {
 			}
 			return new JSONResponse(
 				[
+					'success' => false,
 					'action' => $action,
 					'errors' => [$message]
 				],
@@ -294,6 +296,7 @@ class LibresignController extends Controller {
 	}
 
 	private function validate(string $type, $identifier) {
+		$canSign = false;
 		try {
 			try {
 				$file = call_user_func(
@@ -307,27 +310,32 @@ class LibresignController extends Controller {
 				throw new LibresignException('Invalid file identifier', 404);
 			}
 
+			$return['success'] = true;
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signatures = $this->fileUserMapper->getByFileId($file->id);
-			$canSign = false;
 			foreach ($signatures as $signature) {
-				$uid = $this->userSession->getUser()->getUID();
-				$return['signatures'][] = [
+				$signatureToShow = [
 					'signed' => $signature->getSigned(),
 					'displayName' => $signature->getDisplayName(),
 					'fullName' => $signature->getFullName(),
-					'me' => $uid === $signature->getUserId()
+					'me' => false
 				];
-				if ($uid === $signature->getUserId() && !$signature->getSigned()) {
-					$canSign = true;
+				if ($this->userSession->getUser()) {
+					$uid = $this->userSession->getUser()->getUID();
+					$signatureToShow['me'] = $uid === $signature->getUserId();
+					if ($uid === $signature->getUserId() && !$signature->getSigned()) {
+						$canSign = true;
+					}
 				}
+				$return['signatures'][] = $signatureToShow;
 			}
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
 			$return = [
+				'success' => false,
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];

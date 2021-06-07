@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Datoteka nije pronađena",
     "Success" : "Uspjeh",
     "Invalid data to sign file" : "Nevažeći podaci datoteke za potpisivanje",
     "File already signed by you" : "Već ste potpisali datoteku",
+    "File not found" : "Datoteka nije pronađena",
     "signed" : "potpisao",
     "File signed" : "Datoteka je potpisana",
     "Internal error. Contact admin." : "Unutarnja pogreška. Obratite se administratoru.",
@@ -15,8 +15,8 @@ OC.L10N.register(
     "File already signed." : "Datoteka je već potpisana.",
     "You are not logged in. Please log in." : "Niste prijavljeni. Prijavite se.",
     "Invalid user" : "Nevažeći korisnik",
-    "UUID not found" : "UUID nije pronađen",
     "Invalid user or password" : "Nevažeći korisnik ili zaporka",
+    "UUID not found" : "UUID nije pronađen",
     "User already exists" : "Korisnik već postoji",
     "Password is mandatory" : "Zaporka je obavezna",
     "Invalid email" : "Nevažeća adresa e-pošte",

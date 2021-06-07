@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Datei nicht gefunden",
     "Success" : "Erfolgreich",
     "Invalid data to sign file" : "Ungültige Daten zum Unterschreiben der Datei",
     "File already signed by you" : "Datei wurde bereits von Dir signiert",
+    "File not found" : "Datei nicht gefunden",
     "signed" : "unterschrieben",
     "File signed" : "Datei unterschrieben",
     "Internal error. Contact admin." : "Interner Fehler. Kontaktiere einen Administrator.",
@@ -15,8 +15,8 @@ OC.L10N.register(
     "File already signed." : "Datei bereits unterschrieben",
     "You are not logged in. Please log in." : "Du bist nicht angemeldet. Bitte anmelden.",
     "Invalid user" : "Ungültiger Benutzer",
-    "UUID not found" : "UUID nicht gefunden",
     "Invalid user or password" : "Ungültiger Benutzer oder Passwort",
+    "UUID not found" : "UUID nicht gefunden",
     "User already exists" : "Benutzer existiert bereits",
     "Password is mandatory" : "Passwort ist erforderlich",
     "Invalid email" : "Ungültige E-Mail",

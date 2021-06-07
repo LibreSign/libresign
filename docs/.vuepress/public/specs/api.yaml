@@ -18,7 +18,7 @@ tags:
   description: Admin settings
 
 paths:
-  /webhook:
+  /webhook/me:
     get:
       tags:
         - webhook
@@ -33,8 +33,10 @@ paths:
                 type: object
                 properties:
                   uid:
-                    type: integer
-                    example: 132564
+                    type: string
+                    example: username
+                required:
+                  - uid
         404:
           description: Invalid user or password
           content:
@@ -44,7 +46,11 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Invalid user or password.
+                    enum:
+                      - Invalid user or password
+                    example: Invalid user or password
+                required:
+                  - message
       security:
         - basicAuth: []
   /webhook/register:
@@ -61,7 +67,6 @@ paths:
               properties:
                 name:
                   type: string
-                  pattern: '^[\w \-_]+$'
                   example: filename
                   description: The name of file to sign
                 file:
@@ -369,13 +374,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   action:
                     type: integer
+                    enum: [350]
                     description: Numeric code representing what action should be taken with the response
                     example: 200
                   message:
                     type: string
+                    enum: [File signed]
                     example: File signed
+                required:
+                  - success
+                  - action
+                  - message
         422:
           description: Request failed
           content:
@@ -383,6 +399,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -393,6 +414,10 @@ paths:
                         type: string
                     example:
                       - "File already signed by you"
+                required:
+                  - success
+                  - action
+                  - errors
       security:
         - basicAuth: []
   /sign/file_id/{fileId}:
@@ -431,6 +456,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -438,6 +468,10 @@ paths:
                   message:
                     type: string
                     example: File signed
+                required:
+                  - success
+                  - action
+                  - message
         422:
           description: Request failed
           content:
@@ -445,6 +479,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -455,9 +494,13 @@ paths:
                         type: string
                     example:
                       - "File already signed by you"
+                required:
+                  - success
+                  - action
+                  - errors
       security:
         - basicAuth: []
-  /validate/uuid/{uuid}:
+  /file/validate/uuid/{uuid}:
     get:
       tags:
         - sign
@@ -481,6 +524,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   name:
                     type: string
                     example: filename
@@ -494,16 +542,28 @@ paths:
                       type: object
                       properties:
                         signed:
-                          type: boolean
-                          description: Person signed?
+                          type: string
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Signing date, when signed
                         displayName:
                           type: string
                           description: The person display name
                           example: John
                         fullName:
                           type: string
+                          nullable: true
                           description: The person full name
                           example: John Doe
+                        me:
+                          type: boolean
+                          description: It's me?
+                          example: true
+                      required:
+                        - signed
+                        - displayName
+                        - fullName
+                        - me
                   settings:
                     type: object
                     properties:
@@ -511,22 +571,54 @@ paths:
                         type: boolean
                         description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
                         example: true
-        422:
-            description: Request failed
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    action:
-                      type: integer
-                      description: Numeric code representing what action should be taken with the response
-                      example: 200
-                    errors:
-                      type: array
-                      items:
-                        type: string
-  /validate/file_id/{fileId}:
+                      canSign:
+                        type: boolean
+                        description: Can request sign this file
+                        example: true
+                required:
+                  - success
+                  - name
+                  - file
+                  - settings
+        404:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
+                  settings:
+                    type: object
+                    properties:
+                      canRequestSign:
+                        type: boolean
+                        description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
+                        example: true
+                      canSign:
+                        type: boolean
+                        enum:
+                          - false
+                        description: Can request sign this file
+                        example: false
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 200
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - success
+                  - settings
+                  - errors
+                  - action
+  /file/validate/file_id/{fileId}:
     get:
       tags:
         - sign
@@ -549,6 +641,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   name:
                     type: string
                     example: filename
@@ -562,16 +659,28 @@ paths:
                       type: object
                       properties:
                         signed:
-                          type: boolean
-                          description: Person signed?
+                          type: string
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Signing date, when signed
                         displayName:
                           type: string
                           description: The person display name
                           example: John
                         fullName:
                           type: string
+                          nullable: true
                           description: The person full name
                           example: John Doe
+                        me:
+                          type: boolean
+                          description: It's me?
+                          example: true
+                      required:
+                        - signed
+                        - displayName
+                        - fullName
+                        - me
                   settings:
                     type: object
                     properties:
@@ -579,21 +688,53 @@ paths:
                         type: boolean
                         description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
                         example: true
-        422:
-            description: Request failed
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    action:
-                      type: integer
-                      description: Numeric code representing what action should be taken with the response
-                      example: 200
-                    errors:
-                      type: array
-                      items:
-                        type: string
+                      canSign:
+                        type: boolean
+                        description: Can request sign this file
+                        example: true
+                required:
+                  - success
+                  - name
+                  - file
+                  - settings
+        404:
+          description: Request failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
+                  settings:
+                    type: object
+                    properties:
+                      canRequestSign:
+                        type: boolean
+                        description: Person can request sign a new file. To authorize, the person must belong to a group defined in the LibreSign settings.
+                        example: true
+                      canSign:
+                        type: boolean
+                        enum:
+                          - false
+                        description: Can request sign this file
+                        example: false
+                  action:
+                    type: integer
+                    description: Numeric code representing what action should be taken with the response
+                    example: 200
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - success
+                  - settings
+                  - errors
+                  - action
   /signature/has-root-cert:
     get:
       tags:
@@ -662,6 +803,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   message:
                     type: string
                     description: Success message
@@ -679,13 +825,17 @@ paths:
                         example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
                   filename:
                     type: string
-                    pattern: '^[\w \-_]+$'
                     example: filename
                     description: The name of file to sign
                   description:
                     type: string
+                    nullable: true
                     description: Description for the person who will sign the document
                     example: As the company's CEO, you must sign this contract
+                required:
+                  - success
+                  - message
+                  - action
         422:
           description: Request failed
           content:
@@ -693,6 +843,11 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: Beep! Failure!
                   action:
                     type: integer
                     description: Numeric code representing what action should be taken with the response
@@ -701,6 +856,10 @@ paths:
                     type: string
                     description: Description of the failure that occurred
                     example: User 0 needs an email address
+                required:
+                  - success
+                  - action
+                  - message
   /account/signature:
     post:
       tags:
@@ -728,11 +887,18 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: Uhuuu! Need true vale.
                   signature:
                     type: string
                     description: Folder where the pfx file was saved
                     example: /LibreSign
-        422:
+                required:
+                  - success
+        401:
           description: Request failed
           content:
             application/json:
@@ -743,6 +909,11 @@ paths:
                     type: string
                     description: Password to sign is mandatory
                     example: Password to sign is mandatory
+                  success:
+                    type: boolean
+                    description: Beep! Failure on generate certificate.
+                required:
+                  - success
   /admin/certificate:
     post:
       tags:
@@ -794,20 +965,38 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                example: []
-        500:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                    description: CFSSL server is up?
+                required:
+                  - success
+                example:
+                  success: true
+        401:
           description: Request failed
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                    description: CFSSL server is up?
                   message:
                     type: array
                     description: List of failures that occurred
-                    example:
-                      - Error while writing CSR server file!
+                required:
+                  - success
+                  - message
+                example:
+                  success: false
+                  message: parameter 'cfsslUri' is required!
     get:
       tags:
         - admin

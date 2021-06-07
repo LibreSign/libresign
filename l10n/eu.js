@@ -1,9 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Ez da fitxategia aurkitu",
     "Success" : "Arrakasta",
     "File already signed by you" : "Fitxategia dagoeneko sinatu duzu",
+    "File not found" : "Ez da fitxategia aurkitu",
     "signed" : "sinatuta",
     "File signed" : "Fitxategia sinatuta",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
@@ -13,8 +13,8 @@ OC.L10N.register(
     "File already signed." : "Fitxategia dagoeneko sinatu da.",
     "You are not logged in. Please log in." : "Ez duzu saioa hasi. Mesedez, hasi saioa.",
     "Invalid user" : "Erabiltzaile baliogabea",
-    "UUID not found" : "Ez da UUIDa aurkitu",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
+    "UUID not found" : "Ez da UUIDa aurkitu",
     "User already exists" : "Erabiltzailea dagoeneko existitzen da",
     "Password is mandatory" : "Pasahitza nahitaezkoa da",
     "Invalid email" : "E-posta baliogabea",

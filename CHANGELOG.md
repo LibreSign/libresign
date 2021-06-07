@@ -21,6 +21,9 @@ Types of changes:
 - List of documents
 - Test for validation of Swagger documentation
 
+# Changed
+- Increment coverage and refactors
+
 # Removed
 - Removed dsv folder
 

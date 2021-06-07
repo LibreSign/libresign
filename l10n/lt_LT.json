@@ -1,6 +1,6 @@
 { "translations": {
-    "File not found" : "Failas nerastas",
     "Success" : "Pavyko",
+    "File not found" : "Failas nerastas",
     "File signed" : "Failas pasirašytas",
     "Internal error. Contact admin." : "Vidinė klaida. Susisiekite su administratoriumi.",
     "Invalid UUID" : "Neteisingas UUID",
@@ -9,8 +9,8 @@
     "File already signed." : "Failas jau pasirašytas.",
     "You are not logged in. Please log in." : "Jūs nesate prisijungę. Prisijunkite.",
     "Invalid user" : "Neteisingas naudotojas",
-    "UUID not found" : "UUID nerastas",
     "Invalid user or password" : "Neteisingas naudotojas ar slaptažodis",
+    "UUID not found" : "UUID nerastas",
     "User already exists" : "Naudotojas jau yra",
     "Password is mandatory" : "Slaptažodis yra privalomas",
     "Invalid email" : "Neteisingas el. pašto adresas",

@@ -10,6 +10,7 @@ use OCP\IRequest;
 use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\Routing\RequestContext;
 
 /**
  * Request handler based on ByJG HttpClient (WebRequest)
@@ -95,10 +96,19 @@ class ApiRequester extends AbstractRequester {
 			return $mockRequest;
 		});
 		\OC::$CLI = false;
-		$log = \OC::$server->get(\OC\Log::class);
-		$router = new \OC\Route\Router($log);
-		\OC::$server->registerService(\OC\Route\Router::class, function () use ($router) {
-			return $router;
-		});
+
+		$router = \OC::$server->get(\OC\Route\Router::class);
+		$reflectionClass = new \ReflectionClass($router);
+		$property = $reflectionClass->getProperty('context');
+		$property->setAccessible(true);
+		$property->setValue($router, new RequestContext(
+			'/index.php',
+			$server['REQUEST_METHOD'],
+			$server['HTTP_HOST'],
+			$request->getUri()->getScheme()
+		));
+
+		// Just to work with Nextcloud 20
+		\OC::$server->registerAlias(\OCP\Route\IRouter::class, \OC\Route\Router::class);
 	}
 }

@@ -5,11 +5,11 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AdminSignatureService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class AdminController extends Controller {
-	use HandleErrorsTrait;
 	use HandleParamsTrait;
 
 	/** @var AdminSignatureService */
@@ -59,9 +59,17 @@ class AdminController extends Controller {
 				$configPath
 			);
 
-			return new DataResponse([]);
+			return new DataResponse([
+				'success' => true
+			]);
 		} catch (\Exception $exception) {
-			return $this->handleErrors($exception);
+			return new DataResponse(
+				[
+					'success' => false,
+					'message' => $exception->getMessage()
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
 		}
 	}
 
@@ -70,12 +78,8 @@ class AdminController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function loadCertificate(): DataResponse {
-		try {
-			$certificate = $this->adminSignatureService->loadKeys();
+		$certificate = $this->adminSignatureService->loadKeys();
 
-			return new DataResponse($certificate);
-		} catch (\Exception $exception) {
-			return $this->handleErrors($exception);
-		}
+		return new DataResponse($certificate);
 	}
 }
