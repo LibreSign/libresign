@@ -652,6 +652,36 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn(true);
 				}
 			],
+			[ // #6
+				'uuid', null, 'filetype',
+				[
+					'action' => JSActions::ACTION_SHOW_ERROR,
+					'errors' => [
+						'File already signed.'
+					],
+					'settings' => [
+						'hasSignatureFile' => false
+					]
+				], function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$this->equalTo('getUserId')],
+							[$this->equalTo('getSigned')]
+						)
+						->will($this->returnValueMap([
+							['getUserId', [], 171],
+							['getSigned', [], true]
+						]));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					$self->userManagerInstance
+						->method('userExists')
+						->willReturn(true);
+				}
+			]
 		];
 	}
 }
