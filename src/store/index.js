@@ -37,18 +37,14 @@ export default new Store({
 		user: {},
 		settings: {},
 		currentFile: {},
-		sidebar: false,
 	},
 
 	mutations: {
 		setUser(state, user) {
 			this.state.user = user
 		},
-		setSidebar(state, sidebar) {
-			Vue.set(state.sidebar, '', sidebar)
-		},
-		setCurrentFile(state, fileId) {
-			Vue.set(state.currentFile, 'file', fileId)
+		setCurrentFile(state, current) {
+			Vue.set(state.currentFile, 'file', current)
 		},
 		setPdfData(state, pdfData) {
 			if (pdfData.pdf.url) {
@@ -73,9 +69,6 @@ export default new Store({
 	getters: {
 		getError(state) {
 			return libresignVar.errors
-		},
-		getSidebar(state) {
-			return state.sidebar
 		},
 		getCurrentFile(state) {
 			return state.currentFile
