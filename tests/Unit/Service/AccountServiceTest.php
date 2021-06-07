@@ -596,7 +596,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'settings' => [
 						'hasSignatureFile' => false
 					]
-				], function($self) {
+				], function ($self) {
 					$self->createUser('username', 'password');
 				}
 			],
@@ -610,7 +610,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'settings' => [
 						'hasSignatureFile' => false
 					]
-				], function($self) {
+				], function ($self) {
 					$self->fileUserMapper
 						->method('getByUuid')
 						->will($this->returnCallback(function () {
@@ -629,7 +629,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'settings' => [
 						'hasSignatureFile' => false
 					]
-				], function($self) {
+				], function ($self) {
 					$user = $self->createUser('username', 'password');
 					$user->setEMailAddress('valid@test.coop');
 
