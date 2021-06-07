@@ -37,6 +37,14 @@ export default {
 					name: 'Vinicios Gomes',
 					status: 'done',
 					data: 1616586633,
+				}, {
+					name: 'Victor Mattos',
+					status: 'pending',
+					data: null,
+				}, {
+					name: 'Livia Gouveia',
+					status: 'canceled',
+					data: 1617111824,
 				},
 			],
 		}
