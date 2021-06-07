@@ -625,7 +625,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'errors' => [
 						'User already exists. Please login.'
 					],
-					'redirect' => "",
+					'redirect' => '',
 					'settings' => [
 						'hasSignatureFile' => false
 					]
@@ -671,14 +671,121 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$this->equalTo('getSigned')]
 						)
 						->will($this->returnValueMap([
-							['getUserId', [], 171],
+							['getUserId', [], 'fileuser'],
 							['getSigned', [], true]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
 				}
-			]
+			],
+			[ // #7
+				'uuid', null, 'filetype',
+				[
+					'action' => JSActions::ACTION_REDIRECT,
+					'errors' => [
+						'You are not logged in. Please log in.'
+					],
+					'redirect' => '',
+					'settings' => [
+						'hasSignatureFile' => false
+					]
+				], function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$this->equalTo('getUserId')],
+							[$this->equalTo('getSigned')]
+						)
+						->will($this->returnValueMap([
+							['getUserId', [], 'fileuser'],
+							['getSigned', [], false]
+						]));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+				}
+			],
+			[ // #8
+				'uuid', 'username', 'filetype',
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [
+						'Invalid user'
+					],
+					'settings' => [
+						'hasSignatureFile' => false
+					]
+				], function ($self) {
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$this->equalTo('getUserId')],
+							[$this->equalTo('getSigned')]
+						)
+						->will($this->returnValueMap([
+							['getUserId', [], 'fileuser'],
+							['getSigned', [], false]
+						]));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+				}
+			],
+			[ // #9
+				'uuid', 'username', 'filetype',
+				[
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [
+						'File not found'
+					],
+					'settings' => [
+						'hasSignatureFile' => false
+					]
+				], function ($self) {
+					$self->createUser('username', 'password');
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$self->equalTo('getUserId')],
+							[$self->equalTo('getSigned')]
+						)
+						->will($self->returnValueMap([
+							['getUserId', [], 'username'],
+							['getSigned', [], false]
+						]));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					$self->fileMapper
+						->method('getByUuid')
+						->willReturn($fileUser);
+					$self->fileMapper
+						->method('getById')
+						->willReturn($fileUser);
+					$self->root
+						->method('getById')
+						->will($self->returnValue([]));
+				}
+			],
+			[ // #10
+				null, 'username', 'filetype',
+				[
+					'settings' => [
+						'hasSignatureFile' => true
+					]
+				], function ($self) {
+					$self->createUser('username', 'password');
+					$node = $self->createMock(\OCP\Files\Folder::class);
+					$node->method('nodeExists')->will($self->returnValue(true));
+					$file = $self->createMock(\OCP\Files\File::class);
+					$node->method('get')->will($self->returnValue($file));
+					$self->folder->method('getFolder')->will($self->returnValue($node));
+				}
+			],
 		];
 	}
 }
