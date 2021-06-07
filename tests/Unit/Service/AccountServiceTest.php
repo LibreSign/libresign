@@ -8,6 +8,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Tests\Unit\UserTrait;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -18,12 +19,13 @@ use OCP\IUserManager;
  * @internal
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	use UserTrait;
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var IUserManager */
-	protected $userManager;
+	private $userManagerInstance;
 	/** @var FolderService */
 	private $folder;
 	/** @var IConfig */
@@ -34,12 +36,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $cfsslHandler;
 
 	public function setUp(): void {
+		$this->userSetUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
-		$this->userManager = $this->createMock(IUserManager::class);
+		$this->userManagerInstance = $this->createMock(IUserManager::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
@@ -59,7 +62,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -122,7 +125,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->fileUserMapper
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
-					$self->userManager
+					$self->userManagerInstance
 						->method('userExists')
 						->will($self->returnValue(true));
 					return [
@@ -202,7 +205,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -297,7 +300,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -321,7 +324,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -360,7 +363,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -401,7 +404,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -442,7 +445,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -458,7 +461,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -489,7 +492,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -522,7 +525,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -538,7 +541,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
 		$userToSign = $this->createMock(\OCP\IUser::class);
-		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
+		$this->userManagerInstance->method('createUser')->will($this->returnValue($userToSign));
 		$this->config->method('getAppValue')->will($this->returnValue('yes'));
 		$template = $this->createMock(\OCP\Mail\IEMailTemplate::class);
 		$this->newUserMail->method('generateTemplate')->will($this->returnValue($template));
@@ -548,7 +551,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
@@ -565,7 +568,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
 		$userToSign = $this->createMock(\OCP\IUser::class);
 		$userToSign->method('getUID')->will($this->returnValue('userToSignUid'));
-		$this->userManager->method('createUser')->will($this->returnValue($userToSign));
+		$this->userManagerInstance->method('createUser')->will($this->returnValue($userToSign));
 		$this->config->method('getAppValue')->will($this->returnValue('no'));
 
 		$node = $this->createMock(\OCP\Files\Folder::class);
@@ -596,7 +599,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$folder,
 			$this->root,
 			$this->fileMapper,
@@ -609,10 +612,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetConfigWithInvalidUuuid() {
+		$this->createUser('username', 'password');
 		$service = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
-			$this->userManager,
+			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
