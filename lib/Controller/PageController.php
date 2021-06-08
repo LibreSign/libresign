@@ -82,12 +82,6 @@ class PageController extends Controller {
 
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 
-		if ($this->config->getSystemValue('debug')) {
-			$csp = new ContentSecurityPolicy();
-			$csp->setInlineScriptAllowed(true);
-			$response->setContentSecurityPolicy($csp);
-		}
-
 		return $response;
 	}
 
