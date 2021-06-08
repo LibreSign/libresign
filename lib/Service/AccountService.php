@@ -306,7 +306,7 @@ class AccountService {
 				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
 				break;
 			case 'file':
-				$pdf = ['file' => $fileToSign];
+				$pdf = ['nodeId' => $fileToSign->getId()];
 				break;
 		}
 		$return['sign'] = [
