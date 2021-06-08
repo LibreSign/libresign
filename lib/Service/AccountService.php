@@ -18,6 +18,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
+use Throwable;
 
 class AccountService {
 	/** @var IL10N */
@@ -329,6 +330,13 @@ class AccountService {
 		return false;
 	}
 
+	/**
+	 * Get PDF node by UUID
+	 *
+	 * @param string $uuid
+	 * @throws Throwable
+	 * @return \OCP\Files\File
+	 */
 	public function getPdfByUuid(string $uuid): \OCP\Files\File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		Filesystem::initMountPoints($fileData->getUserId());
