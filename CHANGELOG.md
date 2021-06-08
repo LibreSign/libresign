@@ -21,7 +21,7 @@ Types of changes:
 - Test for validation of Swagger documentation
 
 # Changed
-- Increment of coverage
+- Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 
 # Removed
