@@ -901,7 +901,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'action' => JSActions::ACTION_SIGN,
 					'sign' => [
 						'pdf' => [
-							'nodeId' => 171
+							'file' => new \stdClass()
 						],
 						'filename' => null,
 						'description' => null
