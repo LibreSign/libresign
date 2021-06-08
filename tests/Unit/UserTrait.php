@@ -54,6 +54,11 @@ trait UserTrait {
 		return $user;
 	}
 
+	public function deleteUser($username) {
+		$user = $this->userManager->get($username);
+		$this->testGroup->removeUser($user);
+	}
+
 	public function tearDown(): void {
 		foreach ($this->backendUser->getUsers() as $username) {
 			$user = $this->userManager->get($username);
