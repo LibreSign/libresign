@@ -944,6 +944,57 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
+	public function testGetConfigUsingFileTypeWithSuccess() {
+		$this->createUser('username', 'password');
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUserId')],
+				[$this->equalTo('getSigned')]
+			)
+			->will($this->returnValueMap([
+				['getUserId', [], 'username'],
+				['getSigned', [], false]
+			]));
+		$this->fileUserMapper
+			->method('getByUuid')
+			->will($this->returnValue($fileUser));
+		$this->fileMapper
+			->method('getByUuid')
+			->willReturn($fileUser);
+		$this->fileMapper
+			->method('getById')
+			->willReturn($fileUser);
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->will($this->returnValue(171));
+		$this->root
+			->method('getById')
+			->will($this->returnValue([$node]));
+
+		$actual = $this->service->getConfig('uuid', 'username', 'file');
+		$this->assertJsonStringEqualsJsonString(
+			json_encode($actual),
+			json_encode([
+				'action' => JSActions::ACTION_SIGN,
+				'sign' => [
+					'pdf' => [
+						'file' => new \stdClass()
+					],
+					'filename' => null,
+					'description' => null
+				],
+				'user' => [
+					'name' => null
+				],
+				'settings' => [
+					'hasSignatureFile' => false
+				]
+			])
+		);
+		$this->assertInstanceOf(\OCP\Files\File::class, $actual['sign']['pdf']['file']);
+	}
+
 	public function testGetPdfByUuidWithSuccess() {
 		$this->createUser('username', 'password');
 
