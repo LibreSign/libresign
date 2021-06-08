@@ -117,7 +117,7 @@ class PageController extends Controller {
 	 */
 	public function getPdf($uuid) {
 		try {
-			$this->accountService->getPdfByUuid($uuid);
+			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (\Throwable $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
