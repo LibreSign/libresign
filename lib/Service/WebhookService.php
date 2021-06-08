@@ -403,12 +403,35 @@ class WebhookService {
 	}
 
 	private function getFolderName(array $data) {
-		$folderName[] = date('Y-m-d\TH:i:s');
-		if (!empty($data['name'])) {
-			$folderName[] = $data['name'];
+		if (!isset($data['settings']['folderPatterns'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s.u'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
 		}
-		$folderName[] = $data['userManager']->getUID();
-		return implode('_', $folderName);
+		foreach ($data['settings']['folderPatterns'] as $pattern) {
+			switch ($pattern['name']) {
+				case 'date':
+					$folderName[] = (new \DateTime('NOW'))->format($pattern['setting']);
+					break;
+				case 'name':
+					if (!empty($data['name'])) {
+						$folderName[] = $data['name'];
+					}
+					break;
+				case 'userId':
+					$folderName[] = $data['userManager']->getUID();
+					break;
+			}
+		}
+		return implode($data['settings']['separator'], $folderName);
 	}
 
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
