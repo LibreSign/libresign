@@ -47,7 +47,6 @@ class ApiTestCase extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->userSetUp();
 		$data = Yaml::parse(file_get_contents('docs/.vuepress/public/specs/api.yaml'));
 		$data['servers'][] = ['url' => 'http://localhost/apps/libresign/api/0.1'];
 		/** @var OpenApiSchema */

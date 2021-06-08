@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
 
 trait LibresignFileTrait {
@@ -18,6 +19,10 @@ trait LibresignFileTrait {
 	private $webhook;
 
 	public function requestSignFile($data): array {
+		if (!self::$server) {
+			self::$server = new MockWebServer();
+			self::$server->start();
+		}
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
@@ -33,6 +38,19 @@ trait LibresignFileTrait {
 			]
 		]);
 
+		if (!isset($data['settings'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s.u'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
+		}
 		$this->files[] = $file = $this->getWebhookService()->save($data);
 		return $file;
 	}
@@ -51,7 +69,10 @@ trait LibresignFileTrait {
 		$this->files[] = $file;
 	}
 
-	public function tearDown(): void {
+	/**
+	 * @after
+	 */
+	public function libresignFileTearDown(): void {
 		foreach ($this->files as $file) {
 			$toRemove['uuid'] = $file['uuid'];
 			foreach ($file['users'] as $user) {

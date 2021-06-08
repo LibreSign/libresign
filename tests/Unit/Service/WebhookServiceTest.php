@@ -625,10 +625,34 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testIndexWithoutPermission() {
+	public function testIndexWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->service->validate([]);
+	}
+
+	public function testIndexWithoutPermission() {
+		$this->expectExceptionMessage('You are not allowed to request signing');
+
+		$this->config = $this->createMock(IConfig::class);
+		$this->config
+			->method('getAppValue')
+			->willReturn('');
+		$this->service = new WebhookService(
+			$this->config,
+			$this->groupManager,
+			$this->l10n,
+			$this->file,
+			$this->fileUser,
+			$this->folder,
+			$this->clientService,
+			$this->userManager,
+			$this->mail,
+			$this->logger
+		);
+		$this->service->validate([
+			'userManager' => 'fake'
+		]);
 	}
 
 	public function testNotifyCallback() {

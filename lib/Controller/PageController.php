@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Files\Filesystem;
 use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
@@ -82,12 +81,6 @@ class PageController extends Controller {
 
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 
-		if ($this->config->getSystemValue('debug')) {
-			$csp = new ContentSecurityPolicy();
-			$csp->setInlineScriptAllowed(true);
-			$response->setContentSecurityPolicy($csp);
-		}
-
 		return $response;
 	}
 
@@ -124,27 +117,7 @@ class PageController extends Controller {
 	 */
 	public function getPdf($uuid) {
 		try {
-			$fileData = $this->fileMapper->getByUuid($uuid);
-			Filesystem::initMountPoints($fileData->getUserId());
-
-			$file = $this->root->getById($fileData->getNodeId())[0];
-			$filePath = $file->getPath();
-
-			$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
-			$signedUsers = array_filter($fileUser, function ($row) {
-				return !is_null($row->getSigned());
-			});
-			if (count($fileUser) === count($signedUsers)) {
-				$filePath = preg_replace(
-					'/' . $file->getExtension() . '$/',
-					$this->l10n->t('signed') . '.' . $file->getExtension(),
-					$filePath
-				);
-			}
-			if ($this->root->nodeExists($filePath)) {
-				/** @var \OCP\Files\File */
-				$file = $this->root->get($filePath);
-			}
+			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (\Throwable $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}

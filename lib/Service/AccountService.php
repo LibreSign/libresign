@@ -18,6 +18,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
+use Throwable;
 
 class AccountService {
 	/** @var IL10N */
@@ -305,8 +306,11 @@ class AccountService {
 			case 'url':
 				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
 				break;
-			case 'file':
+			case 'nodeId':
 				$pdf = ['nodeId' => $fileToSign->getId()];
+				break;
+			case 'file':
+				$pdf = ['file' => $fileToSign];
 				break;
 		}
 		$return['sign'] = [
@@ -327,5 +331,38 @@ class AccountService {
 		} catch (\Throwable $th) {
 		}
 		return false;
+	}
+
+	/**
+	 * Get PDF node by UUID
+	 *
+	 * @param string $uuid
+	 * @throws Throwable
+	 * @return \OCP\Files\File
+	 */
+	public function getPdfByUuid(string $uuid): \OCP\Files\File {
+		$fileData = $this->fileMapper->getByUuid($uuid);
+		Filesystem::initMountPoints($fileData->getUserId());
+
+		$file = $this->root->getById($fileData->getNodeId())[0];
+		$filePath = $file->getPath();
+
+		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
+		$signedUsers = array_filter($fileUser, function ($row) {
+			return !is_null($row->getSigned());
+		});
+		if (count($fileUser) === count($signedUsers)) {
+			$filePath = preg_replace(
+				'/' . $file->getExtension() . '$/',
+				$this->l10n->t('signed') . '.' . $file->getExtension(),
+				$filePath
+			);
+		}
+		// If signed, return signed file
+		if ($this->root->nodeExists($filePath)) {
+			/** @var \OCP\Files\File */
+			$file = $this->root->get($filePath);
+		}
+		return $file;
 	}
 }

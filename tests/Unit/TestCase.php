@@ -6,6 +6,7 @@ use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite20;
 
 class TestCase extends \Test\TestCase {
+	use LibresignFileTrait;
 	protected function IsDatabaseAccessAllowed() {
 		// on travis-ci.org we allow database access in any case - otherwise
 		// this will break all apps right away
