@@ -95,6 +95,7 @@ With this configuration when accessing `validate.yourdomain.coop/b9809a7e-ab6e-1
 ## Integrations
 
 * [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
+* [Approval](https://apps.nextcloud.com/apps/approval): Approve/reject files based on workflows defined by admins
 
 ## Full documentation
 
