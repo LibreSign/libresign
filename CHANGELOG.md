@@ -22,7 +22,8 @@ Types of changes:
 - Test for validation of Swagger documentation
 
 # Changed
-- Increment coverage and refactors
+- Increment of coverage
+- Bug fixes and refactorings resulting from increased coverage
 
 # Removed
 - Removed dsv folder
