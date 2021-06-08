@@ -355,6 +355,7 @@ class AccountService {
 				$filePath
 			);
 		}
+		// If signed, return signed file
 		if ($this->root->nodeExists($filePath)) {
 			/** @var \OCP\Files\File */
 			$file = $this->root->get($filePath);
