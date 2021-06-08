@@ -941,6 +941,52 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->will($self->returnValue([$node]));
 				}
 			],
+			[ // #14
+				'uuid', 'username', 'nodeId',
+				[
+					'action' => JSActions::ACTION_SIGN,
+					'sign' => [
+						'pdf' => [
+							'nodeId' => null
+						],
+						'filename' => null,
+						'description' => null
+					],
+					'user' => [
+						'name' => null
+					],
+					'settings' => [
+						'hasSignatureFile' => false
+					]
+				], function ($self) {
+					$self->createUser('username', 'password');
+					$fileUser = $self->createMock(FileUser::class);
+					$fileUser
+						->method('__call')
+						->withConsecutive(
+							[$self->equalTo('getUserId')],
+							[$self->equalTo('getSigned')]
+						)
+						->will($self->returnValueMap([
+							['getUserId', [], 'username'],
+							['getSigned', [], false]
+						]));
+					$self->fileUserMapper
+						->method('getByUuid')
+						->will($self->returnValue($fileUser));
+					$self->fileMapper
+						->method('getByUuid')
+						->willReturn($fileUser);
+					$self->fileMapper
+						->method('getById')
+						->willReturn($fileUser);
+					$node = $self->createMock(\OCP\Files\File::class);
+					$node->method('getContent')->will($self->returnValue('content'));
+					$self->root
+						->method('getById')
+						->will($self->returnValue([$node]));
+				}
+			],
 		];
 	}
 
