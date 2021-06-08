@@ -407,7 +407,7 @@ class WebhookService {
 			$data['settings']['separator'] = '_';
 			$data['settings']['folderPatterns'][] = [
 				'name' => 'date',
-				'setting' => 'Y-m-d\TH:i:s.u'
+				'setting' => 'Y-m-d\TH:i:s'
 			];
 			$data['settings']['folderPatterns'][] = [
 				'name' => 'name'

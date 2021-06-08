@@ -38,6 +38,19 @@ trait LibresignFileTrait {
 			]
 		]);
 
+		if (!isset($data['settings'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s.u'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
+		}
 		$this->files[] = $file = $this->getWebhookService()->save($data);
 		return $file;
 	}
