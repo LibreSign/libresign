@@ -7,9 +7,6 @@ namespace OCA\Libresign\Tests\Unit;
  */
 final class PageControllerTest extends TestCase {
 	use UserTrait;
-	public function setUp(): void {
-		$this->userSetUp();
-	}
 	public function testIndexScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->index();

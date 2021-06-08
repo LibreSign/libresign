@@ -42,7 +42,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $service;
 
 	public function setUp(): void {
-		$this->userSetUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')

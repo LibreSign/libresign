@@ -69,7 +69,10 @@ trait LibresignFileTrait {
 		$this->files[] = $file;
 	}
 
-	public function tearDown(): void {
+	/**
+	 * @after
+	 */
+	public function libresignFileTearDown(): void {
 		foreach ($this->files as $file) {
 			$toRemove['uuid'] = $file['uuid'];
 			foreach ($file['users'] as $user) {
