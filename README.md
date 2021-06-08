@@ -102,26 +102,4 @@ With this configuration when accessing `validate.yourdomain.coop/b9809a7e-ab6e-1
 
 ## Contributing
 
-Feel free to submit [Github Issues](https://github.com/lyseontech/libresign/issues) or pull requests.
-
-The documentation website is build from the docs folder with vuepress.
-
-### To start front and backend development environment
-
-```bash
-make serve
-```
-
-### To build documentation
-
-```bash
-make docs
-```
-
-### To run PHPUnit
-
-```bash
-make test
-```
-
-Read more in composer.json scripts section
+[here](/CONTRIBUTING.md)
