@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Files\Filesystem;
 use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
