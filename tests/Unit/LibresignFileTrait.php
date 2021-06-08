@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
 
 trait LibresignFileTrait {
@@ -18,6 +19,10 @@ trait LibresignFileTrait {
 	private $webhook;
 
 	public function requestSignFile($data): array {
+		if (!self::$server) {
+			self::$server = new MockWebServer();
+			self::$server->start();
+		}
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));

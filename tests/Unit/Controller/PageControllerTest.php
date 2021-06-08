@@ -6,6 +6,10 @@ namespace OCA\Libresign\Tests\Unit;
  * @group DB
  */
 final class PageControllerTest extends TestCase {
+	use UserTrait;
+	public function setUp(): void {
+		$this->userSetUp();
+	}
 	public function testIndexScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->index();
@@ -49,5 +53,29 @@ final class PageControllerTest extends TestCase {
 		$response = $controller->getPdf('uuid');
 		$this->assertInstanceOf(\OCP\AppFramework\Http\DataResponse::class, $response);
 		$this->assertEquals(404, $response->getStatus());
+	}
+
+	public function testGetPdfHeader() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
+		$response = $controller->getPdf($file['uuid']);
+		$headers = $response->getHeaders();
+		$this->assertArrayHasKey('Content-Type', $headers);
+		$this->assertEquals('application/pdf', $headers['Content-Type']);
+		$this->assertInstanceOf(\OCP\AppFramework\Http\FileDisplayResponse::class, $response);
+		$this->assertEquals(200, $response->getStatus());
 	}
 }
