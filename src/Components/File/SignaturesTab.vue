@@ -8,13 +8,15 @@
 						{{ item.name }}
 					</span>
 				</div>
-				<div class="container-dot">
-					<div :class="'dot ' + item.status" />
-					<span class="statusDot">{{ uppercaseString(item.status) }}</span>
-				</div>
-				<div class="container-dot">
-					<div class="icon-sign icon-calendar-dark" />
-					<span v-if="item.data">{{ timestampsToDate(item.data) }}</span>
+				<div class="content-status">
+					<div class="container-dot">
+						<div :class="'dot ' + item.status" />
+						<span class="statusDot">{{ uppercaseString(item.status) }}</span>
+					</div>
+					<div class="container-dot">
+						<div class="icon icon-calendar-dark" />
+						<span v-if="item.data">{{ timestampsToDate(item.data) }}</span>
+					</div>
 				</div>
 			</li>
 		</ul>
@@ -61,6 +63,16 @@ export default {
 			border-radius: 10px;
 			padding: 5px;
 			align-items: flex-start;
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			.content-status{
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				flex-wrap: nowrap;
+				width: 100%;
+			}
 
 			.icon-sign{
 				margin-right: 8px;
@@ -76,10 +88,13 @@ export default {
 				}
 			}
 
+			.container-dot:first-child{
+				margin-right: 10px;
+			}
+
 			.container-dot{
 				display: flex;
 				flex-direction: row;
-				margin: 5px;
 				align-items: center;
 				justify-content: center;
 				cursor: inherit;
@@ -113,6 +128,14 @@ export default {
 				}
 			}
 
+			&:hover{
+				transform: scale(1.1);
+				background: rgba(0,0,0,.1);
+			}
+
+			@media screen and (max-width: 550px) {
+				width: 100%;
+			}
 		}
 	}
 }
