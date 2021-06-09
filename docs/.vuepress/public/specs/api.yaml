@@ -536,6 +536,11 @@ paths:
                           type: string
                           example: filename
                           description: The name of file to sign
+                        callback:
+                          type: string
+                          description: URL that will receive a POST after the document is signed
+                          nullable: true
+                          example: http://app.test.coop/callback_webhook
                         status:
                           type: string
                           enum:
@@ -603,6 +608,11 @@ paths:
                                 nullable: true
                                 description: Persons name
                                 example: John Doe
+                              uid:
+                                type: string
+                                nullable: true
+                                description: Nextcloud user id of who requested the file to be signed when the person created account.
+                                example: johndoe
                               description:
                                 type: string
                                 nullable: true
