@@ -549,7 +549,7 @@ paths:
                             - pending
                             - disabled
                             - no signers
-                        date:
+                        status-date:
                           type: string
                           format: date-time
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
