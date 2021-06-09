@@ -138,7 +138,6 @@ paths:
                         type: string
                         format: uuid
                         description: 'File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.'
-                        example: 46d30465-ae11-484b-aad5-327249a1e8ef
         422:
           description: Request failed
           content:
@@ -167,7 +166,6 @@ paths:
                   type: string
                   format: uuid
                   description: Received from sign request
-                  example: 46d30465-ae11-484b-aad5-327249a1e8ef
                 users:
                   type: array
                   description: Collection of users who must sign the document
@@ -213,7 +211,6 @@ paths:
                         type: string
                         format: uuid
                         description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
-                        example: 46d30465-ae11-484b-aad5-327249a1e8ef
         422:
           description: Request failed
           content:
@@ -243,7 +240,6 @@ paths:
                   type: string
                   format: uuid
                   description: Received from sign request
-                  example: 46d30465-ae11-484b-aad5-327249a1e8ef
                 users:
                   type: array
                   description: Collection of persons
@@ -353,7 +349,6 @@ paths:
             type: string
             format: uuid
             description: UUID user file identifier. The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
-            example: 46d30465-ae11-484b-aad5-327249a1e8ef
       requestBody:
         content:
           application/json:
@@ -537,7 +532,6 @@ paths:
                           type: string
                           format: uuid
                           description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
-                          example: 46d30465-ae11-484b-aad5-327249a1e8ef
                         name:
                           type: string
                           example: filename
@@ -678,7 +672,6 @@ paths:
             type: string
             format: uuid
             description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
-            example: 46d30465-ae11-484b-aad5-327249a1e8ef
       responses:
         200:
           description: Success!
@@ -932,7 +925,6 @@ paths:
             type: string
             format: uuid
             description: The user UUID is what the person receives via email when asked to sign. This is not the file UUID.
-            example: 46d30465-ae11-484b-aad5-327249a1e8ef
       requestBody:
         content:
           application/json:
