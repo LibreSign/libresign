@@ -500,6 +500,96 @@ paths:
                   - errors
       security:
         - basicAuth: []
+  /file/list:
+    get:
+      tags:
+        - sign
+      summary: List all LibreSign files
+      description: List all LibreSign files returning all informations about files
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: The number of page to return
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+          description: The number of page to return
+      responses:
+        200:
+          description: Success!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                          format: uuid
+                          description: File identifier. It is necessary to keep it because it must be used to update or delete a signature request and will also be used in the callback request.
+                          example: 46d30465-ae11-484b-aad5-327249a1e8ef
+                        name:
+                          type: string
+                          example: filename
+                          description: The name of file to sign
+                        status:
+                          type: string
+                          enum:
+                            - signed
+                            - pending
+                            - disabled
+                            - no signers
+                        date:
+                          type: string
+                          format: date-time
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Last status date
+                      required:
+                        - uuid
+                        - name
+                        - date
+                        - status
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: Total number of records
+                        example: 300
+                      current:
+                        type: string
+                        description: URL of current page
+                        example: /file/list?page=2&length=15
+                      next:
+                        type: string
+                        description: URL of next page
+                        example: /file/list?page=3
+                      prev:
+                        type: string
+                        description: URL of previous page
+                        example: /file/list?page=1
+                      last:
+                        type: string
+                        description: URL of last page
+                        example: /file/list?page=20
+                      first:
+                        type: string
+                        description: URL of first page
+                        example: /file/list?page=0
+                required:
+                  - data
+                  - pagination
   /file/validate/uuid/{uuid}:
     get:
       tags:
