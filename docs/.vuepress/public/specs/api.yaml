@@ -555,6 +555,25 @@ paths:
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
                           nullable: true
                           description: Last status date
+                        request-date:
+                          type: string
+                          format: date-time
+                          pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                          nullable: true
+                          description: Date the file was requested to be signed
+                        requested-by:
+                          type: object
+                          properties:
+                            display_name:
+                              type: string
+                              nullable: true
+                              description: Who requested that the file be signed?
+                              example: John Doe
+                            uid:
+                              type: string
+                              nullable: true
+                              description: Nextcloud user id of who requested the file to be signed.
+                              example: johndoe
                         file:
                           type: object
                           nullable: true
