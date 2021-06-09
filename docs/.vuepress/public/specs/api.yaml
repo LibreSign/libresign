@@ -555,14 +555,24 @@ paths:
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
                           nullable: true
                           description: Last status date
-                        pdf:
+                        file:
                           type: object
                           nullable: true
                           properties:
+                            type:
+                              type: string
+                              enum:
+                                - pdf
+                              description: Type of file
+                              example: pdf
                             url:
                               type: string
                               description: URL to view PDF
                               example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
+                            nodeId:
+                              type: integer
+                              description: Node id of a Nextcloud file
+                              example: 2312
                         signers:
                           type: array
                           description: Collection of users who must sign the document
