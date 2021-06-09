@@ -555,6 +555,50 @@ paths:
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
                           nullable: true
                           description: Last status date
+                        pdf:
+                          type: object
+                          nullable: true
+                          properties:
+                            url:
+                              type: string
+                              description: URL to view PDF
+                              example: http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef
+                        signers:
+                          type: array
+                          description: Collection of users who must sign the document
+                          items:
+                            type: object
+                            description: Person who will sign
+                            properties:
+                              email:
+                                type: string
+                                format: email
+                                description: Unique email to identify user
+                                example: user@test.coop
+                              display_name:
+                                type: string
+                                nullable: true
+                                description: Persons name
+                                example: John Doe
+                              description:
+                                type: string
+                                nullable: true
+                                description: Description that will be displayed to the person
+                                example: As the company's CEO, you must sign this contract
+                              sign-date:
+                                type: string
+                                format: date-time
+                                pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                                nullable: true
+                                description: Date the file was signed
+                              request-sign-date:
+                                type: string
+                                format: date-time
+                                pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
+                                description: Date the signature was requested
+                            required:
+                              - email
+                              - request-sign-date
                       required:
                         - uuid
                         - name
