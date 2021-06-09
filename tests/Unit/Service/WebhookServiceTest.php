@@ -578,6 +578,22 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
+	public function testValidateUserWithNameAndInvalidEmail() {
+		$this->expectExceptionMessage('User %s needs an email address');
+
+		$this->service->validate([
+			'file' => ['base64' => 'dGVzdA=='],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => '',
+					'name' => 'User'
+				]
+			],
+			'userManager' => $this->user
+		]);
+	}
+
 	public function testValidateUserWithInvalidEmail() {
 		$this->expectExceptionMessage('Invalid email: user %s');
 
