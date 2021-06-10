@@ -489,7 +489,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testListWithSuccess() {
+	public function testControllerListWithSuccess() {
 		$this->createUser('username', 'password');
 		$this->request
 			->withRequestHeader([
