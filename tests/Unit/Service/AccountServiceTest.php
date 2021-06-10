@@ -1132,4 +1132,20 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->service->canRequestSign($user);
 		$this->assertTrue($actual);
 	}
+
+	public function testListWithEmptyReturn() {
+		$this->markTestSkipped();
+		$user = $this->createMock(\OCP\IUser::class);
+		$this->fileMapper
+			->method('getAssociatedFilesWithMe')
+			->willReturn([
+				'data' => [],
+				'pagination' => [
+					'total' => 0,
+					'current' => 'asdf'
+				]
+			]);
+		$actual = $this->service->list($user);
+		$this->assertEmpty($actual);
+	}
 }
