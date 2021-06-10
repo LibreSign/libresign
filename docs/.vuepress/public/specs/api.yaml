@@ -549,19 +549,19 @@ paths:
                             - pending
                             - disabled
                             - no signers
-                        status-date:
+                        status_date:
                           type: string
                           format: date-time
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
                           nullable: true
                           description: Last status date
-                        request-date:
+                        request_date:
                           type: string
                           format: date-time
                           pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\d{2}
                           nullable: true
                           description: Date the file was requested to be signed
-                        requested-by:
+                        requested_by:
                           type: object
                           properties:
                             display_name:
