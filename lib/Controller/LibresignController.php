@@ -349,7 +349,7 @@ class LibresignController extends Controller {
 	 * @PublicPage
 	 */
 	public function list($page = null, $limit = null) {
-		$return = $this->account->list($page, $limit);
+		$return = $this->account->list($this->userSession->getUser(), $page, $limit);
 		return new JSONResponse($return, Http::STATUS_OK);
 	}
 }

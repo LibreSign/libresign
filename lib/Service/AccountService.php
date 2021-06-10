@@ -387,9 +387,11 @@ class AccountService {
 		return true;
 	}
 
-	public function list($page = null, $limit = null) {
-		$return = [
-		];
+	public function list(IUser $user, $page = null, $limit = null) {
+		$return = [];
+		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
+		$url = str_replace('_replace_', '', $url);
+		$return = $this->fileMapper->getAssociatedFilesWithMe($user->getUID(), $url);
 		return $return;
 	}
 }
