@@ -24,7 +24,6 @@ trait UserTrait {
 	 * @before
 	 */
 	public function userTraitSetUp(): void {
-
 		$this->userTraitUserManager = \OC::$server->get(\OCP\IUserManager::class);
 		$this->userTraitUserManager->clearBackends();
 		$this->userTraitBackendUser = new \Test\Util\User\Dummy();
