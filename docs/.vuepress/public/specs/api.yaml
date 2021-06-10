@@ -664,9 +664,13 @@ paths:
                         type: string
                         description: URL of first page
                         example: /file/list?page=0
-                required:
-                  - data
-                  - pagination
+                    required:
+                      - total
+                      - current
+                      - next
+                      - prev
+                      - last
+                      - first
   /file/validate/uuid/{uuid}:
     get:
       tags:
