@@ -17,6 +17,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 use Throwable;
@@ -371,7 +372,7 @@ class AccountService {
 		return $file;
 	}
 
-	public function canRequestSign(?\OCP\IUser $user = null): bool {
+	public function canRequestSign(?IUser $user = null): bool {
 		if (!$user) {
 			return false;
 		}
