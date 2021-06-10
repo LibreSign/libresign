@@ -76,4 +76,18 @@ class FileMapper extends QBMapper {
 
 		return $this->findEntity($qb);
 	}
+
+	public function getAssociatedFilesWithMe($userId) {
+		return [
+			'data' => [],
+			'pagination' => [
+				'total' => 0,
+				'current' => '',
+				'next' => '',
+				'prev' => '',
+				'last' => '',
+				'first' => ''
+			]
+		];
+	}
 }
