@@ -15,7 +15,6 @@ use OCA\Libresign\Service\WebhookService;
 use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -52,7 +51,6 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$userSession
 			->method('getUser')
 			->willReturn($user);
-		$groupManager = $this->createMock(IGroupManager::class);
 		
 		$inputFilePath = '/path/to/someInputFilePath';
 		$outputFolderPath = '/path/to/someOutputFolderPath';
@@ -98,8 +96,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			$logger,
 			$urlGenerator,
 			$config,
-			$userSession,
-			$groupManager
+			$userSession
 		);
 
 		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
@@ -145,7 +142,6 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$config = $this->createMock(IConfig::class);
 		$userSession = $this->createMock(IUserSession::class);
-		$groupManager = $this->createMock(IGroupManager::class);
 
 		$service->sign(\Prophecy\Argument::cetera())
 			->shouldNotBeCalled();
@@ -162,8 +158,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			$logger,
 			$urlGenerator,
 			$config,
-			$userSession,
-			$groupManager
+			$userSession
 		);
 
 		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
@@ -458,70 +453,6 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$this->assertFalse($body['signatures'][0]['me'], "It's me");
 		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertFalse($body['settings']['canSign'], 'Can permission to sign');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testValidateWithSuccessUsingLoggedUserWithoutPermissionToRequestSign() {
-		$user = $this->createUser('username', 'password');
-
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'person@test.coop'
-				]
-			],
-			'userManager' => $user
-		]);
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
-			])
-			->withPath('/file/validate/uuid/' . $file['uuid']);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertTrue($body['signatures'][0]['me'], "It's me");
-		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
-		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testValidateWithSuccessUsingLoggedUserAndWithPermissionToRequestSign() {
-		$user = $this->createUser('username', 'password');
-
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'person@test.coop'
-				]
-			],
-			'userManager' => $user
-		]);
-
-		$this->mockConfig(['libresign' => ['webhook_authorized' => '["admin","testGroup"]']]);
-
-		$this->request
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
-			])
-			->withPath('/file/validate/uuid/' . $file['uuid']);
-
-		$response = $this->assertRequest();
-		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertTrue($body['signatures'][0]['me'], "It's me");
-		$this->assertTrue($body['settings']['canRequestSign'], 'Can permission to request sign');
-		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
 	}
 
 	/**
