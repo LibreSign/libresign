@@ -337,7 +337,7 @@ class LibresignController extends Controller {
 			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		$return['settings'] = [
-			'canRequestSign' => $this->account->canRequestSign(),
+			'canRequestSign' => $this->account->canRequestSign($this->userSession->getUser()),
 			'canSign' => $canSign
 		];
 		return new JSONResponse($return, $statusCode);
