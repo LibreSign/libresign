@@ -592,6 +592,8 @@ paths:
                               type: integer
                               description: Node id of a Nextcloud file
                               example: 2312
+                          required:
+                            - type
                         signers:
                           type: array
                           description: Collection of users who must sign the document
