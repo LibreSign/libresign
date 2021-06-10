@@ -18,7 +18,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -51,8 +50,6 @@ class LibresignController extends Controller {
 	private $urlGenerator;
 	/** @var IConfig */
 	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 
 	public function __construct(
 		IRequest $request,
@@ -66,8 +63,7 @@ class LibresignController extends Controller {
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
 		IConfig $config,
-		IUserSession $userSession,
-		IGroupManager $groupManager
+		IUserSession $userSession
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->fileUserMapper = $fileUserMapper;
@@ -81,7 +77,6 @@ class LibresignController extends Controller {
 		$this->urlGenerator = $urlGenerator;
 		$this->config = $config;
 		$this->userSession = $userSession;
-		$this->groupManager = $groupManager;
 	}
 
 	/**
@@ -342,24 +337,9 @@ class LibresignController extends Controller {
 			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		$return['settings'] = [
-			'canRequestSign' => $this->canRequestSign(),
+			'canRequestSign' => $this->account->canRequestSign(),
 			'canSign' => $canSign
 		];
 		return new JSONResponse($return, $statusCode);
-	}
-
-	private function canRequestSign(): bool {
-		if (!$this->userSession->getUser()) {
-			return false;
-		}
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (empty($authorized)) {
-			return false;
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
-		if (!array_intersect($userGroups, $authorized)) {
-			return false;
-		}
-		return true;
 	}
 }

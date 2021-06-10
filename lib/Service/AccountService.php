@@ -14,6 +14,7 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -49,6 +50,8 @@ class AccountService {
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
+	/** @var IGroupManager */
+	private $groupManager;
 
 	public function __construct(
 		IL10N $l10n,
@@ -60,7 +63,8 @@ class AccountService {
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		IURLGenerator $urlGenerator,
-		CfsslHandler $cfsslHandler
+		CfsslHandler $cfsslHandler,
+		IGroupManager $groupManager
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -72,6 +76,7 @@ class AccountService {
 		$this->newUserMail = $newUserMail;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
+		$this->groupManager = $groupManager;
 	}
 
 	public function validateCreateToSign(array $data) {
@@ -364,5 +369,20 @@ class AccountService {
 			$file = $this->root->get($filePath);
 		}
 		return $file;
+	}
+
+	public function canRequestSign(?\OCP\IUser $user = null): bool {
+		if (!$user) {
+			return false;
+		}
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		if (empty($authorized)) {
+			return false;
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		if (!array_intersect($userGroups, $authorized)) {
+			return false;
+		}
+		return true;
 	}
 }
