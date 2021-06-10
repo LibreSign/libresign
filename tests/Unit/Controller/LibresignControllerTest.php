@@ -12,7 +12,6 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
-use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -28,7 +27,6 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
-	use LibresignFileTrait;
 	use ProphecyTrait;
 	public function testSignFile() {
 		$request = $this->prophesize(IRequest::class);
