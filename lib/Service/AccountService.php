@@ -385,4 +385,10 @@ class AccountService {
 		}
 		return true;
 	}
+
+	public function list($page = null, $limit = null) {
+		$return = [
+		];
+		return $return;
+	}
 }

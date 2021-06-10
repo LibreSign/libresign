@@ -342,4 +342,14 @@ class LibresignController extends Controller {
 		];
 		return new JSONResponse($return, $statusCode);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 */
+	public function list($page = null, $limit = null) {
+		$return = $this->account->list($page, $limit);
+		return new JSONResponse($return, Http::STATUS_OK);
+	}
 }
