@@ -29,6 +29,7 @@ Types of changes:
 
 # Removed
 - Removed dsv folder
+- Removed docs folder
 
 # Fixed
 - Rendering files tab in Nextcloud 20 and 21

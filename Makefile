@@ -10,6 +10,7 @@
 app_name=$(notdir $(CURDIR))
 project_directory=$(CURDIR)/../$(app_name)
 build_tools_directory=$(CURDIR)/build/tools
+site_build_directory=$(CURDIR)/build/site
 appstore_build_directory=$(CURDIR)/build/artifacts/appstore
 appstore_package_name=$(appstore_build_directory)/$(app_name)
 appstore_sign_dir=$(appstore_build_directory)/sign
@@ -65,9 +66,12 @@ lint-fix:
 stylelint:
 	yarn stylelint
 
-.PHONY: docs
-docs:
-	cd docs; yarn dev
+site:
+	@if [ ! -d $(site_build_directory) ]; then \
+		mkdir -p $(site_build_directory) ; \
+		git clone https://github.com/LibreSign/site $(site_build_directory) ; \
+	fi
+	$(MAKE) watch-js -C $(site_build_directory)
 
 # Cleaning
 .PHONY: clean

@@ -99,7 +99,7 @@ With this configuration when accessing `validate.yourdomain.coop/b9809a7e-ab6e-1
 
 ## Full documentation
 
-[here](https://libresign.github.io/libresign/)
+[here](https://libresign.github.io/)
 
 ## Contributing
 
