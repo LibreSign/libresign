@@ -88,7 +88,6 @@
     "Password Creation" : "密码创建",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "出于安全原因，您必须创建一个密码来签署文档。在下面的字段中输入你的新密码。",
     "Enter a password" : "输入密码",
-    "New password for sign document created" : "已创建用于签署文档的新密码",
     "Error creating new password, please contact the administrator" : "创建新密码出错，请联系管理员",
     "Create new subscription." : "创建新订阅",
     "Root certificate has not been configured by the Administrator!" : "管理员尚未配置根证书！",

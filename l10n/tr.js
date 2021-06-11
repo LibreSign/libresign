@@ -90,7 +90,6 @@ OC.L10N.register(
     "Password Creation" : "Parola oluşturma",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Güvenlik nedeniyle, belgeleri imzalayabilmek için bir parola oluşturmalısınız. Yeni parolanızı aşağıdaki alana yazın.",
     "Enter a password" : "Bir parola yazın",
-    "New password for sign document created" : "Belgeyi imzalamak için yeni parola oluşturuldu",
     "Error creating new password, please contact the administrator" : "Belgeyi imzalamak için yeni parola oluşturulurken sorun çıktı. Lütfen BT yöneticiniz ile görüşün",
     "Create new subscription." : "Yeni abonelik ekle.",
     "Root certificate has not been configured by the Administrator!" : "Kök sertifika Yönetici tarafından yapılandırılmamış!",

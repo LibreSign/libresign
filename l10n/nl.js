@@ -90,7 +90,6 @@ OC.L10N.register(
     "Password Creation" : "Wachtwoordcreatie",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Om veiligheidsredenen moet je een wachtwoord aanmaken om de documenten te ondertekenen. Voer je nieuwe wachtwoord in het onderstaande veld in.",
     "Enter a password" : "Voer een wachtwoord in",
-    "New password for sign document created" : "Nieuw wachtwoord om documenten te tekenen aangemaakt",
     "Error creating new password, please contact the administrator" : "Fout bij maken wachtwoord. Neem contact op met je beheerder.",
     "Create new subscription." : "Creëer een nieuw abonnement.",
     "Root certificate has not been configured by the Administrator!" : "Root certificaat is niet geconfigureerd door de beheerder!",

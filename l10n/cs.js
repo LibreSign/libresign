@@ -91,7 +91,6 @@ OC.L10N.register(
     "Password Creation" : "Vytvoření hesla",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Z důvodu zabezpečení je třeba pro podepisování dokumentů vytvořit heslo. Zadejte své nové heslo do kolonky níže.",
     "Enter a password" : "Zadejte heslo",
-    "New password for sign document created" : "Nové heslo pro podepisování dokumentů vytvořeno",
     "Error creating new password, please contact the administrator" : "Chyba při vytváření nového hesla – obraťte se na správce systému",
     "Create new subscription." : "Vytvořit nové přihlášení se k odběru.",
     "Root certificate has not been configured by the Administrator!" : "Správce nenastavil kořenový certifikát!",

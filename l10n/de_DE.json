@@ -89,7 +89,6 @@
     "Password Creation" : "Passworterstellung",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Aus Sicherheitsgründen müssen Sie ein Passwort zum Signieren der Dokumente erstellen. Bitte geben Sie Ihr neues Passwort in das untenstehende Feld ein.",
     "Enter a password" : "Passwort eingeben",
-    "New password for sign document created" : "Neues Passwort zum Signieren von Dokumenten erstellt",
     "Error creating new password, please contact the administrator" : "Fehler beim Erstellen eines neuen Passwortes. Bitte kontaktieren Sie Ihren Administrator.",
     "Create new subscription." : "Neues Abonnement erstellen.",
     "Root certificate has not been configured by the Administrator!" : "Root-Zertifikat wurde vom Administrator noch nicht konfiguriert!",
