@@ -50,6 +50,12 @@ jobs:
         with:
           path: apps/${{ env.APP_NAME }}
 
+      - name: Checkout site
+        uses: actions/checkout@v2
+        with:
+          repository: libresign/libresign.github.io
+          path: 'apps/${{ env.APP_NAME }}/build/site'
+
       - name: Set up php ${{ matrix.php-versions }}
         uses: shivammathur/setup-php@v2
         with:

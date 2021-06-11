@@ -4,7 +4,7 @@ Fork and pull request! 😃
 
 NOTE: If the project does not have an issue for what you want to do, create an issue first.
 
-Feel free to submit [Github Issues](https://github.com/lyseontech/libresign/issues) or pull requests.
+Feel free to submit [Github Issues](https://github.com/libresign/libresign/issues) or pull requests.
 
 The documentation website is build from the docs folder with vuepress.
 
@@ -14,11 +14,9 @@ The documentation website is build from the docs folder with vuepress.
 make serve
 ```
 
-## To build documentation
+## To update API documentation
 
-```bash
-make docs
-```
+[Repository of site and API documentation](https://github.com/libresign/libresign.github.io)
 
 ## To run PHPUnit
 
