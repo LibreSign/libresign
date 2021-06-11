@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: libresign/libresign.github.io
-          path: 'build/site'
+          path: 'apps/${{ env.APP_NAME }}/build/site'
 
       - name: Checkout server
         uses: actions/checkout@v2
