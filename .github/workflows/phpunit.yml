@@ -32,6 +32,12 @@ jobs:
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
     steps:
+      - name: Checkout site
+        uses: actions/checkout@v2
+        with:
+          repository: libresign/libresign.github.io
+          path: 'build/site'
+
       - name: Checkout server
         uses: actions/checkout@v2
         with:
