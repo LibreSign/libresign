@@ -1134,18 +1134,34 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testListWithEmptyReturn() {
-		$this->markTestSkipped();
 		$user = $this->createMock(\OCP\IUser::class);
-		$this->fileMapper
-			->method('getAssociatedFilesWithMe')
-			->willReturn([
-				'data' => [],
-				'pagination' => [
-					'total' => 0,
-					'current' => 'asdf'
-				]
-			]);
+		$fileMapper = \OC::$server->get(\OCA\Libresign\Db\FileMapper::class);
+
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManagerInstance,
+			$this->folder,
+			$this->root,
+			$fileMapper,
+			$this->config,
+			$this->newUserMail,
+			$this->urlGenerator,
+			$this->cfsslHandler,
+			$this->groupManager
+		);
 		$actual = $this->service->list($user);
-		$this->assertEmpty($actual);
+		$expected = [
+			'data' => [],
+			'pagination' => [
+				'total' => 0,
+				'current' => '',
+				'next' => '',
+				'prev' => '',
+				'last' => '',
+				'first' => ''
+			]
+		];
+		$this->assertEquals($actual, $expected);
 	}
 }
