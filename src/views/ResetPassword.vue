@@ -73,7 +73,7 @@ export default {
 				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
 					signPassword: this.password,
 				})
-				showSuccess(t('libresign', 'New password for sign document created'))
+				showSuccess(t('libresign', 'New password to sign documents has been created'))
 				this.hasLoading = false
 				this.$router.push({ name: 'Home' })
 			} catch (err) {

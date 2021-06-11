@@ -20,6 +20,9 @@ trait UserTrait {
 	/** @var \Test\Util\Group\Dummy */
 	private $backendGroup;
 
+	/**
+	 * @before
+	 */
 	public function userSetUp(): void {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
@@ -59,7 +62,10 @@ trait UserTrait {
 		$this->testGroup->removeUser($user);
 	}
 
-	public function tearDown(): void {
+	/**
+	 * @after
+	 */
+	public function userTraitTearDown(): void {
 		foreach ($this->backendUser->getUsers() as $username) {
 			$user = $this->userManager->get($username);
 			$this->testGroup->removeUser($user);

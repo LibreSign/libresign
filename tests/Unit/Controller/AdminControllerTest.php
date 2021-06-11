@@ -101,8 +101,4 @@ final class AdminControllerTest extends ApiTestCase {
 		// Make and test request mach with schema
 		$this->assertRequest();
 	}
-
-	public static function tearDownAfterClass(): void {
-		self::$server->stop();
-	}
 }
