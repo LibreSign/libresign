@@ -7,6 +7,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Helper\JSActions;
@@ -45,6 +46,8 @@ class AccountService {
 	private $cfsslHandler;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var ReportDao */
+	private $reportDao;
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
 	/** @var \OCA\Libresign\DbFile */
@@ -61,6 +64,7 @@ class AccountService {
 		FolderService $folder,
 		IRootFolder $root,
 		FileMapper $fileMapper,
+		ReportDao $reportDao,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		IURLGenerator $urlGenerator,
@@ -73,6 +77,7 @@ class AccountService {
 		$this->folder = $folder;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
+		$this->reportDao = $reportDao;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->urlGenerator = $urlGenerator;

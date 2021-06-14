@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
@@ -32,6 +33,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $userManagerInstance;
 	/** @var FolderService */
 	private $folder;
+	/** @var IRootFolder */
+	private $root;
+	/** @var FileMapper */
+	private $fileMapper;
+	/** @var ReportDao */
+	private $reportDao;
 	/** @var IConfig */
 	private $config;
 	/** @var NewUserMailHelper */
@@ -55,6 +62,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder = $this->createMock(FolderService::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->reportDao = $this->createMock(ReportDao::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
@@ -68,6 +76,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
+			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
@@ -91,6 +100,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
+			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
@@ -236,6 +246,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
+			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
@@ -351,6 +362,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
+			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
@@ -568,6 +580,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->folder,
 			$this->root,
 			$this->fileMapper,
+			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
@@ -1135,7 +1148,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testListWithEmptyReturn() {
 		$user = $this->createMock(\OCP\IUser::class);
-		$fileMapper = \OC::$server->get(\OCA\Libresign\Db\FileMapper::class);
+		$reportDao = \OC::$server->get(\OCA\Libresign\Db\ReportDao::class);
 
 		$this->service = new AccountService(
 			$this->l10n,
@@ -1143,7 +1156,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
-			$fileMapper,
+			$this->fileMapper,
+			$reportDao,
 			$this->config,
 			$this->newUserMail,
 			$this->urlGenerator,
