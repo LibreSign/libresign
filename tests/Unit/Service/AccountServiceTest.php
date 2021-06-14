@@ -1197,9 +1197,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->groupManager
 		);
-		$userToSign->method('getUID')->will($this->returnValue('user_to_sign'));
-		$user = $this->createUser('user_to_sign', 'password');
-		$user->setEMailAddress('person@test.coop');
+		$userToSign->method('getUID')->will($this->returnValue('testListWithOneFileAndTwoSigners'));
+		$user = $this->createUser('testListWithOneFileAndTwoSigners', 'password');
+		$user->setEMailAddress('testListWithOneFileAndTwoSigners@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
