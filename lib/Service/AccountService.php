@@ -396,7 +396,47 @@ class AccountService {
 		$return = [];
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
-		$return = $this->fileMapper->getAssociatedFilesWithMe($user->getUID(), $url);
+		$return = $this->reportDao->getFilesAssociatedFilesWithMe($user->getUID(), $url);
+		$return = array_map(function ($row) use($url) {
+			return $this->formatListRow($row, $url);
+		}, $return);
+		return [
+			'data' => $return,
+			'pagination' => [
+				'total' => 0,
+				'current' => '',
+				'next' => '',
+				'prev' => '',
+				'last' => '',
+				'first' => ''
+			]
+		];
 		return $return;
+	}
+
+	private function formatListRow(array $row, string $url) {
+		$row['requested_by'] = [
+			'uid' => $row['requested_by_uid'],
+			'display_name' => $row['requested_by_dislpayname']
+		];
+		$row['request_date'] = (new \DateTime())
+			->setTimestamp($row['request_date'])
+			->format('Y-m-d H:i:s');
+		if ($row['status_date']) {
+			$row['status_date'] = (new \DateTime())
+				->setTimestamp($row['request_date'])
+				->format('Y-m-d H:i:s');
+		}
+		$row['file'] = [
+			'type' => 'pdf',
+			'url' => $url . $row['uuid'],
+			'nodeId' => $row['node_id']
+		];
+		unset(
+			$row['node_id'],
+			$row['requested_by_uid'],
+			$row['requested_by_dislpayname']
+		);
+		return $row;
 	}
 }

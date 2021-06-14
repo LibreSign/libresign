@@ -1178,4 +1178,72 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 		$this->assertEquals($actual, $expected);
 	}
+
+	public function testListWithOneFileAndTwoSigners() {
+		$userToSign = $this->createMock(\OCP\IUser::class);
+		$reportDao = \OC::$server->get(\OCA\Libresign\Db\ReportDao::class);
+
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManagerInstance,
+			$this->folder,
+			$this->root,
+			$this->fileMapper,
+			$reportDao,
+			$this->config,
+			$this->newUserMail,
+			$this->urlGenerator,
+			$this->cfsslHandler,
+			$this->groupManager
+		);
+		$userToSign->method('getUID')->will($this->returnValue('user_to_sign'));
+		$user = $this->createUser('user_to_sign', 'password');
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person01@test.coop'
+				],
+				[
+					'email' => 'person02@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$actual = $this->service->list($userToSign);
+		$expected = [
+			'data' => [
+				[
+					'uuid' => $file['uuid'],
+					'name' => 'test',
+					'callback' => null,
+					'request_date' => (new \DateTime())
+						->setTimestamp($file['users'][0]->getCreatedAt())
+						->format('Y-m-d H:i:s'),
+					'status_date' => null,
+					'file' => [
+						'type' => 'pdf',
+						'nodeId' => $file['nodeId'],
+						'url' => $file['uuid']
+					],
+					'requested_by' => [
+						'display_name' => null,
+						'uid' => null
+					]
+				]
+			],
+			'pagination' => [
+				'total' => 0,
+				'current' => '',
+				'next' => '',
+				'prev' => '',
+				'last' => '',
+				'first' => ''
+			]
+		];
+		$this->assertEquals($actual, $expected);
+	}
 }
