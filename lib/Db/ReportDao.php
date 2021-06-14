@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Db;
 
-use OC\DB\QueryBuilder\Literal;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -49,5 +48,4 @@ class ReportDao {
 
 		return $qb->execute()->fetchAll();
 	}
-
 }

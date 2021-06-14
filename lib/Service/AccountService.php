@@ -397,7 +397,7 @@ class AccountService {
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 		$return = $this->reportDao->getFilesAssociatedFilesWithMe($user->getUID(), $url);
-		$return = array_map(function ($row) use($url) {
+		$return = array_map(function ($row) use ($url) {
 			return $this->formatListRow($row, $url);
 		}, $return);
 		return [
