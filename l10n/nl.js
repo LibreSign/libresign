@@ -15,6 +15,7 @@ OC.L10N.register(
     "This is not your file" : "Dit is niet jouw bestand",
     "User already exists" : "Gebruiker bestaat al",
     "Password is mandatory" : "Wachtwoord verplicht",
+    "You must have an email. You can define the email in your profile." : "Je moet een e-mailadres hebben. Je kunt het in je profiel definiëren.",
     "Invalid email" : "Ongeldige e-mailadres",
     "Password to sign is mandatory" : "Wachtwoord verplicht voor ondertekening",
     "User already exists. Please login." : "Gebruiker bestaat al. Inloggen.",
