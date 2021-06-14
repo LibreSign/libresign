@@ -1,9 +1,10 @@
 <template>
 	<AppSidebar
 		v-if="currentFile"
+		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
-		:title="getCurrentFile.file.name ? getCurrentFile.file.name : ''"
-		:active="getCurrentFile.file.id ? `libresign-tab-${getCurrentFile.file.id}` : 'id-'"
+		:title="titleName"
+		:active="tabId"
 		:header="false"
 		name="sidebar"
 		@close="closeSidebar">
@@ -12,7 +13,13 @@
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">
-			<SignaturesTab :items="it" />
+			<SignaturesTab :items="currentFile.file.signers" @change-sign-tab="changeTab" />
+		</AppSidebarTab>
+		<AppSidebarTab id="sign"
+			:name="t('libresign', 'Sign')"
+			icon="icon-rename"
+			:order="2">
+			<Sign @sign:document="emitSign" />
 		</AppSidebarTab>
 	</AppSidebar>
 </template>
@@ -22,6 +29,7 @@ import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
 import SignaturesTab from './SignaturesTab.vue'
+import Sign from '../Sign'
 
 export default {
 	name: 'Sidebar',
@@ -29,27 +37,17 @@ export default {
 		AppSidebar,
 		AppSidebarTab,
 		SignaturesTab,
+		Sign,
 	},
 	data() {
 		return {
-			it: [
-				{
-					name: 'Vinicios Gomes',
-					status: 'done',
-					data: 1616586633,
-				}, {
-					name: 'Victor Mattos',
-					status: 'pending',
-					data: null,
-				}, {
-					name: 'Livia Gouveia',
-					status: 'canceled',
-					data: 1617111824,
-				},
-			],
+			tabId: 'signatures',
 		}
 	},
 	computed: {
+		titleName() {
+			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
+		},
 		...mapState({
 			currentFile: state => state.currentFile,
 			sidebar: state => state.sidebar,
@@ -59,6 +57,12 @@ export default {
 	methods: {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
+		},
+		emitSign(password) {
+			this.$emit('sign:document', password)
+		},
+		changeTab(changeId) {
+			this.tabId = changeId
 		},
 	},
 }
