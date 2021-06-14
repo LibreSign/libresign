@@ -3,7 +3,7 @@
 		<img :src="srcImg">
 		<div class="enDot">
 			<div :class="'dot ' + status" />
-			<span>pendente</span>
+			<span>{{ statusToUppercase(status) }}</span>
 		</div>
 		<h1>{{ file.name }}</h1>
 	</div>
@@ -34,6 +34,9 @@ export default {
 	methods: {
 		openSidebar() {
 			this.$emit('sidebar', this.file)
+		},
+		statusToUppercase(status) {
+			return status[0].toUpperCase() + status.substr(1)
 		},
 	},
 }
@@ -82,7 +85,7 @@ export default {
 		}
 
 		.pending {
-			background: #d85a0b
+			background: #d67335
 		}
 
 		span{
