@@ -1244,6 +1244,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'first' => ''
 			]
 		];
-		$this->assertEquals($actual, $expected);
+		$this->assertEqualsCanonicalizing($actual, $expected);
 	}
 }
