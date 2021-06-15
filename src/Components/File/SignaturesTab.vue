@@ -1,21 +1,26 @@
 <template>
 	<div class="container-signatures-tab">
 		<ul>
-			<li v-for="item in items" :key="item.name">
+			<li v-for="sign in signers" :key="sign.uid">
 				<div class="user-name">
 					<div class="icon-sign icon-user" />
 					<span class="name">
-						{{ item.name }}
+						{{ sign.display_name }}
 					</span>
 				</div>
 				<div class="content-status">
 					<div class="container-dot">
-						<div :class="'dot ' + item.status" />
-						<span class="statusDot">{{ uppercaseString(item.status) }}</span>
+						<div :class="'dot ' + hasStatus(sign)" />
+						<span class="statusDot">{{ uppercaseString(hasStatus(sign)) }}</span>
 					</div>
 					<div class="container-dot">
 						<div class="icon icon-calendar-dark" />
-						<span v-if="item.data">{{ timestampsToDate(item.data) }}</span>
+						<span v-if="sign.sign_date">{{ timestampsToDate(sign.sign_date) }}</span>
+					</div>
+					<div v-show="showButton(sign)" class="container-dot">
+						<button class="primary" @click="changeToSignTab">
+							{{ t('libresign', 'Sign') }}
+						</button>
 					</div>
 				</div>
 			</li>
@@ -25,21 +30,31 @@
 
 <script>
 import { fromUnixTime } from 'date-fns'
+import { mapState } from 'vuex'
+
 export default {
 	name: 'SignaturesTab',
-	props: {
-		items: {
-			type: Array,
-			default: () => [],
-			required: true,
-		},
+	computed: {
+		...mapState({
+			signers: state => state.currentFile.file.signers,
+		}),
 	},
 	methods: {
+		hasStatus(item) {
+			return item.sign_date.length > 0 ? 'done' : 'pending'
+		},
 		uppercaseString(string) {
 			return string[0].toUpperCase() + string.substr(1)
 		},
 		timestampsToDate(date) {
-			return fromUnixTime(date).toLocaleDateString()
+			console.info(new Date(date))
+			return fromUnixTime(new Date(date)).toLocaleDateString()
+		},
+		showButton(signPerson) {
+			return !!(signPerson.me && signPerson.sign_date.length <= 0)
+		},
+		changeToSignTab() {
+			this.$emit('change-sign-tab', 'sign')
 		},
 	},
 }
@@ -56,7 +71,7 @@ export default {
 
 		li{
 			display: flex;
-			width: 48%;
+			width: 100%;
 			flex-direction: column;
 			border: 1px solid #cecece;
 			margin: 3px;
@@ -70,8 +85,19 @@ export default {
 				display: flex;
 				flex-direction: row;
 				align-items: center;
-				flex-wrap: nowrap;
+				flex-wrap: wrap;
 				width: 100%;
+
+				@media screen and (max-width: 1600px) {
+					.container-dot{
+						width: 100%;
+
+						button{
+							width: 100%;
+						}
+					}
+				}
+
 			}
 
 			.icon-sign{
@@ -96,7 +122,10 @@ export default {
 				display: flex;
 				flex-direction: row;
 				align-items: center;
-				justify-content: center;
+				justify-content: flex-start;
+				width: 32%;
+				margin-bottom: 6px;
+				min-height: 26px;
 				cursor: inherit;
 
 				.dot{
@@ -104,6 +133,7 @@ export default {
 					height: 10px;
 					border-radius: 50%;
 					margin-right: 10px;
+					margin-left: 3px;
 					cursor: inherit;
 				}
 
@@ -125,16 +155,13 @@ export default {
 					text-align: center;
 					color: rgba(0,0,0,.7);
 					cursor: inherit;
+					margin-left: 5px;
 				}
-			}
 
-			&:hover{
-				transform: scale(1.1);
-				background: rgba(0,0,0,.1);
-			}
+				button{
+					min-width: 130px;
+				}
 
-			@media screen and (max-width: 550px) {
-				width: 100%;
 			}
 		}
 	}
