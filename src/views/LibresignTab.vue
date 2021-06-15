@@ -27,6 +27,12 @@
 			id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
+			<Tooltip v-show="tooltip.show"
+				:message="tooltip.message"
+				:icon="tooltip.icon"
+				:type="tooltip.type"
+				:time="tooltip.time" />
+
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button class="primary"
 					:disabled="!hasSign"
@@ -101,8 +107,8 @@ export default {
 			canRequestSign: false,
 			canSign: false,
 			fileInfo: null,
-			validateError: {
-				hasError: false,
+			tooltip: {
+				show: false,
 				message: '',
 				icon: '',
 				type: '',
@@ -149,34 +155,38 @@ export default {
 		async getInfo() {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
-
 				this.canRequestSign = response.data.settings.canRequestSign
 				this.canSign = response.data.settings.canSign
 
 				if (response.data.settings.canSign === false) {
-					this.validateError = {
-						hasError: true,
-						message: t('libresign', 'There is no prompt to sign this file'),
-						icon: 'icon-details',
+					this.tooltip = {
+						message: t('libresign', 'There are no subscription requests for this document'),
+						icon: 'icon-details-white',
 						type: 'info',
+						show: true,
 					}
 				}
+
 				if (response.data.settings.canRequestSign === false) {
-					this.validateError = {
-						hasError: true,
-						message: t('libresign', 'You are not allowed to request subscriptions, report to administrator'),
+					this.tooltip = {
+						message: t('libresign', 'You cannot request signature for this document, please contact your administrator'),
 						icon: 'icon-details',
 						type: 'info',
+						show: true,
 					}
 				}
+
+				console.info(response)
 			} catch (err) {
-				this.validateError = {
+				this.tooltip = {
 					type: 'error',
-					message: t('libresign', 'Sorry, there was an error collecting information from the file.'),
-					icon: 'icon-error',
-					hasError: true,
+					message: t('libresign', 'Sorry, but you are not authorized to use LibreSign, please contact the administrator'),
+					icon: 'icon-error-white',
+					show: true,
 				}
+
 				this.canRequestSign = err.response.data.settings.canRequestSign
+				this.canSign = err.response.data.settings.canSign
 			}
 		},
 
