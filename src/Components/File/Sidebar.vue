@@ -7,6 +7,7 @@
 		:active="tabId"
 		:header="false"
 		name="sidebar"
+		@update:active="updateActive"
 		@close="closeSidebar">
 		<AppSidebarTab
 			id="signantures"
@@ -60,6 +61,9 @@ export default {
 		},
 		emitSign(password) {
 			this.$emit('sign:document', password)
+		},
+		updateActive(e) {
+			this.changeTab(e)
 		},
 		changeTab(changeId) {
 			this.tabId = changeId
