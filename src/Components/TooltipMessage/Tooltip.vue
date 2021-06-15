@@ -1,7 +1,7 @@
 <template>
-	<div v-show="hasVisible" class="container">
-		<span :class="icon" />
+	<div v-show="hasVisible" :class="computedClass">
 		<span>{{ message }}</span>
+		<span :class="'icon ' + icon" />
 	</div>
 </template>
 
@@ -12,9 +12,9 @@ export default {
 		icon: {
 			type: String,
 			required: false,
-			default: 'icon-details',
+			default: 'icon-details-white',
 			validator: (value) => {
-				return ['icon-error', 'icon-details'].includes(value)
+				return ['icon-error-white', 'icon-details-white'].includes(value)
 			},
 		},
 		type: {
@@ -41,8 +41,15 @@ export default {
 			hasVisible: true,
 		}
 	},
+	computed: {
+		computedClass() {
+			return this.type === 'error' ? 'container error' : 'container'
+		},
+	},
 	created() {
-		this.timerVisible()
+		if (this.time !== 0) {
+			this.timerVisible()
+		}
 	},
 	methods: {
 		enabled() {
@@ -59,12 +66,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-	.container{
+	.container {
+		display: flex;
+		flex-direction: row;
 		width: 100%;
 		padding: 16px;
 		border: 1px solid #cecece;
 		border-radius: 15px;
 		margin-bottom: 10px;
-		background: #cecece;
+		background: rgba(0, 0, 0, .05);
+
+		span.icon {
+			background-color: #000;
+			border-radius: 50%;
+			width: 16px;
+			height: 16px;
+			align-self: flex-start;
+			justify-self: flex-start;
+			margin-left: 10px;
+		}
+	}
+
+	.error {
+		border: 1px solid rgb(255, 0, 0) !important;
+
+		span.icon{
+			background-color: rgba(255, 0, 0, 0.5);
+		}
 	}
 </style>
