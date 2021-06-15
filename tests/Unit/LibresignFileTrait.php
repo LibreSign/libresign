@@ -51,7 +51,8 @@ trait LibresignFileTrait {
 				'name' => 'userId'
 			];
 		}
-		$this->files[] = $file = $this->getWebhookService()->save($data);
+		$file = $this->getWebhookService()->save($data);
+		$this->addFile($file);
 		return $file;
 	}
 
