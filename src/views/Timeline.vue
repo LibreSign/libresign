@@ -3,14 +3,16 @@
 		<ul>
 			<File
 				v-for="file in files"
-				:key="file.id"
+				:key="file.uuid"
 				class="file-details"
 				:status="file.status"
 				:file="file"
-				@sidebar="setSidebar"
-				@click="setSidebar(file)" />
+				@sidebar="setSidebar" />
 		</ul>
-		<Sidebar v-show="sidebar" @closeSidebar="closeSidebar" />
+		<Sidebar v-if="sidebar"
+			ref="sidebar"
+			@sign:document="signDocument"
+			@closeSidebar="closeSidebar" />
 	</div>
 </template>
 
@@ -27,68 +29,59 @@ export default {
 	data() {
 		return {
 			sidebar: false,
+			data: [
+				{
+					uuid: '3fa85f6s4-5717-4562-b3fc-x2c963f66afa6',
+					name: 'filename',
+					callback: 'http://app.test.coop/callback_webhook',
+					status: 'done',
+					status_date: '2021-06-11T22:18:59.872Z',
+					request_date: '2021-06-11T22:18:59.872Z',
+					requested_by: {
+						display_name: 'John Doe',
+						uid: 'johndoe',
+					},
+					file: {
+						type: 'pdf',
+						url: 'http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef',
+						nodeId: 2312,
+					},
+					signers: [
+						{
+							email: 'user@test.coop',
+							display_name: 'John Dddoe',
+							me: true,
+							uid: 'johndoe',
+							description: "As the company's CEO, you must sign this contract",
+							sign_date: '',
+							request_sign_date: '2021-06-11T22:18:59.873Z',
+						},
+						{
+							email: 'user@test.coop',
+							display_name: 'John Doe',
+							me: false,
+							uid: 'johndoe2',
+							description: "As the company's CEO, you must sign this contract",
+							sign_date: '2021-06-11T22:18:59.872Z',
+							request_sign_date: '2021-06-11T22:18:59.873Z',
+						},
+					],
+				},
+			],
 		}
 	},
 	computed: {
 		files() {
-			const items = [{
-				id: 1,
-				name: 'teste',
-				status: 'done',
-			}, {
-				id: 2,
-				name: 'teste2',
-				status: 'pending',
-			}, {
-				id: 3,
-				name: 'teste3',
-				status: 'canceled',
-			}, {
-				id: 4,
-				name: 'teste4',
-				status: 'canceled',
-			}, {
-				id: 5,
-				name: 'teste5',
-				status: 'canceled',
-			}, {
-				id: 6,
-				name: 'teste6',
-				status: 'canceled',
-			}, {
-				id: 8,
-				name: 'teste8',
-				status: 'canceled',
-			}, {
-				id: 7,
-				name: 'teste7',
-				status: 'canceled',
-			}, {
-				id: 9,
-				name: 'teste9',
-				status: 'canceled',
-			}, {
-				id: 10,
-				name: 'teste10',
-				status: 'canceled',
-			}, {
-				id: 11,
-				name: 'teste11',
-				status: 'canceled',
-			}, {
-				id: 12,
-				name: 'teste12',
-				status: 'canceled',
-			}, {
-				id: 13,
-				name: 'teste13',
-				status: 'canceled',
-			}, {
-				id: 14,
-				name: 'teste14',
-				status: 'canceled',
-			}]
-			return items
+			const files = this.data.map(file => {
+				return {
+					uuid: file.uuid,
+					name: file.name,
+					status: file.status,
+					status_date: file.status_date,
+					signers: file.signers,
+				}
+			})
+			return files
 		},
 	},
 
@@ -97,11 +90,16 @@ export default {
 			this.sidebar = true
 		},
 		setSidebar(objectFile) {
-			this.openSidebar()
+			this.closeSidebar()
+
 			this.$store.commit('setCurrentFile', objectFile)
+			this.openSidebar()
 		},
 		closeSidebar() {
 			this.sidebar = false
+		},
+		signDocument(param) {
+			console.info('Sign Function')
 		},
 	},
 }
