@@ -1245,8 +1245,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]
 		];
 		$this->assertJsonStringEqualsJsonString(
+			json_encode($expected),
 			json_encode($actual),
-			json_encode($expected)
 		);
 	}
 }
