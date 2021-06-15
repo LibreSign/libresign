@@ -8,6 +8,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\AppFramework\Http;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -78,12 +79,16 @@ class WebhookService {
 	}
 
 	public function validateUserManager($user) {
+		if (!isset($user['userManager'])) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (!empty($authorized)) {
-			$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
-			if (!array_intersect($userGroups, $authorized)) {
-				throw new \Exception($this->l10n->t('You are not allowed to request signing'), 405);
-			}
+		if (empty($authorized) || !is_array($authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
+		if (!array_intersect($userGroups, $authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 	}
 
@@ -181,20 +186,27 @@ class WebhookService {
 		});
 	}
 
-	public function deleteSignRequest(array $data) {
-		$fileData = $this->getFileByUuid($data['uuid']);
-		foreach ($data['users'] as $signer) {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId(
-				$signer['email'],
-				$fileData->getId()
-			);
-			$this->fileUserMapper->delete($fileUser);
-		}
+	public function deleteSignRequest(array $data): array {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		$fileData = $this->getFileByUuid($data['uuid']);
+		$deletedUsers = [];
+		foreach ($data['users'] as $key => $signer) {
+			try {
+				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
+					$signer['email'],
+					$fileData->getId()
+				);
+				$this->fileUserMapper->delete($fileUser);
+				$deletedUsers[] = $fileUser;
+			} catch (\Throwable $th) {
+				// already deleted
+			}
+		}
 		if (count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
 		}
+		return $deletedUsers;
 	}
 
 	/**
@@ -218,11 +230,14 @@ class WebhookService {
 		if (!$user) {
 			throw new \Exception($this->l10n->t('User data needs to be an array with values: user of position %s in list', [$index]));
 		}
-		if (empty($user['email'])) {
-			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
-		}
-		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+		if (!empty($user['email']) && !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception($this->l10n->t('Invalid email: user %s', [$index]));
+		}
+		if (empty($user['email'])) {
+			if (!empty($user['name'])) {
+				$index = $user['name'];
+			}
+			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
 		}
 	}
 
@@ -331,6 +346,9 @@ class WebhookService {
 	}
 
 	private function getNodeFromData(array $data): \OCP\Files\Node {
+		if (!$this->folderService->getUserId()) {
+			$this->folderService->setUserId($data['userManager']->getUID());
+		}
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];
@@ -388,12 +406,35 @@ class WebhookService {
 	}
 
 	private function getFolderName(array $data) {
-		$folderName[] = date('Y-m-d\TH:i:s');
-		if (!empty($data['name'])) {
-			$folderName[] = $data['name'];
+		if (!isset($data['settings']['folderPatterns'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
 		}
-		$folderName[] = $data['userManager']->getUID();
-		return implode('_', $folderName);
+		foreach ($data['settings']['folderPatterns'] as $pattern) {
+			switch ($pattern['name']) {
+				case 'date':
+					$folderName[] = (new \DateTime('NOW'))->format($pattern['setting']);
+					break;
+				case 'name':
+					if (!empty($data['name'])) {
+						$folderName[] = $data['name'];
+					}
+					break;
+				case 'userId':
+					$folderName[] = $data['userManager']->getUID();
+					break;
+			}
+		}
+		return implode($data['settings']['separator'], $folderName);
 	}
 
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {

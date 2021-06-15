@@ -2,155 +2,131 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OC\Authentication\Login\Chain;
-use OCA\Libresign\Controller\AccountController;
-use OCA\Libresign\Db\File as LibresignFile;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
-use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Tests\lib\User\Dummy;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\File;
-use OCP\Files\IRootFolder;
-use OCP\IL10N;
-use OCP\IRequest;
-use OCP\IURLGenerator;
-use OCP\IUser;
-use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
+use donatj\MockWebServer\Response;
+use OCA\Libresign\Tests\Unit\ApiTestCase;
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 
-final class AccountControllerTest extends TestCase {
-	use ProphecyTrait;
-	/** @var AccountController */
-	private $controller;
-	/** @var IRequest */
-	private $request;
-	/** @var IL10N */
-	private $l10n;
-	/** @var AccountService */
-	private $account;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var IRootFolder */
-	private $root;
-	/** @var Chain */
-	private $loginChain;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var IUserSession */
-	private $session;
+/**
+ * @group DB
+ */
+final class AccountControllerTest extends ApiTestCase {
+	use LibresignFileTrait;
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountCreateWithInvalidUuid() {
+		$this->createUser('username', 'password');
 
-	public function setUp(): void {
-		parent::setUp();
-		$this->request = $this->createMock(IRequest::class);
-		$this->l10n = $this->createMock(IL10N::class);
-		$this->l10n
-			->method('t')
-			->will($this->returnArgument(0));
-		$this->account = $this->createMock(AccountService::class);
-		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->root = $this->createMock(IRootFolder::class);
-		$this->loginChain = $this->createMock(Chain::class);
-		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->session = $this->getMockBuilder(IUserSession::class)
-			->disableOriginalConstructor()
-			->getMock();
-		$this->controller = new AccountController(
-			$this->request,
-			$this->l10n,
-			$this->account,
-			$this->fileMapper,
-			$this->root,
-			$this->loginChain,
-			$this->urlGenerator,
-			$this->session
-		);
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'email' => 'testuser01@test.coop',
+				'password' => 'secret',
+				'signPassword' => 'secretToSign'
+			])
+			->withPath('/account/create/1234564789')
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid UUID', $body['message']);
 	}
 
-	public function testCreateSuccess() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getFileId'), $this->anything()],
-				[$this->equalTo('getDescription'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				[$this->returnValue(1)],
-				[$this->returnValue('Description')]
-			]));
-		$this->account
-			->method('getFileUserByUuid')
-			->will($this->returnValue($fileUser));
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountCreateWithSuccess() {
+		$user = $this->createUser('username', 'password');
 
-		$fileData = $this->createMock(LibresignFile::class);
-		$fileData
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getUserId'), $this->anything()],
-				[$this->equalTo('getNodeId'), $this->anything()],
-				[$this->equalTo('getName'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				['getUserId', [], 1],
-				['getNodeId', [], 1],
-				['getName', [], 'Filename']
-			]));
-		$this->fileMapper
-			->method('getById')
-			->will($this->returnValue($fileData));
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
 
-		$userDummyBackend = $this->createMock(Dummy::class);
-		$userDummyBackend
-			->method('userExists')
-			->will($this->returnValue(true));
-		\OC::$server->getUserManager()->registerBackend($userDummyBackend);
-		\OC::$server->getSession()->set('user_id', 1);
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'email' => 'person@test.coop',
+				'password' => 'secret',
+				'signPassword' => 'secretToSign'
+			])
+			->withPath('/account/create/' . $file['users'][0]->getUuid());
 
-		$node = $this->createMock(File::class);
-		$node->method('getContent')
-			->will($this->returnvalue('PDF'));
-		$this->root
-			->method('getById')
-			->will($this->returnValue([$node]));
+		$this->assertRequest();
+	}
 
-			
-		$this->urlGenerator
-			->method('linkToRoute')
-			->will($this->returnValue('http://test.coop'));
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountSignatureEndpointWithSuccess() {
+		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
 
-		$actual = $this->controller->createToSign('uuid', 'email', 'password', 'signPassword');
-		$expected = new JSONResponse([
-			'message' => 'Success',
-			'action' => JSActions::ACTION_SIGN,
-			'filename' => 'Filename',
-			'description' => null,
-			'pdf' => [
-				'url' => 'http://test.coop'
+		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
+			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
+		));
+
+		$this->mockConfig([
+			'libresign' => [
+				'notifyUnsignedUser' => 0,
+				'commonName' => 'CommonName',
+				'country' => 'Brazil',
+				'organization' => 'Organization',
+				'organizationUnit' => 'organizationUnit',
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 			]
-		], Http::STATUS_OK);
-		$this->assertEquals($expected, $actual);
+		]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'signPassword' => 'password'
+			])
+			->withPath('/account/signature');
+
+		$home = $user->getHome();
+		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
+		$this->assertRequest();
+		$this->assertFileExists($home . '/files/LibreSign/signature.pfx');
 	}
-	public function testGenerate() {
-		$password = 'somePassword';
 
-		$user = $this->createMock(IUser::class);
-		$user->method('getEMailAddress')->willReturn('user@test.coop');
-		$user->method('getUID')->willReturn('user');
-		$this->session->method('getUser')->willReturn($user);
-		$node = $this->createMock(File::class);
-		$node->method('getPath')
-			->will($this->returnValue('/path/to/someSignature'));
-		$this->account
-			->method('generateCertificate')
-			->will($this->returnValue($node));
-		$result = $this->controller->signatureGenerate(
-			$password
-		);
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testAccountSignatureEndpointWithFailure() {
+		$this->createUser('username', 'password');
 
-		$this->assertSame(['signature' => '/path/to/someSignature'], $result->getData());
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'signPassword' => ''
+			])
+			->withPath('/account/signature')
+			->assertResponseCode(401);
+
+		$this->assertRequest();
 	}
 }

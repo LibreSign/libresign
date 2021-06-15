@@ -12,10 +12,14 @@ use ByJG\ApiTools\Exception\InvalidDefinitionException;
 use ByJG\ApiTools\Exception\NotMatchedException;
 use ByJG\ApiTools\Exception\PathNotFoundException;
 use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
+use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
+use donatj\MockWebServer\MockWebServer;
+use Symfony\Component\Yaml\Yaml;
 
-trait ApiTestTrait {
+class ApiTestCase extends TestCase {
+	use UserTrait;
 	/**
 	 * @var Schema
 	 */
@@ -25,6 +29,31 @@ trait ApiTestTrait {
 	 * @var AbstractRequester
 	 */
 	protected $requester = null;
+
+	/**
+	 * @var \OCA\Libresign\Tests\Unit\ApiRequester
+	 */
+	public $request;
+
+	/**
+	 * @var MockWebServer
+	 */
+	protected static $server;
+
+	public static function setUpBeforeClass(): void {
+		self::$server = new MockWebServer();
+		self::$server->start();
+	}
+
+	public function setUp(): void {
+		parent::setUp();
+		$data = Yaml::parse(file_get_contents('build/site/site/.vuepress/public/specs/api.yaml'));
+		$data['servers'][] = ['url' => 'http://localhost/apps/libresign/api/0.1'];
+		/** @var OpenApiSchema */
+		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
+		$this->setSchema($schema);
+		$this->request = new \OCA\Libresign\Tests\Unit\ApiRequester();
+	}
 
 	/**
 	 * configure the schema to use for requests
@@ -109,7 +138,10 @@ trait ApiTestTrait {
 	 * @throws StatusCodeNotMatchedException
 	 * @throws MessageException
 	 */
-	public function assertRequest(AbstractRequester $request) {
+	public function assertRequest(AbstractRequester $request = null) {
+		if (!$request) {
+			$request = $this->request;
+		}
 		// Add own schema if nothing is passed.
 		if (!$request->hasSchema()) {
 			$this->checkSchema();

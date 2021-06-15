@@ -6,12 +6,11 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Settings\AdminSettings;
 use OCP\IL10N;
 use OCP\IURLGenerator;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
  */
-final class AdminSettingsTest extends TestCase {
+final class AdminSettingsTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var AdminSettings */
 	private $adminSettings;
 	public function setUp(): void {

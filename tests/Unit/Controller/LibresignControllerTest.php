@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
+use Jeidison\JSignPDF\JSignPDF;
 use OC\Files\Node\File;
 use OC\Files\Node\Folder;
 use OCA\Libresign\Controller\LibresignController;
@@ -11,6 +12,7 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
 use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Tests\Unit\LibresignFileTrait;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -19,19 +21,18 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
-use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
+ * @group DB
  */
-final class LibresignControllerTest extends TestCase {
+final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
+	use LibresignFileTrait;
 	use ProphecyTrait;
 	public function testSignFile() {
-		$userId = 'john';
 		$request = $this->prophesize(IRequest::class);
-		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
 		$root = $this->createMock(IRootFolder::class);
@@ -128,7 +129,6 @@ final class LibresignControllerTest extends TestCase {
 		$password,
 		$paramenterMissing
 	) {
-		$userId = 'john';
 		$request = $this->prophesize(IRequest::class);
 		$service = $this->prophesize(LibresignService::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
@@ -170,5 +170,390 @@ final class LibresignControllerTest extends TestCase {
 
 		static::assertSame(["parameter '{$paramenterMissing}' is required!"], $result->getData()['errors']);
 		static::assertSame(422, $result->getStatus());
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithInvalidFileToSign() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/file_id/invalid')
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithInvalidUuidToSign() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/invalid')
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithAlreadySignedFile() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$file['users'][0]->setSigned(time());
+		$fileUser = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
+		$fileUser->update($file['users'][0]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('File already signed by you', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithNotFoundFile() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$folderService = \OC::$server->get(\OCA\Libresign\Service\FolderService::class);
+		$libresignFolder = $folderService->getFolder();
+		$libresignFolder->delete();
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('File not found', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithoutPfx() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => ''
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Password to sign not defined. Create a password to sign', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithEmptyCertificatePassword() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
+		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => ''
+			])
+			->assertResponseCode(422);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Certificate Password is Empty.', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSignUsingFileIdWithSuccess() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
+		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+
+		$mock = $this->createMock(JSignPDF::class);
+		$mock->method('sign')->willReturn('content');
+		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JLibresignHandler::class);
+		$jsignHandler->setJSignPdf($mock);
+		\OC::$server->registerService(\OCA\Libresign\Handler\JLibresignHandler::class, function () use ($mock) {
+			return $mock;
+		});
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withRequestBody([
+				'password' => 'secretPassword'
+			]);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateUsignUuidWithInvalidData() {
+		$this->request
+			->withPath('/file/validate/uuid/invalid')
+			->assertResponseCode(404);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateUsignFileIdWithInvalidData() {
+		$this->request
+			->withPath('/file/validate/file_id/171')
+			->assertResponseCode(404);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingUnloggedUser() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertFalse($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertFalse($body['settings']['canSign'], 'Can permission to sign');
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingLoggedUserWithoutPermissionToRequestSign() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertTrue($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingLoggedUserAndWithPermissionToRequestSign() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->mockConfig(['libresign' => ['webhook_authorized' => '["admin","testGroup"]']]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertTrue($body['signatures'][0]['me'], "It's me");
+		$this->assertTrue($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testValidateWithSuccessUsingLoggedUserAndOutsideAllowedRequestSignGroups() {
+		$user = $this->createUser('username', 'password');
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->mockConfig(['libresign' => ['webhook_authorized' => '[]']]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/file/validate/uuid/' . $file['uuid']);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertTrue($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
 	}
 }

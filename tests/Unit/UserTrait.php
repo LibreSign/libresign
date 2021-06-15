@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit;
 
 use OCP\IGroupManager;
-use OCP\IUser;
 use OCP\IUserManager;
 
 trait UserTrait {
@@ -15,31 +14,64 @@ trait UserTrait {
 
 	private $testGroup;
 
-	/** @var array<IUser> */
-	private $users;
-
 	/** @var \Test\Util\User\Dummy */
-	private $userBackend;
+	private $backendUser;
 
-	protected function userSetUp(): void {
+	/** @var \Test\Util\Group\Dummy */
+	private $backendGroup;
+
+	/**
+	 * @before
+	 */
+	public function userSetUp(): void {
 		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
 
-		$this->backend = new \Test\Util\User\Dummy();
-		\OC_User::useBackend($this->backend);
+		$this->userManager->clearBackends();
+		$this->backendUser = new \Test\Util\User\Dummy();
+		\OC_User::useBackend($this->backendUser);
+
+		$this->groupManager->clearBackends();
+		$this->backendGroup = new \Test\Util\Group\Dummy();
+		$this->groupManager->addBackend($this->backendGroup);
+
 		$this->testGroup = $this->groupManager->createGroup('testGroup');
 	}
 
-	private function createUser($username, $password) {
-		$this->backend->createUser($username, $password);
-		$this->users[$username] = $this->userManager->get($username);
-		$this->testGroup->addUser($this->users[$username]);
+	/**
+	 * Create user
+	 *
+	 * @param string $username
+	 * @param string $password
+	 * @return \OC\User\User
+	 */
+	public function createUser($username, $password) {
+		$this->mockConfig([
+			'core' => [
+				'newUser.sendEmail' => 'no'
+			]
+		]);
+		$this->backendUser->createUser($username, $password);
+		$user = $this->userManager->get($username);
+		$this->testGroup->addUser($user);
+		return $user;
 	}
 
-	public function tearDown(): void {
-		parent::tearDown();
-		foreach ($this->users as $user) {
+	public function deleteUser($username) {
+		$user = $this->userManager->get($username);
+		$this->testGroup->removeUser($user);
+	}
+
+	/**
+	 * @after
+	 */
+	public function userTraitTearDown(): void {
+		foreach ($this->backendUser->getUsers() as $username) {
+			$user = $this->userManager->get($username);
 			$this->testGroup->removeUser($user);
+		}
+		foreach ($this->backendGroup->getGroups() as $group) {
+			$this->groupManager->get($group)->delete();
 		}
 	}
 }

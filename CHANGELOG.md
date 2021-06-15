@@ -19,9 +19,16 @@ Types of changes:
 # Added
 - GitHub action to add a changelog reminder
 - Test for validation of Swagger documentation
+- Added integration with Approval app. Thanks to @eneiluj
+
+# Changed
+- Increment of coverage on backend code
+- Bug fixes and refactorings resulting from increased coverage
+- Use name of user on error message when email is empty
 
 # Removed
 - Removed dsv folder
+- Removed docs folder
 
 # Fixed
 - Rendering files tab in Nextcloud 20 and 21

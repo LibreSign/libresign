@@ -8,16 +8,16 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\MailService;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
-final class MailServiceTest extends TestCase {
+final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var Mailer */
@@ -30,6 +30,10 @@ final class MailServiceTest extends TestCase {
 	private $l10n;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IConfig */
+	private $config;
+	/** @var MailService */
+	private $service;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -39,13 +43,15 @@ final class MailServiceTest extends TestCase {
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->config = $this->createMock(IConfig::class);
 		$this->service = new MailService(
 			$this->logger,
 			$this->mailer,
 			$this->fileMapper,
 			$this->fileUserMapper,
 			$this->l10n,
-			$this->urlGenerator
+			$this->urlGenerator,
+			$this->config
 		);
 	}
 
@@ -115,7 +121,9 @@ final class MailServiceTest extends TestCase {
 			->willReturnCallback(function () {
 				throw new \Exception("Error Processing Request", 1);
 			});
-
+		$this->config
+			->method('getAppValue')
+			->will($this->returnValue(true));
 		$actual = $this->service->notifyAllUnsigned();
 		$this->assertTrue($actual);
 	}

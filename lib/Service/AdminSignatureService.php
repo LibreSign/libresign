@@ -44,11 +44,11 @@ class AdminSignatureService {
 			$key,
 			$configPath
 		);
-		for ($i = 1;$i <= 2;$i++) {
-			sleep($i);
+		for ($i = 1;$i <= 3;$i++) {
 			if ($this->cfsslHandler->health($cfsslUri)) {
 				break;
 			}
+			sleep($i);
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
@@ -58,6 +58,7 @@ class AdminSignatureService {
 		$this->config->setAppValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
 		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
 		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
+		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
 
 	public function loadKeys() {
