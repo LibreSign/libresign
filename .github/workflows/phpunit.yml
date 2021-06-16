@@ -90,7 +90,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml --filter testListWithOneFileAndTwoSigners
+        run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
       - name: Upload coverage results to Coveralls
         working-directory: apps/${{ env.APP_NAME }}
