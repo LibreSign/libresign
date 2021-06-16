@@ -62,7 +62,10 @@ class WebhookController extends ApiController {
 		try {
 			$this->webhook->validate($data);
 			$return = $this->webhook->save($data);
-			unset($return['users']);
+			unset(
+				$return['id'],
+				$return['users'],
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -98,7 +101,10 @@ class WebhookController extends ApiController {
 			$this->webhook->validateFileUuid($data);
 			$this->webhook->validateUsers($data);
 			$return = $this->webhook->save($data);
-			unset($return['users']);
+			unset(
+				$return['id'],
+				$return['users'],
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
