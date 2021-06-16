@@ -27,11 +27,7 @@ class ReportDao {
 
 	public function getTotalFilesAssociatedFilesWithMe($userId) {
 		$stmt = $this->getFilesAssociatedFilesWithMeStmt($userId, true);
-		$row = $stmt->fetch();
-		if ($row) {
-			return (int) $row['total'];
-		}
-		return 0;
+		return (int) $stmt->fetchOne();
 	}
 
 	public function getFilesAssociatedFilesWithMeFormatted($userId, $page = null, $limit = 15) {
