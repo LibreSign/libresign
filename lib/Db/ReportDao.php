@@ -101,7 +101,7 @@ class ReportDao {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
-				if ($signer->getFileId() == $file['id']) {
+				if ($signer->getFileId() === $file['id']) {
 					$data = [
 						'email' => $signer->getEmail(),
 						'description' => $signer->getDescription(),
@@ -125,7 +125,7 @@ class ReportDao {
 			}
 			if (!count($files[$key]['signers'])) {
 				$files[$key]['status'] = 'no signers';
-			} elseif ($totalSigned == count($files[$key]['signers'])) {
+			} elseif ($totalSigned === count($files[$key]['signers'])) {
 				$files[$key]['status'] = 'signed';
 			} else {
 				$files[$key]['status'] = 'pending';
