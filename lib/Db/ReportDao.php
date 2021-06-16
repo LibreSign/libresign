@@ -130,6 +130,7 @@ class ReportDao {
 			} else {
 				$files[$key]['status'] = 'pending';
 			}
+			unset($files[$key]['id']);
 		}
 		return $files;
 	}
