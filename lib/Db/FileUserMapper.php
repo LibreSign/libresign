@@ -95,6 +95,24 @@ class FileUserMapper extends QBMapper {
 	}
 
 	/**
+	 * Get all signers by multiple fileId
+	 *
+	 * @param array $fileId
+	 * @return FileUser[]
+	 */
+	public function getByMultipleFileId(array $fileId) {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->in('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
+			);
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Get all signers by fileId
 	 *
 	 * @param string $nodeId
