@@ -20,6 +20,7 @@ Types of changes:
 - GitHub action to add a changelog reminder
 - Test for validation of Swagger documentation
 - Added integration with Approval app. Thanks to @eneiluj
+- Tooltip to bring information to the user. Thanks to @vinicios-gomes
 
 # Changed
 - Increment of coverage on backend code
