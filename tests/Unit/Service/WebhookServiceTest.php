@@ -399,14 +399,14 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('__call')
 			->withConsecutive(
-				[$this->equalTo('getId')],
 				[$this->equalTo('getUuid')],
-				[$this->equalTo('getNodeId')]
+				[$this->equalTo('getNodeId')],
+				[$this->equalTo('getId')]
 			)
 			->will($this->returnValueMap([
-				['getId', [], 123],
 				['getUuid', [], 'uuid-here'],
-				['getNodeId', [], 123]
+				['getNodeId', [], 123],
+				['getId', [], 123]
 			]));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 

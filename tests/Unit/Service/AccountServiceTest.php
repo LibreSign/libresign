@@ -1216,7 +1216,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$expected = [
 			'data' => [
 				[
-					'id' => $file['id'],
 					'uuid' => $file['uuid'],
 					'name' => 'test',
 					'callback' => null,

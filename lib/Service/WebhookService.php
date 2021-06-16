@@ -260,7 +260,6 @@ class WebhookService {
 		} else {
 			$file = $this->saveFile($data);
 		}
-		$return['id'] = $file->getId();
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
