@@ -1180,12 +1180,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testListWithOneFileAndTwoSigners() {
-		$userToSign = $this->createMock(\OCP\IUser::class);
+		$fileUserMapper = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
 		$reportDao = \OC::$server->get(\OCA\Libresign\Db\ReportDao::class);
 
 		$this->service = new AccountService(
 			$this->l10n,
-			$this->fileUserMapper,
+			$fileUserMapper,
 			$this->userManagerInstance,
 			$this->folder,
 			$this->root,
@@ -1197,18 +1197,17 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->groupManager
 		);
-		$userToSign->method('getUID')->will($this->returnValue('testListWithOneFileAndTwoSigners'));
-		$user = $this->createUser('testListWithOneFileAndTwoSigners', 'password');
-		$user->setEMailAddress('testListWithOneFileAndTwoSigners@test.coop');
+		$userToSign = $this->createMock(\OCP\IUser::class);
+		$username = 'testListWithOneFileAndTwoSigners_' . rand();
+		$userToSign->method('getUID')->will($this->returnValue($username));
+		$user = $this->createUser($username, 'password');
+		$user->setEMailAddress($username . '@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
 					'email' => 'person01@test.coop'
-				],
-				[
-					'email' => 'person02@test.coop'
 				]
 			],
 			'userManager' => $user
@@ -1217,9 +1216,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$expected = [
 			'data' => [
 				[
+					'id' => $file['id'],
 					'uuid' => $file['uuid'],
 					'name' => 'test',
 					'callback' => null,
+					'status' => 'pending',
 					'request_date' => (new \DateTime())
 						->setTimestamp($file['users'][0]->getCreatedAt())
 						->format('Y-m-d H:i:s'),
@@ -1227,16 +1228,28 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'file' => [
 						'type' => 'pdf',
 						'nodeId' => $file['nodeId'],
-						'url' => $file['uuid']
+						'url' => '/index.php/apps/libresign/pdf/user/' . $file['uuid']
 					],
 					'requested_by' => [
 						'display_name' => null,
 						'uid' => null
+					],
+					'signers' => [
+						[
+							'email' => 'person01@test.coop',
+							'display_name' => "",
+							'uid' => null,
+							'description' => null,
+							'sign_date' => null,
+							'request_sign_date' => (new \DateTime())
+								->setTimestamp($file['users'][0]->getCreatedAt())
+								->format('Y-m-d H:i:s')
+						]
 					]
 				]
 			],
 			'pagination' => [
-				'total' => 0,
+				'total' => 1,
 				'current' => '',
 				'next' => '',
 				'prev' => '',
