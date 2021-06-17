@@ -120,7 +120,7 @@ OC.L10N.register(
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "View" : "Zobrazit",
     "Subscriptions:" : "Podpisy:",
-    "Document Informations" : "Informace dokumentu",
+    "Document Informations" : "Informace o dokumentu",
     "Validate Subscription." : "Ověřit předplatné.",
     "Enter the UUID of the document to validate." : "Zadejte UUID dokumentu k ověření.",
     "Validation" : "Ověření",
