@@ -46,13 +46,16 @@ export default {
 .content-file{
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
-	min-width: 62px;
-	max-height: 196px;
+	max-height: 187px;
+	min-height: 187px;
 	margin: 30px 40px 20px 20px;
 	padding: 10px 20px 10px 20px;
 	cursor: pointer;
+	min-width: 187px;
+	max-width: 187px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 
 	img{
 		width: 90px;
@@ -102,6 +105,7 @@ export default {
 		width: 100%;
 		text-align: center;
 		cursor: inherit;
+		text-overflow: ellipsis;
 	}
 }
 </style>
