@@ -109,14 +109,13 @@ class ReportDao {
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
-						'sign_date' => $signer->getSigned()
-							? (new \DateTime())
-								->setTimestamp($signer->getSigned())
-								->format('Y-m-d H:i:s')
-							: null,
+						'sign_date' => null,
 						'uid' => $signer->getUserId()
 					];
-					if ($data['sign_date']) {
+					if ($signer->getSigned()) {
+						$data['sign_date'] = (new \DateTime())
+							->setTimestamp($signer->getSigned())
+							->format('Y-m-d H:i:s');
 						$totalSigned++;
 					}
 					$files[$key]['signers'][] = $data;
@@ -144,7 +143,7 @@ class ReportDao {
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp($row['request_date'])
 			->format('Y-m-d H:i:s');
-		if ($row['status_date']) {
+		if (!empty($row['status_date'])) {
 			$row['status_date'] = (new \DateTime())
 				->setTimestamp($row['request_date'])
 				->format('Y-m-d H:i:s');
