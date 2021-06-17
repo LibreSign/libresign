@@ -92,7 +92,7 @@ class ReportDao {
 				);
 		}
 		$qb->from('libresign_file', 'f')
-			->join('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id');
+			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id');
 
 		return $qb->execute();
 	}
