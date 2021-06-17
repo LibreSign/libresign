@@ -47,7 +47,7 @@ class ReportDao {
 			$return[] = $this->formatListRow($row, $url);
 		}
 		$signers = $this->fileUserMapper->getByMultipleFileId($fileIds);
-		$return = $this->assocFileToFileUser($return, $signers);
+		$return = $this->assocFileToFileUserAndFormat($userId, $return, $signers);
 		return $return;
 	}
 
@@ -97,7 +97,7 @@ class ReportDao {
 		return $qb->execute();
 	}
 
-	private function assocFileToFileUser($files, $signers) {
+	private function assocFileToFileUserAndFormat($userId, $files, $signers) {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
