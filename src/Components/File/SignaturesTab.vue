@@ -5,7 +5,7 @@
 				<div class="user-name">
 					<div class="icon-sign icon-user" />
 					<span class="name">
-						{{ sign.display_name }}
+						{{ sign.display_name ? sign.display_name : 'User has no name' }}
 					</span>
 				</div>
 				<div class="content-status">
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { fromUnixTime } from 'date-fns'
+import { format } from 'date-fns'
 import { mapState } from 'vuex'
 
 export default {
@@ -41,17 +41,20 @@ export default {
 	},
 	methods: {
 		hasStatus(item) {
-			return item.sign_date.length > 0 ? 'done' : 'pending'
+			if (item.sign_date) {
+				return item.sign_date ? 'signed' : 'pending'
+			} else {
+				return 'pending'
+			}
 		},
 		uppercaseString(string) {
 			return string[0].toUpperCase() + string.substr(1)
 		},
 		timestampsToDate(date) {
-			console.info(new Date(date))
-			return fromUnixTime(new Date(date)).toLocaleDateString()
+			return format(new Date(date), 'dd/MM/yyyy')
 		},
 		showButton(signPerson) {
-			return !!(signPerson.me && signPerson.sign_date.length <= 0)
+			return !!(signPerson.me && !signPerson.sign_date)
 		},
 		changeToSignTab() {
 			this.$emit('change-sign-tab', 'sign')
@@ -137,7 +140,7 @@ export default {
 					cursor: inherit;
 				}
 
-				.done{
+				.signed {
 					background: #008000;
 				}
 
