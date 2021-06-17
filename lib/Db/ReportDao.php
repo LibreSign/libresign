@@ -147,7 +147,7 @@ class ReportDao {
 			->format('Y-m-d H:i:s');
 		if (!empty($row['status_date'])) {
 			$row['status_date'] = (new \DateTime())
-				->setTimestamp($row['request_date'])
+				->setTimestamp($row['status_date'])
 				->format('Y-m-d H:i:s');
 		}
 		$row['file'] = [
