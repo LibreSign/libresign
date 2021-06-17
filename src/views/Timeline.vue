@@ -19,6 +19,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -32,8 +33,14 @@ export default {
 	data() {
 		return {
 			sidebar: false,
-			files: [],
 		}
+	},
+
+	computed: {
+		...mapState({
+			files: state => state.files,
+		}),
+		...mapGetters(['getFiles']),
 	},
 
 	created() {
@@ -43,9 +50,8 @@ export default {
 	methods: {
 		async getData() {
 			try {
-
 				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
-				this.files = response.data.data
+				this.$store.commit('setFiles', response.data.data)
 			} catch (err) {
 				showError('An error occurred while fetching the files')
 			}
@@ -55,7 +61,6 @@ export default {
 		},
 		setSidebar(objectFile) {
 			this.closeSidebar()
-
 			this.$store.commit('setCurrentFile', objectFile)
 			this.openSidebar()
 		},
@@ -67,11 +72,8 @@ export default {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
 					password: param.password,
 				})
-				if (response.data.action === 350) {
-					this.$refs.sidebar.changeTab('signatures')
-				}
-				this.$refs.sidebar.clearSignInput()
-				this.disabledSign = true
+				this.getData()
+				this.closeSidebar()
 				return showSuccess(response.data.message)
 			} catch (err) {
 				if (err.response.data.action === 400) {
@@ -83,7 +85,6 @@ export default {
 					}
 				)
 			}
-
 		},
 	},
 }

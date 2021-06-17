@@ -37,6 +37,7 @@ export default new Store({
 		user: {},
 		settings: {},
 		currentFile: {},
+		files: [],
 	},
 
 	mutations: {
@@ -64,6 +65,9 @@ export default new Store({
 		setError(state, errors) {
 			Vue.set(state.errors, errors)
 		},
+		setFiles(state, files) {
+			state.files = files
+		},
 	},
 
 	getters: {
@@ -84,6 +88,9 @@ export default new Store({
 		},
 		getUser(state) {
 			return state.user
+		},
+		getFiles(state) {
+			return state.files
 		},
 	},
 
