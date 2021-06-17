@@ -23,7 +23,7 @@ export default {
 			type: String,
 			required: true,
 			default: 'done',
-			validator: () => ['done', 'canceled', 'pending'],
+			validator: () => ['signed', 'canceled', 'pending'],
 		},
 	},
 	data() {
@@ -76,7 +76,7 @@ export default {
 			cursor: inherit;
 		}
 
-		.done{
+		.signed{
 			background: #008000;
 		}
 
