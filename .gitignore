@@ -7,6 +7,5 @@
 node_modules/
 /.php_cs.cache
 .phpunit.result.cache
-/docs/.vuepress/dist
 *.phar
 /src/__test__/coverage

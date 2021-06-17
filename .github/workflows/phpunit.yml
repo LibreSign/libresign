@@ -50,6 +50,12 @@ jobs:
         with:
           path: apps/${{ env.APP_NAME }}
 
+      - name: Checkout site
+        uses: actions/checkout@v2
+        with:
+          repository: libresign/libresign.github.io
+          path: 'apps/${{ env.APP_NAME }}/build/site'
+
       - name: Set up php ${{ matrix.php-versions }}
         uses: shivammathur/setup-php@v2
         with:
@@ -75,8 +81,8 @@ jobs:
             --database-port=$DB_PORT \
             --database-user=root \
             --database-pass=rootpassword \
-            --admin-user admin \
-            --admin-pass password 
+            --admin-user=admin \
+            --admin-pass=password
           ./occ app:enable ${{ env.APP_NAME }}
           php -S localhost:8080 &
 

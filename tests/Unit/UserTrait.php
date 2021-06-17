@@ -7,32 +7,34 @@ use OCP\IUserManager;
 
 trait UserTrait {
 	/** @var IGroupManager */
-	private $groupManager;
+	private $userTraitGroupManager;
 
 	/** @var IUserManager */
-	private $userManager;
+	private $userTraitUserManager;
 
-	private $testGroup;
+	private $userTraitTestGroup;
 
 	/** @var \Test\Util\User\Dummy */
-	private $backendUser;
+	private $userTraitBackendUser;
 
 	/** @var \Test\Util\Group\Dummy */
-	private $backendGroup;
+	private $userTraitBackendGroup;
 
-	public function userSetUp(): void {
-		$this->groupManager = \OC::$server->get(\OCP\IGroupManager::class);
-		$this->userManager = \OC::$server->get(\OCP\IUserManager::class);
+	/**
+	 * @before
+	 */
+	public function userTraitSetUp(): void {
+		$this->userTraitUserManager = \OC::$server->get(\OCP\IUserManager::class);
+		$this->userTraitUserManager->clearBackends();
+		$this->userTraitBackendUser = new \Test\Util\User\Dummy();
+		$this->userTraitUserManager->registerBackend($this->userTraitBackendUser);
 
-		$this->userManager->clearBackends();
-		$this->backendUser = new \Test\Util\User\Dummy();
-		\OC_User::useBackend($this->backendUser);
+		$this->userTraitGroupManager = \OC::$server->get(\OCP\IGroupManager::class);
+		$this->userTraitGroupManager->clearBackends();
+		$this->userTraitBackendGroup = new \Test\Util\Group\Dummy();
+		$this->userTraitGroupManager->addBackend($this->userTraitBackendGroup);
 
-		$this->groupManager->clearBackends();
-		$this->backendGroup = new \Test\Util\Group\Dummy();
-		$this->groupManager->addBackend($this->backendGroup);
-
-		$this->testGroup = $this->groupManager->createGroup('testGroup');
+		$this->userTraitTestGroup = $this->userTraitGroupManager->createGroup('testGroup');
 	}
 
 	/**
@@ -48,24 +50,27 @@ trait UserTrait {
 				'newUser.sendEmail' => 'no'
 			]
 		]);
-		$this->backendUser->createUser($username, $password);
-		$user = $this->userManager->get($username);
-		$this->testGroup->addUser($user);
+		$this->userTraitBackendUser->createUser($username, $password);
+		$user = $this->userTraitUserManager->get($username);
+		$this->userTraitTestGroup->addUser($user);
 		return $user;
 	}
 
 	public function deleteUser($username) {
-		$user = $this->userManager->get($username);
-		$this->testGroup->removeUser($user);
+		$user = $this->userTraitUserManager->get($username);
+		$this->userTraitTestGroup->removeUser($user);
 	}
 
-	public function tearDown(): void {
-		foreach ($this->backendUser->getUsers() as $username) {
-			$user = $this->userManager->get($username);
-			$this->testGroup->removeUser($user);
+	/**
+	 * @after
+	 */
+	public function userTraitTearDown(): void {
+		foreach ($this->userTraitBackendUser->getUsers() as $username) {
+			$user = $this->userTraitUserManager->get($username);
+			$this->userTraitTestGroup->removeUser($user);
 		}
-		foreach ($this->backendGroup->getGroups() as $group) {
-			$this->groupManager->get($group)->delete();
+		foreach ($this->userTraitBackendGroup->getGroups() as $group) {
+			$this->userTraitGroupManager->get($group)->delete();
 		}
 	}
 }

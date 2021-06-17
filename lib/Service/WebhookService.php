@@ -230,11 +230,14 @@ class WebhookService {
 		if (!$user) {
 			throw new \Exception($this->l10n->t('User data needs to be an array with values: user of position %s in list', [$index]));
 		}
-		if (empty($user['email'])) {
-			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
-		}
-		if (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+		if (!empty($user['email']) && !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception($this->l10n->t('Invalid email: user %s', [$index]));
+		}
+		if (empty($user['email'])) {
+			if (!empty($user['name'])) {
+				$index = $user['name'];
+			}
+			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
 		}
 	}
 
@@ -258,6 +261,7 @@ class WebhookService {
 			$file = $this->saveFile($data);
 		}
 		$return['uuid'] = $file->getUuid();
+		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
 	}
@@ -403,12 +407,35 @@ class WebhookService {
 	}
 
 	private function getFolderName(array $data) {
-		$folderName[] = date('Y-m-d\TH:i:s');
-		if (!empty($data['name'])) {
-			$folderName[] = $data['name'];
+		if (!isset($data['settings']['folderPatterns'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
 		}
-		$folderName[] = $data['userManager']->getUID();
-		return implode('_', $folderName);
+		foreach ($data['settings']['folderPatterns'] as $pattern) {
+			switch ($pattern['name']) {
+				case 'date':
+					$folderName[] = (new \DateTime('NOW'))->format($pattern['setting']);
+					break;
+				case 'name':
+					if (!empty($data['name'])) {
+						$folderName[] = $data['name'];
+					}
+					break;
+				case 'userId':
+					$folderName[] = $data['userManager']->getUID();
+					break;
+			}
+		}
+		return implode($data['settings']['separator'], $folderName);
 	}
 
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
