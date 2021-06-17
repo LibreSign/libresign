@@ -17,8 +17,11 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Timeline',
@@ -29,63 +32,24 @@ export default {
 	data() {
 		return {
 			sidebar: false,
-			data: [
-				{
-					uuid: '3fa85f6s4-5717-4562-b3fc-x2c963f66afa6',
-					name: 'filename',
-					callback: 'http://app.test.coop/callback_webhook',
-					status: 'done',
-					status_date: '2021-06-11T22:18:59.872Z',
-					request_date: '2021-06-11T22:18:59.872Z',
-					requested_by: {
-						display_name: 'John Doe',
-						uid: 'johndoe',
-					},
-					file: {
-						type: 'pdf',
-						url: 'http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef',
-						nodeId: 2312,
-					},
-					signers: [
-						{
-							email: 'user@test.coop',
-							display_name: 'John Dddoe',
-							me: true,
-							uid: 'johndoe',
-							description: "As the company's CEO, you must sign this contract",
-							sign_date: '',
-							request_sign_date: '2021-06-11T22:18:59.873Z',
-						},
-						{
-							email: 'user@test.coop',
-							display_name: 'John Doe',
-							me: false,
-							uid: 'johndoe2',
-							description: "As the company's CEO, you must sign this contract",
-							sign_date: '2021-06-11T22:18:59.872Z',
-							request_sign_date: '2021-06-11T22:18:59.873Z',
-						},
-					],
-				},
-			],
+			files: [],
 		}
 	},
-	computed: {
-		files() {
-			const files = this.data.map(file => {
-				return {
-					uuid: file.uuid,
-					name: file.name,
-					status: file.status,
-					status_date: file.status_date,
-					signers: file.signers,
-				}
-			})
-			return files
-		},
+
+	created() {
+		this.getData()
 	},
 
 	methods: {
+		async getData() {
+			try {
+
+				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
+				this.files = response.data.data
+			} catch (err) {
+				showError('An error occurred while fetching the files')
+			}
+		},
 		openSidebar() {
 			this.sidebar = true
 		},
@@ -98,8 +62,28 @@ export default {
 		closeSidebar() {
 			this.sidebar = false
 		},
-		signDocument(param) {
-			console.info('Sign Function')
+		async signDocument(param) {
+			try {
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
+					password: param.password,
+				})
+				if (response.data.action === 350) {
+					this.$refs.sidebar.changeTab('signatures')
+				}
+				this.$refs.sidebar.clearSignInput()
+				this.disabledSign = true
+				return showSuccess(response.data.message)
+			} catch (err) {
+				if (err.response.data.action === 400) {
+					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
+				}
+				err.response.data.errors.map(
+					error => {
+						showError(error)
+					}
+				)
+			}
+
 		},
 	},
 }
