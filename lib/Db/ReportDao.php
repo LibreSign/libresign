@@ -110,7 +110,8 @@ class ReportDao {
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => $signer->getUserId()
+						'uid' => $signer->getUserId(),
+						'me' => $userId === $signer->getUserId()
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())
@@ -122,7 +123,8 @@ class ReportDao {
 					unset($signers[$signerKey]);
 				}
 			}
-			if (!count($files[$key]['signers'])) {
+			if (empty($files[$key]['signers'])) {
+				$files[$key]['signers'] = [];
 				$files[$key]['status'] = 'no signers';
 			} elseif ($totalSigned === count($files[$key]['signers'])) {
 				$files[$key]['status'] = 'signed';
