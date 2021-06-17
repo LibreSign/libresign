@@ -261,6 +261,7 @@ class WebhookService {
 			$file = $this->saveFile($data);
 		}
 		$return['uuid'] = $file->getUuid();
+		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
 	}
