@@ -489,14 +489,16 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testControllerListWithSuccess() {
-		$this->createUser('username', 'password');
+	public function testControllerListWithEmptyData() {
+		$this->createUser('testControllerListWithSuccess', 'password');
 		$this->request
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
+				'Authorization' => 'Basic ' . base64_encode('testControllerListWithSuccess:password')
 			])
 			->withPath('/file/list');
 
 		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertCount(0, $body['data']);
 	}
 }
