@@ -501,4 +501,72 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(0, $body['data']);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testControllerListWithOneFileOneSignerUnsignedNotMe() {
+		$this->createUser('testControllerListWithOneFileOneSignerUnsignedNotMe', 'password');
+
+		$user = $this->createUser('testControllerListWithOneFileOneSignerUnsignedNotMe', 'password');
+		$user->setEMailAddress('testControllerListWithOneFileOneSignerUnsignedNotMe' . '@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person01@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('testControllerListWithOneFileOneSignerUnsignedNotMe:password')
+			])
+			->withPath('/file/list');
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertCount(1, $body['data']);
+		$this->assertCount(1, $body['data'][0]['signers']);
+		$this->assertNull($body['data'][0]['signers'][0]['sign_date']);
+		$this->assertFalse($body['data'][0]['signers'][0]['me']);
+		$this->assertEquals('pending', $body['data'][0]['status']);
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testControllerListWithoutSigners() {
+		$username = 'testControllerListWithoutSigners_' . time();
+		$user = $this->createUser($username, 'password');
+		$user->setEMailAddress($username . '@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person01@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$fileUserMapper = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
+		$fileUserMapper->delete($file['users'][0]);
+
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode($username . ':password')
+			])
+			->withPath('/file/list');
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$this->assertCount(1, $body['data']);
+		$this->assertCount(0, $body['data'][0]['signers']);
+		$this->assertEquals('no signers', $body['data'][0]['status']);
+	}
 }
