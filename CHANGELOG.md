@@ -22,6 +22,7 @@ Types of changes:
 - Test for validation of Swagger documentation
 - Added integration with Approval app. Thanks to @eneiluj
 - Endpoint to list LibreSign files
+- Request Subscription by LibreSign App
 
 # Changed
 - Increment of coverage on backend code
