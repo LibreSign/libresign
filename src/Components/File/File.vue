@@ -47,8 +47,8 @@ export default {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	max-height: 187px;
-	min-height: 187px;
+	max-height: 197px;
+	min-height: 197px;
 	margin: 30px 40px 20px 20px;
 	padding: 10px 20px 10px 20px;
 	cursor: pointer;
@@ -105,6 +105,7 @@ export default {
 		width: 100%;
 		text-align: center;
 		cursor: inherit;
+		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 }
