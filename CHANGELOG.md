@@ -37,6 +37,7 @@ Types of changes:
 - Invalid method name when validating if a file signature has already been requested
 - Tests autoload
 - Correction of loading class after clicking sign in application
+- Add ellipsis to pdf file title
 
 ## 2.3.0 - 2021-05-22
 
