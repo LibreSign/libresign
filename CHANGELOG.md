@@ -18,6 +18,7 @@ Types of changes:
 
 # Added
 - GitHub action to add a changelog reminder
+- List of documents
 - Test for validation of Swagger documentation
 - Added integration with Approval app. Thanks to @eneiluj
 - Endpoint to list LibreSign files
