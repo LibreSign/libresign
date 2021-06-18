@@ -11,6 +11,7 @@
 		</ul>
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
+			:loading="loading"
 			@sign:document="signDocument"
 			@closeSidebar="closeSidebar" />
 	</div>
@@ -33,6 +34,7 @@ export default {
 	data() {
 		return {
 			sidebar: false,
+			loading: false,
 		}
 	},
 
@@ -69,13 +71,16 @@ export default {
 		},
 		async signDocument(param) {
 			try {
+				this.loading = true
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
 					password: param.password,
 				})
 				this.getData()
 				this.closeSidebar()
+				this.loading = false
 				return showSuccess(response.data.message)
 			} catch (err) {
+				this.loading = false
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}

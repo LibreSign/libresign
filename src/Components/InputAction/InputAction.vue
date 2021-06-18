@@ -6,7 +6,7 @@
 			:placeholder="placeholder"
 			:type="type"
 			:disabled="disabled">
-		<button class="icon-confirm" @click="onSubmit" />
+		<button :class="loading ? 'loading' : 'icon-confirm'" @click="onSubmit" />
 	</form>
 </template>
 
@@ -16,17 +16,22 @@ export default {
 	props: {
 		type: {
 			type: String,
-			require: false,
+			required: false,
 			default: 'text',
 		},
 		placeholder: {
 			type: String,
-			require: false,
+			required: false,
 			default: '',
 		},
 		disabled: {
 			type: Boolean,
-			require: false,
+			required: false,
+			default: false,
+		},
+		loading: {
+			type: Boolean,
+			required: false,
 			default: false,
 		},
 	},
