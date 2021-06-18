@@ -36,6 +36,7 @@ Types of changes:
 - Rendering files tab in Nextcloud 20 and 21
 - Invalid method name when validating if a file signature has already been requested
 - Tests autoload
+- Correction of loading class after clicking sign in application
 
 ## 2.3.0 - 2021-05-22
 

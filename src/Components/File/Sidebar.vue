@@ -23,7 +23,7 @@
 			:name="t('libresign', 'Sign')"
 			icon="icon-rename"
 			:order="2">
-			<Sign ref="sign" @sign:document="emitSign" />
+			<Sign ref="sign" :has-loading="loading" @sign:document="emitSign" />
 		</AppSidebarTab>
 	</AppSidebar>
 </template>
@@ -42,6 +42,13 @@ export default {
 		AppSidebarTab,
 		SignaturesTab,
 		Sign,
+	},
+	props: {
+		loading: {
+			type: Boolean,
+			default: false,
+			required: false,
+		},
 	},
 	data() {
 		return {
