@@ -348,7 +348,7 @@ class LibresignController extends Controller {
 				]
 			];
 		}
-		if (!$return['settings']['canRequestSign']) {
+		if (!$return['settings']['canRequestSign'] && empty($return['signatures'])) {
 			$return['messages'][
 				[
 					'type' => 'info',
