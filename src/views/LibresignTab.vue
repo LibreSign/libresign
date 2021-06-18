@@ -114,7 +114,6 @@ export default {
 
 	created() {
 		this.fileInfo = window.OCA.Libresign.fileInfo
-		console.info(this.fileInfo)
 		this.getInfo()
 	},
 

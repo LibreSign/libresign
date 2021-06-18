@@ -91,6 +91,7 @@ OC.L10N.register(
     "Password Creation" : "Tworzenie hasła",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Ze względów bezpieczeństwa, musisz utworzyć hasło, aby podpisać dokumenty. Wprowadź nowe hasło w polu poniżej.",
     "Enter a password" : "Wprowadź hasło",
+    "New password to sign documents has been created" : "Utworzono nowe hasło do podpisywania dokumentów",
     "Error creating new password, please contact the administrator" : "Błąd przy tworzeniu nowego hasła, skontaktuj się z administratorem",
     "Create new subscription." : "Utwórz nową subskrypcję.",
     "Root certificate has not been configured by the Administrator!" : "Certyfikat główny nie został skonfigurowany przez administratora!",

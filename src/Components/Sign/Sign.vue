@@ -10,6 +10,7 @@
 			class="input"
 			:type="'password'"
 			:disabled="disabled"
+			:loading="hasLoading"
 			@submit="sign" />
 		<a :href="linkForgot" target="_blank" class="forgot">
 			{{ t('libresign', 'Forgot your password?') }}
@@ -48,6 +49,10 @@ export default {
 		disabled: {
 			type: Boolean,
 			require: false,
+		},
+		hasLoading: {
+			type: Boolean,
+			required: false,
 			default: false,
 		},
 	},

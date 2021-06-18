@@ -1,14 +1,11 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Controller;
-
-use OCA\Libresign\Tests\Unit\LibresignFileTrait;
+namespace OCA\Libresign\Tests\Unit;
 
 /**
  * @group DB
  */
-final class WebhookControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
-	use LibresignFileTrait;
+final class WebhookControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */

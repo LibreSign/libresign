@@ -7,6 +7,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Helper\JSActions;
@@ -14,8 +15,10 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserManager;
 use Sabre\DAV\UUIDUtil;
 use Throwable;
@@ -43,12 +46,16 @@ class AccountService {
 	private $cfsslHandler;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var ReportDao */
+	private $reportDao;
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
+	/** @var IGroupManager */
+	private $groupManager;
 
 	public function __construct(
 		IL10N $l10n,
@@ -57,10 +64,12 @@ class AccountService {
 		FolderService $folder,
 		IRootFolder $root,
 		FileMapper $fileMapper,
+		ReportDao $reportDao,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		IURLGenerator $urlGenerator,
-		CfsslHandler $cfsslHandler
+		CfsslHandler $cfsslHandler,
+		IGroupManager $groupManager
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -68,10 +77,12 @@ class AccountService {
 		$this->folder = $folder;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
+		$this->reportDao = $reportDao;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
+		$this->groupManager = $groupManager;
 	}
 
 	public function validateCreateToSign(array $data) {
@@ -364,5 +375,35 @@ class AccountService {
 			$file = $this->root->get($filePath);
 		}
 		return $file;
+	}
+
+	public function canRequestSign(?IUser $user = null): bool {
+		if (!$user) {
+			return false;
+		}
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		if (empty($authorized)) {
+			return false;
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		if (!array_intersect($userGroups, $authorized)) {
+			return false;
+		}
+		return true;
+	}
+
+	public function list(IUser $user, $page = null, $limit = 15) {
+		$return = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $limit);
+		return [
+			'data' => $return,
+			'pagination' => [
+				'total' => $this->reportDao->getTotalFilesAssociatedFilesWithMe($user->getUID()),
+				'current' => '',
+				'next' => '',
+				'prev' => '',
+				'last' => '',
+				'first' => ''
+			]
+		];
 	}
 }
