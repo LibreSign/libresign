@@ -127,4 +127,32 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostProfileDocumentsWithInvalidData() {
+		$this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'files' => [
+					[
+						'type' => 'INVALID',
+						'file' => [
+							'base64' => 'invalid'
+						]
+					]
+				]
+			])
+			->withPath('/account/profile/files')
+			->assertResponseCode(401);
+
+		$this->assertRequest();
+	}
 }
