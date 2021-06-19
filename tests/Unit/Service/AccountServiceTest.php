@@ -1145,4 +1145,78 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->service->canRequestSign($user);
 		$this->assertTrue($actual);
 	}
+
+	/**
+	 * @dataProvider providerAccountValidateFileProvider
+	 */
+	public function testAccountValidateFile($arguments, $expectedErrorMessage) {
+		if (is_callable($arguments)) {
+			$arguments = $arguments($this);
+		}
+
+		$this->service = new AccountService(
+			$this->l10n,
+			$this->fileUserMapper,
+			$this->userManagerInstance,
+			$this->folder,
+			$this->root,
+			$this->fileMapper,
+			$this->reportDao,
+			$this->config,
+			$this->newUserMail,
+			$this->urlGenerator,
+			$this->cfsslHandler,
+			$this->groupManager
+		);
+		$this->expectExceptionMessage($expectedErrorMessage);
+		$this->service->validateProfileFiles($arguments);
+	}
+
+	public function providerAccountValidateFileProvider() {
+		return [
+			[
+				[
+					[
+						'type' => 'invalid',
+						'file' => [
+							'base64' => 'invalid'
+						]
+					]
+				],
+				'An administrator must define the required document types for the profile. Contact an administrator.'
+			],
+			[
+				function ($self) {
+					$self->config
+						->method('getAppValue')
+						->will($this->returnValue(json_encode(['VALID'])));
+					return [
+						[
+							'type' => 'invalid',
+							'file' => [
+								'base64' => 'invalid'
+							]
+						]
+					];
+				},
+				'Invalid file type.'
+			],
+			[
+				function ($self) {
+					$self->config
+						->method('getAppValue')
+						->will($this->returnValue(json_encode(['VALID'])));
+					return [
+						[
+							'type' => 'VALID',
+							'file' => [
+								'base64' => 'invalid'
+							]
+						]
+					];
+				},
+				'Invalid file type.'
+			],
+		];
+	}
 }
