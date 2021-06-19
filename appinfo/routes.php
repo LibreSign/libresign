@@ -16,6 +16,7 @@ return [
 		['name' => 'libresign#validateFileId',  'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
 		['name' => 'account#createToSign',      'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#signatureGenerate', 'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
+		['name' => 'account#profileAttachFiles','url' => '/api/0.1/account/profile/files', 'verb' => 'POST'],
 		['name' => 'signature#hasRootCert',     'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
 		// Admin config
 		['name' => 'admin#generateCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'POST'],
