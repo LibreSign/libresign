@@ -129,4 +129,32 @@ class AccountController extends ApiController {
 			);
 		}
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function profileAttachFiles(array $files): JSONResponse {
+		try {
+			$this->account->validateProfileFiles($files);
+			return new JSONResponse([
+				'success' => true
+			], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			$exceptionData = json_decode($exception->getMessage());
+			return new JSONResponse(
+				[
+					'success' => false,
+					'messages' => [
+						[
+							'file' => $exceptionData->file,
+							'type' => $exceptionData->type,
+							'message' => $exceptionData->message
+						]
+					]
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+	}
 }
