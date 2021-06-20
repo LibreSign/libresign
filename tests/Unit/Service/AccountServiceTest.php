@@ -1155,6 +1155,21 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue($actual);
 	}
 
+	public function testAccountvalidateWithSuccess() {
+		$this->config
+			->method('getAppValue')
+			->will($this->returnValue(json_encode(['VALID'])));
+		$actual = $this->service->validateProfileFiles([
+			[
+				'type' => 'VALID',
+				'file' => [
+					'base64' => 'dGVzdA=='
+				]
+			]
+		]);
+		$this->assertNull($actual);
+	}
+
 	/**
 	 * @dataProvider providerAccountValidateFileProvider
 	 */
