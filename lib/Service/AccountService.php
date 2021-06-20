@@ -150,11 +150,7 @@ class AccountService {
 	private function validateProfileFile(int $fileIndex, array $file) {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types'), true);
 		if (!$profileFileTypes) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $this->l10n->t('An administrator must define the required document types for the profile. Contact an administrator.')
-			]));
+			$profileFileTypes = ['admin'];
 		}
 		if (!in_array($file['type'], $profileFileTypes)) {
 			throw new LibresignException(json_encode([
@@ -163,7 +159,15 @@ class AccountService {
 				'message' => $this->l10n->t('Invalid file type.')
 			]));
 		}
-		$this->validateHelper->validateFile($file);
+		try {
+			$this->validateHelper->validateFile($file);
+		} catch (\Exception $e) {
+			throw new LibresignException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $e->getMessage()
+			]));
+		}
 	}
 
 	/**

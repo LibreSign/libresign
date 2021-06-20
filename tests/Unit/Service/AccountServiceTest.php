@@ -1200,17 +1200,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function providerAccountValidateFileProvider() {
 		return [
 			[
-				[
-					[
-						'type' => 'invalid',
-						'file' => [
-							'base64' => 'invalid'
-						]
-					]
-				],
-				'An administrator must define the required document types for the profile. Contact an administrator.'
-			],
-			[
 				function ($self) {
 					$self->config
 						->method('getAppValue')
