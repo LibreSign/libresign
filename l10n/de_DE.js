@@ -66,6 +66,8 @@ OC.L10N.register(
     "Subscription password." : "Abonnement-Passwort.",
     "Forgot your password?" : "Haben Sie Ihr Passwort vergessen?",
     "Sign the document." : "Das Dokument signieren.",
+    "Requested by {name}" : "Angefordert von {name}",
+    "User with no name" : "Benutzer ohne Name",
     "This iframe is not supported in your browser." : "Dieser iframe wird von Ihrem Browser nicht unterstützt.",
     "Email" : "E-Mail-Adresse",
     "Description" : "Beschreibung",
