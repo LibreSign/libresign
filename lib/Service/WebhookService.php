@@ -8,6 +8,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
 use OCP\Http\Client\IClientService;
@@ -47,6 +48,8 @@ class WebhookService {
 	private $mail;
 	/** @var LoggerInterface */
 	private $logger;
+	/** @var ValidateHelper */
+	private $validateHelper;
 
 	public function __construct(
 		IConfig $config,
@@ -58,7 +61,8 @@ class WebhookService {
 		IClientService $client,
 		IUserManager $userManager,
 		MailService $mail,
-		LoggerInterface $logger
+		LoggerInterface $logger,
+		ValidateHelper $validateHelper
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -70,6 +74,7 @@ class WebhookService {
 		$this->userManager = $userManager;
 		$this->mail = $mail;
 		$this->logger = $logger;
+		$this->validateHelper = $validateHelper;
 	}
 
 	public function validate(array $data) {
@@ -96,49 +101,7 @@ class WebhookService {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
-		if (empty($data['file'])) {
-			throw new \Exception($this->l10n->t('Empty file'));
-		}
-		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new \Exception($this->l10n->t('Inform URL or base64 or fileID to sign'));
-		}
-		if (!empty($data['file']['fileId'])) {
-			if (!is_numeric($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileID'));
-			}
-			$this->validateFileByNodeId((int)$data['file']['fileId']);
-		}
-		if (!empty($data['file']['base64'])) {
-			$input = base64_decode($data['file']['base64']);
-			$base64 = base64_encode($input);
-			if ($data['file']['base64'] !== $base64) {
-				throw new \Exception($this->l10n->t('Invalid base64 file'));
-			}
-		}
-	}
-
-	public function validateFileByNodeId(int $nodeId) {
-		try {
-			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
-		} catch (\Throwable $th) {
-		}
-		if (!empty($fileMapper)) {
-			throw new \Exception($this->l10n->t('Already asked to sign this document'));
-		}
-
-		try {
-			$userFolder = $this->folderService->getFolder($nodeId);
-			$node = $userFolder->getById($nodeId);
-		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid fileID'));
-		}
-		if (!$node) {
-			throw new \Exception($this->l10n->t('Invalid fileID'));
-		}
-		$node = $node[0];
-		if ($node->getMimeType() !== 'application/pdf') {
-			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
-		}
+		$this->validateHelper->validateFile($data);
 	}
 
 	public function validateFileUuid(array $data) {

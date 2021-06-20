@@ -8,6 +8,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Tests\Unit\UserTrait;
@@ -43,6 +44,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var CfsslHandler */
@@ -65,6 +68,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->reportDao = $this->createMock(ReportDao::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
+		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -79,6 +83,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -103,6 +108,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -249,6 +255,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -365,6 +372,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -583,6 +591,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -1164,6 +1173,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->reportDao,
 			$this->config,
 			$this->newUserMail,
+			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager
@@ -1200,23 +1210,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					];
 				},
 				'Invalid file type.'
-			],
-			[
-				function ($self) {
-					$self->config
-						->method('getAppValue')
-						->will($this->returnValue(json_encode(['VALID'])));
-					return [
-						[
-							'type' => 'VALID',
-							'file' => [
-								'base64' => 'invalid'
-							]
-						]
-					];
-				},
-				'Invalid file type.'
-			],
+			]
 		];
 	}
 }

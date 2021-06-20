@@ -11,6 +11,7 @@ use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -40,6 +41,8 @@ class AccountService {
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var CfsslHandler */
@@ -67,6 +70,7 @@ class AccountService {
 		ReportDao $reportDao,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
+		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
 		IGroupManager $groupManager
@@ -80,6 +84,7 @@ class AccountService {
 		$this->reportDao = $reportDao;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
+		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->groupManager = $groupManager;
@@ -158,6 +163,7 @@ class AccountService {
 				'message' => $this->l10n->t('Invalid file type.')
 			]));
 		}
+		$this->validateHelper->validateFile($file);
 	}
 
 	/**
