@@ -155,4 +155,32 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostProfileDocumentsWithSuccess() {
+		$this->createUser('username', 'password');
+		$this->mockConfig(['libresign' => ['profile_file_types' => json_encode(['VALID'])]]);
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'files' => [
+					[
+						'type' => 'VALID',
+						'file' => [
+							'base64' => 'dGVzdA=='
+						]
+					]
+				]
+			])
+			->withPath('/account/profile/files');
+
+		$this->assertRequest();
+	}
 }
