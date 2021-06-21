@@ -1184,4 +1184,19 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]
 		]);
 	}
+
+	public function testAccountvalidateWithInvalidBase64() {
+		$this->expectExceptionMessage('Invalid base64 file');
+		$this->config
+			->method('getAppValue')
+			->will($this->returnValue(json_encode(['VALID'])));
+		$this->service->validateProfileFiles([
+			[
+				'type' => 'VALID',
+				'file' => [
+					'base64' => 'invalid'
+				]
+			]
+		]);
+	}
 }

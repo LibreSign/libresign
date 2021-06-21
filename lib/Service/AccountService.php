@@ -148,10 +148,7 @@ class AccountService {
 	}
 
 	private function validateProfileFile(int $fileIndex, array $file) {
-		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types'), true);
-		if (!$profileFileTypes) {
-			$profileFileTypes = ['admin'];
-		}
+		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["admin"]'), true);
 		if (!in_array($file['type'], $profileFileTypes)) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
