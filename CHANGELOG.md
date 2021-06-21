@@ -27,7 +27,7 @@ Types of changes:
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 - Use name of user on error message when email is empty
-- New Logo
+- Logo replaced by new logo
 
 # Removed
 - Removed dsv folder
