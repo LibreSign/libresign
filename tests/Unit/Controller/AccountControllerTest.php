@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use donatj\MockWebServer\Response;
 use OCA\Libresign\Tests\Unit\ApiTestCase;
 
 /**
@@ -64,66 +63,6 @@ final class AccountControllerTest extends ApiTestCase {
 				'signPassword' => 'secretToSign'
 			])
 			->withPath('/account/create/' . $file['users'][0]->getUuid());
-
-		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testAccountSignatureEndpointWithSuccess() {
-		$user = $this->createUser('username', 'password');
-		$user->setEMailAddress('person@test.coop');
-
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'libresign' => [
-				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
-
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'signPassword' => 'password'
-			])
-			->withPath('/account/signature');
-
-		$home = $user->getHome();
-		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
-		$this->assertRequest();
-		$this->assertFileExists($home . '/files/LibreSign/signature.pfx');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testAccountSignatureEndpointWithFailure() {
-		$this->createUser('username', 'password');
-
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'signPassword' => ''
-			])
-			->withPath('/account/signature')
-			->assertResponseCode(401);
 
 		$this->assertRequest();
 	}
