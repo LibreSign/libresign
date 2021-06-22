@@ -2,15 +2,16 @@
 	<Content app-name="libresign">
 		<div class="conntainer-request">
 			<header>
-				<h1>{{ t('libresign', 'Choose the file to request signatures.') }}</h1>
+				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
+				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
 				<div>
 					<button class="icon-folder" @click="getFile()">
-						{{ t('libresign', 'Share fsrom files') }}
+						{{ t('libresign', 'Share from files') }}
 					</button>
-					<button @click="log">
-						log
+					<button @click="userAdd">
+						{{ t('libresign', 'Add Users') }}
 					</button>
 				</div>
 			</div>
@@ -48,7 +49,7 @@ export default {
 			}
 			event.target.value = ''
 		},
-		log() {
+		userAdd() {
 			console.info(this.file)
 		},
 		getFile() {
@@ -67,10 +68,32 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container{
-	content: ''
+.conntainer-request {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 100%;
+	text-align: center;
+	header {
+		margin-bottom: 2.5rem;
+		h1 {
+			font-size: 45px;
+			margin-bottom: 1rem;
+		}
+
+		p {
+			font-size: 15px;
+		}
+	}
+	.content-request{
+		display: flex;
+		flex-direction: column;
+	}
 }
-button{
+
+button {
 	background-position-x: 8%;
 	padding-left: 35px;
 }
