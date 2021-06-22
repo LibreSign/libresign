@@ -131,7 +131,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostProfileDocumentsWithInvalidData() {
+	public function testPostProfileFilesWithInvalidData() {
 		$this->createUser('username', 'password');
 
 		$this->request
@@ -159,7 +159,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostProfileDocumentsWithSuccess() {
+	public function testPostProfileFilesWithSuccess() {
 		$this->createUser('username', 'password');
 		$this->mockConfig(['libresign' => ['profile_file_types' => json_encode(['VALID'])]]);
 
