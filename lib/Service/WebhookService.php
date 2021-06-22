@@ -231,6 +231,9 @@ class WebhookService {
 
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
+		if (empty($data['users'])) {
+			return $return;
+		}
 		foreach ($data['users'] as $user) {
 			$user['email'] = strtolower($user['email']);
 			$fileUser = $this->getFileUser($user['email'], $fileId);
