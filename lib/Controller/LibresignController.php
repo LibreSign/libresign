@@ -11,7 +11,7 @@ use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
-use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Storage\ClientStorage;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -40,8 +40,6 @@ class LibresignController extends Controller {
 	private $account;
 	/** @var JLibresignHandler */
 	private $libresignHandler;
-	/** @var WebhookService */
-	private $webhook;
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var IUserSession */
@@ -59,7 +57,7 @@ class LibresignController extends Controller {
 		IL10N $l10n,
 		AccountService $account,
 		JLibresignHandler $libresignHandler,
-		WebhookService $webhook,
+		SignFileService $signFile,
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
 		IConfig $config,
@@ -72,7 +70,7 @@ class LibresignController extends Controller {
 		$this->l10n = $l10n;
 		$this->account = $account;
 		$this->libresignHandler = $libresignHandler;
-		$this->webhook = $webhook;
+		$this->signFile = $signFile;
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
 		$this->config = $config;
@@ -191,7 +189,7 @@ class LibresignController extends Controller {
 			if (count($signers) === $total) {
 				$callbackUrl = $fileData->getCallback();
 				if ($callbackUrl) {
-					$this->webhook->notifyCallback(
+					$this->signFile->notifyCallback(
 						$callbackUrl,
 						$fileData->getUuid(),
 						$fileToSign

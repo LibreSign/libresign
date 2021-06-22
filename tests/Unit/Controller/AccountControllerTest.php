@@ -184,4 +184,29 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithoutAuthenticatedUser() {
+		$this->request
+			->withPath('/account/me')
+			->assertResponseCode(404);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithAuthenticatedUser() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withPath('/account/me')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			]);
+
+		$this->assertRequest();
+	}
 }

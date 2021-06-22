@@ -71,31 +71,6 @@ final class WebhookControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testMeWithoutAuthenticatedUser() {
-		$this->request
-			->withPath('/webhook/me')
-			->assertResponseCode(404);
-
-		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testMeWithAuthenticatedUser() {
-		$this->createUser('username', 'password');
-		$this->request
-			->withPath('/webhook/me')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
-			]);
-
-		$this->assertRequest();
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
 	public function testPatchRegisterWithValidationFailure() {
 		$this->createUser('username', 'password');
 		$this->request

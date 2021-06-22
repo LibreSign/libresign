@@ -14,9 +14,9 @@ trait LibresignFileTrait {
 	private $files = [];
 
 	/**
-	 * @var \OCA\Libresign\Service\WebhookService
+	 * @var \OCA\Libresign\Service\SignFileService
 	 */
-	private $webhook;
+	private $signService;
 
 	public function requestSignFile($data): array {
 		if (!self::$server) {
@@ -51,19 +51,19 @@ trait LibresignFileTrait {
 				'name' => 'userId'
 			];
 		}
-		$file = $this->getWebhookService()->save($data);
+		$file = $this->getSignFileService()->save($data);
 		$this->addFile($file);
 		return $file;
 	}
 
 	/**
-	 * @return \OCA\Libresign\Service\WebhookService
+	 * @return \OCA\Libresign\Service\SignFileService
 	 */
-	public function getWebhookService(): \OCA\Libresign\Service\WebhookService {
-		if (!$this->webhook) {
-			$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
+	public function getSignFileService(): \OCA\Libresign\Service\SignFileService {
+		if (!$this->signFile) {
+			$this->signFile = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
 		}
-		return $this->webhook;
+		return $this->signFile;
 	}
 
 	public function addFile($file) {
@@ -87,7 +87,7 @@ trait LibresignFileTrait {
 					];
 				}
 			}
-			$this->getWebhookService()->deleteSignRequest($toRemove);
+			$this->getSignFileService()->deleteSignRequest($toRemove);
 		}
 	}
 }

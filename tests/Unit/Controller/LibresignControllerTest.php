@@ -11,7 +11,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\LibresignService;
-use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -38,7 +38,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			->method('t')
 			->will($this->returnArgument(0));
 		$accountService = $this->createMock(AccountService::class);
-		$webhook = $this->createMock(WebhookService::class);
+		$signFile = $this->createMock(SignFileService::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$file = $this->prophesize(File::class);
 		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
@@ -90,7 +90,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			$l10n,
 			$accountService,
 			$libresignHandler,
-			$webhook,
+			$signFile,
 			$logger,
 			$urlGenerator,
 			$config,
@@ -135,7 +135,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			->will($this->returnArgument(0));
 		$accountService = $this->createMock(AccountService::class);
 		$libresignHandler = $this->createMock(JLibresignHandler::class);
-		$webhook = $this->createMock(WebhookService::class);
+		$signFile = $this->createMock(SignFileService::class);
 		$logger = $this->createMock(LoggerInterface::class);
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$config = $this->createMock(IConfig::class);
@@ -152,7 +152,7 @@ final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCas
 			$l10n,
 			$accountService,
 			$libresignHandler,
-			$webhook,
+			$signFile,
 			$logger,
 			$urlGenerator,
 			$config,
