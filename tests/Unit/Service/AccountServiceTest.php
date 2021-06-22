@@ -1199,4 +1199,22 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]
 		]);
 	}
+
+	public function testAddFilesToUserProfileWithSuccess() {
+		$this->markTestSkipped();
+		$this->config
+			->method('getAppValue')
+			->willReturn('["VALID"]');
+		$files = [
+			[
+				'type' => 'VALID',
+				'file' => [
+					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+				]
+			]
+		];
+		$user = $this->createMock(\OCP\IUser::class);
+		$return = $this->service->addFilesToUserProfile($files, $user);
+		$this->assertNull($return);
+	}
 }
