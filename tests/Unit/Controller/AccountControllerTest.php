@@ -174,7 +174,7 @@ final class AccountControllerTest extends ApiTestCase {
 					[
 						'type' => 'VALID',
 						'file' => [
-							'base64' => 'dGVzdA=='
+							'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 						]
 					]
 				]
