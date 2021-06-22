@@ -437,4 +437,15 @@ class AccountService {
 			]
 		];
 	}
+
+	public function addFilesToUserProfile($files, $user) {
+		$this->validateProfileFiles($files);
+		foreach ($files as $file) {
+			$dataToSave = $file;
+			$dataToSave['userManager'] = $user;
+			$dataToSave['name'] = $file['type'];
+			$savedData = $this->webhook->saveFile($dataToSave);
+			$this->userProfileFile->addFileToProfile($savedData, $user);
+		}
+	}
 }
