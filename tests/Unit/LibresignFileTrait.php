@@ -4,6 +4,7 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
+use OCA\Libresign\Service\SignFileService;
 
 trait LibresignFileTrait {
 	/**
@@ -12,6 +13,9 @@ trait LibresignFileTrait {
 	protected static $server;
 
 	private $files = [];
+
+	/** @var SignFileService */
+	private $signFile;
 
 	/**
 	 * @var \OCA\Libresign\Service\SignFileService
