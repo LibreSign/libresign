@@ -4,7 +4,7 @@ namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
 
-class FileUser extends Entity {
+class FileType extends Entity {
 	/** @var integer */
 	public $id;
 
