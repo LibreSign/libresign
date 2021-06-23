@@ -16,7 +16,7 @@
 				</button>
 			</div>
 		</div>
-		<AppSidebar v-if="sidebar"
+		<AppSidebar v-if="getSidebar"
 			ref="sidebar"
 			:class="{'app-sidebar--without-background lb-ls-root': 'lb-ls-root'}"
 			:title="file.name"
@@ -26,7 +26,7 @@
 			name="sidebar"
 			icon="icon-rename"
 			@close="handleSidebar(false)">
-			<EmptyContent v-show="canRequest">
+			<EmptyContent v-show="canRequest" class="empty-content">
 				<template #desc>
 					<p>
 						{{ t('libresign', 'Signatures for this document have already been requested') }}
@@ -52,6 +52,7 @@ import { getFilePickerBuilder, showError, showSuccess } from '@nextcloud/dialogs
 import Users from '../Components/Request'
 import { generateUrl } from '@nextcloud/router'
 import File from '../Components/File/File.vue'
+import { mapGetters } from 'vuex'
 
 export default {
 	name: 'Request',
@@ -77,12 +78,7 @@ export default {
 		canRequest() {
 			return this.signers.length > 0
 		},
-	},
-	watch: {
-		file(newVal, oldVal) {
-			this.handleSidebar(false)
-			this.handleSidebar(true)
-		},
+		...mapGetters(['getSidebar']),
 	},
 	methods: {
 		async getInfo(id) {
@@ -102,15 +98,15 @@ export default {
 					name: this.file.name.split('.pdf')[0],
 					users,
 				})
-				this.clearRequestList()
+				this.clear()
 				return showSuccess(response.data.message)
 			} catch (err) {
 				showError(err.response.data.errors)
 			}
 		},
-		clearRequestList() {
-			this.handleSidebar(false)
+		clear() {
 			this.file = {}
+			this.handleSidebar(false)
 			this.$refs.request.clearList()
 		},
 		getFile() {
@@ -137,7 +133,7 @@ export default {
 			this.tabId = changeId
 		},
 		handleSidebar(status) {
-			this.sidebar = status
+			this.$store.commit('setSidebar', status)
 		},
 	},
 }
@@ -178,6 +174,12 @@ export default {
 	.content-request{
 		display: flex;
 		flex-direction: column;
+	}
+}
+
+.empty-content{
+	p{
+		margin: 10px;
 	}
 }
 
