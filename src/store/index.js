@@ -38,11 +38,15 @@ export default new Store({
 		settings: {},
 		currentFile: {},
 		files: [],
+		sidebar: false,
 	},
 
 	mutations: {
 		setUser(state, user) {
 			this.state.user = user
+		},
+		setSidebar(state, sidebar) {
+			this.state.sidebar = sidebar
 		},
 		setCurrentFile(state, current) {
 			Vue.set(state.currentFile, 'file', current)
@@ -73,6 +77,9 @@ export default new Store({
 	getters: {
 		getError(state) {
 			return libresignVar.errors
+		},
+		getSidebar(state) {
+			return state.sidebar
 		},
 		getCurrentFile(state) {
 			return state.currentFile
