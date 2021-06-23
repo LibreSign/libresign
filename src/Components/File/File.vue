@@ -2,8 +2,8 @@
 	<div class="content-file" @click="openSidebar">
 		<img :src="srcImg">
 		<div class="enDot">
-			<div :class="'dot ' + status" />
-			<span>{{ statusToUppercase(status) }}</span>
+			<div :class="status!== 'none' ? 'dot ' + status : '' " />
+			<span>{{ status !== 'none' ? statusToUppercase(status) : '' }}</span>
 		</div>
 		<h1>{{ file.name }}</h1>
 	</div>
@@ -23,7 +23,7 @@ export default {
 			type: String,
 			required: true,
 			default: 'done',
-			validator: () => ['signed', 'canceled', 'pending'],
+			validator: () => ['signed', 'canceled', 'pending', 'none'],
 		},
 	},
 	data() {
