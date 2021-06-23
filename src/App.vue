@@ -35,6 +35,9 @@
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
+					:to="{name: 'validation'}"
+					icon="icon-file"
+					:title="t('libresign', 'Validate')" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings :title="t('libresign', 'Settings')">

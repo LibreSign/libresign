@@ -23,11 +23,13 @@ Types of changes:
 - Added integration with Approval app. Thanks to @eneiluj
 - Endpoint to list LibreSign files
 - Request Subscription by LibreSign App
+- Validate by app libresign 
 
 # Changed
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 - Use name of user on error message when email is empty
+- Logo replaced by new logo
 
 # Removed
 - Removed dsv folder
