@@ -67,6 +67,10 @@ const routes = [
 		component: () => import('../views/ResetPassword'),
 		name: 'ResetPassword',
 	}, {
+		path: '/profile',
+		component: () => import('../views/Profile'),
+		name: 'Profile',
+	}, {
 		path: '/create-password',
 		component: () => import('../views/CreatePassword'),
 		name: 'CreatePassword',
