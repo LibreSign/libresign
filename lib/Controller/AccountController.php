@@ -142,15 +142,24 @@ class AccountController extends ApiController {
 			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
+			if (isset($exceptionData->file)) {
+				$message = [
+					'file' => $exceptionData->file,
+					'type' => $exceptionData->type,
+					'message' => $exceptionData->message
+				];
+			} else {
+				$message = [
+					'file' => null,
+					'type' => null,
+					'message' => $exception->getMessage()
+				];
+			}
 			return new JSONResponse(
 				[
 					'success' => false,
 					'messages' => [
-						[
-							'file' => $exceptionData->file,
-							'type' => $exceptionData->type,
-							'message' => $exceptionData->message
-						]
+						$message
 					]
 				],
 				Http::STATUS_UNAUTHORIZED
