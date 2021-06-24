@@ -1185,6 +1185,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->will($this->returnValue(json_encode(['VALID'])));
 		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')
+			->willReturn('username');
 		$actual = $this->service->validateAccountFiles([
 			[
 				'type' => 'VALID',
