@@ -114,8 +114,7 @@ export default {
 	},
 	computed: {
 		orderFiles() {
-			// eslint-disable-next-line vue/no-side-effects-in-computed-properties
-			return this.account.profileFileTypes.sort((a, b) => (a.code > b.code) ? 1 : -1)
+			return this.account.profileFileTypes.slice().sort((a, b) => (a.code > b.code) ? 1 : -1)
 		},
 	},
 	methods: {
