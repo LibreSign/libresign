@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
@@ -79,7 +80,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->accountFile = $this->createMock(AccountFileService::class);
+		$this->accountFileService = $this->createMock(AccountFileService::class);
+		$this->AccountFileMapper = $this->createMock(AccountFileMapper::class);
 
 		$this->service = new AccountService(
 			$this->l10n,
@@ -96,7 +98,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager,
-			$this->accountFile
+			$this->accountFileService,
+			$this->AccountFileMapper
 		);
 	}
 
@@ -123,7 +126,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager,
-			$this->accountFile
+			$this->accountFileService,
+			$this->AccountFileMapper
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->service->validateCreateToSign($arguments);
@@ -272,7 +276,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager,
-			$this->accountFile
+			$this->accountFileService,
+			$this->AccountFileMapper
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->service->validateCertificateData($arguments);
@@ -391,7 +396,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager,
-			$this->accountFile
+			$this->accountFileService,
+			$this->AccountFileMapper
 		);
 		$actual = $this->service->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
@@ -612,7 +618,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->cfsslHandler,
 			$this->groupManager,
-			$this->accountFile
+			$this->accountFileService,
+			$this->AccountFileMapper
 		);
 		$actual = $this->service->getConfig($uuid, $userId, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
@@ -1177,6 +1184,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->will($this->returnValue(json_encode(['VALID'])));
+		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->service->validateAccountFiles([
 			[
 				'type' => 'VALID',
@@ -1184,7 +1192,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'base64' => 'dGVzdA=='
 				]
 			]
-		]);
+		], $user);
 		$this->assertNull($actual);
 	}
 
@@ -1193,6 +1201,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->will($this->returnValue(json_encode(['VALID'])));
+		$user = $this->createMock(\OCP\IUser::class);
 		$this->service->validateAccountFiles([
 			[
 				'type' => 'invalid',
@@ -1200,7 +1209,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'base64' => 'invalid'
 				]
 			]
-		]);
+		], $user);
 	}
 
 	public function testAccountvalidateWithInvalidBase64() {
@@ -1208,6 +1217,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->will($this->returnValue(json_encode(['VALID'])));
+		$user = $this->createMock(\OCP\IUser::class);
 		$this->service->validateAccountFiles([
 			[
 				'type' => 'VALID',
@@ -1215,7 +1225,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'base64' => 'invalid'
 				]
 			]
-		]);
+		], $user);
 	}
 
 	public function testAddFilesToAccountWithSuccess() {
