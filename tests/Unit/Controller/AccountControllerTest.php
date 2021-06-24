@@ -89,7 +89,7 @@ final class AccountControllerTest extends ApiTestCase {
 					]
 				]
 			])
-			->withPath('/account/profile/files')
+			->withPath('/account/files')
 			->assertResponseCode(401);
 
 		$this->assertRequest();
@@ -100,7 +100,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testPostAccountAddFilesWithSuccess() {
 		$this->createUser('username', 'password');
-		$this->mockConfig(['libresign' => ['profile_file_types' => json_encode(['VALID'])]]);
+		$this->mockConfig(['libresign' => ['file_types' => json_encode(['VALID'])]]);
 
 		$this->request
 			->withMethod('POST')
