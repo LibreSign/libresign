@@ -184,7 +184,7 @@ class AccountService {
 			$exists = $this->accountFileMapper->getByUserAndType($user->getUID(), $file['type']);
 		} catch (\Exception $e) {
 		}
-		if (empty($exists)) {
+		if (!empty($exists)) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
