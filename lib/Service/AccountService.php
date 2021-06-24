@@ -51,6 +51,8 @@ class AccountService {
 	private $fileMapper;
 	/** @var ReportDao */
 	private $reportDao;
+	/** @var SignFileService */
+	private $signFile;
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
 	/** @var \OCA\Libresign\DbFile */
@@ -59,6 +61,8 @@ class AccountService {
 	private $fileToSign;
 	/** @var IGroupManager */
 	private $groupManager;
+	/** @var AccountFileService */
+	private $accountFile;
 
 	public function __construct(
 		IL10N $l10n,
@@ -68,12 +72,14 @@ class AccountService {
 		IRootFolder $root,
 		FileMapper $fileMapper,
 		ReportDao $reportDao,
+		SignFileService $signFile,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
-		IGroupManager $groupManager
+		IGroupManager $groupManager,
+		AccountFileService $accountFile
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -82,12 +88,14 @@ class AccountService {
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
 		$this->reportDao = $reportDao;
+		$this->signFile = $signFile;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->groupManager = $groupManager;
+		$this->accountFile = $accountFile;
 	}
 
 	public function validateCreateToSign(array $data) {
@@ -438,14 +446,15 @@ class AccountService {
 		];
 	}
 
-	public function addFilesToUserProfile($files, $user) {
-		$this->validateProfileFiles($files);
-		foreach ($files as $file) {
-			$dataToSave = $file;
+	public function addFilesToAccount($files, $user) {
+		$this->validateAccountFiles($files);
+		foreach ($files as $fileData) {
+			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
-			$dataToSave['name'] = $file['type'];
-			$savedData = $this->webhook->saveFile($dataToSave);
-			$this->userProfileFile->addFileToProfile($savedData, $user);
+			$dataToSave['name'] = $fileData['type'];
+			$file = $this->signFile->saveFile($dataToSave);
+
+			$this->accountFile->addFile($file, $user, $fileData['type']);
 		}
 	}
 }

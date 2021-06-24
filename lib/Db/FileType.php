@@ -12,7 +12,6 @@ class FileType extends Entity {
 	protected $type;
 
 	public function __construct() {
-		$this->addType('id', 'integer');
 		$this->addType('type', 'string');
 	}
 }
