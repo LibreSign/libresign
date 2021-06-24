@@ -31,7 +31,7 @@ export default {
 	},
 	props: {
 		user: {
-			type: String,
+			type: Object,
 			require: true,
 			default: null,
 		},
