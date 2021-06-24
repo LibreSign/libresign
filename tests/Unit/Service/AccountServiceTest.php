@@ -1231,7 +1231,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testAddFilesToAccountWithSuccess() {
-		$this->markTestSkipped();
 		$this->config
 			->method('getAppValue')
 			->willReturn('["VALID"]');
@@ -1244,6 +1243,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]
 		];
 		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')
+			->willReturn('username');
 		$return = $this->service->addFilesToAccount($files, $user);
 		$this->assertNull($return);
 	}
