@@ -29,7 +29,10 @@ return [
 		['name' => 'libresign#validateUuid',    'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libresign#validateFileId',  'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
 
-		['name' => 'signature#hasRootCert',     'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
+		// Deprecated
+		['name' => 'setting#hasRootCert',       'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
+
+		['name' => 'setting#hasRootCert',       'url' => '/api/0.1/setting/has-root-cert', 'verb' => 'GET'],
 		// Admin config
 		['name' => 'admin#generateCertificate', 'url' => '/api/0.1/admin/certificate', 'verb' => 'POST'],
 		['name' => 'admin#loadCertificate',     'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],

@@ -7,7 +7,7 @@ use OCA\Libresign\Tests\Unit\ApiTestCase;
 /**
  * @group DB
  */
-final class SignatureControllerTest extends ApiTestCase {
+final class SettingControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
@@ -17,7 +17,7 @@ final class SignatureControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/signature/has-root-cert');
+			->withPath('/setting/has-root-cert');
 
 		$this->assertRequest();
 	}
