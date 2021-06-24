@@ -195,7 +195,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testDeleteSignRequestSuccess() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$file->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getId')],
+				[$this->equalTo('getUuid')]
+			)
+			->will($this->returnValueMap([
+				['getId', [], 123],
+				['getUuid', [], 'valid']
+			]));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$this->fileUser->method('getByFileId')->will($this->returnValue([$file]));
 		$this->fileUser->method('getByEmailAndFileId')->will($this->returnValue($file));
