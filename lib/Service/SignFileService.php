@@ -445,7 +445,7 @@ class SignFileService {
 		return $folder->newFile($filename, $content);
 	}
 
-	public function writeFooter($file, $uuid) {
+	public function writeFooter(File $file, string $uuid) {
 		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
 		if (!$validation_site) {
 			return;
