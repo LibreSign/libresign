@@ -21,40 +21,25 @@
 				</div>
 			</div>
 			<div class="user-content">
-				<div class="input-content">
-					<div class="input-header">
-						<h1>Número de telefonne</h1>
-						<div class="icon icon-rename" />
+				<div v-for="profileType in orderFiles" :key="profileType.code" class="input-content">
+					<div class="input-header" @click="getFile(profileType.code)">
+						<h1>{{ profileType.description }}</h1>
+						<div v-tooltip.right="{
+								content: t('libresign', 'Clique aqui para enviar seu arquivo'),
+								show: true,
+								delay: {
+									show: 500,
+									hide: 100
+								},
+								autohide: true,
+								trigger: 'hover focus'
+							}"
+							class="icons icon-file" />
 					</div>
-					<input type="text" placeholder="Seu número de telefone">
-				</div>
-				<div class="input-content">
-					<div class="input-header">
-						<h1>Número de telefonne</h1>
-						<div class="icon icon-rename" />
+					<div class="input">
+						<input type="text" disabled :placeholder="profileType.libresignFile ? profileType.libresignFile.name : profileType.description ">
+						<!-- <button class="button icon-folder" /> -->
 					</div>
-					<input type="text" placeholder="Seu número de telefone">
-				</div>
-				<div class="input-content">
-					<div class="input-header">
-						<h1>Número de telefonne</h1>
-						<div class="icon icon-rename" />
-					</div>
-					<input type="text" placeholder="Seu número de telefone">
-				</div>
-				<div class="input-content">
-					<div class="input-header">
-						<h1>Número de telefonne</h1>
-						<div class="icon icon-rename" />
-					</div>
-					<input type="text" placeholder="Seu número de telefone">
-				</div>
-				<div class="input-content">
-					<div class="input-header">
-						<h1>Número de telefonne</h1>
-						<div class="icon icon-rename" />
-					</div>
-					<input type="text" placeholder="Seu número de telefone">
 				</div>
 			</div>
 		</div>
@@ -95,7 +80,7 @@ export default {
 						description: 'Cadastro de Pessoa Física',
 						libresignFile: {
 							uuid: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-							name: 'filename',
+							name: 'filename.pdf',
 							callback: 'http://app.test.coop/callback_webhook',
 							status: 'signed',
 							status_date: '2021-12-31 22:45:50',
@@ -128,6 +113,12 @@ export default {
 			},
 		}
 	},
+	computed: {
+		orderFiles() {
+			// eslint-disable-next-line vue/no-side-effects-in-computed-properties
+			return this.account.profileFileTypes.sort((a, b) => (a.code > b.code) ? 1 : -1)
+		},
+	},
 	methods: {
 		async getTypes() {
 			try {
@@ -137,7 +128,7 @@ export default {
 				showError(err.response.errors)
 			}
 		},
-		getFile(type) {
+		getFile(code) {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
 				.setMimeTypeFilter('application/pdf')
@@ -150,23 +141,17 @@ export default {
 				.then(path => {
 					OC.dialogs.filelist.forEach(file => {
 						if (file.name === path.split('/')[1]) {
-							this.sendFile(file, type)
+							this.sendFile(file, code)
 						}
 					})
 				})
 		},
-		async sendFile(file, type) {
-			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/file/sd'), {
-					type,
-					file: {
-						fileId: file.id,
-					},
-				})
-				console.info(response)
-			} catch (err) {
-				showError(err.response.message)
-			}
+		sendFile(file, code) {
+			const newVal = this.account.profileFileTypes.filter(fileMap => fileMap.code !== code)
+			const oldVal = this.account.profileFileTypes.filter(fileMap => fileMap.code === code)[0]
+			oldVal.libresignFile = file
+			newVal.push(oldVal)
+			this.account.profileFileTypes = newVal
 		},
 	},
 }
@@ -197,18 +182,29 @@ export default {
 			flex-direction: column;
 			height: 145px;
 
+			.input{
+				width: 100%;
+
+				input{
+					width: 75%;
+					max-width: 345px;
+				}
+
+				.button{
+					width: 40px;
+					height: 30px;
+				}
+			}
+
 			.input-header {
 				display: flex;
+				cursor: pointer;
 
 				h1{
 					padding: 0 15px 5px 0;
 				}
 			}
 
-			input{
-				width: 90%;
-				max-width: 345px;
-			}
 		}
 
 		.user{
