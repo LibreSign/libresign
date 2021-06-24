@@ -33,8 +33,8 @@
 			:to="{name: 'ResetPassword'}" />
 		<AppNavigationItem
 			icon="icon-user"
-			:title="t('libresign', 'User Profile')"
-			:to=" {name: 'Profile'} " />
+			:title="t('libresign', 'Account')"
+			:to=" {name: 'Account'} " />
 	</ul>
 </template>
 
