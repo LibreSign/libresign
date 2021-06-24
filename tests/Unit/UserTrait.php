@@ -71,6 +71,9 @@ trait UserTrait {
 	 */
 	public function userTraitTearDown(): void {
 		$userList = $this->userTraitDeleteAllUsers();
+		if (!$userList) {
+			return;
+		}
 		$this->userTraitDeleteAllAccountFiles($userList);
 		$this->userTraitDeleteAllGroups();
 		$this->uesrTraitDeleteAllFiles($userList);
