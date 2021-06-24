@@ -32,6 +32,10 @@ const routes = [
 		component: () => import('../views/Timeline'),
 		name: 'signFiles',
 	}, {
+		path: '/request',
+		component: () => import('../views/Request'),
+		name: 'requestFiles',
+	}, {
 		path: '/sign/:uuid',
 		redirect: { name: SelectAction(libresignVar.action) },
 	}, {
