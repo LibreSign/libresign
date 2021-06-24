@@ -38,7 +38,6 @@
 					</div>
 					<div class="input">
 						<input type="text" disabled :placeholder="profileType.libresignFile ? profileType.libresignFile.name : profileType.description ">
-						<!-- <button class="button icon-folder" /> -->
 					</div>
 				</div>
 			</div>
