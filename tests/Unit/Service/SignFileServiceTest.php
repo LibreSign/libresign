@@ -2,6 +2,7 @@
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
@@ -68,6 +69,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->libresignHandler = $this->createMock(JLibresignHandler::class);
+		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->service = new SignFileService(
 			$this->config,
 			$this->groupManager,
@@ -79,7 +82,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManager,
 			$this->mail,
 			$this->logger,
-			$this->validateHelper
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
 		);
 	}
 
@@ -595,10 +600,18 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManager,
 			$this->mail,
 			$this->logger,
-			$this->validateHelper
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
 		);
 		$this->service->validate([
 			'userManager' => 'fake'
 		]);
+	}
+
+	public function testNotifyCallback() {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
+		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
 	}
 }

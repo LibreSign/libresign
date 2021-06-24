@@ -5,22 +5,26 @@ return [
 		// API
 		['name' => 'api#preflighted_cors',      'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
 
+		// Deprecated
 		['name' => 'account#me',                'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
+
 		['name' => 'account#createToSign',      'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#me',                'url' => '/api/0.1/account/me', 'verb' => 'GET'],
 		['name' => 'account#signatureGenerate', 'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
 		['name' => 'account#profileAttachFiles','url' => '/api/0.1/account/profile/files', 'verb' => 'POST'],
 
+		// Deprecated
 		['name' => 'signFile#requestSign',      'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
 		['name' => 'signFile#updateSign',       'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
 		['name' => 'signFile#removeSign',       'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
+
 		['name' => 'signFile#requestSign',      'url' => '/api/0.1/sign/register', 'verb' => 'POST'],
 		['name' => 'signFile#updateSign',       'url' => '/api/0.1/sign/register', 'verb' => 'PATCH'],
 		['name' => 'signFile#removeSign',       'url' => '/api/0.1/sign/register/signature', 'verb' => 'DELETE'],
+		['name' => 'signFile#signDeprecated',  'url' => '/api/0.1/sign', 'verb' => 'POST'],
+		['name' => 'signFile#signUsingUuid',   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
+		['name' => 'signFile#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 
-		['name' => 'libresign#signDeprecated',  'url' => '/api/0.1/sign', 'verb' => 'POST'],
-		['name' => 'libresign#signUsingUuid',   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
-		['name' => 'libresign#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 		['name' => 'libresign#list',            'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'libresign#validateUuid',    'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libresign#validateFileId',  'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],

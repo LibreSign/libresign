@@ -7,9 +7,13 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
+use OCP\Files\File;
+use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
+use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -47,6 +51,10 @@ class SignFileService {
 	private $logger;
 	/** @var ValidateHelper */
 	private $validateHelper;
+	/** @var JLibresignHandler */
+	private $libresignHandler;
+	/** @var IRootFolder */
+	private $root;
 
 	public function __construct(
 		IConfig $config,
@@ -59,7 +67,9 @@ class SignFileService {
 		IUserManager $userManager,
 		MailService $mail,
 		LoggerInterface $logger,
-		ValidateHelper $validateHelper
+		ValidateHelper $validateHelper,
+		JLibresignHandler $libresignHandler,
+		IRootFolder $root
 	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -72,6 +82,8 @@ class SignFileService {
 		$this->mail = $mail;
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
+		$this->libresignHandler = $libresignHandler;
+		$this->root = $root;
 	}
 
 	public function save(array $data) {
@@ -399,5 +411,34 @@ class SignFileService {
 			$this->signatures = $this->fileUserMapper->getByFileId($file->getId());
 		}
 		return $this->signatures;
+	}
+
+	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
+		$options = [
+			'multipart' => [
+				[
+					'name' => 'uuid',
+					'contents' => $uuid
+				],
+				[
+					'name' => 'file',
+					'contents' => $file->fopen('r'),
+					'filename' => $file->getName()
+				]
+			]
+		];
+		return $this->client->newClient()->post($uri, $options);
+	}
+
+	public function sign(string $inputFilePath, string $outputFolderPath, string $certificatePath, string $password) {
+		$file = $this->root->get($inputFilePath);
+		$certificate = $this->root->get($certificatePath);
+
+		list($filename, $content) = $this->libresignHandler->signExistingFile($file, $certificate, $password);
+		$folder = $this->root->newFolder($outputFolderPath);
+		if ($folder->nodeExists($filename)) {
+			return $folder->get($filename)->putContent($content);
+		}
+		return $folder->newFile($filename, $content);
 	}
 }
