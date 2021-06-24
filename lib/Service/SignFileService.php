@@ -444,4 +444,33 @@ class SignFileService {
 		}
 		return $folder->newFile($filename, $content);
 	}
+
+	public function writeFooter($file, $uuid) {
+		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
+		if (!$validation_site) {
+			return;
+		}
+		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
+		$pdf = new Fpdi();
+		$pageCount = $pdf->setSourceFile($file->fopen('r'));
+
+		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+			$templateId = $pdf->importPage($pageNo);
+
+			$pdf->AddPage();
+			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+
+			$pdf->SetFont('Helvetica');
+			$pdf->SetFontSize(8);
+			$pdf->SetAutoPageBreak(false);
+			$pdf->SetXY(5, -10);
+
+			$pdf->Write(8, iconv('UTF-8', 'windows-1252', $this->l10n->t(
+				'Digital signed by LibreSign. Validate in %s',
+				$validation_site
+			)));
+		}
+
+		return $pdf->Output('S');
+	}
 }
