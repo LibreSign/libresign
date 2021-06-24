@@ -87,8 +87,7 @@ trait UserTrait {
 		$qb->execute();
 	}
 
-	protected function userTraitDeleteAllUsers(): array
-	{
+	protected function userTraitDeleteAllUsers(): array {
 		$userList = [];
 		foreach ($this->userTraitBackendUser->getUsers() as $username) {
 			$userList[] = $username;
