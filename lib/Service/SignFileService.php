@@ -430,7 +430,7 @@ class SignFileService {
 		return $this->client->newClient()->post($uri, $options);
 	}
 
-	public function sign(string $inputFilePath, string $outputFolderPath, string $certificatePath, string $password) {
+	public function signDeprecated(string $inputFilePath, string $outputFolderPath, string $certificatePath, string $password) {
 		$file = $this->root->get($inputFilePath);
 		$certificate = $this->root->get($certificatePath);
 

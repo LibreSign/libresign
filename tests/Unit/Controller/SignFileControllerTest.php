@@ -73,7 +73,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			]));
 		$signFile = $this->createMock(SignFileService::class);
 		$signFile
-			->method('sign')
+			->method('signDeprecated')
 			->willReturn($signedFile);
 
 		$root

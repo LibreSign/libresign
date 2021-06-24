@@ -223,7 +223,7 @@ class SignFileController extends ApiController {
 				'password' => $password,
 			]);
 
-			$fileSigned = $this->signFile->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
+			$fileSigned = $this->signFile->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 			return new JSONResponse(
 				['fileSigned' => $fileSigned->getInternalPath()],
