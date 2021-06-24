@@ -21,9 +21,9 @@ return [
 		['name' => 'signFile#requestSign',      'url' => '/api/0.1/sign/register', 'verb' => 'POST'],
 		['name' => 'signFile#updateSign',       'url' => '/api/0.1/sign/register', 'verb' => 'PATCH'],
 		['name' => 'signFile#removeSign',       'url' => '/api/0.1/sign/register/signature', 'verb' => 'DELETE'],
-		['name' => 'signFile#signDeprecated',  'url' => '/api/0.1/sign', 'verb' => 'POST'],
-		['name' => 'signFile#signUsingUuid',   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
-		['name' => 'signFile#signUsingFileid', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
+		['name' => 'signFile#signDeprecated',   'url' => '/api/0.1/sign', 'verb' => 'POST'],
+		['name' => 'signFile#signUsingUuid',    'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
+		['name' => 'signFile#signUsingFileid',  'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 
 		['name' => 'libresign#list',            'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'libresign#validateUuid',    'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
