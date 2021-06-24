@@ -10,24 +10,19 @@ trait LibresignFileTrait {
 	/**
 	 * @var MockWebServer
 	 */
-	protected static $server;
+	protected static $libresignTraitServer;
 
-	private $files = [];
+	private $libresignFileTraitFiles = [];
 
 	/** @var SignFileService */
-	private $signFile;
-
-	/**
-	 * @var \OCA\Libresign\Service\SignFileService
-	 */
-	private $signService;
+	private $libresignFileTraitSignFileService;
 
 	public function requestSignFile($data): array {
-		if (!self::$server) {
-			self::$server = new MockWebServer();
-			self::$server->start();
+		if (!self::$libresignTraitServer) {
+			self::$libresignTraitServer = new MockWebServer();
+			self::$libresignTraitServer->start();
 		}
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
+		self::$libresignTraitServer->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
@@ -38,7 +33,7 @@ trait LibresignFileTrait {
 				'country' => 'Brazil',
 				'organization' => 'Organization',
 				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
+				'cfsslUri' => self::$libresignTraitServer->getServerRoot() . '/api/v1/cfssl/'
 			]
 		]);
 
@@ -64,22 +59,25 @@ trait LibresignFileTrait {
 	 * @return \OCA\Libresign\Service\SignFileService
 	 */
 	public function getSignFileService(): \OCA\Libresign\Service\SignFileService {
-		if (!$this->signFile) {
-			$this->signFile = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
+		if (!$this->libresignFileTraitSignFileService) {
+			$this->libresignFileTraitSignFileService = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
 		}
-		return $this->signFile;
+		return $this->libresignFileTraitSignFileService;
 	}
 
 	public function addFile($file) {
-		$this->files[] = $file;
+		$this->libresignFileTraitFiles[] = $file;
 	}
 
 	/**
 	 * @after
 	 */
 	public function libresignFileTearDown(): void {
-		foreach ($this->files as $file) {
-			$toRemove['uuid'] = $file['uuid'];
+		foreach ($this->libresignFileTraitFiles as $file) {
+			$toRemove = [
+				'uuid' => $file['uuid'],
+				'users' => []
+			];
 			foreach ($file['users'] as $user) {
 				if (is_array($user)) {
 					$toRemove['users'][] = [

@@ -2,10 +2,13 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 
 trait UserTrait {
+	use LibresignFileTrait;
+
 	/** @var IGroupManager */
 	private $userTraitGroupManager;
 
@@ -62,15 +65,49 @@ trait UserTrait {
 	}
 
 	/**
+	 * Clean data
+	 *
 	 * @after
 	 */
 	public function userTraitTearDown(): void {
+		$userList = [];
 		foreach ($this->userTraitBackendUser->getUsers() as $username) {
+			$userList[] = $username;
 			$user = $this->userTraitUserManager->get($username);
 			$this->userTraitTestGroup->removeUser($user);
 		}
 		foreach ($this->userTraitBackendGroup->getGroups() as $group) {
 			$this->userTraitGroupManager->get($group)->delete();
 		}
+		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		$qb = $db->getQueryBuilder();
+		$qb->select('*')
+			->from('libresign_file', 'f')
+			->where(
+				$qb->expr()->in('f.user_id', $qb->createNamedParameter($userList, IQueryBuilder::PARAM_STR_ARRAY))
+			);
+		$cursor = $qb->execute();
+		while ($row = $cursor->fetch()) {
+			$row['users'] = $this->userTraitGetSigners($row['id']);
+			$this->addFile($row);
+		}
+		$cursor->closeCursor();
+		$this->libresignFileTearDown();
+	}
+
+	protected function userTraitGetSigners(int $fileId) {
+		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		$qb = $db->getQueryBuilder();
+		$qb->select('*')
+			->from('libresign_file_user', 'fu')
+			->where(
+				$qb->expr()->eq('fu.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+			);
+		$cursor = $qb->execute();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			$return[] = $row;
+		}
+		return $return;
 	}
 }
