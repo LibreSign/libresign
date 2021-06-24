@@ -153,7 +153,7 @@ class SignFileService {
 	 * @return FileEntity
 	 */
 	private function getFileByUuid(string $uuid): FileEntity {
-		if (!$this->file) {
+		if (!$this->file || $this->file->getUuid() != $uuid) {
 			$this->file = $this->fileMapper->getByUuid($uuid);
 		}
 		return $this->file;
@@ -380,6 +380,9 @@ class SignFileService {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
 		$fileData = $this->getFileByUuid($data['uuid']);
 		$deletedUsers = [];
+		if (!is_array($data['users'])) {
+			$data['users'] = [];
+		}
 		foreach ($data['users'] as $key => $signer) {
 			try {
 				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
