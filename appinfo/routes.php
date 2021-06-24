@@ -11,7 +11,7 @@ return [
 		['name' => 'account#createToSign',      'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#me',                'url' => '/api/0.1/account/me', 'verb' => 'GET'],
 		['name' => 'account#signatureGenerate', 'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
-		['name' => 'account#profileAttachFiles','url' => '/api/0.1/account/profile/files', 'verb' => 'POST'],
+		['name' => 'account#addFiles',          'url' => '/api/0.1/account/files', 'verb' => 'POST'],
 
 		// Deprecated
 		['name' => 'signFile#requestSign',      'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],

@@ -141,13 +141,13 @@ class AccountService {
 		}
 	}
 
-	public function validateProfileFiles(array $files) {
+	public function validateAccountFiles(array $files) {
 		foreach ($files as $fileIndex => $file) {
-			$this->validateProfileFile($fileIndex, $file);
+			$this->validateAccountFile($fileIndex, $file);
 		}
 	}
 
-	private function validateProfileFile(int $fileIndex, array $file) {
+	private function validateAccountFile(int $fileIndex, array $file) {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["admin"]'), true);
 		if (!in_array($file['type'], $profileFileTypes)) {
 			throw new LibresignException(json_encode([

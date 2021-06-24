@@ -134,9 +134,9 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function profileAttachFiles(array $files): JSONResponse {
+	public function addFiles(array $files): JSONResponse {
 		try {
-			$this->account->addFilesToUserProfile($files, $this->userSession->getUser());
+			$this->account->addFilesToAccount($files, $this->userSession->getUser());
 			return new JSONResponse([
 				'success' => true
 			], Http::STATUS_OK);
