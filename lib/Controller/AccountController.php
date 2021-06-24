@@ -7,8 +7,6 @@ use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -28,10 +26,6 @@ class AccountController extends ApiController {
 	private $urlGenerator;
 	/** @var IUserSession */
 	private $userSession;
-	/** @var SignFileService */
-	private $signFile;
-	/** @var MailService */
-	private $mail;
 
 	public function __construct(
 		IRequest $request,
@@ -39,9 +33,7 @@ class AccountController extends ApiController {
 		AccountService $account,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
-		IUserSession $userSession,
-		SignFileService $signFile,
-		MailService $mail
+		IUserSession $userSession
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -49,8 +41,6 @@ class AccountController extends ApiController {
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
-		$this->signFile = $signFile;
-		$this->mail = $mail;
 	}
 
 	/**
