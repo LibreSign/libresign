@@ -1218,7 +1218,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testAddFilesToUserProfileWithSuccess() {
+	public function testAddFilesToAccountWithSuccess() {
 		$this->markTestSkipped();
 		$this->config
 			->method('getAppValue')

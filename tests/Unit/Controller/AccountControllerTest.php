@@ -100,7 +100,6 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testPostAccountAddFilesWithSuccess() {
 		$this->createUser('username', 'password');
-		$this->mockConfig(['libresign' => ['file_types' => json_encode(['VALID'])]]);
 
 		$this->request
 			->withMethod('POST')
@@ -111,7 +110,7 @@ final class AccountControllerTest extends ApiTestCase {
 			->withRequestBody([
 				'files' => [
 					[
-						'type' => 'VALID',
+						'type' => 'IDENTIFICATION',
 						'file' => [
 							'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 						]
