@@ -23,6 +23,7 @@ Types of changes:
 - Added integration with Approval app. Thanks to @eneiluj
 - Endpoint to list LibreSign files
 - Endpoint to attach files to LibreSign profile
+- Validate by app libresign 
 
 # Changed
 - Increment of coverage on backend code
