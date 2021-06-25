@@ -271,33 +271,11 @@ class SignFileController extends ApiController {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
-			Filesystem::initMountPoints($fileData->getuserId());
-			$originalFile = $this->root->getById($fileData->getNodeId());
-			if (count($originalFile) < 1) {
-				throw new LibresignException($this->l10n->t('File not found'));
-			}
-			$originalFile = $originalFile[0];
-			$signedFilePath = preg_replace(
-				'/' . $originalFile->getExtension() . '$/',
-				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
-				$originalFile->getPath()
-			);
+			$fileToSign = $this->signFile->getFileToSing($fileData);
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
-
-			if ($this->root->nodeExists($signedFilePath)) {
-				/** @var \OCP\Files\File */
-				$fileToSign = $this->root->get($signedFilePath);
-			} else {
-				/** @var \OCP\Files\File */
-				$buffer = $this->signFile->writeFooter($originalFile, $fileData->getUuid());
-				if (!$buffer) {
-					$buffer = $originalFile->getContent($originalFile);
-				}
-				$fileToSign = $this->root->newFile($signedFilePath);
-				$fileToSign->putContent($buffer);
-			}
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 			$fileToSign->putContent($signedContent);
+
 			$fileUser->setSigned(time());
 			$this->fileUserMapper->update($fileUser);
 

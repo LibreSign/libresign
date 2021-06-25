@@ -2,11 +2,13 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\JLibresignHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
@@ -468,5 +470,40 @@ class SignFileService {
 		}
 
 		return $pdf->Output('S');
+	}
+
+	/**
+	 * Get file to sign
+	 *
+	 * @throws LibresignException
+	 * @param FileEntity $fileData
+	 * @return \OCP\Files\File
+	 */
+	public function getFileToSing(FileEntity $fileData): \OCP\Files\File {
+		Filesystem::initMountPoints($fileData->getuserId());
+		$originalFile = $this->root->getById($fileData->getNodeId());
+		if (count($originalFile) < 1) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+		$originalFile = $originalFile[0];
+		$signedFilePath = preg_replace(
+			'/' . $originalFile->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+			$originalFile->getPath()
+		);
+
+		if ($this->root->nodeExists($signedFilePath)) {
+			/** @var \OCP\Files\File */
+			$fileToSign = $this->root->get($signedFilePath);
+		} else {
+			/** @var \OCP\Files\File */
+			$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
+			if (!$buffer) {
+				$buffer = $originalFile->getContent($originalFile);
+			}
+			$fileToSign = $this->root->newFile($signedFilePath);
+			$fileToSign->putContent($buffer);
+		}
+		return $fileToSign;
 	}
 }
