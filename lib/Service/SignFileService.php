@@ -448,8 +448,8 @@ class SignFileService {
 		return $folder->newFile($filename, $content);
 	}
 
-	public function sign(FileEntity $fileData, FileUserEntity $fileUser, string $password): \OCP\Files\File {
-		$fileToSign = $this->getFileToSing($fileData);
+	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\File {
+		$fileToSign = $this->getFileToSing($libreSignFile);
 		$certificatePath = $this->pkcsHandler->getPfx($fileUser->getUserId());
 		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 		$fileToSign->putContent($signedContent);
