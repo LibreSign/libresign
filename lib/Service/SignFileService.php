@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
@@ -41,6 +42,8 @@ class SignFileService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var FolderService */
 	private $folderService;
 	/** @var IClientService */
@@ -64,6 +67,7 @@ class SignFileService {
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
+		PkcsHandler $pkcsHandler,
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
@@ -78,6 +82,7 @@ class SignFileService {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
@@ -445,7 +450,7 @@ class SignFileService {
 
 	public function sign(FileEntity $fileData, FileUserEntity $fileUser, string $password): \OCP\Files\File {
 		$fileToSign = $this->getFileToSing($fileData);
-		$certificatePath = $this->account->getPfx($fileUser->getUserId());
+		$certificatePath = $this->pkcsHandler->getPfx($fileUser->getUserId());
 		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 		$fileToSign->putContent($signedContent);
 		$fileUser->setSigned(time());

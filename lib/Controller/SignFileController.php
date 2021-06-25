@@ -2,12 +2,12 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\MailService;
@@ -35,6 +35,8 @@ class SignFileController extends ApiController {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var SignFileService */
 	private $signFile;
 	/** @var AccountService */
@@ -54,6 +56,7 @@ class SignFileController extends ApiController {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IRootFolder $root,
+		PkcsHandler $pkcsHandler,
 		IUserSession $userSession,
 		AccountService $account,
 		SignFileService $signFile,
@@ -67,6 +70,7 @@ class SignFileController extends ApiController {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->userSession = $userSession;
 		$this->account = $account;
 		$this->signFile = $signFile;
@@ -274,7 +278,7 @@ class SignFileController extends ApiController {
 			$signedFile = $this->signFile->sign($fileData, $fileUser, $password);
 
 			$fileToSign = $this->signFile->getFileToSing($fileData);
-			$certificatePath = $this->account->getPfx($fileUser->getUserId());
+			$certificatePath = $this->pkcsHandler->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 			$fileToSign->putContent($signedContent);
 			$fileUser->setSigned(time());

@@ -11,6 +11,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
@@ -34,8 +35,6 @@ class AccountService {
 	private $fileUser;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var FolderService */
-	private $folder;
 	/** @var IRootFolder */
 	private $root;
 	/** @var IConfig */
@@ -48,14 +47,14 @@ class AccountService {
 	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var ReportDao */
 	private $reportDao;
 	/** @var SignFileService */
 	private $signFile;
-	/** @var string */
-	private $pfxFilename = 'signature.pfx';
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
@@ -71,7 +70,6 @@ class AccountService {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
-		FolderService $folder,
 		IRootFolder $root,
 		FileMapper $fileMapper,
 		ReportDao $reportDao,
@@ -81,6 +79,7 @@ class AccountService {
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
+		PkcsHandler $pkcsHandler,
 		IGroupManager $groupManager,
 		AccountFileService $accountFileService,
 		AccountFileMapper $accountFileMapper
@@ -88,7 +87,6 @@ class AccountService {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
-		$this->folder = $folder;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
 		$this->reportDao = $reportDao;
@@ -98,6 +96,7 @@ class AccountService {
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
 		$this->accountFileMapper = $accountFileMapper;
@@ -249,41 +248,7 @@ class AccountService {
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $this->savePfx($uid, $content);
-	}
-
-	private function savePfx($uid, $content): File {
-		$this->folder->setUserId($uid);
-		Filesystem::initMountPoints($uid);
-		$folder = $this->folder->getFolder();
-		if ($folder->nodeExists($this->pfxFilename)) {
-			$file = $folder->get($this->pfxFilename);
-			if (!$file instanceof File) {
-				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
-			}
-			$file->putContent($content);
-			return $file;
-		}
-
-		$file = $folder->newFile($this->pfxFilename);
-		$file->putContent($content);
-		return $file;
-	}
-
-	/**
-	 * Get pfx file
-	 *
-	 * @param string $uid user id
-	 * @return \OCP\Files\Node
-	 */
-	public function getPfx($uid) {
-		Filesystem::initMountPoints($uid);
-		$this->folder->setUserId($uid);
-		$folder = $this->folder->getFolder();
-		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
-		}
-		return $folder->get($this->pfxFilename);
+		return $this->pkcsHandler->savePfx($uid, $content);
 	}
 
 	/**
@@ -394,7 +359,7 @@ class AccountService {
 			return false;
 		}
 		try {
-			$this->getPfx($userId);
+			$this->pkcsHandler->getPfx($userId);
 			return true;
 		} catch (\Throwable $th) {
 		}

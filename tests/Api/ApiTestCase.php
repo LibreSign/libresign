@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit;
+namespace OCA\Libresign\Tests\Api;
 
 use ByJG\ApiTools\AbstractRequester;
 use ByJG\ApiTools\ApiRequester;
@@ -16,10 +16,10 @@ use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use donatj\MockWebServer\MockWebServer;
+use OCA\Libresign\Tests\Unit\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
 class ApiTestCase extends TestCase {
-	use UserTrait;
 	/**
 	 * @var Schema
 	 */
