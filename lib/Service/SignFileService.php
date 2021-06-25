@@ -379,9 +379,6 @@ class SignFileService {
 		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
 		$fileData = $this->getFileByUuid($data['uuid']);
 		$deletedUsers = [];
-		if (!is_array($data['users'])) {
-			$data['users'] = [];
-		}
 		foreach ($data['users'] as $key => $signer) {
 			try {
 				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
@@ -394,7 +391,7 @@ class SignFileService {
 				// already deleted
 			}
 		}
-		if (count($signatures) === count($data['users'])) {
+		if ((empty($data['users']) && !count($signatures)) || count($signatures) === count($data['users'])) {
 			$file = $this->getFileByUuid($data['uuid']);
 			$this->fileMapper->delete($file);
 		}
