@@ -133,13 +133,14 @@ class SignFileService {
 
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
-		if (!empty($data['users']))
-		foreach ($data['users'] as $user) {
-			$user['email'] = strtolower($user['email']);
-			$fileUser = $this->getFileUser($user['email'], $fileId);
-			$this->setDataToUser($fileUser, $user, $fileId);
-			$this->saveFileUser($fileUser);
-			$return[] = $fileUser;
+		if (!empty($data['users'])) {
+			foreach ($data['users'] as $user) {
+				$user['email'] = strtolower($user['email']);
+				$fileUser = $this->getFileUser($user['email'], $fileId);
+				$this->setDataToUser($fileUser, $user, $fileId);
+				$this->saveFileUser($fileUser);
+				$return[] = $fileUser;
+			}
 		}
 		return $return;
 	}
