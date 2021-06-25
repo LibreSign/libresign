@@ -50,6 +50,7 @@ __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 sync(store, router)
 
 Vue.directive('Tooltip', VTooltip)
+VTooltip.options.autohide = true
 
 Vue.prototype.t = t
 Vue.prototype.n = n
