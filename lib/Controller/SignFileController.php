@@ -271,11 +271,12 @@ class SignFileController extends ApiController {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
+			$signedFile = $this->signFile->sign($fileData, $fileUser, $password);
+
 			$fileToSign = $this->signFile->getFileToSing($fileData);
 			$certificatePath = $this->account->getPfx($fileUser->getUserId());
 			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
 			$fileToSign->putContent($signedContent);
-
 			$fileUser->setSigned(time());
 			$this->fileUserMapper->update($fileUser);
 
@@ -290,7 +291,7 @@ class SignFileController extends ApiController {
 					$this->signFile->notifyCallback(
 						$callbackUrl,
 						$fileData->getUuid(),
-						$fileToSign
+						$signedFile
 					);
 				}
 			}

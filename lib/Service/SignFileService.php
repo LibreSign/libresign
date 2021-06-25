@@ -443,6 +443,16 @@ class SignFileService {
 		return $folder->newFile($filename, $content);
 	}
 
+	public function sign(FileEntity $fileData, FileUserEntity $fileUser, string $password): \OCP\Files\File {
+		$fileToSign = $this->getFileToSing($fileData);
+		$certificatePath = $this->account->getPfx($fileUser->getUserId());
+		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
+		$fileToSign->putContent($signedContent);
+		$fileUser->setSigned(time());
+		$this->fileUserMapper->update($fileUser);
+		return $fileToSign;
+	}
+
 	public function writeFooter(File $file, string $uuid) {
 		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
 		if (!$validation_site) {
@@ -486,6 +496,13 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 		$originalFile = $originalFile[0];
+		if ($originalFile->getExtension() === 'pdf') {
+			return $this->getPdfToSign($fileData, $originalFile);
+		}
+		return $this->root->get($originalFile);
+	}
+
+	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {
 		$signedFilePath = preg_replace(
 			'/' . $originalFile->getExtension() . '$/',
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
