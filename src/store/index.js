@@ -64,7 +64,7 @@ export default new Store({
 			Vue.set(state.settings, 'data', settings)
 		},
 		setHasPfx(state, haspfx) {
-			Vue.set(state.settings.data, 'hasSignatureFile', haspfx)
+			Vue.set(state.settings.data.settings, 'hasSignatureFile', haspfx)
 		},
 		setError(state, errors) {
 			Vue.set(state.errors, errors)
@@ -88,7 +88,7 @@ export default new Store({
 			return state.settings
 		},
 		getHasPfx(state) {
-			return state.settings.data.hasSignatureFile
+			return state.settings.data.settings.hasSignatureFile
 		},
 		getPdfData(state) {
 			return state.pdfData
