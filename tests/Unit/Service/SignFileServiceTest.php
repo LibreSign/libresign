@@ -629,7 +629,33 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
 	}
 
-	public function testWriteFooter() {
+	public function testWriteFooterWithoutValidationSite() {
+		$this->config = $this->createMock(IConfig::class);
+		$this->config
+			->method('getAppValue')
+			->willReturn(null);
+		$this->service = new SignFileService(
+			$this->config,
+			$this->groupManager,
+			$this->l10n,
+			$this->file,
+			$this->fileUser,
+			$this->pkcsHandler,
+			$this->folder,
+			$this->clientService,
+			$this->userManager,
+			$this->mail,
+			$this->logger,
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
+		);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$actual = $this->service->writeFooter($file, 'uuid');
+		$this->assertNull($actual);
+	}
+
+	public function testWriteFooterWithSuccess() {
 		$this->config = $this->createMock(IConfig::class);
 		$this->config
 			->method('getAppValue')
