@@ -7,6 +7,10 @@ namespace OCA\Libresign\Tests\Unit;
  */
 final class PageControllerTest extends TestCase {
 	use UserTrait;
+
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testIndexScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->index();
@@ -14,6 +18,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains('libresign/js/libresign-main', \OC_Util::$scripts);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testIndexInitialState() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$controller->index();
@@ -22,6 +29,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertArrayHasKey('libresign-config', $initialStates);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testSignScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->sign('uuid');
@@ -29,6 +39,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains('libresign/js/libresign-external', \OC_Util::$scripts);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testSignPolices() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->sign('uuid');
@@ -37,6 +50,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains("'self'", $polices->getAllowedFrameDomains());
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testSignInitialState() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$controller->sign('uuid');
@@ -45,6 +61,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertArrayHasKey('libresign-config', $initialStates);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testGetPdfNotFound() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->getPdf('uuid');
@@ -52,6 +71,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertEquals(404, $response->getStatus());
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testGetPdfHeader() {
 		$user = $this->createUser('username', 'password');
 
@@ -74,6 +96,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertEquals('application/pdf', $headers['Content-Type']);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testGetPdfStatusCode() {
 		$user = $this->createUser('username', 'password');
 
@@ -94,6 +119,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertEquals(200, $response->getStatus());
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testGetPdfUserNotFound() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->getPdfUser('uuid');
@@ -101,6 +129,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertEquals(404, $response->getStatus());
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testGetPdfUserHeaderAndStatusCode() {
 		$user = $this->createUser('username', 'password');
 
@@ -128,6 +159,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertEquals(200, $response->getStatus());
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testValidationScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->validation();
@@ -135,6 +169,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains('libresign/js/libresign-validation', \OC_Util::$scripts);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testValidationInitialState() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$controller->validation();
@@ -143,6 +180,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertArrayHasKey('libresign-config', $initialStates);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testResetPasswordScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->resetPassword();
@@ -150,6 +190,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains('libresign/js/libresign-main', \OC_Util::$scripts);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testResetPasswordInitialState() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$controller->validation();
@@ -158,6 +201,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertArrayHasKey('libresign-config', $initialStates);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testValidationFileScriptsAndTemplate() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$response = $controller->validationFile('uuid');
@@ -165,6 +211,9 @@ final class PageControllerTest extends TestCase {
 		$this->assertContains('libresign/js/libresign-validation', \OC_Util::$scripts);
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testValidationFileInitialState() {
 		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
 		$controller->validationFile('uuid');
