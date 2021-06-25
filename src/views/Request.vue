@@ -36,7 +36,7 @@
 			<AppSidebarTab
 				v-show="!canRequest"
 				id="request"
-				:name="t('libresign', 'Add Users')"
+				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
 				<Users ref="request" :fileinfo="file" @request:signatures="send" />
 			</AppSidebarTab>
