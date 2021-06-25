@@ -12,7 +12,7 @@
 					status="none"
 					@sidebar="handleSidebar(true)" />
 				<button class="icon icon-folder" @click="getFile()">
-					{{ t('libresign', 'Choose from files') }}
+					{{ t('libresign', 'Choose from Files') }}
 				</button>
 			</div>
 		</div>
