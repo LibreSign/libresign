@@ -1,6 +1,6 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit;
+namespace OCA\Libresign\Tests\Api;
 
 use ByJG\ApiTools\AbstractRequester;
 use ByJG\Util\Psr7\Response;

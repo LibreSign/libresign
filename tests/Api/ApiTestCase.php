@@ -31,7 +31,7 @@ class ApiTestCase extends TestCase {
 	protected $requester = null;
 
 	/**
-	 * @var \OCA\Libresign\Tests\Unit\ApiRequester
+	 * @var \OCA\Libresign\Tests\Api\ApiRequester
 	 */
 	public $request;
 
@@ -52,7 +52,7 @@ class ApiTestCase extends TestCase {
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
-		$this->request = new \OCA\Libresign\Tests\Unit\ApiRequester();
+		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
 	}
 
 	/**
