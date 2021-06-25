@@ -21,6 +21,7 @@
  *
  */
 
+import { loadState } from '@nextcloud/initial-state'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
@@ -61,6 +62,8 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'home' })
 }
+
+store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 
 export default new Vue({
 	el: '#content',

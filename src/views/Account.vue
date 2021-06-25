@@ -186,6 +186,7 @@ export default {
 	width: 100%;
 	height: 100%;
 }
+
 .container-account{
 	display: flex;
 	flex-direction: row;
