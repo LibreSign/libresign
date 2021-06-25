@@ -277,13 +277,6 @@ class SignFileController extends ApiController {
 			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 			$signedFile = $this->signFile->sign($fileData, $fileUser, $password);
 
-			$fileToSign = $this->signFile->getFileToSing($fileData);
-			$certificatePath = $this->pkcsHandler->getPfx($fileUser->getUserId());
-			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
-			$fileToSign->putContent($signedContent);
-			$fileUser->setSigned(time());
-			$this->fileUserMapper->update($fileUser);
-
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
 			$total = array_reduce($signers, function ($carry, $signer) {
 				$carry += $signer->getSigned() ? 1 : 0;
