@@ -274,8 +274,8 @@ class SignFileController extends ApiController {
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
-			$LibreSignFile = $this->fileMapper->getById($fileUser->getFileId());
-			$signedFile = $this->signFile->sign($LibreSignFile, $fileUser, $password);
+			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
+			$signedFile = $this->signFile->sign($libreSignFile, $fileUser, $password);
 
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
 			$total = array_reduce($signers, function ($carry, $signer) {
@@ -283,11 +283,11 @@ class SignFileController extends ApiController {
 				return $carry;
 			});
 			if (count($signers) === $total) {
-				$callbackUrl = $LibreSignFile->getCallback();
+				$callbackUrl = $libreSignFile->getCallback();
 				if ($callbackUrl) {
 					$this->signFile->notifyCallback(
 						$callbackUrl,
-						$LibreSignFile->getUuid(),
+						$libreSignFile->getUuid(),
 						$signedFile
 					);
 				}
