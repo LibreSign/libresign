@@ -687,4 +687,51 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$expected = file_get_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf');
 		$this->assertEquals(strlen($expected), strlen($actual));
 	}
+
+	public function testSignWithFileNotFound() {
+		$this->expectErrorMessage('File not found');
+
+		$this->createUser('username', 'password');
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('username');
+
+		$this->root->method('getById')
+			->willReturn([]);
+
+		$fileUser = new \OCA\Libresign\Db\FileUser();
+		$this->service->sign($file, $fileUser, 'password');
+	}
+
+	public function testSignPdfWithSuccess() {
+		$this->createUser('username', 'password');
+
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setUserId('username');
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getExtension')
+			->willReturn('pdf');
+
+		$this->root
+			->method('getById')
+			->willReturn([$file]);
+		$this->root
+			->method('nodeExists')
+			->willReturn(true);
+		$this->root
+			->method('get')
+			->willReturn($file);
+		$this->libresignHandler
+			->method('signExistingFile')
+			->willReturn(['', '']);
+		$this->pkcsHandler
+			->method('getPfx')
+			->willReturn($file);
+
+		$fileUser = new \OCA\Libresign\Db\FileUser();
+		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
+		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+	}
 }
