@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Success" : "Pavyko",
     "Invalid user or password" : "Neteisingas naudotojas ar slaptažodis",
-    "File not found" : "Failas nerastas",
     "File signed" : "Failas pasirašytas",
     "Internal error. Contact admin." : "Vidinė klaida. Susisiekite su administratoriumi.",
     "Empty file" : "Tuščias failas",
@@ -12,6 +11,7 @@ OC.L10N.register(
     "This is not your file" : "Tai ne jūsų failas",
     "User already exists" : "Naudotojas jau yra",
     "Password is mandatory" : "Slaptažodis yra privalomas",
+    "File not found" : "Failas nerastas",
     "Invalid email" : "Neteisingas el. pašto adresas",
     "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "File already signed." : "Failas jau pasirašytas.",
