@@ -591,13 +591,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testIndexWithoutUserManager() {
+	public function testValidateWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->service->validate([]);
 	}
 
-	public function testIndexWithoutPermission() {
+	public function testValidateWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->config = $this->createMock(IConfig::class);
