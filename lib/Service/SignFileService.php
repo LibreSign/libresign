@@ -459,8 +459,8 @@ class SignFileService {
 	}
 
 	protected function signPdfFile(File $fileToSign, FileUserEntity $fileUser, string $password): \OCP\Files\File {
-		$pfxPath = $this->pkcsHandler->getPfx($fileUser->getUserId());
-		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxPath, $password);
+		$pfxFile = $this->pkcsHandler->getPfx($fileUser->getUserId());
+		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
 		$fileToSign->putContent($signedContent);
 
 		$fileUser->setSigned(time());
