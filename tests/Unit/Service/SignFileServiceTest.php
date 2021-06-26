@@ -43,6 +43,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $folder;
 	/** @var LoggerInterface */
 	private $logger;
+	/** @var JLibresignHandler */
+	private $libresignHandler;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
