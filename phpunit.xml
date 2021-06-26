@@ -13,6 +13,13 @@
     <testsuites>
         <testsuite name="default">
             <directory suffix="Test.php">tests/Unit</directory>
+            <directory suffix="Test.php">tests/Api</directory>
+        </testsuite>
+        <testsuite name="unit">
+            <directory suffix="Test.php">tests/Unit</directory>
+        </testsuite>
+        <testsuite name="api">
+            <directory suffix="Test.php">tests/Api</directory>
         </testsuite>
     </testsuites>
 

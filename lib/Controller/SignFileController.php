@@ -2,12 +2,12 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\MailService;
@@ -35,6 +35,8 @@ class SignFileController extends ApiController {
 	private $fileMapper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var SignFileService */
 	private $signFile;
 	/** @var AccountService */
@@ -54,6 +56,7 @@ class SignFileController extends ApiController {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IRootFolder $root,
+		PkcsHandler $pkcsHandler,
 		IUserSession $userSession,
 		AccountService $account,
 		SignFileService $signFile,
@@ -67,6 +70,7 @@ class SignFileController extends ApiController {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->root = $root;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->userSession = $userSession;
 		$this->account = $account;
 		$this->signFile = $signFile;
@@ -270,36 +274,8 @@ class SignFileController extends ApiController {
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
-			$fileData = $this->fileMapper->getById($fileUser->getFileId());
-			Filesystem::initMountPoints($fileData->getuserId());
-			$originalFile = $this->root->getById($fileData->getNodeId());
-			if (count($originalFile) < 1) {
-				throw new LibresignException($this->l10n->t('File not found'));
-			}
-			$originalFile = $originalFile[0];
-			$signedFilePath = preg_replace(
-				'/' . $originalFile->getExtension() . '$/',
-				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
-				$originalFile->getPath()
-			);
-			$certificatePath = $this->account->getPfx($fileUser->getUserId());
-
-			if ($this->root->nodeExists($signedFilePath)) {
-				/** @var \OCP\Files\File */
-				$fileToSign = $this->root->get($signedFilePath);
-			} else {
-				/** @var \OCP\Files\File */
-				$buffer = $this->signFile->writeFooter($originalFile, $fileData->getUuid());
-				if (!$buffer) {
-					$buffer = $originalFile->getContent($originalFile);
-				}
-				$fileToSign = $this->root->newFile($signedFilePath);
-				$fileToSign->putContent($buffer);
-			}
-			list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $certificatePath, $password);
-			$fileToSign->putContent($signedContent);
-			$fileUser->setSigned(time());
-			$this->fileUserMapper->update($fileUser);
+			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
+			$signedFile = $this->signFile->sign($libreSignFile, $fileUser, $password);
 
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
 			$total = array_reduce($signers, function ($carry, $signer) {
@@ -307,12 +283,12 @@ class SignFileController extends ApiController {
 				return $carry;
 			});
 			if (count($signers) === $total) {
-				$callbackUrl = $fileData->getCallback();
+				$callbackUrl = $libreSignFile->getCallback();
 				if ($callbackUrl) {
 					$this->signFile->notifyCallback(
 						$callbackUrl,
-						$fileData->getUuid(),
-						$fileToSign
+						$libreSignFile->getUuid(),
+						$signedFile
 					);
 				}
 			}

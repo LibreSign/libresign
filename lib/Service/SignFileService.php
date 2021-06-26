@@ -2,12 +2,15 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
@@ -39,6 +42,8 @@ class SignFileService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var FolderService */
 	private $folderService;
 	/** @var IClientService */
@@ -62,6 +67,7 @@ class SignFileService {
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
+		PkcsHandler $pkcsHandler,
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
@@ -76,6 +82,7 @@ class SignFileService {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
@@ -441,6 +448,28 @@ class SignFileService {
 		return $folder->newFile($filename, $content);
 	}
 
+	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\File {
+		$fileToSign = $this->getFileToSing($libreSignFile);
+		$pfxFile = $this->pkcsHandler->getPfx($fileUser->getUserId());
+		switch ($fileToSign->getExtension()) {
+			case 'pdf':
+				$signedFile = $this->signPdfFile($fileToSign, $pfxFile, $password);
+				break;
+		}
+
+		$fileUser->setSigned(time());
+		$this->fileUserMapper->update($fileUser);
+
+		return $signedFile;
+	}
+
+	protected function signPdfFile(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
+		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
+		$fileToSign->putContent($signedContent);
+
+		return $fileToSign;
+	}
+
 	public function writeFooter(File $file, string $uuid) {
 		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
 		if (!$validation_site) {
@@ -468,5 +497,47 @@ class SignFileService {
 		}
 
 		return $pdf->Output('S');
+	}
+
+	/**
+	 * Get file to sign
+	 *
+	 * @throws LibresignException
+	 * @param FileEntity $fileData
+	 * @return \OCP\Files\File
+	 */
+	public function getFileToSing(FileEntity $fileData): \OCP\Files\File {
+		Filesystem::initMountPoints($fileData->getuserId());
+		$originalFile = $this->root->getById($fileData->getNodeId());
+		if (count($originalFile) < 1) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+		$originalFile = $originalFile[0];
+		if ($originalFile->getExtension() === 'pdf') {
+			return $this->getPdfToSign($fileData, $originalFile);
+		}
+		return $this->root->get($originalFile);
+	}
+
+	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {
+		$signedFilePath = preg_replace(
+			'/' . $originalFile->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+			$originalFile->getPath()
+		);
+
+		if ($this->root->nodeExists($signedFilePath)) {
+			/** @var \OCP\Files\File */
+			$fileToSign = $this->root->get($signedFilePath);
+		} else {
+			/** @var \OCP\Files\File */
+			$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
+			if (!$buffer) {
+				$buffer = $originalFile->getContent($originalFile);
+			}
+			$fileToSign = $this->root->newFile($signedFilePath);
+			$fileToSign->putContent($buffer);
+		}
+		return $fileToSign;
 	}
 }

@@ -4,7 +4,7 @@ namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
-use OC\Files\Node\File;
+use OCP\Files\File;
 
 class JLibresignHandler {
 	/** @var JSignPDF */
