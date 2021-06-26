@@ -1,9 +1,8 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Api\Controller;
 
-use donatj\MockWebServer\Response;
-use OCA\Libresign\Tests\Unit\ApiTestCase;
+use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
  * @group DB
@@ -71,46 +70,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountSignatureEndpointWithSuccess() {
-		$user = $this->createUser('username', 'password');
-		$user->setEMailAddress('person@test.coop');
-
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
-			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'libresign' => [
-				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
-
-		$this->request
-			->withMethod('POST')
-			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
-				'Content-Type' => 'application/json'
-			])
-			->withRequestBody([
-				'signPassword' => 'password'
-			])
-			->withPath('/account/signature');
-
-		$home = $user->getHome();
-		$this->assertFileDoesNotExist($home . '/files/LibreSign/signature.pfx');
-		$this->assertRequest();
-		$this->assertFileExists($home . '/files/LibreSign/signature.pfx');
-	}
-
-	/**
-	 * @runInSeparateProcess
-	 */
-	public function testAccountSignatureEndpointWithFailure() {
+	public function testPostProfileFilesWithInvalidData() {
 		$this->createUser('username', 'password');
 
 		$this->request
@@ -120,10 +80,69 @@ final class AccountControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'signPassword' => ''
+				'files' => [
+					[
+						'type' => 'INVALID',
+						'file' => [
+							'base64' => 'invalid'
+						]
+					]
+				]
 			])
-			->withPath('/account/signature')
+			->withPath('/account/files')
 			->assertResponseCode(401);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPostAccountAddFilesWithSuccess() {
+		$this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('POST')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'files' => [
+					[
+						'type' => 'IDENTIFICATION',
+						'file' => [
+							'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
+						]
+					]
+				]
+			])
+			->withPath('/account/files');
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithoutAuthenticatedUser() {
+		$this->request
+			->withPath('/account/me')
+			->assertResponseCode(404);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testMeWithAuthenticatedUser() {
+		$this->createUser('username', 'password');
+		$this->request
+			->withPath('/account/me')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			]);
 
 		$this->assertRequest();
 	}

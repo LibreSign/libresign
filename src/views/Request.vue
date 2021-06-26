@@ -12,7 +12,7 @@
 					status="none"
 					@sidebar="handleSidebar(true)" />
 				<button class="icon icon-folder" @click="getFile()">
-					{{ t('libresign', 'Choose from files') }}
+					{{ t('libresign', 'Choose from Files') }}
 				</button>
 			</div>
 		</div>
@@ -36,7 +36,7 @@
 			<AppSidebarTab
 				v-show="!canRequest"
 				id="request"
-				:name="t('libresign', 'Add Users')"
+				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
 				<Users ref="request" :fileinfo="file" @request:signatures="send" />
 			</AppSidebarTab>

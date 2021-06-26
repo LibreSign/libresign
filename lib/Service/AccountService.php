@@ -4,13 +4,16 @@ namespace OCA\Libresign\Service;
 
 use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -32,57 +35,71 @@ class AccountService {
 	private $fileUser;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var FolderService */
-	private $folder;
 	/** @var IRootFolder */
 	private $root;
 	/** @var IConfig */
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
+	/** @var PkcsHandler */
+	private $pkcsHandler;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var ReportDao */
 	private $reportDao;
-	/** @var string */
-	private $pfxFilename = 'signature.pfx';
+	/** @var SignFileService */
+	private $signFile;
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
 	/** @var IGroupManager */
 	private $groupManager;
+	/** @var AccountFileService */
+	private $accountFileService;
+	/** @var AccountFileMapper */
+	private $accountFileMapper;
 
 	public function __construct(
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
-		FolderService $folder,
 		IRootFolder $root,
 		FileMapper $fileMapper,
 		ReportDao $reportDao,
+		SignFileService $signFile,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
+		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
-		IGroupManager $groupManager
+		PkcsHandler $pkcsHandler,
+		IGroupManager $groupManager,
+		AccountFileService $accountFileService,
+		AccountFileMapper $accountFileMapper
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
-		$this->folder = $folder;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
 		$this->reportDao = $reportDao;
+		$this->signFile = $signFile;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
+		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
+		$this->pkcsHandler = $pkcsHandler;
 		$this->groupManager = $groupManager;
+		$this->accountFileService = $accountFileService;
+		$this->accountFileMapper = $accountFileMapper;
 	}
 
 	public function validateCreateToSign(array $data) {
@@ -133,6 +150,45 @@ class AccountService {
 		}
 		if (empty($data['signPassword'])) {
 			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
+		}
+	}
+
+	public function validateAccountFiles(array $files, IUser $user) {
+		foreach ($files as $fileIndex => $file) {
+			$this->validateAccountFile($fileIndex, $file, $user);
+		}
+	}
+
+	private function validateAccountFile(int $fileIndex, array $file, IUser $user) {
+		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
+		if (!in_array($file['type'], $profileFileTypes)) {
+			throw new LibresignException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $this->l10n->t('Invalid file type.')
+			]));
+		}
+
+		try {
+			$this->validateHelper->validateFile($file);
+		} catch (\Exception $e) {
+			throw new LibresignException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $e->getMessage()
+			]));
+		}
+
+		try {
+			$exists = $this->accountFileMapper->getByUserAndType($user->getUID(), $file['type']);
+		} catch (\Exception $e) {
+		}
+		if (!empty($exists)) {
+			throw new LibresignException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $this->l10n->t('A file of this type has been associated.')
+			]));
 		}
 	}
 
@@ -192,41 +248,7 @@ class AccountService {
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $this->savePfx($uid, $content);
-	}
-
-	private function savePfx($uid, $content): File {
-		$this->folder->setUserId($uid);
-		Filesystem::initMountPoints($uid);
-		$folder = $this->folder->getFolder();
-		if ($folder->nodeExists($this->pfxFilename)) {
-			$file = $folder->get($this->pfxFilename);
-			if (!$file instanceof File) {
-				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
-			}
-			$file->putContent($content);
-			return $file;
-		}
-
-		$file = $folder->newFile($this->pfxFilename);
-		$file->putContent($content);
-		return $file;
-	}
-
-	/**
-	 * Get pfx file
-	 *
-	 * @param string $uid user id
-	 * @return \OCP\Files\Node
-	 */
-	public function getPfx($uid) {
-		Filesystem::initMountPoints($uid);
-		$this->folder->setUserId($uid);
-		$folder = $this->folder->getFolder();
-		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
-		}
-		return $folder->get($this->pfxFilename);
+		return $this->pkcsHandler->savePfx($uid, $content);
 	}
 
 	/**
@@ -337,7 +359,7 @@ class AccountService {
 			return false;
 		}
 		try {
-			$this->getPfx($userId);
+			$this->pkcsHandler->getPfx($userId);
 			return true;
 		} catch (\Throwable $th) {
 		}
@@ -405,5 +427,17 @@ class AccountService {
 				'first' => ''
 			]
 		];
+	}
+
+	public function addFilesToAccount($files, $user) {
+		$this->validateAccountFiles($files, $user);
+		foreach ($files as $fileData) {
+			$dataToSave = $fileData;
+			$dataToSave['userManager'] = $user;
+			$dataToSave['name'] = $fileData['type'];
+			$file = $this->signFile->saveFile($dataToSave);
+
+			$this->accountFileService->addFile($file, $user, $fileData['type']);
+		}
 	}
 }
