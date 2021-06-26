@@ -1,5 +1,5 @@
 <template>
-	<div class="container">
+	<div class="container-sign">
 		<div class="avatar-local">
 			<Avatar id="avatar" :user="userName" />
 			<span>{{ userName }}</span>
@@ -12,10 +12,9 @@
 			:disabled="disabled"
 			:loading="hasLoading"
 			@submit="sign" />
-		<a :href="linkForgot" target="_blank" class="forgot">
+		<a class="forgot-sign" @click="handleModal(true)">
 			{{ t('libresign', 'Forgot your password?') }}
 		</a>
-
 		<EmptyContent class="emp-content">
 			<template #desc>
 				<p>
@@ -27,16 +26,20 @@
 			</template>
 		</EmptyContent>
 		<slot name="actions" />
+		<Modal v-if="modal" size="large" @close="handleModal(false)">
+			<ResetPassword />
+		</Modal>
 	</div>
 </template>
 
 <script>
+import Modal from '@nextcloud/vue/dist/Components/Modal'
+import ResetPassword from '../../views/ResetPassword.vue'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
-import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Sign',
@@ -44,6 +47,8 @@ export default {
 		Avatar,
 		InputAction,
 		EmptyContent,
+		Modal,
+		ResetPassword,
 	},
 	props: {
 		disabled: {
@@ -59,14 +64,12 @@ export default {
 	data() {
 		return {
 			icon: Icon,
+			modal: false,
 		}
 	},
 	computed: {
 		userName() {
 			return getCurrentUser().uid
-		},
-		linkForgot() {
-			return generateUrl('/apps/libresign/reset-password')
 		},
 	},
 	methods: {
@@ -76,10 +79,13 @@ export default {
 		sign(param) {
 			this.$emit('sign:document', param)
 		},
+		handleModal(state) {
+			this.modal = state
+		},
 	},
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import './styles';
 </style>
