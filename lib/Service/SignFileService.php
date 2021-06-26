@@ -450,21 +450,22 @@ class SignFileService {
 
 	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\File {
 		$fileToSign = $this->getFileToSing($libreSignFile);
+		$pfxFile = $this->pkcsHandler->getPfx($fileUser->getUserId());
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
-				$signedFile = $this->signPdfFile($fileToSign, $fileUser, $password);
+				$signedFile = $this->signPdfFile($fileToSign, $pfxFile, $password);
 				break;
 		}
-		return $signedFile;
-	}
-
-	protected function signPdfFile(File $fileToSign, FileUserEntity $fileUser, string $password): \OCP\Files\File {
-		$pfxFile = $this->pkcsHandler->getPfx($fileUser->getUserId());
-		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
-		$fileToSign->putContent($signedContent);
 
 		$fileUser->setSigned(time());
 		$this->fileUserMapper->update($fileUser);
+
+		return $signedFile;
+	}
+
+	protected function signPdfFile(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
+		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
+		$fileToSign->putContent($signedContent);
 
 		return $fileToSign;
 	}
