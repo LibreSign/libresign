@@ -81,6 +81,9 @@ trait UserTrait {
 
 	protected function userTraitDeleteAllAccountFiles(array $userList) {
 		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		if (!$db) {
+			return;
+		}
 		$qb = $db->getQueryBuilder();
 		$qb->delete('libresign_account_file')
 			->where($qb->expr()->in('user_id', $qb->createNamedParameter($userList, IQueryBuilder::PARAM_STR_ARRAY)));
@@ -105,6 +108,9 @@ trait UserTrait {
 
 	protected function uesrTraitDeleteAllFiles(array $userList) {
 		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		if (!$db) {
+			return;
+		}
 		$qb = $db->getQueryBuilder();
 		$qb->select('*')
 			->from('libresign_file', 'f')
