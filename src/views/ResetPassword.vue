@@ -75,7 +75,7 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
 				this.hasLoading = false
-				this.$router.push({ name: 'Home' })
+				this.$emit('close', true)
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false

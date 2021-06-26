@@ -27,7 +27,7 @@
 		</EmptyContent>
 		<slot name="actions" />
 		<Modal v-if="modal" size="large" @close="handleModal(false)">
-			<ResetPassword />
+			<ResetPassword @close="handleModal(false)" />
 		</Modal>
 	</div>
 </template>
