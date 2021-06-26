@@ -37,23 +37,6 @@
 					</div>
 				</div>
 			</div>
-			<div class="user-content">
-				<div v-for="profileType in orderFiles" :key="profileType.code" class="input-content">
-					<div class="input-header" @click="getFile(profileType.code)">
-						<h1>{{ profileType.description }}</h1>
-						<div v-tooltip.right="{
-								content: t('libresign', 'Click here to select your document'),
-								show: true,
-								autohide: true,
-								trigger: 'hover focus'
-							}"
-							class="icons icon-file" />
-					</div>
-					<div class="input-path">
-						<input type="text" disabled :placeholder="profileType.libresignFile ? profileType.libresignFile.name : profileType.description ">
-					</div>
-				</div>
-			</div>
 		</div>
 	</Content>
 </template>
@@ -61,11 +44,8 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import axios from '@nextcloud/axios'
 import Content from '@nextcloud/vue/dist/Components/Content'
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
-import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
 import { mapGetters } from 'vuex'
 import CreatePassword from './CreatePassword.vue'
 import ResetPassword from './ResetPassword.vue'
@@ -83,98 +63,14 @@ export default {
 		return {
 			user: getCurrentUser(),
 			modal: false,
-			account: {
-				displayName: 'Iara',
-				email: 'Iara@test.coop',
-				notifications: {},
-				profileFileTypes: [
-					{
-						code: 'RG',
-						name: 'RG',
-						description: 'Registro Geral',
-						libresignFile: null,
-					},
-					{
-						code: 'CPF',
-						name: 'CPF',
-						description: 'Cadastro de Pessoa Física',
-						libresignFile: {
-							uuid: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-							name: 'filename.pdf',
-							callback: 'http://app.test.coop/callback_webhook',
-							status: 'signed',
-							status_date: '2021-12-31 22:45:50',
-							request_date: '2021-12-31 22:45:50',
-							requested_by: {
-								display_name: 'John Doe',
-								uid: 'johndoe',
-							},
-							file: {
-								typeCode: 'RG',
-								mimetype: 'application/pdf',
-								extension: 'pdf',
-								url: 'http://cloud.test.coop/apps/libresign/pdf/46d30465-ae11-484b-aad5-327249a1e8ef',
-								nodeId: 2312,
-							},
-							signers: [
-								{
-									email: 'user@test.coop',
-									me: true,
-									display_name: 'John Doe',
-									uid: 'johndoe',
-									description: "As the company's CEO, you must sign this contract",
-									sign_date: '2021-12-31 22:45:50',
-									request_sign_date: '2021-12-31 22:45:50',
-								},
-							],
-						},
-					},
-				],
-			},
 		}
 	},
 	computed: {
-		orderFiles() {
-			return this.account.profileFileTypes.slice().sort((a, b) => (a.code > b.code) ? 1 : -1)
-		},
 		...mapGetters({
 			hasSignature: 'getHasPfx',
 		}),
 	},
 	methods: {
-		async getTypes() {
-			try {
-				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/'))
-				this.documentTypes = response.data.document_types
-			} catch (err) {
-				showError(err.response.errors)
-			}
-		},
-		getFile(code) {
-			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
-				.setMultiSelect(false)
-				.setMimeTypeFilter('application/pdf')
-				.setModal(false)
-				.setType(1)
-				.allowDirectories(false)
-				.build()
-
-			picker.pick()
-				.then(path => {
-					OC.dialogs.filelist.forEach(file => {
-						if (file.name === path.split('/')[1]) {
-							this.sendFile(file, code)
-						}
-					})
-				})
-		},
-		sendFile(file, code) {
-			const newVal = this.account.profileFileTypes.filter(fileMap => fileMap.code !== code)
-			const oldVal = this.account.profileFileTypes.filter(fileMap => fileMap.code === code)[0]
-			oldVal.libresignFile = file
-			newVal.push(oldVal)
-			this.account.profileFileTypes = newVal
-		},
 		handleModal(status) {
 			this.modal = status
 		},
@@ -196,46 +92,6 @@ export default {
 		margin: 10px;
 		display: flex;
 		height: 100%;
-
-		.user-content{
-			display: flex;
-			width: 75%;
-			flex-direction: row;
-			flex-wrap: wrap;
-			margin-right: 15px;
-			height: 100%;
-		}
-
-		.input-content {
-			display: flex;
-			width: 33%;
-			flex-direction: column;
-			height: 145px;
-
-			.input-path{
-				width: 100%;
-
-				input{
-					width: 75%;
-					max-width: 345px;
-				}
-
-				.button{
-					width: 40px;
-					height: 30px;
-				}
-			}
-
-			.input-header {
-				display: flex;
-				cursor: pointer;
-
-				h1{
-					padding: 0 15px 5px 0;
-				}
-			}
-
-		}
 
 		.user{
 			width: 25%;
