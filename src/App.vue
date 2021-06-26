@@ -27,7 +27,7 @@
 			<template #list>
 				<AppNavigationItem
 					:to="{ name: 'signFiles' }"
-					:title="t('libresign', 'Sign')"
+					:title="t('libresign', 'Files')"
 					icon="icon-files-dark"
 					exact />
 				<AppNavigationItem
