@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -42,7 +43,7 @@ class FolderService {
 	 * @param int $nodeId
 	 * @return Folder
 	 */
-	public function getFolder(int $nodeId = null) {
+	public function getFolder(int $nodeId = null): Folder {
 		if ($nodeId) {
 			$node = $this->root->getById($nodeId);
 			if (!$node) {
