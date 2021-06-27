@@ -2,7 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Controller;
 
-use OCA\Libresign\Controller\SignFileController;
+use OCA\Libresign\Controller\SignFileDeprecatedController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\JLibresignHandler;
@@ -22,7 +22,7 @@ use OCP\IUserSession;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Log\LoggerInterface;
 
-final class SignFileControllerTest extends TestCase {
+final class SignFileControllerDeprecatedTest extends TestCase {
 	use ProphecyTrait;
 	public function testSignFileWithSuccess() {
 		$request = $this->prophesize(IRequest::class);
@@ -70,7 +70,7 @@ final class SignFileControllerTest extends TestCase {
 			]));
 		$signFile = $this->createMock(SignFileService::class);
 		$signFile
-			->method('signDeprecated')
+			->method('sign')
 			->willReturn($signedFile);
 
 		$root
@@ -82,7 +82,7 @@ final class SignFileControllerTest extends TestCase {
 			->willReturn(['signedFileName', 'contentOfSignedFile']);
 		$mail = $this->createMock(MailService::class);
 
-		$controller = new SignFileController(
+		$controller = new SignFileDeprecatedController(
 			$request->reveal(),
 			$l10n,
 			$fileUserMapper->reveal(),
@@ -98,7 +98,7 @@ final class SignFileControllerTest extends TestCase {
 			$config
 		);
 
-		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
+		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 		static::assertSame(['fileSigned' => '/path/to/someFileSigned'], $result->getData());
 	}
@@ -144,7 +144,7 @@ final class SignFileControllerTest extends TestCase {
 
 		$signFile = $this->createMock(SignFileService::class);
 
-		$controller = new SignFileController(
+		$controller = new SignFileDeprecatedController(
 			$request->reveal(),
 			$l10n,
 			$fileUserMapper->reveal(),
@@ -160,7 +160,7 @@ final class SignFileControllerTest extends TestCase {
 			$config
 		);
 
-		$result = $controller->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
+		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
 
 		static::assertSame(["parameter '{$paramenterMissing}' is required!"], $result->getData()['errors']);
 		static::assertSame(422, $result->getStatus());
