@@ -37,11 +37,6 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 
-	public function testGetPfxWithInvalidUser() {
-		$this->expectErrorMessage('Backends provided no user object for invalidUser');
-		$this->pkcsHandler->getPfx('invalidUser');
-	}
-
 	public function testGetPfxWithInvalidPfx() {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(false));

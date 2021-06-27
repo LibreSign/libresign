@@ -745,9 +745,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->fileMapper
 						->method('getById')
 						->willReturn($fileUser);
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([]));
+						->willReturn([]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #10
@@ -801,9 +805,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getContent')->will($self->returnValue('content'));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #12
@@ -846,9 +854,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getById')
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #13
@@ -892,9 +904,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getId')->will($self->returnValue(171));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #14
@@ -938,9 +954,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getContent')->will($self->returnValue('content'));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 		];
@@ -970,9 +990,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($fileUser);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->will($this->returnValue(171));
-		$this->root
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
 			->method('getById')
-			->will($this->returnValue([$node]));
+			->willReturn([$node]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
 
 		$actual = $this->service->getConfig('uuid', 'username', 'file');
 		$this->assertJsonStringEqualsJsonString(
@@ -1034,9 +1058,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper
 			->method('getByFileId')
 			->willReturn([$fileUser]);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$node]);
 		$this->root
-			->method('get')
-			->willReturn($this->createMock(\OCP\Files\File::class));
+			->method('getUserFolder')
+			->willReturn($folder);
 
 		$actual = $this->service->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);

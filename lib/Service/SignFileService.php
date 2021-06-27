@@ -507,8 +507,8 @@ class SignFileService {
 	 * @return \OCP\Files\File
 	 */
 	public function getFileToSing(FileEntity $fileData): \OCP\Files\File {
-		Filesystem::initMountPoints($fileData->getuserId());
-		$originalFile = $this->root->getById($fileData->getNodeId());
+		$userFolder = $this->root->getUserFolder($fileData->getUserId());
+		$originalFile = $userFolder->getById($fileData->getNodeId());
 		if (count($originalFile) < 1) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
@@ -516,7 +516,7 @@ class SignFileService {
 		if ($originalFile->getExtension() === 'pdf') {
 			return $this->getPdfToSign($fileData, $originalFile);
 		}
-		return $this->root->get($originalFile);
+		return $userFolder->get($originalFile);
 	}
 
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {

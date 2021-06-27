@@ -696,8 +696,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
-		$this->root->method('getById')
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
 			->willReturn([]);
+		$this->root->method('getUserFolder')
+			->willReturn($folder);
 
 		$fileUser = new \OCA\Libresign\Db\FileUser();
 		$this->service->sign($file, $fileUser, 'password');
@@ -723,6 +727,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('get')
 			->willReturn($file);
+		$this->root->method('getUserFolder')
+			->willReturn($this->root);
 		$this->libresignHandler
 			->method('signExistingFile')
 			->willReturn(['', '']);

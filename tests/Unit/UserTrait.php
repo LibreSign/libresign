@@ -70,13 +70,16 @@ trait UserTrait {
 	 * @after
 	 */
 	public function userTraitTearDown(): void {
-		$userList = $this->userTraitDeleteAllUsers();
-		if (!$userList) {
-			return;
+		try {
+			$userList = $this->userTraitDeleteAllUsers();
+			if (!$userList) {
+				return;
+			}
+			$this->userTraitDeleteAllAccountFiles($userList);
+			$this->userTraitDeleteAllGroups();
+			$this->uesrTraitDeleteAllFiles($userList);
+		} catch (\Throwable $th) {
 		}
-		$this->userTraitDeleteAllAccountFiles($userList);
-		$this->userTraitDeleteAllGroups();
-		$this->uesrTraitDeleteAllFiles($userList);
 	}
 
 	protected function userTraitDeleteAllAccountFiles(array $userList) {
