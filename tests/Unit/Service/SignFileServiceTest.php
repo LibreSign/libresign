@@ -2,7 +2,6 @@
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
@@ -43,8 +42,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $folder;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var JSignPdfHandler */
-	private $JSignPdfHandler;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -75,7 +72,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
-		$this->JSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->service = new SignFileService(
 			$this->config,
@@ -90,7 +86,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->JSignPdfHandler,
 			$this->root
 		);
 	}
@@ -617,7 +612,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->JSignPdfHandler,
 			$this->root
 		);
 		$this->service->validate([
@@ -649,7 +643,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->JSignPdfHandler,
 			$this->root
 		);
 		$file = $this->createMock(\OCP\Files\File::class);
@@ -675,7 +668,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->JSignPdfHandler,
 			$this->root
 		);
 
@@ -729,9 +721,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($file);
 		$this->root->method('getUserFolder')
 			->willReturn($this->root);
-		$this->JSignPdfHandler
-			->method('sign')
-			->willReturn(['', '']);
 		$this->pkcs12Handler
 			->method('getPfx')
 			->willReturn($file);
