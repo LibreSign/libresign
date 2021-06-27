@@ -8,7 +8,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
@@ -55,8 +55,8 @@ class SignFileService {
 	private $logger;
 	/** @var ValidateHelper */
 	private $validateHelper;
-	/** @var JLibresignHandler */
-	private $libresignHandler;
+	/** @var JSignPdfHandler */
+	private $JSignPdfHandler;
 	/** @var IRootFolder */
 	private $root;
 
@@ -73,7 +73,7 @@ class SignFileService {
 		MailService $mail,
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
-		JLibresignHandler $libresignHandler,
+		JSignPdfHandler $JSignPdfHandler,
 		IRootFolder $root
 	) {
 		$this->config = $config;
@@ -88,7 +88,7 @@ class SignFileService {
 		$this->mail = $mail;
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
-		$this->libresignHandler = $libresignHandler;
+		$this->JSignPdfHandler = $JSignPdfHandler;
 		$this->root = $root;
 	}
 
@@ -439,7 +439,7 @@ class SignFileService {
 		$file = $this->root->get($inputFilePath);
 		$certificate = $this->root->get($certificatePath);
 
-		list($filename, $content) = $this->libresignHandler->signExistingFile($file, $certificate, $password);
+		list($filename, $content) = $this->JSignPdfHandler->sign($file, $certificate, $password);
 		$folder = $this->root->newFolder($outputFolderPath);
 		if ($folder->nodeExists($filename)) {
 			return $folder->get($filename)->putContent($content);
@@ -465,14 +465,14 @@ class SignFileService {
 	}
 
 	protected function signFileUsingPkcs7(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
+		list(, $signedContent) = $this->JSignPdfHandler->sign($fileToSign, $pfxFile, $password);
 		$fileToSign->putContent($signedContent);
 
 		return $fileToSign;
 	}
 
 	protected function signPdfUsingPkcs12(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		list(, $signedContent) = $this->libresignHandler->signExistingFile($fileToSign, $pfxFile, $password);
+		list(, $signedContent) = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 		$fileToSign->putContent($signedContent);
 
 		return $fileToSign;

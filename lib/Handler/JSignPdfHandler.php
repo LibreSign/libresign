@@ -6,7 +6,7 @@ use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCP\Files\File;
 
-class JLibresignHandler {
+class JSignPdfHandler {
 	/** @var JSignPDF */
 	private $jSignPdf;
 
@@ -23,7 +23,7 @@ class JLibresignHandler {
 		return $this->jSignPdf;
 	}
 
-	public function signExistingFile(
+	public function sign(
 		File $inputFile,
 		File $certificate,
 		string $password

@@ -50,4 +50,8 @@ class Pkcs12Handler {
 		}
 		return $folder->get($this->pfxFilename);
 	}
+
+	public function sign() {
+		
+	}
 }

@@ -224,9 +224,9 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
-		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JLibresignHandler::class);
+		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JSignPdfHandler::class);
 		$jsignHandler->setJSignPdf($mock);
-		\OC::$server->registerService(\OCA\Libresign\Handler\JLibresignHandler::class, function () use ($mock) {
+		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($mock) {
 			return $mock;
 		});
 
