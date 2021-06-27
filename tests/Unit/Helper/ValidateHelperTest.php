@@ -67,13 +67,15 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByNodeIdWhenFileNotExists() {
+	public function testValidateFileByNodeIdWhenFailedGettingFile() {
 		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$folder->method('getById')->will($this->returnValue(null));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->folder->method('getFolder')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->validateHelper->validateFileByNodeId(1);
 	}
