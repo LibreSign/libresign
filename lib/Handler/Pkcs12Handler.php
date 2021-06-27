@@ -12,11 +12,15 @@ class Pkcs12Handler {
 	private $pfxFilename = 'signature.pfx';
 	/** @var FolderService */
 	private $folderService;
+	/** @var JSignPdfHandler */
+	private $jSignPdfHandler;
 
 	public function __construct(
-		FolderService $folderService
+		FolderService $folderService,
+		JSignPdfHandler $jSignPdfHandler
 	) {
 		$this->folderService = $folderService;
+		$this->jSignPdfHandler = $jSignPdfHandler;
 	}
 
 	public function savePfx($uid, $content): File {
@@ -51,7 +55,11 @@ class Pkcs12Handler {
 		return $folder->get($this->pfxFilename);
 	}
 
-	public function sign() {
-		
+	public function sign(
+		File $inputFile,
+		File $certificate,
+		string $password
+	): array {
+		return $this->jSignPdfHandler->sign($inputFile, $certificate, $password);
 	}
 }

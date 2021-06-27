@@ -1,5 +1,6 @@
 <?php
 
+use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 
@@ -8,11 +9,15 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected $pkcs12Handler;
 	/** @var FolderService */
 	protected $folderService;
+	/** @var JSignPdfHandler */
+	protected $jSignPdfHandler;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
+		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->pkcs12Handler = new Pkcs12Handler(
-			$this->folderService
+			$this->folderService,
+			$this->jSignPdfHandler
 		);
 	}
 
