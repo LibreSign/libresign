@@ -70,7 +70,7 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 			]));
 		$signFile = $this->createMock(SignFileService::class);
 		$signFile
-			->method('sign')
+			->method('signDeprecated')
 			->willReturn($signedFile);
 
 		$root
