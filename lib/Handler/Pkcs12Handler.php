@@ -6,7 +6,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 
-class PkcsHandler {
+class Pkcs12Handler {
 
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';

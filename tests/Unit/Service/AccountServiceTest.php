@@ -8,7 +8,7 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\PkcsHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
@@ -74,7 +74,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
-		$this->pkcsHandler = $this->createMock(PkcsHandler::class);
+		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
@@ -92,7 +92,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
 			$this->accountFileMapper
@@ -120,7 +120,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
 			$this->accountFileMapper
@@ -270,7 +270,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
 			$this->accountFileMapper
@@ -390,7 +390,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
 			$this->accountFileMapper
@@ -521,7 +521,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
 			$this->accountFileMapper

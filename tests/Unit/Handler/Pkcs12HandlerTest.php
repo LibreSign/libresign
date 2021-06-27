@@ -1,17 +1,17 @@
 <?php
 
-use OCA\Libresign\Handler\PkcsHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 
-final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var PkcsHandler */
-	protected $pkcsHandler;
+final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	/** @var Pkcs12Handler */
+	protected $pkcs12Handler;
 	/** @var FolderService */
 	protected $folderService;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->pkcsHandler = new PkcsHandler(
+		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService
 		);
 	}
@@ -23,7 +23,7 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
 
 		$this->expectErrorMessage('path signature.pfx already exists and is not a file!');
-		$this->pkcsHandler->savePfx('userId', 'content');
+		$this->pkcs12Handler->savePfx('userId', 'content');
 	}
 
 	public function testSavePfxWhenPfxFileExsitsAndIsAFile() {
@@ -33,7 +33,7 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$node->method('get')->will($this->returnValue($file));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
 
-		$actual = $this->pkcsHandler->savePfx('userId', 'content');
+		$actual = $this->pkcs12Handler->savePfx('userId', 'content');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 
@@ -43,7 +43,7 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
 		$this->expectErrorMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
-		$this->pkcsHandler->getPfx('userId');
+		$this->pkcs12Handler->getPfx('userId');
 	}
 
 	public function testGetPfxOk() {
@@ -51,7 +51,7 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$node->method('nodeExists')->will($this->returnValue(true));
 		$node->method('get')->will($this->returnValue($node));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
-		$actual = $this->pkcsHandler->getPfx('userId');
+		$actual = $this->pkcs12Handler->getPfx('userId');
 		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}
 }

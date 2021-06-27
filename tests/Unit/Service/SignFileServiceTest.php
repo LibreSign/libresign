@@ -3,7 +3,7 @@
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\JLibresignHandler;
-use OCA\Libresign\Handler\PkcsHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
@@ -25,8 +25,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
-	/** @var PkcsHandler */
-	private $pkcsHandler;
+	/** @var Pkcs12Handler */
+	private $pkcs12Handler;
 	/** @var SignFileService */
 	private $service;
 	/** @var FileMapper */
@@ -68,7 +68,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
-		$this->pkcsHandler = $this->createMock(PkcsHandler::class);
+		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->mail = $this->createMock(MailService::class);
@@ -83,7 +83,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
@@ -610,7 +610,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
@@ -642,7 +642,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
@@ -668,7 +668,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
-			$this->pkcsHandler,
+			$this->pkcs12Handler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
@@ -732,7 +732,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->libresignHandler
 			->method('signExistingFile')
 			->willReturn(['', '']);
-		$this->pkcsHandler
+		$this->pkcs12Handler
 			->method('getPfx')
 			->willReturn($file);
 

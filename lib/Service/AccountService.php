@@ -10,7 +10,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\PkcsHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
@@ -46,8 +46,8 @@ class AccountService {
 	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
-	/** @var PkcsHandler */
-	private $pkcsHandler;
+	/** @var Pkcs12Handler */
+	private $pkcs12Handler;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var ReportDao */
@@ -78,7 +78,7 @@ class AccountService {
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
-		PkcsHandler $pkcsHandler,
+		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
 		AccountFileService $accountFileService,
 		AccountFileMapper $accountFileMapper
@@ -95,7 +95,7 @@ class AccountService {
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
-		$this->pkcsHandler = $pkcsHandler;
+		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
 		$this->accountFileMapper = $accountFileMapper;
@@ -247,7 +247,7 @@ class AccountService {
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $this->pkcsHandler->savePfx($uid, $content);
+		return $this->pkcs12Handler->savePfx($uid, $content);
 	}
 
 	/**
@@ -358,7 +358,7 @@ class AccountService {
 			return false;
 		}
 		try {
-			$this->pkcsHandler->getPfx($userId);
+			$this->pkcs12Handler->getPfx($userId);
 			return true;
 		} catch (\Throwable $th) {
 		}
