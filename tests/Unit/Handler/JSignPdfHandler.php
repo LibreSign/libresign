@@ -22,9 +22,6 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mock->method('sign')->willReturn('content');
 		$this->class->setJSignPdf($mock);
 		$actual = $this->class->sign($inputFile, $certificate, 'password');
-		$this->assertIsArray($actual);
-		$this->assertCount(2, $actual);
-		$this->assertArrayHasKey(1, $actual);
-		$this->assertEquals('content', $actual[1]);
+		$this->assertEquals('content', $actual);
 	}
 }

@@ -27,7 +27,7 @@ class JSignPdfHandler {
 		File $inputFile,
 		File $certificate,
 		string $password
-	): array {
+	): string {
 		$param = (new JSignParam())
 			->setCertificate($certificate->getContent())
 			->setPdf($inputFile->getContent())
@@ -39,11 +39,6 @@ class JSignPdfHandler {
 
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
-		$contentFileSigned = $jSignPdf->sign();
-
-		return [
-			'signed_'.$inputFile->getName(),
-			$contentFileSigned,
-		];
+		return $jSignPdf->sign();
 	}
 }

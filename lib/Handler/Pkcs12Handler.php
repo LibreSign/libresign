@@ -59,7 +59,7 @@ class Pkcs12Handler {
 		File $inputFile,
 		File $certificate,
 		string $password
-	): array {
+	): string {
 		return $this->jSignPdfHandler->sign($inputFile, $certificate, $password);
 	}
 }

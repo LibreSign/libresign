@@ -460,14 +460,14 @@ class SignFileService {
 	}
 
 	protected function signNonPdfFileUsingPkcs7(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		list(, $signedContent) = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
+		$signedContent = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 		$fileToSign->putContent($signedContent);
 
 		return $fileToSign;
 	}
 
 	protected function signPdfFileUsingPkcs12(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		list(, $signedContent) = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
+		$signedContent = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 		$fileToSign->putContent($signedContent);
 
 		return $fileToSign;
