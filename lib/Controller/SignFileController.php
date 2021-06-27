@@ -6,25 +6,18 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\JLibresignHandler;
-use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class SignFileController extends ApiController {
-	use HandleParamsTrait;
-
 	/** @var IL10N */
 	protected $l10n;
 	/** @var IUserSession */
@@ -33,51 +26,31 @@ class SignFileController extends ApiController {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
-	/** @var IRootFolder */
-	private $root;
-	/** @var PkcsHandler */
-	private $pkcsHandler;
 	/** @var SignFileService */
 	protected $signFile;
-	/** @var AccountService */
-	private $account;
 	/** @var MailService */
 	private $mail;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var JLibresignHandler */
-	private $libresignHandler;
-	/** @var IConfig */
-	private $config;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
-		IRootFolder $root,
-		PkcsHandler $pkcsHandler,
 		IUserSession $userSession,
-		AccountService $account,
 		SignFileService $signFile,
-		JLibresignHandler $libresignHandler,
 		MailService $mail,
-		LoggerInterface $logger,
-		IConfig $config
+		LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
-		$this->root = $root;
-		$this->pkcsHandler = $pkcsHandler;
 		$this->userSession = $userSession;
-		$this->account = $account;
 		$this->signFile = $signFile;
-		$this->libresignHandler = $libresignHandler;
 		$this->mail = $mail;
 		$this->logger = $logger;
-		$this->config = $config;
 	}
 
 	/**

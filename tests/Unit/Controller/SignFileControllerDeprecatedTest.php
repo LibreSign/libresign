@@ -5,16 +5,10 @@ namespace OCA\Libresign\Tests\Unit\Controller;
 use OCA\Libresign\Controller\SignFileDeprecatedController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Handler\JLibresignHandler;
-use OCA\Libresign\Handler\PkcsHandler;
-use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Tests\Unit\TestCase;
 use OCP\Files\File;
-use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
@@ -28,17 +22,11 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 		$request = $this->prophesize(IRequest::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
-		$root = $this->createMock(IRootFolder::class);
-		$pkcsHandler = $this->createMock(PkcsHandler::class);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
 			->method('t')
 			->will($this->returnArgument(0));
-		$accountService = $this->createMock(AccountService::class);
 		$logger = $this->createMock(LoggerInterface::class);
-		$file = $this->prophesize(File::class);
-		$file->getInternalPath()->willReturn("/path/to/someFileSigned");
-		$config = $this->createMock(IConfig::class);
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('user');
 		$userSession = $this->createMock(IUserSession::class);
@@ -51,35 +39,15 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 		$certificatePath = '/path/to/someCertificatePath';
 		$password = 'somePassword';
 
-		$folder = $this->createMock(Folder::class);
-		$folder
-			->method('nodeExists')
-			->willReturn(true);
-		$outputFolder = $this->createMock(Folder::class);
 		$signedFile = $this->createMock(File::class);
 		$signedFile
 			->method('getInternalPath')
 			->willReturn('/path/to/someFileSigned');
-		$outputFolder->method('newFile')->willReturn($signedFile);
-		$folder
-			->method('get')
-			->will($this->returnValueMap([
-				[$inputFilePath, $this->createMock(File::class)],
-				[$certificatePath, $this->createMock(File::class)],
-				[$outputFolderPath, $outputFolder]
-			]));
 		$signFile = $this->createMock(SignFileService::class);
 		$signFile
 			->method('signDeprecated')
 			->willReturn($signedFile);
 
-		$root
-			->method('getUserFolder')
-			->willReturn($folder);
-		$libresignHandler = $this->createMock(JLibresignHandler::class);
-		$libresignHandler
-			->method('signExistingFile')
-			->willReturn(['signedFileName', 'contentOfSignedFile']);
 		$mail = $this->createMock(MailService::class);
 
 		$controller = new SignFileDeprecatedController(
@@ -87,15 +55,10 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 			$l10n,
 			$fileUserMapper->reveal(),
 			$fileMapper->reveal(),
-			$root,
-			$pkcsHandler,
 			$userSession,
-			$accountService,
 			$signFile,
-			$libresignHandler,
 			$mail,
-			$logger,
-			$config
+			$logger
 		);
 
 		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);
@@ -128,17 +91,12 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 		$request = $this->prophesize(IRequest::class);
 		$fileUserMapper = $this->prophesize(FileUserMapper::class);
 		$fileMapper = $this->prophesize(FileMapper::class);
-		$root = $this->createMock(IRootFolder::class);
-		$pkcsHandler = $this->createMock(PkcsHandler::class);
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
 			->method('t')
 			->will($this->returnArgument(0));
-		$accountService = $this->createMock(AccountService::class);
-		$libresignHandler = $this->createMock(JLibresignHandler::class);
 		$signFile = $this->createMock(SignFileService::class);
 		$logger = $this->createMock(LoggerInterface::class);
-		$config = $this->createMock(IConfig::class);
 		$userSession = $this->createMock(IUserSession::class);
 		$mail = $this->createMock(MailService::class);
 
@@ -149,15 +107,10 @@ final class SignFileControllerDeprecatedTest extends TestCase {
 			$l10n,
 			$fileUserMapper->reveal(),
 			$fileMapper->reveal(),
-			$root,
-			$pkcsHandler,
 			$userSession,
-			$accountService,
 			$signFile,
-			$libresignHandler,
 			$mail,
-			$logger,
-			$config
+			$logger
 		);
 
 		$result = $controller->sign($inputFilePath, $outputFolderPath, $certificatePath, $password);

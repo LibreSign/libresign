@@ -10,6 +10,8 @@ use OCP\AppFramework\Http\JSONResponse;
  * @deprecated 2.4.0
  */
 class SignFileDeprecatedController extends SignFileController {
+	use HandleParamsTrait;
+
 	/**
 	 * Request signature
 	 *
