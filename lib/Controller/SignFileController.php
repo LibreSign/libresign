@@ -26,7 +26,7 @@ class SignFileController extends ApiController {
 	use HandleParamsTrait;
 
 	/** @var IL10N */
-	private $l10n;
+	protected $l10n;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var FileUserMapper */
@@ -38,7 +38,7 @@ class SignFileController extends ApiController {
 	/** @var PkcsHandler */
 	private $pkcsHandler;
 	/** @var SignFileService */
-	private $signFile;
+	protected $signFile;
 	/** @var AccountService */
 	private $account;
 	/** @var MailService */
