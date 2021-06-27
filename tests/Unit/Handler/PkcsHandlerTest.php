@@ -17,17 +17,6 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSavePfxWhenPfxFileIsAFolder() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(true));
 		$node->method('get')->will($this->returnValue($node));
@@ -38,17 +27,6 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSavePfxWhenPfxFileExsitsAndIsAFile() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(true));
 		$file = $this->createMock(\OCP\Files\File::class);
@@ -65,17 +43,6 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetPfxWithInvalidPfx() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(false));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
@@ -85,17 +52,6 @@ final class PkcsHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetPfxOk() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(true));
 		$node->method('get')->will($this->returnValue($node));

@@ -22,7 +22,6 @@ class PkcsHandler {
 
 	public function savePfx($uid, $content): File {
 		$this->folderService->setUserId($uid);
-		Filesystem::initMountPoints($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
 			$file = $folder->get($this->pfxFilename);
@@ -45,7 +44,6 @@ class PkcsHandler {
 	 * @return \OCP\Files\Node
 	 */
 	public function getPfx($uid) {
-		Filesystem::initMountPoints($uid);
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
