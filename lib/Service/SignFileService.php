@@ -8,6 +8,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
@@ -40,6 +41,8 @@ class SignFileService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var Pkcs7Handler */
+	private $pkcs7Handler;
 	/** @var Pkcs12Handler */
 	private $pkcs12Handler;
 	/** @var FolderService */
@@ -63,6 +66,7 @@ class SignFileService {
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
+		Pkcs7Handler $pkcs7Handler,
 		Pkcs12Handler $pkcs12Handler,
 		FolderService $folderService,
 		IClientService $client,
@@ -77,6 +81,7 @@ class SignFileService {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->pkcs7Handler = $pkcs7Handler;
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->folderService = $folderService;
 		$this->client = $client;
@@ -460,10 +465,11 @@ class SignFileService {
 	}
 
 	protected function signNonPdfFileUsingPkcs7(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		$signedContent = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
-		$fileToSign->putContent($signedContent);
-
-		return $fileToSign;
+		$signedContent = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $password);
+		$newName = $fileToSign->getName() . '.p7s';
+		return $fileToSign
+			->getParent()
+			->newFile($newName, $signedContent);
 	}
 
 	protected function signPdfFileUsingPkcs12(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
