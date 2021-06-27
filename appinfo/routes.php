@@ -14,14 +14,14 @@ return [
 		['name' => 'account#addFiles',          'url' => '/api/0.1/account/files', 'verb' => 'POST'],
 
 		// Deprecated
-		['name' => 'signFile#requestSign',      'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
-		['name' => 'signFile#updateSign',       'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
-		['name' => 'signFile#removeSign',       'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
+		['name' => 'signFileDeprecated#requestSign',      'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
+		['name' => 'signFileDeprecated#updateSign',       'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
+		['name' => 'signFileDeprecated#removeSign',       'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
+		['name' => 'signFileDeprecated#sign',             'url' => '/api/0.1/sign', 'verb' => 'POST'],
 
 		['name' => 'signFile#requestSign',      'url' => '/api/0.1/sign/register', 'verb' => 'POST'],
 		['name' => 'signFile#updateSign',       'url' => '/api/0.1/sign/register', 'verb' => 'PATCH'],
 		['name' => 'signFile#removeSign',       'url' => '/api/0.1/sign/register/signature', 'verb' => 'DELETE'],
-		['name' => 'signFile#signDeprecated',   'url' => '/api/0.1/sign', 'verb' => 'POST'],
 		['name' => 'signFile#signUsingUuid',    'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
 		['name' => 'signFile#signUsingFileid',  'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 

@@ -208,44 +208,6 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @todo remove NoCSRFRequired
-	 * @deprecated
-	 */
-	public function signDeprecated(
-		string $inputFilePath = null,
-		string $outputFolderPath = null,
-		string $certificatePath = null,
-		string $password = null
-	): JSONResponse {
-		try {
-			$this->checkParams([
-				'inputFilePath' => $inputFilePath,
-				'outputFolderPath' => $outputFolderPath,
-				'certificatePath' => $certificatePath,
-				'password' => $password,
-			]);
-
-			$fileSigned = $this->signFile->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
-
-			return new JSONResponse(
-				['fileSigned' => $fileSigned->getInternalPath()],
-				HTTP::STATUS_OK
-			);
-		} catch (\Exception $exception) {
-			return new JSONResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t($exception->getMessage())]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
-		}
-	}
-
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
 	 */
 	public function signUsingFileid(string $fileId, string $password): JSONResponse {
 		return $this->sign($password, $fileId);
