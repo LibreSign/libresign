@@ -8,7 +8,6 @@ use OCP\IConfig;
 use OCP\IL10N;
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-
 	public function testGetFolderWithInvalidNodeId() {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$root = $this->createMock(IRootFolder::class);

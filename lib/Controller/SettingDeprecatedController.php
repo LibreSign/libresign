@@ -11,7 +11,7 @@ class SettingDeprecatedController extends SettingController {
 	 * @NoCSRFRequired
 	 *
 	 * @todo remove NoCSRFRequired
-	 * 
+	 *
 	 * @deprecated 2.4.0 use /setting/has-root-cert
 	 * @codeCoverageIgnore
 	 */

@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Handler;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;

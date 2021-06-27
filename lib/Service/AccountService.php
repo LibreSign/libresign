@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
