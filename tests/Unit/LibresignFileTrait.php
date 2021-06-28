@@ -4,26 +4,25 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response;
+use OCA\Libresign\Service\SignFileService;
 
 trait LibresignFileTrait {
 	/**
 	 * @var MockWebServer
 	 */
-	protected static $server;
+	protected static $libresignTraitServer;
 
-	private $files = [];
+	private $libresignFileTraitFiles = [];
 
-	/**
-	 * @var \OCA\Libresign\Service\WebhookService
-	 */
-	private $webhook;
+	/** @var SignFileService */
+	private $libresignFileTraitSignFileService;
 
 	public function requestSignFile($data): array {
-		if (!self::$server) {
-			self::$server = new MockWebServer();
-			self::$server->start();
+		if (!self::$libresignTraitServer) {
+			self::$libresignTraitServer = new MockWebServer();
+			self::$libresignTraitServer->start();
 		}
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
+		self::$libresignTraitServer->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
@@ -34,7 +33,7 @@ trait LibresignFileTrait {
 				'country' => 'Brazil',
 				'organization' => 'Organization',
 				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
+				'cfsslUri' => self::$libresignTraitServer->getServerRoot() . '/api/v1/cfssl/'
 			]
 		]);
 
@@ -51,31 +50,34 @@ trait LibresignFileTrait {
 				'name' => 'userId'
 			];
 		}
-		$file = $this->getWebhookService()->save($data);
+		$file = $this->getSignFileService()->save($data);
 		$this->addFile($file);
 		return $file;
 	}
 
 	/**
-	 * @return \OCA\Libresign\Service\WebhookService
+	 * @return \OCA\Libresign\Service\SignFileService
 	 */
-	public function getWebhookService(): \OCA\Libresign\Service\WebhookService {
-		if (!$this->webhook) {
-			$this->webhook = \OC::$server->get(\OCA\Libresign\Service\WebhookService::class);
+	public function getSignFileService(): \OCA\Libresign\Service\SignFileService {
+		if (!$this->libresignFileTraitSignFileService) {
+			$this->libresignFileTraitSignFileService = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
 		}
-		return $this->webhook;
+		return $this->libresignFileTraitSignFileService;
 	}
 
 	public function addFile($file) {
-		$this->files[] = $file;
+		$this->libresignFileTraitFiles[] = $file;
 	}
 
 	/**
 	 * @after
 	 */
 	public function libresignFileTearDown(): void {
-		foreach ($this->files as $file) {
-			$toRemove['uuid'] = $file['uuid'];
+		foreach ($this->libresignFileTraitFiles as $file) {
+			$toRemove = [
+				'uuid' => $file['uuid'],
+				'users' => []
+			];
 			foreach ($file['users'] as $user) {
 				if (is_array($user)) {
 					$toRemove['users'][] = [
@@ -87,7 +89,7 @@ trait LibresignFileTrait {
 					];
 				}
 			}
-			$this->getWebhookService()->deleteSignRequest($toRemove);
+			$this->getSignFileService()->deleteSignRequest($toRemove);
 		}
 	}
 }

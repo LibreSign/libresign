@@ -129,4 +129,70 @@ class AccountController extends ApiController {
 			);
 		}
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function addFiles(array $files): JSONResponse {
+		try {
+			$this->account->addFilesToAccount($files, $this->userSession->getUser());
+			return new JSONResponse([
+				'success' => true
+			], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			$exceptionData = json_decode($exception->getMessage());
+			if (isset($exceptionData->file)) {
+				$message = [
+					'file' => $exceptionData->file,
+					'type' => $exceptionData->type,
+					'message' => $exceptionData->message
+				];
+			} else {
+				$message = [
+					'file' => null,
+					'type' => null,
+					'message' => $exception->getMessage()
+				];
+			}
+			return new JSONResponse(
+				[
+					'success' => false,
+					'messages' => [
+						$message
+					]
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+	}
+
+	/**
+	 * Who am I.
+	 *
+	 * Validates API access data and returns the authenticated user's data.
+	 *
+	 * @NoAdminRequired
+	 * @CORS
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 * @return JSONResponse
+	 */
+	public function me() {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Invalid user or password')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'uid' => $user->getUID()
+			],
+			Http::STATUS_OK
+		);
+	}
 }

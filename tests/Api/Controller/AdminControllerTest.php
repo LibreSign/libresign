@@ -1,9 +1,9 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Api\Controller;
 
 use donatj\MockWebServer\Response;
-use OCA\Libresign\Tests\Unit\ApiTestCase;
+use OCA\Libresign\Tests\Api\ApiTestCase;
 use org\bovigo\vfs\vfsStream;
 
 /**

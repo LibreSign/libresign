@@ -1,12 +1,12 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Service;
-
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\WebhookService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\Files\Folder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -18,17 +18,16 @@ use OCP\IUser;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
-/**
- * @internal
- */
-final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
+final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
 	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
-	/** @var WebhookService */
+	/** @var PkcsHandler */
+	private $pkcsHandler;
+	/** @var SignFileService */
 	private $service;
 	/** @var FileMapper */
 	private $file;
@@ -44,6 +43,8 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $folder;
 	/** @var LoggerInterface */
 	private $logger;
+	/** @var JLibresignHandler */
+	private $libresignHandler;
 
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -67,22 +68,30 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->file = $this->createMock(FileMapper::class);
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
+		$this->pkcsHandler = $this->createMock(PkcsHandler::class);
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->service = new WebhookService(
+		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->libresignHandler = $this->createMock(JLibresignHandler::class);
+		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->service = new SignFileService(
 			$this->config,
 			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
+			$this->pkcsHandler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
 			$this->mail,
-			$this->logger
+			$this->logger,
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
 		);
 	}
 
@@ -125,75 +134,6 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'name' => 'test',
 			'userManager' => $this->user
 		]);
-	}
-
-	public function testValidateFileWithoutAllNecessaryData() {
-		$this->expectExceptionMessage('Inform URL or base64 or fileID to sign');
-		$this->service->validateFile([
-			'file' => ['invalid'],
-			'name' => 'test'
-		]);
-	}
-
-	public function testValidateFileWithInvalidFileId() {
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFile([
-			'file' => ['fileId' => 'invalid'],
-			'name' => 'test'
-		]);
-	}
-
-	public function testValidateFileWhenFileIdDoesNotExist() {
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFile([
-			'file' => ['fileId' => 123],
-			'name' => 'test'
-		]);
-	}
-
-	public function testValidateFileByNodeIdWhenAlreadyAskedToSignThisDocument() {
-		$this->fileUser->method('getByNodeId')->will($this->returnValue('exists'));
-		$this->expectExceptionMessage('Already asked to sign this document');
-		$this->service->validateFileByNodeId(1);
-	}
-
-	public function testValidateFileByNodeIdWhenFileIdNotExists() {
-		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
-			throw new \Exception('not found');
-		}));
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFileByNodeId(1);
-	}
-
-	public function testValidateFileByNodeIdWhenFileNotExists() {
-		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
-			throw new \Exception('not found');
-		}));
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('getById')->will($this->returnValue(null));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateFileByNodeId(1);
-	}
-
-	public function testValidateFileByNodeIdWhenFileIsNotPDF() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getMimeType')->will($this->returnValue('html'));
-		$folder->method('getById')->will($this->returnValue([$file]));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$this->expectExceptionMessage('Must be a fileID of a PDF');
-		$this->service->validateFileByNodeId(1);
-	}
-
-	public function testValidateFileByNodeIdWhenSuccess() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getMimeType')->will($this->returnValue('application/pdf'));
-		$folder->method('getById')->will($this->returnValue([$file]));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
-		$actual = $this->service->validateFileByNodeId(1);
-		$this->assertNull($actual);
 	}
 
 	public function testValidateFileUuidWithInvalidUuid() {
@@ -262,7 +202,15 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testDeleteSignRequestSuccess() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
+		$file->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getId')],
+				[$this->equalTo('getUuid')]
+			)
+			->will($this->returnValueMap([
+				['getId', [], 123],
+				['getUuid', [], 'valid']
+			]));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$this->fileUser->method('getByFileId')->will($this->returnValue([$file]));
 		$this->fileUser->method('getByEmailAndFileId')->will($this->returnValue($file));
@@ -643,30 +591,34 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testIndexWithoutUserManager() {
+	public function testValidateWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->service->validate([]);
 	}
 
-	public function testIndexWithoutPermission() {
+	public function testValidateWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->config = $this->createMock(IConfig::class);
 		$this->config
 			->method('getAppValue')
 			->willReturn('');
-		$this->service = new WebhookService(
+		$this->service = new SignFileService(
 			$this->config,
 			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
+			$this->pkcsHandler,
 			$this->folder,
 			$this->clientService,
 			$this->userManager,
 			$this->mail,
-			$this->logger
+			$this->logger,
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
 		);
 		$this->service->validate([
 			'userManager' => 'fake'
@@ -677,5 +629,109 @@ final class WebhookServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
 		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
+	}
+
+	public function testWriteFooterWithoutValidationSite() {
+		$this->config = $this->createMock(IConfig::class);
+		$this->config
+			->method('getAppValue')
+			->willReturn(null);
+		$this->service = new SignFileService(
+			$this->config,
+			$this->groupManager,
+			$this->l10n,
+			$this->file,
+			$this->fileUser,
+			$this->pkcsHandler,
+			$this->folder,
+			$this->clientService,
+			$this->userManager,
+			$this->mail,
+			$this->logger,
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
+		);
+		$file = $this->createMock(\OCP\Files\File::class);
+		$actual = $this->service->writeFooter($file, 'uuid');
+		$this->assertNull($actual);
+	}
+
+	public function testWriteFooterWithSuccess() {
+		$this->config = $this->createMock(IConfig::class);
+		$this->config
+			->method('getAppValue')
+			->willReturn('http://test.coop');
+		$this->service = new SignFileService(
+			$this->config,
+			$this->groupManager,
+			$this->l10n,
+			$this->file,
+			$this->fileUser,
+			$this->pkcsHandler,
+			$this->folder,
+			$this->clientService,
+			$this->userManager,
+			$this->mail,
+			$this->logger,
+			$this->validateHelper,
+			$this->libresignHandler,
+			$this->root
+		);
+
+		$resource = fopen(__DIR__ . '/../../fixtures/small_valid.pdf', 'r');
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('fopen')
+			->willReturn($resource);
+		$actual = $this->service->writeFooter($file, 'uuid');
+		$expected = file_get_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf');
+		$this->assertEquals(strlen($expected), strlen($actual));
+	}
+
+	public function testSignWithFileNotFound() {
+		$this->expectErrorMessage('File not found');
+
+		$this->createUser('username', 'password');
+
+		$file = new \OCA\Libresign\Db\File();
+		$file->setUserId('username');
+
+		$this->root->method('getById')
+			->willReturn([]);
+
+		$fileUser = new \OCA\Libresign\Db\FileUser();
+		$this->service->sign($file, $fileUser, 'password');
+	}
+
+	public function testSignPdfWithSuccess() {
+		$this->createUser('username', 'password');
+
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setUserId('username');
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getExtension')
+			->willReturn('pdf');
+
+		$this->root
+			->method('getById')
+			->willReturn([$file]);
+		$this->root
+			->method('nodeExists')
+			->willReturn(true);
+		$this->root
+			->method('get')
+			->willReturn($file);
+		$this->libresignHandler
+			->method('signExistingFile')
+			->willReturn(['', '']);
+		$this->pkcsHandler
+			->method('getPfx')
+			->willReturn($file);
+
+		$fileUser = new \OCA\Libresign\Db\FileUser();
+		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
+		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 }
