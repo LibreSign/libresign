@@ -56,10 +56,12 @@ class Pkcs12Handler {
 	}
 
 	public function sign(
-		File $inputFile,
+		File $fileToSign,
 		File $certificate,
 		string $password
-	): string {
-		return $this->jSignPdfHandler->sign($inputFile, $certificate, $password);
+	): File {
+		$signedContent = $this->jSignPdfHandler->sign($fileToSign, $certificate, $password);
+		$fileToSign->putContent($signedContent);
+		return $fileToSign;
 	}
 }

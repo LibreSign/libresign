@@ -473,10 +473,7 @@ class SignFileService {
 	}
 
 	protected function signPdfFileUsingPkcs12(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		$signedContent = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
-		$fileToSign->putContent($signedContent);
-
-		return $fileToSign;
+		return $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 	}
 
 	public function writeFooter(File $file, string $uuid) {
