@@ -131,7 +131,8 @@ class AccountService {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
-			$fileToSign = $this->root->getById($this->fileData->getNodeId());
+			$userFolder = $this->root->getUserFolder($this->fileData->getUserId());
+			$fileToSign = $userFolder->getById($this->fileData->getNodeId());
 			if (count($fileToSign)) {
 				$this->fileToSign = $fileToSign[0];
 			}
