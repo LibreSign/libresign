@@ -6,7 +6,7 @@
 			:placeholder="placeholder"
 			:type="type"
 			:disabled="disabled">
-		<button :class="loading ? 'loading' : 'icon-confirm'" @click="onSubmit" />
+		<button :disabled="disabled" :class="loading ? 'loading' : 'icon-confirm'" @click="onSubmit" />
 	</form>
 </template>
 
