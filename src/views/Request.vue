@@ -113,18 +113,22 @@ export default {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
 				.setMimeTypeFilter('application/pdf')
-				.setModal(false)
+				.setModal(true)
 				.setType(1)
-				.allowDirectories(false)
+				.allowDirectories()
 				.build()
 
-			picker.pick()
+			return picker.pick()
 				.then(path => {
 					OC.dialogs.filelist.forEach(file => {
-						if (file.name === path.split('/')[1]) {
-							this.file = file
-							this.handleSidebar(true)
-							this.getInfo(file.id)
+						const indice = path.split('/').indexOf(file.name)
+						if (path.startsWith('/')) {
+							if (file.name === path.split('/')[indice]) {
+								console.info('ifThen: ', file)
+								this.file = file
+								this.handleSidebar(true)
+								this.getInfo(file.id)
+							}
 						}
 					})
 				})
