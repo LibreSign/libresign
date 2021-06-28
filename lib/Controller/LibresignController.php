@@ -74,6 +74,9 @@ class LibresignController extends Controller {
 	private function validate(string $type, $identifier) {
 		$canSign = false;
 		try {
+			if ($this->userSession->getUser()) {
+				$uid = $this->userSession->getUser()->getUID();
+			}
 			try {
 				$file = call_user_func(
 					[$this->fileMapper, 'getBy' . $type],
@@ -90,9 +93,6 @@ class LibresignController extends Controller {
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signatures = $this->fileUserMapper->getByFileId($file->id);
-			if ($this->userSession->getUser()) {
-				$uid = $this->userSession->getUser()->getUID();
-			}
 			foreach ($signatures as $signature) {
 				$signatureToShow = [
 					'signed' => $signature->getSigned(),
