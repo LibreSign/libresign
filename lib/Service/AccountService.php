@@ -129,7 +129,9 @@ class AccountService {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
-			$fileToSign = $this->root->getById($this->fileData->getNodeId());
+			$userId = $this->fileData->getUserId();
+			$userFolder = $this->root->getUserFolder($userId);
+			$fileToSign = $userFolder->getById($this->fileData->getNodeId());
 			if (count($fileToSign)) {
 				$this->fileToSign = $fileToSign[0];
 			}
@@ -353,7 +355,7 @@ class AccountService {
 		return $return;
 	}
 
-	private function hasSignatureFile(?string $userId = null) {
+	public function hasSignatureFile(?string $userId = null) {
 		if (!$userId) {
 			return false;
 		}

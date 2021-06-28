@@ -440,28 +440,16 @@ class SignFileService {
 		$pfxFile = $this->pkcs12Handler->getPfx($fileUser->getUserId());
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
-				$signedFile = $this->signPdfFileUsingPkcs12($fileToSign, $pfxFile, $password);
+				$signedFile = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 				break;
 			default:
-				$signedFile = $this->signNonPdfFileUsingPkcs7($fileToSign, $pfxFile, $password);
+				$signedFile = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $password);
 		}
 
 		$fileUser->setSigned(time());
 		$this->fileUserMapper->update($fileUser);
 
 		return $signedFile;
-	}
-
-	protected function signNonPdfFileUsingPkcs7(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		$signedContent = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $password);
-		$newName = $fileToSign->getName() . '.p7s';
-		return $fileToSign
-			->getParent()
-			->newFile($newName, $signedContent);
-	}
-
-	protected function signPdfFileUsingPkcs12(File $fileToSign, File $pfxFile, string $password): \OCP\Files\File {
-		return $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
 	}
 
 	public function writeFooter(File $file, string $uuid) {
