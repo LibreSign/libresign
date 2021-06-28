@@ -16,14 +16,13 @@
 				</button>
 			</div>
 		</form>
-		<ConfirmPassword v-if="modal" @submit="send" @close="changeModal" />
 	</Content>
 </template>
 
 <script>
+import confirmPassword from '@nextcloud/password-confirmation'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
-import ConfirmPassword from '../Components/ConfirmPassword/Confirm'
 import { generateUrl } from '@nextcloud/router'
 import Input from '../Components/Input/Input'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -33,7 +32,6 @@ export default {
 	components: {
 		Content,
 		Input,
-		ConfirmPassword,
 	},
 	data() {
 		return {
@@ -44,13 +42,9 @@ export default {
 	},
 	methods: {
 		checkPasswordForConfirm() {
-			if (!this.modal) {
-				this.changeModal()
-			}
-		},
-		changeModal() {
-			this.modal = !this.modal
-			this.hasLoading = !this.hasLoading
+			confirmPassword().then(() => {
+				this.send()
+			})
 		},
 		async send() {
 			this.hasLoading = true
@@ -63,6 +57,7 @@ export default {
 				this.$store.commit('setHasPfx', true)
 				this.$router.push({ name: 'Home' })
 				this.clear()
+				this.$emit('close', true)
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false

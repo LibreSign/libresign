@@ -23,29 +23,27 @@
 				</button>
 			</div>
 		</form>
-		<ConfirmPassword v-if="modal" @submit="send" @close="changeModal" />
 	</Content>
 </template>
 
 <script>
+import confirmPassword from '@nextcloud/password-confirmation'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
-import ConfirmPassword from '../Components/ConfirmPassword/Confirm'
-import Input from '../Components/Input/Input'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import Input from '../Components/Input/Input'
+
 export default {
 	name: 'ResetPassword',
 	components: {
 		Content,
 		Input,
-		ConfirmPassword,
 	},
 	data() {
 		return {
 			password: '',
 			rPassword: '',
-			modal: false,
 			hasLoading: false,
 		}
 	},
@@ -59,13 +57,9 @@ export default {
 	},
 	methods: {
 		checkPasswordForConfirm(param) {
-			if (!this.modal) {
-				this.changeModal()
-			}
-		},
-		changeModal() {
-			this.modal = !this.modal
-			this.hasLoading = !this.hasLoading
+			confirmPassword().then(() => {
+				this.send()
+			})
 		},
 		async send() {
 			this.hasLoading = true
@@ -75,7 +69,7 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
 				this.hasLoading = false
-				this.$router.push({ name: 'Home' })
+				this.$emit('close', true)
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false

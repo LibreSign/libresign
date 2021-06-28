@@ -21,6 +21,7 @@
  *
  */
 
+import { loadState } from '@nextcloud/initial-state'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
@@ -50,6 +51,7 @@ __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 sync(store, router)
 
 Vue.directive('Tooltip', VTooltip)
+VTooltip.options.autohide = true
 
 Vue.prototype.t = t
 Vue.prototype.n = n
@@ -60,6 +62,8 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'home' })
 }
+
+store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 
 export default new Vue({
 	el: '#content',
