@@ -355,7 +355,7 @@ class AccountService {
 		return $return;
 	}
 
-	private function hasSignatureFile(?string $userId = null) {
+	public function hasSignatureFile(?string $userId = null) {
 		if (!$userId) {
 			return false;
 		}

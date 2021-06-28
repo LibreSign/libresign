@@ -90,6 +90,9 @@ class LibresignController extends Controller {
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signatures = $this->fileUserMapper->getByFileId($file->id);
+			if ($this->userSession->getUser()) {
+				$uid = $this->userSession->getUser()->getUID();
+			}
 			foreach ($signatures as $signature) {
 				$signatureToShow = [
 					'signed' => $signature->getSigned(),
@@ -97,8 +100,7 @@ class LibresignController extends Controller {
 					'fullName' => $signature->getFullName(),
 					'me' => false
 				];
-				if ($this->userSession->getUser()) {
-					$uid = $this->userSession->getUser()->getUID();
+				if (!empty($uid)) {
 					$signatureToShow['me'] = $uid === $signature->getUserId();
 					if ($uid === $signature->getUserId() && !$signature->getSigned()) {
 						$canSign = true;
@@ -118,9 +120,14 @@ class LibresignController extends Controller {
 			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		$return['settings'] = [
-			'canRequestSign' => $this->account->canRequestSign($this->userSession->getUser()),
-			'canSign' => $canSign
+			'canSign' => $canSign,
+			'canRequestSign' => false,
+			'hasSignatureFile' => false
 		];
+		if (!empty($uid)) {
+			$return['settings']['canRequestSign'] = $this->account->canRequestSign($this->userSession->getUser());
+			$return['settings']['hasSignatureFile'] = $this->account->hasSignatureFile($uid);
+		}
 		return new JSONResponse($return, $statusCode);
 	}
 
