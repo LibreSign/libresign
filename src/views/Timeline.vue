@@ -1,14 +1,27 @@
 <template>
 	<div class="container-timeline">
-		<ul>
-			<File
-				v-for="file in files"
-				:key="file.uuid"
-				class="file-details"
-				:status="file.status"
-				:file="file"
-				@sidebar="setSidebar" />
-		</ul>
+		<div class="content-timeline">
+			<div class="filtered">
+				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
+					{{ t('libresign', 'All Files') }}
+				</a>
+				<a :class="filterActive === 'pending' ? 'pending active': 'pending'" @click="changeFilter(1)">
+					{{ t('libresign', 'Pending') }}
+				</a>
+				<a :class="filterActive === 'signed' ? 'signed active' : 'signed'" @click="changeFilter(2)">
+					{{ t('libresign', 'Signed') }}
+				</a>
+			</div>
+			<ul>
+				<File
+					v-for="file in filterFile"
+					:key="file.uuid"
+					class="file-details"
+					:status="file.status"
+					:file="file"
+					@sidebar="setSidebar" />
+			</ul>
+		</div>
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
 			:loading="loading"
@@ -35,6 +48,8 @@ export default {
 		return {
 			sidebar: false,
 			loading: false,
+			fileFilter: this.files,
+			filterActive: 'allFiles',
 		}
 	},
 
@@ -43,6 +58,32 @@ export default {
 			files: state => state.files,
 		}),
 		...mapGetters(['getFiles']),
+		pendingFilter() {
+			return this.files.slice().filter(
+				(a) => (a.status === 'pending')).sort(
+				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+		},
+		signedFilter() {
+			return this.files.slice().filter(
+				(a) => (a.status === 'signed')).sort(
+				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+		},
+		filterFile: {
+			get() {
+				if (this.fileFilter === undefined || '') {
+					return this.files.slice().sort(
+						(a, b) => (a.request_date < b.request_date) ? 1 : -1
+					)
+				}
+				return this.fileFilter.slice().sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1
+				)
+			},
+			set(value) {
+				this.fileFilter = value
+			},
+		},
+
 	},
 
 	created() {
@@ -50,6 +91,26 @@ export default {
 	},
 
 	methods: {
+		changeFilter(filter) {
+			switch (filter) {
+			case 1:
+				this.filterFile = this.pendingFilter
+				this.filterActive = 'pending'
+				break
+			case 2:
+				this.filterFile = this.signedFilter
+				this.filterActive = 'signed'
+				break
+			case 3:
+				this.filterFile = this.files.sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1
+				)
+				this.filterActive = 'allFiles'
+				break
+			default:
+				break
+			}
+		},
 		async getData() {
 			try {
 				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
@@ -81,9 +142,6 @@ export default {
 				return showSuccess(response.data.message)
 			} catch (err) {
 				this.loading = false
-				if (err.response.data.action === 400) {
-					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
-				}
 				err.response.data.errors.map(
 					error => {
 						showError(error)
@@ -100,15 +158,45 @@ export default {
 	width: 100%;
 	flex-direction: row;
 
-	ul{
+	.content-timeline{
 		display: flex;
 		width: 100%;
-		flex-wrap: wrap;
-	}
+		flex-direction: column;
 
-	.file-details:hover {
-		background: darken(#fff, 10%);
-		border-radius: 10px;
+		.filtered {
+			display: flex;
+			width: 100%;
+			justify-content: flex-end;
+			padding: 10px;
+
+			a {
+				padding: 6px;
+				background: #cecece;
+			}
+
+			.signed{
+				border-radius: 0 10px 10px 0;
+			}
+
+			.allFiles{
+				border-radius: 10px 0 0 10px;
+			}
+
+			.active {
+				background: darken(#cecece, 10%)
+			}
+		}
+
+		ul{
+			display: flex;
+			width: 100%;
+			flex-wrap: wrap;
+		}
+
+		.file-details:hover {
+			background: darken(#fff, 10%);
+			border-radius: 10px;
+		}
 	}
 }
 </style>

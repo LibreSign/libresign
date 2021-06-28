@@ -34,6 +34,7 @@ import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
 import SignaturesTab from './SignaturesTab.vue'
 import Sign from '../Sign'
+import format from 'date-fns/format'
 
 export default {
 	name: 'Sidebar',
@@ -60,10 +61,11 @@ export default {
 			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
 		},
 		subTitle() {
-			return t('libresign', 'Requested by {name}', {
+			return t('libresign', 'Requested by {name}, at {date}', {
 				name: this.getCurrentFile.file.requested_by.display_name
 					? this.getCurrentFile.file.requested_by.display_name
-					: 'User has no name',
+					: '',
+				date: format(new Date(this.getCurrentFile.file.request_date), 'dd/MM/yyyy'),
 			})
 		},
 		hasSign() {

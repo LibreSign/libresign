@@ -30,6 +30,7 @@ Types of changes:
 - Request sign by LibreSign App
 - Validate by LibreSign App
 - User profile
+- Filter files
 
 # Changed
 - Increment of coverage on backend code
