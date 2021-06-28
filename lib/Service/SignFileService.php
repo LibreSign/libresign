@@ -429,16 +429,21 @@ class SignFileService {
 		return $this->client->newClient()->post($uri, $options);
 	}
 
-	public function signDeprecated(string $inputFilePath, string $outputFolderPath, string $certificatePath, string $password) {
-		$file = $this->root->get($inputFilePath);
-		$certificate = $this->root->get($certificatePath);
-
-		list($filename, $content) = $this->libresignHandler->signExistingFile($file, $certificate, $password);
-		$folder = $this->root->newFolder($outputFolderPath);
-		if ($folder->nodeExists($filename)) {
-			return $folder->get($filename)->putContent($content);
+	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\File {
+		$fileToSign = $this->getFileToSing($libreSignFile);
+		$pfxFile = $this->pkcs12Handler->getPfx($fileUser->getUserId());
+		switch ($fileToSign->getExtension()) {
+			case 'pdf':
+				$signedFile = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
+				break;
+			default:
+				$signedFile = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $password);
 		}
-		return $folder->newFile($filename, $content);
+
+		$fileUser->setSigned(time());
+		$this->fileUserMapper->update($fileUser);
+
+		return $signedFile;
 	}
 
 	public function writeFooter(File $file, string $uuid) {
