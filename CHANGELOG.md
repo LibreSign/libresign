@@ -38,6 +38,7 @@ Types of changes:
 - Use name of user on error message when email is empty
 - Logo replaced by new logo
 - It will only verify the password if nextcloud requests confirmation of the password by the OC.
+- Check if has pfx
 
 # Removed
 - Removed dsv folder
