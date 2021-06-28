@@ -171,7 +171,7 @@ export default {
 
 			a {
 				padding: 6px;
-				background: #cecece;
+				background: rgba(206, 206, 206, 0.3);
 			}
 
 			.signed{
@@ -183,7 +183,7 @@ export default {
 			}
 
 			.active {
-				background: darken(#cecece, 10%)
+				background: darken(rgba(206, 206, 206, 0.3), 20%)
 			}
 		}
 
