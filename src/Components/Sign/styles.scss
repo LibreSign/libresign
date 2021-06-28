@@ -1,4 +1,9 @@
-.container{
+.modal-wrapper--large .modal-container[data-v-3e0b109b]{
+	width: 100%;
+	height: 100%;
+}
+
+.container-sign{
 	display: flex;
 	flex-direction: column;
 
@@ -29,7 +34,7 @@
 	}
 }
 
-.forgot{
+.forgot-sign{
 	text-align: end;
 	opacity: .7;
 	font-size: 14px;

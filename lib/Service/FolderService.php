@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -42,35 +43,34 @@ class FolderService {
 	 * @param int $nodeId
 	 * @return Folder
 	 */
-	public function getFolder(int $nodeId = null) {
+	public function getFolder(int $nodeId = null): Folder {
 		if ($nodeId) {
-			$node = $this->root->getById($nodeId);
+			$userFolder = $this->root->getUserFolder($this->getUserId());
+			$node = $userFolder->getById($nodeId);
 			if (!$node) {
 				throw new \Exception('Invalid node');
 			}
 			return $node[0]->getParent();
 		}
-		$path = '/' . $this->userId . '/files/' . $this->getLibreSignDefaultPath();
-		$path = str_replace('//', '/', $path);
 
-		return $this->getOrCreateFolder($path);
+		return $this->getOrCreateFolder();
 	}
 
 	/**
 	 * Finds a folder and creates it if non-existent
-	 * @param string $path path to the folder
 	 *
 	 * @return Folder
 	 *
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
-	private function getOrCreateFolder($path) {
-		\OC\Files\Filesystem::initMountPoints($this->userId);
-		if ($this->root->nodeExists($path)) {
-			$folder = $this->root->get($path);
+	private function getOrCreateFolder() {
+		$path = $this->getLibreSignDefaultPath();
+		$userFolder = $this->root->getUserFolder($this->getUserId());
+		if ($userFolder->nodeExists($path)) {
+			$folder = $userFolder->get($path);
 		} else {
-			$folder = $this->root->newFolder($path);
+			$folder = $userFolder->newFolder($path);
 		}
 		return $folder;
 	}

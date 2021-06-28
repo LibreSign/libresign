@@ -7,7 +7,9 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Handler\JLibresignHandler;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
@@ -39,6 +41,10 @@ class SignFileService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var Pkcs7Handler */
+	private $pkcs7Handler;
+	/** @var Pkcs12Handler */
+	private $pkcs12Handler;
 	/** @var FolderService */
 	private $folderService;
 	/** @var IClientService */
@@ -51,8 +57,6 @@ class SignFileService {
 	private $logger;
 	/** @var ValidateHelper */
 	private $validateHelper;
-	/** @var JLibresignHandler */
-	private $libresignHandler;
 	/** @var IRootFolder */
 	private $root;
 
@@ -62,13 +66,14 @@ class SignFileService {
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
+		Pkcs7Handler $pkcs7Handler,
+		Pkcs12Handler $pkcs12Handler,
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
 		MailService $mail,
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
-		JLibresignHandler $libresignHandler,
 		IRootFolder $root
 	) {
 		$this->config = $config;
@@ -76,13 +81,14 @@ class SignFileService {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->pkcs7Handler = $pkcs7Handler;
+		$this->pkcs12Handler = $pkcs12Handler;
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
 		$this->mail = $mail;
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
-		$this->libresignHandler = $libresignHandler;
 		$this->root = $root;
 	}
 
@@ -473,5 +479,47 @@ class SignFileService {
 		}
 
 		return $pdf->Output('S');
+	}
+
+	/**
+	 * Get file to sign
+	 *
+	 * @throws LibresignException
+	 * @param FileEntity $fileData
+	 * @return \OCP\Files\File
+	 */
+	public function getFileToSing(FileEntity $fileData): \OCP\Files\File {
+		$userFolder = $this->root->getUserFolder($fileData->getUserId());
+		$originalFile = $userFolder->getById($fileData->getNodeId());
+		if (count($originalFile) < 1) {
+			throw new LibresignException($this->l10n->t('File not found'));
+		}
+		$originalFile = $originalFile[0];
+		if ($originalFile->getExtension() === 'pdf') {
+			return $this->getPdfToSign($fileData, $originalFile);
+		}
+		return $userFolder->get($originalFile);
+	}
+
+	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {
+		$signedFilePath = preg_replace(
+			'/' . $originalFile->getExtension() . '$/',
+			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+			$originalFile->getPath()
+		);
+
+		if ($this->root->nodeExists($signedFilePath)) {
+			/** @var \OCP\Files\File */
+			$fileToSign = $this->root->get($signedFilePath);
+		} else {
+			/** @var \OCP\Files\File */
+			$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
+			if (!$buffer) {
+				$buffer = $originalFile->getContent($originalFile);
+			}
+			$fileToSign = $this->root->newFile($signedFilePath);
+			$fileToSign->putContent($buffer);
+		}
+		return $fileToSign;
 	}
 }

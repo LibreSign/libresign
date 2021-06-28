@@ -1,12 +1,14 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Api\Controller;
+
+use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
  * @internal
  * @group DB
  */
-final class LibresignControllerTest extends \OCA\Libresign\Tests\Unit\ApiTestCase {
+final class LibresignControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */

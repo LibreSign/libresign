@@ -23,15 +23,20 @@ Types of changes:
 - Added integration with Approval app. Thanks to @eneiluj
 - Bump max Nextcloud version to 23
 - Endpoint to list LibreSign files
+- Request Subscription by LibreSign App
+- Validate by LibreSign App 
+- User profile
 - Endpoint to attach files to LibreSign profile
 - Request sign by LibreSign App
 - Validate by LibreSign App
+- User profile
 
 # Changed
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 - Use name of user on error message when email is empty
 - Logo replaced by new logo
+- It will only verify the password if nextcloud requests confirmation of the password by the OC.
 
 # Removed
 - Removed dsv folder
@@ -43,6 +48,8 @@ Types of changes:
 - Tests autoload
 - Correction of loading class after clicking sign in application
 - Add ellipsis to pdf file title
+- Now it is possible to choose a file even if it is inside x folders
+- Clear uuid field before returns
 
 ## 2.3.0 - 2021-05-22
 

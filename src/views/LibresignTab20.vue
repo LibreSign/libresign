@@ -155,7 +155,7 @@ export default {
 
 		async requestSignatures(users) {
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
 					file: {
 						fileId: this.info.id,
 					},

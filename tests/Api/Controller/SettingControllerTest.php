@@ -1,8 +1,8 @@
 <?php
 
-namespace OCA\Libresign\Tests\Unit\Controller;
+namespace OCA\Libresign\Tests\Api\Controller;
 
-use OCA\Libresign\Tests\Unit\ApiTestCase;
+use OCA\Libresign\Tests\Api\ApiTestCase;
 
 /**
  * @group DB

@@ -15,17 +15,12 @@ class AdminController extends Controller {
 	/** @var AdminSignatureService */
 	private $adminSignatureservice;
 
-	/** @var string */
-	private $userId;
-
 	public function __construct(
 		IRequest $request,
-		AdminSignatureService $adminSignatureService,
-		$userId
+		AdminSignatureService $adminSignatureService
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->adminSignatureService = $adminSignatureService;
-		$this->userId = $userId;
 	}
 
 	/**

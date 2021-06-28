@@ -8,13 +8,12 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Tests\Unit\UserTrait;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -28,15 +27,12 @@ use OCP\IUserManager;
  * @group DB
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	use UserTrait;
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var IUserManager */
 	private $userManagerInstance;
-	/** @var FolderService */
-	private $folder;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileMapper */
@@ -69,7 +65,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->userManagerInstance = $this->createMock(IUserManager::class);
-		$this->folder = $this->createMock(FolderService::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->reportDao = $this->createMock(ReportDao::class);
@@ -79,15 +74,15 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
+		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
-		$this->AccountFileMapper = $this->createMock(AccountFileMapper::class);
+		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 
 		$this->accountService = new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
-			$this->folder,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -97,9 +92,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
-			$this->AccountFileMapper
+			$this->accountFileMapper
 		);
 	}
 
@@ -115,7 +111,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
-			$this->folder,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -125,9 +120,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
-			$this->AccountFileMapper
+			$this->accountFileMapper
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCreateToSign($arguments);
@@ -265,7 +261,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
-			$this->folder,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -275,9 +270,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
-			$this->AccountFileMapper
+			$this->accountFileMapper
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCertificateData($arguments);
@@ -385,7 +381,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
-			$this->folder,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -395,9 +390,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
-			$this->AccountFileMapper
+			$this->accountFileMapper
 		);
 		$actual = $this->accountService->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
@@ -416,41 +412,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountService->generateCertificate('uid', 'password', 'username');
 	}
 
-	public function testGenerateCertificateAndSaveToAFolderAndNotAFile() {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
-		$node->method('get')->will($this->returnValue($node));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
-
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$this->cfsslHandler
-			->method('__call')
-			->will($this->returnValue($this->cfsslHandler));
-		$this->cfsslHandler
-			->method('generateCertificate')
-			->will($this->returnValue('raw content of pfx file'));
-		$this->expectErrorMessage('path signature.pfx already exists and is not a file!');
-		$this->expectExceptionCode(400);
-		$this->accountService->generateCertificate('uid', 'password', 'username');
-	}
-
 	public function testGenerateCertificateAndSuccessfullySavedToAnExistingFile() {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
-		$file = $this->createMock(\OCP\Files\File::class);
-		$node->method('get')->will($this->returnValue($file));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
-
 		$backend = $this->createMock(\OC\User\Database::class);
 		$backend->method('implementsActions')
 			->willReturn(true);
@@ -473,12 +435,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGenerateCertificateAndSuccessfullySavedToANewFile() {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(false));
-		$file = $this->createMock(\OCP\Files\File::class);
-		$node->method('newFile')->will($this->returnValue($file));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
-
 		$backend = $this->createMock(\OC\User\Database::class);
 		$backend->method('implementsActions')
 			->willReturn(true);
@@ -498,51 +454,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnValue('raw content of pfx file'));
 		$actual = $this->accountService->generateCertificate('uid', 'password', 'username');
 		$this->assertInstanceOf('\OCP\Files\File', $actual);
-	}
-
-	public function testGetPfxWithInvalidUser() {
-		$this->expectErrorMessage('Backends provided no user object for invalidUser');
-		$this->accountService->getPfx('invalidUser');
-	}
-
-	public function testGetPfxWithInvalidPfx() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(false));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
-		$this->expectErrorMessage('Password to sign not defined. Create a password to sign');
-		$this->expectExceptionCode(400);
-		$this->accountService->getPfx('userId');
-	}
-
-	public function testGetPfxOk() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
-		$node->method('get')->will($this->returnValue($node));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
-		$actual = $this->accountService->getPfx('userId');
-		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}
 
 	public function testCreateToSignWithErrorInSendingEmail() {
@@ -567,12 +478,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$userToSign->method('getUID')->will($this->returnValue('userToSignUid'));
 		$this->userManagerInstance->method('createUser')->will($this->returnValue($userToSign));
 		$this->config->method('getAppValue')->will($this->returnValue('no'));
-
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(false));
-		$file = $this->createMock(\OCP\Files\File::class);
-		$node->method('newFile')->will($this->returnValue($file));
-		$this->folder->method('getFolder')->will($this->returnValue($node));
 
 		$backend = $this->createMock(\OC\User\Database::class);
 		$backend->method('implementsActions')
@@ -607,7 +512,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
-			$this->folder,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -617,9 +521,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->urlGenerator,
 			$this->cfsslHandler,
+			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
-			$this->AccountFileMapper
+			$this->accountFileMapper
 		);
 		$actual = $this->accountService->getConfig($uuid, $userId, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
@@ -647,7 +552,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'This is not your file'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], null
 			],
@@ -668,7 +573,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'This is not your file'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -789,7 +694,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'Invalid user'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
@@ -816,7 +721,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'File not found'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -840,9 +745,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->fileMapper
 						->method('getById')
 						->willReturn($fileUser);
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([]));
+						->willReturn([]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #10
@@ -853,11 +762,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
-					$node = $self->createMock(\OCP\Files\Folder::class);
-					$node->method('nodeExists')->will($self->returnValue(true));
-					$file = $self->createMock(\OCP\Files\File::class);
-					$node->method('get')->will($self->returnValue($file));
-					$self->folder->method('getFolder')->will($self->returnValue($node));
 				}
 			],
 			[ // #11
@@ -875,7 +779,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => null
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -901,9 +805,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getContent')->will($self->returnValue('content'));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 			[ // #12
@@ -921,7 +829,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => null
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -946,12 +854,16 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getById')
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
-			[ // #14
+			[ // #13
 				'uuid', 'username', 'file',
 				[
 					'action' => JSActions::ACTION_SIGN,
@@ -966,7 +878,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => null
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -992,12 +904,16 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getId')->will($self->returnValue(171));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
-			[ // #15
+			[ // #14
 				'uuid', 'username', 'nodeId',
 				[
 					'action' => JSActions::ACTION_SIGN,
@@ -1012,7 +928,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => null
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => true
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -1038,9 +954,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$node->method('getContent')->will($self->returnValue('content'));
-					$self->root
+					$folder = $self->createMock(\OCP\Files\Folder::class);
+					$folder
 						->method('getById')
-						->will($self->returnValue([$node]));
+						->willReturn([$node]);
+					$self->root
+						->method('getUserFolder')
+						->willReturn($folder);
 				}
 			],
 		];
@@ -1070,9 +990,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($fileUser);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->will($this->returnValue(171));
-		$this->root
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
 			->method('getById')
-			->will($this->returnValue([$node]));
+			->willReturn([$node]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
 
 		$actual = $this->accountService->getConfig('uuid', 'username', 'file');
 		$this->assertJsonStringEqualsJsonString(
@@ -1090,7 +1014,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'name' => null
 				],
 				'settings' => [
-					'hasSignatureFile' => false
+					'hasSignatureFile' => true
 				]
 			])
 		);
@@ -1134,9 +1058,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper
 			->method('getByFileId')
 			->willReturn([$fileUser]);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$node]);
 		$this->root
-			->method('get')
-			->willReturn($this->createMock(\OCP\Files\File::class));
+			->method('getUserFolder')
+			->willReturn($folder);
 
 		$actual = $this->accountService->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);

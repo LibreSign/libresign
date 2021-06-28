@@ -1310,6 +1310,11 @@
     babel-plugin-transform-class-properties "^6.24.1"
     core-js "^3.6.4"
 
+"@nextcloud/password-confirmation@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@nextcloud/password-confirmation/-/password-confirmation-1.0.1.tgz#352136a79215d90a38d376aaf7e25c1e8d2c9561"
+  integrity sha512-qsyzc8uKcMqssBkm5O1qdV7pL4EJWOMnj036w0UmhLozaoPlla5nUvC51uC1N9ONREEtN0Q/xEEOskNn1qD1hQ==
+
 "@nextcloud/paths@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@nextcloud/paths/-/paths-1.1.2.tgz#6d9664f34e1a6039a09e6fa6ceeed0d88f3ebaef"

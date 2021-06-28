@@ -70,17 +70,23 @@ trait UserTrait {
 	 * @after
 	 */
 	public function userTraitTearDown(): void {
-		$userList = $this->userTraitDeleteAllUsers();
-		if (!$userList) {
-			return;
+		try {
+			$userList = $this->userTraitDeleteAllUsers();
+			if (!$userList) {
+				return;
+			}
+			$this->userTraitDeleteAllAccountFiles($userList);
+			$this->userTraitDeleteAllGroups();
+			$this->uesrTraitDeleteAllFiles($userList);
+		} catch (\Throwable $th) {
 		}
-		$this->userTraitDeleteAllAccountFiles($userList);
-		$this->userTraitDeleteAllGroups();
-		$this->uesrTraitDeleteAllFiles($userList);
 	}
 
 	protected function userTraitDeleteAllAccountFiles(array $userList) {
 		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		if (!$db) {
+			return;
+		}
 		$qb = $db->getQueryBuilder();
 		$qb->delete('libresign_account_file')
 			->where($qb->expr()->in('user_id', $qb->createNamedParameter($userList, IQueryBuilder::PARAM_STR_ARRAY)));
@@ -105,6 +111,9 @@ trait UserTrait {
 
 	protected function uesrTraitDeleteAllFiles(array $userList) {
 		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		if (!$db) {
+			return;
+		}
 		$qb = $db->getQueryBuilder();
 		$qb->select('*')
 			->from('libresign_file', 'f')

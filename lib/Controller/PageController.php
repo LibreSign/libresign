@@ -4,8 +4,6 @@ namespace OCA\Libresign\Controller;
 
 use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -13,53 +11,30 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
-use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IUserManager;
 use OCP\Util;
 
 class PageController extends Controller {
-	/** @var IConfig */
-	private $config;
 	/** @var ISession */
 	private $session;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
 	/** @var IUserManager */
 	protected $userManager;
-	/** @var IL10N */
-	private $l10n;
 	/** @var IInitialState */
 	private $initialState;
 	/** @var AccountService */
 	private $accountService;
-	/** @var IRootFolder */
-	private $root;
 	public function __construct(
 		IRequest $request,
-		IConfig $config,
 		ISession $session,
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
-		IL10N $l10n,
 		IInitialState $initialState,
-		AccountService $accountService,
-		IRootFolder $root
+		AccountService $accountService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->config = $config;
 		$this->session = $session;
 		$this->initialState = $initialState;
-		$this->root = $root;
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->l10n = $l10n;
 		$this->userManager = $userManager;
 		$this->accountService = $accountService;
 	}

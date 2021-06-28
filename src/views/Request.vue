@@ -12,7 +12,7 @@
 					status="none"
 					@sidebar="handleSidebar(true)" />
 				<button class="icon icon-folder" @click="getFile()">
-					{{ t('libresign', 'Choose from files') }}
+					{{ t('libresign', 'Choose from Files') }}
 				</button>
 			</div>
 		</div>
@@ -36,7 +36,7 @@
 			<AppSidebarTab
 				v-show="!canRequest"
 				id="request"
-				:name="t('libresign', 'Add Users')"
+				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
 				<Users ref="request" :fileinfo="file" @request:signatures="send" />
 			</AppSidebarTab>
@@ -91,7 +91,7 @@ export default {
 		},
 		async send(users) {
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/webhook/register'), {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
 					file: {
 						fileId: this.file.id,
 					},
@@ -113,18 +113,22 @@ export default {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
 				.setMimeTypeFilter('application/pdf')
-				.setModal(false)
+				.setModal(true)
 				.setType(1)
-				.allowDirectories(false)
+				.allowDirectories()
 				.build()
 
-			picker.pick()
+			return picker.pick()
 				.then(path => {
 					OC.dialogs.filelist.forEach(file => {
-						if (file.name === path.split('/')[1]) {
-							this.file = file
-							this.handleSidebar(true)
-							this.getInfo(file.id)
+						const indice = path.split('/').indexOf(file.name)
+						if (path.startsWith('/')) {
+							if (file.name === path.split('/')[indice]) {
+								console.info('ifThen: ', file)
+								this.file = file
+								this.handleSidebar(true)
+								this.getInfo(file.id)
+							}
 						}
 					})
 				})

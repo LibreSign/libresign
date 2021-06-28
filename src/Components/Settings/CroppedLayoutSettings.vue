@@ -23,40 +23,20 @@
 
 <template>
 	<ul>
-		<AppNavigationItem v-if="!hasSignature"
-			icon="icon-add"
-			:title="t('libresigng', 'Create Password Key')"
-			:to="{name: 'CreatePassword'}" />
-		<AppNavigationItem v-else
-			icon="icon-password"
-			:title="t('libresigng', 'Reset Password')"
-			:to="{name: 'ResetPassword'}" />
+		<AppNavigationItem
+			icon="icon-user"
+			:title="t('libresign', 'Account')"
+			:to=" {name: 'Account'} " />
 	</ul>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { loadState } from '@nextcloud/initial-state'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 
 export default {
 	name: 'CroppedLayoutSettings',
 	components: {
 		AppNavigationItem,
-	},
-	computed: {
-		...mapGetters({
-			hasSignature: 'getHasPfx',
-		}),
-	},
-	created() {
-		this.checkHasSignature()
-	},
-	methods: {
-		checkHasSignature() {
-			const libresignSettings = JSON.parse(loadState('libresign', 'config'))
-			this.$store.commit('setSettings', libresignSettings.settings)
-		},
 	},
 }
 </script>

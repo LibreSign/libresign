@@ -44,7 +44,7 @@ class AdminSignatureService {
 			$key,
 			$configPath
 		);
-		for ($i = 1;$i <= 3;$i++) {
+		for ($i = 1;$i <= 4;$i++) {
 			if ($this->cfsslHandler->health($cfsslUri)) {
 				break;
 			}

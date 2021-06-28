@@ -4,9 +4,9 @@ namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
-use OC\Files\Node\File;
+use OCP\Files\File;
 
-class JLibresignHandler {
+class JSignPdfHandler {
 	/** @var JSignPDF */
 	private $jSignPdf;
 
@@ -23,11 +23,11 @@ class JLibresignHandler {
 		return $this->jSignPdf;
 	}
 
-	public function signExistingFile(
+	public function sign(
 		File $inputFile,
 		File $certificate,
 		string $password
-	): array {
+	): string {
 		$param = (new JSignParam())
 			->setCertificate($certificate->getContent())
 			->setPdf($inputFile->getContent())
@@ -39,11 +39,6 @@ class JLibresignHandler {
 
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
-		$contentFileSigned = $jSignPdf->sign();
-
-		return [
-			'signed_'.$inputFile->getName(),
-			$contentFileSigned,
-		];
+		return $jSignPdf->sign();
 	}
 }
