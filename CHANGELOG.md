@@ -49,6 +49,7 @@ Types of changes:
 - Correction of loading class after clicking sign in application
 - Add ellipsis to pdf file title
 - Now it is possible to choose a file even if it is inside x folders
+- Clear uuid field before returns
 
 ## 2.3.0 - 2021-05-22
 
