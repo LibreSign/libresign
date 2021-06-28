@@ -29,12 +29,14 @@ Types of changes:
 - Endpoint to attach files to LibreSign profile
 - Request sign by LibreSign App
 - Validate by LibreSign App
+- User profile
 
 # Changed
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 - Use name of user on error message when email is empty
 - Logo replaced by new logo
+- It will only verify the password if nextcloud requests confirmation of the password by the OC.
 
 # Removed
 - Removed dsv folder

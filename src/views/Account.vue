@@ -31,8 +31,8 @@
 							</button>
 						</div>
 						<Modal v-if="modal" :size="'large'" @close="handleModal(false)">
-							<CreatePassword v-if="!hasSignature" />
-							<ResetPassword v-if="hasSignature" />
+							<CreatePassword v-if="!hasSignature" @close="handleModal(false)" />
+							<ResetPassword v-if="hasSignature" @close="handleModal(false)" />
 						</Modal>
 					</div>
 				</div>

@@ -115,6 +115,8 @@ OC.L10N.register(
     "Request subscription" : "Aanmelden voor abonnement",
     "Verify signatures" : "Verifiëren handtekeningen",
     "Return" : "Terug",
+    "Add users" : "Toevoegen gebruikers",
+    "Select your file" : "Selecteer uw bestand",
     "Password reset" : "Wachtwoordherstel",
     "Enter new password and then repeat it" : "Voer een nieuw wachtwoord in en herhaal het",
     "New password" : "Nieuw wachtwoord",
