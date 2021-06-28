@@ -23,6 +23,9 @@ Types of changes:
 - Added integration with Approval app. Thanks to @eneiluj
 - Bump max Nextcloud version to 23
 - Endpoint to list LibreSign files
+- Request Subscription by LibreSign App
+- Validate by LibreSign App 
+- User profile
 - Endpoint to attach files to LibreSign profile
 - Request sign by LibreSign App
 - Validate by LibreSign App
