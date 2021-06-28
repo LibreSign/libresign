@@ -118,6 +118,7 @@ export default {
 		},
 		changeInfo() {
 			this.hasInfo = !this.hasInfo
+			this.uuid = ''
 		},
 		formatData(data) {
 			try {
