@@ -2,27 +2,29 @@
 
 namespace OCA\Libresign\Handler;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 
-class PkcsHandler {
+class Pkcs12Handler {
 
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
 	/** @var FolderService */
 	private $folderService;
+	/** @var JSignPdfHandler */
+	private $jSignPdfHandler;
 
 	public function __construct(
-		FolderService $folderService
+		FolderService $folderService,
+		JSignPdfHandler $jSignPdfHandler
 	) {
 		$this->folderService = $folderService;
+		$this->jSignPdfHandler = $jSignPdfHandler;
 	}
 
 	public function savePfx($uid, $content): File {
 		$this->folderService->setUserId($uid);
-		Filesystem::initMountPoints($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
 			$file = $folder->get($this->pfxFilename);
@@ -45,12 +47,21 @@ class PkcsHandler {
 	 * @return \OCP\Files\Node
 	 */
 	public function getPfx($uid) {
-		Filesystem::initMountPoints($uid);
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
 		}
 		return $folder->get($this->pfxFilename);
+	}
+
+	public function sign(
+		File $fileToSign,
+		File $certificate,
+		string $password
+	): File {
+		$signedContent = $this->jSignPdfHandler->sign($fileToSign, $certificate, $password);
+		$fileToSign->putContent($signedContent);
+		return $fileToSign;
 	}
 }

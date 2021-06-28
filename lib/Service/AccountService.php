@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -11,7 +10,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\PkcsHandler;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
@@ -47,8 +46,8 @@ class AccountService {
 	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
-	/** @var PkcsHandler */
-	private $pkcsHandler;
+	/** @var Pkcs12Handler */
+	private $pkcs12Handler;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var ReportDao */
@@ -79,7 +78,7 @@ class AccountService {
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		CfsslHandler $cfsslHandler,
-		PkcsHandler $pkcsHandler,
+		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
 		AccountFileService $accountFileService,
 		AccountFileMapper $accountFileMapper
@@ -96,7 +95,7 @@ class AccountService {
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->cfsslHandler = $cfsslHandler;
-		$this->pkcsHandler = $pkcsHandler;
+		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
 		$this->accountFileMapper = $accountFileMapper;
@@ -248,7 +247,7 @@ class AccountService {
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $this->pkcsHandler->savePfx($uid, $content);
+		return $this->pkcs12Handler->savePfx($uid, $content);
 	}
 
 	/**
@@ -321,8 +320,8 @@ class AccountService {
 			return $return;
 		}
 		$fileData = $this->fileMapper->getById($fileUser->getFileId());
-		Filesystem::initMountPoints($fileData->getUserId());
-		$fileToSign = $this->root->getById($fileData->getNodeId());
+		$userFolder = $this->root->getUserFolder($fileData->getUserId());
+		$fileToSign = $userFolder->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
 			$return['errors'][] = $this->l10n->t('File not found');
@@ -359,7 +358,7 @@ class AccountService {
 			return false;
 		}
 		try {
-			$this->pkcsHandler->getPfx($userId);
+			$this->pkcs12Handler->getPfx($userId);
 			return true;
 		} catch (\Throwable $th) {
 		}
@@ -375,9 +374,9 @@ class AccountService {
 	 */
 	public function getPdfByUuid(string $uuid): \OCP\Files\File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
-		Filesystem::initMountPoints($fileData->getUserId());
+		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
-		$file = $this->root->getById($fileData->getNodeId())[0];
+		$file = $userFolder->getById($fileData->getNodeId())[0];
 		$filePath = $file->getPath();
 
 		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
@@ -392,9 +391,9 @@ class AccountService {
 			);
 		}
 		// If signed, return signed file
-		if ($this->root->nodeExists($filePath)) {
+		if ($userFolder->nodeExists($filePath)) {
 			/** @var \OCP\Files\File */
-			$file = $this->root->get($filePath);
+			$file = $userFolder->get($filePath);
 		}
 		return $file;
 	}

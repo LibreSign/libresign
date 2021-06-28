@@ -6,78 +6,51 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\JLibresignHandler;
-use OCA\Libresign\Handler\PkcsHandler;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class SignFileController extends ApiController {
-	use HandleParamsTrait;
-
 	/** @var IL10N */
-	private $l10n;
+	protected $l10n;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
-	/** @var IRootFolder */
-	private $root;
-	/** @var PkcsHandler */
-	private $pkcsHandler;
 	/** @var SignFileService */
-	private $signFile;
-	/** @var AccountService */
-	private $account;
+	protected $signFile;
 	/** @var MailService */
 	private $mail;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var JLibresignHandler */
-	private $libresignHandler;
-	/** @var IConfig */
-	private $config;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
-		IRootFolder $root,
-		PkcsHandler $pkcsHandler,
 		IUserSession $userSession,
-		AccountService $account,
 		SignFileService $signFile,
-		JLibresignHandler $libresignHandler,
 		MailService $mail,
-		LoggerInterface $logger,
-		IConfig $config
+		LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
-		$this->root = $root;
-		$this->pkcsHandler = $pkcsHandler;
 		$this->userSession = $userSession;
-		$this->account = $account;
 		$this->signFile = $signFile;
-		$this->libresignHandler = $libresignHandler;
 		$this->mail = $mail;
 		$this->logger = $logger;
-		$this->config = $config;
 	}
 
 	/**
@@ -203,44 +176,6 @@ class SignFileController extends ApiController {
 			],
 			Http::STATUS_OK
 		);
-	}
-
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
-	 * @todo remove NoCSRFRequired
-	 * @deprecated
-	 */
-	public function signDeprecated(
-		string $inputFilePath = null,
-		string $outputFolderPath = null,
-		string $certificatePath = null,
-		string $password = null
-	): JSONResponse {
-		try {
-			$this->checkParams([
-				'inputFilePath' => $inputFilePath,
-				'outputFolderPath' => $outputFolderPath,
-				'certificatePath' => $certificatePath,
-				'password' => $password,
-			]);
-
-			$fileSigned = $this->signFile->signDeprecated($inputFilePath, $outputFolderPath, $certificatePath, $password);
-
-			return new JSONResponse(
-				['fileSigned' => $fileSigned->getInternalPath()],
-				HTTP::STATUS_OK
-			);
-		} catch (\Exception $exception) {
-			return new JSONResponse(
-				[
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t($exception->getMessage())]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
-		}
 	}
 
 	/**
