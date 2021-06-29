@@ -9,25 +9,33 @@
 			ref="input"
 			class="input"
 			:type="'password'"
-			:disabled="disabled"
+			:disabled="!hasPfx"
 			:loading="hasLoading"
 			@submit="sign" />
 		<a class="forgot-sign" @click="handleModal(true)">
-			{{ t('libresign', 'Forgot your password?') }}
+			{{ messageForgot }}
 		</a>
 		<EmptyContent class="emp-content">
 			<template #desc>
-				<p>
+				<p v-if="hasPfx">
 					{{ t('libresign', 'Enter your password to sign this document') }}
+				</p>
+				<p v-else>
+					{{
+						t('libresign',
+							'You need to create a password to sign this document, click "Create password to sign document" and create a password')
+					}}
 				</p>
 			</template>
 			<template #icon>
-				<img :src="icon">
+				<img v-if="hasPfx" :src="icon">
+				<div v-else class="icon icon-rename" />
 			</template>
 		</EmptyContent>
 		<slot name="actions" />
 		<Modal v-if="modal" size="large" @close="handleModal(false)">
-			<ResetPassword @close="handleModal(false)" />
+			<ResetPassword v-if="hasPfx" @close="handleModal(false)" />
+			<CreatePassword v-if="!hasPfx" @close="handleModal(false)" />
 		</Modal>
 	</div>
 </template>
@@ -35,11 +43,13 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import ResetPassword from '../../views/ResetPassword.vue'
+import CreatePassword from '../../views/CreatePassword.vue'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
+import { mapState } from 'vuex'
 
 export default {
 	name: 'Sign',
@@ -49,6 +59,7 @@ export default {
 		EmptyContent,
 		Modal,
 		ResetPassword,
+		CreatePassword,
 	},
 	props: {
 		disabled: {
@@ -71,6 +82,12 @@ export default {
 		userName() {
 			return getCurrentUser().uid
 		},
+		messageForgot() {
+			return this.hasPfx ? t('libresign', 'Forgot your password?') : t('libresign', 'Create password to sign document')
+		},
+		...mapState({
+			hasPfx: state => state.settings.data.settings.hasSignatureFile,
+		}),
 	},
 	methods: {
 		clearInput() {

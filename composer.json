@@ -35,11 +35,11 @@
     },
     {
       "type": "vcs",
-      "url": "https://github.com/lyseontech/php-swagger-test"
+      "url": "https://github.com/LibreCodeCoop/php-swagger-test"
     },
     {
       "type": "vcs",
-      "url": "https://github.com/LyseonTech/webrequest"
+      "url": "https://github.com/LibreCodeCoop/webrequest"
     }
   ]
 }

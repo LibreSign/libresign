@@ -63,7 +63,6 @@ OC.L10N.register(
     "Email" : "Courriel",
     "Add" : "Ajouter",
     "Users" : "Utilisateurs",
-    "Reset Password" : "Réinitialiser le mot de passe",
     "Name (CN)" : "Nom (CN)",
     "Country (C)" : "Pays (C)",
     "Organization (O)" : "Organisation (O)",
