@@ -31,10 +31,9 @@
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+import { getFileList, signInDocument } from '@/services/api/fileApi'
 import { mapGetters, mapState } from 'vuex'
-import File from '../Components/File'
+import File from '@/Components/File/File.vue'
 import Sidebar from '../Components/File/Sidebar.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
@@ -113,8 +112,8 @@ export default {
 		},
 		async getData() {
 			try {
-				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
-				this.$store.commit('setFiles', response.data.data)
+				const response = await getFileList()
+				this.$store.commit('setFiles', response)
 			} catch (err) {
 				showError('An error occurred while fetching the files')
 			}
@@ -133,9 +132,7 @@ export default {
 		async signDocument(param) {
 			try {
 				this.loading = true
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
-					password: param.password,
-				})
+				const response = await signInDocument(param.password, param.fileId)
 				this.getData()
 				this.closeSidebar()
 				this.loading = false
