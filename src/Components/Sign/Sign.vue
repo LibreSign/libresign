@@ -7,11 +7,6 @@
 
 		<InputAction
 			ref="input"
-			v-tooltip="{
-				show: true,
-				content: t('libresign', 'You need to create a password to sign this document'),
-				trigger: hasPfx ? 'false' : 'hover'
-			}"
 			class="input"
 			:type="'password'"
 			:disabled="!hasPfx"
@@ -22,12 +17,19 @@
 		</a>
 		<EmptyContent class="emp-content">
 			<template #desc>
-				<p>
+				<p v-if="hasPfx">
 					{{ t('libresign', 'Enter your password to sign this document') }}
+				</p>
+				<p v-else>
+					{{
+						t('libresign',
+							'You need to create a password to sign this document, click "Create password to sign document" and create a password')
+					}}
 				</p>
 			</template>
 			<template #icon>
-				<img :src="icon">
+				<img v-if="hasPfx" :src="icon">
+				<div v-else class="icon icon-rename" />
 			</template>
 		</EmptyContent>
 		<slot name="actions" />
