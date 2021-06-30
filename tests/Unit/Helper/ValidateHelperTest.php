@@ -5,15 +5,21 @@ namespace OCA\Libresign\Tests\Unit\Helper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
+use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUser;
 	/** @var FolderService */
 	private $folder;
+	/** @var IGroupManager */
+	private $groupManager;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -22,10 +28,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUser = $this->createMock(FileUserMapper::class);
 		$this->folder = $this->createMock(FolderService::class);
+		$this->config = $this->createMock(IConfig::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->validateHelper = new ValidateHelper(
 			$this->l10n,
 			$this->fileUser,
-			$this->folder
+			$this->folder,
+			$this->config,
+			$this->groupManager
 		);
 	}
 
@@ -98,5 +108,52 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$actual = $this->validateHelper->validateFileByNodeId(1);
 		$this->assertNull($actual);
+	}
+
+	public function testCanRequestSignWithoutUserManager() {
+		$this->expectExceptionMessage('You are not allowed to request signing');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$this->validateHelper->canRequestSign($user);
+	}
+
+	public function testCanRequestSignWithoutPermission() {
+		$this->expectExceptionMessage('You are not allowed to request signing');
+
+		$this->config = $this->createMock(IConfig::class);
+		$this->config
+			->method('getAppValue')
+			->willReturn('["admin"]');
+		$this->groupManager
+			->method('getUserGroupIds')
+			->willReturn([]);
+		$this->validateHelper = new ValidateHelper(
+			$this->l10n,
+			$this->fileUser,
+			$this->folder,
+			$this->config,
+			$this->groupManager
+		);
+		$user = $this->createMock(\OCP\IUser::class);
+		$this->validateHelper->canRequestSign($user);
+	}
+
+	public function testValidateFileWithEmptyFile() {
+		$this->expectExceptionMessage('Empty file');
+
+		$this->validateHelper->validateFile([
+			'file' => []
+		]);
+	}
+
+	public function testValidateInvalidBase64File() {
+		$this->expectExceptionMessage('Invalid base64 file');
+
+		$user = $this->createMock(\OCP\IUser::class);
+		$this->validateHelper->validateFile([
+			'file' => ['base64' => 'qwert'],
+			'name' => 'test',
+			'userManager' => $user
+		]);
 	}
 }

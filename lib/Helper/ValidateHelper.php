@@ -2,9 +2,13 @@
 
 namespace OCA\Libresign\Helper;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Service\FolderService;
+use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IUser;
 
 class ValidateHelper {
 	/** @var IL10N */
@@ -13,15 +17,23 @@ class ValidateHelper {
 	private $fileUserMapper;
 	/** @var FolderService */
 	private $folderService;
+	/** @var IConfig */
+	private $config;
+	/** @var IGroupManager */
+	private $groupManager;
 
 	public function __construct(
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
-		FolderService $folderService
+		FolderService $folderService,
+		IConfig $config,
+		IGroupManager $groupManager
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->folderService = $folderService;
+		$this->config = $config;
+		$this->groupManager = $groupManager;
 	}
 	public function validateFile(array $data) {
 		if (empty($data['file'])) {
@@ -66,6 +78,17 @@ class ValidateHelper {
 		$node = $node[0];
 		if ($node->getMimeType() !== 'application/pdf') {
 			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
+		}
+	}
+
+	public function canRequestSign(IUser $user) {
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		if (empty($authorized) || !is_array($authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'));
+		}
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		if (!array_intersect($userGroups, $authorized)) {
+			throw new \Exception($this->l10n->t('You are not allowed to request signing'));
 		}
 	}
 }

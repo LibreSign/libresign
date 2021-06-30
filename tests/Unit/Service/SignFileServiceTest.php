@@ -12,7 +12,6 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -21,8 +20,6 @@ use Psr\Log\LoggerInterface;
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig */
 	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var Pkcs7Handler */
@@ -54,13 +51,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturn('["admin"]');
 
-		$this->groupManager = $this->createMock(IGroupManager::class);
-
-		$this->groupManager
-			->expects($this->any())
-			->method('getUserGroupIds')
-			->willReturn(['admin']);
-
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -75,11 +65,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->service = new SignFileService(
 			$this->config,
-			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
@@ -93,25 +82,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->validateHelper,
 			$this->root
 		);
-	}
-
-	public function testEmptyFile() {
-		$this->expectExceptionMessage('Empty file');
-
-		$this->service->validate([
-			'name' => 'test',
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateInvalidBase64File() {
-		$this->expectExceptionMessage('Invalid base64 file');
-
-		$this->service->validate([
-			'file' => ['base64' => 'qwert'],
-			'name' => 'test',
-			'userManager' => $this->user
-		]);
 	}
 
 	public function testValidateFileUrl() {
@@ -591,40 +561,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testValidateWithoutUserManager() {
-		$this->expectExceptionMessage('You are not allowed to request signing');
-
-		$this->service->validate([]);
-	}
-
-	public function testValidateWithoutPermission() {
-		$this->expectExceptionMessage('You are not allowed to request signing');
-
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('');
-		$this->service = new SignFileService(
-			$this->config,
-			$this->groupManager,
-			$this->l10n,
-			$this->file,
-			$this->fileUser,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-		$this->service->validate([
-			'userManager' => 'fake'
-		]);
-	}
-
 	public function testNotifyCallback() {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
@@ -638,7 +574,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(null);
 		$this->service = new SignFileService(
 			$this->config,
-			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,
@@ -664,7 +599,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('http://test.coop');
 		$this->service = new SignFileService(
 			$this->config,
-			$this->groupManager,
 			$this->l10n,
 			$this->file,
 			$this->fileUser,

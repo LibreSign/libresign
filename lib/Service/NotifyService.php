@@ -2,8 +2,18 @@
 
 namespace OCA\Libresign\Service;
 
-class NotifyService {
+use OCA\Libresign\Helper\ValidateHelper;
 
-	public function signers() {
+class NotifyService {
+	/** @var ValidateHelper */
+	private $validateHelper;
+
+	public function __construct(
+		ValidateHelper $validateHelper
+	) {
+		$this->validateHelper = $validateHelper;
+	}
+	public function signers(int $fileId, array $signers) {
+		$this->validateHelper->validateFileByNodeId($fileId);
 	}
 }

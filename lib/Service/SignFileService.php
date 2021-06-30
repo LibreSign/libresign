@@ -17,7 +17,6 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -33,8 +32,6 @@ class SignFileService {
 	private $signatures;
 	/** @var IConfig */
 	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileMapper */
@@ -62,7 +59,6 @@ class SignFileService {
 
 	public function __construct(
 		IConfig $config,
-		IGroupManager $groupManager,
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
@@ -77,7 +73,6 @@ class SignFileService {
 		IRootFolder $root
 	) {
 		$this->config = $config;
-		$this->groupManager = $groupManager;
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
@@ -301,14 +296,7 @@ class SignFileService {
 		if (!isset($user['userManager'])) {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (empty($authorized) || !is_array($authorized)) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
-		$userGroups = $this->groupManager->getUserGroupIds($user['userManager']);
-		if (!array_intersect($userGroups, $authorized)) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
+		$this->validateHelper->canRequestSign($user['userManager']);
 	}
 
 	public function validateFile(array $data) {
