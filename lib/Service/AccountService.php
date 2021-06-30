@@ -415,6 +415,12 @@ class AccountService {
 		return true;
 	}
 
+	public function getSettings(?IUser $user = null): array {
+		$return['canRequestSign'] = $this->canRequestSign($user);
+		$return['hasSignatureFile'] = $this->hasSignatureFile($user->getUID());
+		return $return;
+	}
+
 	public function list(IUser $user, $page = null, $limit = 15) {
 		$return = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $limit);
 		return [
