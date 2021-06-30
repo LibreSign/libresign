@@ -63,10 +63,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateFileByNodeIdWhenAlreadyAskedToSignThisDocument() {
+	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument() {
 		$this->fileUser->method('getByNodeId')->will($this->returnValue('exists'));
 		$this->expectExceptionMessage('Already asked to sign this document');
-		$this->validateHelper->validateFileByNodeId(1);
+		$this->validateHelper->validateNotRequestedSign(1);
 	}
 
 	public function testValidateFileByNodeIdWhenFileIdNotExists() {

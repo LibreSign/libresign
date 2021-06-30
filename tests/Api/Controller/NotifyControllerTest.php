@@ -38,7 +38,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	 */
 	public function testNotifySignersWithSuccess() {
 		$user = $this->createUser('username', 'password');
-		$this->requestSignFile([
+		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
@@ -55,7 +55,7 @@ final class NotifyControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'fileId' => 171,
+				'fileId' => $file['nodeId'],
 				'signers' => [
 					[
 						'email' => 'person@test.coop'

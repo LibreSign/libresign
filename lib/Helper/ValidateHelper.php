@@ -46,6 +46,7 @@ class ValidateHelper {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
+			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 			$this->validateFileByNodeId((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
@@ -57,7 +58,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateFileByNodeId(int $nodeId) {
+	public function validateNotRequestedSign(int $nodeId) {
 		try {
 			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
 		} catch (\Throwable $th) {
@@ -65,7 +66,9 @@ class ValidateHelper {
 		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
 		}
+	}
 
+	public function validateFileByNodeId(int $nodeId) {
 		try {
 			$userFolder = $this->folderService->getFolder($nodeId);
 			$node = $userFolder->getById($nodeId);
