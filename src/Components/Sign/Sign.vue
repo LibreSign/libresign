@@ -9,7 +9,7 @@
 			ref="input"
 			class="input"
 			:type="'password'"
-			:disabled="!hasPfx"
+			:disabled="disabledButton"
 			:loading="hasLoading"
 			@submit="sign" />
 		<a class="forgot-sign" @click="handleModal(true)">
@@ -84,6 +84,15 @@ export default {
 		},
 		messageForgot() {
 			return this.hasPfx ? t('libresign', 'Forgot your password?') : t('libresign', 'Create password to sign document')
+		},
+		disabledButton() {
+			if (this.hasPfx) {
+				if (this.hasLoading) {
+					return true
+				}
+				return false
+			}
+			return true
 		},
 		...mapState({
 			hasPfx: state => state.settings.data.settings.hasSignatureFile,
