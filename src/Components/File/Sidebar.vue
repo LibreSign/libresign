@@ -62,8 +62,8 @@ export default {
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this.getCurrentFile.file.requested_by.display_name
-					? this.getCurrentFile.file.requested_by.display_name
+				name: this.getCurrentFile.file.requested_by.uid
+					? this.getCurrentFile.file.requested_by.uid
 					: '',
 				date: format(new Date(this.getCurrentFile.file.request_date), 'dd/MM/yyyy'),
 			})
