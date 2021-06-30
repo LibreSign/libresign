@@ -17,7 +17,7 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class LibresignController extends Controller {
+class LibreSignFileController extends Controller {
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var FileMapper */
@@ -125,8 +125,10 @@ class LibresignController extends Controller {
 			'hasSignatureFile' => false
 		];
 		if (!empty($uid)) {
-			$return['settings']['canRequestSign'] = $this->account->canRequestSign($this->userSession->getUser());
-			$return['settings']['hasSignatureFile'] = $this->account->hasSignatureFile($uid);
+			$return['settings'] = array_merge(
+				$return['settings'],
+				$this->account->getSettings($this->userSession->getUser())
+			);
 		}
 		return new JSONResponse($return, $statusCode);
 	}
