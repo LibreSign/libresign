@@ -23,7 +23,7 @@
 				<p v-else>
 					{{
 						t('libresign',
-							'You need to create a password to sign this document, click "Create password to sign document" and create a password')
+							'You need to create a password to sign this document. Click "Create password to sign document" and create a password.')
 					}}
 				</p>
 			</template>
