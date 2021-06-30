@@ -29,6 +29,8 @@ return [
 		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
 
+		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
+
 		// Deprecated
 		['name' => 'settingDeprecated#hasRootCert',   'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
 
