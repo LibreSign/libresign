@@ -194,8 +194,6 @@ class AccountController extends ApiController {
 					'uid' => $user->getUID(),
 					'displayName' => $user->getDisplayName()
 				],
-				'files' => [
-				],
 				'settings' => $this->account->getSettings($this->userSession->getUser())
 			],
 			Http::STATUS_OK
