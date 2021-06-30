@@ -58,7 +58,7 @@ final class LibreSignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertFalse($body['signatures'][0]['me'], "It's me");
+		$this->assertFalse($body['signers'][0]['me'], "It's me");
 		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertFalse($body['settings']['canSign'], 'Can permission to sign');
 	}
@@ -91,7 +91,7 @@ final class LibreSignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertTrue($body['signatures'][0]['me'], "It's me");
+		$this->assertTrue($body['signers'][0]['me'], "It's me");
 		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
 		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
 	}

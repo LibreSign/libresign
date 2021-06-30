@@ -89,24 +89,24 @@ class LibreSignFileController extends Controller {
 			$return['success'] = true;
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
-			$signatures = $this->fileUserMapper->getByFileId($file->id);
+			$signers = $this->fileUserMapper->getByFileId($file->id);
 			if ($this->userSession->getUser()) {
 				$uid = $this->userSession->getUser()->getUID();
 			}
-			foreach ($signatures as $signature) {
+			foreach ($signers as $signer) {
 				$signatureToShow = [
-					'signed' => $signature->getSigned(),
-					'displayName' => $signature->getDisplayName(),
-					'fullName' => $signature->getFullName(),
+					'signed' => $signer->getSigned(),
+					'displayName' => $signer->getDisplayName(),
+					'fullName' => $signer->getFullName(),
 					'me' => false
 				];
 				if (!empty($uid)) {
-					$signatureToShow['me'] = $uid === $signature->getUserId();
-					if ($uid === $signature->getUserId() && !$signature->getSigned()) {
+					$signatureToShow['me'] = $uid === $signer->getUserId();
+					if ($uid === $signer->getUserId() && !$signer->getSigned()) {
 						$canSign = true;
 					}
 				}
-				$return['signatures'][] = $signatureToShow;
+				$return['signers'][] = $signatureToShow;
 			}
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
