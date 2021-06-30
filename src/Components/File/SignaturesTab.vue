@@ -17,7 +17,7 @@
 						<div class="icon icon-calendar-dark" />
 						<span v-if="sign.sign_date">{{ timestampsToDate(sign.sign_date) }}</span>
 					</div>
-					<div v-show="showButton(sign)" class="container-dot">
+					<div v-if="showSignButton" v-show="showButton(sign)" class="container-dot">
 						<button class="primary" @click="changeToSignTab">
 							{{ t('libresign', 'Sign') }}
 						</button>
@@ -34,6 +34,13 @@ import { mapState } from 'vuex'
 
 export default {
 	name: 'SignaturesTab',
+	props: {
+		showSignButton: {
+			type: Boolean,
+			required: false,
+			default: true,
+		},
+	},
 	computed: {
 		...mapState({
 			signers: state => state.currentFile.file.signers,
