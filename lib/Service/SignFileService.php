@@ -278,13 +278,13 @@ class SignFileService {
 			$userToSign = $this->userManager->getByEmail($user['email']);
 			if ($userToSign) {
 				$fileUser->setUserId($userToSign[0]->getUID());
-				if (empty($user['display_name'])) {
-					$user['display_name'] = $userToSign[0]->getDisplayName();
+				if (empty($user['displayName'])) {
+					$user['displayName'] = $userToSign[0]->getDisplayName();
 				}
 			}
 		}
-		if (!empty($user['display_name'])) {
-			$fileUser->setDisplayName($user['display_name']);
+		if (!empty($user['displayName'])) {
+			$fileUser->setDisplayName($user['displayName']);
 		}
 		if (!$fileUser->getId()) {
 			$fileUser->setCreatedAt(time());

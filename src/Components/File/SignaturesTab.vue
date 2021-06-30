@@ -5,7 +5,7 @@
 				<div class="user-name">
 					<div class="icon-sign icon-user" />
 					<span class="name">
-						{{ sign.display_name ? sign.display_name : t('libresign', 'Account not exist') }}
+						{{ sign.displayName ? sign.displayName : t('libresign', 'Account not exist') }}
 					</span>
 				</div>
 				<div class="content-status">
