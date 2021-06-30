@@ -136,7 +136,6 @@ class LibreSignFileController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
 	public function list($page = null, $limit = null) {
 		$return = $this->account->list($this->userSession->getUser(), $page, $limit);
