@@ -102,7 +102,7 @@ class ValidateHelper {
 
 	private function getLibreSignFileByNodeId(int $nodeId): LibresignFile {
 		if (empty($this->libresignFile)) {
-			$this->libresignFile = $this->fileMapper->getById($nodeId);
+			$this->libresignFile = $this->fileMapper->getByFileId($nodeId);
 		}
 		return $this->libresignFile;
 	}
