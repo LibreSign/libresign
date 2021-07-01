@@ -25,8 +25,5 @@ class NotifyService {
 		foreach ($signers as $signer) {
 			$this->validateHelper->haveValidMail($signer);
 		}
-		/**
-		 * @todo validar se signatários possuem emails válidos e se são de fato signatários
-		 */
 	}
 }
