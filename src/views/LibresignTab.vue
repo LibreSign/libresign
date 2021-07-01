@@ -141,17 +141,17 @@ export default {
 		async getMe() {
 			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
 			this.hasPfx = response.data.settings.hasSignatureFile
+			this.canRequestSign = response.data.settings.canRequestSign
 		},
 
 		async getInfo() {
 			try {
 				console.info('fileInfo: ', this.fileInfo)
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
-				this.canRequestSign = response.data.settings.canRequestSign
 				this.canSign = response.data.settings.canSign
 
 			} catch (err) {
-				this.canRequestSign = err.response.data.settings.canRequestSign
+				this.canSign = false
 			}
 		},
 
