@@ -187,14 +187,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @dataProvider testHaveValidMailDataProvider
+	 * @dataProvider dataProviderHaveValidMail
 	 */
 	public function testHaveValidMailWithDataProvider($data, $errorMessage) {
 		$this->expectExceptionMessage($errorMessage);
 		$this->validateHelper->haveValidMail($data);
 	}
 
-	public function testHaveValidMailDataProvider() {
+	public function dataProviderHaveValidMail() {
 		return [
 			[[], 'User needs values'],
 			[[''], 'Email required'],
