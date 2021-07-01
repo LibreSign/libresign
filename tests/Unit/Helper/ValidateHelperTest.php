@@ -185,4 +185,20 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('user2');
 		$this->validateHelper->iRequestedSignThisFile($user, 171);
 	}
+
+	/**
+	 * @dataProvider testHaveValidMailDataProvider
+	 */
+	public function testHaveValidMailWithDataProvider($data, $errorMessage) {
+		$this->expectExceptionMessage($errorMessage);
+		$this->validateHelper->haveValidMail($data);
+	}
+
+	public function testHaveValidMailDataProvider() {
+		return [
+			[[], 'User needs values'],
+			[[''], 'Email required'],
+			[['email' => 'invalid'], 'Invalid email']
+		];
+	}
 }

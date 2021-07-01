@@ -323,31 +323,12 @@ class SignFileService {
 		}
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
-			$this->validateUser($user, $index);
+			$this->validateHelper->haveValidMail($user);
 			$emails[$index] = strtolower($user['email']);
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
 			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
-		}
-	}
-
-	private function validateUser($user, $index) {
-		if (!is_array($user)) {
-			throw new \Exception($this->l10n->t('User data needs to be an array: user of position %s in list', [$index]));
-		}
-		if (!$user) {
-			throw new \Exception($this->l10n->t('User data needs to be an array with values: user of position %s in list', [$index]));
-		}
-		if (!empty($user['email']) && !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new \Exception($this->l10n->t('Invalid email: user %s', [$index]));
-		}
-		if (empty($user['email'])) {
-			if (!empty($user['name'])) {
-				$index = $user['name'];
-			}
-			$this->logger->error($this->l10n->t('User %s needs an email address', [$index]));
-			throw new \Exception($this->l10n->t('You must have an email address in profile'));
 		}
 	}
 

@@ -22,5 +22,8 @@ class NotifyService {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateFileByNodeId($nodeId);
 		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
+		foreach ($signers as $signer) {
+			$this->validateHelper->haveValidMail($signer);
+		}
 	}
 }

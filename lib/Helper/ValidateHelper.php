@@ -124,4 +124,16 @@ class ValidateHelper {
 			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
 		}
 	}
+
+	public function haveValidMail(array $data) {
+		if (empty($data)) {
+			throw new \Exception($this->l10n->t('User needs values'));
+		}
+		if (empty($data['email'])) {
+			throw new \Exception($this->l10n->t('Email required'));
+		}
+		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+			throw new \Exception($this->l10n->t('Invalid email'));
+		}
+	}
 }
