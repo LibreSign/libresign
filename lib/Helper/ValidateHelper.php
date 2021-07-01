@@ -100,7 +100,7 @@ class ValidateHelper {
 		return $this->file;
 	}
 
-	private function getLibreSignFile(?int $nodeId): LibresignFile {
+	public function getLibreSignFile(?int $nodeId = null): ?LibresignFile {
 		if (empty($this->libresignFile) && $nodeId) {
 			$this->libresignFile = $this->fileMapper->getByFileId($nodeId);
 		}
@@ -134,6 +134,18 @@ class ValidateHelper {
 		}
 		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception($this->l10n->t('Invalid email'));
+		}
+	}
+
+	public function signerWasAssociated(array $signer) {
+		$libresignFile = $this->getLibreSignFile();
+		if (!$libresignFile) {
+			throw new \Exception($this->l10n->t('File not loaded'));
+		}
+		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
+		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
+		if (!$exists) {
+			throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
 	}
 }

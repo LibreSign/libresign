@@ -201,4 +201,29 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['email' => 'invalid'], 'Invalid email']
 		];
 	}
+
+	public function testSignerWasAssociatedWithNotLibreSignFileLoaded() {
+		$this->expectExceptionMessage('File not loaded');
+		$this->validateHelper->signerWasAssociated([
+			'email' => 'invalid@test.coop'
+		]);
+	}
+
+	public function testSignerWasAssociatedWithUnassociatedSigner() {
+		$this->expectExceptionMessage('No signature was requested to %s');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturn('uuid');
+		$this->fileMapper
+			->method('getByFileId')
+			->willReturn($libresignFile);
+		$this->fileUserMapper
+			->method('getByFileUuid')
+			->willReturn([]);
+		$this->validateHelper->getLibreSignFile(171);
+		$this->validateHelper->signerWasAssociated([
+			'email' => 'invalid@test.coop'
+		]);
+	}
 }

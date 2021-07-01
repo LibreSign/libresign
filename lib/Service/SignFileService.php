@@ -28,8 +28,6 @@ use setasign\Fpdi\PdfParser\PdfParserException;
 class SignFileService {
 	/** @var FileEntity */
 	private $file;
-	/** @var FileUserEntity[] */
-	private $signatures;
 	/** @var IConfig */
 	private $config;
 	/** @var IL10N */
@@ -338,7 +336,7 @@ class SignFileService {
 	 * @param array $data
 	 */
 	public function canDeleteSignRequest(array $data) {
-		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
 		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
 		if ($signed) {
 			throw new \Exception($this->l10n->t('Document already signed'));
@@ -352,7 +350,7 @@ class SignFileService {
 	}
 
 	public function deleteSignRequest(array $data): array {
-		$signatures = $this->getSignaturesByFileUuid($data['uuid']);
+		$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
 		$fileData = $this->getFileByUuid($data['uuid']);
 		$deletedUsers = [];
 		foreach ($data['users'] as $key => $signer) {
@@ -372,20 +370,6 @@ class SignFileService {
 			$this->fileMapper->delete($file);
 		}
 		return $deletedUsers;
-	}
-
-	/**
-	 * Get all signatures by file UUID
-	 *
-	 * @param string $uuid
-	 * @return FileUserEntity[]
-	 */
-	private function getSignaturesByFileUuid(string $uuid): array {
-		if (!$this->signatures) {
-			$file = $this->getFileByUuid($uuid);
-			$this->signatures = $this->fileUserMapper->getByFileId($file->getId());
-		}
-		return $this->signatures;
 	}
 
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {

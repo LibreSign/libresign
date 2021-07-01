@@ -123,8 +123,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(1234564);
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], '2021-01-01 01:01:01'],
+			]));
+		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
 		$this->expectErrorMessage('Document already signed');
 		$this->service->canDeleteSignRequest(['uuid' => 'valid']);
 	}
@@ -157,15 +164,27 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanDeleteSignRequestSuccess() {
-		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
-		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(null);
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'valid@test.coop']
+			]));
+		$this->fileUserMapper
+			->method('getByFileUuid')
+			->willReturn([$fileUser]);
 		$actual = $this->service->canDeleteSignRequest([
 			'uuid' => 'valid',
-			'users' => []
+			'users' => [
+				[
+					'email' => 'valid@test.coop'
+				]
+			]
 		]);
 		$this->assertNull($actual);
 	}
