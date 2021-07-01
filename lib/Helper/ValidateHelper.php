@@ -89,7 +89,7 @@ class ValidateHelper {
 
 	private function getFileById(int $nodeId): \OCP\Files\File {
 		if (empty($this->file)) {
-			$libresignFile = $this->getLibreSignFileByNodeId($nodeId);
+			$libresignFile = $this->getLibreSignFile($nodeId);
 
 			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
 			$this->file = $userFolder->getById($nodeId);
@@ -100,8 +100,8 @@ class ValidateHelper {
 		return $this->file;
 	}
 
-	private function getLibreSignFileByNodeId(int $nodeId): LibresignFile {
-		if (empty($this->libresignFile)) {
+	private function getLibreSignFile(?int $nodeId): LibresignFile {
+		if (empty($this->libresignFile) && $nodeId) {
 			$this->libresignFile = $this->fileMapper->getByFileId($nodeId);
 		}
 		return $this->libresignFile;
@@ -119,7 +119,7 @@ class ValidateHelper {
 	}
 
 	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
-		$libresignFile = $this->getLibreSignFileByNodeId($nodeId);
+		$libresignFile = $this->getLibreSignFile($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
 		}
