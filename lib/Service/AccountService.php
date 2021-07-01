@@ -283,7 +283,8 @@ class AccountService {
 				$return['errors'][] = $this->l10n->t('This is not your file');
 				return $return;
 			}
-			if ($this->userManager->userExists($fileUser->getEmail())) {
+			$email = $fileUser->getEmail();
+			if ($this->userManager->userExists($email)) {
 				$return['action'] = JSActions::ACTION_REDIRECT;
 				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
 				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
@@ -294,7 +295,7 @@ class AccountService {
 				]);
 				return $return;
 			}
-			$return['accountHash'] = md5($fileUserId);
+			$return['settings']['accountHash'] = md5($email);
 			$return['action'] = JSActions::ACTION_CREATE_USER;
 			return $return;
 		}
