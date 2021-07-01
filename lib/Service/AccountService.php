@@ -296,6 +296,7 @@ class AccountService {
 				]);
 				return $return;
 			}
+			$return['settings']['accountHash'] = md5($fileUserId);
 			$return['action'] = JSActions::ACTION_CREATE_USER;
 			return $return;
 		}
@@ -350,8 +351,7 @@ class AccountService {
 		$return['sign'] = [
 			'pdf' => $pdf,
 			'filename' => $fileData->getName(),
-			'description' => $fileUser->getDescription(),
-			'accountHash' => md5($fileUserId)
+			'description' => $fileUser->getDescription()
 		];
 		return $return;
 	}
