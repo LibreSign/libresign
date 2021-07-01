@@ -104,7 +104,8 @@ class MailService {
 	}
 
 	public function notifyUnsignedUser(FileUser $data) {
-		if (!$this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true)) {
+		$notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true);
+		if (!$notifyUnsignedUser) {
 			return;
 		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
