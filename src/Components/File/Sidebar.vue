@@ -23,7 +23,10 @@
 			:name="t('libresign', 'Sign')"
 			icon="icon-rename"
 			:order="2">
-			<Sign ref="sign" :has-loading="loading" @sign:document="emitSign" />
+			<Sign ref="sign"
+				:pfx="getHasPfx"
+				:has-loading="loading"
+				@sign:document="emitSign" />
 		</AppSidebarTab>
 	</AppSidebar>
 </template>
@@ -77,7 +80,7 @@ export default {
 			currentFile: state => state.currentFile,
 			sidebar: state => state.sidebar,
 		}),
-		...mapGetters(['getCurrentFile', 'getSidebar']),
+		...mapGetters(['getCurrentFile', 'getSidebar', 'getHasPfx']),
 	},
 	methods: {
 		closeSidebar() {
