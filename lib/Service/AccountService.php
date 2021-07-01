@@ -351,7 +351,7 @@ class AccountService {
 			'pdf' => $pdf,
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription(),
-			'uid' => md5($fileUserId)
+			'accountHash' => md5($fileUserId)
 		];
 		return $return;
 	}
