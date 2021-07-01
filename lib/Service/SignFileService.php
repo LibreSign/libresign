@@ -346,7 +346,8 @@ class SignFileService {
 			if (!empty($user['name'])) {
 				$index = $user['name'];
 			}
-			throw new \Exception($this->l10n->t('User %s needs an email address', [$index]));
+			$this->logger->error($this->l10n->t('User %s needs an email address', [$index]));
+			throw new \Exception($this->l10n->t('You must have an email address in profile'));
 		}
 	}
 
