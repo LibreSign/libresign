@@ -43,7 +43,7 @@ class ValidateHelper {
 		$this->groupManager = $groupManager;
 		$this->root = $root;
 	}
-	public function validateFile(array $data) {
+	public function validateNewFile(array $data) {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -55,14 +55,18 @@ class ValidateHelper {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
-			$this->validateFileByNodeId((int)$data['file']['fileId']);
+			$this->validateLibreSignNodeId((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
-			$input = base64_decode($data['file']['base64']);
-			$base64 = base64_encode($input);
-			if ($data['file']['base64'] !== $base64) {
-				throw new \Exception($this->l10n->t('Invalid base64 file'));
-			}
+			$this->validateBase64($data['file']['base64']);
+		}
+	}
+
+	public function validateBase64(string $base64) {
+		$string = base64_decode($base64);
+		$newBase64 = base64_encode($string);
+		if ($newBase64 !== $base64) {
+			throw new \Exception($this->l10n->t('Invalid base64 file'));
 		}
 	}
 
@@ -76,18 +80,33 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateFileByNodeId(int $nodeId) {
+	public function validateNodeId(int $nodeId) {
 		try {
-			$file = $this->getFileById($nodeId);
+			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
+			$this->file = $userFolder->getById($nodeId);
+
+			$file = $this->getLibreSignFileByNodeId($nodeId);
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
+		$this->validateMimeTypeAccepted($file);
+	}
+
+	public function validateMimeTypeAccepted(\OCP\Files\File $file) {
 		if ($file->getMimeType() !== 'application/pdf') {
 			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
 		}
 	}
 
-	private function getFileById(int $nodeId): \OCP\Files\File {
+	public function validateLibreSignNodeId(int $nodeId) {
+		try {
+			$this->getLibreSignFileByNodeId($nodeId);
+		} catch (\Throwable $th) {
+			throw new \Exception($this->l10n->t('Invalid fileID'));
+		}
+	}
+
+	private function getLibreSignFileByNodeId(int $nodeId): \OCP\Files\File {
 		if (empty($this->file)) {
 			$libresignFile = $this->getLibreSignFile($nodeId);
 

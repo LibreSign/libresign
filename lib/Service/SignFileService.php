@@ -286,7 +286,7 @@ class SignFileService {
 
 	public function validate(array $data) {
 		$this->validateUserManager($data);
-		$this->validateFile($data);
+		$this->validateNewFile($data);
 		$this->validateUsers($data);
 	}
 
@@ -297,11 +297,11 @@ class SignFileService {
 		$this->validateHelper->canRequestSign($user['userManager']);
 	}
 
-	public function validateFile(array $data) {
+	public function validateNewFile(array $data) {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
-		$this->validateHelper->validateFile($data);
+		$this->validateHelper->validateNewFile($data);
 	}
 
 	public function validateFileUuid(array $data) {

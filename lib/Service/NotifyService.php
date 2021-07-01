@@ -20,10 +20,13 @@ class NotifyService {
 	}
 	public function signers(int $nodeId, array $signers) {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateFileByNodeId($nodeId);
+		$this->validateHelper->validateLibreSignNodeId($nodeId);
 		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
 		foreach ($signers as $signer) {
 			$this->validateHelper->haveValidMail($signer);
 		}
+		/**
+		 * @todo validar se signatários possuem emails válidos e se são de fato signatários
+		 */
 	}
 }

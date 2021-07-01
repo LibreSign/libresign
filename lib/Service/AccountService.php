@@ -171,7 +171,7 @@ class AccountService {
 		}
 
 		try {
-			$this->validateHelper->validateFile($file);
+			$this->validateHelper->validateNewFile($file);
 		} catch (\Exception $e) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
