@@ -88,6 +88,9 @@ class ValidateHelper {
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
+		if (!$file) {
+			throw new \Exception($this->l10n->t('Invalid fileID'));
+		}
 	}
 
 	public function validateMimeTypeAccepted(int $nodeId) {
