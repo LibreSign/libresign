@@ -89,7 +89,7 @@ class ValidateHelper {
 
 	private function getFileById(int $nodeId): \OCP\Files\File {
 		if (empty($this->file)) {
-			$libresignFile = $this->getLibreSignFileByNodeId($nodeId);
+			$libresignFile = $this->getLibreSignFile($nodeId);
 
 			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
 			$this->file = $userFolder->getById($nodeId);
@@ -100,8 +100,8 @@ class ValidateHelper {
 		return $this->file;
 	}
 
-	private function getLibreSignFileByNodeId(int $nodeId): LibresignFile {
-		if (empty($this->libresignFile)) {
+	public function getLibreSignFile(?int $nodeId = null): ?LibresignFile {
+		if (empty($this->libresignFile) && $nodeId) {
 			$this->libresignFile = $this->fileMapper->getByFileId($nodeId);
 		}
 		return $this->libresignFile;
@@ -119,7 +119,7 @@ class ValidateHelper {
 	}
 
 	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
-		$libresignFile = $this->getLibreSignFileByNodeId($nodeId);
+		$libresignFile = $this->getLibreSignFile($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
 		}
@@ -134,6 +134,18 @@ class ValidateHelper {
 		}
 		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new \Exception($this->l10n->t('Invalid email'));
+		}
+	}
+
+	public function signerWasAssociated(array $signer) {
+		$libresignFile = $this->getLibreSignFile();
+		if (!$libresignFile) {
+			throw new \Exception($this->l10n->t('File not loaded'));
+		}
+		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
+		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
+		if (!$exists) {
+			throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
 	}
 }

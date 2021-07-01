@@ -16,7 +16,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileUserMapper */
-	private $fileUser;
+	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var IGroupManager */
@@ -29,14 +29,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
-		$this->fileUser = $this->createMock(FileUserMapper::class);
+		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->validateHelper = new ValidateHelper(
 			$this->l10n,
-			$this->fileUser,
+			$this->fileUserMapper,
 			$this->fileMapper,
 			$this->config,
 			$this->groupManager,
@@ -69,13 +69,13 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument() {
-		$this->fileUser->method('getByNodeId')->will($this->returnValue('exists'));
+		$this->fileUserMapper->method('getByNodeId')->will($this->returnValue('exists'));
 		$this->expectExceptionMessage('Already asked to sign this document');
 		$this->validateHelper->validateNotRequestedSign(1);
 	}
 
 	public function testValidateFileByNodeIdWhenFileIdNotExists() {
-		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
+		$this->fileUserMapper->method('getByNodeId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
 		$this->expectExceptionMessage('Invalid fileID');
@@ -141,7 +141,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn([]);
 		$this->validateHelper = new ValidateHelper(
 			$this->l10n,
-			$this->fileUser,
+			$this->fileUserMapper,
 			$this->fileMapper,
 			$this->config,
 			$this->groupManager,
@@ -200,5 +200,30 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[[''], 'Email required'],
 			[['email' => 'invalid'], 'Invalid email']
 		];
+	}
+
+	public function testSignerWasAssociatedWithNotLibreSignFileLoaded() {
+		$this->expectExceptionMessage('File not loaded');
+		$this->validateHelper->signerWasAssociated([
+			'email' => 'invalid@test.coop'
+		]);
+	}
+
+	public function testSignerWasAssociatedWithUnassociatedSigner() {
+		$this->expectExceptionMessage('No signature was requested to %s');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturn('uuid');
+		$this->fileMapper
+			->method('getByFileId')
+			->willReturn($libresignFile);
+		$this->fileUserMapper
+			->method('getByFileUuid')
+			->willReturn([]);
+		$this->validateHelper->getLibreSignFile(171);
+		$this->validateHelper->signerWasAssociated([
+			'email' => 'invalid@test.coop'
+		]);
 	}
 }
