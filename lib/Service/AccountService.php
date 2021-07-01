@@ -260,9 +260,7 @@ class AccountService {
 	 */
 	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
-		$info['settings'] = [
-			'hasSignatureFile' => $this->hasSignatureFile($userId)
-		];
+		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($userId);
 		return $info;
 	}
 
