@@ -118,7 +118,10 @@ class ValidateHelper {
 		}
 	}
 
-	public function iRequestedSignThisFile(IUser $user, $nodeId) {
-
+	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
+		$libresignFile = $this->getLibreSignFileByNodeId($nodeId);
+		if ($libresignFile->getUserId() != $user->getUID()) {
+			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
+		}
 	}
 }

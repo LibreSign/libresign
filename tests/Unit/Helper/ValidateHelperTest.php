@@ -5,7 +5,6 @@ namespace OCA\Libresign\Tests\Unit\Helper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\FolderService;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -86,7 +85,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateFileByNodeIdWhenFileIsNotPDF() {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper
-			->method('getById')
+			->method('getByFileId')
 			->willReturn($libresignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
@@ -106,7 +105,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateFileByNodeIdWhenSuccess() {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper
-			->method('getById')
+			->method('getByFileId')
 			->willReturn($libresignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
@@ -169,5 +168,21 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'name' => 'test',
 			'userManager' => $user
 		]);
+	}
+
+	public function testIRequestedSignThisFileWithInvalidRequester() {
+		$this->expectExceptionMessage('You are not the signer request for this file');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturn('user1');
+		$this->fileMapper
+			->method('getByFileId')
+			->willReturn($libresignFile);
+		$user = $this->createMock(\OCP\IUser::class);
+		$user
+			->method('getUID')
+			->willReturn('user2');
+		$this->validateHelper->iRequestedSignThisFile($user, 171);
 	}
 }

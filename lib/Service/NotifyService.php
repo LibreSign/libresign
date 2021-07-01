@@ -18,8 +18,9 @@ class NotifyService {
 		$this->validateHelper = $validateHelper;
 		$this->userSession = $userSession;
 	}
-	public function signers(int $fileId, array $signers) {
+	public function signers(int $nodeId, array $signers) {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
-		$this->validateHelper->validateFileByNodeId($fileId);
+		$this->validateHelper->validateFileByNodeId($nodeId);
+		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
 	}
 }
