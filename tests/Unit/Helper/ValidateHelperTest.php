@@ -2,9 +2,11 @@
 
 namespace OCA\Libresign\Tests\Unit\Helper;
 
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -16,10 +18,12 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $l10n;
 	/** @var FileUserMapper */
 	private $fileUser;
-	/** @var FolderService */
-	private $folder;
+	/** @var FileMapper */
+	private $fileMapper;
 	/** @var IGroupManager */
 	private $groupManager;
+	/** @var IRootFolder */
+	private $root;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -27,15 +31,17 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->fileUser = $this->createMock(FileUserMapper::class);
-		$this->folder = $this->createMock(FolderService::class);
+		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->root = $this->createMock(IRootFolder::class);
 		$this->validateHelper = new ValidateHelper(
 			$this->l10n,
 			$this->fileUser,
-			$this->folder,
+			$this->fileMapper,
 			$this->config,
-			$this->groupManager
+			$this->groupManager,
+			$this->root
 		);
 	}
 
@@ -77,35 +83,42 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper->validateFileByNodeId(1);
 	}
 
-	public function testValidateFileByNodeIdWhenFailedGettingFile() {
-		$this->fileUser->method('getByNodeId')->will($this->returnCallback(function () {
-			throw new \Exception('not found');
-		}));
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('getById')->will($this->returnValue(null));
-		$this->folder->method('getFolder')->will($this->returnCallback(function () {
-			throw new \Exception('not found');
-		}));
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->validateHelper->validateFileByNodeId(1);
-	}
-
 	public function testValidateFileByNodeIdWhenFileIsNotPDF() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$this->fileMapper
+			->method('getById')
+			->willReturn($libresignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getMimeType')->will($this->returnValue('html'));
-		$folder->method('getById')->will($this->returnValue([$file]));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$file
+			->method('getMimeType')
+			->willReturn('invalid');
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$file]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
 		$this->expectExceptionMessage('Must be a fileID of a PDF');
 		$this->validateHelper->validateFileByNodeId(1);
 	}
 
 	public function testValidateFileByNodeIdWhenSuccess() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$this->fileMapper
+			->method('getById')
+			->willReturn($libresignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('getMimeType')->will($this->returnValue('application/pdf'));
-		$folder->method('getById')->will($this->returnValue([$file]));
-		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$file
+			->method('getMimeType')
+			->willReturn('application/pdf');
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$file]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
 		$actual = $this->validateHelper->validateFileByNodeId(1);
 		$this->assertNull($actual);
 	}
@@ -130,9 +143,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper = new ValidateHelper(
 			$this->l10n,
 			$this->fileUser,
-			$this->folder,
+			$this->fileMapper,
 			$this->config,
-			$this->groupManager
+			$this->groupManager,
+			$this->root
 		);
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->validateHelper->canRequestSign($user);
