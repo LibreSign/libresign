@@ -62,6 +62,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileWhenFileIdDoesNotExist() {
 		$this->expectExceptionMessage('Invalid fileID');
+		$this->root->method('getById')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
 		$this->validateHelper->validateNewFile([
 			'file' => ['fileId' => 123],
 			'name' => 'test'
@@ -87,8 +90,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file
 			->method('getMimeType')
 			->willReturn('invalid');
+		$this->root
+			->method('getById')
+			->willReturn([$file]);
 		$this->expectExceptionMessage('Must be a fileID of a PDF');
-		$this->validateHelper->validateMimeTypeAccepted($file);
+		$this->validateHelper->validateMimeTypeAccepted(171);
 	}
 
 	public function testValidateLibreSignNodeIdWhenSuccess() {

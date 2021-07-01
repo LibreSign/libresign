@@ -55,7 +55,8 @@ class ValidateHelper {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
-			$this->validateLibreSignNodeId((int)$data['file']['fileId']);
+			$this->validateIfNodeIdExists((int)$data['file']['fileId']);
+			$this->validateMimeTypeAccepted((int)$data['file']['fileId']);
 		}
 		if (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64']);
@@ -80,19 +81,18 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateNodeId(int $nodeId) {
+	public function validateIfNodeIdExists(int $nodeId) {
 		try {
-			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-			$this->file = $userFolder->getById($nodeId);
-
-			$file = $this->getLibreSignFileByNodeId($nodeId);
+			$file = $this->root->getById($nodeId);
+			$file = $file[0];
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
-		$this->validateMimeTypeAccepted($file);
 	}
 
-	public function validateMimeTypeAccepted(\OCP\Files\File $file) {
+	public function validateMimeTypeAccepted(int $nodeId) {
+		$file = $this->root->getById($nodeId);
+		$file = $file[0];
 		if ($file->getMimeType() !== 'application/pdf') {
 			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
 		}
