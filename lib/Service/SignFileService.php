@@ -406,35 +406,6 @@ class SignFileService {
 		return $signedFile;
 	}
 
-	public function writeFooter(File $file, string $uuid) {
-		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
-		if (!$validation_site) {
-			return;
-		}
-		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
-		$pdf = new Fpdi();
-		$pageCount = $pdf->setSourceFile($file->fopen('r'));
-
-		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-			$templateId = $pdf->importPage($pageNo);
-
-			$pdf->AddPage();
-			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
-
-			$pdf->SetFont('Helvetica');
-			$pdf->SetFontSize(8);
-			$pdf->SetAutoPageBreak(false);
-			$pdf->SetXY(5, -10);
-
-			$pdf->Write(8, iconv('UTF-8', 'windows-1252', $this->l10n->t(
-				'Digital signed by LibreSign. Validate in %s',
-				$validation_site
-			)));
-		}
-
-		return $pdf->Output('S');
-	}
-
 	/**
 	 * Get file to sign
 	 *
@@ -467,7 +438,7 @@ class SignFileService {
 			$fileToSign = $this->root->get($signedFilePath);
 		} else {
 			/** @var \OCP\Files\File */
-			$buffer = $this->writeFooter($originalFile, $fileData->getUuid());
+			$buffer = $this->pkcs12Handler->writeFooter($originalFile, $fileData->getUuid());
 			if (!$buffer) {
 				$buffer = $originalFile->getContent($originalFile);
 			}

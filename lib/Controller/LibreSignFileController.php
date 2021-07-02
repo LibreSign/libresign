@@ -74,6 +74,9 @@ class LibreSignFileController extends Controller {
 	private function validate(string $type, $identifier) {
 		$canSign = false;
 		try {
+			if ($this->userSession->getUser()) {
+				$uid = $this->userSession->getUser()->getUID();
+			}
 			try {
 				$file = call_user_func(
 					[$this->fileMapper, 'getBy' . $type],

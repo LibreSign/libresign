@@ -32,6 +32,7 @@ Types of changes:
 - User profile
 - Filter files
 - Resend sign invite email
+- Add qrcode to footer
 
 # Changed
 - Increment of coverage on backend code

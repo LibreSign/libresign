@@ -514,61 +514,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
 	}
 
-	public function testWriteFooterWithoutValidationSite() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn(null);
-		$this->service = new SignFileService(
-			$this->config,
-			$this->l10n,
-			$this->file,
-			$this->fileUserMapper,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->service->writeFooter($file, 'uuid');
-		$this->assertNull($actual);
-	}
-
-	public function testWriteFooterWithSuccess() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('http://test.coop');
-		$this->service = new SignFileService(
-			$this->config,
-			$this->l10n,
-			$this->file,
-			$this->fileUserMapper,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-
-		$resource = fopen(__DIR__ . '/../../fixtures/small_valid.pdf', 'r');
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('fopen')
-			->willReturn($resource);
-		$actual = $this->service->writeFooter($file, 'uuid');
-		$expected = file_get_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf');
-		$this->assertEquals(strlen($expected), strlen($actual));
-	}
-
 	public function testSignWithFileNotFound() {
 		$this->expectErrorMessage('File not found');
 

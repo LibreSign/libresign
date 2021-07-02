@@ -82,6 +82,7 @@ OC.L10N.register(
     "Submit Request" : "Złóż prośbę",
     "Account" : "Konto",
     "Enter your password to sign this document" : "Wpisz swoje hasło, aby podpisać ten dokument",
+    "You need to create a password to sign this document. Click \"Create password to sign document\" and create a password." : "Aby podpisać ten dokument, musisz utworzyć hasło. Kliknij \"Utwórz hasło do podpisania dokumentu\" i utwórz hasło.",
     "Create password to sign document" : "Utwórz hasło do podpisania dokumentu",
     "Profile picture" : "Zdjęcie profilowe",
     "Details" : "Szczegóły",
