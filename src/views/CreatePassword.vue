@@ -54,7 +54,8 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
 				this.hasLoading = false
-				this.$store.commit('setHasPfx', true)
+				// @todo check if is necessary. This code is triggering an error
+				// this.$store.commit('setHasPfx', true)
 				this.clear()
 				this.$emit('close', true)
 			} catch (err) {
