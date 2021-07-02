@@ -71,10 +71,33 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
+	public function testValidateFileUsingFileIdWithSuccess() {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getMimeType')
+			->willReturn('application/pdf');
+		$this->root
+			->method('getById')
+			->willReturn([$file]);
+		$actual = $this->validateHelper->validateNewFile([
+			'file' => ['fileId' => 123],
+			'name' => 'test'
+		]);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument() {
 		$this->fileUserMapper->method('getByNodeId')->will($this->returnValue('exists'));
 		$this->expectExceptionMessage('Already asked to sign this document');
 		$this->validateHelper->validateNotRequestedSign(1);
+	}
+
+	public function testValidateNotRequestedSignWithSuccessWhenNotFound() {
+		$this->fileUserMapper->method('getByNodeId')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
+		$actual = $this->validateHelper->validateNotRequestedSign(1);
+		$this->assertNull($actual);
 	}
 
 	public function testValidateLibreSignNodeIdWhenFileIdNotExists() {
