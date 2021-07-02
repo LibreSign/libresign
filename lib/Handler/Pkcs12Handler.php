@@ -2,9 +2,19 @@
 
 namespace OCA\Libresign\Handler;
 
+use Endroid\QrCode\Bacon\MatrixFactory;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
+use OCP\IConfig;
+use OCP\IL10N;
+use setasign\Fpdi\Fpdi;
 
 class Pkcs12Handler {
 
@@ -14,13 +24,21 @@ class Pkcs12Handler {
 	private $folderService;
 	/** @var JSignPdfHandler */
 	private $jSignPdfHandler;
+	/** @var IConfig */
+	private $config;
+	/** @var IL10N */
+	private $l10n;
 
 	public function __construct(
 		FolderService $folderService,
-		JSignPdfHandler $jSignPdfHandler
+		JSignPdfHandler $jSignPdfHandler,
+		IConfig $config,
+		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
 		$this->jSignPdfHandler = $jSignPdfHandler;
+		$this->config = $config;
+		$this->l10n = $l10n;
 	}
 
 	public function savePfx($uid, $content): File {
@@ -63,5 +81,72 @@ class Pkcs12Handler {
 		$signedContent = $this->jSignPdfHandler->sign($fileToSign, $certificate, $password);
 		$fileToSign->putContent($signedContent);
 		return $fileToSign;
+	}
+
+	public function writeFooter(File $file, string $uuid) {
+		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
+		if (!$validation_site) {
+			return;
+		}
+		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
+		$pdf = new Fpdi();
+		$pageCount = $pdf->setSourceFile($file->fopen('r'));
+
+		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+			$templateId = $pdf->importPage($pageNo);
+
+			$pdf->AddPage();
+			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+			$this->writeQrCode($validation_site, $pdf);
+
+			$pdf->SetFont('Helvetica');
+			$pdf->SetFontSize(8);
+			$pdf->SetAutoPageBreak(false);
+			$pdf->SetXY(5+30, -10);
+
+			$pdf->Write(8, iconv('UTF-8', 'windows-1252', $this->l10n->t(
+				'Digital signed by LibreSign. Validate in %s',
+				$validation_site
+			)));
+		}
+
+		return $pdf->Output('S');
+	}
+
+	private function writeQrCode(string $text, Fpdi $fpdf) {
+		$qrCode = QrCode::create($text)
+			->setEncoding(new Encoding('UTF-8'))
+			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
+			->setSize(30)
+			->setMargin(0)
+			->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
+			->setForegroundColor(new Color(0, 0, 0))
+			->setBackgroundColor(new Color(255, 255, 255));
+
+		$matrixFactory = new MatrixFactory();
+		$matrix = $matrixFactory->create($qrCode);
+
+		$backgroundColor = $qrCode->getBackgroundColor();
+		$foregroundColor = $qrCode->getForegroundColor();
+
+		$fpdf->SetFillColor($backgroundColor->getRed(), $backgroundColor->getGreen(), $backgroundColor->getBlue());
+		$backgroundBottonPosition = $fpdf->GetPageHeight() - $matrix->getOuterSize();
+		$fpdf->Rect(0, $backgroundBottonPosition, $matrix->getOuterSize(), $matrix->getOuterSize(), 'F');
+		$fpdf->SetFillColor($foregroundColor->getRed(), $foregroundColor->getGreen(), $foregroundColor->getBlue());
+
+		$qrCodeBottonPosition = $fpdf->GetPageHeight() - $matrix->getOuterSize() + $matrix->getMarginLeft() + 0.5;
+		for ($rowIndex = 0; $rowIndex < $matrix->getBlockCount(); ++$rowIndex) {
+			for ($columnIndex = 0; $columnIndex < $matrix->getBlockCount(); ++$columnIndex) {
+				if (1 === $matrix->getBlockValue($rowIndex, $columnIndex)) {
+					$fpdf->Rect(
+						$matrix->getMarginLeft() + ($columnIndex * $matrix->getBlockSize()) + 0.5,
+						$qrCodeBottonPosition + ($rowIndex * $matrix->getBlockSize()),
+						$matrix->getBlockSize(),
+						$matrix->getBlockSize(),
+						'F'
+					);
+				}
+			}
+		}
 	}
 }
