@@ -102,7 +102,7 @@
 						<button
 							v-show="!passwordSign"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
-							:disabled="!validator.btn1"
+							:disabled="!validator.back"
 							@click.prevent="passwordSign = true">
 							{{ t('libresign', 'Next') }}
 						</button>
@@ -161,7 +161,7 @@ export default {
 				passConfirm: false,
 				pfx: false,
 				btn: false,
-				btn1: false,
+				back: false,
 			},
 			tooltip: {
 				name: false,
@@ -194,13 +194,14 @@ export default {
 		passConfirm() {
 			this.validationPassConfirm()
 			this.validationPasswords()
-			this.validatorBtn1()
+			this.validatorback()
 		},
 		pfx() {
 			this.validationPfx()
 			this.validationBtn()
 		},
 	},
+
 	created() {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
@@ -292,15 +293,15 @@ export default {
 				this.validator.passConfirm = false
 			}
 		},
-		validatorBtn1() {
+		validatorback() {
 			if (this.validator.name === false && this.validator.passConfirm === false) {
 				if (this.email.length > 2 && this.passConfirm.length > 2) {
-					this.validator.btn1 = true
+					this.validator.back = true
 				} else {
-					this.validator.btn1 = false
+					this.validator.back = false
 				}
 			} else {
-				this.validator.btn1 = false
+				this.validator.back = false
 			}
 		},
 		validationBtn() {
