@@ -659,4 +659,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
+
+	public function testValidateUserManagerWithoutUserManager() {
+		$this->expectExceptionMessage('You are not allowed to request signing');
+		$this->service->validateUserManager([]);
+	}
 }
