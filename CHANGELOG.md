@@ -31,6 +31,7 @@ Types of changes:
 - Validate by LibreSign App
 - User profile
 - Filter files
+- Add qrcode to footer
 
 # Changed
 - Increment of coverage on backend code
