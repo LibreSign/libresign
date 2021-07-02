@@ -6,6 +6,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\LibreSign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUser;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -27,6 +28,8 @@ class ValidateHelper {
 	private $root;
 	/** @var LibresignFile */
 	private $libresignFile;
+	/** @var FileUser[] */
+	private $signers;
 
 	public function __construct(
 		IL10N $l10n,
@@ -164,10 +167,34 @@ class ValidateHelper {
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
-		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
+		$signatures = $this->getSignaturesByFileUuid($libresignFile->getUuid());
 		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
 		if (!$exists) {
 			throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
+		}
+	}
+
+	/**
+	 * @param string $fileUuid
+	 * @return FileUser[]
+	 */
+	private function getSignaturesByFileUuid(string $fileUuid): array {
+		if (!$this->signers) {
+			$this->signers = $this->fileUserMapper->getByFileUuid($fileUuid);
+		}
+		return $this->signers;
+	}
+
+	public function notSigned(array $signer) {
+		$libresignFile = $this->getLibreSignFile();
+		if (!$libresignFile) {
+			throw new \Exception($this->l10n->t('File not loaded'));
+		}
+		$signatures = $this->getSignaturesByFileUuid($libresignFile->getUuid());
+		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
+		$signed = $exists[0]->getSigned();
+		if ($signed) {
+			throw new \Exception($this->l10n->t('%s already signed this file', $signer['email']));
 		}
 	}
 }

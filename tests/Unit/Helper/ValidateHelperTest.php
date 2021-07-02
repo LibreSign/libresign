@@ -221,4 +221,33 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'email' => 'invalid@test.coop'
 		]);
 	}
+
+	public function testNotSignedWithError() {
+		$this->expectExceptionMessage('%s already signed this file');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturn('uuid');
+		$this->fileMapper
+			->method('getByFileId')
+			->willReturn($libresignFile);
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getEmail'), $this->anything()],
+				[$this->equalTo('getSigned'), $this->anything()]
+			)
+			->will($this->returnValueMap([
+				['getEmail', [], 'signed@test.coop'],
+				['getSigned', [], date('Y-m-d H:i:s')]
+			]));
+		$this->fileUserMapper
+			->method('getByFileUuid')
+			->willReturn([$fileUser]);
+		$this->validateHelper->getLibreSignFile(171);
+		$this->validateHelper->notSigned([
+			'email' => 'signed@test.coop'
+		]);
+	}
 }
