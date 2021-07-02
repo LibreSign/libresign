@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\IUserSession;
 
@@ -12,15 +13,19 @@ class NotifyService {
 	private $userSession;
 	/** @var MailService */
 	private $mailService;
+	/** @var FileUserMapper */
+	private $fileUserMapper;
 
 	public function __construct(
 		ValidateHelper $validateHelper,
 		IUserSession $userSession,
-		MailService $mailService
+		MailService $mailService,
+		FileUserMapper $fileUserMapper
 	) {
 		$this->validateHelper = $validateHelper;
 		$this->userSession = $userSession;
 		$this->mailService = $mailService;
+		$this->fileUserMapper = $fileUserMapper;
 	}
 
 	public function signers(int $nodeId, array $signers) {
@@ -33,7 +38,8 @@ class NotifyService {
 			$this->validateHelper->notSigned($signer);
 		}
 		foreach ($signers as $signer) {
-			$this->mailService->notifyUnsignedUser();
+			$fileUser = $this->fileUserMapper->getByFileIdAndEmail($nodeId, $signer['email']);
+			$this->mailService->notifyUnsignedUser($fileUser);
 		}
 	}
 }
