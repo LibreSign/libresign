@@ -97,6 +97,18 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper->validateMimeTypeAccepted(171);
 	}
 
+	public function testValidateMimeTypeAcceptedWithValidFile() {
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getMimeType')
+			->willReturn('application/pdf');
+		$this->root
+			->method('getById')
+			->willReturn([$file]);
+		$actual = $this->validateHelper->validateMimeTypeAccepted(171);
+		$this->assertNull($actual);
+	}
+
 	public function testValidateLibreSignNodeIdWhenSuccess() {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper
@@ -249,5 +261,33 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper->notSigned([
 			'email' => 'signed@test.coop'
 		]);
+	}
+
+	public function testNotSignedWithFileNotLoaded() {
+		$this->expectExceptionMessage('File not loaded');
+		$this->validateHelper->notSigned([]);
+	}
+
+	public function testValidateIfNodeIdExistsWhenGetFileThrowException() {
+		$this->expectExceptionMessage('Invalid fileID');
+		$this->root
+			->method('getById')
+			->will($this->returnCallback(function () {
+				throw new \Exception('not found');
+			}));
+		$this->validateHelper->validateIfNodeIdExists(171);
+	}
+
+	public function testValidateIfNodeIdExistsWithInvalidFile() {
+		$this->expectExceptionMessage('Invalid fileID');
+		$this->validateHelper->validateIfNodeIdExists(171);
+	}
+
+	public function testValidateIfNodeIdExistsWithSuccess() {
+		$this->root
+			->method('getById')
+			->willReturn(['file']);
+		$actual = $this->validateHelper->validateIfNodeIdExists(171);
+		$this->assertNull($actual);
 	}
 }
