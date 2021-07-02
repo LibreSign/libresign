@@ -167,22 +167,11 @@ class ValidateHelper {
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
-		$signatures = $this->getSignaturesByFileUuid($libresignFile->getUuid());
+		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
 		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
 		if (!$exists) {
 			throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
-	}
-
-	/**
-	 * @param string $fileUuid
-	 * @return FileUser[]
-	 */
-	private function getSignaturesByFileUuid(string $fileUuid): array {
-		if (!$this->signers) {
-			$this->signers = $this->fileUserMapper->getByFileUuid($fileUuid);
-		}
-		return $this->signers;
 	}
 
 	public function notSigned(array $signer) {
@@ -190,7 +179,7 @@ class ValidateHelper {
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
-		$signatures = $this->getSignaturesByFileUuid($libresignFile->getUuid());
+		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
 		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
 		$signed = $exists[0]->getSigned();
 		if ($signed) {
