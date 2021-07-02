@@ -290,7 +290,7 @@ class SignFileService {
 		$this->validateUsers($data);
 	}
 
-	public function validateUserManager($user) {
+	public function validateUserManager(array $user) {
 		if (!isset($user['userManager'])) {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
