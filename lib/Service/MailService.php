@@ -21,8 +21,6 @@ class MailService {
 	private $mailer;
 	/** @var FileMapper */
 	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
 	/** @var IL10N */
 	private $l10n;
 	/** @var IURLGenerator */
@@ -34,7 +32,6 @@ class MailService {
 		LoggerInterface $logger,
 		IMailer $mailer,
 		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
 		IL10N $l10n,
 		IURLGenerator $urlGenerator,
 		IConfig $config
@@ -42,25 +39,9 @@ class MailService {
 		$this->logger = $logger;
 		$this->mailer = $mailer;
 		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
 		$this->l10n = $l10n;
 		$this->urlGenerator = $urlGenerator;
 		$this->config = $config;
-	}
-
-	public function notifyAllUnsigned() {
-		$unsigned = $this->fileUserMapper->findUnsigned();
-		if (!$unsigned) {
-			throw new LibresignException('No users to notify', 1);
-		}
-		foreach ($unsigned as $data) {
-			// if ($exists) {
-			// 	$this->notifyUnsignedUser($user);
-			// } else {
-			$this->notifyUnsignedUser($data);
-			// }
-		}
-		return true;
 	}
 
 	/**
