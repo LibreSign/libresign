@@ -23,6 +23,9 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->jSignPdfHandler,

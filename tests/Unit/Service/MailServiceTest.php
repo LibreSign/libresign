@@ -38,6 +38,9 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mailer = $this->createMock(IMailer::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->l10n = $this->createMock(IL10N::class);
+		$this->l10n
+			->method('t')
+			->will($this->returnArgument(0));
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->service = new MailService(
