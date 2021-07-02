@@ -79,6 +79,7 @@
     "Submit Request" : "提交请求",
     "Account" : "账户",
     "Enter your password to sign this document" : "输入你的密码来签署该文档",
+    "You need to create a password to sign this document. Click \"Create password to sign document\" and create a password." : "您需要创建一个密码来签署这个文件，点击“创建密码来签署文件”并创建一个密码 ",
     "Create password to sign document" : "创建密码来签署文档",
     "Profile picture" : "个人资料图片 ",
     "Details" : "详情",

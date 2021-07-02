@@ -82,6 +82,7 @@ OC.L10N.register(
     "Submit Request" : "遞交請求",
     "Account" : "賬戶",
     "Enter your password to sign this document" : "輸入密碼以簽署此文件",
+    "You need to create a password to sign this document. Click \"Create password to sign document\" and create a password." : "您需要創建一個密碼來簽署這個文件。點擊「創建密碼來簽署文件」並創建一個密碼。",
     "Create password to sign document" : "創建密碼以簽署此文件",
     "Profile picture" : "個人資料圖片",
     "Details" : "細節",
