@@ -71,7 +71,7 @@ export default {
 		async sendNotify(email) {
 			try {
 				this.disableBtn = true
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/nofity/signners'), {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
 					fileId: this.fileId,
 					signers: [
 						{
