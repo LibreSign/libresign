@@ -58,7 +58,7 @@ class MailService {
 
 	public function notifySignDataUpdated(FileUser $data) {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('Changes into a file for you to sign'));
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
 		$emailTemplate->addBodyText($this->l10n->t('Changes have been made in a file that you have to sign. Access the link below:'));
@@ -89,7 +89,7 @@ class MailService {
 			return;
 		}
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('There is a file for you to sign'));
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: There is a file for you to sign'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addHeading($this->l10n->t('File to sign'), false);
 		$emailTemplate->addBodyText($this->l10n->t('There is a document for you to sign. Access the link below:'));
@@ -116,7 +116,7 @@ class MailService {
 
 	public function notifyCancelSign(FileUser $data) {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
-		$emailTemplate->setSubject($this->l10n->t('Signature request cancelled'));
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: Signature request cancelled'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addBodyText($this->l10n->t('The signature request has been canceled.'));
 		$message = $this->mailer->createMessage();
