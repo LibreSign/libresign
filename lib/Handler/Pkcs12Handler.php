@@ -4,7 +4,6 @@ namespace OCA\Libresign\Handler;
 
 use BaconQrCode\Encoder\Encoder;
 use Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
-use Endroid\QrCode\Bacon\MatrixFactory;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
