@@ -93,7 +93,13 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->config
 			->method('getAppValue')
-			->willReturn('http://test.coop');
+			->willReturnCallback(function ($appid, $key, $default) {
+				switch ($key) {
+					case 'add_footer': return true;
+					case 'validation_site': return 'http://test.coop';
+					case 'write_qrcode_on_footer': return true;
+				}
+			});
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->jSignPdfHandler,
