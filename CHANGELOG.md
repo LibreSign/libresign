@@ -31,6 +31,7 @@ Types of changes:
 - Validate by LibreSign App
 - User profile
 - Filter files
+- App config to configure JSignPDF
 - Resend sign invite email
 - Add qrcode to footer
 
