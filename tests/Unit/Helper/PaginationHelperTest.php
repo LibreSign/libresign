@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit\Helper;
 
 use OCA\Libresign\Helper\Pagination;
-use OCP\DB\IResult;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -41,10 +40,11 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$queryBuilder
 			->method('getType')
 			->willReturn(0);
-		$result = $this->createMock(IResult::class);
-		$result
-			->method('fetch')
-			->willReturn(['total_results' => 2]);
+		$result = new class {
+			public function fetch() {
+				return ['total_results' => 1];
+			}
+		};
 		$queryBuilder
 			->method('execute')
 			->willReturn($result);
