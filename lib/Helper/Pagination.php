@@ -23,6 +23,7 @@ class Pagination extends Pagerfanta {
 	}
 
 	public function getPagination($page, $length) {
+		$this->setMaxPerPage($length);
 		$pagination['total'] = $this->count();
 		if ($pagination['total'] > $length) {
 			$pagination['current'] = '/file/list?page=' . $page . '&length=' . $length;
