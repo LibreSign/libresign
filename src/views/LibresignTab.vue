@@ -57,7 +57,8 @@
 			<Request v-show="requestShow"
 				ref="request"
 				:fileinfo="fileInfo"
-				@request:signatures="requestSignatures">
+				@request:signatures="requestSignatures"
+				@request:delete="deleteUserRequest">
 				<template slot="actions">
 					<button class="lb-ls-return-button" @click="option('request')">
 						{{ t('libresign', 'Return') }}
@@ -89,8 +90,11 @@
 								</div>
 								<div class="container-dot container-btn">
 									<button v-show="!showButton(signer)" class="primary" @click="resendEmail(signer.email)">
-										{{ t('libresign', 'Resubmit email') }}
+										{{ t('libresign', 'Notify') }}
 									</button>
+									<Actions>
+										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer.email)" />
+									</Actions>
 								</div>
 							</div>
 						</li>
@@ -106,8 +110,10 @@
 
 <script>
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
+import Actions from '@nextcloud/vue/dist/Components/Actions'
+import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError, showMessage, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
@@ -118,6 +124,8 @@ export default {
 
 	components: {
 		AppSidebar,
+		Actions,
+		ActionButton,
 		AppSidebarTab,
 		Sign,
 		Request,
@@ -187,11 +195,9 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-				console.info('response: ', response)
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.signers = response.data.signers
-					console.info('signers: ', this.signers)
 				}
 			} catch (err) {
 				this.canSign = false
@@ -221,6 +227,24 @@ export default {
 			}
 		},
 
+		async deleteUserRequest(user) {
+			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
+			if (result === true) {
+				try {
+					const response = await axios.delete(generateUrl('/apps/libresign/api/0.1/sign/register/signature'), {
+						file: {
+							fileId: this.fileInfo.id,
+						},
+						user,
+					})
+					showMessage(response.data.message)
+					this.$refs.request.removeValue(user)
+				} catch (err) {
+					showError(err.data.message)
+				}
+			}
+		},
+
 		async resendEmail(email) {
 			try {
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
@@ -234,8 +258,14 @@ export default {
 
 				showSuccess(response.data.message)
 			} catch (err) {
-				console.error(err)
-				showError(err)
+				if (err.data.message) {
+					err.data.messages.map(error => {
+						showError(error.message)
+					})
+				} else {
+					showError(t('libresign', 'There was an error completing your request'))
+				}
+
 			}
 		},
 
@@ -248,7 +278,6 @@ export default {
 						},
 						users,
 					})
-					console.info(response)
 					this.option('request')
 					this.clearRequestList()
 					return showSuccess(response.data.message)
@@ -261,7 +290,6 @@ export default {
 					name: this.fileInfo.name.split('.pdf')[0],
 					users,
 				})
-				console.info(response)
 				this.option('request')
 				this.clearRequestList()
 				return showSuccess(response.data.message)

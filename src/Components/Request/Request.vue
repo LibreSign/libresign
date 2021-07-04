@@ -14,7 +14,7 @@
 			</div>
 			<ul class="list-users">
 				<li v-for="value in values" :key="value.email" class="list-uses-item">
-					<ListItem :user="value" :description="value.description" @remove-user="removeValue" />
+					<ListItem :user="value" :description="value.description" @remove-user="emitDelete" />
 				</li>
 			</ul>
 
@@ -40,6 +40,11 @@ export default {
 			default: () => {},
 			required: true,
 		},
+		items: {
+			type: Array,
+			default: () => [],
+			required: false,
+		},
 	},
 	data() {
 		return {
@@ -56,11 +61,19 @@ export default {
 			return validateEmail(this.email)
 		},
 	},
+	watch: {
+		items(newVal) {
+			this.values = newVal
+		},
+	},
 	methods: {
 		removeValue(value) {
 			this.values = this.values.filter(ft => {
 				return ft !== value
 			})
+		},
+		emitDelete(value) {
+			this.$emit('request:delete', value)
 		},
 		addUser() {
 			this.values.push({
