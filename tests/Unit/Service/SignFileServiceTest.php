@@ -596,6 +596,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->validateUserManager([]);
 	}
 
+	public function testValidateExistingFileWithoutUuidAndFileId() {
+		$this->expectExceptionMessage('Inform or UUID or a File object');
+		$this->service->validateExistingFile([]);
+	}
+
 	public function testValidateExistingFileWithInvalidFileId() {
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->service->validateExistingFile([
