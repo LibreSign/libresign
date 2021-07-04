@@ -595,4 +595,21 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 		$this->service->validateUserManager([]);
 	}
+
+	public function testValidateExistingFileWithInvalidFileId() {
+		$this->expectExceptionMessage('Invalid fileID');
+		$this->service->validateExistingFile([
+			'file' => 'invalid'
+		]);
+	}
+
+	public function testValidateExistingFileUsingFileIdWithSuccess() {
+		$actual = $this->service->validateExistingFile([
+			'userManager' => $this->user,
+			'file' => [
+				'fileId' => 171
+			]
+		]);
+		$this->assertNull($actual);
+	}
 }
