@@ -18,8 +18,8 @@ use OCP\IDBConnection;
  * @method File delete(File $entity)
  */
 class FileMapper extends QBMapper {
-	/** @var FileUserEntity[] */
-	private $signatures;
+	/** @var File */
+	private $file;
 
 	/**
 	 * @param IDBConnection $db
@@ -50,16 +50,19 @@ class FileMapper extends QBMapper {
 	 *
 	 * @return Entity Row of table libresign_file
 	 */
-	public function getByUuid(string $uuid) {
-		$qb = $this->db->getQueryBuilder();
+	public function getByUuid(?string $uuid = null) {
+		if (!$this->file || ($uuid && $this->file->getUuid() !== $uuid)) {
+			$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
-			);
+			$qb->select('*')
+				->from($this->getTableName())
+				->where(
+					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+				);
 
-		return $this->findEntity($qb);
+			$this->file = $this->findEntity($qb);
+		}
+		return $this->file;
 	}
 
 	/**
@@ -67,15 +70,18 @@ class FileMapper extends QBMapper {
 	 *
 	 * @return Entity Row of table libresign_file
 	 */
-	public function getByFileId(int $fileId) {
-		$qb = $this->db->getQueryBuilder();
+	public function getByFileId(?int $fileId = null) {
+		if (!$this->file || ($fileId && $this->file->getNodeId() !== $fileId)) {
+			$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
-			);
+			$qb->select('*')
+				->from($this->getTableName())
+				->where(
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+				);
 
-		return $this->findEntity($qb);
+			$this->file = $this->findEntity($qb);
+		}
+		return $this->file;
 	}
 }

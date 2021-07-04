@@ -11,15 +11,12 @@ use OCP\Files\Folder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IConfig */
-	private $config;
 	/** @var IL10N */
 	private $l10n;
 	/** @var Pkcs7Handler */
@@ -44,13 +41,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $logger;
 
 	public function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
-
-		$this->config
-			->expects($this->any())
-			->method('getAppValue')
-			->willReturn('["admin"]');
-
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -68,7 +58,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->service = new SignFileService(
-			$this->config,
 			$this->l10n,
 			$this->file,
 			$this->fileUserMapper,
@@ -102,20 +91,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->save([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'valid@test.coop'
+				]
+			],
 			'userManager' => $this->user
 		]);
-	}
-
-	public function testValidateFileUuidWithInvalidUuid() {
-		$this->expectExceptionMessage('Invalid UUID file');
-		$this->service->validateFileUuid([]);
-	}
-
-	public function testValidateFileUuidWithValidUuid() {
-		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$this->file->method('getByUuid')->will($this->returnValue($file));
-		$actual = $this->service->validateFileUuid(['uuid' => 'valid']);
-		$this->assertNull($actual);
 	}
 
 	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
@@ -193,10 +175,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')],
 				[$this->equalTo('getId')],
 				[$this->equalTo('getUuid')]
 			)
 			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'test@test.coop'],
 				['getId', [], 123],
 				['getUuid', [], 'valid']
 			]));
