@@ -36,8 +36,9 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 	public function getNbResults(): int {
 		$qb = $this->prepareCountQueryBuilder();
-
-		return (int) $qb->execute()->fetchOne();
+		$result = $qb->execute()->fetch();
+		$values = array_values($result);
+		return (int) $values[0];
 	}
 
 	public function getSlice(int $offset, int $length): iterable {
