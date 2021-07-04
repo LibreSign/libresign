@@ -189,6 +189,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$file]));
 		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
 		$actual = $this->service->deleteSignRequest([
 			'uuid' => 'valid',
 			'users' => [

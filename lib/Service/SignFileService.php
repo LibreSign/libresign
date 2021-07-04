@@ -354,8 +354,8 @@ class SignFileService {
 					$signer['email'],
 					$fileData->getId()
 				);
-				$this->fileUserMapper->delete($fileUser);
 				$deletedUsers[] = $fileUser;
+				$this->fileUserMapper->delete($fileUser);
 			} catch (\Throwable $th) {
 				// already deleted
 			}
