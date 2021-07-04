@@ -170,10 +170,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')],
 				[$this->equalTo('getId')],
 				[$this->equalTo('getUuid')]
 			)
 			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'test@test.coop'],
 				['getId', [], 123],
 				['getUuid', [], 'valid']
 			]));

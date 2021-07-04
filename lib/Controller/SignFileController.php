@@ -153,6 +153,7 @@ class SignFileController extends ApiController {
 			'userManager' => $user
 		];
 		try {
+			$this->signFile->validateUserManager($data);
 			$deletedUsers = $this->signFile->deleteSignRequest($data);
 			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
