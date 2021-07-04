@@ -82,6 +82,8 @@ class SignFileService {
 
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
+		} elseif (!empty($data['file']['fileId'])) {
+			$file = $this->fileMapper->getByFileId($data['file']['fileId']);
 		} else {
 			$file = $this->saveFile($data);
 		}
