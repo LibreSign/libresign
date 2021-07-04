@@ -287,7 +287,7 @@ class SignFileService {
 		$this->validateHelper->validateNewFile($data);
 	}
 
-	public function validateExistingFile(array $data) { 
+	public function validateExistingFile(array $data) {
 		if (isset($data['uuid'])) {
 			$this->validateHelper->validateFileUuid($data);
 			$file = $this->fileMapper->getByUuid($data['uuid']);
