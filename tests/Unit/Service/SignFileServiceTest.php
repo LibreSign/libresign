@@ -91,6 +91,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->save([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'valid@test.coop'
+				]
+			],
 			'userManager' => $this->user
 		]);
 	}
