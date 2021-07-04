@@ -338,7 +338,7 @@ class SignFileService {
 
 	public function deleteSignRequest(array $data): array {
 		$this->validateUserManager($data);
-		$this->validateFileUuid($data);
+		$this->validateHelper->validateFileUuid($data);
 		$this->validateUsers($data);
 		$this->canDeleteSignRequest($data);
 
