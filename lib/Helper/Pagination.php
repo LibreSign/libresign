@@ -36,11 +36,11 @@ class Pagination extends Pagerfanta {
 				'&length=' . $length;
 			$pagination['first'] = '/file/list?page=1&length=' . $length;
 		} else {
-			$pagination['current'] = '';
-			$pagination['next'] = '';
-			$pagination['prev'] = '';
-			$pagination['last'] = '';
-			$pagination['first'] = '';
+			$pagination['current'] = null;
+			$pagination['next'] = null;
+			$pagination['prev'] = null;
+			$pagination['last'] = null;
+			$pagination['first'] = null;
 		}
 		return $pagination;
 	}
