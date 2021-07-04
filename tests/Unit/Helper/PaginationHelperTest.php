@@ -42,7 +42,7 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(0);
 		$result = new class {
 			public function fetch() {
-				return ['total_results' => 1];
+				return ['total_results' => 2];
 			}
 		};
 		$queryBuilder
