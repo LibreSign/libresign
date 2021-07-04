@@ -5,7 +5,6 @@ namespace OCA\Libresign\Tests\Unit\Helper;
 use OCA\Libresign\Helper\Pagination;
 use OCP\DB\IResult;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use stdClass;
 
 class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testWithOnePage() {
