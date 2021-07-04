@@ -26,15 +26,11 @@ class Pagination extends Pagerfanta {
 		$this->setMaxPerPage($length);
 		$pagination['total'] = $this->count();
 		if ($pagination['total'] > $length) {
-			$pagination['current'] = '/file/list?page=' . $page . '&length=' . $length;
-			$pagination['next'] = '/file/list?page=' . $page . '&length=' . $length;
-			$pagination['prev'] = '/file/list' .
-				'?page=' . ($this->hasPreviousPage() ? $this->getPreviousPage() : 1) .
-				'&length=' . $length;
-			$pagination['last'] = '/file/list' .
-				'?page=' . ($this->hasNextPage() ? $this->getNextPage() : 1) .
-				'&length=' . $length;
-			$pagination['first'] = '/file/list?page=1&length=' . $length;
+			$pagination['current'] = $this->rootPath . '?page=' . $page . '&length=' . $length;
+			$pagination['next'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNextPage() . '&length=' . $length : null;
+			$pagination['prev'] = $this->hasPreviousPage()  ? $this->rootPath . '?page=' . $this->getPreviousPage() . '&length=' . $length : null;
+			$pagination['last'] = $this->hasNextPage()      ? $this->rootPath . '?page=' . $this->getNbPages() . '&length=' . $length : null;
+			$pagination['first'] = $this->hasPreviousPage() ? $this->rootPath . '?page=1&length=' . $length : null;
 		} else {
 			$pagination['current'] = null;
 			$pagination['next'] = null;
