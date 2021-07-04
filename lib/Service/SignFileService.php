@@ -78,6 +78,8 @@ class SignFileService {
 	}
 
 	public function save(array $data) {
+		$this->validateUsers($data);
+
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 		} else {
@@ -287,7 +289,7 @@ class SignFileService {
 		if (isset($data['uuid'])) {
 			$this->validateHelper->validateFileUuid($data);
 			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $file->getId());
+			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
 		} elseif ($data['file']) {
 			if (!isset($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
