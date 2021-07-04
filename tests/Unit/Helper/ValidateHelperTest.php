@@ -301,6 +301,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateIfNodeIdExistsWithInvalidFile() {
 		$this->expectExceptionMessage('Invalid fileID');
+		$this->root
+			->method('getById')
+			->willReturn([0 => null]);
 		$this->validateHelper->validateIfNodeIdExists(171);
 	}
 
