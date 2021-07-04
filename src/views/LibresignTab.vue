@@ -57,8 +57,7 @@
 			<Request v-show="requestShow"
 				ref="request"
 				:fileinfo="fileInfo"
-				@request:signatures="requestSignatures"
-				@request:delete="deleteUserRequest">
+				@request:signatures="requestSignatures">
 				<template slot="actions">
 					<button class="lb-ls-return-button" @click="option('request')">
 						{{ t('libresign', 'Return') }}
@@ -93,7 +92,7 @@
 										{{ t('libresign', 'Notify') }}
 									</button>
 									<Actions>
-										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer.email)" />
+										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
 									</Actions>
 								</div>
 							</div>
@@ -228,7 +227,8 @@ export default {
 		},
 
 		async deleteUserRequest(user) {
-			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
+			console.info(user)
+			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user }))
 			if (result === true) {
 				try {
 					const response = await axios.delete(generateUrl('/apps/libresign/api/0.1/sign/register/signature'), {
@@ -238,7 +238,6 @@ export default {
 						user,
 					})
 					showMessage(response.data.message)
-					this.$refs.request.removeValue(user)
 				} catch (err) {
 					showError(err.data.message)
 				}
@@ -420,6 +419,10 @@ export default {
 
 					.container-btn{
 						width: 50% !important;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						width: 100%;
 					}
 				}
 			}

@@ -14,7 +14,7 @@
 			</div>
 			<ul class="list-users">
 				<li v-for="value in values" :key="value.email" class="list-uses-item">
-					<ListItem :user="value" :description="value.description" @remove-user="emitDelete" />
+					<ListItem :user="value" :description="value.description" @remove-user="removeValue" />
 				</li>
 			</ul>
 
