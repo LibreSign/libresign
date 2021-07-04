@@ -307,7 +307,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
 
-		// $this->expectErrorMessage('Invalid PDF');
 		$actual = $this->service->saveFile([
 			'name' => 'Name',
 			'file' => [
