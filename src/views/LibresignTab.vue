@@ -73,7 +73,7 @@
 								<div class="container-dot">
 									<div class="icon-signer icon-user" />
 									<span>
-										{{ signer.displayName ? signer.displayName : signer.email }}
+										{{ signer.displayName ? signer.displayName : t('libresign', 'Account not exist') }}
 									</span>
 								</div>
 								<div class="container-dot">
@@ -92,7 +92,7 @@
 										{{ t('libresign', 'Notify') }}
 									</button>
 									<Actions>
-										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
+										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer.email)" />
 									</Actions>
 								</div>
 							</div>
@@ -227,7 +227,6 @@ export default {
 		},
 
 		async deleteUserRequest(user) {
-			console.info(user)
 			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user }))
 			if (result === true) {
 				try {
@@ -279,6 +278,7 @@ export default {
 					})
 					this.option('request')
 					this.clearRequestList()
+					this.getInfo()
 					return showSuccess(response.data.message)
 				}
 
@@ -291,6 +291,7 @@ export default {
 				})
 				this.option('request')
 				this.clearRequestList()
+				this.getInfo()
 				return showSuccess(response.data.message)
 			} catch (err) {
 				if (err.response.data.errors) {
@@ -382,7 +383,7 @@ export default {
 					flex-direction: row;
 					align-items: center;
 					justify-content: flex-start;
-					width: 32%;
+					width: 100%;
 					margin-bottom: 6px;
 					min-height: 26px;
 					cursor: inherit;
