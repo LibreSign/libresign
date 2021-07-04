@@ -425,6 +425,7 @@ class AccountService {
 		$page = $page ?? 1;
 		$length = $length ?? 1;
 		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
+		$data['pagination']->setRootPath('/file/list');
 		return [
 			'data' => $data['data'],
 			'pagination' => $data['pagination']->getPagination($page, $length)

@@ -7,12 +7,19 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use Pagerfanta\Pagerfanta;
 
 class Pagination extends Pagerfanta {
+	/** @var string */
+	private $rootPath;
 	public function __construct(
 		IQueryBuilder $queryBuilder,
 		callable $countQueryBuilderModifier
 	) {
 		$adapter = new PagerFantaQueryAdapter($queryBuilder, $countQueryBuilderModifier);
 		parent::__construct($adapter);
+	}
+
+	public function setRootPath(string $rootPath = '') {
+		$this->rootPath = $rootPath;
+		return $this;
 	}
 
 	public function getPagination($page, $length) {
