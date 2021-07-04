@@ -189,6 +189,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$file]));
 		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
 		$actual = $this->service->deleteSignRequest([
 			'uuid' => 'valid',
 			'users' => [
@@ -594,6 +595,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateUserManagerWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 		$this->service->validateUserManager([]);
+	}
+
+	public function testValidateExistingFileWithoutUuidAndFileId() {
+		$this->expectExceptionMessage('Inform or UUID or a File object');
+		$this->service->validateExistingFile([]);
 	}
 
 	public function testValidateExistingFileWithInvalidFileId() {

@@ -287,12 +287,12 @@ class SignFileService {
 		$this->validateHelper->validateNewFile($data);
 	}
 
-	public function validateExistingFile(array $data) { 
+	public function validateExistingFile(array $data) {
 		if (isset($data['uuid'])) {
 			$this->validateHelper->validateFileUuid($data);
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
-		} elseif ($data['file']) {
+		} elseif (isset($data['file'])) {
 			if (!isset($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
@@ -354,8 +354,8 @@ class SignFileService {
 					$signer['email'],
 					$fileData->getId()
 				);
-				$this->fileUserMapper->delete($fileUser);
 				$deletedUsers[] = $fileUser;
+				$this->fileUserMapper->delete($fileUser);
 			} catch (\Throwable $th) {
 				// already deleted
 			}
