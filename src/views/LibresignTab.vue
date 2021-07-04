@@ -28,17 +28,17 @@
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
-				<button class="primary" :disabled="!hasSign" @click="option('sign')">
+				<button v-if="hasSign" class="primary" @click="option('sign')">
 					{{ t('libresign', 'Sign') }}
 				</button>
 				<button
-					:disabled="!canRequestSign"
+					v-if="canRequestSign"
 					class="primary"
 					@click="option('request')">
-					{{ t('libresign', 'Request subscription') }}
+					{{ t('libresign', 'Request') }}
 				</button>
-				<button v-if="hasSignatures" @click="option('verify')">
-					{{ t('libresign', 'Verify signatures') }}
+				<button v-if="haveRequest" @click="option('signatures')">
+					{{ t('libresign', 'Status') }}
 				</button>
 			</div>
 
@@ -64,6 +64,42 @@
 					</button>
 				</template>
 			</Request>
+
+			<div v-if="signaturesShow" id="signers" class="container-signers">
+				<div class="content-signers">
+					<ul>
+						<li v-for="signer in signers" :key="signer.uid">
+							<div class="signer-content">
+								<div class="container-dot">
+									<div class="icon-signer icon-user" />
+									<span>
+										{{ signer.displayName ? signer.displayName : signer.email }}
+									</span>
+								</div>
+								<div class="container-dot">
+									<div :class="'dot ' + (signer.signed === null ? 'pending' : 'signed')" />
+									<span>
+										{{ signer.signed === null ? t('libresign', 'Pending') : t('libresign','Signed') }}
+									</span>
+								</div>
+								<div v-show="showButton(signer)" class="container-dot container-btn">
+									<button class="primary" @click="changeToSign">
+										{{ t('libresign', 'Sign') }}
+									</button>
+								</div>
+								<div class="container-dot container-btn">
+									<button v-show="!showButton(signer)" class="primary" @click="resendEmail(signer.email)">
+										{{ t('libresign', 'Resubmit email') }}
+									</button>
+								</div>
+							</div>
+						</li>
+					</ul>
+					<button class="lb-ls-return-button" @click="option('signatures')">
+						{{ t('libresign', 'Return') }}
+					</button>
+				</div>
+			</div>
 		</AppSidebarTab>
 	</AppSidebar>
 </template>
@@ -94,8 +130,11 @@ export default {
 			showButtons: true,
 			signShow: false,
 			requestShow: false,
+			signaturesShow: false,
 			disabledSign: false,
+			signers: {},
 			canRequestSign: false,
+			haveRequest: false,
 			canSign: false,
 			fileInfo: null,
 			hasPfx: false,
@@ -146,19 +185,28 @@ export default {
 
 		async getInfo() {
 			try {
-				console.info('fileInfo: ', this.fileInfo)
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-
+				console.info('response: ', response)
+				if (response.data.signers) {
+					this.haveRequest = true
+					this.signers = response.data.signers
+					console.info('signers: ', this.signers)
+				}
 			} catch (err) {
 				this.canSign = false
 			}
 		},
 
+		changeToSign() {
+			this.option('signatures')
+			this.option('sign')
+		},
+
 		async signDocument(param) {
 			try {
 				this.disabledSign = true
-				const response = await axios.post(generateUrl(`apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 				this.option('sign')
@@ -173,8 +221,39 @@ export default {
 			}
 		},
 
+		async resendEmail(email) {
+			try {
+				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
+					fileId: this.fileInfo.id,
+					signers: [
+						{
+							email,
+						},
+					],
+				})
+
+				showSuccess(response.data.message)
+			} catch (err) {
+				console.error(err)
+				showError(err)
+			}
+		},
+
 		async requestSignatures(users, fileInfo) {
 			try {
+				if (this.haveRequest) {
+					const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
+						file: {
+							fileId: this.fileInfo.id,
+						},
+						users,
+					})
+					console.info(response)
+					this.option('request')
+					this.clearRequestList()
+					return showSuccess(response.data.message)
+				}
+
 				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
 					file: {
 						fileId: this.fileInfo.id,
@@ -201,6 +280,9 @@ export default {
 			} else if (value === 'request') {
 				this.showButtons = !this.showButtons
 				this.requestShow = !this.requestShow
+			} else if (value === 'signatures') {
+				this.showButtons = !this.showButtons
+				this.signaturesShow = !this.signaturesShow
 			}
 		},
 		clearSiginPassword() {
@@ -208,6 +290,9 @@ export default {
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()
+		},
+		showButton(signPerson) {
+			return !!(signPerson.me && !signPerson.signed)
 		},
 	},
 }
@@ -236,5 +321,81 @@ export default {
 	align-self: center;
 	position:absolute;
 	bottom: 10px;
+}
+
+.container-signers{
+	display: flex;
+	width: 100%;
+
+	.content-signers{
+		width: 100%;
+
+		ul {
+			display: flex;
+			flex-direction: column;
+			padding-bottom: 50px;
+
+			li{
+				padding: 10px;
+				border: 1px solid #cecece;
+				border-radius: 10px;
+				display: flex;
+				flex-direction: column;
+				margin-bottom: 12px;
+
+				.signer-user{
+					display: flex;
+					flex-direction: row;
+					margin: 3px;
+				}
+
+				.container-dot{
+					margin: 3px;
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					justify-content: flex-start;
+					width: 32%;
+					margin-bottom: 6px;
+					min-height: 26px;
+					cursor: inherit;
+
+					.dot{
+						width: 10px;
+						height: 10px;
+						border-radius: 50%;
+						margin-right: 10px;
+						margin-left: 3px;
+						cursor: inherit;
+					}
+
+					.signed{
+						background: #008000;
+					}
+
+					.pending{
+						background: #d85a0b;
+					}
+
+					span{
+						font-size: 14px;
+						font-weight: normal;
+						text-align: center;
+						color: rgba(0,0,0,.7);
+						cursor: inherit;
+						margin-left: 5px;
+					}
+
+					button{
+						min-width: 130px;
+					}
+
+					.container-btn{
+						width: 50% !important;
+					}
+				}
+			}
+		}
+	}
 }
 </style>
