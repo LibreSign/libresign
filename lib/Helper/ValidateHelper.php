@@ -114,7 +114,7 @@ class ValidateHelper {
 
 	private function getLibreSignFileByNodeId(int $nodeId): \OCP\Files\File {
 		if (empty($this->file)) {
-			$libresignFile = $this->getLibreSignFile($nodeId);
+			$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
 			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
 			$this->file = $userFolder->getById($nodeId);
@@ -123,13 +123,6 @@ class ValidateHelper {
 			}
 		}
 		return $this->file;
-	}
-
-	public function getLibreSignFile(?int $nodeId = null): ?LibresignFile {
-		if (empty($this->libresignFile) && $nodeId) {
-			$this->libresignFile = $this->fileMapper->getByFileId($nodeId);
-		}
-		return $this->libresignFile;
 	}
 
 	public function canRequestSign(IUser $user) {
@@ -144,7 +137,7 @@ class ValidateHelper {
 	}
 
 	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
-		$libresignFile = $this->getLibreSignFile($nodeId);
+		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
 		}
@@ -163,7 +156,7 @@ class ValidateHelper {
 	}
 
 	public function signerWasAssociated(array $signer) {
-		$libresignFile = $this->getLibreSignFile();
+		$libresignFile = $this->fileMapper->getByFileId();
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
@@ -175,7 +168,7 @@ class ValidateHelper {
 	}
 
 	public function notSigned(array $signer) {
-		$libresignFile = $this->getLibreSignFile();
+		$libresignFile = $this->fileMapper->getByFileId();
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
@@ -184,6 +177,14 @@ class ValidateHelper {
 		$signed = $exists[0]->getSigned();
 		if ($signed) {
 			throw new \Exception($this->l10n->t('%s already signed this file', $signer['email']));
+		}
+	}
+
+	public function validateFileUuid(array $data) {
+		try {
+			$this->fileMapper->getByUuid($data['uuid']);
+		} catch (\Throwable $th) {
+			throw new \Exception($this->l10n->t('Invalid UUID file'));
 		}
 	}
 }

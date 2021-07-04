@@ -115,7 +115,7 @@ class SignFileController extends ApiController {
 		];
 		try {
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateFileUuid($data);
+			$this->signFile->validateExistingFile($data);
 			$this->signFile->validateUsers($data);
 			$return = $this->signFile->save($data);
 			unset(
@@ -153,10 +153,6 @@ class SignFileController extends ApiController {
 			'userManager' => $user
 		];
 		try {
-			$this->signFile->validateUserManager($data);
-			$this->signFile->validateFileUuid($data);
-			$this->signFile->validateUsers($data);
-			$this->signFile->canDeleteSignRequest($data);
 			$deletedUsers = $this->signFile->deleteSignRequest($data);
 			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
