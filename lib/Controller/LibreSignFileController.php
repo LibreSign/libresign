@@ -104,6 +104,9 @@ class LibreSignFileController extends Controller {
 					'me' => false
 				];
 				if (!empty($uid)) {
+					if ($uid === $file->getUserId()) {
+						$signatureToShow['email'] = $signer->getEmail();
+					}
 					$signatureToShow['me'] = $uid === $signer->getUserId();
 					if ($uid === $signer->getUserId() && !$signer->getSigned()) {
 						$canSign = true;
