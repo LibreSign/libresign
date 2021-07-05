@@ -412,6 +412,76 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
 	}
 
+	public function testSaveUsingFileId() {
+		$this->file->method('getByFileId')->willThrowException($this->createMock(\Exception::class));
+
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('setFileId')],
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('setUuid'), $this->callback(function ($subject) {
+					$this->assertIsString($subject[0]);
+					$this->assertEquals(36, strlen($subject[0]));
+					return true;
+				})],
+				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
+				[$this->equalTo('getDescription')],
+				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
+			)
+			->will($this->returnValueMap([
+				['setFileId', [], null],
+				['getUuid', [], null],
+				['setUuid', [], null],
+				['setEmail', [], null],
+				['getDescription', [], null],
+				['setDescription', [], null]
+			]));
+		$this->fileUserMapper
+			->method('getByEmailAndFileId')
+			->with('user@test.coop')
+			->will($this->returnValue($fileUser));
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$this->file
+			->method('insert')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $c) {
+				$c->setId(123);
+				return $c;
+			});
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$file]);
+		$this->folder
+			->method('getFolder')
+			->willReturn($folder);
+		$this->folder
+			->method('getUserId')
+			->willReturn(1);
+		$actual = $this->service->save([
+			'file' => [
+				'fileId' => 123
+			],
+			'users' => [
+				[
+					'email' => 'USER@TEST.COOP',
+					'description' => 'Please, sign'
+				]
+			],
+			'name' => 'Filename',
+			'userManager' => $this->user
+		]);
+		$this->assertArrayHasKey('uuid', $actual);
+		$this->assertArrayHasKey('users', $actual);
+		$this->assertCount(1, $actual['users']);
+		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
+	}
+
 	public function testSaveFileUserWhenUserExists() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser
