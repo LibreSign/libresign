@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<AppSidebar :class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}" title="LibreSign" :header="false">
+	<AppSidebar class="lb-ls-root" title="LibreSign" :header="false">
 		<AppSidebarTab
 			id="libresign-tab"
 			icon="icon-rename"
@@ -111,7 +111,7 @@ import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { showError, showMessage, showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
@@ -170,12 +170,6 @@ export default {
 		},
 	},
 
-	created() {
-		this.fileInfo = window.OCA.Libresign.fileInfo
-		this.getInfo()
-		this.getMe()
-	},
-
 	methods: {
 		/**
 		 * Update current fileInfo and fetch new data
@@ -194,6 +188,7 @@ export default {
 				return true
 			}
 		},
+
 		showNotifyButton(user) {
 			if (!user.me) {
 				return true
@@ -243,9 +238,11 @@ export default {
 			try {
 				this.loadingInput = true
 				this.disabledSign = true
+
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
+
 				this.option('sign')
 				this.canSign = false
 				this.loadingInput = false
@@ -254,6 +251,7 @@ export default {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
+
 				this.disabledSign = false
 				this.loadingInput = false
 				return showError(err.response.data.errors[0])
@@ -270,9 +268,10 @@ export default {
 						},
 						user,
 					})
-					showMessage(response.data.message)
+
+					this.getInfo()
 				} catch (err) {
-					showError(err.data.message)
+					showError(err)
 				}
 			}
 		},
@@ -359,6 +358,7 @@ export default {
 <style lang="scss">
 .lb-ls-root{
 	width: 100% !important;
+	height: calc(100vh - 223px) !important;
 
 	.app-sidebar-header {
 		display: none !important;
