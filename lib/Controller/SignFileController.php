@@ -7,7 +7,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -28,8 +27,6 @@ class SignFileController extends ApiController {
 	private $fileMapper;
 	/** @var SignFileService */
 	protected $signFile;
-	/** @var MailService */
-	private $mail;
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -40,7 +37,6 @@ class SignFileController extends ApiController {
 		FileMapper $fileMapper,
 		IUserSession $userSession,
 		SignFileService $signFile,
-		MailService $mail,
 		LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -49,7 +45,6 @@ class SignFileController extends ApiController {
 		$this->fileMapper = $fileMapper;
 		$this->userSession = $userSession;
 		$this->signFile = $signFile;
-		$this->mail = $mail;
 		$this->logger = $logger;
 	}
 
@@ -136,45 +131,6 @@ class SignFileController extends ApiController {
 			[
 				'message' => $this->l10n->t('Success'),
 				'data' => $return
-			],
-			Http::STATUS_OK
-		);
-	}
-
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
-	 * @param string $uuid
-	 * @param array $users
-	 * @return JSONResponse
-	 */
-	public function removeSign(string $uuid, array $users) {
-		$user = $this->userSession->getUser();
-		$data = [
-			'uuid' => $uuid,
-			'users' => $users,
-			'userManager' => $user
-		];
-		try {
-			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
-			$deletedUsers = $this->signFile->deleteSignRequest($data);
-			foreach ($deletedUsers as $user) {
-				$this->mail->notifyUnsignedUser($user);
-			}
-		} catch (\Throwable $th) {
-			$message = $th->getMessage();
-			return new JSONResponse(
-				[
-					'message' => $message,
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
-		}
-		return new JSONResponse(
-			[
-				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
 		);
