@@ -173,11 +173,15 @@ class ValidateHelper {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
-		$signed = $exists[0]->getSigned();
-		if ($signed) {
-			throw new \Exception($this->l10n->t('%s already signed this file', $signer['email']));
+		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email'] && $s->getSigned());
+		if (!$exists) {
+			return;
 		}
+		$firstSigner = array_values($exists)[0];
+		if ($firstSigner->getDisplayName()) {
+			throw new \Exception($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
+		}
+		throw new \Exception($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 	}
 
 	public function validateFileUuid(array $data) {
