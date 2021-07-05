@@ -434,4 +434,36 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteSignFileIdSignatureIdWithSuccess() {
+		$user = $this->createUser('username', 'password');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]'
+			]
+		]);
+
+		$this->request
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/sign/file_id/' . $file['nodeId'] . '/' . $file['users'][0]->getId());
+
+		$this->assertRequest();
+	}
 }

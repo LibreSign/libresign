@@ -346,6 +346,11 @@ class SignFileService {
 		});
 	}
 
+	/**
+	 * @deprecated 2.4.0
+	 * @param array $data
+	 * @return array
+	 */
 	public function deleteSignRequest(array $data): array {
 		$this->validateHelper->validateFileUuid($data);
 		$this->validateUsers($data);
@@ -379,6 +384,11 @@ class SignFileService {
 			$this->fileMapper->delete($fileData);
 		}
 		return $deletedUsers;
+	}
+
+	public function unassociateToUser(int $fileId, int $signatureId) {
+		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+		$this->fileUserMapper->delete($fileUser);
 	}
 
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {

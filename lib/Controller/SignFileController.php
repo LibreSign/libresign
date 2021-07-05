@@ -7,6 +7,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -36,6 +37,7 @@ class SignFileController extends ApiController {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IUserSession $userSession,
+		ValidateHelper $validateHelper,
 		SignFileService $signFile,
 		LoggerInterface $logger
 	) {
@@ -44,6 +46,7 @@ class SignFileController extends ApiController {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->userSession = $userSession;
+		$this->validateHelper = $validateHelper;
 		$this->signFile = $signFile;
 		$this->logger = $logger;
 	}
@@ -236,5 +239,40 @@ class SignFileController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+	}
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param integer $fileId
+	 * @param integer $signatureId
+	 * @return JSONResponse
+	 */
+	public function deleteOneSignRequestUsingFileId(int $fileId, int $signatureId) {
+		try {
+			$data = [
+				'userManager' => $this->userSession->getUser(),
+				'file' => [
+					'fileId' => $fileId
+				]
+			];
+			$this->signFile->validateUserManager($data);
+			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
+			$this->signFile->unassociateToUser($fileId, $signatureId);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'success' => true
+			],
+			Http::STATUS_OK
+		);
 	}
 }

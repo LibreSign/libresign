@@ -187,4 +187,12 @@ class ValidateHelper {
 			throw new \Exception($this->l10n->t('Invalid UUID file'));
 		}
 	}
+
+	public function validateIsSignerOfFile(int $signatureId, int $fileId) {
+		try {
+			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+		} catch (\Throwable $th) {
+			throw new \Exception($this->l10n->t('Signer not associated to this file'));
+		}
+	}
 }
