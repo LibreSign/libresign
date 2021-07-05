@@ -329,7 +329,11 @@ class SignFileService {
 	 * @param array $data
 	 */
 	public function canDeleteSignRequest(array $data) {
-		$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+		if (!empty($data['uuid'])) {
+			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+		} elseif (!empty($data['file']['fileId'])) {
+			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+		}
 		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
 		if ($signed) {
 			throw new \Exception($this->l10n->t('Document already signed'));
@@ -347,7 +351,11 @@ class SignFileService {
 		$this->validateUsers($data);
 		$this->canDeleteSignRequest($data);
 
-		$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+		if (!empty($data['uuid'])) {
+			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+		} elseif (!empty($data['file']['fileId'])) {
+			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+		}
 
 		if (!empty($data['uuid'])) {
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
