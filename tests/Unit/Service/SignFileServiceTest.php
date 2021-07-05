@@ -202,7 +202,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount(1, $actual);
 	}
 
-	public function testDeleteSignRequestSuccessUsingFileId() {
+	public function testDeleteSignRequestDeprecatedSuccessUsingFileId() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
@@ -221,7 +221,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper->method('getByNodeId')->will($this->returnValue([$file]));
 		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
 		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
-		$actual = $this->service->deleteSignRequest([
+		$actual = $this->service->deleteSignRequestDeprecated([
 			'file' => [
 				'fileId' => 171
 			],
