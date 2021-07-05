@@ -74,7 +74,12 @@ class SignFileDeprecatedController extends SignFileController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param array $users
+	 * @return JSONResponse
 	 */
 	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
 		return parent::updateSign($users, $uuid, $file);
