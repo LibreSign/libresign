@@ -270,7 +270,8 @@ class SignFileController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true
+				'success' => true,
+				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
 		);

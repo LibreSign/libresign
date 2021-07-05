@@ -4,6 +4,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Http;
@@ -25,6 +26,8 @@ class SignFileDeprecatedController extends SignFileController {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var SignFileService */
 	protected $signFile;
 	/** @var MailService */
@@ -38,6 +41,7 @@ class SignFileDeprecatedController extends SignFileController {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IUserSession $userSession,
+		ValidateHelper $validateHelper,
 		SignFileService $signFile,
 		MailService $mail,
 		LoggerInterface $logger
@@ -46,6 +50,7 @@ class SignFileDeprecatedController extends SignFileController {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->userSession = $userSession;
+		$this->validateHelper = $validateHelper;
 		$this->signFile = $signFile;
 		$this->mail = $mail;
 		$this->logger = $logger;
@@ -55,6 +60,7 @@ class SignFileDeprecatedController extends SignFileController {
 			$this->fileUserMapper,
 			$this->fileMapper,
 			$this->userSession,
+			$this->validateHelper,
 			$this->signFile,
 			$this->logger
 		);
