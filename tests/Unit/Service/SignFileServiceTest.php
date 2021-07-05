@@ -171,7 +171,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testDeleteSignRequestSuccessUsingUuid() {
+	public function testDeleteSignRequestDeprecatedSuccessUsingUuid() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
@@ -190,7 +190,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$file]));
 		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
 		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
-		$actual = $this->service->deleteSignRequest([
+		$actual = $this->service->deleteSignRequestDeprecated([
 			'uuid' => 'valid',
 			'users' => [
 				[
