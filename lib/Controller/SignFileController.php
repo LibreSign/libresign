@@ -266,7 +266,7 @@ class SignFileController extends ApiController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
+				Http::STATUS_UNAUTHORIZED
 			);
 		}
 		return new JSONResponse(
@@ -301,7 +301,7 @@ class SignFileController extends ApiController {
 				[
 					'message' => $th->getMessage(),
 				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
+				Http::STATUS_UNAUTHORIZED
 			);
 		}
 		return new JSONResponse(
