@@ -317,7 +317,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateFileUuidWithInvalidUuid() {
 		$this->expectExceptionMessage('Invalid UUID file');
-		$this->validateHelper->validateFileUuid([]);
+		$this->fileMapper->method('getByUuid')->will($this->returnCallback(function () {
+			throw new \Exception('not found');
+		}));
+		$this->validateHelper->validateFileUuid(['uuid' => 'invalid']);
 	}
 
 	public function testValidateFileUuidWithValidUuid() {
