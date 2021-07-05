@@ -2,8 +2,6 @@
 
 namespace OCA\Libresign\Controller;
 
-use OCP\AppFramework\Http\JSONResponse;
-
 /**
  * @deprecated 2.4.0
  */

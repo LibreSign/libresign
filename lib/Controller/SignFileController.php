@@ -59,6 +59,7 @@ class SignFileController extends ApiController {
 	 * Request that a file be signed by a group of people
 	 *
 	 * @NoAdminRequired
+	 * @NoCSRFRequired
 	 *
 	 * @param array $file
 	 * @param array $users
@@ -101,6 +102,7 @@ class SignFileController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 * @NoCSRFRequired
 	 *
 	 * @param string $uuid
 	 * @param array $users
