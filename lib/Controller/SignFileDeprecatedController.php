@@ -67,7 +67,18 @@ class SignFileDeprecatedController extends SignFileController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * Request signature
+	 *
+	 * Request that a file be signed by a group of people
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param array $file
+	 * @param array $users
+	 * @param string $name
+	 * @param string|null $callback
+	 * @return JSONResponse
 	 */
 	public function requestSign(array $file, array $users, string $name, ?string $callback = null) {
 		return parent::requestSign($file, $users, $name, $callback);
