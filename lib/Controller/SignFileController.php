@@ -240,6 +240,7 @@ class SignFileController extends ApiController {
 			);
 		}
 	}
+
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
@@ -260,6 +261,41 @@ class SignFileController extends ApiController {
 			$this->signFile->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
 			$this->signFile->unassociateToUser($fileId, $signatureId);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'success' => true,
+				'message' => $this->l10n->t('Success')
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param integer $fileId
+	 * @return JSONResponse
+	 */
+	public function deleteAllSignRequestUsingFileId(int $fileId) {
+		try {
+			$data = [
+				'userManager' => $this->userSession->getUser(),
+				'file' => [
+					'fileId' => $fileId
+				]
+			];
+			$this->signFile->validateUserManager($data);
+			$this->signFile->validateExistingFile($data);
+			$this->signFile->deleteSignRequest($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

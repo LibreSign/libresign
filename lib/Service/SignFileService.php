@@ -351,22 +351,19 @@ class SignFileService {
 	 * @param array $data
 	 * @return array
 	 */
-	public function deleteSignRequest(array $data): array {
+	public function deleteSignRequestDeprecated(array $data): array {
 		$this->validateHelper->validateFileUuid($data);
 		$this->validateUsers($data);
 		$this->canDeleteSignRequest($data);
 
 		if (!empty($data['uuid'])) {
 			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
-		}
-
-		if (!empty($data['uuid'])) {
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
+			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
 		}
+
 		$deletedUsers = [];
 		foreach ($data['users'] as $key => $signer) {
 			try {
@@ -384,6 +381,28 @@ class SignFileService {
 			$this->fileMapper->delete($fileData);
 		}
 		return $deletedUsers;
+	}
+
+	/**
+	 * @param array $data
+	 * @return void
+	 */
+	public function deleteSignRequest(array $data): void {
+		if (!empty($data['uuid'])) {
+			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+			$fileData = $this->fileMapper->getByUuid($data['uuid']);
+		} elseif (!empty($data['file']['fileId'])) {
+			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+		}
+		foreach ($signatures as $fileUser) {
+			try {
+				$this->fileUserMapper->delete($fileUser);
+			} catch (\Throwable $th) {
+				// already deleted
+			}
+		}
+		$this->fileMapper->delete($fileData);
 	}
 
 	public function unassociateToUser(int $fileId, int $signatureId) {

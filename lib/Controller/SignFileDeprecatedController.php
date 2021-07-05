@@ -98,7 +98,7 @@ class SignFileDeprecatedController extends SignFileController {
 		try {
 			$this->signFile->validateUserManager($data);
 			$this->signFile->validateExistingFile($data);
-			$deletedUsers = $this->signFile->deleteSignRequest($data);
+			$deletedUsers = $this->signFile->deleteSignRequestDeprecated($data);
 			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
 			}
