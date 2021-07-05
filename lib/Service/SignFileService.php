@@ -396,11 +396,7 @@ class SignFileService {
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
 		}
 		foreach ($signatures as $fileUser) {
-			try {
-				$this->fileUserMapper->delete($fileUser);
-			} catch (\Throwable $th) {
-				// already deleted
-			}
+			$this->fileUserMapper->delete($fileUser);
 		}
 		$this->fileMapper->delete($fileData);
 	}
