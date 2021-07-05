@@ -18,7 +18,7 @@ use OCP\IDBConnection;
  * @method File delete(File $entity)
  */
 class FileMapper extends QBMapper {
-	/** @var File */
+	/** @var File[] */
 	private $file;
 
 	/**
@@ -51,7 +51,10 @@ class FileMapper extends QBMapper {
 	 * @return Entity Row of table libresign_file
 	 */
 	public function getByUuid(?string $uuid = null) {
-		if (!$this->file || ($uuid && $this->file->getUuid() !== $uuid)) {
+		if (!$uuid) {
+			return array_values($this->file)[0];
+		}
+		if (empty($this->file[$uuid]) || ($this->file[$uuid]->getUuid() !== $uuid)) {
 			$qb = $this->db->getQueryBuilder();
 
 			$qb->select('*')
@@ -71,7 +74,10 @@ class FileMapper extends QBMapper {
 	 * @return Entity Row of table libresign_file
 	 */
 	public function getByFileId(?int $fileId = null) {
-		if (!$this->file || ($fileId && $this->file->getNodeId() !== $fileId)) {
+		if (!$fileId) {
+			return array_values($this->file)[0];
+		}
+		if (empty($this->file[$fileId]) || ($this->file[$fileId]->getNodeId() !== $fileId)) {
 			$qb = $this->db->getQueryBuilder();
 
 			$qb->select('*')
@@ -80,8 +86,8 @@ class FileMapper extends QBMapper {
 					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 				);
 
-			$this->file = $this->findEntity($qb);
+			$this->file[$fileId] = $this->findEntity($qb);
 		}
-		return $this->file;
+		return $this->file[$fileId];
 	}
 }
