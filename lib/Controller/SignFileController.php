@@ -102,14 +102,17 @@ class SignFileController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
-	 * @CORS
 	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(string $uuid, array $users) {
+	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
+			'file' => $file,
 			'users' => $users,
 			'userManager' => $user
 		];
@@ -140,8 +143,10 @@ class SignFileController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
-	 * @CORS
 	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param array $users
 	 * @return JSONResponse
 	 */
 	public function removeSign(string $uuid, array $users) {
@@ -177,6 +182,10 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param string $fileId
+	 * @param string $password
+	 * @return JSONResponse
 	 */
 	public function signUsingFileid(string $fileId, string $password): JSONResponse {
 		return $this->sign($password, $fileId);
@@ -185,6 +194,10 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param string $password
+	 * @return JSONResponse
 	 */
 	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		return $this->sign($password, null, $uuid);
