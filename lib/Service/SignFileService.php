@@ -348,7 +348,12 @@ class SignFileService {
 		$this->canDeleteSignRequest($data);
 
 		$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
-		$fileData = $this->fileMapper->getByUuid($data['uuid']);
+
+		if (!empty($data['uuid'])) {
+			$fileData = $this->fileMapper->getByUuid($data['uuid']);
+		} elseif (!empty($data['file']['fileId'])) {
+			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+		}
 		$deletedUsers = [];
 		foreach ($data['users'] as $key => $signer) {
 			try {
