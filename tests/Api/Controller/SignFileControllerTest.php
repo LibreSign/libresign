@@ -470,6 +470,23 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
+	public function testDeleteSignFileIdSignatureIdWithError() {
+		$user = $this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/sign/file_id/171/171')
+			->assertResponseCode(401);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testDeleteUsingSignFileIdWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$file = $this->requestSignFile([
@@ -495,6 +512,23 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
 			->withPath('/sign/file_id/' . $file['nodeId']);
+
+		$this->assertRequest();
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testDeleteUsingSignFileIdWithError() {
+		$user = $this->createUser('username', 'password');
+
+		$this->request
+			->withMethod('DELETE')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password')
+			])
+			->withPath('/sign/file_id/171')
+			->assertResponseCode(401);
 
 		$this->assertRequest();
 	}
