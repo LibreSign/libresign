@@ -54,7 +54,17 @@ class SignFileController extends ApiController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * Request signature
+	 *
+	 * Request that a file be signed by a group of people
+	 *
+	 * @NoAdminRequired
+	 *
+	 * @param array $file
+	 * @param array $users
+	 * @param string $name
+	 * @param string|null $callback
+	 * @return JSONResponse
 	 */
 	public function requestSign(array $file, array $users, string $name, ?string $callback = null) {
 		$user = $this->userSession->getUser();
@@ -90,7 +100,11 @@ class SignFileController extends ApiController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * @NoAdminRequired
+	 *
+	 * @param string $uuid
+	 * @param array $users
+	 * @return JSONResponse
 	 */
 	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
 		$user = $this->userSession->getUser();
@@ -126,7 +140,12 @@ class SignFileController extends ApiController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param array $users
+	 * @return JSONResponse
 	 */
 	public function removeSign(string $uuid, array $users) {
 		$user = $this->userSession->getUser();
@@ -159,14 +178,24 @@ class SignFileController extends ApiController {
 	}
 
 	/**
-	 * @inheritDoc
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param string $fileId
+	 * @param string $password
+	 * @return JSONResponse
 	 */
 	public function signUsingFileid(string $fileId, string $password): JSONResponse {
 		return $this->sign($password, $fileId);
 	}
 
 	/**
-	 * @inheritDoc
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @param string $uuid
+	 * @param string $password
+	 * @return JSONResponse
 	 */
 	public function signUsingUuid(string $uuid, string $password): JSONResponse {
 		return $this->sign($password, null, $uuid);
