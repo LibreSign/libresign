@@ -78,12 +78,14 @@ class SignFileService {
 	}
 
 	public function save(array $data) {
-		$this->validateUsers($data);
-
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
-			$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+			try {
+				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+			} catch (\Throwable $th) {
+				$file = $this->saveFile($data);
+			}
 		} else {
 			$file = $this->saveFile($data);
 		}

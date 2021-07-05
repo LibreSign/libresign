@@ -73,7 +73,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testValidateFileUrl() {
+	public function testSaveFileWithInvalidUrl() {
 		$this->expectExceptionMessage('Invalid URL file');
 		$folder = $this->createMock(Folder::class);
 		$folder
@@ -88,7 +88,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->expects($this->once())
 			->method('getFolder')
 			->willReturn($folder);
-		$this->service->save([
+		$this->service->saveFile([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
 			'users' => [
@@ -307,7 +307,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
 
-		// $this->expectErrorMessage('Invalid PDF');
 		$actual = $this->service->saveFile([
 			'name' => 'Name',
 			'file' => [
