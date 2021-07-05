@@ -113,16 +113,16 @@ class ValidateHelper {
 	}
 
 	private function getLibreSignFileByNodeId(int $nodeId): \OCP\Files\File {
-		if (empty($this->file)) {
+		if (empty($this->file[$nodeId])) {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
 			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-			$this->file = $userFolder->getById($nodeId);
-			if (!empty($this->file)) {
-				$this->file = $this->file[0];
+			$this->file[$nodeId] = $userFolder->getById($nodeId);
+			if (!empty($this->file[$nodeId])) {
+				$this->file[$nodeId] = $this->file[$nodeId][0];
 			}
 		}
-		return $this->file;
+		return $this->file[$nodeId];
 	}
 
 	public function canRequestSign(IUser $user) {
