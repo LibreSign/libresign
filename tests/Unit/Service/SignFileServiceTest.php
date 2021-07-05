@@ -413,20 +413,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSaveUsingFileId() {
-		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getUuid')],
-				[$this->equalTo('getNodeId')],
-				[$this->equalTo('getId')]
-			)
-			->will($this->returnValueMap([
-				['getUuid', [], 'uuid-here'],
-				['getNodeId', [], 123],
-				['getId', [], 123]
-			]));
-		$this->file->method('getByFileId')->will($this->returnValue($file));
+		$this->file->method('getByFileId')->willThrowException($this->createMock(\Exception::class));
 
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser
@@ -458,6 +445,21 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getDisplayName')->willReturn('John Doe');
 		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$this->file
+			->method('insert')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $c) {
+				$c->setId(123);
+				return $c;
+			});
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$file]);
+		$this->folder
+			->method('getFolder')
+			->willReturn($folder);
 		$this->folder
 			->method('getUserId')
 			->willReturn(1);
@@ -470,10 +472,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'email' => 'USER@TEST.COOP',
 					'description' => 'Please, sign'
 				]
-			]
+			],
+			'name' => 'Filename',
+			'userManager' => $this->user
 		]);
 		$this->assertArrayHasKey('uuid', $actual);
-		$this->assertEquals('uuid-here', $actual['uuid']);
 		$this->assertArrayHasKey('users', $actual);
 		$this->assertCount(1, $actual['users']);
 		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
