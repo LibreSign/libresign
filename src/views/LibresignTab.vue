@@ -74,7 +74,7 @@
 								<div class="container-dot">
 									<div class="icon-signer icon-user" />
 									<span>
-										{{ signer.displayName ? signer.displayName : t('libresign', 'Account not exist') }}
+										{{ getName(signer) }}
 									</span>
 								</div>
 								<div class="container-dot">
@@ -83,15 +83,15 @@
 										{{ signer.signed === null ? t('libresign', 'Pending') : t('libresign','Signed') }}
 									</span>
 								</div>
-								<div class="container-dot container-btn">
-									<button v-show="showSignButton(signer)" class="primary" @click="changeToSign">
+								<div v-if="showDivButtons(signer)" class="container-dot container-btn">
+									<button v-if="showSignButton(signer)" class="primary" @click="changeToSign">
 										{{ t('libresign', 'Sign') }}
 									</button>
-									<button v-show="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
+									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
 										{{ t('libresign', 'Send reminder') }}
 									</button>
-									<Actions v-show="showDelete(signer)">
-										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer.email)" />
+									<Actions v-if="showDelete(signer)">
+										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
 									</Actions>
 								</div>
 							</div>
@@ -168,6 +168,12 @@ export default {
 			this.requestShow = false
 			this.signaturesShow = false
 		},
+
+		signers() {
+			if (this.signers.length <= 0) {
+				this.haveRequest = false
+			}
+		},
 	},
 
 	methods: {
@@ -191,6 +197,9 @@ export default {
 
 		showNotifyButton(user) {
 			if (!user.me) {
+				if (user.signed) {
+					return false
+				}
 				return true
 			}
 			return false
@@ -201,6 +210,9 @@ export default {
 			}
 			return true
 		},
+		showDivButtons(user) {
+			return !!(this.showSignButton(user) || this.showNotifyButton(user) || this.showDelete(user))
+		},
 		/**
 		 * Reset the current view to its default state
 		 */
@@ -209,6 +221,16 @@ export default {
 			this.signShow = false
 		},
 
+		getName(user) {
+			if (user.displayName) {
+				return user.displayName
+			} else if (user.fullName) {
+				return user.fullName
+			} else if (user.email) {
+				return user.email
+			}
+			return t('libresign', 'Account not exist')
+		},
 		async getMe() {
 			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
 			this.hasPfx = response.data.settings.hasSignatureFile
@@ -219,10 +241,12 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-				console.info(response.data)
 				if (response.data.signers) {
 					this.haveRequest = true
+					this.canRequestSign = true
 					this.signers = response.data.signers
+				} else {
+					this.signers = []
 				}
 			} catch (err) {
 				this.canSign = false
@@ -238,12 +262,12 @@ export default {
 			try {
 				this.loadingInput = true
 				this.disabledSign = true
-
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
-
+				this.getInfo()
 				this.option('sign')
+				this.option('signatures')
 				this.canSign = false
 				this.loadingInput = false
 				return showSuccess(response.data.message)
@@ -251,25 +275,22 @@ export default {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
-
 				this.disabledSign = false
 				this.loadingInput = false
 				return showError(err.response.data.errors[0])
 			}
 		},
-
 		async deleteUserRequest(user) {
-			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user }))
+			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl('/apps/libresign/api/0.1/sign/register/signature'), {
-						file: {
-							fileId: this.fileInfo.id,
-						},
-						user,
-					})
+					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
+					if (this.signers.length <= 0) {
+						this.option('signatures')
+					}
 
 					this.getInfo()
+					showSuccess(response.data.message)
 				} catch (err) {
 					showError(err)
 				}
@@ -289,8 +310,8 @@ export default {
 
 				showSuccess(response.data.message)
 			} catch (err) {
-				if (err.data.message) {
-					err.data.messages.map(error => {
+				if (err.response.data.messages) {
+					err.response.data.messages.forEach(error => {
 						showError(error.message)
 					})
 				} else {
@@ -388,9 +409,19 @@ export default {
 
 	.content-signers{
 		width: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 
 		ul {
 			display: flex;
+			width: 100%;
+			overflow-x: scroll;
+			border: 1px solid #cecece;
+			border-radius: 10px;
+			padding: 10px;
+			height: calc(100vh - 300px);
 			flex-direction: column;
 			padding-bottom: 50px;
 
@@ -448,14 +479,14 @@ export default {
 					button{
 						min-width: 130px;
 					}
-
-					.container-btn{
-						width: 50% !important;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
 				}
+
+				.container-btn{
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+				}
+
 			}
 		}
 	}
