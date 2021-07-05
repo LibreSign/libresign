@@ -24,7 +24,7 @@
 					</div>
 					<div v-show="!showButton(sign)" class="container-dot container-btn">
 						<button :class="!disableBtn ? 'secondary' : 'loading'" :disabled="disableBtn" @click="sendNotify(sign.email)">
-							{{ t('libresign', 'Resubmit request') }}
+							{{ t('libresign', 'Notify') }}
 						</button>
 					</div>
 				</div>

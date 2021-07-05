@@ -119,6 +119,7 @@ OC.L10N.register(
     "Set a password to sign the document" : "設置密碼以簽署文件",
     "Password for sign document." : "簽署文件的密碼。",
     "Return" : "返回",
+    "Next" : "下一個檔案",
     "Create an account" : "建立賬號",
     "User created!" : "用戶創建了！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
