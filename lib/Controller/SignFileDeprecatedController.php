@@ -27,7 +27,7 @@ class SignFileDeprecatedController extends SignFileController {
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var ValidateHelper */
-	private $validateHelper;
+	protected $validateHelper;
 	/** @var SignFileService */
 	protected $signFile;
 	/** @var MailService */
