@@ -75,4 +75,50 @@ final class SignFileDeprecatedControllerTest extends ApiTestCase {
 
 		$this->assertRequest();
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testPatchRegisterDeprecatedWithSuccess() {
+		$user = $this->createUser('username', 'password');
+
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
+
+		$user->setEMailAddress('person@test.coop');
+		$file = $this->requestSignFile([
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'person@test.coop'
+				]
+			],
+			'userManager' => $user
+		]);
+
+		$this->request
+			->withMethod('PATCH')
+			->withPath('/webhook/register')
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Content-Type' => 'application/json'
+			])
+			->withRequestBody([
+				'uuid' => $file['uuid'],
+				'users' => [
+					[
+						'email' => 'user@test.coop'
+					]
+				]
+			]);
+
+		$response = $this->assertRequest();
+		$body = json_decode($response->getBody()->getContents(), true);
+		$body['data']['users'][] = ['email' => 'user@test.coop'];
+	}
 }
