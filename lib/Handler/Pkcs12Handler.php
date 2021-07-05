@@ -89,7 +89,7 @@ class Pkcs12Handler {
 	}
 
 	public function writeFooter(File $file, string $uuid) {
-		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer');
+		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
 		if (!$add_footer) {
 			return;
 		}
@@ -111,7 +111,7 @@ class Pkcs12Handler {
 			$pdf->SetAutoPageBreak(false);
 
 			$x = 10;
-			if ($this->config->getAppValue(Application::APP_ID, 'write_qrcode_on_footer')) {
+			if ($this->config->getAppValue(Application::APP_ID, 'write_qrcode_on_footer', 1)) {
 				$this->writeQrCode($validation_site, $pdf);
 				$x += $this->qrCode->getSize();
 			}

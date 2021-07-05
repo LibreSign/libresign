@@ -27,6 +27,7 @@ Types of changes:
 - Validate by LibreSign App 
 - User profile
 - Endpoint to attach files to LibreSign profile
+- Endpoints to delete signer and file sign request
 - Request sign by LibreSign App
 - Validate by LibreSign App
 - User profile

@@ -35,7 +35,15 @@
 						t('libresign', 'Subscription password.')
 					}}</label>
 					<div class="form-ib-group">
-						<input id="password" v-model="password" type="password">
+						<input id="password"
+							v-model="password"
+							v-tooltip.left="{
+								content: t('libresign', 'create your password for sign pdf'),
+								trigger: 'false',
+								show: !havePfx
+							}"
+							:disabled="!havePfx"
+							type="password">
 						<a class="forgot" @click="handleModal(true)">
 							{{ havePfx ? t('libresign', 'Forgot your password?') : t('libresign', 'Create password to sign document') }}
 						</a>
@@ -112,8 +120,8 @@ export default {
 			return !!this.password
 		},
 	},
-
 	created() {
+		console.info(this.$store.state)
 		this.getMe()
 	},
 
