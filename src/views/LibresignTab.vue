@@ -46,6 +46,7 @@
 				ref="sign"
 				:disabled="disabledSign"
 				:pfx="hasPfx"
+				:has-loading="loadingInput"
 				@sign:document="signDocument">
 				<template slot="actions">
 					<button class="lb-ls-return-button" @click="option('sign')">
@@ -82,16 +83,14 @@
 										{{ signer.signed === null ? t('libresign', 'Pending') : t('libresign','Signed') }}
 									</span>
 								</div>
-								<div v-show="showButton(signer)" class="container-dot container-btn">
-									<button class="primary" @click="changeToSign">
+								<div class="container-dot container-btn">
+									<button v-show="showSignButton(signer)" class="primary" @click="changeToSign">
 										{{ t('libresign', 'Sign') }}
 									</button>
-								</div>
-								<div class="container-dot container-btn">
-									<button v-show="!showButton(signer)" class="primary" @click="resendEmail(signer.email)">
-										{{ t('libresign', 'Notify') }}
+									<button v-show="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
+										{{ t('libresign', 'Send reminder') }}
 									</button>
-									<Actions>
+									<Actions v-show="showDelete(signer)">
 										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer.email)" />
 									</Actions>
 								</div>
@@ -140,6 +139,7 @@ export default {
 			signaturesShow: false,
 			disabledSign: false,
 			signers: {},
+			loadingInput: false,
 			canRequestSign: false,
 			haveRequest: false,
 			canSign: false,
@@ -160,6 +160,16 @@ export default {
 		},
 	},
 
+	watch: {
+		fileInfo() {
+			this.getInfo()
+			this.getMe()
+			this.signShow = false
+			this.requestShow = false
+			this.signaturesShow = false
+		},
+	},
+
 	created() {
 		this.fileInfo = window.OCA.Libresign.fileInfo
 		this.getInfo()
@@ -176,6 +186,26 @@ export default {
 			this.resetState()
 		},
 
+		showSignButton(user) {
+			if (user.me) {
+				if (user.signed) {
+					return false
+				}
+				return true
+			}
+		},
+		showNotifyButton(user) {
+			if (!user.me) {
+				return true
+			}
+			return false
+		},
+		showDelete(user) {
+			if (user.signed) {
+				return false
+			}
+			return true
+		},
 		/**
 		 * Reset the current view to its default state
 		 */
@@ -194,6 +224,7 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
+				console.info(response.data)
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.signers = response.data.signers
@@ -210,18 +241,21 @@ export default {
 
 		async signDocument(param) {
 			try {
+				this.loadingInput = true
 				this.disabledSign = true
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 				this.option('sign')
 				this.canSign = false
+				this.loadingInput = false
 				return showSuccess(response.data.message)
 			} catch (err) {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
 				this.disabledSign = false
+				this.loadingInput = false
 				return showError(err.response.data.errors[0])
 			}
 		},
@@ -318,9 +352,6 @@ export default {
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()
-		},
-		showButton(signPerson) {
-			return !!(signPerson.me && !signPerson.signed)
 		},
 	},
 }
@@ -423,7 +454,6 @@ export default {
 						display: flex;
 						justify-content: center;
 						align-items: center;
-						width: 100%;
 					}
 				}
 			}
