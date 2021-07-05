@@ -376,8 +376,7 @@ class SignFileService {
 			}
 		}
 		if ((empty($data['users']) && !count($signatures)) || count($signatures) === count($data['users'])) {
-			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->fileMapper->delete($file);
+			$this->fileMapper->delete($fileData);
 		}
 		return $deletedUsers;
 	}
