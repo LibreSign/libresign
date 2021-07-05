@@ -171,7 +171,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testDeleteSignRequestSuccess() {
+	public function testDeleteSignRequestSuccessUsingUuid() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
@@ -192,6 +192,39 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
 		$actual = $this->service->deleteSignRequest([
 			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+		$this->assertIsArray($actual);
+		$this->assertCount(1, $actual);
+	}
+
+	public function testDeleteSignRequestSuccessUsingFileId() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getFile')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'test@test.coop'],
+				['getId', [], 123],
+				['getFile', [], 'valid']
+			]));
+		$this->file->method('getByFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('getByNodeId')->will($this->returnValue([$file]));
+		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
+		$actual = $this->service->deleteSignRequest([
+			'file' => [
+				'fileId' => 171
+			],
 			'users' => [
 				[
 					'email' => 'test@test.coop'
