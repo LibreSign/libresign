@@ -421,7 +421,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->cfsslHandler
 			->method('__call')
 			->with(
-				$this->callback(function($functionName, $value = null) {
+				$this->callback(function ($functionName, $value = null) {
 					return $this->cfsslHandlerCallbackToGetSetArguments($functionName, $value);
 				})
 			)
@@ -447,7 +447,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->cfsslHandler
 			->method('__call')
 			->with(
-				$this->callback(function($functionName, $value = null) {
+				$this->callback(function ($functionName, $value = null) {
 					return $this->cfsslHandlerCallbackToGetSetArguments($functionName, $value);
 				})
 			)
