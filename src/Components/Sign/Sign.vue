@@ -112,6 +112,7 @@ export default {
 		},
 		changePfx(value) {
 			this.pfx = value
+			this.emit('change-pfx', true)
 		},
 		handleModal(state) {
 			this.modal = state
