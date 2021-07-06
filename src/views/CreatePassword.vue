@@ -60,9 +60,11 @@ export default {
 				}
 				this.clear()
 				this.$emit('close', true)
+				this.$emit('changePfx', true)
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false
+				this.$emit('changePfx', false)
 			}
 		},
 		clear() {
