@@ -281,7 +281,7 @@ export default {
 			}
 		},
 		async deleteUserRequest(user) {
-			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
+			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
 					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
