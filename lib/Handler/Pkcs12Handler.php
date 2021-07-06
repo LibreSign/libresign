@@ -36,12 +36,12 @@ class Pkcs12Handler {
 
 	public function __construct(
 		FolderService $folderService,
-		JSignPdfHandler $jSignPdfHandler,
+		JSignPdfHandler $JSignPdfHandler,
 		IConfig $config,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
-		$this->jSignPdfHandler = $jSignPdfHandler;
+		$this->JSignPdfHandler = $JSignPdfHandler;
 		$this->config = $config;
 		$this->l10n = $l10n;
 	}
