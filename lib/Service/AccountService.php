@@ -171,7 +171,7 @@ class AccountService {
 		}
 
 		try {
-			$this->validateHelper->validateFile($file);
+			$this->validateHelper->validateNewFile($file);
 		} catch (\Exception $e) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
@@ -260,9 +260,7 @@ class AccountService {
 	 */
 	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
-		$info['settings'] = [
-			'hasSignatureFile' => $this->hasSignatureFile($userId)
-		];
+		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($userId);
 		return $info;
 	}
 
@@ -285,7 +283,8 @@ class AccountService {
 				$return['errors'][] = $this->l10n->t('This is not your file');
 				return $return;
 			}
-			if ($this->userManager->userExists($fileUser->getEmail())) {
+			$email = $fileUser->getEmail();
+			if ($this->userManager->userExists($email)) {
 				$return['action'] = JSActions::ACTION_REDIRECT;
 				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
 				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
@@ -296,6 +295,7 @@ class AccountService {
 				]);
 				return $return;
 			}
+			$return['settings']['accountHash'] = md5($email);
 			$return['action'] = JSActions::ACTION_CREATE_USER;
 			return $return;
 		}
@@ -415,18 +415,20 @@ class AccountService {
 		return true;
 	}
 
-	public function list(IUser $user, $page = null, $limit = 15) {
-		$return = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $limit);
+	public function getSettings(?IUser $user = null): array {
+		$return['canRequestSign'] = $this->canRequestSign($user);
+		$return['hasSignatureFile'] = $this->hasSignatureFile($user->getUID());
+		return $return;
+	}
+
+	public function list(IUser $user, $page = null, $length = 15) {
+		$page = $page ?? 1;
+		$length = $length ?? 1;
+		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
+		$data['pagination']->setRootPath('/file/list');
 		return [
-			'data' => $return,
-			'pagination' => [
-				'total' => $this->reportDao->getTotalFilesAssociatedFilesWithMe($user->getUID()),
-				'current' => '',
-				'next' => '',
-				'prev' => '',
-				'last' => '',
-				'first' => ''
-			]
+			'data' => $data['data'],
+			'pagination' => $data['pagination']->getPagination($page, $length)
 		];
 	}
 

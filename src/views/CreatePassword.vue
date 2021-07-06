@@ -38,6 +38,7 @@ export default {
 			modal: false,
 			hasLoading: false,
 			password: '',
+			hasPfx: false,
 		}
 	},
 	methods: {
@@ -54,7 +55,9 @@ export default {
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
 				this.hasLoading = false
-				this.$store.commit('setHasPfx', true)
+				if (this.$store) {
+					this.$store.commit('setHasPfx', true)
+				}
 				this.clear()
 				this.$emit('close', true)
 			} catch (err) {

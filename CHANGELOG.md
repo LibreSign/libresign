@@ -20,17 +20,21 @@ Types of changes:
 - GitHub action to add a changelog reminder
 - List of documents
 - Test for validation of Swagger documentation
-- Added integration with Approval app. Thanks to @eneiluj
+- Added integration with Approval app on README.md. Thanks to @eneiluj
 - Bump max Nextcloud version to 23
 - Endpoint to list LibreSign files
 - Request Subscription by LibreSign App
 - Validate by LibreSign App 
 - User profile
 - Endpoint to attach files to LibreSign profile
+- Endpoints to delete signer and file sign request
 - Request sign by LibreSign App
 - Validate by LibreSign App
 - User profile
 - Filter files
+- App config to configure JSignPDF
+- Resend sign invite email
+- Add qrcode to footer
 
 # Changed
 - Increment of coverage on backend code

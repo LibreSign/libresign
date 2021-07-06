@@ -11,18 +11,12 @@ use OCP\Files\Folder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
-use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IConfig */
-	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
 	/** @var IL10N */
 	private $l10n;
 	/** @var Pkcs7Handler */
@@ -34,7 +28,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var FileMapper */
 	private $file;
 	/** @var FileUserMapper */
-	private $fileUser;
+	private $fileUserMapper;
 	/** @var IUser */
 	private $user;
 	/** @var IClientService */
@@ -47,26 +41,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $logger;
 
 	public function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
-
-		$this->config
-			->expects($this->any())
-			->method('getAppValue')
-			->willReturn('["admin"]');
-
-		$this->groupManager = $this->createMock(IGroupManager::class);
-
-		$this->groupManager
-			->expects($this->any())
-			->method('getUserGroupIds')
-			->willReturn(['admin']);
-
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->file = $this->createMock(FileMapper::class);
-		$this->fileUser = $this->createMock(FileUserMapper::class);
+		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
@@ -75,14 +55,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mail = $this->createMock(MailService::class);
 		$this->folder = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->service = new SignFileService(
-			$this->config,
-			$this->groupManager,
 			$this->l10n,
 			$this->file,
-			$this->fileUser,
+			$this->fileUserMapper,
 			$this->pkcs7Handler,
 			$this->pkcs12Handler,
 			$this->folder,
@@ -95,26 +73,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testEmptyFile() {
-		$this->expectExceptionMessage('Empty file');
-
-		$this->service->validate([
-			'name' => 'test',
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateInvalidBase64File() {
-		$this->expectExceptionMessage('Invalid base64 file');
-
-		$this->service->validate([
-			'file' => ['base64' => 'qwert'],
-			'name' => 'test',
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateFileUrl() {
+	public function testSaveFileWithInvalidUrl() {
 		$this->expectExceptionMessage('Invalid URL file');
 		$folder = $this->createMock(Folder::class);
 		$folder
@@ -129,23 +88,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->expects($this->once())
 			->method('getFolder')
 			->willReturn($folder);
-		$this->service->save([
+		$this->service->saveFile([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
+			'users' => [
+				[
+					'email' => 'valid@test.coop'
+				]
+			],
 			'userManager' => $this->user
 		]);
-	}
-
-	public function testValidateFileUuidWithInvalidUuid() {
-		$this->expectExceptionMessage('Invalid UUID file');
-		$this->service->validateFileUuid([]);
-	}
-
-	public function testValidateFileUuidWithValidUuid() {
-		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$this->file->method('getByUuid')->will($this->returnValue($file));
-		$actual = $this->service->validateFileUuid(['uuid' => 'valid']);
-		$this->assertNull($actual);
 	}
 
 	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
@@ -153,8 +105,15 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(1234564);
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], '2021-01-01 01:01:01'],
+			]));
+		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
 		$this->expectErrorMessage('Document already signed');
 		$this->service->canDeleteSignRequest(['uuid' => 'valid']);
 	}
@@ -174,7 +133,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getSigned', [], null],
 				['getEmail', [], 'otheremail@test.coop']
 			]));
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
 		$this->expectErrorMessage('No signature was requested to %');
 		$this->service->canDeleteSignRequest([
 			'uuid' => 'valid',
@@ -187,35 +146,85 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanDeleteSignRequestSuccess() {
-		$file = $this->createMock(\OCA\Libresign\Db\File::class);
-		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
-		$this->file->method('getByUuid')->will($this->returnValue($file));
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser->method('__call')->with($this->equalTo('getSigned'))->willReturn(null);
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$fileUser]));
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'valid@test.coop']
+			]));
+		$this->fileUserMapper
+			->method('getByFileUuid')
+			->willReturn([$fileUser]);
 		$actual = $this->service->canDeleteSignRequest([
 			'uuid' => 'valid',
-			'users' => []
+			'users' => [
+				[
+					'email' => 'valid@test.coop'
+				]
+			]
 		]);
 		$this->assertNull($actual);
 	}
 
-	public function testDeleteSignRequestSuccess() {
+	public function testDeleteSignRequestDeprecatedSuccessUsingUuid() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')
 			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')],
 				[$this->equalTo('getId')],
 				[$this->equalTo('getUuid')]
 			)
 			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'test@test.coop'],
 				['getId', [], 123],
 				['getUuid', [], 'valid']
 			]));
 		$this->file->method('getByUuid')->will($this->returnValue($file));
-		$this->fileUser->method('getByFileId')->will($this->returnValue([$file]));
-		$this->fileUser->method('getByEmailAndFileId')->will($this->returnValue($file));
-		$actual = $this->service->deleteSignRequest([
+		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$file]));
+		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
+		$actual = $this->service->deleteSignRequestDeprecated([
 			'uuid' => 'valid',
+			'users' => [
+				[
+					'email' => 'test@test.coop'
+				]
+			]
+		]);
+		$this->assertIsArray($actual);
+		$this->assertCount(1, $actual);
+	}
+
+	public function testDeleteSignRequestDeprecatedSuccessUsingFileId() {
+		$file = $this->createMock(\OCA\Libresign\Db\File::class);
+		$file->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getEmail')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getFile')]
+			)
+			->will($this->returnValueMap([
+				['getSigned', [], null],
+				['getEmail', [], 'test@test.coop'],
+				['getId', [], 123],
+				['getFile', [], 'valid']
+			]));
+		$this->file->method('getByFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('getByNodeId')->will($this->returnValue([$file]));
+		$this->fileUserMapper->method('getByEmailAndFileId')->will($this->returnValue($file));
+		$this->fileUserMapper->method('delete')->willThrowException($this->createMock(\Exception::class));
+		$actual = $this->service->deleteSignRequestDeprecated([
+			'file' => [
+				'fileId' => 171
+			],
 			'users' => [
 				[
 					'email' => 'test@test.coop'
@@ -331,7 +340,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
 
-		// $this->expectErrorMessage('Invalid PDF');
 		$actual = $this->service->saveFile([
 			'name' => 'Name',
 			'file' => [
@@ -381,7 +389,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getDescription', [], null],
 				['setDescription', [], null]
 			]));
-		$this->fileUser
+		$this->fileUserMapper
 			->method('getByEmailAndFileId')
 			->with('user@test.coop')
 			->will($this->returnValue($fileUser));
@@ -399,6 +407,76 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$this->assertArrayHasKey('uuid', $actual);
 		$this->assertEquals('uuid-here', $actual['uuid']);
+		$this->assertArrayHasKey('users', $actual);
+		$this->assertCount(1, $actual['users']);
+		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
+	}
+
+	public function testSaveUsingFileId() {
+		$this->file->method('getByFileId')->willThrowException($this->createMock(\Exception::class));
+
+		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('setFileId')],
+				[$this->equalTo('getUuid')],
+				[$this->equalTo('setUuid'), $this->callback(function ($subject) {
+					$this->assertIsString($subject[0]);
+					$this->assertEquals(36, strlen($subject[0]));
+					return true;
+				})],
+				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
+				[$this->equalTo('getDescription')],
+				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
+			)
+			->will($this->returnValueMap([
+				['setFileId', [], null],
+				['getUuid', [], null],
+				['setUuid', [], null],
+				['setEmail', [], null],
+				['getDescription', [], null],
+				['setDescription', [], null]
+			]));
+		$this->fileUserMapper
+			->method('getByEmailAndFileId')
+			->with('user@test.coop')
+			->will($this->returnValue($fileUser));
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getDisplayName')->willReturn('John Doe');
+		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$this->file
+			->method('insert')
+			->willReturnCallback(function (\OCA\Libresign\Db\File $c) {
+				$c->setId(123);
+				return $c;
+			});
+
+		$file = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$file]);
+		$this->folder
+			->method('getFolder')
+			->willReturn($folder);
+		$this->folder
+			->method('getUserId')
+			->willReturn(1);
+		$actual = $this->service->save([
+			'file' => [
+				'fileId' => 123
+			],
+			'users' => [
+				[
+					'email' => 'USER@TEST.COOP',
+					'description' => 'Please, sign'
+				]
+			],
+			'name' => 'Filename',
+			'userManager' => $this->user
+		]);
+		$this->assertArrayHasKey('uuid', $actual);
 		$this->assertArrayHasKey('users', $actual);
 		$this->assertCount(1, $actual['users']);
 		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
@@ -487,78 +565,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateUserInvalidCollection() {
-		$this->expectExceptionMessage('User data needs to be an array: user of position %s in list');
-
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				''
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateUserEmpty() {
-		$this->expectExceptionMessage('User data needs to be an array with values: user of position %s in list');
-
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[]
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateUserWithoutEmail() {
-		$this->expectExceptionMessage('User %s needs an email address');
-
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[
-					''
-				]
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateUserWithNameAndInvalidEmail() {
-		$this->expectExceptionMessage('User %s needs an email address');
-
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => '',
-					'name' => 'User'
-				]
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testValidateUserWithInvalidEmail() {
-		$this->expectExceptionMessage('Invalid email: user %s');
-
-		$this->service->validate([
-			'file' => ['base64' => 'dGVzdA=='],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'invalid'
-				]
-			],
-			'userManager' => $this->user
-		]);
-	}
-
 	public function testValidateUserDuplicatedEmail() {
 		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
 
@@ -591,101 +597,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testValidateWithoutUserManager() {
-		$this->expectExceptionMessage('You are not allowed to request signing');
-
-		$this->service->validate([]);
-	}
-
-	public function testValidateWithoutPermission() {
-		$this->expectExceptionMessage('You are not allowed to request signing');
-
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('');
-		$this->service = new SignFileService(
-			$this->config,
-			$this->groupManager,
-			$this->l10n,
-			$this->file,
-			$this->fileUser,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-		$this->service->validate([
-			'userManager' => 'fake'
-		]);
-	}
-
 	public function testNotifyCallback() {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
 		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
-	}
-
-	public function testWriteFooterWithoutValidationSite() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn(null);
-		$this->service = new SignFileService(
-			$this->config,
-			$this->groupManager,
-			$this->l10n,
-			$this->file,
-			$this->fileUser,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->service->writeFooter($file, 'uuid');
-		$this->assertNull($actual);
-	}
-
-	public function testWriteFooterWithSuccess() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('http://test.coop');
-		$this->service = new SignFileService(
-			$this->config,
-			$this->groupManager,
-			$this->l10n,
-			$this->file,
-			$this->fileUser,
-			$this->pkcs7Handler,
-			$this->pkcs12Handler,
-			$this->folder,
-			$this->clientService,
-			$this->userManager,
-			$this->mail,
-			$this->logger,
-			$this->validateHelper,
-			$this->root
-		);
-
-		$resource = fopen(__DIR__ . '/../../fixtures/small_valid.pdf', 'r');
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('fopen')
-			->willReturn($resource);
-		$actual = $this->service->writeFooter($file, 'uuid');
-		$expected = file_get_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf');
-		$this->assertEquals(strlen($expected), strlen($actual));
 	}
 
 	public function testSignWithFileNotFound() {
@@ -777,5 +692,32 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileUser = new \OCA\Libresign\Db\FileUser();
 		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+	}
+
+	public function testValidateUserManagerWithoutUserManager() {
+		$this->expectExceptionMessage('You are not allowed to request signing');
+		$this->service->validateUserManager([]);
+	}
+
+	public function testValidateExistingFileWithoutUuidAndFileId() {
+		$this->expectExceptionMessage('Inform or UUID or a File object');
+		$this->service->validateExistingFile([]);
+	}
+
+	public function testValidateExistingFileWithInvalidFileId() {
+		$this->expectExceptionMessage('Invalid fileID');
+		$this->service->validateExistingFile([
+			'file' => 'invalid'
+		]);
+	}
+
+	public function testValidateExistingFileUsingFileIdWithSuccess() {
+		$actual = $this->service->validateExistingFile([
+			'userManager' => $this->user,
+			'file' => [
+				'fileId' => 171
+			]
+		]);
+		$this->assertNull($actual);
 	}
 }
