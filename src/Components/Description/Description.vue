@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<div class="container">
+	<div class="container-desc">
 		<header>
 			<img :src="image">
 			<p>{{ t('libresign', pdfName) }}</p>
@@ -58,9 +58,13 @@
 					</div>
 				</div>
 			</form>
-			<Modal v-if="modal" size="large" @close="handleModal(false)">
-				<ResetPassword v-if="havePfx" @close="handleModal(false)" />
-				<CreatePassword v-if="!havePfx" @close="handleModal(false)" />
+			<Modal v-if="modal"
+				size="normal"
+				@close="handleModal(false)">
+				<ResetPassword v-if="havePfx" class="modal-dialog" @close="handleModal(false)" />
+				<CreatePassword v-if="!havePfx"
+					@changePfx="changePfx"
+					@close="handleModal(false)" />
 			</Modal>
 		</div>
 	</div>
@@ -121,7 +125,6 @@ export default {
 		},
 	},
 	created() {
-		console.info(this.$store.state)
 		this.getMe()
 	},
 
@@ -142,6 +145,7 @@ export default {
 				if (response.data.action === 350) {
 					this.$router.push({ name: 'DefaultPageSuccess', uuid: this.uuid })
 				}
+				console.info(this.$store)
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
@@ -149,6 +153,9 @@ export default {
 				this.updating = false
 				this.disableButton = false
 			}
+		},
+		changePfx(value) {
+			this.havePfx = value
 		},
 		async getMe() {
 			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
@@ -161,6 +168,6 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import './styles';
 </style>
