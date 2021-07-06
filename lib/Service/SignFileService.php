@@ -301,7 +301,7 @@ class SignFileService {
 			$this->validateHelper->validateLibreSignNodeId($data['file']['fileId']);
 			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
 		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a file object'));
+			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
 	}
 
