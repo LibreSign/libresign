@@ -114,6 +114,7 @@ import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { getMe } from '@/services/api/User'
 import Sign from '../Components/Sign'
 import Request from '../Components/Request'
 
@@ -232,7 +233,7 @@ export default {
 			return t('libresign', 'Account not exist')
 		},
 		async getMe() {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+			const response = await getMe()
 			this.hasPfx = response.data.settings.hasSignatureFile
 			this.canRequestSign = response.data.settings.canRequestSign
 		},
