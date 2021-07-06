@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<AppSidebar class="lb-ls-root" title="LibreSign" :header="false">
+	<AppSidebar class="app-sidebar--without-background lb-ls-root" title="LibreSign" :header="false">
 		<AppSidebarTab
 			id="libresign-tab"
 			icon="icon-rename"
@@ -380,6 +380,7 @@ export default {
 .lb-ls-root{
 	width: 100% !important;
 	height: calc(100vh - 223px) !important;
+	min-width: 289px !important;
 
 	.app-sidebar-header {
 		display: none !important;
