@@ -38,7 +38,7 @@
 						<input id="password"
 							v-model="password"
 							v-tooltip.left="{
-								content: t('libresign', 'Create your password for sign PDF'),
+								content: t('libresign', 'Create your password for signing PDF'),
 								trigger: 'false',
 								show: !havePfx
 							}"
