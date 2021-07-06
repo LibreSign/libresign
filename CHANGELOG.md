@@ -35,6 +35,7 @@ Types of changes:
 - App config to configure JSignPDF
 - Resend sign invite email
 - Add qrcode to footer
+- One more step to turn possible replace CFSSL
 
 # Changed
 - Increment of coverage on backend code
