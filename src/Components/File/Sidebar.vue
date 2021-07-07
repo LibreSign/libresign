@@ -15,7 +15,7 @@
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">
-			<SignaturesTab :items="currentFile.file.signers" @update="update" @change-sign-tab="changeTab" />
+			<SignaturesTab @update="update" @change-sign-tab="changeTab" />
 		</AppSidebarTab>
 		<AppSidebarTab
 			v-if="hasSign"
@@ -24,7 +24,7 @@
 			icon="icon-rename"
 			:order="2">
 			<Sign ref="sign"
-				:pfx="getHasPfx"
+				:pfx="'user/getPfx'"
 				:has-loading="loading"
 				@sign:document="emitSign" />
 		</AppSidebarTab>
@@ -60,27 +60,29 @@ export default {
 		}
 	},
 	computed: {
+		...mapState({
+			currentFile: state => state.file.currentFile,
+			sidebar: state => state.sidebar,
+		}),
+		...mapGetters(['file/getCurrentFile', 'file/getSigners', 'user/getPfx']),
+		...mapGetters(['getSidebar']),
+
 		titleName() {
-			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
+			return this['file/getCurrentFile'].name ? this['file/getCurrentFile'].name : ''
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this.getCurrentFile.file.requested_by.uid
-					? this.getCurrentFile.file.requested_by.uid
+				name: this['file/getCurrentFile'].requested_by.uid
+					? this['file/getCurrentFile'].requested_by.uid
 					: '',
-				date: format(new Date(this.getCurrentFile.file.request_date), 'dd/MM/yyyy'),
+				date: format(new Date(this['file/getCurrentFile'].request_date), 'dd/MM/yyyy'),
 			})
 		},
 		hasSign() {
-			return this.getCurrentFile.file.signers.filter(
+			return this['file/getSigners'].filter(
 				signer => signer.me !== false && signer.sign_date === null
 			).length > 0
 		},
-		...mapState({
-			currentFile: state => state.currentFile,
-			sidebar: state => state.sidebar,
-		}),
-		...mapGetters(['getCurrentFile', 'getSidebar', 'getHasPfx']),
 	},
 	methods: {
 		closeSidebar() {
@@ -93,7 +95,7 @@ export default {
 			this.$refs.sign.clearInput()
 		},
 		emitSign(password) {
-			this.$emit('sign:document', { password, fileId: this.getCurrentFile.file.file.nodeId })
+			this.$emit('sign:document', { password, fileId: this['file/getCurrentFile'].file.nodeId })
 		},
 		updateActive(e) {
 			this.changeTab(e)

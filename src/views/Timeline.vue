@@ -25,17 +25,17 @@
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
 			:loading="loading"
-			@update="getData"
+			@update="getAllFiles"
 			@sign:document="signDocument"
 			@closeSidebar="closeSidebar" />
 	</div>
 </template>
 
 <script>
-import { getFileList, signInDocument } from '@/services/api/fileApi'
-import { mapGetters, mapState } from 'vuex'
+import { signInDocument } from '@/services/api/file'
+import { mapState, mapActions } from 'vuex'
 import File from '@/Components/File/File.vue'
-import Sidebar from '../Components/File/Sidebar.vue'
+import Sidebar from '@/Components/File/Sidebar.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
@@ -55,9 +55,8 @@ export default {
 
 	computed: {
 		...mapState({
-			files: state => state.files,
+			files: state => state.file.files,
 		}),
-		...mapGetters(['getFiles']),
 		pendingFilter() {
 			return this.files.slice().filter(
 				(a) => (a.status === 'pending')).sort(
@@ -87,10 +86,11 @@ export default {
 	},
 
 	created() {
-		this.getData()
+		this.$store.dispatch('file/getAllFiles')
 	},
 
 	methods: {
+		...mapActions('file', ['getAllFiles']),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
@@ -111,20 +111,12 @@ export default {
 				break
 			}
 		},
-		async getData() {
-			try {
-				const response = await getFileList()
-				this.$store.commit('setFiles', response)
-			} catch (err) {
-				showError('An error occurred while fetching the files')
-			}
-		},
 		openSidebar() {
 			this.sidebar = true
 		},
 		setSidebar(objectFile) {
 			this.closeSidebar()
-			this.$store.commit('setCurrentFile', objectFile)
+			this.$store.dispatch('file/setCurrentFile', objectFile)
 			this.openSidebar()
 		},
 		closeSidebar() {
@@ -134,7 +126,7 @@ export default {
 			try {
 				this.loading = true
 				const response = await signInDocument(param.password, param.fileId)
-				this.getData()
+				this.$store.dispatch('file/getAllFiles')
 				this.closeSidebar()
 				this.loading = false
 				return showSuccess(response.data.message)
