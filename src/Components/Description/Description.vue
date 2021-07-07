@@ -145,7 +145,6 @@ export default {
 				if (response.data.action === 350) {
 					this.$router.push({ name: 'DefaultPageSuccess', uuid: this.uuid })
 				}
-				console.info(this.$store)
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
