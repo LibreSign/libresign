@@ -435,9 +435,9 @@ class AccountService {
 		return $return;
 	}
 
-	public function list(IUser $user, $page = null, $length = 15) {
+	public function list(IUser $user, $page = null, $length = null) {
 		$page = $page ?? 1;
-		$length = $length ?? 1;
+		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
 		$data['pagination']->setRootPath('/file/list');
 		return [
