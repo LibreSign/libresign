@@ -25,7 +25,7 @@ class Pkcs12Handler {
 	/** @var FolderService */
 	private $folderService;
 	/** @var JSignPdfHandler */
-	private $jSignPdfHandler;
+	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
 	/** @var IL10N */
@@ -36,12 +36,12 @@ class Pkcs12Handler {
 
 	public function __construct(
 		FolderService $folderService,
-		JSignPdfHandler $jSignPdfHandler,
+		JSignPdfHandler $JSignPdfHandler,
 		IConfig $config,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
-		$this->jSignPdfHandler = $jSignPdfHandler;
+		$this->JSignPdfHandler = $JSignPdfHandler;
 		$this->config = $config;
 		$this->l10n = $l10n;
 	}
@@ -83,7 +83,7 @@ class Pkcs12Handler {
 		File $certificate,
 		string $password
 	): File {
-		$signedContent = $this->jSignPdfHandler->sign($fileToSign, $certificate, $password);
+		$signedContent = $this->JSignPdfHandler->sign($fileToSign, $certificate, $password);
 		$fileToSign->putContent($signedContent);
 		return $fileToSign;
 	}
