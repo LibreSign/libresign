@@ -1,21 +1,27 @@
-import userApi from '../../services/api/User'
-
 const state = () => ({
-	hasPfx: false,
+	pfx: false,
+	hableToRequestSign: false,
 })
 
 const getters = {
 	getPfx: (state, getters, rootState) => {
-		return state.hasPfx
+		return state.pfx
+	},
+	getHableToRequestSign: (state, getters, rootState) => {
+		return state.hableToRequestSign
 	},
 }
 
 const actions = {
-
 }
 
 const mutations = {
-
+	setHableToRequestSign(state, resp) {
+		state.hableToRequestSign = resp
+	},
+	setPfx(state, newData) {
+		state.pfx = newData
+	},
 }
 
 export default {

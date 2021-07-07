@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
-import user from './modules/user'
+import user from '@/store/modules/user'
+import file from '@/store/modules/file'
 
 Vue.use(Vuex)
 
@@ -14,7 +15,6 @@ export default new Store({
 		pdfData: {},
 		user: {},
 		settings: {},
-		currentFile: {},
 		files: [],
 		sidebar: false,
 	},
@@ -25,9 +25,6 @@ export default new Store({
 		},
 		setSidebar(state, sidebar) {
 			this.state.sidebar = sidebar
-		},
-		setCurrentFile(state, current) {
-			Vue.set(state.currentFile, 'file', current)
 		},
 		setPdfData(state, pdfData) {
 			if (pdfData.pdf.url) {
@@ -40,9 +37,6 @@ export default new Store({
 		},
 		setSettings(state, settings) {
 			Vue.set(state.settings, 'data', settings)
-		},
-		setHasPfx(state, haspfx) {
-			Vue.set(state.settings.data.settings, 'hasSignatureFile', haspfx)
 		},
 		setError(state, errors) {
 			Vue.set(state.errors, errors)
@@ -59,14 +53,8 @@ export default new Store({
 		getSidebar(state) {
 			return state.sidebar
 		},
-		getCurrentFile(state) {
-			return state.currentFile
-		},
 		getSettings(state) {
 			return state.settings
-		},
-		getHasPfx(state) {
-			return state.settings.data.settings.hasSignatureFile
 		},
 		getPdfData(state) {
 			return state.pdfData
@@ -81,5 +69,6 @@ export default new Store({
 
 	modules: {
 		user,
+		file,
 	},
 })
