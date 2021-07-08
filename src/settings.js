@@ -22,7 +22,7 @@
  */
 
 import Vue from 'vue'
-import Settings from '@/views/Admin/Settings'
+import Settings from '@/pages/Admin/Settings'
 
 Vue.mixin({ methods: { t, n } })
 

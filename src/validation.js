@@ -26,7 +26,7 @@ import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import Vue from 'vue'
 
-import Validation from '@/views/Validation/Validation'
+import Validation from '@/pages/Validation/Validation'
 import router from '@/router'
 import store from '@/store'
 

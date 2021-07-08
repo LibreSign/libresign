@@ -318,12 +318,13 @@ export default {
 		async requestSignatures(users) {
 			try {
 				const update = this.haveRequest ? 'update' : 'new'
-				const response = await request({
+
+				const response = await request(
 					users,
-					fileId: this.fileInfo.id,
-					fileName: this.fileInfo.name.split('.pdf')[0],
-					method: update,
-				})
+					this.fileInfo.id,
+					this.fileInfo.name.split('.pdf')[0],
+					update,
+				)
 
 				console.info('responsne: ', response)
 				this.option('request')
