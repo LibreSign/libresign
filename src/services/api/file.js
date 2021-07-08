@@ -17,6 +17,10 @@ export const signInDocument = async(password, fileID) => {
 		const response = await axios.post(
 			generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileID}`),
 			{ password })
+
+		// Reload Files
+		OCA.Files.App.fileList.reload()
+
 		showSuccess(response.data.message)
 		return response
 	} catch (err) {

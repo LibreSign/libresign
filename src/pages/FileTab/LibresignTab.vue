@@ -246,7 +246,6 @@ export default {
 		async getInfo() {
 			try {
 				const response = await getInfo(this.fileInfo.id)
-				console.info(response)
 				this.canSign = response.data.settings.canSign
 				if (response.data.signers) {
 					this.haveRequest = true
@@ -285,13 +284,12 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await deleteSignatureRequest(this.fileInfo.id, user.signaturueId)
+					await deleteSignatureRequest(this.fileInfo.id, user.signatureId)
 					if (this.signers.length <= 0) {
 						this.option('signatures')
 					}
 
 					this.getInfo()
-					showSuccess(response.data.message)
 				} catch (err) {
 					showError(err)
 				}
@@ -319,20 +317,17 @@ export default {
 			try {
 				const update = this.haveRequest ? 'update' : 'new'
 
-				const response = await request(
+				await request(
 					users,
 					this.fileInfo.id,
 					this.fileInfo.name.split('.pdf')[0],
 					update,
 				)
 
-				console.info('responsne: ', response)
 				this.option('request')
 				this.clearRequestList()
 				this.getInfo()
-				return showSuccess(response.data.message)
 			} catch (err) {
-				console.info(err)
 				if (err.response.data.errors) {
 					return showError(err.response.data.errors[0])
 				}
