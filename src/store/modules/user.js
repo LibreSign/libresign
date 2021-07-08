@@ -32,13 +32,15 @@ const actions = {
 	},
 	getSettings({ commit }) {
 		const settings = getSettings()
-
 		if (settings.errors) {
 			commit('setErrors', settings.errors)
 		}
 
+		if (settings.action) {
+			commit('setAction', settings.action)
+		}
+
 		commit('setPfx', settings.hasSignatureFile)
-		commit('setAction', settings.action)
 	},
 }
 

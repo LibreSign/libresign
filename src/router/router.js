@@ -21,10 +21,10 @@
  */
 
 import { translate as t } from '@nextcloud/l10n'
-import { loadState } from '@nextcloud/initial-state'
-import SelectAction from '../helpers/SelectAction'
+import SelectAction from '@/helpers/SelectAction'
+import store from '@/store'
 
-const libresignVar = JSON.parse(loadState('libresign', 'config'))
+store.dispatch('user/getSettings')
 
 const routes = [
 	{
@@ -37,7 +37,7 @@ const routes = [
 		name: 'requestFiles',
 	}, {
 		path: '/sign/:uuid',
-		redirect: { name: SelectAction(libresignVar.action) },
+		redirect: { name: SelectAction(store.getters['user/getAction']) },
 	}, {
 		path: '/sign/:uuid#sign',
 		component: () => import('@/pages/Sign/SignPDF'),
