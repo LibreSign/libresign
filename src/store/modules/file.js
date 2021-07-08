@@ -48,9 +48,6 @@ const mutations = {
 		state.currentFile = currentFile
 	},
 	setSigners(state, signers) {
-		if (state.signers !== signers) {
-			console.info('óld')
-		}
 		state.signers = signers
 	},
 }
