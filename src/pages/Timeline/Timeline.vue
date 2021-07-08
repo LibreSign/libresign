@@ -32,11 +32,16 @@
 </template>
 
 <script>
-import { signInDocument } from '@/services/api/file'
+// Utils
 import { mapState, mapActions } from 'vuex'
+import { showError } from '@nextcloud/dialogs'
+
+// Services
+import { signInDocument } from '@/services/api/file'
+
+// Components
 import File from '@/Components/File/File.vue'
 import Sidebar from '@/Components/File/Sidebar.vue'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Timeline',
@@ -87,6 +92,8 @@ export default {
 
 	created() {
 		this.$store.dispatch('file/getAllFiles')
+		this.$store.dispatch('user/getMe')
+
 	},
 
 	methods: {
@@ -125,11 +132,10 @@ export default {
 		async signDocument(param) {
 			try {
 				this.loading = true
-				const response = await signInDocument(param.password, param.fileId)
+				await signInDocument(param.password, param.fileId)
 				this.$store.dispatch('file/getAllFiles')
 				this.closeSidebar()
 				this.loading = false
-				return showSuccess(response.data.message)
 			} catch (err) {
 				this.loading = false
 				err.response.data.errors.map(

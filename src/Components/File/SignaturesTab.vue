@@ -74,30 +74,29 @@ export default {
 				return 'pending'
 			}
 		},
+
 		update() {
 			this.$emit('update')
 		},
+
 		async deleteUserRequest(user) {
 			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
-
 				await deleteSignatureRequest(
 					this.getCurrentFile.file.nodeId,
 					user.signatureId,
 				)
-
 				this.update()
 			}
 		},
+
 		async sendNotify(email) {
 			try {
 				this.disableBtn = true
-
 				await sendNotification(
 					email,
 					this.getCurrentFile.file.nodeId,
 				)
-
 				this.disableBtn = false
 			} catch (err) {
 				this.disableBtn = false

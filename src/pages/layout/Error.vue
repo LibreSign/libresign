@@ -38,7 +38,7 @@
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
-	name: 'DefaultPageError',
+	name: 'Error',
 
 	data() {
 		return {
@@ -60,7 +60,7 @@ export default {
 	height: 100%;
 
 	#img{
-		background-image: url('../assets/images/sad-face-in-rounded-square.svg');
+		background-image: url('../../assets/images/sad-face-in-rounded-square.svg');
 		height: 140px;
 		width: 140px;
 		background-repeat: no-repeat;

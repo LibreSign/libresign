@@ -108,7 +108,7 @@
 
 <script>
 // Services
-import { getMe } from '@/services/api/User'
+import { getMe } from '@/services/api/user'
 import { getInfo, signInDocument } from '@/services/api/file'
 import { deleteSignatureRequest, request, sendNotification } from '@/services/api/signatures'
 

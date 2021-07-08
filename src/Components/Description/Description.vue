@@ -71,14 +71,16 @@
 </template>
 
 <script>
+// Utils
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Modal from '@nextcloud/vue/dist/Components/Modal'
-import ResetPassword from '../../views/ResetPassword.vue'
-import CreatePassword from '../../views/CreatePassword.vue'
-import axios from '@nextcloud/axios'
-import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
-import { translate as t } from '@nextcloud/l10n'
+import axios from '@nextcloud/axios'
+
+// Components
+import Modal from '@nextcloud/vue/dist/Components/Modal'
+import ResetPassword from '@/Components/Password/Reset/Reset.vue'
+import CreatePassword from '@/Components/Password/Create/Create.vue'
+import Image from '@/assets/images/application-pdf.png'
 
 export default {
 	name: 'Description',

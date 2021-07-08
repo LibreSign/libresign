@@ -33,8 +33,8 @@
 </template>
 
 <script>
-import Description from '../Components/Description'
-import PDFViewer from '../Components/PDFViewer'
+import Description from '@/Components/Description'
+import PDFViewer from '@/Components/PDFViewer'
 
 export default {
 	name: 'SignPDF',

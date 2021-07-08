@@ -56,9 +56,9 @@
 <script>
 import axios from '@nextcloud/axios'
 import Content from '@nextcloud/vue/dist/Components/Content'
-import BackgroundImage from '../assets/images/bg.png'
-import iconA from '../../img/info-circle-solid.svg'
-import iconB from '../../img/file-signature-solid.svg'
+import BackgroundImage from '@/assets/images/bg.png'
+import iconA from '@/assets/images/info-circle-solid.svg'
+import iconB from '@/assets/images/file-signature-solid.svg'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
@@ -147,6 +147,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/styles/validation.scss';
-@import '../assets/styles/loading.scss';
+@import './validation.scss';
+@import './loading.scss';
 </style>
