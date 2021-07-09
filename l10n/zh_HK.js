@@ -78,6 +78,7 @@ OC.L10N.register(
     "Sign" : "簽署",
     "Requested by {name}, at {date}" : "由 {name} 請求，於 {date}",
     "Send reminder" : "傳送提醒",
+    "Are you sure you want to exclude user {email} from the request?" : "您確定要從請求中排除用戶 {email} 嗎？",
     "Account not exist" : "賬戶不存在",
     "This iframe is not supported in your browser." : "您的瀏覽器不支持此 iframe。",
     "Email" : "電郵地址",
@@ -134,7 +135,6 @@ OC.L10N.register(
     "Status" : "狀態",
     "Pending" : "待定的",
     "Signed" : "已簽署",
-    "Are you sure you want to exclude user {email} from the request?" : "您確定要從請求中排除用戶 {email} 嗎？",
     "There was an error completing your request" : "完成您的請求時出錯",
     "Request subscription" : "請求訂閱",
     "Verify signatures" : "驗證簽名",
@@ -160,6 +160,7 @@ OC.L10N.register(
     "Validation" : "驗證",
     "No date" : "沒有日期",
     "This document is valid" : "此文件有效",
-    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
+    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
+    "Are ou sure you want to exclude user {email} from the request?" : "您確定要從請求中排除用戶 {email} 嗎？"
 },
 "nplurals=1; plural=0;");

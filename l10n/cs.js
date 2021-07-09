@@ -80,6 +80,7 @@ OC.L10N.register(
     "Sign" : "Podepsat",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
     "Send reminder" : "Odeslat připomínku",
+    "Are you sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?",
     "Account not exist" : "Účet neexistuje",
     "This iframe is not supported in your browser." : "Tento iframe prvek není podporován vaším prohlížečem.",
     "Email" : "E-mail",
@@ -136,7 +137,6 @@ OC.L10N.register(
     "Status" : "Stav",
     "Pending" : "Čeká",
     "Signed" : "Podepsáno",
-    "Are you sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?",
     "There was an error completing your request" : "Při dokončování vašeho požadavku došlo k chybě",
     "Request subscription" : "Požádat podepsání",
     "Verify signatures" : "Ověřit podpisy",
@@ -162,6 +162,7 @@ OC.L10N.register(
     "Validation" : "Ověření",
     "No date" : "Žádné datum",
     "This document is valid" : "Tento dokument je platný",
-    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet."
+    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
+    "Are ou sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

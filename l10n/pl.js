@@ -80,6 +80,7 @@ OC.L10N.register(
     "Sign" : "Podpisz",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
     "Send reminder" : "Wyślij przypomnienie",
+    "Are you sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?",
     "Account not exist" : "Konto nie istnieje",
     "This iframe is not supported in your browser." : "Ramka iframe nie jest obsługiwana w Twojej przeglądarce.",
     "Email" : "E-mail",
@@ -136,7 +137,6 @@ OC.L10N.register(
     "Status" : "Status",
     "Pending" : "Oczekuje",
     "Signed" : "Podpisano",
-    "Are you sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?",
     "There was an error completing your request" : "Wystąpił błąd podczas wypełniania Twojej prośby",
     "Request subscription" : "Prośba o subskrypcję",
     "Verify signatures" : "Weryfikuj sygnatury",
@@ -162,6 +162,7 @@ OC.L10N.register(
     "Validation" : "Walidacja",
     "No date" : "Brak daty",
     "This document is valid" : "Ten dokument jest prawidłowy",
-    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
+    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
+    "Are ou sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");
