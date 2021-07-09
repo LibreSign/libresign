@@ -40,6 +40,8 @@ const selectAction = (action) => {
 		return 'SignPDF'
 	case 300:
 		return 'DefaultPageSuccess'
+	case 350:
+		return 'DefaultPageSuccess'
 	default:
 		break
 	}
