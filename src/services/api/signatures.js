@@ -60,3 +60,16 @@ export const deleteSignatureRequest = async(fileId, signatureId) => {
 		return showError(err.response.data.message)
 	}
 }
+
+export const validateSignature = async(uuid) => {
+	try {
+		const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uuid}`))
+		showSuccess(t('libresign', 'This document is valid'))
+		return response
+	} catch (err) {
+		err.response.data.errors.forEach(error => {
+			showError(error)
+		})
+	}
+
+}
