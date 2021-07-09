@@ -25,18 +25,18 @@ export const signInDocument = async(password, fileID) => {
 		return response
 	} catch (err) {
 		showError(err.response.data.message)
+		return err.response
 	}
 }
 
 export const signInDocumentUuid = async(password, uuid) => {
 	try {
 		const response = await axios.post(
-			generateUrl(`/apps/libresign/api/sign/uuid/${uuid}`), { password })
+			generateUrl(`/apps/libresign/api/0.1/sign/uuid/${uuid}`), { password })
 		showSuccess(response.data.message)
+		return response
 	} catch (err) {
-		err.response.data.errors.forEach(error => {
-			showError(error)
-		})
+		return err.response
 	}
 
 }
