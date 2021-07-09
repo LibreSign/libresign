@@ -42,16 +42,16 @@
 								trigger: 'false',
 								show: !havePfx
 							}"
-							:disabled="!havePfx"
+							:disabled="disableInput"
 							type="password">
-						<a class="forgot" @click="handleModal(true)">
+						<a :class="havePfx ? 'forgot' : 'create'" @click="handleModal(true)">
 							{{ havePfx ? t('libresign', 'Forgot your password?') : t('libresign', 'Create password to sign document') }}
 						</a>
 						<button
 							type="button"
 							:value="buttonValue"
 							:class="!updating ? 'primary' : 'primary loading'"
-							:disabled="disableButton"
+							:disabled="disableBtn"
 							@click="sign">
 							{{ t('libresign', 'Sign the document.') }}
 						</button>
@@ -122,6 +122,24 @@ export default {
 		hasSavePossible() {
 			return !!this.password
 		},
+		disableInput() {
+			return !this.havePfx || this.updating
+		},
+		disableBtn() {
+			if (!this.havePfx) {
+				return true
+			}
+			if (this.disableButton === true) {
+				return true
+			}
+			return false
+		},
+	},
+
+	watch: {
+		havePfx(oldVal, newVal) {
+
+		},
 	},
 	created() {
 		this.getMe()
@@ -133,21 +151,31 @@ export default {
 			this.disableButton = true
 
 			try {
-				const response = signInDocumentUuid(this.password, this.uuid)
+				const response = await signInDocumentUuid(this.password, this.uuid)
+				console.info('paage: ', response)
 
 				if (response.data.action === 350) {
 					this.$router.push({ name: 'DefaultPageSuccess', uuid: this.uuid })
+				}
+
+				if (response.data.action === 400 && response.data.errors) {
+					this.havePfx = false
+					this.disableButton = true
 				}
 
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
 				this.updating = false
-				this.disableButton = false
+				this.disableButton = true
+
 			}
 		},
 		changePfx(value) {
 			this.havePfx = value
+			if (value === false) {
+				this.disableButton = true
+			}
 		},
 		async getMe() {
 			const response = await getMe()
