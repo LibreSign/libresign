@@ -14,7 +14,7 @@ Types of changes:
 
 <!-- changelog-linker -->
 
-## Draft
+## 2.4.2 - 2021-07-08
 
 # Added
 - List of documents
