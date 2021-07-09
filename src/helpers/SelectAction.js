@@ -42,6 +42,8 @@ const selectAction = (action) => {
 		return 'DefaultPageSuccess'
 	case 350:
 		return 'DefaultPageSuccess'
+	case 400:
+		return 'DefaultPageError'
 	default:
 		break
 	}
