@@ -4,6 +4,7 @@ const state = () => ({
 	files: [],
 	currentFile: {},
 	signers: [],
+	fileData: {},
 })
 
 const getters = {
@@ -15,6 +16,9 @@ const getters = {
 	},
 	getSigners: (state) => {
 		return state.signers
+	},
+	getFileData: (state) => {
+		return state.fileData
 	},
 }
 
@@ -38,6 +42,10 @@ const actions = {
 
 		commit('setFiles', files)
 	},
+
+	newFileData({ commit }, data) {
+		commit('setFileData', data)
+	},
 }
 
 const mutations = {
@@ -49,6 +57,9 @@ const mutations = {
 	},
 	setSigners(state, signers) {
 		state.signers = signers
+	},
+	setFileData(state, data) {
+		state.fileData = data
 	},
 }
 
