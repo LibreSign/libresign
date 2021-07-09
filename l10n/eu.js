@@ -80,6 +80,7 @@ OC.L10N.register(
     "Sign" : "Sinatu",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
     "Send reminder" : "Bidali abisua",
+    "Are you sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?",
     "Account not exist" : "Kontua ez da existitzen",
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
     "Email" : "E-posta",
@@ -136,7 +137,6 @@ OC.L10N.register(
     "Status" : "Egoera",
     "Pending" : "Zain",
     "Signed" : "Sinatuta",
-    "Are you sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?",
     "There was an error completing your request" : "Errore bat gertatu da zure eskaera burutzean",
     "Request subscription" : "Eskatu harpidetza",
     "Verify signatures" : "Egiaztatu sinadurak",
@@ -162,6 +162,7 @@ OC.L10N.register(
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
+    "Are ou sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?"
 },
 "nplurals=2; plural=(n != 1);");

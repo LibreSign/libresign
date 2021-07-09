@@ -80,6 +80,7 @@ OC.L10N.register(
     "Sign" : "Signieren",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
     "Send reminder" : "Erinnerung senden",
+    "Are you sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?",
     "Account not exist" : "Konto existiert nicht",
     "This iframe is not supported in your browser." : "Dieser iframe wird von Ihrem Browser nicht unterstützt.",
     "Email" : "E-Mail-Adresse",
@@ -136,7 +137,6 @@ OC.L10N.register(
     "Status" : "Status",
     "Pending" : "Ausstehend",
     "Signed" : "Signiert",
-    "Are you sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?",
     "There was an error completing your request" : "Beim Fertigstellen Ihrer Anfrage ist ein Fehler aufgetreten",
     "Request subscription" : "Abonnement anfordern",
     "Verify signatures" : "Signaturen überprüfen",
@@ -162,6 +162,7 @@ OC.L10N.register(
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
-    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
+    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",
+    "Are ou sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?"
 },
 "nplurals=2; plural=(n != 1);");

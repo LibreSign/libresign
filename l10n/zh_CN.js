@@ -79,6 +79,7 @@ OC.L10N.register(
     "Sign" : "签名",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}",
     "Send reminder" : "发送提醒",
+    "Are you sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？",
     "Account not exist" : "账户不存在",
     "This iframe is not supported in your browser." : "你的浏览器不支持这个 iframe",
     "Email" : "邮箱",
@@ -135,7 +136,6 @@ OC.L10N.register(
     "Status" : "状态",
     "Pending" : "挂起",
     "Signed" : "已签名 ",
-    "Are you sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？",
     "There was an error completing your request" : "完成您的请求时出现错误",
     "Request subscription" : "请求订阅",
     "Verify signatures" : "验证签名",
@@ -161,6 +161,7 @@ OC.L10N.register(
     "Validation" : "验证 ",
     "No date" : "无日期",
     "This document is valid" : "该文档有效",
-    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
+    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
+    "Are ou sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？"
 },
 "nplurals=1; plural=0;");
