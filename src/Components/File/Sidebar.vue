@@ -32,12 +32,15 @@
 </template>
 
 <script>
+// Utils
+import { mapGetters, mapState } from 'vuex'
+import format from 'date-fns/format'
+
+// Components
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { mapGetters, mapState } from 'vuex'
 import SignaturesTab from './SignaturesTab.vue'
-import Sign from '../Sign'
-import format from 'date-fns/format'
+import Sign from '@/Components/Sign'
 
 export default {
 	name: 'Sidebar',
@@ -64,8 +67,7 @@ export default {
 			currentFile: state => state.file.currentFile,
 			sidebar: state => state.sidebar,
 		}),
-		...mapGetters(['file/getCurrentFile', 'file/getSigners', 'user/getPfx']),
-		...mapGetters(['getSidebar']),
+		...mapGetters(['file/getCurrentFile', 'file/getSigners', 'user/getPfx', 'getSidebar']),
 
 		titleName() {
 			return this['file/getCurrentFile'].name ? this['file/getCurrentFile'].name : ''
