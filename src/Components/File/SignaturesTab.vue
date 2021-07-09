@@ -17,6 +17,10 @@
 						<div class="icon icon-calendar-dark" />
 						<span v-if="sign.sign_date">{{ timestampsToDate(sign.sign_date) }}</span>
 					</div>
+					<div v-if="sign.email" class="container-dot">
+						<div class="icon icon-mail" />
+						<span>{{ sign.email }}</span>
+					</div>
 					<div v-if="showDivButtons(sign)" class="container-actions">
 						<div v-if="showSignButton(sign)" class="container-dot container-btn">
 							<button class="primary" @click="changeToSignTab">
@@ -119,7 +123,7 @@ export default {
 		},
 
 		timestampsToDate(date) {
-			return format(new Date(date), 'dd/MM/yyyy')
+			return format(new Date(date), 'dd/MM/yyyy HH:mm')
 		},
 
 		showButton(signPerson) {
