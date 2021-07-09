@@ -5,7 +5,12 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 
 export const getMe = async() => {
-	return await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+	try {
+		const respose = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+		return respose
+	} catch (err) {
+		return err
+	}
 }
 
 export const createUser = async(uuid, email, password, signPassword) => {

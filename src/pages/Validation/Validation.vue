@@ -102,11 +102,13 @@ export default {
 			documentUuid: '',
 		}
 	},
+
 	watch: {
 		'$route.params'(toParams, previousParams) {
 			this.validateByUUID(toParams.uuid)
 		},
 	},
+
 	methods: {
 		async validateByUUID(uuid) {
 			this.hasLoading = true

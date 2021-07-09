@@ -28,6 +28,19 @@ export const signInDocument = async(password, fileID) => {
 	}
 }
 
+export const signInDocumentUuid = async(password, uuid) => {
+	try {
+		const response = await axios.post(
+			generateUrl(`/apps/libresign/api/sign/uuid/${uuid}`), { password })
+		showSuccess(response.data.message)
+	} catch (err) {
+		err.response.data.errors.forEach(error => {
+			showError(error)
+		})
+	}
+
+}
+
 export const getInfo = async(fileId) => {
 	try {
 		const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${fileId}`))

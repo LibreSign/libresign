@@ -71,16 +71,13 @@
 </template>
 
 <script>
-// Utils
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
-
 // Components
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import ResetPassword from '@/Components/Password/Reset/Reset.vue'
 import CreatePassword from '@/Components/Password/Create/Create.vue'
 import Image from '@/assets/images/application-pdf.png'
+import { signInDocumentUuid } from '@/services/api/file'
+import { getMe } from '@/services/api/user'
 
 export default {
 	name: 'Description',
@@ -136,21 +133,15 @@ export default {
 			this.disableButton = true
 
 			try {
-				const response = await axios.post(
-					generateUrl(`/apps/libresign/api/0.1/sign/uuid/${this.uuid}`),
-					{
-						password: this.password,
-					}
-				)
+				const response = signInDocumentUuid(this.password, this.uuid)
 
-				showSuccess(response.data.message)
 				if (response.data.action === 350) {
 					this.$router.push({ name: 'DefaultPageSuccess', uuid: this.uuid })
 				}
+
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
-				showError(err.response.data.errors[0])
 				this.updating = false
 				this.disableButton = false
 			}
@@ -159,7 +150,7 @@ export default {
 			this.havePfx = value
 		},
 		async getMe() {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+			const response = await getMe()
 			this.havePfx = response.data.settings.hasSignatureFile
 		},
 		handleModal(status) {
