@@ -16,6 +16,8 @@ OC.L10N.register(
     "Already asked to sign this document" : "已要求簽署此文件",
     "Must be a fileID of a PDF" : "必須是 PDF 的 fileID",
     "You are not allowed to request signing" : "你無權請求簽署",
+    "You are not the signer request for this file" : "您無權執行此操作。",
+    "User needs values" : "必填字段缺少數據。",
     "Email required" : "電郵地址為必填",
     "Invalid email" : "無效的電郵地址",
     "File not loaded" : "檔案未加載",
