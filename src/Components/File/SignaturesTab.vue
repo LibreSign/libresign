@@ -234,19 +234,16 @@ export default {
 				}
 			}
 
-			.container-dot:first-child{
-				margin-right: 10px;
-			}
-
 			.container-dot{
 				display: flex;
 				flex-direction: row;
 				align-items: center;
 				justify-content: flex-start;
-				width: 32%;
+				/* width: 32%; */
 				margin-bottom: 6px;
 				min-height: 26px;
 				cursor: inherit;
+				margin-right: 10px;
 
 				.dot{
 					width: 10px;
