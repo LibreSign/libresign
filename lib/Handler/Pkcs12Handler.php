@@ -25,7 +25,7 @@ class Pkcs12Handler {
 	/** @var FolderService */
 	private $folderService;
 	/** @var JSignPdfHandler */
-	private $jSignPdfHandler;
+	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
 	/** @var IL10N */

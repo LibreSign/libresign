@@ -84,7 +84,7 @@ export default {
 		},
 
 		async deleteUserRequest(user) {
-			const result = confirm(t('libresign', 'Are ou sure you want to exclude user {email} from the request?', { email: user.email }))
+			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				await deleteSignatureRequest(
 					this.getCurrentFile.file.nodeId,
