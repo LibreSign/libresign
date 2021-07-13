@@ -24,7 +24,7 @@
 			icon="icon-rename"
 			:order="2">
 			<Sign ref="sign"
-				:pfx="'user/getPfx'"
+				:pfx="getPfx"
 				:has-loading="loading"
 				@sign:document="emitSign" />
 		</AppSidebarTab>
@@ -65,23 +65,26 @@ export default {
 	computed: {
 		...mapState({
 			currentFile: state => state.file.currentFile,
-			sidebar: state => state.sidebar,
 		}),
-		...mapGetters(['file/getCurrentFile', 'file/getSigners', 'user/getPfx', 'getSidebar']),
+		...mapGetters({
+			getCurrentFile: 'file/getCurrentFile',
+			getSigners: 'file/getSigners',
+			getPfx: 'user/getPfx',
+		}),
 
 		titleName() {
-			return this['file/getCurrentFile'].name ? this['file/getCurrentFile'].name : ''
+			return this.getCurrentFile.name ? this.getCurrentFile.name : ''
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this['file/getCurrentFile'].requested_by.uid
-					? this['file/getCurrentFile'].requested_by.uid
+				name: this.getCurrentFile.requested_by.uid
+					? this.getCurrentFile.requested_by.uid
 					: '',
-				date: format(new Date(this['file/getCurrentFile'].request_date), 'dd/MM/yyyy'),
+				date: format(new Date(this.getCurrentFile.request_date), 'dd/MM/yyyy'),
 			})
 		},
 		hasSign() {
-			return this['file/getSigners'].filter(
+			return this.getSigners.filter(
 				signer => signer.me !== false && signer.sign_date === null
 			).length > 0
 		},
@@ -97,7 +100,7 @@ export default {
 			this.$refs.sign.clearInput()
 		},
 		emitSign(password) {
-			this.$emit('sign:document', { password, fileId: this['file/getCurrentFile'].file.nodeId })
+			this.$emit('sign:document', { password, fileId: this.getCurrentFile.file.nodeId })
 		},
 		updateActive(e) {
 			this.changeTab(e)
