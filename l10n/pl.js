@@ -16,8 +16,6 @@ OC.L10N.register(
     "Already asked to sign this document" : "Poprosiłem już o podpisanie tego dokumentu",
     "Must be a fileID of a PDF" : "Musi być fileID pliku PDF",
     "You are not allowed to request signing" : "Nie możesz poprosić o podpisanie",
-    "You are not the signer request for this file" : "Nie jesteś sygnatariuszem tego pliku",
-    "User needs values" : "Użytkownik potrzebuje wartości",
     "Email required" : "Wymagany e-mail",
     "Invalid email" : "Nieprawidłowy e-mail",
     "File not loaded" : "Plik nie został załadowany",
@@ -163,6 +161,8 @@ OC.L10N.register(
     "No date" : "Brak daty",
     "This document is valid" : "Ten dokument jest prawidłowy",
     "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
+    "You are not the signer request for this file" : "Nie jesteś sygnatariuszem tego pliku",
+    "User needs values" : "Użytkownik potrzebuje wartości",
     "Are ou sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

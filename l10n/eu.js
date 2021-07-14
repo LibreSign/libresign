@@ -16,8 +16,6 @@ OC.L10N.register(
     "Already asked to sign this document" : "Dagoeneko dokumentu hau sinatzeko eskatu duzu ",
     "Must be a fileID of a PDF" : "PDF baten fileID izan behar du",
     "You are not allowed to request signing" : "Ez duzu sinatzea eskatzeko baimenik",
-    "You are not the signer request for this file" : "Ez zara fitxategi hau sinatzen duen eskaera",
-    "User needs values" : "Erabiltzaileak balioak behar ditu",
     "Email required" : "Posta elektronikoa behar da",
     "Invalid email" : "E-posta baliogabea",
     "File not loaded" : "Fitxategia ez da kargatu",
@@ -163,6 +161,8 @@ OC.L10N.register(
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",
     "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
+    "You are not the signer request for this file" : "Ez zara fitxategi hau sinatzen duen eskaera",
+    "User needs values" : "Erabiltzaileak balioak behar ditu",
     "Are ou sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?"
 },
 "nplurals=2; plural=(n != 1);");
