@@ -16,8 +16,6 @@ OC.L10N.register(
     "Already asked to sign this document" : "Já pedi para assinar este documento ",
     "Must be a fileID of a PDF" : "Deve ser um ID de arquivo de um arquivo PDF ",
     "You are not allowed to request signing" : "Você não tem permissão para solicitar assinaturas",
-    "You are not the signer request for this file" : "Você não é o signatário da solicitação deste arquivo",
-    "User needs values" : "Usuario sem dados",
     "Email required" : "O e-mail é obrigatório",
     "Invalid email" : "Email inválido",
     "File not loaded" : "Arquivo não carregado",
@@ -130,6 +128,8 @@ OC.L10N.register(
     "Validation" : "Validação",
     "No date" : "Sem datas ",
     "This document is valid" : "Este documento é válido",
-    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento."
+    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
+    "You are not the signer request for this file" : "Você não é o signatário da solicitação deste arquivo",
+    "User needs values" : "Usuario sem dados"
 },
 "nplurals=2; plural=(n > 1);");

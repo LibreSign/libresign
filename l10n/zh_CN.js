@@ -16,8 +16,6 @@ OC.L10N.register(
     "Already asked to sign this document" : "已被请求在这份文件上签字",
     "Must be a fileID of a PDF" : "必须是 PDF 文件的 fileID",
     "You are not allowed to request signing" : "系统不允许你请求签名",
-    "You are not the signer request for this file" : "你不是请求签署这个文件的人",
-    "User needs values" : "用户需要值",
     "Email required" : "需要电子邮箱",
     "Invalid email" : "无效电子邮件",
     "File not loaded" : "未加载文件",
@@ -162,6 +160,8 @@ OC.L10N.register(
     "No date" : "无日期",
     "This document is valid" : "该文档有效",
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
+    "You are not the signer request for this file" : "你不是请求签署这个文件的人",
+    "User needs values" : "用户需要值",
     "Are ou sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？"
 },
 "nplurals=1; plural=0;");

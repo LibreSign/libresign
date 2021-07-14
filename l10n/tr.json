@@ -14,8 +14,6 @@
     "Already asked to sign this document" : "Bu belgenin imzalanması zaten istenmiş",
     "Must be a fileID of a PDF" : "Bir dosya kodu ya da bir PDF olmalıdır",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
-    "You are not the signer request for this file" : "Bu dosya için imzanız istenmemiş",
-    "User needs values" : "Kullanıcının değerleri olmalı",
     "Email required" : "E-posta adresinin yazılması zorunludur.",
     "Invalid email" : "E-posta adresi geçersiz",
     "File not loaded" : "Dosya yüklenmedi",
@@ -161,6 +159,8 @@
     "No date" : "Tarih yok",
     "This document is valid" : "Bu belge geçerli",
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
+    "You are not the signer request for this file" : "Bu dosya için imzanız istenmemiş",
+    "User needs values" : "Kullanıcının değerleri olmalı",
     "Are ou sure you want to exclude user {email} from the request?" : "{email} kullanıcısını istekten çıkarmak istediğinize emin misiniz?"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
