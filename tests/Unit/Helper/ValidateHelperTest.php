@@ -201,7 +201,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testIRequestedSignThisFileWithInvalidRequester() {
-		$this->expectExceptionMessage('You are not the signer request for this file');
+		$this->expectExceptionMessage('You do not have permission for this action.');
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libresignFile
 			->method('__call')
@@ -226,7 +226,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function dataProviderHaveValidMail() {
 		return [
-			[[], 'User needs values'],
+			[[], 'No user data'],
 			[[''], 'Email required'],
 			[['email' => 'invalid'], 'Invalid email']
 		];
