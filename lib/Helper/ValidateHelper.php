@@ -139,13 +139,13 @@ class ValidateHelper {
 	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
-			throw new \Exception($this->l10n->t('You are not the signer request for this file'));
+			throw new \Exception($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
 
 	public function haveValidMail(array $data) {
 		if (empty($data)) {
-			throw new \Exception($this->l10n->t('User needs values'));
+			throw new \Exception($this->l10n->t('No user data'));
 		}
 		if (empty($data['email'])) {
 			throw new \Exception($this->l10n->t('Email required'));
