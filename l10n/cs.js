@@ -16,6 +16,8 @@ OC.L10N.register(
     "Already asked to sign this document" : "Už požádáni o podepsání tohoto dokumentu",
     "Must be a fileID of a PDF" : "Je třeba, aby bylo identifikátorem PDF souboru",
     "You are not allowed to request signing" : "Nemáte oprávnění požadovat podepsání",
+    "You do not have permission for this action." : "Pro provedení tohoto úkonu nemáte oprávnění.",
+    "No user data" : "Žádná uživatelská data",
     "Email required" : "Vyžadován e-mail",
     "Invalid email" : "Neplatný e-mail",
     "File not loaded" : "Soubor nebyl načten",
