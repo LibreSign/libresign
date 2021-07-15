@@ -38,6 +38,7 @@ Types of changes:
 - One more step to turn possible replace CFSSL
 - Test for validation of Swagger documentation
 - GitHub action to add a changelog reminder
+- View document on mobile before sign
 
 # Changed
 - Bump max Nextcloud version to 23
