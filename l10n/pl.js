@@ -16,6 +16,8 @@ OC.L10N.register(
     "Already asked to sign this document" : "Poprosiłem już o podpisanie tego dokumentu",
     "Must be a fileID of a PDF" : "Musi być fileID pliku PDF",
     "You are not allowed to request signing" : "Nie możesz poprosić o podpisanie",
+    "You do not have permission for this action." : "Nie masz uprawnień do tego działania.",
+    "No user data" : "Brak danych użytkownika",
     "Email required" : "Wymagany e-mail",
     "Invalid email" : "Nieprawidłowy e-mail",
     "File not loaded" : "Plik nie został załadowany",

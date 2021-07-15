@@ -14,6 +14,8 @@
     "Already asked to sign this document" : "Bereits aufgefordert, dieses Dokument zu unterschreiben.",
     "Must be a fileID of a PDF" : "Dies muss eine DateiID eines PDFs sein",
     "You are not allowed to request signing" : "Sie haben nicht das Recht zu signieren",
+    "You do not have permission for this action." : "Sie haben nicht die erforderlichen Rechte für diese Aktion",
+    "No user data" : "Keine Nutzerdaten",
     "Email required" : "E-Mail-Adresse erforderlich",
     "Invalid email" : "Ungültige E-Mail-Adresse",
     "File not loaded" : "Datei nicht geladen",
