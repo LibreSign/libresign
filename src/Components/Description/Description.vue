@@ -23,7 +23,7 @@
 
 <template>
 	<div class="container-desc">
-		<header>
+		<header v-show="!viewHeader">
 			<img :src="image">
 			<p>{{ t('libresign', pdfName) }}</p>
 			<span>{{ t('libresign', pdfDescription) }}</span>
@@ -49,11 +49,17 @@
 						</a>
 						<button
 							type="button"
-							:value="buttonValue"
+							:value=" t('libresign', 'Sign the document.')"
 							:class="!updating ? 'primary' : 'primary loading'"
 							:disabled="disableButton"
 							@click="sign">
 							{{ t('libresign', 'Sign the document.') }}
+						</button>
+						<button v-show="showDoc"
+							type="button"
+							class="button secondary"
+							@click="emitShow">
+							{{ t('libresign', 'Show Document') }}
 						</button>
 					</div>
 				</div>
@@ -78,7 +84,6 @@ import CreatePassword from '../../views/CreatePassword.vue'
 import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
-import { translate as t } from '@nextcloud/l10n'
 
 export default {
 	name: 'Description',
@@ -113,9 +118,11 @@ export default {
 			signaturePath: '2',
 			password: '',
 			asign: true,
-			buttonValue: t('libresign', 'Sign the document.'),
 			modal: false,
 			havePfx: false,
+			showDoc: false,
+			viewHeader: false,
+			width: window.innerWidth,
 		}
 	},
 
@@ -124,7 +131,24 @@ export default {
 			return !!this.password
 		},
 	},
+	watch: {
+		width(newVal, oldVal) {
+			if (newVal <= 650) {
+				this.showDoc = true
+			}
+			if (newVal > 650) {
+				this.showDoc = false
+			}
+		},
+	},
 	created() {
+		this.$nextTick(() => {
+			window.addEventListener('resize', this.onResize)
+		})
+		this.width <= 650
+			? this.showDoc = true
+			: this.showDoc = false
+
 		this.getMe()
 	},
 
@@ -164,6 +188,15 @@ export default {
 		handleModal(status) {
 			this.modal = status
 		},
+		emitShow() {
+			this.$emit('onDocument', true)
+			this.showDoc = false
+			this.viewHeader = true
+		},
+		onResize() {
+			this.width = window.innerWidth
+		},
+
 	},
 }
 </script>
