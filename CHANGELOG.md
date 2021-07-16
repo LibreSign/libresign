@@ -13,6 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## Draft - 2021-07-16
+
+# Changed
+- PDF preview on mobile when signing
 
 ## 2.4.3 - 2021-07-14
 
