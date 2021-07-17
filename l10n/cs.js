@@ -76,6 +76,7 @@ OC.L10N.register(
     "Forgot your password?" : "Zapomněli jste heslo?",
     "Create password to sign document" : "Vytvořit heslo pro podepsání dokumentu",
     "Sign the document." : "Podepsat dokument.",
+    "Show Document" : "Zobrazit dokument",
     "Signatures" : "Podpisy",
     "Sign" : "Podepsat",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",

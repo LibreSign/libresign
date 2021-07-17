@@ -73,6 +73,7 @@
     "Forgot your password?" : "忘记了你的密码？",
     "Create password to sign document" : "创建密码来签署文档",
     "Sign the document." : "签署文档",
+    "Show Document" : "显示文档",
     "Signatures" : "签名",
     "Sign" : "签名",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}",

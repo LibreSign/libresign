@@ -76,6 +76,7 @@ OC.L10N.register(
     "Forgot your password?" : "Haben Sie Ihr Passwort vergessen?",
     "Create password to sign document" : "Passwort zum Signieren des Dokuments erstellen",
     "Sign the document." : "Das Dokument signieren.",
+    "Show Document" : "Dokument anzeigen",
     "Signatures" : "Signaturen",
     "Sign" : "Signieren",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
