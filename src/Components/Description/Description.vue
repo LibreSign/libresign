@@ -26,7 +26,7 @@
 		<header v-show="!viewHeader">
 			<img :src="image">
 			<p>{{ t('libresign', pdfName) }}</p>
-			<span>{{ t('libresign', pdfDescription) }}</span>
+			<span v-html="markedDescription" />
 		</header>
 		<div id="body">
 			<form @submit="(e) => e.preventDefault()">
@@ -84,6 +84,7 @@ import CreatePassword from '../../views/CreatePassword.vue'
 import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
+import marked from 'marked'
 
 export default {
 	name: 'Description',
@@ -129,6 +130,9 @@ export default {
 	computed: {
 		hasSavePossible() {
 			return !!this.password
+		},
+		markedDescription() {
+			return marked(this.pdfDescription, { sanitize: true })
 		},
 	},
 	watch: {
