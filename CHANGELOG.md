@@ -44,7 +44,8 @@ Types of changes:
 - Test for validation of Swagger documentation
 - GitHub action to add a changelog reminder
 - View document on mobile before sign
-- Markdown formatting for description.
+- Markdown formatting for description
+- Libresign button in file options in theh Files app
 
 # Changed
 - Bump max Nextcloud version to 23
