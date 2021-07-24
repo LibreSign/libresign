@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-v-html -->
 <!--
 - @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
 -

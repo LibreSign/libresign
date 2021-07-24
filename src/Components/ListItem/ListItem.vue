@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/no-v-html -->
+
 <template>
 	<div class="container">
 		<div id="image">
