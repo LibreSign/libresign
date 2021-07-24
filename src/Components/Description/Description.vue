@@ -85,6 +85,7 @@ import axios from '@nextcloud/axios'
 import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
 import marked from 'marked'
+import dompurify from 'dompurify'
 
 export default {
 	name: 'Description',
@@ -132,7 +133,7 @@ export default {
 			return !!this.password
 		},
 		markedDescription() {
-			return marked(this.pdfDescription, { sanitize: true })
+			return dompurify.sanitize(marked(this.pdfDescription), { USE_PROFILES: { html: false } })
 		},
 	},
 	watch: {
