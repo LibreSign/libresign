@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/no-v-html -->
+
 <template>
 	<div class="container">
 		<div id="image">
@@ -12,7 +14,7 @@
 			<p class="title">
 				{{ user.displayName ? user.displayName : user.email }}
 			</p>
-			<span class="description"> {{ description }}</span>
+			<span class="description" v-html="markedDescription" />
 		</div>
 		<div v-if="hasOptions" id="options">
 			<Actions>
@@ -26,6 +28,8 @@
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import marked from 'marked'
+import DOMPurify from 'dompurify'
 
 export default {
 	name: 'ListItem',
@@ -49,6 +53,11 @@ export default {
 			type: Boolean,
 			default: true,
 			require: false,
+		},
+	},
+	computed: {
+		markedDescription() {
+			return DOMPurify.sanitize(marked(this.description))
 		},
 	},
 	methods: {
