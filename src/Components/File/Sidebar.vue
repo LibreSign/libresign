@@ -10,6 +10,11 @@
 		name="sidebar"
 		@update:active="updateActive"
 		@close="closeSidebar">
+		<template #secondary-actions>
+			<ActionLink icon="icon-folder" :href="viewOnFiles">
+				{{ t('libresign', 'View on Files') }}
+			</ActionLink>
+		</template>
 		<AppSidebarTab
 			id="signantures"
 			:name="t('libresign', 'Signatures')"
@@ -32,6 +37,8 @@
 </template>
 
 <script>
+import { generateUrl } from '@nextcloud/router'
+import { ActionLink } from '@nextcloud/vue'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
@@ -46,9 +53,15 @@ export default {
 		AppSidebarTab,
 		SignaturesTab,
 		Sign,
+		ActionLink,
 	},
 	props: {
 		loading: {
+			type: Boolean,
+			default: false,
+			required: false,
+		},
+		viewsInFiles: {
 			type: Boolean,
 			default: false,
 			required: false,
@@ -75,6 +88,9 @@ export default {
 			return this.getCurrentFile.file.signers.filter(
 				signer => signer.me !== false && signer.sign_date === null
 			).length > 0
+		},
+		viewOnFiles() {
+			return generateUrl('/f/' + this.currentFile.file.file.nodeId)
 		},
 		...mapState({
 			currentFile: state => state.currentFile,
@@ -104,3 +120,12 @@ export default {
 	},
 }
 </script>
+<style lang="scss" scoped>
+button {
+	padding-left: 44px;
+	background-position: 16px center;
+	flex-grow: 1;
+	margin-bottom: 12px;
+	text-align: left;
+}
+</style>
