@@ -27,6 +27,16 @@
 		<AdminFormLibresign />
 		<UrlValidation />
 		<AllowedGroups />
+		<div class="settings-section">
+			<h2>{{ t('libresign', 'Legal information') }}</h2>
+			<div class="legal-information-content">
+				<span>{{ t('libresign', 'This information will appear on the validation page') }}</span>
+				<textarea
+					v-model="legalInformation"
+					:placeholder="t('libresign', 'Legal Information')"
+					@blur="saveLegalInformation" />
+			</div>
+		</div>
 	</SettingsSection>
 </template>
 
@@ -36,6 +46,8 @@ import AllowedGroups from './AllowedGroups'
 import UrlValidation from './UrlValidation'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { translate as t } from '@nextcloud/l10n'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 
 export default {
 	name: 'Settings',
@@ -49,12 +61,22 @@ export default {
 		return {
 			loading: true,
 			title: t('libresign', 'LibreSign'),
+			legalInformation: '',
 		}
 	},
-	computed: {},
-	async mounted() {},
-
-	methods: {},
+	created() {
+		this.getData()
+	},
+	methods: {
+		async getData() {
+			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/legal_information', {})
+			this.legalInformation = response.data.ocs.data.data
+			console.info(response)
+		},
+		saveLegalInformation() {
+			OCP.AppConfig.setValue('libresign', 'legal_information', this.legalInformation)
+		},
+	},
 }
 
 </script>
@@ -67,5 +89,15 @@ export default {
 	flex-direction: column;
 	flex-grow: 1;
 	align-items: center;
+}
+
+.legal-information-content{
+	display: flex;
+	flex-direction: column;
+}
+
+textarea {
+	width: 50%;
+	height: 150px;
 }
 </style>
