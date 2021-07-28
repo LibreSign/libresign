@@ -46,6 +46,7 @@ Types of changes:
 - View document on mobile before sign
 - Markdown formatting for description
 - Legal information on Validation screen, configure in Admin settings
+- Button to redirect to files to view the document
 
 # Changed
 - Bump max Nextcloud version to 23
