@@ -13,8 +13,19 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## Draft - 2021-07-16
 
-## Draft
+# Changed
+- PDF preview on mobile when signing
+- Only show request signing button if file not signed
+
+## 2.4.3 - 2021-07-14
+
+# Changed
+- Update translations
+- API message changes, thanks to, thanks to @rakekniven and @Valdnet
+
+## 2.4.2 - 2021-07-08
 
 # Added
 - List of documents
@@ -32,6 +43,10 @@ Types of changes:
 - One more step to turn possible replace CFSSL
 - Test for validation of Swagger documentation
 - GitHub action to add a changelog reminder
+- View document on mobile before sign
+- Markdown formatting for description
+- Legal information on Validation screen, configure in Admin settings
+- Button to redirect to files to view the document
 
 # Changed
 - Bump max Nextcloud version to 23

@@ -39,6 +39,11 @@ $date-signed-font: .7rem;
 			width: 100%;
 		}
 	}
+	.legal-information{
+		opacity: 0.8;
+		align-self: center;
+		font-size: 1rem;
+	}
 }
 
 form{
@@ -194,7 +199,7 @@ button{
 	}
 	.infor {
 		h1 {
-			font-size: $title-font-mobile;	
+			font-size: $title-font-mobile;
 		}
 	}
 	.header {

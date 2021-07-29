@@ -24,6 +24,11 @@
 								<p>
 									<b>{{ document.name }}</b>
 								</p>
+
+								<span class="legal-information">
+									{{ legalInformation }}
+								</span>
+
 								<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
 							</div>
 						</div>
@@ -59,7 +64,7 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime } from 'date-fns'
@@ -94,12 +99,16 @@ export default {
 			hasLoading: false,
 			document: {},
 			documentUuid: '',
+			legalInformation: '',
 		}
 	},
 	watch: {
 		'$route.params'(toParams, previousParams) {
 			this.validateByUUID(toParams.uuid)
 		},
+	},
+	created() {
+		this.getData()
 	},
 	methods: {
 		async validateByUUID(uuid) {
@@ -116,6 +125,10 @@ export default {
 				this.hasLoading = false
 				showError(err.response.data.errors[0])
 			}
+		},
+		async getData() {
+			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/legal_information', {})
+			this.legalInformation = response.data.ocs.data.data
 		},
 		getName(user) {
 			if (user.fullName) {

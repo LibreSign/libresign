@@ -33,6 +33,7 @@
 				</button>
 				<button
 					v-if="canRequestSign"
+					v-show="showRequest"
 					class="primary"
 					@click="option('request')">
 					{{ t('libresign', 'Request') }}
@@ -144,6 +145,7 @@ export default {
 			haveRequest: false,
 			canSign: false,
 			fileInfo: null,
+			showRequest: false,
 			hasPfx: false,
 		}
 	},
@@ -161,12 +163,18 @@ export default {
 	},
 
 	watch: {
-		fileInfo() {
+		fileInfo(newVal, oldVal) {
 			this.getInfo()
 			this.getMe()
 			this.signShow = false
 			this.requestShow = false
 			this.signaturesShow = false
+
+			if (newVal.name.indexOf('.signed.') !== -1 || newVal.name.indexOf('.assinado.') !== -1) {
+				this.showRequest = false
+			} else {
+				this.showRequest = true
+			}
 		},
 
 		signers() {
@@ -250,6 +258,7 @@ export default {
 				}
 			} catch (err) {
 				this.canSign = false
+				this.signers = []
 			}
 		},
 
