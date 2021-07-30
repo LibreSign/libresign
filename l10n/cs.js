@@ -77,6 +77,7 @@ OC.L10N.register(
     "Create password to sign document" : "Vytvořit heslo pro podepsání dokumentu",
     "Sign the document." : "Podepsat dokument.",
     "Show Document" : "Zobrazit dokument",
+    "View on Files" : "Zobrazit v Souborech",
     "Signatures" : "Podpisy",
     "Sign" : "Podepsat",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
@@ -152,6 +153,9 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Zadejte nové heslo (do obou kolonek)",
     "New password" : "Nové heslo",
     "Repeat password" : "Zopakujte zadání hesla",
+    "Legal information" : "Právní informace",
+    "This information will appear on the validation page" : "Tato informace se objeví na stránce ověřování",
+    "Legal Information" : "Právní informace",
     "All Files" : "Všechny soubory",
     "Validation URL" : "Ověřovací URL",
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
@@ -163,9 +167,6 @@ OC.L10N.register(
     "Validation" : "Ověření",
     "No date" : "Žádné datum",
     "This document is valid" : "Tento dokument je platný",
-    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
-    "You are not the signer request for this file" : "Nejste tím, kdo má tento dokument podepsat",
-    "User needs values" : "Uživatel potřebuje údaje",
-    "Are ou sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?"
+    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
