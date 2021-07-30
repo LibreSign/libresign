@@ -392,24 +392,15 @@ class AccountService {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
-		$file = $userFolder->getById($fileData->getNodeId())[0];
-		$filePath = $file->getPath();
-
 		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
 		$signedUsers = array_filter($fileUser, function ($row) {
 			return !is_null($row->getSigned());
 		});
+
 		if (count($fileUser) === count($signedUsers)) {
-			$filePath = preg_replace(
-				'/' . $file->getExtension() . '$/',
-				$this->l10n->t('signed') . '.' . $file->getExtension(),
-				$filePath
-			);
-		}
-		// If signed, return signed file
-		if ($userFolder->nodeExists($filePath)) {
-			/** @var \OCP\Files\File */
-			$file = $userFolder->get($filePath);
+			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
+		} else {
+			$file = $userFolder->getById($fileData->getNodeId())[0];
 		}
 		return $file;
 	}
