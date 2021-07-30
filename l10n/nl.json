@@ -161,9 +161,6 @@
     "Validation" : "Validatie",
     "No date" : "Geen datum",
     "This document is valid" : "Dit document is geldig",
-    "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
-    "You are not the signer request for this file" : "Je bent niet de gevraagde ondertekenaar voor dit bestand",
-    "User needs values" : "Gebruiker heeft waarden nodig",
-    "Are ou sure you want to exclude user {email} from the request?" : "Weet je zeker dat je gebruiker {email} wilt uitsluiten van de aanvraag?"
+    "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

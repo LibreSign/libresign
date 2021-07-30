@@ -75,6 +75,7 @@
     "Create password to sign document" : "Passwort zum Signieren des Dokuments erstellen",
     "Sign the document." : "Das Dokument signieren.",
     "Show Document" : "Dokument anzeigen",
+    "View on Files" : "In Dateien ansehen",
     "Signatures" : "Signaturen",
     "Sign" : "Signieren",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
@@ -150,6 +151,9 @@
     "Enter new password and then repeat it" : "Geben Sie ein neues Passwort ein und wiederholen Sie es",
     "New password" : "Neues Passwort",
     "Repeat password" : "Passwort wiederholen",
+    "Legal information" : "Rechtliche Informationen",
+    "This information will appear on the validation page" : "Diese Informationen werden auf der Überprüfungsseite angezeigt",
+    "Legal Information" : "Rechtliche Informationen",
     "All Files" : "Alle Dateien",
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
@@ -161,9 +165,6 @@
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
-    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",
-    "You are not the signer request for this file" : "Sie sind nicht der angeforderte Signierer für diese Datei",
-    "User needs values" : "Benutzer benötigt Werte",
-    "Are ou sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?"
+    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

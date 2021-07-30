@@ -161,9 +161,6 @@
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
-    "You are not the signer request for this file" : "Ez zara fitxategi hau sinatzen duen eskaera",
-    "User needs values" : "Erabiltzaileak balioak behar ditu",
-    "Are ou sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?"
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
