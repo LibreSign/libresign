@@ -18,6 +18,7 @@ Types of changes:
 # Changed
 - PDF preview on mobile when signing
 - Only show request signing button if file not signed
+- Associate signed file to LibreSign file
 
 ## 2.4.3 - 2021-07-14
 
