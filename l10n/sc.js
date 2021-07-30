@@ -163,9 +163,6 @@ OC.L10N.register(
     "Validation" : "Cunvàlida",
     "No date" : "Peruna data",
     "This document is valid" : "Custu documentu est bàlidu",
-    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
-    "You are not the signer request for this file" : "Non ses su chi at firmadu sa rechesta pro custu archìviu",
-    "User needs values" : "A s'utente serbint balores",
-    "Are ou sure you want to exclude user {email} from the request?" : "Ses seguru chi nche cherese lassare in foras s'utente {email} dae sa rechesta?"
+    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu."
 },
 "nplurals=2; plural=(n != 1);");

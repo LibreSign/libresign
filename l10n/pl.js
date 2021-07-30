@@ -77,6 +77,7 @@ OC.L10N.register(
     "Create password to sign document" : "Utwórz hasło do podpisania dokumentu",
     "Sign the document." : "Podpisz dokument.",
     "Show Document" : "Pokaż dokument",
+    "View on Files" : "Zobacz w Plikach",
     "Signatures" : "Podpisy",
     "Sign" : "Podpisz",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
@@ -152,6 +153,9 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Wprowadź nowe hasło i następnie powtórz je",
     "New password" : "Nowe hasło",
     "Repeat password" : "Powtórz hasło",
+    "Legal information" : "Informacje prawne",
+    "This information will appear on the validation page" : "Informacja ta pojawi się na stronie weryfikacji",
+    "Legal Information" : "Informacje prawne",
     "All Files" : "Wszystkie pliki",
     "Validation URL" : "Walidacja adresu URL",
     "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów",
@@ -163,9 +167,6 @@ OC.L10N.register(
     "Validation" : "Walidacja",
     "No date" : "Brak daty",
     "This document is valid" : "Ten dokument jest prawidłowy",
-    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
-    "You are not the signer request for this file" : "Nie jesteś sygnatariuszem tego pliku",
-    "User needs values" : "Użytkownik potrzebuje wartości",
-    "Are ou sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?"
+    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

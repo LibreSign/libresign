@@ -133,7 +133,6 @@ OC.L10N.register(
     "Validate Subscription." : "Overiť predplatné.",
     "Validation" : "Kontrola platnosti",
     "No date" : "Žiadný dátum",
-    "This document is valid" : "Dokument je pravý",
-    "User needs values" : "Užívateľ potrebuje hodnoty"
+    "This document is valid" : "Dokument je pravý"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
