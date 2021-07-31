@@ -51,7 +51,7 @@ class AccountController extends ApiController {
 	 * @UseSession
 	 * @return JSONResponse
 	 */
-	public function createToSign(string $uuid, string $email, string $password, string $signPassword) {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword) {
 		try {
 			$data = [
 				'uuid' => $uuid,
@@ -60,7 +60,9 @@ class AccountController extends ApiController {
 				'signPassword' => $signPassword
 			];
 			$this->account->validateCreateToSign($data);
-			$this->account->validateCertificateData($data);
+			if ($signPassword) {
+				$this->account->validateCertificateData($data);
+			}
 
 			$fileToSign = $this->account->getFileByUuid($uuid);
 			$fileUser = $this->account->getFileUserByUuid($uuid);
