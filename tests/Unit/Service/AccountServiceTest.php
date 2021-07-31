@@ -832,6 +832,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'base64' => base64_encode('content')
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -882,6 +883,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'url' => ''
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -931,6 +933,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'file' => new \stdClass()
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -981,6 +984,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'nodeId' => null
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -1067,6 +1071,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'pdf' => [
 						'file' => new \stdClass()
 					],
+					'uuid' => null,
 					'filename' => null,
 					'description' => null
 				],

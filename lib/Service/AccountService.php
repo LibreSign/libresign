@@ -363,6 +363,7 @@ class AccountService {
 		}
 		$return['sign'] = [
 			'pdf' => $pdf,
+			'uuid' => $fileData->getUuid(),
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription()
 		];
