@@ -13,7 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## Draft - 2021-07-16
+## Draft - 2021-07-31
+
+# Added
+- Added clickable link in the PDF footer
 
 # Changed
 - PDF preview on mobile when signing
