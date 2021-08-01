@@ -1081,21 +1081,22 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual['sign']['pdf']['file']);
 	}
 
-	public function testGetPdfByUuidWithSuccess() {
+	public function testGetPdfByUuidWithSuccessAndSignedFile() {
 		$this->createUser('username', 'password');
 
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
+			->expects($this->exactly(3))
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId')],
-				[$this->equalTo('getNodeId')],
-				[$this->equalTo('getId')]
+				[$this->equalTo('getId')],
+				[$this->equalTo('getSignedNodeId')]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], 'username'],
-				['getNodeId', [], 171],
-				['getId', [], 171]
+				['getId', [], 171],
+				['getSignedNodeId', [], 171]
 			]));
 		$this->fileMapper
 			->method('getByUuid')
@@ -1103,12 +1104,50 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->will($this->returnValue(171));
-		$this->root
-			->method('getById')
-			->will($this->returnValue([$node]));
-		$this->root
-			->method('nodeExists')
+
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->with($this->equalTo('getSigned'))
 			->willReturn(true);
+		$this->fileUserMapper
+			->method('getByFileId')
+			->willReturn([$fileUser]);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$node]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
+
+		$actual = $this->accountService->getPdfByUuid('uuid');
+		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+	}
+
+	public function testGetPdfByUuidWithSuccessAndUnignedFile() {
+		$this->createUser('username', 'password');
+
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->expects($this->exactly(3))
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUserId')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getSignedNodeId')]
+			)
+			->will($this->returnValueMap([
+				['getUserId', [], 'username'],
+				['getId', [], 171],
+				['getNodeId', [], 171]
+			]));
+		$this->fileMapper
+			->method('getByUuid')
+			->will($this->returnValue($fileUser));
+
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->will($this->returnValue(171));
 
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser

@@ -436,6 +436,8 @@ class SignFileService {
 
 		$fileUser->setSigned(time());
 		$this->fileUserMapper->update($fileUser);
+		$libreSignFile->setSignedNodeId($signedFile->getId());
+		$this->fileMapper->update($libreSignFile);
 
 		return $signedFile;
 	}
