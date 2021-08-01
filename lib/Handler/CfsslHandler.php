@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\TransferException;
 use OCA\Libresign\Exception\LibresignException;
 
@@ -25,7 +26,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getOrganizationUnit()
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
- * @method CfsslHandler setClient(Client $client)
+ * @method CfsslHandler setClient(ClientInterface $client)
  * @method Client getClient()
  */
 class CfsslHandler {
@@ -36,7 +37,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
-	/** @var Client */
+	/** @var ClientInterface */
 	private $client;
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
@@ -53,7 +54,7 @@ class CfsslHandler {
 		return $this;
 	}
 
-	public function getClient(): Client {
+	public function getClient(): ClientInterface {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
@@ -100,7 +101,7 @@ class CfsslHandler {
 		];
 		try {
 			$response = $this->getClient()
-				->post(
+				->request('post',
 					'newcert',
 					$json
 				)
@@ -128,7 +129,7 @@ class CfsslHandler {
 	public function health(string $cfsslUri): array {
 		try {
 			$response = $this->getClient()
-				->get(
+				->request('get',
 					'health',
 					[
 						'base_uri' => $cfsslUri
