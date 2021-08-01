@@ -2,9 +2,10 @@
 
 namespace OCA\Libresign\Tests\Unit\Handler;
 
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
-use Psr\Http\Message\ResponseInterface;
+use OCP\Http\Client\IResponse;
 
 /**
  * @internal
@@ -32,13 +33,13 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$class = new CfsslHandler();
 		$this->expectErrorMessage('Error while generating certificate keys!');
 		$this->expectExceptionCode(500);
-		$response = $this->createMock(ResponseInterface::class);
+		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => false
 		]));
-		$client = $this->createMock(\GuzzleHttp\Client ::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('post')
+			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
 		$class->generateCertificate();
@@ -53,9 +54,9 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGenerateCertificateWithUnexpectedError() {
 		$class = new CfsslHandler();
 		$this->expectExceptionCode(500);
-		$client = $this->createMock(\GuzzleHttp\Client ::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('post')
+			->method('request')
 			->willThrowException($this->createMock(ConnectException::class));
 		$class->setClient($client);
 		$class->generateCertificate();
@@ -65,7 +66,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('Error while creating certificate file');
 		$this->expectExceptionCode(500);
-		$response = $this->createMock(ResponseInterface::class);
+		$response = $this->createMock(IResponse::class);
 		$cert = [
 			'certificate' => null,
 			'private_key' => null
@@ -74,9 +75,9 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'success' => 'success',
 			'result' => $cert
 		]));
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('post')
+			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
 		$class->generateCertificate();
@@ -84,15 +85,15 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGenerateCertificateWithValidCert() {
 		$class = new CfsslHandler();
-		$response = $this->createMock(ResponseInterface::class);
+		$response = $this->createMock(IResponse::class);
 		$cert = file_get_contents(__DIR__ . '/mock/cert.json');
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => 'success',
 			'result' => json_decode($cert, true)
 		]));
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('post')
+			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
 		$class->setPassword('password');
@@ -107,9 +108,9 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectErrorMessage('invalid url');
 		$exception = $this->createMock(ConnectException::class);
 		$exception->method('getHandlerContext')->willReturn(['error' => 'invalid url']);
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('get')
+			->method('request')
 			->willThrowException($exception);
 		$class->setClient($client);
 		$class->health('invalid_url');
@@ -118,9 +119,9 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testHealthWithUnexpectedError() {
 		$class = new CfsslHandler();
 		$this->expectExceptionCode(500);
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('get')
+			->method('request')
 			->willThrowException($this->createMock(ConnectException::class));
 		$class->setClient($client);
 		$class->health('invalid_url');
@@ -129,14 +130,14 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testHealthWithoutSuccess() {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('Error while check cfssl API health!');
-		$response = $this->createMock(ResponseInterface::class);
+		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => false,
 			'result' => true
 		]));
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('get')
+			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
 		$class->health('http://cfssl.coop');
@@ -144,14 +145,14 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testHealthWithSuccess() {
 		$class = new CfsslHandler();
-		$response = $this->createMock(ResponseInterface::class);
+		$response = $this->createMock(IResponse::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => 'success',
 			'result' => ['healthy' => true]
 		]));
-		$client = $this->createMock(\GuzzleHttp\Client::class);
+		$client = $this->createMock(ClientInterface::class);
 		$client->expects($this->once())
-			->method('get')
+			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
 		$actual = $class->health('http://cfssl.coop');
