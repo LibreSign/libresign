@@ -4,9 +4,7 @@ namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\LibreSign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -26,10 +24,8 @@ class ValidateHelper {
 	private $groupManager;
 	/** @var IRootFolder */
 	private $root;
-	/** @var LibresignFile */
-	private $libresignFile;
-	/** @var FileUser[] */
-	private $signers;
+	/** @var \OCP\Files\File[] */
+	private $file;
 
 	public function __construct(
 		IL10N $l10n,
@@ -46,7 +42,7 @@ class ValidateHelper {
 		$this->groupManager = $groupManager;
 		$this->root = $root;
 	}
-	public function validateNewFile(array $data) {
+	public function validateNewFile(array $data): void {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -66,7 +62,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateBase64(string $base64) {
+	public function validateBase64(string $base64): void {
 		$string = base64_decode($base64);
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
@@ -74,7 +70,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateNotRequestedSign(int $nodeId) {
+	public function validateNotRequestedSign(int $nodeId): void {
 		try {
 			$fileMapper = $this->fileUserMapper->getByNodeId($nodeId);
 		} catch (\Throwable $th) {
@@ -84,7 +80,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIfNodeIdExists(int $nodeId) {
+	public function validateIfNodeIdExists(int $nodeId): void {
 		try {
 			$file = $this->root->getById($nodeId);
 			$file = $file[0];
@@ -96,7 +92,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateMimeTypeAccepted(int $nodeId) {
+	public function validateMimeTypeAccepted(int $nodeId): void {
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
 		if ($file->getMimeType() !== 'application/pdf') {
@@ -104,7 +100,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateLibreSignNodeId(int $nodeId) {
+	public function validateLibreSignNodeId(int $nodeId): void {
 		try {
 			$this->getLibreSignFileByNodeId($nodeId);
 		} catch (\Throwable $th) {
@@ -112,6 +108,11 @@ class ValidateHelper {
 		}
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param integer $nodeId
+	 * @return \OCP\Files\File
+	 */
 	private function getLibreSignFileByNodeId(int $nodeId): \OCP\Files\File {
 		if (empty($this->file[$nodeId])) {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
@@ -125,7 +126,7 @@ class ValidateHelper {
 		return $this->file[$nodeId];
 	}
 
-	public function canRequestSign(IUser $user) {
+	public function canRequestSign(IUser $user): void {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized) || !is_array($authorized)) {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'));
@@ -136,14 +137,14 @@ class ValidateHelper {
 		}
 	}
 
-	public function iRequestedSignThisFile(IUser $user, int $nodeId) {
+	public function iRequestedSignThisFile(IUser $user, int $nodeId): void {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new \Exception($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
 
-	public function haveValidMail(array $data) {
+	public function haveValidMail(array $data): void {
 		if (empty($data)) {
 			throw new \Exception($this->l10n->t('No user data'));
 		}
@@ -155,7 +156,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function signerWasAssociated(array $signer) {
+	public function signerWasAssociated(array $signer): void {
 		$libresignFile = $this->fileMapper->getByFileId();
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
@@ -167,7 +168,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function notSigned(array $signer) {
+	public function notSigned(array $signer): void {
 		$libresignFile = $this->fileMapper->getByFileId();
 		if (!$libresignFile) {
 			throw new \Exception($this->l10n->t('File not loaded'));
@@ -184,7 +185,7 @@ class ValidateHelper {
 		throw new \Exception($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 	}
 
-	public function validateFileUuid(array $data) {
+	public function validateFileUuid(array $data): void {
 		try {
 			$this->fileMapper->getByUuid($data['uuid']);
 		} catch (\Throwable $th) {
@@ -192,7 +193,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIsSignerOfFile(int $signatureId, int $fileId) {
+	public function validateIsSignerOfFile(int $signatureId, int $fileId): void {
 		try {
 			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
 		} catch (\Throwable $th) {

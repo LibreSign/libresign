@@ -77,7 +77,10 @@ class SignFileService {
 		$this->root = $root;
 	}
 
-	public function save(array $data) {
+	/**
+	 * @param array{callback: string, name: string, userManager: OCP\IUserManager} $data
+	 */
+	public function save(array $data): array {
 		if (!empty($data['uuid'])) {
 			$file = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
@@ -98,7 +101,7 @@ class SignFileService {
 	/**
 	 * Save file data
 	 *
-	 * @param array $data
+	 * @param array{userManager: IUserManager, name: string, callback: string} $data
 	 * @return FileEntity
 	 */
 	public function saveFile(array $data): FileEntity {
@@ -118,7 +121,7 @@ class SignFileService {
 		return $file;
 	}
 
-	public function saveFileUser(FileUserEntity $fileUser) {
+	public function saveFileUser(FileUserEntity $fileUser): void {
 		if ($fileUser->getId()) {
 			$this->fileUserMapper->update($fileUser);
 			$this->mail->notifySignDataUpdated($fileUser);
@@ -128,6 +131,11 @@ class SignFileService {
 		}
 	}
 
+	/**
+	 * @return FileUserEntity[]
+	 *
+	 * @psalm-return list<FileUserEntity>
+	 */
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
@@ -142,6 +150,9 @@ class SignFileService {
 		return $return;
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 */
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
 		try {
 			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
@@ -151,6 +162,10 @@ class SignFileService {
 		return $fileUser;
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 */
 	private function getNodeFromData(array $data): \OCP\Files\Node {
 		if (!$this->folderService->getUserId()) {
 			$this->folderService->setUserId($data['userManager']->getUID());
@@ -168,7 +183,11 @@ class SignFileService {
 		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
 	}
 
-	private function getFileRaw($data) {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 */
+	private function getFileRaw(array $data): string {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
@@ -198,7 +217,7 @@ class SignFileService {
 	 * @throws CrossReferenceException
 	 * @throws PdfParserException
 	 */
-	private function validatePdfStringWithFpdi($string) {
+	private function validatePdfStringWithFpdi($string): void {
 		$pdf = new Fpdi();
 		try {
 			$stream = fopen('php://memory','r+');
@@ -211,7 +230,10 @@ class SignFileService {
 		}
 	}
 
-	private function getFolderName(array $data) {
+	/**
+	 * @param array{settings: array, name: string, userManager: IUser} $data
+	 */
+	private function getFolderName(array $data): string {
 		if (!isset($data['settings']['folderPatterns'])) {
 			$data['settings']['separator'] = '_';
 			$data['settings']['folderPatterns'][] = [
@@ -225,6 +247,7 @@ class SignFileService {
 				'name' => 'userId'
 			];
 		}
+		$folderName = null;
 		foreach ($data['settings']['folderPatterns'] as $pattern) {
 			switch ($pattern['name']) {
 				case 'date':
@@ -243,7 +266,10 @@ class SignFileService {
 		return implode($data['settings']['separator'], $folderName);
 	}
 
-	private function setDataToUser(FileUserEntity $fileUser, array $user, $fileId) {
+	/**
+	 * @psalm-suppress MixedMethodCall
+	 */
+	private function setDataToUser(FileUserEntity $fileUser, array $user, int $fileId): void {
 		$fileUser->setFileId($fileId);
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
@@ -269,27 +295,27 @@ class SignFileService {
 		}
 	}
 
-	public function validate(array $data) {
+	public function validate(array $data): void {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
 	}
 
-	public function validateUserManager(array $user) {
+	public function validateUserManager(array $user): void {
 		if (!isset($user['userManager'])) {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$this->validateHelper->canRequestSign($user['userManager']);
 	}
 
-	public function validateNewFile(array $data) {
+	public function validateNewFile(array $data): void {
 		if (empty($data['name'])) {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
 		$this->validateHelper->validateNewFile($data);
 	}
 
-	public function validateExistingFile(array $data) {
+	public function validateExistingFile(array $data): void {
 		if (isset($data['uuid'])) {
 			$this->validateHelper->validateFileUuid($data);
 			$file = $this->fileMapper->getByUuid($data['uuid']);
@@ -305,7 +331,7 @@ class SignFileService {
 		}
 	}
 
-	public function validateUsers(array $data) {
+	public function validateUsers(array $data): void {
 		if (empty($data['users'])) {
 			throw new \Exception($this->l10n->t('Empty users list'));
 		}
@@ -328,11 +354,13 @@ class SignFileService {
 	 *
 	 * @param array $data
 	 */
-	public function canDeleteSignRequest(array $data) {
+	public function canDeleteSignRequest(array $data): void {
 		if (!empty($data['uuid'])) {
 			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
 			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+		} else {
+			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
 		$signed = array_filter($signatures, fn ($s) => $s->getSigned());
 		if ($signed) {
@@ -362,10 +390,12 @@ class SignFileService {
 		} elseif (!empty($data['file']['fileId'])) {
 			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+		} else {
+			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
 
 		$deletedUsers = [];
-		foreach ($data['users'] as $key => $signer) {
+		foreach ($data['users'] as $signer) {
 			try {
 				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
 					$signer['email'],
@@ -394,6 +424,8 @@ class SignFileService {
 		} elseif (!empty($data['file']['fileId'])) {
 			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
+		} else {
+			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
 		foreach ($signatures as $fileUser) {
 			$this->fileUserMapper->delete($fileUser);
@@ -401,11 +433,15 @@ class SignFileService {
 		$this->fileMapper->delete($fileData);
 	}
 
-	public function unassociateToUser(int $fileId, int $signatureId) {
+	public function unassociateToUser(int $fileId, int $signatureId): void {
 		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
 		$this->fileUserMapper->delete($fileUser);
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 */
 	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
 		$options = [
 			'multipart' => [
@@ -423,7 +459,7 @@ class SignFileService {
 		return $this->client->newClient()->post($uri, $options);
 	}
 
-	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\File {
+	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\Node {
 		$fileToSign = $this->getFileToSing($libreSignFile);
 		$pfxFile = $this->pkcs12Handler->getPfx($fileUser->getUserId());
 		switch ($fileToSign->getExtension()) {
@@ -447,9 +483,9 @@ class SignFileService {
 	 *
 	 * @throws LibresignException
 	 * @param FileEntity $fileData
-	 * @return \OCP\Files\File
+	 * @return \OCP\Files\Node
 	 */
-	public function getFileToSing(FileEntity $fileData): \OCP\Files\File {
+	public function getFileToSing(FileEntity $fileData): \OCP\Files\Node {
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 		$originalFile = $userFolder->getById($fileData->getNodeId());
 		if (count($originalFile) < 1) {
@@ -462,7 +498,14 @@ class SignFileService {
 		return $userFolder->get($originalFile);
 	}
 
-	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress InvalidReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 *
+	 * @return File
+	 */
+	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
 		$signedFilePath = preg_replace(
 			'/' . $originalFile->getExtension() . '$/',
 			$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
@@ -478,6 +521,7 @@ class SignFileService {
 			if (!$buffer) {
 				$buffer = $originalFile->getContent($originalFile);
 			}
+			/** @var \OCP\Files\File */
 			$fileToSign = $this->root->newFile($signedFilePath);
 			$fileToSign->putContent($buffer);
 		}

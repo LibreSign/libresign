@@ -771,11 +771,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->withConsecutive(
 							[$self->equalTo('getUserId')],
-							[$self->equalTo('getSigned')]
+							[$self->equalTo('getSigned')],
+							[$self->equalTo('getFileId')]
 						)
 						->will($self->returnValueMap([
 							['getUserId', [], 'username'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getFileId', [], 1]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -830,11 +832,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->withConsecutive(
 							[$self->equalTo('getUserId')],
-							[$self->equalTo('getSigned')]
+							[$self->equalTo('getSigned')],
+							[$self->equalTo('getFileId')]
 						)
 						->will($self->returnValueMap([
 							['getUserId', [], 'username'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getFileId', [], 1]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -881,11 +885,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->withConsecutive(
 							[$self->equalTo('getUserId')],
-							[$self->equalTo('getSigned')]
+							[$self->equalTo('getSigned')],
+							[$self->equalTo('getFileId')]
 						)
 						->will($self->returnValueMap([
 							['getUserId', [], 'username'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getFileId', [], 1]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -931,11 +937,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->withConsecutive(
 							[$self->equalTo('getUserId')],
-							[$self->equalTo('getSigned')]
+							[$self->equalTo('getSigned')],
+							[$self->equalTo('getFileId')]
 						)
 						->will($self->returnValueMap([
 							['getUserId', [], 'username'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getFileId', [], 1]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -982,11 +990,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('__call')
 						->withConsecutive(
 							[$self->equalTo('getUserId')],
-							[$self->equalTo('getSigned')]
+							[$self->equalTo('getSigned')],
+							[$self->equalTo('getFileId')]
 						)
 						->will($self->returnValueMap([
 							['getUserId', [], 'username'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getFileId', [], 1]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -1018,11 +1028,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId')],
-				[$this->equalTo('getSigned')]
+				[$this->equalTo('getSigned')],
+				[$this->equalTo('getFileId')]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], 'username'],
-				['getSigned', [], false]
+				['getSigned', [], false],
+				['getFileId', [], 1]
 			]));
 		$this->fileUserMapper
 			->method('getByUuid')

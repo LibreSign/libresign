@@ -33,7 +33,7 @@ class FileMapper extends QBMapper {
 	 *
 	 * @return File Row of table libresign_file
 	 */
-	public function getById($id) {
+	public function getById(int $id) {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')

@@ -101,7 +101,7 @@ class AccountService {
 		$this->accountFileMapper = $accountFileMapper;
 	}
 
-	public function validateCreateToSign(array $data) {
+	public function validateCreateToSign(array $data): void {
 		if (!UUIDUtil::validateUUID($data['uuid'])) {
 			throw new LibresignException($this->l10n->t('Invalid UUID'), 1);
 		}
@@ -125,7 +125,12 @@ class AccountService {
 		}
 	}
 
-	public function getFileByUuid(string $uuid) {
+	/**
+	 * @return (\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCA\Libresign\Db\File|mixed)[]
+	 *
+	 * @psalm-return array{fileData: \OCA\Libresign\DbFile|\OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|mixed}
+	 */
+	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
@@ -142,7 +147,7 @@ class AccountService {
 		];
 	}
 
-	public function validateCertificateData(array $data) {
+	public function validateCertificateData(array $data): void {
 		if (!$data['email']) {
 			throw new LibresignException($this->l10n->t('You must have an email. You can define the email in your profile.'), 1);
 		}
@@ -154,13 +159,13 @@ class AccountService {
 		}
 	}
 
-	public function validateAccountFiles(array $files, IUser $user) {
+	public function validateAccountFiles(array $files, IUser $user): void {
 		foreach ($files as $fileIndex => $file) {
 			$this->validateAccountFile($fileIndex, $file, $user);
 		}
 	}
 
-	private function validateAccountFile(int $fileIndex, array $file, IUser $user) {
+	private function validateAccountFile(int $fileIndex, array $file, IUser $user): void {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($file['type'], $profileFileTypes)) {
 			throw new LibresignException(json_encode([
@@ -199,14 +204,14 @@ class AccountService {
 	 * @param string $uuid
 	 * @return FileUser
 	 */
-	public function getFileUserByUuid($uuid) {
+	public function getFileUserByUuid($uuid): FileUser {
 		if (!$this->fileUser) {
 			$this->fileUser = $this->fileUserMapper->getByUuid($uuid);
 		}
 		return $this->fileUser;
 	}
 
-	public function createToSign($uuid, $uid, $password, $signPassword) {
+	public function createToSign($uuid, $uid, $password, $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
 		$newUser = $this->userManager->createUser($uid, $password);
@@ -230,7 +235,7 @@ class AccountService {
 		}
 	}
 
-	public function getCertificateHandler() {
+	public function getCertificateHandler(): CfsslHandler {
 		if (!$this->cfsslHandler->getCommonName()) {
 			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
 		}
@@ -269,10 +274,13 @@ class AccountService {
 	}
 
 	/**
-	 * Undocumented function
+	 * 	 *
 	 *
 	 * @param string $formatOfPdfOnSign (base64,url,file)
-	 * @return array|string
+	 *
+	 * @return (array|int|mixed)[]
+	 *
+	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
 	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
@@ -280,6 +288,11 @@ class AccountService {
 		return $info;
 	}
 
+	/**
+	 * @return (array|int|mixed)[]
+	 *
+	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
+	 */
 	private function getInfoOfFileToSign(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$return = [];
 		try {
@@ -349,6 +362,7 @@ class AccountService {
 		$fileToSign = $fileToSign[0];
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['user']['name'] = $fileUser->getDisplayName();
+		$pdf = null;
 		switch ($formatOfPdfOnSign) {
 			case 'base64':
 				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
@@ -372,7 +386,7 @@ class AccountService {
 		return $return;
 	}
 
-	public function hasSignatureFile(?string $userId = null) {
+	public function hasSignatureFile(?string $userId = null): bool {
 		if (!$userId) {
 			return false;
 		}
@@ -387,11 +401,12 @@ class AccountService {
 	/**
 	 * Get PDF node by UUID
 	 *
+	 * @psalm-suppress MixedReturnStatement
 	 * @param string $uuid
 	 * @throws Throwable
 	 * @return \OCP\Files\File
 	 */
-	public function getPdfByUuid(string $uuid): \OCP\Files\File {
+	public function getPdfByUuid(string $uuid) {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
@@ -429,7 +444,12 @@ class AccountService {
 		return $return;
 	}
 
-	public function list(IUser $user, $page = null, $length = null) {
+	/**
+	 * @return array[]
+	 *
+	 * @psalm-return array{data: array, pagination: array}
+	 */
+	public function list(IUser $user, $page = null, $length = null): array {
 		$page = $page ?? 1;
 		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
@@ -440,7 +460,7 @@ class AccountService {
 		];
 	}
 
-	public function addFilesToAccount($files, $user) {
+	public function addFilesToAccount($files, $user): void {
 		$this->validateAccountFiles($files, $user);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;

@@ -9,13 +9,13 @@ class CfsslServerHandler {
 	public const CONFIG_FILE = 'config_server.json';
 
 	public function createConfigServer(
-		$commonName,
-		$country,
-		$organization,
-		$organizationUnit,
-		$key,
-		$configPath
-	) {
+		string $commonName,
+		string $country,
+		string $organization,
+		string $organizationUnit,
+		string $key,
+		string $configPath
+	): void {
 		$this->putCsrServer(
 			$commonName,
 			$country,
@@ -27,12 +27,12 @@ class CfsslServerHandler {
 	}
 
 	private function putCsrServer(
-		$commonName,
-		$country,
-		$organization,
-		$organizationUnit,
-		$configPath
-	) {
+		string $commonName,
+		string $country,
+		string $organization,
+		string $organizationUnit,
+		string $configPath
+	): void {
 		$filename = $configPath . self::CSR_FILE;
 		$content = [
 			'CN' => $commonName,
@@ -56,7 +56,7 @@ class CfsslServerHandler {
 		}
 	}
 
-	private function putConfigServer(string $key, string $configPath) {
+	private function putConfigServer(string $key, string $configPath): void {
 		$filename = $configPath . self::CONFIG_FILE;
 		$content = [
 			'signing' => [
