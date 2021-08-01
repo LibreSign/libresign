@@ -77,6 +77,7 @@ OC.L10N.register(
     "Create password to sign document" : "Sortu pasahitza dokumentua sinatzeko",
     "Sign the document." : "Sinatu dokumentua.",
     "Show Document" : "Erakutsi dokumentua",
+    "View on Files" : "Ikusi fitxategietan",
     "Signatures" : "Sinadurak",
     "Sign" : "Sinatu",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
@@ -152,6 +153,9 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Idatzi pasahitz berria eta errepikatu",
     "New password" : "Pasahitz berria",
     "Repeat password" : "Errepikatu pasahitza",
+    "Legal information" : "Informazio legala",
+    "This information will appear on the validation page" : "Informazio hau balidazio orrian agertuko da",
+    "Legal Information" : "Informazio legala",
     "All Files" : "Fitxategi guztiak",
     "Validation URL" : "Egiaztapen URLa",
     "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
@@ -163,9 +167,6 @@ OC.L10N.register(
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
-    "You are not the signer request for this file" : "Ez zara fitxategi hau sinatzen duen eskaera",
-    "User needs values" : "Erabiltzaileak balioak behar ditu",
-    "Are ou sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?"
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
 },
 "nplurals=2; plural=(n != 1);");

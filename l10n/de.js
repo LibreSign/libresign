@@ -163,9 +163,6 @@ OC.L10N.register(
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
-    "You need to create an account to sign this file." : "Du musst ein Konto erstellen, um diese Datei zu unterschreiben.",
-    "You are not the signer request for this file" : "Du bist nicht der angeforderte Signierer für diese Datei",
-    "User needs values" : "Benutzer benötigt Werte",
-    "Are ou sure you want to exclude user {email} from the request?" : "Bist Du sicher, dass Du den Benutzer {email} von der Anfrage ausschließen möchtest?"
+    "You need to create an account to sign this file." : "Du musst ein Konto erstellen, um diese Datei zu unterschreiben."
 },
 "nplurals=2; plural=(n != 1);");

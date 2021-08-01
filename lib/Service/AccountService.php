@@ -300,6 +300,7 @@ class AccountService {
 				return $return;
 			}
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
+			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 		} catch (\Throwable $th) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
 			$return['errors'][] = $this->l10n->t('Invalid UUID');
@@ -330,6 +331,7 @@ class AccountService {
 		}
 		if ($fileUser->getSigned()) {
 			$return['action'] = JSActions::ACTION_SHOW_ERROR;
+			$return['uuid'] = $fileData->getUuid();
 			$return['errors'][] = $this->l10n->t('File already signed.');
 			return $return;
 		}
@@ -350,7 +352,6 @@ class AccountService {
 			$return['errors'][] = $this->l10n->t('Invalid user');
 			return $return;
 		}
-		$fileData = $this->fileMapper->getById($fileUser->getFileId());
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 		$fileToSign = $userFolder->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {

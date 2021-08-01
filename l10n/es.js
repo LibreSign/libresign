@@ -157,8 +157,6 @@ OC.L10N.register(
     "Validation" : "Validación",
     "No date" : "Sin fecha",
     "This document is valid" : "Este documento es válido",
-    "You need to create an account to sign this file." : "Es necesario crear una cuenta para firmar este archivo.",
-    "You are not the signer request for this file" : "No se te ha pedido a ti que firmes este archivo",
-    "User needs values" : "El usaurio necesita valores"
+    "You need to create an account to sign this file." : "Es necesario crear una cuenta para firmar este archivo."
 },
 "nplurals=2; plural=(n != 1);");

@@ -77,6 +77,7 @@ OC.L10N.register(
     "Create password to sign document" : "Belge imzalamak için parola oluştur",
     "Sign the document." : "Belgeyi imzala.",
     "Show Document" : "Belgeyi görüntüle",
+    "View on Files" : "Dosyalar uygulamasında görüntüle",
     "Signatures" : "İmzalar",
     "Sign" : "İmzala",
     "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
@@ -152,6 +153,9 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Yeni parolayı ve parola onayını yazın",
     "New password" : "Yeni parola",
     "Repeat password" : "Parola onayı",
+    "Legal information" : "Yasal bilgiler",
+    "This information will appear on the validation page" : "Bu bilgiler doğrulama sayfasında görüntülenir",
+    "Legal Information" : "Yasal bilgiler",
     "All Files" : "Tüm dosyalar",
     "Validation URL" : "Doğrulama adresi",
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
@@ -163,9 +167,6 @@ OC.L10N.register(
     "Validation" : "Doğrulama",
     "No date" : "Tarih yok",
     "This document is valid" : "Bu belge geçerli",
-    "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
-    "You are not the signer request for this file" : "Bu dosya için imzanız istenmemiş",
-    "User needs values" : "Kullanıcının değerleri olmalı",
-    "Are ou sure you want to exclude user {email} from the request?" : "{email} kullanıcısını istekten çıkarmak istediğinize emin misiniz?"
+    "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız."
 },
 "nplurals=2; plural=(n > 1);");
