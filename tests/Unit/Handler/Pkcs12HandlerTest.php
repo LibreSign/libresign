@@ -81,7 +81,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 		$file = $this->createMock(\OCP\Files\File::class);
 		$actual = $this->pkcs12Handler->writeFooter($file, 'uuid');
-		$this->assertNull($actual);
+		$this->assertEmpty($actual);
 	}
 
 	public function testWriteFooterWithSuccess() {

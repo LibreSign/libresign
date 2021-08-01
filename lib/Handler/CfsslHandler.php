@@ -15,7 +15,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getPassword()
  * @method CfsslHandler setCommonName(string $commonName)
  * @method string getCommonName()
- * @method CfsslHandler setHosts(string $hosts)
+ * @method CfsslHandler setHosts(array $hosts)
  * @method array getHosts()
  * @method CfsslHandler setCountry(string $country)
  * @method string getCountry()
@@ -36,6 +36,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
+	/** @var Client */
 	private $client;
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
@@ -52,7 +53,7 @@ class CfsslHandler {
 		return $this;
 	}
 
-	public function getClient() {
+	public function getClient(): Client {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
@@ -71,7 +72,11 @@ class CfsslHandler {
 		return $certContent;
 	}
 
-	private function newCert() {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @return array
+	 */
+	private function newCert(): array {
 		$json = [
 			'json' => [
 				'profile' => 'CA',
@@ -115,7 +120,12 @@ class CfsslHandler {
 		return $responseDecoded['result'];
 	}
 
-	public function health(string $cfsslUri) {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param string $cfsslUri
+	 * @return array
+	 */
+	public function health(string $cfsslUri): array {
 		try {
 			$response = $this->getClient()
 				->get(

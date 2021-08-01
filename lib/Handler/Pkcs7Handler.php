@@ -2,17 +2,24 @@
 
 namespace OCA\Libresign\Handler;
 
-use OCP\Files\File;
+use OCP\Files\Node;
 
 /**
  * @codeCoverageIgnore
  */
 class Pkcs7Handler {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param Node $fileToSign
+	 * @param Node $certificate
+	 * @param string $passphrase
+	 * @return Node
+	 */
 	public function sign(
-		File $fileToSign,
-		File $certificate,
+		Node $fileToSign,
+		Node $certificate,
 		string $passphrase
-	): File {
+	): Node {
 		$newName = $fileToSign->getName() . '.p7s';
 		$p7sFile = $fileToSign
 			->getParent()

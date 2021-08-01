@@ -26,7 +26,11 @@ class ReportDao {
 		$this->fileUserMapper = $fileUserMapper;
 	}
 
-	public function getFilesAssociatedFilesWithMeFormatted($userId, $page = null, $length = null) {
+	/**
+	 * @return array<\OCA\Libresign\Helper\Pagination|array>
+	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
+	 */
+	public function getFilesAssociatedFilesWithMeFormatted(string $userId, int $page = null, int $length = null): array {
 		$pagination = $this->getFilesAssociatedFilesWithMeStmt($userId);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
@@ -49,11 +53,9 @@ class ReportDao {
 	}
 
 	/**
-	 * @param [type] $userId
-	 * @param boolean $count
 	 * @return Pagination
 	 */
-	private function getFilesAssociatedFilesWithMeStmt($userId, $count = false): Pagination {
+	private function getFilesAssociatedFilesWithMeStmt(string $userId, bool $count = false): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 				'f.id',
@@ -101,7 +103,7 @@ class ReportDao {
 		return $pagination;
 	}
 
-	private function assocFileToFileUserAndFormat($userId, $files, $signers) {
+	private function assocFileToFileUserAndFormat(string $userId, array $files, array $signers): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
@@ -141,7 +143,12 @@ class ReportDao {
 		return $files;
 	}
 
-	private function formatListRow(array $row, string $url) {
+	/**
+	 * @return ((int|string)[]|mixed|string)[]
+	 *
+	 * @psalm-return array{status_date: string, file: array{type: 'pdf', url: string, nodeId: int}}
+	 */
+	private function formatListRow(array $row, string $url): array {
 		$row['id'] = (int) $row['id'];
 		$row['requested_by'] = [
 			'uid' => $row['requested_by_uid'],

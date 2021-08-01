@@ -28,7 +28,7 @@ class NotifyService {
 		$this->fileUserMapper = $fileUserMapper;
 	}
 
-	public function signers(int $nodeId, array $signers) {
+	public function signers(int $nodeId, array $signers): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateLibreSignNodeId($nodeId);
 		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);

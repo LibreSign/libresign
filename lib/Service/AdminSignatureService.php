@@ -33,7 +33,7 @@ class AdminSignatureService {
 		string $organizationUnit,
 		string $cfsslUri,
 		string $configPath
-	) {
+	): void {
 		$key = bin2hex(random_bytes(16));
 
 		$this->cfsslServerHandler->createConfigServer(
@@ -63,7 +63,12 @@ class AdminSignatureService {
 		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
 
-	public function loadKeys() {
+	/**
+	 * @return array
+	 *
+	 * @psalm-return array{commonName: mixed, country: mixed, organization: mixed, organizationUnit: mixed, cfsslUri: mixed, configPath: mixed}
+	 */
+	public function loadKeys(): array {
 		return [
 			'commonName' => $this->config->getAppValue(Application::APP_ID, 'commonName'),
 			'country' => $this->config->getAppValue(Application::APP_ID, 'country'),

@@ -16,7 +16,7 @@ class AccountFileService {
 		$this->accountFileMapper = $accountFileMapper;
 	}
 
-	public function addFile(File $file, IUser $user, string $fileType) {
+	public function addFile(File $file, IUser $user, string $fileType): void {
 		$accountFile = new AccountFile();
 		$accountFile->setFileId($file->getId());
 		$accountFile->setUserId($user->getUID());
