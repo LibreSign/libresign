@@ -11,6 +11,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getId()
  * @method void setNodeId(int $nodeId)
  * @method int getNodeId()
+ * @method void setSignedNodeId(int $nodeId)
+ * @method int getSignedNodeId()
  * @method void setUserId(int $userId)
  * @method int getUserId()
  * @method void setUuid(int $uuid)
@@ -30,6 +32,9 @@ class File extends Entity {
 
 	/** @var integer */
 	protected $nodeId;
+
+	/** @var integer */
+	protected $signedNodeId;
 
 	/** @var string */
 	protected $userId;
