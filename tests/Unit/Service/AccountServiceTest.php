@@ -299,25 +299,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'email' => 'invalid'
 				],
 				'Invalid email'
-			],
-			[
-				function ($self) {
-					$fileUser = $self->createMock(FileUser::class);
-					$fileUser
-						->method('__call')
-						->with($self->equalTo('getEmail'), $self->anything())
-						->will($self->returnValue('valid@test.coop'));
-					$self->fileUserMapper
-						->method('getByUuid')
-						->will($self->returnValue($fileUser));
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop',
-						'password' => '123456789',
-						'signPassword' => '',
-					];
-				},
-				'Password to sign is mandatory'
 			]
 		];
 	}

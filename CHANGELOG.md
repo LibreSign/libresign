@@ -20,6 +20,7 @@ Types of changes:
 - Only show request signing button if file not signed
 - Associate signed file to LibreSign file
 - API: return LibreSign UUID on sign methods
+- Endpoint: /account/create/{uuid}, remove required of field signPassword
 
 ## 2.4.3 - 2021-07-14
 

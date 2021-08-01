@@ -225,7 +225,9 @@ class AccountService {
 			}
 		}
 
-		$this->generateCertificate($uid, $signPassword, $newUser->getUID());
+		if ($signPassword) {
+			$this->generateCertificate($uid, $signPassword, $newUser->getUID());
+		}
 	}
 
 	public function getCertificateHandler() {
