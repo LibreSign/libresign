@@ -83,7 +83,10 @@ class FileMapper extends QBMapper {
 			$qb->select('*')
 				->from($this->getTableName())
 				->where(
-					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+					$qb->expr()->orX(
+						$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)),
+						$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+					)
 				);
 
 			$this->file[$fileId] = $this->findEntity($qb);

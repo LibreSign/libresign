@@ -13,11 +13,17 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## Draft - 2021-07-16
+## Draft - 2021-07-31
+
+# Added
+- Added clickable link in the PDF footer
 
 # Changed
 - PDF preview on mobile when signing
 - Only show request signing button if file not signed
+- Associate signed file to LibreSign file
+- API: return LibreSign UUID on sign methods
+- Endpoint: /account/create/{uuid}, remove required of field signPassword
 
 ## 2.4.3 - 2021-07-14
 

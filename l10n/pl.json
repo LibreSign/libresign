@@ -37,7 +37,6 @@
     "File already signed." : "Plik już podpisany.",
     "You are not logged in. Please log in." : "Nie jesteś zalogowany. Zaloguj się.",
     "Invalid user" : "Nieprawidłowy użytkownik",
-    "signed" : "podpisany",
     "LibreSign" : "LibreSign",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Zmiany w pliku do podpisania",
     "File to sign" : "Plik do podpisania",
@@ -57,6 +56,7 @@
     "User list needs to be an array" : "Lista użytkownika wymaga ustawienia",
     "Remove duplicated users, email address need to be unique" : "Usuń zduplikowanych użytkowników, adres e-mail musi być unikalny",
     "Document already signed" : "Dokument już podpisany",
+    "signed" : "podpisany",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplikacja do podpisu cyfrowego dla Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.\n* **Wymagania:**\n    * Serwer CFSSL\n    * Java\n    * JSignPDF",
     "Files" : "Pliki",
@@ -75,6 +75,7 @@
     "Create password to sign document" : "Utwórz hasło do podpisania dokumentu",
     "Sign the document." : "Podpisz dokument.",
     "Show Document" : "Pokaż dokument",
+    "View on Files" : "Zobacz w Plikach",
     "Signatures" : "Podpisy",
     "Sign" : "Podpisz",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
@@ -150,6 +151,9 @@
     "Enter new password and then repeat it" : "Wprowadź nowe hasło i następnie powtórz je",
     "New password" : "Nowe hasło",
     "Repeat password" : "Powtórz hasło",
+    "Legal information" : "Informacje prawne",
+    "This information will appear on the validation page" : "Informacja ta pojawi się na stronie weryfikacji",
+    "Legal Information" : "Informacje prawne",
     "All Files" : "Wszystkie pliki",
     "Validation URL" : "Walidacja adresu URL",
     "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów",
@@ -161,9 +165,6 @@
     "Validation" : "Walidacja",
     "No date" : "Brak daty",
     "This document is valid" : "Ten dokument jest prawidłowy",
-    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
-    "You are not the signer request for this file" : "Nie jesteś sygnatariuszem tego pliku",
-    "User needs values" : "Użytkownik potrzebuje wartości",
-    "Are ou sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?"
+    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

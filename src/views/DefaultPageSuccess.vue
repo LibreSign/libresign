@@ -36,21 +36,21 @@
 
 <script>
 import icon from '../assets/images/logo-white.png'
+import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'DefaultPageSuccess',
-	props: {
-		uuid: {
-			type: String,
-			default: '',
-			required: true,
-		},
-	},
 	data() {
 		return {
 			logo: icon,
 			subtitle: t('libresign', 'Congratulations you have digitally signed a document using LibreSign'),
+			uuid: '',
 		}
+	},
+	created() {
+		this.uuid = JSON.parse(loadState('libresign', 'config')).uuid
+
+		console.info(this.uuid)
 	},
 	methods: {
 		sendToView() {

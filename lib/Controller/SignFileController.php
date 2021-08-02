@@ -201,7 +201,10 @@ class SignFileController extends ApiController {
 				[
 					'success' => true,
 					'action' => JSActions::ACTION_SIGNED,
-					'message' => $this->l10n->t('File signed')
+					'message' => $this->l10n->t('File signed'),
+					'file' => [
+						'uuid' => $libreSignFile->getUuid()
+					]
 				],
 				Http::STATUS_OK
 			);

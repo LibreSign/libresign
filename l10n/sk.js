@@ -37,7 +37,6 @@ OC.L10N.register(
     "File already signed." : "Súbor už je podpísaný.",
     "You are not logged in. Please log in." : "Nie ste prihlásený. Prosím prihláste sa.",
     "Invalid user" : "Neplatný užívateľ",
-    "signed" : "prihlásený",
     "LibreSign" : "LibreSign",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Zmeny v súbore k vašemu podpísaniu",
     "File to sign" : "Súbor k podpisu",
@@ -55,6 +54,7 @@ OC.L10N.register(
     "User list needs to be an array" : "Zoznam uživateľov musí byť pole",
     "Remove duplicated users, email address need to be unique" : "Odstráňte duplikáty užívateľov, email adresy musia byť unikátne",
     "Document already signed" : "Dokument je už podpísaný",
+    "signed" : "prihlásený",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre aplikácia pre digitálny podpis pre Nextcloud",
     "Files" : "Súbory",
     "Request" : "Požiadavka",
@@ -133,7 +133,6 @@ OC.L10N.register(
     "Validate Subscription." : "Overiť predplatné.",
     "Validation" : "Kontrola platnosti",
     "No date" : "Žiadný dátum",
-    "This document is valid" : "Dokument je pravý",
-    "User needs values" : "Užívateľ potrebuje hodnoty"
+    "This document is valid" : "Dokument je pravý"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
