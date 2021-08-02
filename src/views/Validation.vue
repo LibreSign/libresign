@@ -109,6 +109,9 @@ export default {
 	},
 	created() {
 		this.getData()
+		if (this.myUuid.length > 0) {
+			this.validateByUUID(this.myUuid)
+		}
 	},
 	methods: {
 		async validateByUUID(uuid) {
