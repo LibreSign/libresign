@@ -271,15 +271,19 @@ export default {
 			try {
 				this.loadingInput = true
 				this.disabledSign = true
+
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
+
 				this.getInfo()
 				this.option('sign')
 				this.option('signatures')
 				this.canSign = false
 				this.loadingInput = false
-				return showSuccess(response.data.message)
+				showSuccess(response.data.message)
+
+				return OCA.Files.App.fileList.reload()
 			} catch (err) {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
