@@ -40,7 +40,7 @@
 						</div>
 						<div v-for="item in document.signers"
 							id="sign"
-							:key="item.fululName"
+							:key="item.fullName"
 							class="scroll">
 							<div class="subscriber">
 								<span><b>{{ getName(item) }}</b></span>
