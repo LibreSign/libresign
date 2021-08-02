@@ -1,7 +1,13 @@
+
 /*
  * For a detailed explanation regarding each configuration property, visit:
  * https://jestjs.io/docs/en/configuration.html
  */
+
+const ignorePatterns = [
+	'vue-materiial-designn-icons',
+	'@nextcloud/vue',
+]
 
 module.exports = {
 	// All imported modules in your tests should be mocked automatically
@@ -21,8 +27,7 @@ module.exports = {
 
 	// An array of glob patterns indicating a set of files for which coverage information should be collected
 	collectCoverageFrom: [
-		'./src/**/*.{js,vue}',
-		'./src/**/**/.{js,vue}',
+		'<rootDir>/src/**/*.{js,vue}',
 		'!**/node_modules/**',
 	],
 
@@ -94,7 +99,7 @@ module.exports = {
 	// notifyMode: "failure-change",
 
 	// A preset that is used as a base for Jest's configuration
-	// preset: undefined,
+	preset: '@vue/cli-plugin-unit-jest/presets/no-babel',
 
 	// Run tests from one or more projects
 	// projects: undefined,
@@ -103,7 +108,7 @@ module.exports = {
 	// reporters: undefined,
 
 	// Automatically reset mock state between every test
-	// resetMocks: false,
+	resetMocks: false,
 
 	// Reset the module registry before running each individual test
 	// resetModules: false,
@@ -126,10 +131,15 @@ module.exports = {
 	// runner: "jest-runner",
 
 	// The paths to modules that run some code to configure or set up the testing environment before each test
-	// setupFiles: [],
+	setupFiles: [
+		// 'jest-localstorage-mock',
+	],
 
 	// A list of paths to modules that run some code to configure or set up the testing framework before each test
-	// setupFilesAfterEnv: [],
+	setupFilesAfterEnv: [
+		'<rootDir>/src/__test__/test-setup.js',
+		// 'jest-mock-console/dist/setupTestFramework.js',
+	],
 
 	// The number of seconds after which a test is considered as slow and reported as such in the results.
 	// slowTestThreshold: 5,
@@ -147,10 +157,7 @@ module.exports = {
 	// testLocationInResults: false,
 
 	// The glob patterns Jest uses to detect test files
-	// testMatch: [
-	//   "**/__tests__/**/*.[jt]s?(x)",
-	//   "**/?(*.)+(spec|test).[tj]s?(x)"
-	// ],
+	testMatch: ['<rootDir>/src/**/*.(spec|test).(ts|js)'],
 
 	// An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
 	// testPathIgnorePatterns: [
@@ -167,7 +174,7 @@ module.exports = {
 	// testRunner: "jasmine2",
 
 	// This option sets the URL for the jsdom environment. It is reflected in properties such as location.href
-	// testURL: "http://localhost",
+	// testURL: "http://localshost",
 
 	// Setting this value to "fake" allows the use of fake timers for functions such as "setTimeout"
 	// timers: "real",
@@ -180,10 +187,9 @@ module.exports = {
 	},
 
 	// An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-	// transformIgnorePatterns: [
-	//   "/node_modules/",
-	//   "\\.pnp\\.[^\\/]+$"
-	// ],
+	transformIgnorePatterns: [
+		'nonde_modules/(?!(' + ignorePatterns.join('|') + ')/)',
+	],
 
 	// An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
 	// unmockedModulePathPatterns: undefined,
