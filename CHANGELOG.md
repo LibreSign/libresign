@@ -62,6 +62,7 @@ Types of changes:
 - Logo replaced by new logo
 - It will only verify the password if nextcloud requests confirmation of the password by the OC.
 - Check if has pfx
+- After signing the document, it will update the app files
 
 # Removed
 - Removed dsv folder
