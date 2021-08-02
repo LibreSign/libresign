@@ -53,6 +53,7 @@ Types of changes:
 - Markdown formatting for description
 - Legal information on Validation screen, configure in Admin settings
 - Button to redirect to files to view the document
+- Button to redirect to signature validation
 
 # Changed
 - Bump max Nextcloud version to 23
