@@ -31,10 +31,10 @@
 			<h2>{{ t('libresign', 'Legal information') }}</h2>
 			<div class="legal-information-content">
 				<span>{{ t('libresign', 'This information will appear on the validation page') }}</span>
-				<textarea
+				<Textarea
 					v-model="legalInformation"
 					:placeholder="t('libresign', 'Legal Information')"
-					@blur="saveLegalInformation" />
+					@input="saveLegalInformation" />
 			</div>
 		</div>
 	</SettingsSection>
@@ -44,8 +44,8 @@
 import AdminFormLibresign from './AdminFormLibresign'
 import AllowedGroups from './AllowedGroups'
 import UrlValidation from './UrlValidation'
+import Textarea from '../Components/Textarea/Textarea'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
-import { translate as t } from '@nextcloud/l10n'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -56,10 +56,10 @@ export default {
 		SettingsSection,
 		UrlValidation,
 		AllowedGroups,
+		Textarea,
 	},
 	data() {
 		return {
-			loading: true,
 			title: t('libresign', 'LibreSign'),
 			legalInformation: '',
 		}
@@ -71,7 +71,6 @@ export default {
 		async getData() {
 			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/legal_information', {})
 			this.legalInformation = response.data.ocs.data.data
-			console.info(response)
 		},
 		saveLegalInformation() {
 			OCP.AppConfig.setValue('libresign', 'legal_information', this.legalInformation)
