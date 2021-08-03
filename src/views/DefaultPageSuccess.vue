@@ -36,25 +36,32 @@
 
 <script>
 import icon from '../assets/images/logo-white.png'
-import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
+import { loadState } from '@nextcloud/initial-state'
 export default {
 	name: 'DefaultPageSuccess',
 	data() {
 		return {
 			logo: icon,
 			subtitle: t('libresign', 'Congratulations you have digitally signed a document using LibreSign'),
-			uuid: '',
 		}
 	},
-	created() {
-		this.uuid = JSON.parse(loadState('libresign', 'config')).uuid
-
-		console.info(this.uuid)
+	computed: {
+		myUuid() {
+			const config = JSON.parse(loadState('libresign', 'config'))
+			const getUuid = this.$store.getters.getUuidToValidate
+			if (getUuid) {
+				return getUuid
+			}
+			if (config.sign) {
+				return config.sign.uuid
+			}
+			return config.uuid
+		},
 	},
 	methods: {
 		sendToView() {
-			this.$router.push(`/validation/${this.uuid}`)
+			this.$router.push(`/validation/${this.myUuid}`)
 		},
 	},
 }
