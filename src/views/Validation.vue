@@ -120,7 +120,6 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
-				console.info(response)
 				this.document = response.data
 				this.hasInfo = true
 				this.hasLoading = false
