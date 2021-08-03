@@ -38,14 +38,16 @@
 							<img class="icon" :src="signatureIcon">
 							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
 						</div>
-						<div v-for="item in document.signers"
-							id="sign"
-							:key="item.fullName"
-							class="scroll">
-							<div class="subscriber">
-								<span><b>{{ getName(item) }}</b></span>
-								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
-								<span v-else>{{ noDateMessage }}</span>
+						<div class="infor-content">
+							<div v-for="item in document.signers"
+								id="sign"
+								:key="item.fullName"
+								class="scroll">
+								<div class="subscriber">
+									<span><b>{{ getName(item) }}</b></span>
+									<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
+									<span v-else>{{ noDateMessage }}</span>
+								</div>
 							</div>
 						</div>
 					</div>

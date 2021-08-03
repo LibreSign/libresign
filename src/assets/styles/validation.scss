@@ -113,6 +113,15 @@ button{
 	border-radius: 8px;
 
 	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+
+	.infor-content{
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		overflow: scroll;
+		height: 80%;
+		width: 98%;
+	}
 }
 
 .info-document{
@@ -150,9 +159,10 @@ button{
 
 .scroll {
 	max-height: 200px;
-	overflow-y: scroll;
 	display: flex;
 	flex-wrap: wrap;
+	min-width: 200px;
+	max-width: 200px;
 }
 
 .subscriber {
@@ -164,9 +174,15 @@ button{
 	padding: 5px 0px 5px 5px;
 	margin: 5px 5px 0px 0px;
 	min-height: 50px;
-	width: 330px;
+	width: 100%;
+
 	.data-signed {
 		font-size: $date-signed-font;
+	}
+	b{
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }
 
