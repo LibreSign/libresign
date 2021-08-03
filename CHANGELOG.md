@@ -76,6 +76,7 @@ Types of changes:
 - Add ellipsis to pdf file title
 - Now it is possible to choose a file even if it is inside x folders
 - Clear uuid field before returns
+- Button to redirect to document validation page
 
 ## 2.3.0 - 2021-05-22
 
