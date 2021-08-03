@@ -93,16 +93,17 @@
 
 					<div class="buttons">
 						<button
+							v-show="passwordSign"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
-							:disabled="!passwordSign"
 							@click.prevent="passwordSign = false">
 							{{ t('libresign', 'Return') }}
 						</button>
 
 						<button
 							v-show="!passwordSign"
-							:class="hasLoading ? 'btn-load primary loading':'btn'"
+							:class="alignButtons"
 							:disabled="!validator.back"
+							type="submit"
 							@click.prevent="passwordSign = true">
 							{{ t('libresign', 'Next') }}
 						</button>
@@ -179,6 +180,15 @@ export default {
 	computed: {
 		isEqualEmail() {
 			return this.initial.settings.accountHash === md5(this.email).toString()
+		},
+		alignButtons() {
+			if (this.hasLoading) {
+				return 'btn-load primary loading'
+			}
+			if (!this.passwordSign) {
+				return 'btn-align'
+			}
+			return 'btn'
 		},
 	},
 	watch: {
