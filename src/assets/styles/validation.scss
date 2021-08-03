@@ -43,6 +43,8 @@ $date-signed-font: .7rem;
 		opacity: 0.8;
 		align-self: center;
 		font-size: 1rem;
+		max-height: 100px;
+		overflow: scroll;
 	}
 }
 
@@ -111,7 +113,7 @@ button{
 	background-color: #FFF;
 	padding: 20px 60px 20px 20px;
 	border-radius: 8px;
-
+	width: 700px;
 	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 
 	.infor-content{
@@ -130,7 +132,10 @@ button{
 	flex-direction: column;
 	width: 100%;
 	margin-left: 30px;
+	max-height: 250px;
 	justify-content: center;
+	overflow: scroll;
+
 	p{
 		font-size: 1rem;
 	}
