@@ -53,6 +53,8 @@ Types of changes:
 - Markdown formatting for description
 - Button to redirect to files to view the document
 - Legal information on Validation screen, configure in Admin settings
+- Validation page, validating by UUID and ID
+- Button that takes you to the validation page on all `.signed` and `.signed` files
 
 # Changed
 - Bump max Nextcloud version to 23
