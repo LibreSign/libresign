@@ -153,7 +153,6 @@ OC.L10N.register(
     "Subscriptions:" : "Abonnements :",
     "Document Informations" : "Informations sur le document",
     "Validate Subscription." : "Valider l'abonnement.",
-    "Enter the UUID of the document to validate." : "Entrez l'UUID du document pour valider.",
     "Validation" : "Validation",
     "No date" : "Pas de date",
     "This document is valid" : "Ce document est valide",

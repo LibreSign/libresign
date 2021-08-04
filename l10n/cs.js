@@ -163,7 +163,6 @@ OC.L10N.register(
     "Subscriptions:" : "Podpisy:",
     "Document Informations" : "Informace o dokumentu",
     "Validate Subscription." : "Ověřit předplatné.",
-    "Enter the UUID of the document to validate." : "Zadejte UUID dokumentu k ověření.",
     "Validation" : "Ověření",
     "No date" : "Žádné datum",
     "This document is valid" : "Tento dokument je platný",

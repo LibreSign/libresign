@@ -163,7 +163,6 @@ OC.L10N.register(
     "Subscriptions:" : "Harpidetzak:",
     "Document Informations" : "Dokumentuen informazioa",
     "Validate Subscription." : "Egiaztapen harpidetza.",
-    "Enter the UUID of the document to validate." : "Idatzi dokumentuaren UUIDa baliozkotzeko.",
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",

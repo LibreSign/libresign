@@ -160,7 +160,6 @@
     "Subscriptions:" : "订阅：",
     "Document Informations" : "文档信息",
     "Validate Subscription." : "验证订阅",
-    "Enter the UUID of the document to validate." : "输入文档的 UUID 进行验证",
     "Validation" : "验证 ",
     "No date" : "无日期",
     "This document is valid" : "该文档有效",

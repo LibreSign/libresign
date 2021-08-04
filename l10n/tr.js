@@ -163,7 +163,6 @@ OC.L10N.register(
     "Subscriptions:" : "Abonelikler:",
     "Document Informations" : "Belge bilgileri",
     "Validate Subscription." : "Aboneliği doğrula.",
-    "Enter the UUID of the document to validate." : "Doğrulanacak belgenin UUID değerini yazın.",
     "Validation" : "Doğrulama",
     "No date" : "Tarih yok",
     "This document is valid" : "Bu belge geçerli",

@@ -94,7 +94,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "Per convalidare la firma dei documenti",
     "View" : "Visualizza",
     "Validate Subscription." : "Convalida sottoscrizione.",
-    "Enter the UUID of the document to validate." : "Inserisci l'UUID del documento dal convalidare.",
     "Validation" : "Convalida",
     "No date" : "Nessuna data",
     "You need to create an account to sign this file." : "Devi creare un account per firmare questo file."

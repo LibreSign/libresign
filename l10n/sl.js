@@ -130,7 +130,6 @@ OC.L10N.register(
     "Subscriptions:" : "Naročila:",
     "Document Informations" : "Podrobnosti dokumenta",
     "Validate Subscription." : "Potrdi naročnino",
-    "Enter the UUID of the document to validate." : "Vpišite določilo UUID doumenta za preverjanje.",
     "Validation" : "Potrjevanje",
     "No date" : "Ni datuma",
     "This document is valid" : "Ta dokument je veljaven",

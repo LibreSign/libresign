@@ -163,7 +163,6 @@ OC.L10N.register(
     "Subscriptions:" : "訂閱：",
     "Document Informations" : "文件資料",
     "Validate Subscription." : "驗證訂閱。",
-    "Enter the UUID of the document to validate." : "輸入要驗證的文檔的UUID。",
     "Validation" : "驗證",
     "No date" : "沒有日期",
     "This document is valid" : "此文件有效",
