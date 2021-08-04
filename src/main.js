@@ -25,6 +25,7 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
+import { translate, translatePlural } from '@nextcloud/l10n'
 import Vue from 'vue'
 
 import App from './App'
@@ -36,6 +37,8 @@ import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.mixin({ methods: { t, n } })
+Vue.prototype.t = translate
+Vue.prototype.n = translatePlural
 
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line

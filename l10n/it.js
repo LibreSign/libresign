@@ -27,7 +27,6 @@ OC.L10N.register(
     "File already signed." : "File già firmato.",
     "You are not logged in. Please log in." : "Non sei connesso. Esegui l'accesso.",
     "Invalid user" : "Utente non valido",
-    "signed" : "firmato",
     "LibreSign" : "LibreSign",
     "File to sign" : "File da firmare",
     "Changes have been made in a file that you have to sign. Access the link below:" : "Sono state fatte modifiche in un file che devi firmare. Accedi al collegamento sottostante:",
@@ -43,6 +42,7 @@ OC.L10N.register(
     "User list needs to be an array" : "L'elenco di utenti deve essere un array",
     "Remove duplicated users, email address need to be unique" : "Rimuovi utenti doppi, gli indirizzi email devono essere unici",
     "Document already signed" : "Documento già firmato",
+    "signed" : "firmato",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Applicazione libera per firme digitali per Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Questa è un'applicazione libera per firme PDF digitali per Nextcloud**\n\n* ✍️ Firma i documenti PDF usando una firma digitale\n* ⚠️ La configurazione dell'applicazione richiede l'accesso al terminale e anche di sporcarti le mani con l'installazione di software aggiuntivo. Vedi le [istruzioni di configurazione](https://github.com/LibreSign/libresign/blob/main/README.md#setup) per i dettagli.\n* **Requisiti :**\n    * Server CFSSL\n    * Java\n    * JSignPDF",
     "Settings" : "Impostazioni",
@@ -94,7 +94,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "Per convalidare la firma dei documenti",
     "View" : "Visualizza",
     "Validate Subscription." : "Convalida sottoscrizione.",
-    "Enter the UUID of the document to validate." : "Inserisci l'UUID del documento dal convalidare.",
     "Validation" : "Convalida",
     "No date" : "Nessuna data",
     "You need to create an account to sign this file." : "Devi creare un account per firmare questo file."

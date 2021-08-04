@@ -299,25 +299,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'email' => 'invalid'
 				],
 				'Invalid email'
-			],
-			[
-				function ($self) {
-					$fileUser = $self->createMock(FileUser::class);
-					$fileUser
-						->method('__call')
-						->with($self->equalTo('getEmail'), $self->anything())
-						->will($self->returnValue('valid@test.coop'));
-					$self->fileUserMapper
-						->method('getByUuid')
-						->will($self->returnValue($fileUser));
-					return [
-						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop',
-						'password' => '123456789',
-						'signPassword' => '',
-					];
-				},
-				'Password to sign is mandatory'
 			]
 		];
 	}
@@ -613,10 +594,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
 							[$this->equalTo('getEmail')]
 						)
 						->will($this->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], null],
 							['getEmail', [], 'valid@test.coop']
 						]));
@@ -676,10 +659,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
 							[$this->equalTo('getEmail')]
 						)
 						->will($this->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], null],
 							['getEmail', [], 'valid@test.coop']
 						]));
@@ -700,22 +685,28 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 					'settings' => [
 						'hasSignatureFile' => false
-					]
+					],
+					'uuid' => null
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
 							[$this->equalTo('getSigned')]
 						)
 						->will($this->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'fileuser'],
 							['getSigned', [], true]
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
+					$self->fileMapper
+						->method('getById')
+						->willReturn($fileUser);
 				}
 			],
 			[ #7
@@ -734,10 +725,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
 							[$this->equalTo('getSigned')]
 						)
 						->will($this->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'fileuser'],
 							['getSigned', [], false]
 						]));
@@ -761,10 +754,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
 							[$this->equalTo('getSigned')]
 						)
 						->will($this->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'fileuser'],
 							['getSigned', [], false]
 						]));
@@ -789,10 +784,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')]
 						)
 						->will($self->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getSigned', [], false]
 						]));
@@ -832,6 +829,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'base64' => base64_encode('content')
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -847,10 +845,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')]
 						)
 						->will($self->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getSigned', [], false]
 						]));
@@ -882,6 +882,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'url' => ''
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -897,10 +898,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$self->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')]
 						)
 						->will($self->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getSigned', [], false]
 						]));
@@ -908,10 +911,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
 					$self->fileMapper
-						->method('getByUuid')
+						->method('getById')
 						->willReturn($fileUser);
 					$self->fileMapper
-						->method('getById')
+						->method('getByUuid')
 						->willReturn($fileUser);
 					$node = $self->createMock(\OCP\Files\File::class);
 					$folder = $self->createMock(\OCP\Files\Folder::class);
@@ -931,6 +934,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'file' => new \stdClass()
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -946,10 +950,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')]
 						)
 						->will($self->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getSigned', [], false]
 						]));
@@ -981,6 +987,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'nodeId' => null
 						],
+						'uuid' => null,
 						'filename' => null,
 						'description' => null
 					],
@@ -996,10 +1003,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$fileUser
 						->method('__call')
 						->withConsecutive(
+							[$this->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')]
 						)
 						->will($self->returnValueMap([
+							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getSigned', [], false]
 						]));
@@ -1032,10 +1041,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$fileUser
 			->method('__call')
 			->withConsecutive(
+				[$this->equalTo('getFileId')],
 				[$this->equalTo('getUserId')],
 				[$this->equalTo('getSigned')]
 			)
 			->will($this->returnValueMap([
+				['getFileId', [], 1],
 				['getUserId', [], 'username'],
 				['getSigned', [], false]
 			]));
@@ -1067,6 +1078,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'pdf' => [
 						'file' => new \stdClass()
 					],
+					'uuid' => null,
 					'filename' => null,
 					'description' => null
 				],
@@ -1081,21 +1093,22 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual['sign']['pdf']['file']);
 	}
 
-	public function testGetPdfByUuidWithSuccess() {
+	public function testGetPdfByUuidWithSuccessAndSignedFile() {
 		$this->createUser('username', 'password');
 
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
+			->expects($this->exactly(3))
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId')],
-				[$this->equalTo('getNodeId')],
-				[$this->equalTo('getId')]
+				[$this->equalTo('getId')],
+				[$this->equalTo('getSignedNodeId')]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], 'username'],
-				['getNodeId', [], 171],
-				['getId', [], 171]
+				['getId', [], 171],
+				['getSignedNodeId', [], 171]
 			]));
 		$this->fileMapper
 			->method('getByUuid')
@@ -1103,12 +1116,50 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$node = $this->createMock(\OCP\Files\File::class);
 		$node->method('getId')->will($this->returnValue(171));
-		$this->root
-			->method('getById')
-			->will($this->returnValue([$node]));
-		$this->root
-			->method('nodeExists')
+
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->method('__call')
+			->with($this->equalTo('getSigned'))
 			->willReturn(true);
+		$this->fileUserMapper
+			->method('getByFileId')
+			->willReturn([$fileUser]);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder
+			->method('getById')
+			->willReturn([$node]);
+		$this->root
+			->method('getUserFolder')
+			->willReturn($folder);
+
+		$actual = $this->accountService->getPdfByUuid('uuid');
+		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+	}
+
+	public function testGetPdfByUuidWithSuccessAndUnignedFile() {
+		$this->createUser('username', 'password');
+
+		$fileUser = $this->createMock(FileUser::class);
+		$fileUser
+			->expects($this->exactly(3))
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getUserId')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getSignedNodeId')]
+			)
+			->will($this->returnValueMap([
+				['getUserId', [], 'username'],
+				['getId', [], 171],
+				['getNodeId', [], 171]
+			]));
+		$this->fileMapper
+			->method('getByUuid')
+			->will($this->returnValue($fileUser));
+
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->will($this->returnValue(171));
 
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser

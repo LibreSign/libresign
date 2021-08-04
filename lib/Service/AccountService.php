@@ -225,7 +225,9 @@ class AccountService {
 			}
 		}
 
-		$this->generateCertificate($uid, $signPassword, $newUser->getUID());
+		if ($signPassword) {
+			$this->generateCertificate($uid, $signPassword, $newUser->getUID());
+		}
 	}
 
 	public function getCertificateHandler() {
@@ -285,6 +287,7 @@ class AccountService {
 				return $return;
 			}
 			$fileUser = $this->fileUserMapper->getByUuid($uuid);
+			$fileData = $this->fileMapper->getById($fileUser->getFileId());
 		} catch (\Throwable $th) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
 			$return['errors'][] = $this->l10n->t('Invalid UUID');
@@ -315,6 +318,7 @@ class AccountService {
 		}
 		if ($fileUser->getSigned()) {
 			$return['action'] = JSActions::ACTION_SHOW_ERROR;
+			$return['uuid'] = $fileData->getUuid();
 			$return['errors'][] = $this->l10n->t('File already signed.');
 			return $return;
 		}
@@ -335,7 +339,6 @@ class AccountService {
 			$return['errors'][] = $this->l10n->t('Invalid user');
 			return $return;
 		}
-		$fileData = $this->fileMapper->getById($fileUser->getFileId());
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 		$fileToSign = $userFolder->getById($fileData->getNodeId());
 		if (count($fileToSign) < 1) {
@@ -363,6 +366,7 @@ class AccountService {
 		}
 		$return['sign'] = [
 			'pdf' => $pdf,
+			'uuid' => $fileData->getUuid(),
 			'filename' => $fileData->getName(),
 			'description' => $fileUser->getDescription()
 		];
@@ -392,24 +396,15 @@ class AccountService {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
-		$file = $userFolder->getById($fileData->getNodeId())[0];
-		$filePath = $file->getPath();
-
 		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
 		$signedUsers = array_filter($fileUser, function ($row) {
 			return !is_null($row->getSigned());
 		});
+
 		if (count($fileUser) === count($signedUsers)) {
-			$filePath = preg_replace(
-				'/' . $file->getExtension() . '$/',
-				$this->l10n->t('signed') . '.' . $file->getExtension(),
-				$filePath
-			);
-		}
-		// If signed, return signed file
-		if ($userFolder->nodeExists($filePath)) {
-			/** @var \OCP\Files\File */
-			$file = $userFolder->get($filePath);
+			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
+		} else {
+			$file = $userFolder->getById($fileData->getNodeId())[0];
 		}
 		return $file;
 	}

@@ -39,7 +39,6 @@ OC.L10N.register(
     "File already signed." : "Fichier déjà signé.",
     "You are not logged in. Please log in." : "Vous n'êtes pas connecté. Veuillez vous connecter.",
     "Invalid user" : "Utilisateur incorrect",
-    "signed" : "signé",
     "LibreSign" : "LibreSign",
     "LibreSign: Changes into a file for you to sign" : "LibreSign : Modifications dans un fichier à signer par vous",
     "File to sign" : "Fichier à signer",
@@ -58,6 +57,7 @@ OC.L10N.register(
     "User list needs to be an array" : "La liste des utilisateurs doit être de  type tableau (array)",
     "Remove duplicated users, email address need to be unique" : "Supprimez les utilisateurs en doublon, les adresses e-mail doivent être uniques.",
     "Document already signed" : "Document déjà signé",
+    "signed" : "signé",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Application de signature numérique gratuite pour Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**C'est une application libre de signature numérique de PDF pour Nextcloud**\n\n* ✍️ Signez des documents PDF avec des signatures numériques\n* ⚠️ L'installation de cette application nécessite l'accès au terminal, et aussi de se salir les mains avec l'installation de logiciels supplémentaires. Voir les [instructions d'installation](https://github.com/LibreSign/libresign/blob/main/README.md#setup) pour plus de détails.\n* **Configuration requise :**\n    * Serveur CFSSL\n    * Java\n    * JSignPDF",
     "Files" : "Fichiers",
@@ -153,11 +153,9 @@ OC.L10N.register(
     "Subscriptions:" : "Abonnements :",
     "Document Informations" : "Informations sur le document",
     "Validate Subscription." : "Valider l'abonnement.",
-    "Enter the UUID of the document to validate." : "Entrez l'UUID du document pour valider.",
     "Validation" : "Validation",
     "No date" : "Pas de date",
     "This document is valid" : "Ce document est valide",
-    "You need to create an account to sign this file." : "Vous devez créer un compte pour signer ce fichier.",
-    "Are ou sure you want to exclude user {email} from the request?" : "Etes-vous sûr de vouloir exclure l'utilisateur {email} de la requête ?"
+    "You need to create an account to sign this file." : "Vous devez créer un compte pour signer ce fichier."
 },
 "nplurals=2; plural=(n > 1);");

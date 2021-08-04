@@ -1,6 +1,6 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VueRouter from 'vue-router'
-import App from '../../App.vue'
+import Settings from '../../views/Settings.vue'
 
 let wrapper
 const localVue = createLocalVue()
@@ -12,9 +12,9 @@ const OC = () => {
 }
 
 beforeEach(() => {
-	wrapper = shallowMount(App, {
+	wrapper = shallowMount(Settings, {
 		localVue,
-		stubs: ['router-linkn', 'router-view'],
+		stubs: ['router-view'],
 		router,
 		mocks: {
 			OC,
@@ -26,8 +26,12 @@ afterEach(() => {
 	wrapper.destroy()
 })
 
-describe('App', () => {
-	test('Is a Vue Instance', () => {
+describe('Legal Information', () => {
+	it('Is a Vue Instance', () => {
 		expect(wrapper.vm).toBeTruthy()
+	})
+
+	it('Legal information initialized empty', () => {
+		expect(wrapper.vm.legalInformation).toBe('')
 	})
 })

@@ -69,7 +69,6 @@ const routes = [
 		path: '/sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
-		props: (route) => ({ uuid: route.params.uuid }),
 	}, {
 		path: '/reset-password',
 		component: () => import('../views/ResetPassword'),
