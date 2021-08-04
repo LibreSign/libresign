@@ -16,7 +16,7 @@ use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IConfig;
 use OCP\IL10N;
-use setasign\Fpdi\Fpdi;
+use TCPDI;
 
 class Pkcs12Handler {
 
@@ -109,14 +109,15 @@ class Pkcs12Handler {
 			return;
 		}
 		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
-		$pdf = new Fpdi();
-		$pageCount = $pdf->setSourceFile($file->fopen('r'));
+
+		$pdf = new TCPDILibresign();
+		$pageCount = $pdf->setNextcloudSourceFile($file);
 
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 			$templateId = $pdf->importPage($pageNo);
-
 			$pdf->AddPage();
-			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+			$pdf->useTemplate($templateId);
+
 			$pdf->SetFont('Helvetica');
 			$pdf->SetFontSize(8);
 			$pdf->SetAutoPageBreak(false);
@@ -137,10 +138,10 @@ class Pkcs12Handler {
 			);
 		}
 
-		return $pdf->Output('S');
+		return $pdf->Output(null, 'S');
 	}
 
-	private function writeQrCode(string $text, Fpdi $fpdf) {
+	private function writeQrCode(string $text, TCPDI $fpdf) {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
