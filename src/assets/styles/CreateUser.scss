@@ -75,6 +75,7 @@ input {
 	border: none;
 	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 	user-select: none;
+	width: 90%;
 }
 
 .btn-load{
@@ -215,5 +216,5 @@ input {
 .buttons {
 	display: flex;
 	flex-direction: row;
-	justify-content: space-between;
+	justify-content: center;
 }

@@ -65,6 +65,7 @@ Types of changes:
 - It will only verify the password if nextcloud requests confirmation of the password by the OC.
 - Check if has pfx
 - After signing the document, it will update the app files
+- Changed wizard to split user creation and pfx creation
 
 # Removed
 - Removed dsv folder
