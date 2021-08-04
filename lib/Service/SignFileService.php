@@ -455,7 +455,6 @@ class SignFileService {
 	}
 
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): \OCP\Files\File {
-
 		if ($fileData->getSignedNodeId()) {
 			/** @var \OCP\Files\File */
 			$fileToSign = $this->root->getById($fileData->getSignedNodeId())[0];
