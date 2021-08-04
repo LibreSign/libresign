@@ -93,27 +93,20 @@
 
 					<div class="buttons">
 						<button
-							v-show="passwordSign"
+							v-if="!passwordSign"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
-							@click.prevent="passwordSign = false">
-							{{ t('libresign', 'Return') }}
-						</button>
-
-						<button
-							v-show="!passwordSign"
-							:class="alignButtons"
 							:disabled="!validator.back"
 							type="submit"
-							@click.prevent="passwordSign = true">
+							@click.prevent="createUser">
 							{{ t('libresign', 'Next') }}
 						</button>
 
-						<button v-show="passwordSign"
+						<button v-if="passwordSign"
 							ref="btn"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
 							:disabled="!validator.btn"
-							@click.prevent="createUser">
-							{{ btnRegisterName }}
+							@click.prevent="createPfx">
+							{{ t('libresign', 'Create password to sign document') }}
 						</button>
 					</div>
 				</form>
@@ -228,7 +221,24 @@ export default {
 					signPassword: this.pfx,
 				})
 				this.$store.commit('setPdfData', response.data)
-				showSuccess(t('libresigng', 'User created!'))
+				showSuccess(t('libresign', 'User created!'))
+				this.passwordSign = true
+				this.hasLoading = false
+			} catch (err) {
+				showError(err.response.data.message)
+				this.passwordSign = false
+				this.hasLoading = false
+			}
+		},
+		async createPfx() {
+			this.hasLoading = true
+
+			try {
+				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
+					signPassword: this.pfx,
+				})
+				this.$store.commit('setHasPfx', true)
+				showSuccess(t('libresign', 'Password created!'))
 				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err.response.data.message)
