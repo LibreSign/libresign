@@ -51,6 +51,7 @@ Types of changes:
 - GitHub action to add a changelog reminder
 - View document on mobile before sign
 - Markdown formatting for description
+- Libresign button in file options in theh Files app
 - Button to redirect to files to view the document
 - Legal information on Validation screen, configure in Admin settings
 - Validation page, validating by UUID and ID
