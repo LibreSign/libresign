@@ -24,7 +24,7 @@ class Pkcs12Handler {
 	private $pfxFilename = 'signature.pfx';
 	/** @var FolderService */
 	private $folderService;
-	/** @var JSignPdfHandler */
+	/** @var JSignPdfHandler|null */
 	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
@@ -36,12 +36,10 @@ class Pkcs12Handler {
 
 	public function __construct(
 		FolderService $folderService,
-		JSignPdfHandler $JSignPdfHandler,
 		IConfig $config,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
-		$this->JSignPdfHandler = $JSignPdfHandler;
 		$this->config = $config;
 		$this->l10n = $l10n;
 	}
@@ -78,12 +76,25 @@ class Pkcs12Handler {
 		return $folder->get($this->pfxFilename);
 	}
 
+	private function getHandler(): ISignHandler {
+		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
+		if (!property_exists($this, $sign_engine . 'Handler')) {
+			throw new \Exception('Invalid Sign engine', 400);
+		}
+		$property = $sign_engine . 'Handler';
+		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
+		if (!$this->$property instanceof $classHandler) {
+			$this->$property = \OC::$server->get($classHandler);
+		}
+		return $this->$property;
+	}
+
 	public function sign(
 		File $fileToSign,
 		File $certificate,
 		string $password
 	): File {
-		$signedContent = $this->JSignPdfHandler->sign($fileToSign, $certificate, $password);
+		$signedContent = $this->getHandler()->sign($fileToSign, $certificate, $password);
 		$fileToSign->putContent($signedContent);
 		return $fileToSign;
 	}
