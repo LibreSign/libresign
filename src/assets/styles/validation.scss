@@ -123,6 +123,7 @@ button{
 		overflow: scroll;
 		height: 80%;
 		width: 98%;
+		justify-content: space-evenly;
 	}
 }
 
@@ -180,6 +181,7 @@ button{
 	margin: 5px 5px 0px 0px;
 	min-height: 50px;
 	width: 100%;
+	max-width: 98%;
 
 	.data-signed {
 		font-size: $date-signed-font;
