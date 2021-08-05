@@ -6,54 +6,68 @@
 			</div>
 			<div id="dataUUID">
 				<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
-					<h1>{{ title }}</h1>
-					<h3>{{ legend }}</h3>
+					<h1>{{ t('libresign', 'Validate Subscription.') }}</h1>
+					<h3>{{ t('libresign', 'Enter the ID or UUID of the document to validate.') }}</h3>
 					<input v-model="myUuid" type="text">
 					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validate(myUuid)">
-						{{ buttonTitle }}
+						{{ t('libresign', 'Validation') }}
 					</button>
 				</form>
+
 				<div v-if="hasInfo" class="infor-container">
 					<div class="infor-bg">
-						<div class="infor">
+						<div class="infor-header">
 							<div class="header">
 								<img class="icon" :src="infoIcon">
-								<h1>{{ infoDocument }}</h1>
+								<h1>{{ t('libresign', 'Document Informations') }}</h1>
 							</div>
-							<div class="info-document">
-								<p>
-									<b>{{ document.name }}</b>
-								</p>
-
-								<span class="legal-information">
-									{{ legalInformation }}
-								</span>
-
-								<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
+							<div class="line">
+								<div class="line-group">
+									<h3>{{ t('libresign', 'Document Name:') }}</h3>
+									<span>{{ document.name }}</span>
+								</div>
+								<div class="line-group">
+									<h3>{{ t('libresign', 'Created in:') }}</h3>
+									<span>{{ 'data' }}</span>
+								</div>
 							</div>
+							<div class="line">
+								<div class="line-group">
+									<h3>{{ t('libresign', 'Document hash:') }}</h3>
+									<span>{{ myUuid }}</span>
+								</div>
+							</div>
+							<div class="line">
+								<div id="legal-information" class="line-group">
+									<h3>{{ t('libresign', 'Legal Information:') }}</h3>
+									<span class="legal-information">{{ legalInformation }}</span>
+								</div>
+							</div>
+							<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
 						</div>
-					</div>
-					<div class="infor-bg signed">
-						<div class="header">
-							<img class="icon" :src="signatureIcon">
-							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
-						</div>
-						<div class="infor-content">
-							<div v-for="item in document.signers"
-								id="sign"
-								:key="item.fullName"
-								class="scroll">
-								<div class="subscriber">
-									<span><b>{{ getName(item) }}</b></span>
-									<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
-									<span v-else>{{ noDateMessage }}</span>
+
+						<div class="infor-bg signed">
+							<div class="header">
+								<img class="icon" :src="signatureIcon">
+								<h1>{{ t('libresign', 'Signatures:') }}</h1>
+							</div>
+							<div class="infor-content">
+								<div v-for="item in document.signers"
+									id="sign"
+									:key="item.fullName"
+									class="scroll">
+									<div class="subscriber">
+										<span><b>{{ getName(item) }}</b></span>
+										<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
+										<span v-else>{{ t('libresign', 'No date') }}</span>
+									</div>
 								</div>
 							</div>
 						</div>
+						<button type="primary" class="btn- btn-return" @click.prevent="changeInfo">
+							{{ t('libresign', 'Return') }}
+						</button>
 					</div>
-					<button type="primary" class="btn- btn-return" @click.prevent="changeInfo">
-						{{ t('libresign', 'Return') }}
-					</button>
 				</div>
 			</div>
 		</div>
@@ -89,13 +103,8 @@ export default {
 	data() {
 		return {
 			image: BackgroundImage,
-			infoDocument: t('libresign', 'Document Informations'),
 			infoIcon: iconA,
 			signatureIcon: iconB,
-			title: t('libresign', 'Validate Subscription.'),
-			legend: t('libresign', 'Enter the ID or UUID of the document to validate.'),
-			buttonTitle: t('libresign', 'Validation'),
-			noDateMessage: t('libresign', 'No date'),
 			myUuid: this.uuid ? this.uuid : '',
 			hasInfo: false,
 			hasLoading: false,
@@ -107,6 +116,7 @@ export default {
 	watch: {
 		'$route.params'(toParams, previousParams) {
 			this.validate(toParams.uuid)
+			this.myUuid = toParams.uuid
 		},
 	},
 	created() {
@@ -176,7 +186,7 @@ export default {
 			try {
 				return fromUnixTime(data).toLocaleDateString()
 			} catch {
-				return this.noDateMessage
+				return t('libresign', 'No date')
 			}
 		},
 	},

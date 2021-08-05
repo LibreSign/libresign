@@ -110,11 +110,47 @@ button{
 }
 
 .infor-bg{
-	background-color: #FFF;
-	padding: 20px 60px 20px 20px;
-	border-radius: 8px;
-	width: 700px;
-	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+
+	.infor-header{
+		display: flex;
+		flex-direction: column;
+		width: 700px;
+		height: 300px;
+		margin-top: 10px;
+		background-color: #fff;
+		box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+		border-radius: 8px;
+		padding: 20px 60px 20px 20px;
+		min-height: 415px;
+
+		.line{
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+			margin: 15px 0;
+
+			.line-group{
+				display: flex;
+				flex-direction: column;
+				line-height: 10px;
+				width: 100%;
+
+				h3{
+					font-weight: 400;
+					color: #000;
+					min-width: 200px;
+				}
+
+				span{
+					font-size: 16px;
+					color: rgba(0, 0, 0, 0.7);
+				}
+			}
+		}
+		.button{
+			align-self: flex-end;
+		}
+	}
 
 	.infor-content{
 		display: flex;
@@ -122,8 +158,8 @@ button{
 		flex-wrap: wrap;
 		overflow: scroll;
 		height: 80%;
-		width: 98%;
-		justify-content: space-evenly;
+		width: 95%;
+		margin: 0 20px;
 	}
 }
 
@@ -154,6 +190,11 @@ button{
 	height: 300px;
 	margin-top: 10px;
 	padding-right: 2px;
+	background-color: #FFFFFF;
+	padding: 20px 60px 20px 20px;
+	border-radius: 8px;
+	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+
 	strong {
 		font-size: 22px;
 		margin-bottom: 10px;
@@ -164,7 +205,7 @@ button{
 }
 
 .scroll {
-	max-height: 200px;
+	max-height: 85px;
 	display: flex;
 	flex-wrap: wrap;
 	min-width: 200px;
@@ -195,9 +236,11 @@ button{
 
 .header {
 	display: flex;
-	margin-bottom: 2rem;
 	h1{
 		font-size: $title-font;
+	}
+	span{
+		margin-top: 20px;
 	}
 }
 
@@ -207,15 +250,29 @@ button{
 }
 
 @media screen and (max-width: 700px) {
-	.signed {
-		width: 100%;
-	}
 	.infor-container {
 		margin-right: 0px;
 		width: 100%;
 	}
 	.infor-bg {
 		box-shadow: none;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+
+		.infor-header{
+			width: 95%;
+
+			.line-group{
+				line-height: 18px;
+			}
+		}
+
+		.signed{
+			width: 95%;
+			box-shadow: none;
+		}
 	}
 	.container {
 		align-items: flex-start;
@@ -229,5 +286,32 @@ button{
 		h1 {
 			font-size: $title-font-mobile;
 		}
+	}
+}
+
+@media (max-width: 400px) {
+	.infor-bg{
+
+		.infor-header{
+			height: 520px;
+		}
+
+		.line{
+			flex-direction: column !important;
+
+			.line-group{
+				span{
+					line-height: 18px;
+				}
+			}
+		}
+	}
+}
+
+#legal-information {
+	margin-right: 0;
+	span{
+		width: 100%;
+		line-height: normal;
 	}
 }
