@@ -128,6 +128,7 @@ OC.L10N.register(
     "Next" : "下一个",
     "Create an account" : "创建一个账号",
     "User created!" : "用户已创建！",
+    "Password created!" : "已创建密码！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "对不起，你正在寻找的页面不存在、已被删除、移动或暂时不可用。",
     "See Document Validation" : "参见文档验证",
     "Congratulations you have digitally signed a document using LibreSign" : "祝贺您使用LibreSign对文档进行了数字签名 ",
@@ -167,6 +168,7 @@ OC.L10N.register(
     "Validation" : "验证 ",
     "No date" : "无日期",
     "This document is valid" : "该文档有效",
-    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
+    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
+    "Open in LibreSign" : "在 LibreSign 中打开"
 },
 "nplurals=1; plural=0;");

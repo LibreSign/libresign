@@ -129,6 +129,7 @@ OC.L10N.register(
     "Next" : "Sonraki",
     "Create an account" : "Hesap açın",
     "User created!" : "Kullanıcı eklendi!",
+    "Password created!" : "Parola oluşturuldu!",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Maalesef aradığınız sayfa bulunamadı. Silinmiş, taşınmış ya da geçici olarak kullanılamıyor olabilir.",
     "See Document Validation" : "Belge doğrulamasına bakın",
     "Congratulations you have digitally signed a document using LibreSign" : "Tebrikler, LibreSign kullanarak bir belgeyi imzaladınız",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "Validation" : "Doğrulama",
     "No date" : "Tarih yok",
     "This document is valid" : "Bu belge geçerli",
-    "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız."
+    "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
+    "Open in LibreSign" : "LibreSign ile aç"
 },
 "nplurals=2; plural=(n > 1);");

@@ -127,6 +127,7 @@
     "Next" : "Następny",
     "Create an account" : "Utwórz konto",
     "User created!" : "Utworzono użytkownika!",
+    "Password created!" : "Utworzono hasło!",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Strona, której szukasz, nie istnieje, została usunięta, przeniesiona lub jest chwilowo niedostępna.",
     "See Document Validation" : "Zobacz weryfikację dokumentu",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulacje, podpisałeś cyfrowo dokument za pomocą LibreSign",
@@ -166,6 +167,7 @@
     "Validation" : "Walidacja",
     "No date" : "Brak daty",
     "This document is valid" : "Ten dokument jest prawidłowy",
-    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
+    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
+    "Open in LibreSign" : "Otwórz w LibreSign"
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

@@ -129,6 +129,7 @@ OC.L10N.register(
     "Next" : "Nächste",
     "Create an account" : "Ein Konto erstellen",
     "User created!" : "Benutzer erstellt!",
+    "Password created!" : "Passwort erstellt!",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Leider existiert die gesuchte Seite nicht, wurde entfernt, verschoben oder ist vorübergehend nicht verfügbar.",
     "See Document Validation" : "Siehe Dokumentenvalidierung",
     "Congratulations you have digitally signed a document using LibreSign" : "Herzlichen Glückwunsch, Sie haben ein Dokument mit LibreSign digital signiert",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
-    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können."
+    "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",
+    "Open in LibreSign" : "In LibreSign öffnen"
 },
 "nplurals=2; plural=(n != 1);");

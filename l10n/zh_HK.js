@@ -129,6 +129,7 @@ OC.L10N.register(
     "Next" : "下一個檔案",
     "Create an account" : "建立賬號",
     "User created!" : "用戶創建了！",
+    "Password created!" : "密碼創建了！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
     "See Document Validation" : "請參閱文件驗證",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜您已使用 LibreSign 對文件進行數字簽署",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "Validation" : "驗證",
     "No date" : "沒有日期",
     "This document is valid" : "此文件有效",
-    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
+    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
+    "Open in LibreSign" : "在 LibreSign 中打開"
 },
 "nplurals=1; plural=0;");

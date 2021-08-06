@@ -129,6 +129,7 @@ OC.L10N.register(
     "Next" : "Další",
     "Create an account" : "Vytvořit účet",
     "User created!" : "Uživatel vytvořen!",
+    "Password created!" : "Heslo vytvořeno!",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
     "See Document Validation" : "Zobrazit ověření dokumentu",
     "Congratulations you have digitally signed a document using LibreSign" : "Blahopřejeme, s použitím LibreSign, jste podepsali dokument ",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "Validation" : "Ověření",
     "No date" : "Žádné datum",
     "This document is valid" : "Tento dokument je platný",
-    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet."
+    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
+    "Open in LibreSign" : "Otevřít v LibreSign"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
