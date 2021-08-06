@@ -91,6 +91,7 @@ class LibreSignFileController extends Controller {
 
 			$return['success'] = true;
 			$return['name'] = $file->getName();
+			$return['createdAt'] = $file->getCreatedAt();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signers = $this->fileUserMapper->getByFileId($file->id);
 			if ($this->userSession->getUser()) {
