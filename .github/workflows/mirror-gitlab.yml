@@ -4,12 +4,13 @@ on: [push, delete]
 
 jobs:
   to_gitlab:
-    runs-on: ubuntu-18.04
-    steps:                                              # <-- must use actions/checkout@v1 before mirroring!
-    - uses: actions/checkout@v1
-    - uses: pixta-dev/repository-mirroring-action@v1
-      with:
-        target_repo_url:
-          git@gitlab.com:librecodecoop/libresign/libresign.git
-        ssh_private_key:                                # <-- use 'secrets' to pass credential information.
-          ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Mirror to GitLab
+        run: |
+          mkdir -p ~/.ssh
+          echo "$INPUT_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          git remote add mirror git@gitlab.com:librecodecoop/libresign/libresign.git
+          git push --tags --force --prune mirror "refs/remotes/origin/*:refs/heads/*"
