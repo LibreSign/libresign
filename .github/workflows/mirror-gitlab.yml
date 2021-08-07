@@ -9,6 +9,6 @@ jobs:
       - uses: actions/checkout@v1
       - uses: spyoungtech/mirror-action@master
         with:
-          REMOTE: git@gitlab.com/librecodecoop/libresign/libresign.git
+          REMOTE: git@gitlab.com:librecodecoop/libresign/libresign.git
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
           GIT_SSH_NO_VERIFY_HOST: "true"
