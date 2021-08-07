@@ -129,6 +129,7 @@ OC.L10N.register(
     "Next" : "Hurrengoa",
     "Create an account" : "Sortu kontu bat ",
     "User created!" : "Erabiltzailea sortuta!",
+    "Password created!" : "Pasahitza sortu da!",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Bilatzen ari zaren orria ez da existitzen, kendu egin da, mugitu egin da edo aldi baterako ez dago erabilgarri.",
     "See Document Validation" : "Ikus dokumentuen baliozkotzea",
     "Congratulations you have digitally signed a document using LibreSign" : "Zorionak, LibreSign erabiliz dokumentu bat digitalki sinatu duzu",
@@ -168,6 +169,7 @@ OC.L10N.register(
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",
     "This document is valid" : "Dokumentu hau baliozkoa da",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
+    "Open in LibreSign" : "Ireki LibreSign-en"
 },
 "nplurals=2; plural=(n != 1);");
