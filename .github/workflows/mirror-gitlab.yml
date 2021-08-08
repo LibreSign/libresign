@@ -1,14 +1,17 @@
-name: Mirroring
+name: Gitlab mirror
 
 on: [push, delete]
 
 jobs:
   to_gitlab:
+    name: Mirror to GitLab
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: spyoungtech/mirror-action@master
-        with:
-          REMOTE: git@gitlab.com:librecodecoop/libresign/libresign.git
+      - uses: actions/checkout@v2
+      - run: |
+          mkdir ~/.ssh && echo -e "Host gitlab.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+          eval $(ssh-agent) && echo "$GIT_SSH_PRIVATE_KEY" | ssh-add -
+          git fetch --unshallow
+          git push git@gitlab.com:librecodecoop/libresign/libresign.git
+        env:
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
-          GIT_SSH_KNOWN_HOSTS: ${{ secrets.GIT_SSH_KNOWN_HOSTS }}
