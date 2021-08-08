@@ -28,7 +28,7 @@ jobs:
           pwd
           whoami
           eval $(ssh-agent)
-          echo "$GIT_SSH_PRIVATE_KEY" | ssh-add -
+          ssh-add -L
       - name: Check SSH
         shell: bash
         run: |
