@@ -10,6 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           mkdir ~/.ssh && echo -e "Host gitlab.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+          echo $GIT_SSH_PRIVATE_KEY
           eval $(ssh-agent) && echo "$GIT_SSH_PRIVATE_KEY" | ssh-add -
           git fetch --unshallow
           git push git@gitlab.com:librecodecoop/libresign/libresign.git
