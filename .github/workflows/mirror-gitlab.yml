@@ -9,6 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Configure SSH
+        shell: bash
         env:
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
         run: |
@@ -23,10 +24,12 @@ jobs:
           END
           eval $(ssh-agent)
       - name: Check SSH
+        shell: bash
         run: |
           ssh-add -L
           ssh -T git@gitlab.com
       - name: mirror
+        shell: bash
         run: |
           git fetch --unshallow
           git push git@gitlab.com:librecodecoop/libresign/libresign.git
