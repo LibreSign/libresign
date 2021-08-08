@@ -29,6 +29,7 @@ jobs:
           whoami
           eval $(ssh-agent)
           eval `ssh-agent -s`
+          ssh-add -K ~/.ssh/gitlab.key
           ssh-add -L
       - name: Check SSH
         shell: bash
