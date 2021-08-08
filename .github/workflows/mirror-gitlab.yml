@@ -27,12 +27,13 @@ jobs:
           ls -la ~/.ssh/
           pwd
           whoami
-          cat ~/.ssh/gitlab.key
           eval $(ssh-agent)
       - name: Check SSH
         shell: bash
         run: |
-          ssh -T git@gitlab.com
+          ssh-agent -L
+          echo "----------\n"
+          ssh -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
         run: |
