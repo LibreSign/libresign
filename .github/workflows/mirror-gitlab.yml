@@ -22,7 +22,7 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
             StrictHostKeyChecking no
           END
-          eval $(ssh-agent)
+          eval `ssh-agent -s`
       - name: Check SSH
         shell: bash
         run: |
