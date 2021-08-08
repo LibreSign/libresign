@@ -27,6 +27,7 @@ jobs:
           ls -la ~/.ssh/
           pwd
           whoami
+          cat ~/.ssh/gitlab.key
           eval $(ssh-agent)
       - name: Check SSH
         shell: bash
