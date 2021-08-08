@@ -23,7 +23,9 @@ jobs:
             StrictHostKeyChecking no
           END
           chmod -R 600 ~/.ssh/gitlab.key
+          chmod -R 600 ~/.ssh/config
           ls -la ~/.ssh/
+          pwd
           eval $(ssh-agent)
       - name: Check SSH
         shell: bash
