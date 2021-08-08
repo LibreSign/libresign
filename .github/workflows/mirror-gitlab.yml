@@ -11,4 +11,4 @@ jobs:
         with:
           REMOTE: git@gitlab.com:librecodecoop/libresign/libresign.git
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
-          GIT_SSH_KNOWN_HOSTS: ${{ secrets.GIT_SSH_KNOWN_HOSTS }}
+          GIT_SSH_NO_VERIFY_HOST: "true"
