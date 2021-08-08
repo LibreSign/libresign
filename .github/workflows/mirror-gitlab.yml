@@ -28,6 +28,7 @@ jobs:
           pwd
           whoami
           eval $(ssh-agent)
+          ssh-add ~/.ssh/gitlab.key
           ssh-add -l
       - name: Check SSH
         shell: bash
