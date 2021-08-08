@@ -22,8 +22,8 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
             StrictHostKeyChecking no
           END
-          chown -R $USER ~/.ssh/gitlab.key
           chmod -R 600 ~/.ssh/gitlab.key
+          ls -la ~/.ssh/
           eval $(ssh-agent)
       - name: Check SSH
         shell: bash
