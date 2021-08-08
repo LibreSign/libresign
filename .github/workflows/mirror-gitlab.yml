@@ -15,12 +15,6 @@ jobs:
         run: |
           mkdir -p ~/.ssh/
           echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/gitlab.key
-          cat >>~/.ssh/config <<END
-          Host staging
-            HostName gitlab.com
-            IdentityFile ~/.ssh/gitlab.key
-            StrictHostKeyChecking no
-          END
           ssh-keyscan -t ed25519 gitlab.com > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/*
       - name: Check SSH
