@@ -22,11 +22,9 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
             StrictHostKeyChecking no
           END
-          eval `ssh-agent -s`
       - name: Check SSH
         shell: bash
         run: |
-          ssh-add -L
           ssh -T git@gitlab.com
       - name: mirror
         shell: bash
