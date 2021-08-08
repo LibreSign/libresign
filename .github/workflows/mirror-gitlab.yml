@@ -26,6 +26,7 @@ jobs:
           chmod -R 600 ~/.ssh/config
           ls -la ~/.ssh/
           pwd
+          whoami
           eval $(ssh-agent)
       - name: Check SSH
         shell: bash
