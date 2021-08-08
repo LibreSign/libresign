@@ -21,6 +21,7 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
             StrictHostKeyChecking no
           END
+          eval $(ssh-agent)
       - name: Check SSH
         run: |
           ssh-add -L
