@@ -27,8 +27,8 @@ jobs:
           ls -la ~/.ssh/
           pwd
           whoami
-          killall ssh-agent;
           eval $(ssh-agent)
+          echo "$GIT_SSH_PRIVATE_KEY" | ssh-add -
       - name: Check SSH
         shell: bash
         run: |
