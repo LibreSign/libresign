@@ -31,7 +31,7 @@ jobs:
       - name: Check SSH
         shell: bash
         run: |
-          ssh-agent -L
+          ssh-add -L
           echo "----------\n"
           ssh -Tvvv git@gitlab.com
       - name: mirror
