@@ -8,11 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          mkdir ~/.ssh && echo -e "Host gitlab.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-          eval $(ssh-agent) && echo "$GIT_SSH_PRIVATE_KEY" | ssh-add -
-          ssh-add -L
-          git fetch --unshallow
-          git push git@gitlab.com:librecodecoop/libresign/libresign.git
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/gitlab.key
+          chmod 600 ~/.ssh/gitlab.key
+          cat >>~/.ssh/config <<END
+          Host staging
+            HostName gitlab.com
+            IdentityFile ~/.ssh/gitlab.key
+            StrictHostKeyChecking no
+          END
         env:
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+      - name: Check SSH
+        run: |
+          ssh-add -L
+          ssh -T git@gitlab.com
+      - name: mirror
+        run: |
+          git fetch --unshallow
+          git push git@gitlab.com:librecodecoop/libresign/libresign.git
