@@ -30,10 +30,6 @@ jobs:
           eval $(ssh-agent)
           ssh-add ~/.ssh/gitlab.key
           ssh-add -l
-      - name: Check SSH
-        shell: bash
-        run: |
-          ssh-add -L
           echo "----------\n"
           ssh -Tvvv git@gitlab.com
       - name: mirror
