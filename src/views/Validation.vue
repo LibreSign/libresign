@@ -87,7 +87,6 @@ import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime, format } from 'date-fns'
-import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'Validation',
@@ -128,7 +127,6 @@ export default {
 		if (this.myUuid.length > 0) {
 			this.validate(this.myUuid)
 		}
-		console.info(JSON.parse(loadState('libresign', 'config')))
 	},
 	methods: {
 		validate(id) {
