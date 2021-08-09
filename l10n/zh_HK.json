@@ -124,10 +124,10 @@
     "Confirm password" : "確認密碼",
     "Set a password to sign the document" : "設置密碼以簽署文件",
     "Password for sign document." : "簽署文件的密碼。",
-    "Return" : "返回",
     "Next" : "下一個檔案",
     "Create an account" : "建立賬號",
     "User created!" : "用戶創建了！",
+    "Password created!" : "密碼創建了！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
     "See Document Validation" : "請參閱文件驗證",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜您已使用 LibreSign 對文件進行數字簽署",
@@ -135,6 +135,8 @@
     "Subscription generated and available at {path}!" : "訂閱已生成，可以在 {path} 上使用！",
     "Could not create signature." : "無法建立簽署。",
     "Status" : "狀態",
+    "Validate Document" : "驗證文件",
+    "Return" : "返回",
     "Pending" : "待定的",
     "Signed" : "已簽署",
     "There was an error completing your request" : "完成您的請求時出錯",
@@ -161,9 +163,11 @@
     "Subscriptions:" : "訂閱：",
     "Document Informations" : "文件資料",
     "Validate Subscription." : "驗證訂閱。",
+    "Enter the ID or UUID of the document to validate." : "輸入要驗證的文檔的 ID 或 UUID。",
     "Validation" : "驗證",
     "No date" : "沒有日期",
     "This document is valid" : "此文件有效",
-    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。"
+    "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
+    "Open in LibreSign" : "在 LibreSign 中打開"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

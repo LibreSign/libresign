@@ -126,10 +126,10 @@ OC.L10N.register(
     "Confirm password" : "確認密碼",
     "Set a password to sign the document" : "設定密碼以簽署文件",
     "Password for sign document." : "簽署文件的密碼。",
-    "Return" : "上一步",
     "Next" : "下一步",
     "Create an account" : "建立帳號",
     "User created!" : "使用者已建立！",
+    "Password created!" : "已建立密碼！",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，但您正在尋找的頁面並不存在，可能已被移除、移動或暫時無法使用。",
     "See Document Validation" : "檢視文件驗證",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜，您使用 LibreSign 數位簽署了文件",
@@ -137,6 +137,8 @@ OC.L10N.register(
     "Subscription generated and available at {path}!" : "訂閱已產生，並可在 {path} 上使用！",
     "Could not create signature." : "無法建立簽章。",
     "Status" : "狀態",
+    "Validate Document" : "驗證文件",
+    "Return" : "上一步",
     "Pending" : "擱置中",
     "Signed" : "已簽署",
     "There was an error completing your request" : "完成您的請求時發生錯誤",
@@ -163,9 +165,11 @@ OC.L10N.register(
     "Subscriptions:" : "訂閱：",
     "Document Informations" : "文件資訊",
     "Validate Subscription." : "驗證訂閱",
+    "Enter the ID or UUID of the document to validate." : "輸入要驗證文件的 ID 或 UUID。",
     "Validation" : "驗證",
     "No date" : "無日期",
     "This document is valid" : "此文件有效",
-    "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。"
+    "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。",
+    "Open in LibreSign" : "在 LibreSign 中開啟"
 },
 "nplurals=1; plural=0;");
