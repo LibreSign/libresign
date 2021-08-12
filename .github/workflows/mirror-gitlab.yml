@@ -22,11 +22,7 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
             StrictHostKeyChecking no
           END
-          chmod -R 600 ~/.ssh/gitlab.key
-          chmod -R 600 ~/.ssh/config
-          ls -la ~/.ssh/
-          pwd
-          whoami
+          chmod -R 600 ~/.ssh/*
           eval $(ssh-agent)
           ssh-add ~/.ssh/gitlab.key
           ssh-add -l
