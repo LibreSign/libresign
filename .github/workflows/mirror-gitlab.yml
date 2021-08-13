@@ -32,4 +32,4 @@ jobs:
         shell: bash
         run: |
           git fetch --unshallow
-          git push -f git@gitlab.com:librecodecoop/libresign/libresign.git
+          git push git@gitlab.com:librecodecoop/libresign/libresign.git
