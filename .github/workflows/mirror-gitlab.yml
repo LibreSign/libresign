@@ -27,7 +27,7 @@ jobs:
           ssh-add ~/.ssh/gitlab.key
           ssh-add -l
           echo "----------\n"
-          ssh -Tvvv git@gitlab.com
+          ssh -o UserKnownHostsFile=~/.ssh/known_hosts -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
         run: |
