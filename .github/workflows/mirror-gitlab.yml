@@ -31,5 +31,7 @@ jobs:
       - name: mirror
         shell: bash
         run: |
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/gitlab.key
           git fetch --unshallow
           git push git@gitlab.com:librecodecoop/libresign/libresign.git
