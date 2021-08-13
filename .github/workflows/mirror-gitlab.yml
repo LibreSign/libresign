@@ -22,11 +22,11 @@ jobs:
             IdentityFile ~/.ssh/gitlab.key
           END
           chmod -R 600 ~/.ssh/*
-          eval $(ssh-agent)
-          ssh-add ~/.ssh/gitlab.key
       - name: Validate SSH settings
         shell: bash
         run: |
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/gitlab.key
           ssh -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
