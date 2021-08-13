@@ -12,7 +12,6 @@ jobs:
         shell: bash
         env:
           GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
-          GIT_SSH_KNOWN_HOSTS: ${{ secrets.GIT_SSH_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh/
           echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/gitlab.key
@@ -25,6 +24,10 @@ jobs:
           chmod -R 600 ~/.ssh/*
           eval $(ssh-agent)
           ssh-add ~/.ssh/gitlab.key
+          ssh -Tvvv git@gitlab.com
+      - name: Validate SSH settings
+        shell: bash
+        run: |
           ssh -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
