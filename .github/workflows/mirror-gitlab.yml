@@ -24,6 +24,7 @@ jobs:
           END
           chmod -R 600 ~/.ssh/*
           eval $(ssh-agent)
+          ssh-add ~/.ssh/gitlab.key
           ssh -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
