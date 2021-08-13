@@ -1,0 +1,35 @@
+name: Gitlab mirror
+
+on: [push, delete]
+
+jobs:
+  to_gitlab:
+    name: Mirror to GitLab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure SSH
+        shell: bash
+        env:
+          GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/gitlab.key
+          ssh-keyscan -t ed25519 gitlab.com >> ~/.ssh/known_hosts
+          cat >>~/.ssh/config <<END
+          Host staging
+            HostName gitlab.com
+            IdentityFile ~/.ssh/gitlab.key
+          END
+          chmod -R 600 ~/.ssh/*
+      - name: Validate SSH settings
+        shell: bash
+        run: |
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/gitlab.key
+          ssh -Tvvv git@gitlab.com
+      - name: mirror
+        shell: bash
+        run: |
+          git fetch --unshallow
+          git push git@gitlab.com:librecodecoop/libresign/libresign.git
