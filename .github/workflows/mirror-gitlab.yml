@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh/
           echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/gitlab.key
-          ssh-keyscan -t ed25519 gitlab.com >> ~/.ssh/hnown_hosts
+          ssh-keyscan -t ed25519 gitlab.com >> /etc/ssh/ssh_known_hosts
           cat >>~/.ssh/config <<END
           Host staging
             HostName gitlab.com
@@ -27,7 +27,7 @@ jobs:
           ssh-add ~/.ssh/gitlab.key
           ssh-add -l
           echo "----------\n"
-          ssh -o UserKnownHostsFile=~/.ssh/known_hosts -Tvvv git@gitlab.com
+          ssh -Tvvv git@gitlab.com
       - name: mirror
         shell: bash
         run: |
