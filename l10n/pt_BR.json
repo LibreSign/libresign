@@ -75,6 +75,7 @@
     "Create password to sign document" : "Criar senha para assinar documento ",
     "Sign the document." : "Assine o documento.",
     "Show Document" : "Mostrar Documento ",
+    "View on Files" : "Ver em arquivos",
     "Signatures" : "Assinaturas",
     "Sign" : "Assinar",
     "Requested by {name}, at {date}" : "Solicitado por {name}, em {date} ",
@@ -126,6 +127,7 @@
     "Next" : "Próximo",
     "Create an account" : "Crie a sua conta aqui ",
     "User created!" : "Usuário criado!",
+    "Password created!" : "Senha criada! ",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe mas a página que você está procurando não existe, foi removida, movida ou está temporariamente indisponível.",
     "See Document Validation" : "Veja a Validação do Documento",
     "Congratulations you have digitally signed a document using LibreSign" : "Parabéns, você assinou digitalmente um documento usando LibreSign ",
@@ -133,6 +135,7 @@
     "Subscription generated and available at {path}!" : "natura gerada e disponível em {path}!",
     "Could not create signature." : "Impossível gerar assinatura.",
     "Status" : "Status",
+    "Validate Document" : "Validar Documento ",
     "Return" : "Retornar",
     "Pending" : "Pendente ",
     "Signed" : "Assinado",
@@ -150,6 +153,9 @@
     "Enter new password and then repeat it" : "Digite a nova senha e repita-a ",
     "New password" : "Nova Senha ",
     "Repeat password" : "Repita a senha ",
+    "Legal information" : "Informação legal",
+    "This information will appear on the validation page" : "Esta informação aparecerá na página de validação ",
+    "Legal Information" : "Informação legal",
     "All Files" : "Todos os arquivos ",
     "Validation URL" : "URL de validação",
     "To validate signature of the documents" : "Para validar a assinatura dos documentos",
@@ -157,9 +163,11 @@
     "Subscriptions:" : "Inscrições:",
     "Document Informations" : "Informações do Documento",
     "Validate Subscription." : "Validar Assinatura. ",
+    "Enter the ID or UUID of the document to validate." : "Insira o ID ou UUID do documento a ser validado. ",
     "Validation" : "Validação",
     "No date" : "Sem datas ",
     "This document is valid" : "Este documento é válido",
-    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento."
+    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
+    "Open in LibreSign" : "Abra no LibreSign "
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
