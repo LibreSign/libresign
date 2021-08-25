@@ -28,49 +28,49 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const routes = [
 	{
-		path: '/timeline/sign',
+		path: '#timeline/sign',
 		component: () => import('../views/Timeline'),
 		name: 'signFiles',
 	}, {
-		path: '/request',
+		path: '#request',
 		component: () => import('../views/Request'),
 		name: 'requestFiles',
 	}, {
-		path: '/sign/:uuid',
+		path: '#sign/:uuid',
 		redirect: { name: SelectAction(libresignVar.action) },
 	}, {
-		path: '/sign/:uuid',
+		path: '#sign/:uuid',
 		component: () => import('../views/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
-		path: '/sign/:uuid',
+		path: '#sign/:uuid',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
 		props: (route) => ({
 			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
 	}, {
-		path: '/validation',
+		path: '#validation',
 		component: () => import('../views/Validation'),
 		name: 'validation',
 	}, {
-		path: '/validation/:uuid',
+		path: '#validation/:uuid',
 		component: () => import('../views/Validation'),
 		name: 'validationFile',
 		props: (route) => ({
 			uuid: route.params.uuid,
 		}),
 	}, {
-		path: '/sign/:uuid/error',
+		path: '#sign/:uuid/error',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
 	}, {
-		path: '/sign/:uuid/success',
+		path: '#sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
 	}, {
-		path: '/reset-password',
+		path: '#reset-password',
 		component: () => import('../views/ResetPassword'),
 		name: 'ResetPassword',
 	}, {
@@ -78,7 +78,7 @@ const routes = [
 		component: () => import('../views/Account'),
 		name: 'Account',
 	}, {
-		path: '/create-password',
+		path: '#create-password',
 		component: () => import('../views/CreatePassword'),
 		name: 'CreatePassword',
 	},
