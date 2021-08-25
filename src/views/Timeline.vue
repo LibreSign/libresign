@@ -1,7 +1,7 @@
 <template>
 	<div class="container-timeline">
-		<div class="content-timeline">
-			<div class="filtered">
+		<div v-if="emptyContentFile ===false" class="content-timeline">
+			<div class="filtered" vif>
 				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
@@ -12,7 +12,7 @@
 					{{ t('libresign', 'Signed') }}
 				</a>
 			</div>
-			<ul v-if="emptyContentFile===false">
+			<ul>
 				<File
 					v-for="file in filterFile"
 					:key="file.uuid"
@@ -21,12 +21,12 @@
 					:file="file"
 					@sidebar="setSidebar" />
 			</ul>
-			<EmptyContent v-else>
-				<template #desc>
-					<h1>{{ t('libresign', 'There is no document history') }}</h1>
-				</template>
-			</EmptyContent>
 		</div>
+		<EmptyContent v-else>
+			<template #desc>
+				<h1>{{ t('libresign', 'There is no document history') }}</h1>
+			</template>
+		</EmptyContent>
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
 			:loading="loading"
@@ -91,16 +91,15 @@ export default {
 			set(value) {
 				this.fileFilter = value
 			},
-			emptyContentFile() {
-				return this.filterFile.length <= 0
-			},
+		},
+		emptyContentFile() {
+			return this.filterFile.length <= 0
 		},
 
 	},
 
 	created() {
 		this.getData()
-		console.info('FFilter: ', this.filterFile)
 	},
 
 	methods: {
@@ -169,6 +168,7 @@ export default {
 .container-timeline{
 	display: flex;
 	width: 100%;
+	justify-content: center;
 	flex-direction: row;
 
 	.content-timeline{
