@@ -55,7 +55,7 @@ const routes = [
 		component: () => import('../views/Validation'),
 		name: 'validation',
 	}, {
-		path: '/apps/libresign/#validation/:uuid',
+		path: '/apps/libresign/validation/:uuid',
 		component: () => import('../views/Validation'),
 		name: 'validationFile',
 		props: (route) => ({

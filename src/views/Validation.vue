@@ -105,8 +105,8 @@ export default {
 		}
 	},
 	watch: {
-		'$route.params'(toParams, previousParams) {
-			this.validate(toParams.uuid)
+		'$route.params.uuid'(uuid) {
+			this.validate(uuid)
 		},
 	},
 	created() {
