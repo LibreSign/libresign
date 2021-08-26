@@ -11,10 +11,15 @@
 		@update:active="updateActive"
 		@close="closeSidebar">
 		<template #secondary-actions>
-			<ActionLink icon="icon-folder" :href="viewOnFiles">
+			<ActionLink v-if="isOwner" icon="icon-folder" :href="viewOnFiles">
 				{{ t('libresign', 'View on Files') }}
 			</ActionLink>
 		</template>
+		<div class="actions">
+			<button class="secondary" @click="validateFile">
+				{{ t('libresign', 'Validate File') }}
+			</button>
+		</div>
 		<AppSidebarTab
 			id="signantures"
 			:name="t('libresign', 'Signatures')"
@@ -76,6 +81,9 @@ export default {
 		titleName() {
 			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
 		},
+		isOwner() {
+			return this.getCurrentFile.file.signers.filter(signer => (signer.me === true))
+		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
 				name: this.getCurrentFile.file.requested_by.uid
@@ -102,6 +110,9 @@ export default {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
 		},
+		validateFile() {
+			this.$router.push({ name: 'validationFile', params: { uuid: this.getCurrentFile.file.uuid } })
+		},
 		update() {
 			this.$emit('update', true)
 		},
@@ -121,11 +132,9 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-button {
-	padding-left: 44px;
-	background-position: 16px center;
-	flex-grow: 1;
-	margin-bottom: 12px;
-	text-align: left;
+.actions{
+	width: 100%;
+	display: flex;
+	margin-left: 10px;
 }
 </style>
