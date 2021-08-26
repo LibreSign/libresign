@@ -22,63 +22,63 @@
 
 import { translate as t } from '@nextcloud/l10n'
 import { loadState } from '@nextcloud/initial-state'
-import SelectAction from '../helpers/SelectAction'
+import { selectAction } from '../helpers/SelectAction'
 
 const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const routes = [
 	{
-		path: '/timeline/sign',
+		path: '/apps/libresign/#timeline/sign',
 		component: () => import('../views/Timeline'),
 		name: 'signFiles',
 	}, {
-		path: '/request',
+		path: '/apps/libresign/#request',
 		component: () => import('../views/Request'),
 		name: 'requestFiles',
 	}, {
-		path: '/sign/:uuid',
-		redirect: { name: SelectAction(libresignVar.action) },
+		path: '/apps/libresign/#sign/:uuid',
+		redirect: { name: selectAction(libresignVar.action) },
 	}, {
-		path: '/sign/:uuid',
+		path: '/apps/libresign/#sign/:uuid',
 		component: () => import('../views/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
-		path: '/sign/:uuid',
+		path: '/apps/libresign/#sign/:uuid',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
 		props: (route) => ({
 			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
 	}, {
-		path: '/validation',
+		path: '/apps/libresign/#validation',
 		component: () => import('../views/Validation'),
 		name: 'validation',
 	}, {
-		path: '/validation/:uuid',
+		path: '/apps/libresign/#validation/:uuid',
 		component: () => import('../views/Validation'),
 		name: 'validationFile',
 		props: (route) => ({
 			uuid: route.params.uuid,
 		}),
 	}, {
-		path: '/sign/:uuid/error',
+		path: '/apps/libresign/#sign/:uuid/error',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
 	}, {
-		path: '/sign/:uuid/success',
+		path: '/apps/libresign/#sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
 	}, {
-		path: '/reset-password',
+		path: '/apps/libresign/#reset-password',
 		component: () => import('../views/ResetPassword'),
 		name: 'ResetPassword',
 	}, {
-		path: '#account',
+		path: '/apps/libresign/#account',
 		component: () => import('../views/Account'),
 		name: 'Account',
 	}, {
-		path: '/create-password',
+		path: '/apps/libresign/#create-password',
 		component: () => import('../views/CreatePassword'),
 		name: 'CreatePassword',
 	},

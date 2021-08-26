@@ -1,7 +1,7 @@
 <template>
 	<div class="container-timeline">
-		<div class="content-timeline">
-			<div class="filtered">
+		<div v-if="emptyContentFile ===false" class="content-timeline">
+			<div class="filtered" vif>
 				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
@@ -22,6 +22,11 @@
 					@sidebar="setSidebar" />
 			</ul>
 		</div>
+		<EmptyContent v-else>
+			<template #desc>
+				<h1>{{ t('libresign', 'There is no document history') }}</h1>
+			</template>
+		</EmptyContent>
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
 			:loading="loading"
@@ -38,6 +43,7 @@ import { generateUrl } from '@nextcloud/router'
 import { mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
+import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
@@ -45,6 +51,7 @@ export default {
 	components: {
 		File,
 		Sidebar,
+		EmptyContent,
 	},
 	data() {
 		return {
@@ -84,6 +91,9 @@ export default {
 			set(value) {
 				this.fileFilter = value
 			},
+		},
+		emptyContentFile() {
+			return this.filterFile.length <= 0
 		},
 
 	},
@@ -158,6 +168,7 @@ export default {
 .container-timeline{
 	display: flex;
 	width: 100%;
+	justify-content: center;
 	flex-direction: row;
 
 	.content-timeline{
