@@ -205,3 +205,17 @@ export default {
 	bottom: 10px;
 }
 </style>
+
+<style>
+.form-rs-container .list-users-selected {
+	max-height: calc(100vh - 420px) !important;
+}
+
+#user-info {
+	display: flex;
+	align-items: center;
+	cursor: move;
+	width: 180px;
+	max-width: 100%;
+}
+</style>

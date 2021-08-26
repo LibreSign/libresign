@@ -41,9 +41,6 @@
 				<button v-if="haveRequest" @click="option('signatures')">
 					{{ t('libresign', 'Status') }}
 				</button>
-				<button v-if="showValidation" @click="redirectToValidation">
-					{{ t('libresign', 'Validate Document') }}
-				</button>
 			</div>
 
 			<Sign v-show="signShow"
@@ -150,8 +147,6 @@ export default {
 			fileInfo: null,
 			showRequest: false,
 			hasPfx: false,
-			showValidation: false,
-			uuid: '',
 		}
 	},
 
@@ -177,10 +172,8 @@ export default {
 
 			if (newVal.name.indexOf('.signed.') !== -1 || newVal.name.indexOf('.assinado.') !== -1) {
 				this.showRequest = false
-				this.showValidation = true
 			} else {
 				this.showRequest = true
-				this.showValidation = false
 			}
 		},
 
@@ -256,7 +249,6 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-				this.uuid = response.data.file.split('pdf/')[1]
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.canRequestSign = true
@@ -279,19 +271,15 @@ export default {
 			try {
 				this.loadingInput = true
 				this.disabledSign = true
-
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
-
 				this.getInfo()
 				this.option('sign')
 				this.option('signatures')
 				this.canSign = false
 				this.loadingInput = false
-				showSuccess(response.data.message)
-
-				return OCA.Files.App.fileList.reload()
+				return showSuccess(response.data.message)
 			} catch (err) {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
@@ -393,10 +381,6 @@ export default {
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()
-		},
-		redirectToValidation() {
-			const url = generateUrl(`apps/libresign/validation/${this.fileInfo.id}`)
-			window.location.href = window.location.href.split('/index.php')[0] + url
 		},
 	},
 }
@@ -515,6 +499,20 @@ export default {
 
 			}
 		}
+	}
+}
+
+.form-rs-container .list-users-selected {
+	max-height: calc(100vh - 460px) !important;
+}
+
+#user-info {
+	width: 180px;
+}
+
+@media screen and (max-width: 1320px) {
+	#user-info {
+		width: 170px !important;
 	}
 }
 </style>

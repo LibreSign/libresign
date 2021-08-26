@@ -25,7 +25,6 @@
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
 			:loading="loading"
-			:views-in-files="true"
 			@update="getData"
 			@sign:document="signDocument"
 			@closeSidebar="closeSidebar" />

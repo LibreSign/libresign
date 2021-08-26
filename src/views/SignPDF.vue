@@ -86,7 +86,7 @@ export default {
 	methods: {
 		getData() {
 			this.name = this.$store.getters.getPdfData.filename
-			this.desc = this.$store.getters.getPdfData.description ? this.$store.getters.getPdfData.description : ''
+			this.desc = this.$store.getters.getPdfData.description
 			this.pdfData = this.$store.getters.getPdfData.url
 				? this.$store.getters.getPdfData.url
 				: this.$store.getters.getPdfData.base64

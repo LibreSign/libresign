@@ -93,20 +93,26 @@
 
 					<div class="buttons">
 						<button
-							v-if="!passwordSign"
+							:class="hasLoading ? 'btn-load primary loading':'btn'"
+							:disabled="!passwordSign"
+							@click.prevent="passwordSign = false">
+							{{ t('libresign', 'Return') }}
+						</button>
+
+						<button
+							v-show="!passwordSign"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
 							:disabled="!validator.back"
-							type="submit"
-							@click.prevent="createUser">
+							@click.prevent="passwordSign = true">
 							{{ t('libresign', 'Next') }}
 						</button>
 
-						<button v-if="passwordSign"
+						<button v-show="passwordSign"
 							ref="btn"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
 							:disabled="!validator.btn"
-							@click.prevent="createPfx">
-							{{ t('libresign', 'Create password to sign document') }}
+							@click.prevent="createUser">
+							{{ btnRegisterName }}
 						</button>
 					</div>
 				</form>
@@ -174,15 +180,6 @@ export default {
 		isEqualEmail() {
 			return this.initial.settings.accountHash === md5(this.email).toString()
 		},
-		alignButtons() {
-			if (this.hasLoading) {
-				return 'btn-load primary loading'
-			}
-			if (!this.passwordSign) {
-				return 'btn-align'
-			}
-			return 'btn'
-		},
 	},
 	watch: {
 		email() {
@@ -221,24 +218,7 @@ export default {
 					signPassword: this.pfx,
 				})
 				this.$store.commit('setPdfData', response.data)
-				showSuccess(t('libresign', 'User created!'))
-				this.passwordSign = true
-				this.hasLoading = false
-			} catch (err) {
-				showError(err.response.data.message)
-				this.passwordSign = false
-				this.hasLoading = false
-			}
-		},
-		async createPfx() {
-			this.hasLoading = true
-
-			try {
-				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
-					signPassword: this.pfx,
-				})
-				this.$store.commit('setHasPfx', true)
-				showSuccess(t('libresign', 'Password created!'))
+				showSuccess(t('libresigng', 'User created!'))
 				this.$router.push({ name: 'SignPDF' })
 			} catch (err) {
 				showError(err.response.data.message)
