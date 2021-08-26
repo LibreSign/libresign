@@ -10,11 +10,6 @@
 		name="sidebar"
 		@update:active="updateActive"
 		@close="closeSidebar">
-		<template #secondary-actions>
-			<ActionLink v-if="isOwner" icon="icon-folder" :href="viewOnFiles">
-				{{ t('libresign', 'View on Files') }}
-			</ActionLink>
-		</template>
 		<div class="actions">
 			<button class="secondary" @click="validateFile">
 				{{ t('libresign', 'Validate File') }}
@@ -43,7 +38,6 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
-import { ActionLink } from '@nextcloud/vue'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
@@ -58,7 +52,6 @@ export default {
 		AppSidebarTab,
 		SignaturesTab,
 		Sign,
-		ActionLink,
 	},
 	props: {
 		loading: {
@@ -80,9 +73,6 @@ export default {
 	computed: {
 		titleName() {
 			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
-		},
-		isOwner() {
-			return this.getCurrentFile.file.signers.filter(signer => (signer.me === true))
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
@@ -131,6 +121,7 @@ export default {
 	},
 }
 </script>
+
 <style lang="scss" scoped>
 .actions{
 	width: 100%;
