@@ -56,6 +56,7 @@ Types of changes:
 - Legal information on Validation screen, configure in Admin settings
 - Validation page, validating by UUID and ID
 - Button that takes you to the validation page on all `.signed` and `.signed` files
+- Button to validate document in Sidebar into App on menu files.
 
 # Changed
 - Bump max Nextcloud version to 23
