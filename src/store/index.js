@@ -24,6 +24,7 @@
 import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
+import sidebar from './modules/sidebar'
 
 Vue.use(Vuex)
 
@@ -108,5 +109,7 @@ export default new Store({
 		},
 	},
 
-	modules: {},
+	modules: {
+		sidebar,
+	},
 })

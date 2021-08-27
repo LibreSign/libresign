@@ -27,20 +27,20 @@
 				<h1>{{ t('libresign', 'There is no document history') }}</h1>
 			</template>
 		</EmptyContent>
-		<Sidebar v-if="sidebar"
+		<Sidebar v-if="statusSidebar"
 			ref="sidebar"
 			:loading="loading"
 			:views-in-files="true"
 			@update="getData"
 			@sign:document="signDocument"
-			@closeSidebar="closeSidebar" />
+			@closeSidebar="setStatusSidebar(false)" />
 	</div>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
@@ -65,6 +65,7 @@ export default {
 	computed: {
 		...mapState({
 			files: state => state.files,
+			statusSidebar: state => state.sidebar.status,
 		}),
 		...mapGetters(['getFiles']),
 		pendingFilter() {
@@ -103,6 +104,7 @@ export default {
 	},
 
 	methods: {
+		...mapActions({ setStatusSidebar: 'sidebar/setStatus' }),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
@@ -131,16 +133,13 @@ export default {
 				showError('An error occurred while fetching the files')
 			}
 		},
-		openSidebar() {
-			this.sidebar = true
-		},
 		setSidebar(objectFile) {
-			this.closeSidebar()
+			this.setStatusSidebar(false)
 			this.$store.commit('setCurrentFile', objectFile)
-			this.openSidebar()
+			this.setStatusSidebar(true)
 		},
 		closeSidebar() {
-			this.sidebar = false
+			this.$store.commit('sidebar/setSidebar')
 		},
 		async signDocument(param) {
 			try {
