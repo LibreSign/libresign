@@ -159,6 +159,7 @@ OC.L10N.register(
     "Subscriptions:" : "Abonnements:",
     "Document Informations" : "Informationen zum Dokument",
     "Validate Subscription." : "Abonnement überprüfen",
+    "Enter the ID or UUID of the document to validate." : "Gebe die ID oder UUID des zu überprüfenden Dokuments ein",
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
