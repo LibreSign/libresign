@@ -27,6 +27,7 @@ import { loadState } from '@nextcloud/initial-state'
 import sidebar from './modules/sidebar'
 import files from './modules/files'
 import sign from './modules/sign'
+import validate from './modules/validate'
 
 Vue.use(Vuex)
 
@@ -108,5 +109,6 @@ export default new Store({
 		sidebar,
 		myFiles: files,
 		sign,
+		validate,
 	},
 })
