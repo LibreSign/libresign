@@ -159,6 +159,7 @@ OC.L10N.register(
     "This information will appear on the validation page" : "Diese Informationen werden auf der Überprüfungsseite angezeigt",
     "Legal Information" : "Rechtliche Informationen",
     "All Files" : "Alle Dateien",
+    "There is no document history" : "Es gibt keinen Dokumentenverlauf",
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
     "View" : "Ansehen",

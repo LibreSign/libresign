@@ -159,6 +159,7 @@ OC.L10N.register(
     "This information will appear on the validation page" : "此資訊將顯示在驗證頁面上",
     "Legal Information" : "法律資訊",
     "All Files" : "所有檔案",
+    "There is no document history" : "沒有文件歷史記錄",
     "Validation URL" : "驗證URL",
     "To validate signature of the documents" : "驗證文件簽名",
     "View" : "檢視",
