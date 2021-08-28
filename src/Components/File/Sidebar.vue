@@ -1,6 +1,6 @@
 <template>
 	<AppSidebar
-		v-if="currentFile"
+		v-if="file"
 		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
 		:title="titleName"
@@ -20,7 +20,7 @@
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">
-			<SignaturesTab :items="currentFile.file.signers" @update="update" @change-sign-tab="changeTab" />
+			<SignaturesTab :items="file.signers" @update="update" @change-sign-tab="changeTab" />
 		</AppSidebarTab>
 		<AppSidebarTab
 			v-if="hasSign"
@@ -40,7 +40,7 @@
 import { generateUrl } from '@nextcloud/router'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 import SignaturesTab from './SignaturesTab.vue'
 import Sign from '../Sign'
 import format from 'date-fns/format'
@@ -70,38 +70,40 @@ export default {
 			tabId: 'signatures',
 		}
 	},
+	beforeDestroy() {
+		this.$store.dispatch('sidebar/RESET')
+	},
 	computed: {
+		...mapGetters({
+			file: 'myFiles/getFile',
+			statusSidebar: 'sidebar/getStatus',
+		}),
 		titleName() {
-			return this.getCurrentFile.file.name ? this.getCurrentFile.file.name : ''
+			return this.file.name ? this.file.name : ''
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this.getCurrentFile.file.requested_by.uid
-					? this.getCurrentFile.file.requested_by.uid
+				name: this.file.requested_by.uid
+					? this.file.requested_by.uid
 					: '',
-				date: format(new Date(this.getCurrentFile.file.request_date), 'dd/MM/yyyy'),
+				date: format(new Date(this.file.request_date), 'dd/MM/yyyy'),
 			})
 		},
 		hasSign() {
-			return this.getCurrentFile.file.signers.filter(
+			return this.file.signers.filter(
 				signer => signer.me !== false && signer.sign_date === null
 			).length > 0
 		},
 		viewOnFiles() {
-			return generateUrl('/f/' + this.currentFile.file.file.nodeId)
+			return generateUrl('/f/' + this.file.file.nodeId)
 		},
-		...mapState({
-			currentFile: state => state.currentFile,
-			sidebar: state => state.sidebar,
-		}),
-		...mapGetters(['getCurrentFile', 'getSidebar', 'getHasPfx']),
 	},
 	methods: {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
 		},
 		validateFile() {
-			this.$router.push({ name: 'validationFile', params: { uuid: this.getCurrentFile.file.uuid } })
+			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
 		},
 		update() {
 			this.$emit('update', true)
@@ -110,7 +112,7 @@ export default {
 			this.$refs.sign.clearInput()
 		},
 		emitSign(password) {
-			this.$emit('sign:document', { password, fileId: this.getCurrentFile.file.file.nodeId })
+			this.$emit('sign:document', { password, fileId: this.file.file.nodeId })
 		},
 		updateActive(e) {
 			this.changeTab(e)

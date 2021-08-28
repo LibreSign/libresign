@@ -39,6 +39,9 @@ const getters = {
 			(a) => (a.status === 'signed')).sort(
 			(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 	},
+	orderFiles: state => {
+		return state.files.sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
+	},
 }
 
 export default {
