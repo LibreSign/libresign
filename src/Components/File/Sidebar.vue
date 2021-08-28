@@ -10,11 +10,11 @@
 		name="sidebar"
 		@update:active="updateActive"
 		@close="closeSidebar">
-		<template #secondary-actions>
-			<ActionLink icon="icon-folder" :href="viewOnFiles">
-				{{ t('libresign', 'View on Files') }}
-			</ActionLink>
-		</template>
+		<div class="actions">
+			<button class="secondary" @click="validateFile">
+				{{ t('libresign', 'Validate File') }}
+			</button>
+		</div>
 		<AppSidebarTab
 			id="signantures"
 			:name="t('libresign', 'Signatures')"
@@ -38,7 +38,6 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
-import { ActionLink } from '@nextcloud/vue'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
@@ -53,7 +52,6 @@ export default {
 		AppSidebarTab,
 		SignaturesTab,
 		Sign,
-		ActionLink,
 	},
 	props: {
 		loading: {
@@ -102,6 +100,9 @@ export default {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
 		},
+		validateFile() {
+			this.$router.push({ name: 'validationFile', params: { uuid: this.getCurrentFile.file.uuid } })
+		},
 		update() {
 			this.$emit('update', true)
 		},
@@ -120,12 +121,11 @@ export default {
 	},
 }
 </script>
+
 <style lang="scss" scoped>
-button {
-	padding-left: 44px;
-	background-position: 16px center;
-	flex-grow: 1;
-	margin-bottom: 12px;
-	text-align: left;
+.actions{
+	width: 100%;
+	display: flex;
+	margin-left: 10px;
 }
 </style>

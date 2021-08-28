@@ -395,8 +395,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			const url = generateUrl(`apps/libresign/validation/${this.fileInfo.id}`)
-			window.location.href = window.location.href.split('/index.php')[0] + url
+			window.location.href = generateUrl(`/apps/libresign/validation/${this.fileInfo.id}`)
 		},
 	},
 }
