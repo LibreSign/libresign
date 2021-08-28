@@ -68,12 +68,14 @@ export default {
 		...mapState({
 			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
+			myFiles: state => state.files,
 		}),
-		...mapGetters(['getFiles']),
+		...mapGetters(['getFiles', 'myFiles/pendingFilter', 'myFiles/signedFilter']),
 		pendingFilter() {
-			return this.files.slice().filter(
-				(a) => (a.status === 'pending')).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			return this['myFiles/pendingFilter']
+			// return this.files.slice().filter(
+			// 	(a) => (a.status === 'pending')).sort(
+			// 	(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 		},
 		signedFilter() {
 			return this.files.slice().filter(
@@ -131,6 +133,7 @@ export default {
 			try {
 				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
 				this.$store.commit('setFiles', response.data.data)
+				this.$store.dispatch('myFiles/SET_FILES', response.data.data)
 			} catch (err) {
 				showError('An error occurred while fetching the files')
 			}
