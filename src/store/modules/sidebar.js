@@ -16,7 +16,14 @@ const getters = {
 
 const actions = {
 	setStatus({ commit }, status) {
-		commit('setStatus', status)
+		if (status === true) {
+			if (state.status === true) {
+				return
+			}
+			commit('setStatus', status)
+		} else {
+			commit('setStatus', status)
+		}
 	},
 	RESET: ({ commit }) => {
 		commit('setStatus', false)
