@@ -33,7 +33,7 @@
 			ref="sidebar"
 			:loading="loading"
 			:views-in-files="true"
-			@update="getData"
+			@update="getAllFiles"
 			@sign:document="signDocument"
 			@closeSidebar="setSidebarStatus(false)" />
 	</div>
@@ -70,7 +70,7 @@ export default {
 			statusSidebar: state => state.sidebar.status,
 			myFiles: state => state.files,
 		}),
-		...mapGetters(['getFiles', 'myFiles/pendingFilter', 'myFiles/signedFilter', 'myFiles/orderFiles']),
+		...mapGetters(['myFiles/pendingFilter', 'myFiles/signedFilter', 'myFiles/orderFiles']),
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
@@ -93,7 +93,7 @@ export default {
 	},
 
 	methods: {
-		...mapActions({ setSidebarStatus: 'sidebar/setStatus', resetSidebarStatus: 'sidebar/RESET' }),
+		...mapActions({ setSidebarStatus: 'sidebar/setStatus', getAllFiles: 'files/GET_ALL_FILES', resetSidebarStatus: 'sidebar/RESET' }),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
@@ -112,14 +112,6 @@ export default {
 				break
 			}
 		},
-		async getData() {
-			try {
-				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
-				this.$store.dispatch('myFiles/SET_FILES', response.data.data)
-			} catch (err) {
-				showError('An error occurred while fetching the files')
-			}
-		},
 		setSidebar(objectFile) {
 			this.$store.dispatch('myFiles/SET_FILE', objectFile)
 			this.setSidebarStatus(true)
@@ -130,12 +122,13 @@ export default {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
 					password: param.password,
 				})
-				this.getData()
-				this.closeSidebar()
+				this.getAllFiles()
+				this.setSidebarStatus(false)
 				this.loading = false
 				return showSuccess(response.data.message)
 			} catch (err) {
 				this.loading = false
+				console.error(err)
 				err.response.data.errors.map(
 					error => {
 						showError(error)
