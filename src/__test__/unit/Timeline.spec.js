@@ -13,16 +13,28 @@ const store = new Vuex.Store({
 	state: {
 		files: [],
 		currentFile: {},
-		sidebar: {
-			status: false,
-		},
 	},
 	mutations: {
 		setCurrentFile(state, file) {
 			state.currentFile = file
 		},
-		setStatusSidebar(state, status) {
-			state.sidebar.status = status
+	},
+	modules: {
+		sidebar: {
+			namespaced: true,
+			state: {
+				status: false,
+			},
+			mutations: {
+				setStatus(state, status) {
+					state.status = status
+				},
+			},
+			actions: {
+				setStatus({ commit }, status) {
+					commit('setStatus', status)
+				},
+			},
 		},
 	},
 })
