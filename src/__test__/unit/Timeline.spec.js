@@ -13,10 +13,16 @@ const store = new Vuex.Store({
 	state: {
 		files: [],
 		currentFile: {},
+		sidebar: {
+			status: false,
+		},
 	},
 	mutations: {
 		setCurrentFile(state, file) {
 			state.currentFile = file
+		},
+		setStatusSidebar(state, status) {
+			state.sidebar.status = status
 		},
 	},
 })
@@ -141,6 +147,6 @@ describe('Timeline', () => {
 		expect(wrapper.emitted().sidebar).toBeTruthy()
 		await wrapper.vm.$nextTick()
 		wrapper.vm.setSidebar()
-		expect(wrapper.vm.sidebar).toBe(true)
+		expect(wrapper.vm.statusSidebar).toBe(true)
 	})
 })
