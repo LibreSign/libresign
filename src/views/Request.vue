@@ -10,13 +10,13 @@
 					v-show="!isEmptyFile"
 					:file="file"
 					status="none"
-					@sidebar="handleSidebar(true)" />
+					@sidebar="setSidebarStatus(true)" />
 				<button class="icon icon-folder" @click="getFile()">
 					{{ t('libresign', 'Choose from Files') }}
 				</button>
 			</div>
 		</div>
-		<AppSidebar v-if="getSidebar"
+		<AppSidebar v-if="getSidebarStatus"
 			ref="sidebar"
 			:class="{'app-sidebar--without-background lb-ls-root': 'lb-ls-root'}"
 			:title="file.name"
@@ -25,7 +25,7 @@
 			:header="false"
 			name="sidebar"
 			icon="icon-rename"
-			@close="handleSidebar(false)">
+			@close="setSidebarStatus(false)">
 			<EmptyContent v-show="canRequest" class="empty-content">
 				<template #desc>
 					<p>
@@ -52,7 +52,7 @@ import { getFilePickerBuilder, showError, showSuccess } from '@nextcloud/dialogs
 import Users from '../Components/Request'
 import { generateUrl } from '@nextcloud/router'
 import File from '../Components/File/File.vue'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
 	name: 'Request',
@@ -67,7 +67,6 @@ export default {
 		return {
 			loading: false,
 			file: {},
-			sidebar: false,
 			signers: [],
 		}
 	},
@@ -78,9 +77,16 @@ export default {
 		canRequest() {
 			return this.signers.length > 0
 		},
-		...mapGetters(['getSidebar']),
+		...mapGetters({ getSidebarStatus: 'sidebar/getStatus' }),
+	},
+	beforeDestroy() {
+		this.resetSidebarStatus()
 	},
 	methods: {
+		...mapActions({
+			resetSidebarStatus: 'sidebar/RESET',
+			setSidebarStatus: 'sidebar/setStatus',
+		}),
 		async getInfo(id) {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${id}`))
@@ -106,7 +112,7 @@ export default {
 		},
 		clear() {
 			this.file = {}
-			this.handleSidebar(false)
+			this.setSidebarStatus(false)
 			this.$refs.request.clearList()
 		},
 		getFile() {
@@ -125,7 +131,7 @@ export default {
 						if (path.startsWith('/')) {
 							if (file.name === path.split('/')[indice]) {
 								this.file = file
-								this.handleSidebar(true)
+								this.setSidebarStatus(true)
 								this.getInfo(file.id)
 							}
 						}
@@ -134,9 +140,6 @@ export default {
 		},
 		changeTab(changeId) {
 			this.tabId = changeId
-		},
-		handleSidebar(status) {
-			this.$store.commit('setSidebar', status)
 		},
 	},
 }
