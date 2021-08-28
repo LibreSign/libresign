@@ -2,13 +2,13 @@
 	<div class="container-timeline">
 		<div class="content-timeline">
 			<div class="filtered" vif>
-				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
+				<a :class="filterActive === 3 ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
-				<a :class="filterActive === 'pending' ? 'pending active': 'pending'" @click="changeFilter(1)">
+				<a :class="filterActive === 1 ? 'pending active': 'pending'" @click="changeFilter(1)">
 					{{ t('libresign', 'Pending') }}
 				</a>
-				<a :class="filterActive === 'signed' ? 'signed active' : 'signed'" @click="changeFilter(2)">
+				<a :class="filterActive === 2 ? 'signed active' : 'signed'" @click="changeFilter(2)">
 					{{ t('libresign', 'Signed') }}
 				</a>
 			</div>
@@ -60,7 +60,7 @@ export default {
 			sidebar: false,
 			loading: false,
 			fileFilter: this.files,
-			filterActive: 'allFiles',
+			filterActive: 3,
 		}
 	},
 
@@ -70,13 +70,11 @@ export default {
 			statusSidebar: state => state.sidebar.status,
 			myFiles: state => state.files,
 		}),
-		...mapGetters(['getFiles', 'myFiles/pendingFilter', 'myFiles/signedFilter']),
+		...mapGetters(['getFiles', 'myFiles/pendingFilter', 'myFiles/signedFilter', 'myFiles/orderFiles']),
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
-					return this.files.slice().sort(
-						(a, b) => (a.request_date < b.request_date) ? 1 : -1
-					)
+					return this['myFiles/orderFiles']
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1
@@ -89,11 +87,6 @@ export default {
 		emptyContentFile() {
 			return this.filterFile.length <= 0
 		},
-
-	},
-
-	beforeDestroy() {
-		this.resetSidebarStatus()
 	},
 	created() {
 		this.getData()
@@ -105,17 +98,15 @@ export default {
 			switch (filter) {
 			case 1:
 				this.filterFile = this['myFiles/pendingFilter']
-				this.filterActive = 'pending'
+				this.filterActive = 1
 				break
 			case 2:
 				this.filterFile = this['myFiles/signedFilter']
-				this.filterActive = 'signed'
+				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this.files.sort(
-					(a, b) => (a.request_date < b.request_date) ? 1 : -1
-				)
-				this.filterActive = 'allFiles'
+				this.filterFile = this['myFiles/orderFiles']
+				this.filterActive = 3
 				break
 			default:
 				break
@@ -124,15 +115,13 @@ export default {
 		async getData() {
 			try {
 				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
-				this.$store.commit('setFiles', response.data.data)
 				this.$store.dispatch('myFiles/SET_FILES', response.data.data)
 			} catch (err) {
 				showError('An error occurred while fetching the files')
 			}
 		},
 		setSidebar(objectFile) {
-			this.setSidebarStatus(false)
-			this.$store.commit('setCurrentFile', objectFile)
+			this.$store.dispatch('myFiles/SET_FILE', objectFile)
 			this.setSidebarStatus(true)
 		},
 		async signDocument(param) {
