@@ -63,8 +63,8 @@ export default {
 	},
 	computed: {
 		...mapState({
-			signers: state => state.currentFile.file.signers,
-			fileId: state => state.currentFile.file.file.nodeId,
+			signers: state => state.myFiles.file.signers,
+			fileId: state => state.myFiles.file.nodeId,
 		}),
 	},
 	methods: {
