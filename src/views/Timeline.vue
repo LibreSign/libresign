@@ -140,9 +140,6 @@ export default {
 			this.$store.commit('setCurrentFile', objectFile)
 			this.setStatusSidebar(true)
 		},
-		closeSidebar() {
-			this.$store.commit('sidebar/setSidebar')
-		},
 		async signDocument(param) {
 			try {
 				this.loading = true
