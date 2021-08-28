@@ -70,9 +70,6 @@ export default {
 			tabId: 'signatures',
 		}
 	},
-	beforeDestroy() {
-		this.$store.dispatch('sidebar/RESET')
-	},
 	computed: {
 		...mapGetters({
 			file: 'myFiles/getFile',
@@ -98,6 +95,10 @@ export default {
 			return generateUrl('/f/' + this.file.file.nodeId)
 		},
 	},
+	beforeDestroy() {
+		this.$store.dispatch('sidebar/RESET')
+	},
+
 	methods: {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
