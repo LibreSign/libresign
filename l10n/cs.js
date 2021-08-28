@@ -159,6 +159,7 @@ OC.L10N.register(
     "This information will appear on the validation page" : "Tato informace se objeví na stránce ověřování",
     "Legal Information" : "Právní informace",
     "All Files" : "Všechny soubory",
+    "There is no document history" : "Není zde žádná historie dokumentu",
     "Validation URL" : "Ověřovací URL",
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "View" : "Zobrazit",

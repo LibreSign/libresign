@@ -1,6 +1,6 @@
 <template>
 	<div class="container-timeline">
-		<div v-if="emptyContentFile ===false" class="content-timeline">
+		<div class="content-timeline">
 			<div class="filtered" vif>
 				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
@@ -12,7 +12,7 @@
 					{{ t('libresign', 'Signed') }}
 				</a>
 			</div>
-			<ul>
+			<ul v-if="emptyContentFile ===false">
 				<File
 					v-for="file in filterFile"
 					:key="file.uuid"
@@ -21,12 +21,14 @@
 					:file="file"
 					@sidebar="setSidebar" />
 			</ul>
+			<EmptyContent v-else>
+				<template #desc>
+					<h1 class="empty-h1">
+						{{ t('libresign', 'There are no documents') }}
+					</h1>
+				</template>
+			</EmptyContent>
 		</div>
-		<EmptyContent v-else>
-			<template #desc>
-				<h1>{{ t('libresign', 'There is no document history') }}</h1>
-			</template>
-		</EmptyContent>
 		<Sidebar v-if="statusSidebar"
 			ref="sidebar"
 			:loading="loading"
@@ -203,6 +205,9 @@ export default {
 			display: flex;
 			width: 100%;
 			flex-wrap: wrap;
+		}
+		.empty-h1{
+			opacity: 0.8;
 		}
 
 		.file-details:hover {
