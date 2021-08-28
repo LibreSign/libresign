@@ -44,13 +44,11 @@
 	</div>
 </template>
 <script>
-import axios from '@nextcloud/axios'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { getFilePickerBuilder, showError, showSuccess } from '@nextcloud/dialogs'
+import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import Users from '../Components/Request'
-import { generateUrl } from '@nextcloud/router'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 
@@ -71,43 +69,33 @@ export default {
 		}
 	},
 	computed: {
+		...mapGetters({ getSidebarStatus: 'sidebar/getStatus', fileSigners: 'validate/getSigners' }),
 		isEmptyFile() {
 			return Object.keys(this.file).length === 0
 		},
 		canRequest() {
-			return this.signers.length > 0
+			return this.fileSigners.length > 0
 		},
-		...mapGetters({ getSidebarStatus: 'sidebar/getStatus' }),
 	},
 	beforeDestroy() {
 		this.resetSidebarStatus()
+		this.resetValidateFile()
 	},
 	methods: {
 		...mapActions({
 			resetSidebarStatus: 'sidebar/RESET',
 			setSidebarStatus: 'sidebar/setStatus',
+			requestNewSign: 'sign/REQUEST',
+			resetValidateFile: 'validate/RESET',
+			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
-		async getInfo(id) {
-			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${id}`))
-				this.signers = response.data.signers
-			} catch (err) {
-				this.signers = []
-			}
-		},
 		async send(users) {
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-					file: {
-						fileId: this.file.id,
-					},
-					name: this.file.name.split('.pdf')[0],
-					users,
-				})
+				const name = this.file.name.split('.pdf')[0]
+				this.requestNewSign({ fileId: this.file.id, name, users })
 				this.clear()
-				return showSuccess(response.data.message)
-			} catch (err) {
-				showError(err.response.data.message)
+			} catch {
+				console.error('error')
 			}
 		},
 		clear() {
@@ -126,13 +114,13 @@ export default {
 
 			return picker.pick()
 				.then(path => {
-					OC.dialogs.filelist.forEach(file => {
+					OC.dialogs.filelist.forEach(async file => {
 						const indice = path.split('/').indexOf(file.name)
 						if (path.startsWith('/')) {
 							if (file.name === path.split('/')[indice]) {
 								this.file = file
 								this.setSidebarStatus(true)
-								this.getInfo(file.id)
+								await this.validateFile(file.id)
 							}
 						}
 					})
