@@ -18,6 +18,9 @@ const actions = {
 	setStatus({ commit }, status) {
 		commit('setStatus', status)
 	},
+	RESET: ({ commit }) => {
+		commit('setStatus', false)
+	},
 }
 
 export default {
