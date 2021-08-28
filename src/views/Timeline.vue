@@ -74,8 +74,8 @@ export default {
 		pendingFilter() {
 			return this['myFiles/pendingFilter']
 			// return this.files.slice().filter(
-			// 	(a) => (a.status === 'pending')).sort(
-			// 	(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			// (a) => (a.status === 'pending')).sort(
+			// (a, b) => (a.request_date < b.request_date) ? 1 : -1)
 		},
 		signedFilter() {
 			return this.files.slice().filter(
