@@ -35,7 +35,7 @@
 			:views-in-files="true"
 			@update="getData"
 			@sign:document="signDocument"
-			@closeSidebar="setStatusSidebar(false)" />
+			@closeSidebar="setSidebarStatus(false)" />
 	</div>
 </template>
 
@@ -71,17 +71,6 @@ export default {
 			myFiles: state => state.files,
 		}),
 		...mapGetters(['getFiles', 'myFiles/pendingFilter', 'myFiles/signedFilter']),
-		pendingFilter() {
-			return this['myFiles/pendingFilter']
-			// return this.files.slice().filter(
-			// (a) => (a.status === 'pending')).sort(
-			// (a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		signedFilter() {
-			return this.files.slice().filter(
-				(a) => (a.status === 'signed')).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
@@ -103,20 +92,23 @@ export default {
 
 	},
 
+	beforeDestroy() {
+		this.resetSidebarStatus()
+	},
 	created() {
 		this.getData()
 	},
 
 	methods: {
-		...mapActions({ setStatusSidebar: 'sidebar/setStatus' }),
+		...mapActions({ setSidebarStatus: 'sidebar/setStatus', resetSidebarStatus: 'sidebar/RESET' }),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this.pendingFilter
+				this.filterFile = this['myFiles/pendingFilter']
 				this.filterActive = 'pending'
 				break
 			case 2:
-				this.filterFile = this.signedFilter
+				this.filterFile = this['myFiles/signedFilter']
 				this.filterActive = 'signed'
 				break
 			case 3:
@@ -139,9 +131,9 @@ export default {
 			}
 		},
 		setSidebar(objectFile) {
-			this.setStatusSidebar(false)
+			this.setSidebarStatus(false)
 			this.$store.commit('setCurrentFile', objectFile)
-			this.setStatusSidebar(true)
+			this.setSidebarStatus(true)
 		},
 		async signDocument(param) {
 			try {
