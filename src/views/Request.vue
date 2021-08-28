@@ -90,7 +90,7 @@ export default {
 		async getInfo(id) {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${id}`))
-				this.signers = response.data.signatures
+				this.signers = response.data.signers
 			} catch (err) {
 				this.signers = []
 			}
