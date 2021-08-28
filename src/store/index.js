@@ -25,6 +25,7 @@ import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
 import sidebar from './modules/sidebar'
+import files from './modules/files'
 
 Vue.use(Vuex)
 
@@ -111,5 +112,6 @@ export default new Store({
 
 	modules: {
 		sidebar,
+		myFiles: files,
 	},
 })
