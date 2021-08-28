@@ -74,6 +74,7 @@ export default {
 		...mapGetters({
 			file: 'myFiles/getFile',
 			statusSidebar: 'sidebar/getStatus',
+			getHasPfx: 'getHasPfx',
 		}),
 		titleName() {
 			return this.file.name ? this.file.name : ''
