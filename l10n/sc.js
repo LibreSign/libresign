@@ -77,7 +77,6 @@ OC.L10N.register(
     "Create password to sign document" : "Crea una crae pro firmare su documentu",
     "Sign the document." : "Firma su documentu.",
     "Show Document" : "Mustra documentos",
-    "View on Files" : "Visualiza in Archìvios",
     "Signatures" : "Firmas",
     "Sign" : "Firma",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",

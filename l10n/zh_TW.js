@@ -77,7 +77,6 @@ OC.L10N.register(
     "Create password to sign document" : "建立密碼以簽署文件",
     "Sign the document." : "簽署文件。",
     "Show Document" : "顯示文件",
-    "View on Files" : "檢視檔案",
     "Signatures" : "簽章",
     "Sign" : "簽署",
     "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
