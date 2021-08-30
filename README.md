@@ -8,7 +8,7 @@ Nextcloud app to sign PDF documents.
 
 At the moment file signature requests must be requested via webhook. Read the documentation for more information.
 
-<img src="img/sign_21.png" />
+<img src="img/LibreSign.png" />
 
 ## Setup
 
