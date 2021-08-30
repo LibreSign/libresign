@@ -33,12 +33,16 @@
 				</button>
 				<button
 					v-if="canRequestSign"
+					v-show="showRequest"
 					class="primary"
 					@click="option('request')">
 					{{ t('libresign', 'Request') }}
 				</button>
 				<button v-if="haveRequest" @click="option('signatures')">
 					{{ t('libresign', 'Status') }}
+				</button>
+				<button v-if="showValidation" @click="redirectToValidation">
+					{{ t('libresign', 'Validate Document') }}
 				</button>
 			</div>
 
@@ -144,7 +148,10 @@ export default {
 			haveRequest: false,
 			canSign: false,
 			fileInfo: null,
+			showRequest: false,
 			hasPfx: false,
+			showValidation: false,
+			uuid: '',
 		}
 	},
 
@@ -161,12 +168,20 @@ export default {
 	},
 
 	watch: {
-		fileInfo() {
+		fileInfo(newVal, oldVal) {
 			this.getInfo()
 			this.getMe()
 			this.signShow = false
 			this.requestShow = false
 			this.signaturesShow = false
+
+			if (newVal.name.indexOf('.signed.') !== -1 || newVal.name.indexOf('.assinado.') !== -1) {
+				this.showRequest = false
+				this.showValidation = true
+			} else {
+				this.showRequest = true
+				this.showValidation = false
+			}
 		},
 
 		signers() {
@@ -241,6 +256,7 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
+				this.uuid = response.data.file.split('pdf/')[1]
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.canRequestSign = true
@@ -250,6 +266,7 @@ export default {
 				}
 			} catch (err) {
 				this.canSign = false
+				this.signers = []
 			}
 		},
 
@@ -262,15 +279,19 @@ export default {
 			try {
 				this.loadingInput = true
 				this.disabledSign = true
+
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
+
 				this.getInfo()
 				this.option('sign')
 				this.option('signatures')
 				this.canSign = false
 				this.loadingInput = false
-				return showSuccess(response.data.message)
+				showSuccess(response.data.message)
+
+				return OCA.Files.App.fileList.reload()
 			} catch (err) {
 				if (err.response.data.action === 400) {
 					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
@@ -372,6 +393,9 @@ export default {
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()
+		},
+		redirectToValidation() {
+			window.location.href = generateUrl(`/apps/libresign/validation/${this.fileInfo.id}`)
 		},
 	},
 }

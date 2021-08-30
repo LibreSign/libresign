@@ -10,6 +10,11 @@
 		name="sidebar"
 		@update:active="updateActive"
 		@close="closeSidebar">
+		<div class="actions">
+			<button class="secondary" @click="validateFile">
+				{{ t('libresign', 'Validate File') }}
+			</button>
+		</div>
 		<AppSidebarTab
 			id="signantures"
 			:name="t('libresign', 'Signatures')"
@@ -32,6 +37,7 @@
 </template>
 
 <script>
+import { generateUrl } from '@nextcloud/router'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { mapGetters, mapState } from 'vuex'
@@ -49,6 +55,11 @@ export default {
 	},
 	props: {
 		loading: {
+			type: Boolean,
+			default: false,
+			required: false,
+		},
+		viewsInFiles: {
 			type: Boolean,
 			default: false,
 			required: false,
@@ -76,6 +87,9 @@ export default {
 				signer => signer.me !== false && signer.sign_date === null
 			).length > 0
 		},
+		viewOnFiles() {
+			return generateUrl('/f/' + this.currentFile.file.file.nodeId)
+		},
 		...mapState({
 			currentFile: state => state.currentFile,
 			sidebar: state => state.sidebar,
@@ -85,6 +99,9 @@ export default {
 	methods: {
 		closeSidebar() {
 			this.$emit('closeSidebar', true)
+		},
+		validateFile() {
+			this.$router.push({ name: 'validationFile', params: { uuid: this.getCurrentFile.file.uuid } })
 		},
 		update() {
 			this.$emit('update', true)
@@ -104,3 +121,11 @@ export default {
 	},
 }
 </script>
+
+<style lang="scss" scoped>
+.actions{
+	width: 100%;
+	display: flex;
+	margin-left: 10px;
+}
+</style>

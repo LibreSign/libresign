@@ -13,37 +13,61 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-
-## Draft
+## Draft - 2021-07-31
 
 # Added
-- GitHub action to add a changelog reminder
-- List of documents
-- Test for validation of Swagger documentation
-- Added integration with Approval app on README.md. Thanks to @eneiluj
-- Bump max Nextcloud version to 23
-- Endpoint to list LibreSign files
-- Request Subscription by LibreSign App
-- Validate by LibreSign App 
-- User profile
-- Endpoint to attach files to LibreSign profile
-- Endpoints to delete signer and file sign request
-- Request sign by LibreSign App
-- Validate by LibreSign App
-- User profile
-- Filter files
-- App config to configure JSignPDF
-- Resend sign invite email
-- Add qrcode to footer
-- One more step to turn possible replace CFSSL
+- Added clickable link in the PDF footer
 
 # Changed
+- PDF preview on mobile when signing
+- Only show request signing button if file not signed
+- Associate signed file to LibreSign file
+- API: return LibreSign UUID on sign methods
+- Endpoint: /account/create/{uuid}, remove required of field signPassword
+
+## 2.4.3 - 2021-07-14
+
+# Changed
+- Update translations
+- API message changes, thanks to, thanks to @rakekniven and @Valdnet
+
+## 2.4.2 - 2021-07-08
+
+# Added
+- List of documents
+- User profile
+- Filter files
+- Add qrcode to footer
+- Validate by LibreSign App
+- Request sign by LibreSign App
+- Resend sign invite email
+- App config to configure JSignPDF
+- Added integration with Approval app on README.md. Thanks to @eneiluj
+- Endpoint to list LibreSign files
+- Endpoint to attach files to LibreSign profile
+- Endpoints to delete signer and file sign request
+- One more step to turn possible replace CFSSL
+- Test for validation of Swagger documentation
+- GitHub action to add a changelog reminder
+- View document on mobile before sign
+- Markdown formatting for description
+- Libresign button in file options in theh Files app
+- Button to redirect to files to view the document
+- Legal information on Validation screen, configure in Admin settings
+- Validation page, validating by UUID and ID
+- Button that takes you to the validation page on all `.signed` and `.signed` files
+- Button to validate document in Sidebar into App on menu files.
+
+# Changed
+- Bump max Nextcloud version to 23
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
 - Use name of user on error message when email is empty
 - Logo replaced by new logo
 - It will only verify the password if nextcloud requests confirmation of the password by the OC.
 - Check if has pfx
+- After signing the document, it will update the app files
+- Changed wizard to split user creation and pfx creation
 
 # Removed
 - Removed dsv folder
@@ -57,6 +81,7 @@ Types of changes:
 - Add ellipsis to pdf file title
 - Now it is possible to choose a file even if it is inside x folders
 - Clear uuid field before returns
+- Button to redirect to document validation page
 
 ## 2.3.0 - 2021-05-22
 

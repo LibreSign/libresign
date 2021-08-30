@@ -9,7 +9,7 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="myUuid" type="text">
-					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validateByUUID(myUuid)">
+					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validate(myUuid)">
 						{{ buttonTitle }}
 					</button>
 				</form>
@@ -24,6 +24,11 @@
 								<p>
 									<b>{{ document.name }}</b>
 								</p>
+
+								<span class="legal-information">
+									{{ legalInformation }}
+								</span>
+
 								<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
 							</div>
 						</div>
@@ -33,14 +38,16 @@
 							<img class="icon" :src="signatureIcon">
 							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
 						</div>
-						<div v-for="item in document.signers"
-							id="sign"
-							:key="item.fululName"
-							class="scroll">
-							<div class="subscriber">
-								<span><b>{{ getName(item) }}</b></span>
-								<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
-								<span v-else>{{ noDateMessage }}</span>
+						<div class="infor-content">
+							<div v-for="item in document.signers"
+								id="sign"
+								:key="item.fullName"
+								class="scroll">
+								<div class="subscriber">
+									<span><b>{{ getName(item) }}</b></span>
+									<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
+									<span v-else>{{ noDateMessage }}</span>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -59,7 +66,7 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime } from 'date-fns'
@@ -86,7 +93,7 @@ export default {
 			infoIcon: iconA,
 			signatureIcon: iconB,
 			title: t('libresign', 'Validate Subscription.'),
-			legend: t('libresign', 'Enter the UUID of the document to validate.'),
+			legend: t('libresign', 'Enter the ID or UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
 			noDateMessage: t('libresign', 'No date'),
 			myUuid: this.uuid ? this.uuid : '',
@@ -94,21 +101,34 @@ export default {
 			hasLoading: false,
 			document: {},
 			documentUuid: '',
+			legalInformation: '',
 		}
 	},
 	watch: {
-		'$route.params'(toParams, previousParams) {
-			this.validateByUUID(toParams.uuid)
+		'$route.params.uuid'(uuid) {
+			this.validate(uuid)
 		},
 	},
+	created() {
+		this.getData()
+		if (this.myUuid.length > 0) {
+			this.validate(this.myUuid)
+		}
+	},
 	methods: {
+		validate(id) {
+			if (id.length >= 8) {
+				this.validateByUUID(id)
+			} else {
+				this.validateByNodeID(id)
+			}
+		},
 		async validateByUUID(uuid) {
 			this.hasLoading = true
 
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
-				console.info(response)
 				this.document = response.data
 				this.hasInfo = true
 				this.hasLoading = false
@@ -116,6 +136,23 @@ export default {
 				this.hasLoading = false
 				showError(err.response.data.errors[0])
 			}
+		},
+		async validateByNodeID(nodeId) {
+			this.hasLoading = true
+			try {
+				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${nodeId}`))
+				showSuccess(t('libresign', 'This document is valid'))
+				this.document = response.data
+				this.hasInfo = true
+				this.hasLoading = false
+			} catch (err) {
+				this.hasLoading = false
+				showError(err.response.data.errors[0])
+			}
+		},
+		async getData() {
+			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/legal_information', {})
+			this.legalInformation = response.data.ocs.data.data
 		},
 		getName(user) {
 			if (user.fullName) {

@@ -22,12 +22,16 @@
 -->
 
 <template>
-	<div id="container">
-		<div id="viewer" class="content">
+	<div class="container">
+		<div v-show="viewDoc" id="viewer" class="content">
 			<PDFViewer :url="pdfData" />
 		</div>
 		<div id="description" class="content">
-			<Description :uuid="uuid" :pdf-name="name" :pdf-description="desc" />
+			<Description
+				:uuid="uuid"
+				:pdf-name="name"
+				:pdf-description="desc"
+				@onDocument="showDocument" />
 		</div>
 	</div>
 </template>
@@ -53,32 +57,56 @@ export default {
 			pdfData: '',
 			name: '',
 			user: '',
+			viewDoc: true,
+			width: window.innerWidth,
 		}
+	},
+
+	watch: {
+		width(newVal, oldVal) {
+			if (newVal <= 650) {
+				this.viewDoc = false
+			}
+			if (newVal > 650) {
+				this.viewDoc = true
+			}
+		},
 	},
 
 	created() {
 		this.getData()
+		this.$nextTick(() => {
+			window.addEventListener('resize', this.onResize)
+		})
+		this.width <= 650
+			? this.viewDoc = false
+			: this.viewDoc = true
 	},
 
 	methods: {
 		getData() {
 			this.name = this.$store.getters.getPdfData.filename
-			this.desc = this.$store.getters.getPdfData.description
+			this.desc = this.$store.getters.getPdfData.description ? this.$store.getters.getPdfData.description : ''
 			this.pdfData = this.$store.getters.getPdfData.url
 				? this.$store.getters.getPdfData.url
 				: this.$store.getters.getPdfData.base64
+		},
+		showDocument(param) {
+			this.viewDoc = param
+		},
+		onResize() {
+			this.width = window.innerWidth
 		},
 	},
 }
 </script>
 
 <style lang="scss" scoped>
-	#container {
-		display: flex;
-		flex-direction: row;
-		width: 100%;
-		height: 100%;
-	}
+.container {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	height: 100%;
 
 	.content{
 		display: flex;
@@ -93,8 +121,10 @@ export default {
 		@media (max-width: 1024px){
 			width: 40%;
 		}
+
 		@media (max-width: 650px) {
 			width: 100%;
+			height: 20%;
 		}
 	}
 
@@ -107,9 +137,18 @@ export default {
 		@media (max-width: 1024px){
 			width: 60%;
 		}
+
 		@media (max-width: 650px) {
-			display: none;
+			width: 100%;
+			height: 70%;
 		}
 	}
+
+	@media (max-width: 650px) {
+		display: flex;
+		flex-direction: column;
+	}
+
+}
 
 </style>
