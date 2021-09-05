@@ -43,7 +43,7 @@ class JSignPdfHandler implements ISignHandler {
 				)
 				->setIsUseJavaInstalled(true)
 				->setjSignPdfJarPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-1.6.4/JSignPdf.jar')
+					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-1.6.5/JSignPdf.jar')
 				);
 		}
 		return $this->jSignParam;

@@ -52,8 +52,12 @@ Types of changes:
 - GitHub action to add a changelog reminder
 - View document on mobile before sign
 - Markdown formatting for description
-- Legal information on Validation screen, configure in Admin settings
+- Libresign button in file options in theh Files app
 - Button to redirect to files to view the document
+- Legal information on Validation screen, configure in Admin settings
+- Validation page, validating by UUID and ID
+- Button that takes you to the validation page on all `.signed` and `.signed` files
+- Button to validate document in Sidebar into App on menu files.
 
 # Changed
 - Bump max Nextcloud version to 23
@@ -63,6 +67,8 @@ Types of changes:
 - Logo replaced by new logo
 - It will only verify the password if nextcloud requests confirmation of the password by the OC.
 - Check if has pfx
+- After signing the document, it will update the app files
+- Changed wizard to split user creation and pfx creation
 
 # Removed
 - Removed dsv folder
@@ -76,6 +82,7 @@ Types of changes:
 - Add ellipsis to pdf file title
 - Now it is possible to choose a file even if it is inside x folders
 - Clear uuid field before returns
+- Button to redirect to document validation page
 
 ## 2.3.0 - 2021-05-22
 

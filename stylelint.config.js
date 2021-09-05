@@ -30,4 +30,7 @@ module.exports = {
 		],
 	},
 	plugins: ['stylelint-scss'],
+	ignoreFiles: [
+		'src/__test__/coverage/**/*.css',
+	],
 }
