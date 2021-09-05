@@ -13,7 +13,7 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## Draft - 2021-07-31
+## 2.4.6 - Draft
 
 # Added
 - Added clickable link in the PDF footer
