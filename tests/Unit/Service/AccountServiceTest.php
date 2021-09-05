@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
@@ -77,7 +76,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
-		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 
 		$this->accountService = new AccountService(
 			$this->l10n,
@@ -94,8 +92,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService,
-			$this->accountFileMapper
+			$this->accountFileService
 		);
 	}
 
@@ -122,8 +119,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService,
-			$this->accountFileMapper
+			$this->accountFileService
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCreateToSign($arguments);
@@ -277,8 +273,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService,
-			$this->accountFileMapper
+			$this->accountFileService
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCertificateData($arguments);
@@ -386,8 +381,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService,
-			$this->accountFileMapper
+			$this->accountFileService
 		);
 		$actual = $this->accountService->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
@@ -548,8 +542,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService,
-			$this->accountFileMapper
+			$this->accountFileService
 		);
 		$actual = $this->accountService->getConfig($uuid, $userId, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
@@ -1222,13 +1215,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testAccountvalidateWithSuccess() {
 		$this->config
 			->method('getAppValue')
-			->will($this->returnValue(json_encode(['VALID'])));
+			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')
 			->willReturn('username');
 		$actual = $this->accountService->validateAccountFiles([
 			[
-				'type' => 'VALID',
+				'type' => 'IDENTIFICATION',
 				'file' => [
 					'base64' => 'dGVzdA=='
 				]
@@ -1241,7 +1234,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Invalid file type.');
 		$this->config
 			->method('getAppValue')
-			->will($this->returnValue(json_encode(['VALID'])));
+			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->accountService->validateAccountFiles([
 			[
@@ -1257,11 +1250,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Invalid base64 file');
 		$this->config
 			->method('getAppValue')
-			->will($this->returnValue(json_encode(['VALID'])));
+			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->accountService->validateAccountFiles([
 			[
-				'type' => 'VALID',
+				'type' => 'IDENTIFICATION',
 				'file' => [
 					'base64' => 'invalid'
 				]
@@ -1272,10 +1265,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testAddFilesToAccountWithSuccess() {
 		$this->config
 			->method('getAppValue')
-			->willReturn('["VALID"]');
+			->willReturn('["IDENTIFICATION"]');
 		$files = [
 			[
-				'type' => 'VALID',
+				'type' => 'IDENTIFICATION',
 				'file' => [
 					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 				]

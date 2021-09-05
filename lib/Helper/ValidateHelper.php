@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\LibreSign\Db\File as LibresignFile;
 use OCA\Libresign\Db\FileMapper;
@@ -20,6 +21,8 @@ class ValidateHelper {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var AccountFileMapper */
+	private $accountFileMapper;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -35,6 +38,7 @@ class ValidateHelper {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
+		AccountFileMapper $accountFileMapper,
 		IConfig $config,
 		IGroupManager $groupManager,
 		IRootFolder $root
@@ -42,6 +46,7 @@ class ValidateHelper {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
+		$this->accountFileMapper = $accountFileMapper;
 		$this->config = $config;
 		$this->groupManager = $groupManager;
 		$this->root = $root;
@@ -197,6 +202,23 @@ class ValidateHelper {
 			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Signer not associated to this file'));
+		}
+	}
+
+	public function validateFileNotExists(string $uid, string $type) {
+		try {
+			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
+		} catch (\Throwable $th) {
+		}
+		if (!empty($exists)) {
+			throw new \Exception($this->l10n->t('A file of this type has been associated.'));
+		}
+	}
+
+	public function validateFileTypeExists(string $type) {
+		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
+		if (!in_array($type, $profileFileTypes)) {
+			throw new \Exception($this->l10n->t('Invalid file type.'));
 		}
 	}
 }

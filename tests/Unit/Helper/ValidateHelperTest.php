@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Helper;
 
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -19,6 +20,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var AccountFileMapper */
+	private $accountFileMapper;
 	/** @var IGroupManager */
 	private $groupManager;
 	/** @var IRootFolder */
@@ -31,6 +34,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
@@ -38,6 +42,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->fileMapper,
+			$this->accountFileMapper,
 			$this->config,
 			$this->groupManager,
 			$this->root
@@ -173,6 +178,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->fileMapper,
+			$this->accountFileMapper,
 			$this->config,
 			$this->groupManager,
 			$this->root

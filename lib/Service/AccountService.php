@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
@@ -62,8 +61,6 @@ class AccountService {
 	private $groupManager;
 	/** @var AccountFileService */
 	private $accountFileService;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
 
 	public function __construct(
 		IL10N $l10n,
@@ -80,8 +77,7 @@ class AccountService {
 		CfsslHandler $cfsslHandler,
 		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
-		AccountFileService $accountFileService,
-		AccountFileMapper $accountFileMapper
+		AccountFileService $accountFileService
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -98,7 +94,6 @@ class AccountService {
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
-		$this->accountFileMapper = $accountFileMapper;
 	}
 
 	public function validateCreateToSign(array $data) {
@@ -161,34 +156,15 @@ class AccountService {
 	}
 
 	private function validateAccountFile(int $fileIndex, array $file, IUser $user) {
-		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
-		if (!in_array($file['type'], $profileFileTypes)) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $this->l10n->t('Invalid file type.')
-			]));
-		}
-
 		try {
+			$this->validateHelper->validateFileTypeExists($file['type']);
 			$this->validateHelper->validateNewFile($file);
+			$this->validateHelper->validateFileNotExists($user->getUID(), $file['type']);
 		} catch (\Exception $e) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
 				'message' => $e->getMessage()
-			]));
-		}
-
-		try {
-			$exists = $this->accountFileMapper->getByUserAndType($user->getUID(), $file['type']);
-		} catch (\Exception $e) {
-		}
-		if (!empty($exists)) {
-			throw new LibresignException(json_encode([
-				'type' => 'danger',
-				'file' => $fileIndex,
-				'message' => $this->l10n->t('A file of this type has been associated.')
 			]));
 		}
 	}
