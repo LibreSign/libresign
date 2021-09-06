@@ -23,7 +23,7 @@
 
 import Vue from 'vue'
 import Router from 'vue-router'
-import { generateUrl } from '@nextcloud/router'
+import { generateUrl, getRootUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import routes from './router'
 import store from '../store'
@@ -34,7 +34,9 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const router = new Router({
 	mode: 'history',
-	base: generateUrl('/apps/libresign/', ''),
+	base: generateUrl('/', {
+		noRewrite: window.location.pathname.startsWith(getRootUrl() * 'index.php'),
+	}),
 	linkActiveClass: 'active',
 	routes,
 })

@@ -5,10 +5,10 @@
   "license": "AGPL",
   "require": {
     "jsignpdf/jsignpdf-php": "^1",
-    "setasign/fpdi": "^2.3",
-    "setasign/fpdf": "^1.8",
     "endroid/qr-code": "^4.2",
-    "pagerfanta/pagerfanta": "^3.2"
+    "pagerfanta/pagerfanta": "^3.2",
+    "tecnickcom/tc-lib-pdf": "^8.0",
+    "iio/libmergepdf": "^4.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",

@@ -1,6 +1,5 @@
 <?php
 
-use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IConfig;
@@ -11,8 +10,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected $pkcs12Handler;
 	/** @var FolderService */
 	protected $folderService;
-	/** @var JSignPdfHandler */
-	protected $jSignPdfHandler;
 	/** @var IConfig */
 	private $config;
 	/** @var IL10N */
@@ -20,7 +17,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
@@ -28,7 +24,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->jSignPdfHandler,
 			$this->config,
 			$this->l10n
 		);
@@ -80,7 +75,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(null);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->jSignPdfHandler,
 			$this->config,
 			$this->l10n
 		);
@@ -102,18 +96,16 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->jSignPdfHandler,
 			$this->config,
 			$this->l10n
 		);
 
-		$resource = fopen(__DIR__ . '/../../fixtures/small_valid.pdf', 'r');
 		$file = $this->createMock(\OCP\Files\File::class);
-		$file->method('fopen')
-			->willReturn($resource);
+		$file->method('getName')
+			->willReturn('small_valid.pdf');
+		$file->method('getContent')
+			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$actual = $this->pkcs12Handler->writeFooter($file, 'uuid');
-		// file_put_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf', $actual);
-		$expected = file_get_contents(__DIR__ . '/../../fixtures/small_valid-signed.pdf');
-		$this->assertEquals(strlen($expected), strlen($actual));
+		$this->assertEquals(4032, strlen($actual));
 	}
 }

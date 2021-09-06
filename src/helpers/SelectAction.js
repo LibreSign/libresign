@@ -27,7 +27,7 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 
 const redirectURL = libresignVar.redirect ? libresignVar.redirect : 'Home'
 
-const selectAction = (action) => {
+export const selectAction = (action) => {
 	switch (action) {
 	case 100:
 		window.location.replace(redirectURL.toString())
@@ -44,5 +44,3 @@ const selectAction = (action) => {
 		break
 	}
 }
-
-export default selectAction

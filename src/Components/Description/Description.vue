@@ -87,6 +87,7 @@ import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
 import marked from 'marked'
 import dompurify from 'dompurify'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'Description',
@@ -136,6 +137,10 @@ export default {
 		markedDescription() {
 			return dompurify.sanitize(marked(this.pdfDescription), { USE_PROFILES: { html: false } })
 		},
+		configUuid() {
+			const configg = JSON.parse(loadState('libresign', 'config')).sign.uuid
+			return configg
+		},
 	},
 	watch: {
 		width(newVal, oldVal) {
@@ -170,15 +175,15 @@ export default {
 						password: this.password,
 					}
 				)
-
 				showSuccess(response.data.message)
 				if (response.data.action === 350) {
-					this.$router.push({ name: 'DefaultPageSuccess', uuid: this.uuid })
+					this.$store.commit('setUuidToValidate', response.data.file.uuid)
+					this.$router.push({ name: 'DefaultPageSuccess' })
 				}
-				console.info(this.$store)
 				this.updating = false
 				this.disableButton = true
 			} catch (err) {
+				console.info(err)
 				showError(err.response.data.errors[0])
 				this.updating = false
 				this.disableButton = false
