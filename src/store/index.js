@@ -38,6 +38,7 @@ export default new Store({
 		settings: {},
 		currentFile: {},
 		files: [],
+		uuidToValidate: '',
 		sidebar: false,
 	},
 
@@ -72,6 +73,9 @@ export default new Store({
 		setFiles(state, files) {
 			state.files = files
 		},
+		setUuidToValidate(state, uuid) {
+			state.uuidToValidate = uuid
+		},
 	},
 
 	getters: {
@@ -98,6 +102,9 @@ export default new Store({
 		},
 		getFiles(state) {
 			return state.files
+		},
+		getUuidToValidate(state) {
+			return state.uuidToValidate
 		},
 	},
 

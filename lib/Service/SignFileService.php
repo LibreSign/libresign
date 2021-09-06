@@ -19,9 +19,7 @@ use OCP\IL10N;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
-use setasign\Fpdi\Fpdi;
-use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
-use setasign\Fpdi\PdfParser\PdfParserException;
+use TCPDF_PARSER;
 
 class SignFileService {
 	/** @var IL10N */
@@ -214,16 +212,10 @@ class SignFileService {
 	 * @param string $string
 	 *
 	 * @throws Type\PdfTypeException
-	 * @throws CrossReferenceException
-	 * @throws PdfParserException
 	 */
 	private function validatePdfStringWithFpdi($string): void {
-		$pdf = new Fpdi();
 		try {
-			$stream = fopen('php://memory','r+');
-			fwrite($stream, $string);
-			rewind($stream);
-			$pdf->setSourceFile($stream);
+			new TCPDF_PARSER($string);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			throw new \Exception($this->l10n->t('Invalid PDF'));
@@ -514,8 +506,14 @@ class SignFileService {
 
 		if ($this->root->nodeExists($signedFilePath)) {
 			/** @var \OCP\Files\File */
-			$fileToSign = $this->root->get($signedFilePath);
+			$fileToSign = $this->root->getById($fileData->getSignedNodeId())[0];
 		} else {
+			$signedFilePath = preg_replace(
+				'/' . $originalFile->getExtension() . '$/',
+				$this->l10n->t('signed') . '.' . $originalFile->getExtension(),
+				$originalFile->getPath()
+			);
+
 			/** @var \OCP\Files\File */
 			$buffer = $this->pkcs12Handler->writeFooter($originalFile, $fileData->getUuid());
 			if (!$buffer) {

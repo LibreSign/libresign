@@ -17,7 +17,7 @@ use OCP\Files\File;
 use OCP\Files\Node;
 use OCP\IConfig;
 use OCP\IL10N;
-use setasign\Fpdi\Fpdi;
+use TCPDI;
 
 class Pkcs12Handler {
 
@@ -25,7 +25,7 @@ class Pkcs12Handler {
 	private $pfxFilename = 'signature.pfx';
 	/** @var FolderService */
 	private $folderService;
-	/** @var JSignPdfHandler */
+	/** @var JSignPdfHandler|null */
 	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
@@ -37,12 +37,10 @@ class Pkcs12Handler {
 
 	public function __construct(
 		FolderService $folderService,
-		JSignPdfHandler $JSignPdfHandler,
 		IConfig $config,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
-		$this->JSignPdfHandler = $JSignPdfHandler;
 		$this->config = $config;
 		$this->l10n = $l10n;
 	}
@@ -86,12 +84,25 @@ class Pkcs12Handler {
 		return $folder->get($this->pfxFilename);
 	}
 
+	private function getHandler(): ISignHandler {
+		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
+		if (!property_exists($this, $sign_engine . 'Handler')) {
+			throw new \Exception('Invalid Sign engine', 400);
+		}
+		$property = $sign_engine . 'Handler';
+		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
+		if (!$this->$property instanceof $classHandler) {
+			$this->$property = \OC::$server->get($classHandler);
+		}
+		return $this->$property;
+	}
+
 	public function sign(
 		Node $fileToSign,
 		Node $certificate,
 		string $password
 	): Node {
-		$signedContent = $this->JSignPdfHandler->sign($fileToSign, $certificate, $password);
+		$signedContent = $this->getHandler()->sign($fileToSign, $certificate, $password);
 		$fileToSign->putContent($signedContent);
 		return $fileToSign;
 	}
@@ -112,14 +123,15 @@ class Pkcs12Handler {
 			return '';
 		}
 		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
-		$pdf = new Fpdi();
-		$pageCount = $pdf->setSourceFile($file->fopen('r'));
+
+		$pdf = new TCPDILibresign();
+		$pageCount = $pdf->setNextcloudSourceFile($file);
 
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 			$templateId = $pdf->importPage($pageNo);
-
 			$pdf->AddPage();
-			$pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+			$pdf->useTemplate($templateId);
+
 			$pdf->SetFont('Helvetica');
 			$pdf->SetFontSize(8);
 			$pdf->SetAutoPageBreak(false);
@@ -140,10 +152,10 @@ class Pkcs12Handler {
 			);
 		}
 
-		return $pdf->Output('S');
+		return $pdf->Output(null, 'S');
 	}
 
-	private function writeQrCode(string $text, Fpdi $fpdf): void {
+	private function writeQrCode(string $text, TCPDI $fpdf): void {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())

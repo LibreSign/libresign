@@ -1,7 +1,7 @@
 <template>
 	<div class="container-timeline">
 		<div class="content-timeline">
-			<div class="filtered">
+			<div class="filtered" vif>
 				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
@@ -12,7 +12,7 @@
 					{{ t('libresign', 'Signed') }}
 				</a>
 			</div>
-			<ul>
+			<ul v-if="emptyContentFile ===false">
 				<File
 					v-for="file in filterFile"
 					:key="file.uuid"
@@ -21,6 +21,13 @@
 					:file="file"
 					@sidebar="setSidebar" />
 			</ul>
+			<EmptyContent v-else>
+				<template #desc>
+					<h1 class="empty-h1">
+						{{ t('libresign', 'There are no documents') }}
+					</h1>
+				</template>
+			</EmptyContent>
 		</div>
 		<Sidebar v-if="sidebar"
 			ref="sidebar"
@@ -38,6 +45,7 @@ import { generateUrl } from '@nextcloud/router'
 import { mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
+import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
@@ -45,6 +53,7 @@ export default {
 	components: {
 		File,
 		Sidebar,
+		EmptyContent,
 	},
 	data() {
 		return {
@@ -84,6 +93,9 @@ export default {
 			set(value) {
 				this.fileFilter = value
 			},
+		},
+		emptyContentFile() {
+			return this.filterFile.length <= 0
 		},
 
 	},
@@ -158,6 +170,7 @@ export default {
 .container-timeline{
 	display: flex;
 	width: 100%;
+	justify-content: center;
 	flex-direction: row;
 
 	.content-timeline{
@@ -193,6 +206,9 @@ export default {
 			display: flex;
 			width: 100%;
 			flex-wrap: wrap;
+		}
+		.empty-h1{
+			opacity: 0.8;
 		}
 
 		.file-details:hover {

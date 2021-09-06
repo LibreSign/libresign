@@ -633,6 +633,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setUserId('username');
+		$libreSignFile->setUuid('uuid');
 
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
@@ -650,6 +651,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($file);
 		$this->root->method('getUserFolder')
 			->willReturn($this->root);
+		$this->root->method('newFile')
+			->willReturn($file);
 		$this->pkcs12Handler
 			->method('getPfx')
 			->willReturn($file);
