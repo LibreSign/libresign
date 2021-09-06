@@ -8,7 +8,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\Files\File;
 use OCP\IConfig;
 
-class JSignPdfHandler {
+class JSignPdfHandler implements ISignHandler {
 	/** @var JSignPDF */
 	private $jSignPdf;
 	/** @var JSignParam */
