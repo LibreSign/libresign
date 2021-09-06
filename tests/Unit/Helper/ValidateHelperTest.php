@@ -373,7 +373,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testNotASignerOfFile () {
+	public function testNotASignerOfFile() {
 		$this->expectExceptionMessage('Signer not associated to this file');
 		$this->fileUserMapper->method('getByFileIdAndFileUserId')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
