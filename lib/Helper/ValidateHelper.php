@@ -205,7 +205,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateFileNotExists(string $uid, string $type) {
+	public function validateUserHasNoFileWithThisType(string $uid, string $type) {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
 		} catch (\Throwable $th) {
