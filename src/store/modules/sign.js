@@ -6,24 +6,24 @@ const state = {
 	sign: false,
 }
 
-const mutations = {
-
-}
-
-const getters = {
-
-}
-
 const actions = {
 	SIGN_DOCUMENT: async({ dispatch, rootGetters }, { fileId, password }) => {
 		try {
-			const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
-				password,
-			})
-			dispatch('files/GET_ALL_FILES')
-			dispatch('error/CLEAN', { root: true })
+			let response
+			if (fileId.length >= 10) {
+				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/uuid/${fileId}`), {
+					password,
+				})
+			} else {
+				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
+					password,
+				})
+			}
+			dispatch('files/GET_ALL_FILES', {}, { root: true })
+			dispatch('error/CLEAN', {}, { root: true })
 			showSuccess(response.data.message)
 		} catch (err) {
+			console.info('error', err)
 			err.response.data.errors.forEach(error => {
 				dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
 				showError(rootGetters['error/getError'])
@@ -49,7 +49,5 @@ const actions = {
 export default {
 	namespaced: true,
 	state,
-	mutations,
-	getters,
 	actions,
 }
