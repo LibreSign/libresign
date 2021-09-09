@@ -28,6 +28,7 @@ import sidebar from './modules/sidebar'
 import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
+import error from './modules/errors'
 
 Vue.use(Vuex)
 
@@ -40,8 +41,6 @@ export default new Store({
 		pdfData: {},
 		user: {},
 		settings: {},
-		currentFile: {},
-		files: [],
 		uuidToValidate: '',
 	},
 
@@ -49,8 +48,8 @@ export default new Store({
 		setUser(state, user) {
 			this.state.user = user
 		},
-		setCurrentFile(state, current) {
-			Vue.set(state.currentFile, 'file', current)
+		setError: (state, errorMessage) => {
+			state.errors = errorMessage
 		},
 		setPdfData(state, pdfData) {
 			if (pdfData.pdf.url) {
@@ -67,23 +66,26 @@ export default new Store({
 		setHasPfx(state, haspfx) {
 			Vue.set(state.settings.data.settings, 'hasSignatureFile', haspfx)
 		},
-		setError(state, errors) {
-			Vue.set(state.errors, errors)
-		},
-		setFiles(state, files) {
-			state.files = files
-		},
 		setUuidToValidate(state, uuid) {
 			state.uuidToValidate = uuid
 		},
 	},
 
+	actions: {
+		SET_ERROR: ({ commit }, errorMessage) => {
+			commit('setError', errorMessage)
+		},
+		RESET_ERROR: ({ commit }) => {
+			commit('setError', [])
+		},
+	},
+
 	getters: {
+		getErrors: state => {
+			return state.errors
+		},
 		getError(state) {
 			return libresignVar.errors
-		},
-		getCurrentFile(state) {
-			return state.currentFile
 		},
 		getSettings(state) {
 			return state.settings
@@ -97,9 +99,6 @@ export default new Store({
 		getUser(state) {
 			return state.user
 		},
-		getFiles(state) {
-			return state.files
-		},
 		getUuidToValidate(state) {
 			return state.uuidToValidate
 		},
@@ -107,8 +106,9 @@ export default new Store({
 
 	modules: {
 		sidebar,
-		myFiles: files,
+		files,
 		sign,
 		validate,
+		error,
 	},
 })
