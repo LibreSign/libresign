@@ -15,7 +15,7 @@ const getters = {
 }
 
 const actions = {
-	SIGN_DOCUMENT: async({ dispatch }, { fileId, password }) => {
+	SIGN_DOCUMENT: async({ dispatch, rootGetters }, { fileId, password }) => {
 		try {
 			const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
 				password,
@@ -26,7 +26,7 @@ const actions = {
 		} catch (err) {
 			err.response.data.errors.forEach(error => {
 				dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
-				showError(error)
+				showError(rootGetters['error/getError'])
 			})
 		}
 	},
