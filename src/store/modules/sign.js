@@ -15,19 +15,19 @@ const getters = {
 }
 
 const actions = {
-	SIGN_DOCUMENT: async({ dispatch }, fileId, password) => {
+	SIGN_DOCUMENT: async({ dispatch }, { fileId, password }) => {
 		try {
 			const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
 				password,
 			})
-			this.getDataFiles()
+			dispatch('files/GET_ALL_FILES')
+			dispatch('error/CLEAN', { root: true })
 			showSuccess(response.data.message)
 		} catch (err) {
-			err.response.data.errors.map(
-				error => {
-					showError(error)
-				}
-			)
+			err.response.data.errors.forEach(error => {
+				dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
+				showError(error)
+			})
 		}
 	},
 	REQUEST: async({ dispatch }, { fileId, name, users }) => {
