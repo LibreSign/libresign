@@ -53,7 +53,7 @@
 							:value=" t('libresign', 'Sign the document.')"
 							:class="!updating ? 'primary' : 'primary loading'"
 							:disabled="disableButton"
-							@click="sign">
+							@click="signDocument">
 							{{ t('libresign', 'Sign the document.') }}
 						</button>
 						<button v-show="showDoc"
@@ -78,7 +78,6 @@
 </template>
 
 <script>
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import ResetPassword from '../../views/ResetPassword.vue'
 import CreatePassword from '../../views/CreatePassword.vue'
@@ -88,6 +87,7 @@ import { generateUrl } from '@nextcloud/router'
 import marked from 'marked'
 import dompurify from 'dompurify'
 import { loadState } from '@nextcloud/initial-state'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
 	name: 'Description',
@@ -131,6 +131,7 @@ export default {
 	},
 
 	computed: {
+		...mapGetters(['error/getError']),
 		hasSavePossible() {
 			return !!this.password
 		},
@@ -142,6 +143,7 @@ export default {
 			return configg
 		},
 	},
+
 	watch: {
 		width(newVal, oldVal) {
 			if (newVal <= 650) {
@@ -164,29 +166,21 @@ export default {
 	},
 
 	methods: {
-		async sign() {
+		...mapActions({
+			signDoc: 'sign/SIGN_DOCUMENT',
+		}),
+		async signDocument() {
 			this.updating = true
 			this.disableButton = true
 
-			try {
-				const response = await axios.post(
-					generateUrl(`/apps/libresign/api/0.1/sign/uuid/${this.uuid}`),
-					{
-						password: this.password,
-					}
-				)
-				showSuccess(response.data.message)
-				if (response.data.action === 350) {
-					this.$store.commit('setUuidToValidate', response.data.file.uuid)
-					this.$router.push({ name: 'DefaultPageSuccess' })
-				}
-				this.updating = false
-				this.disableButton = true
-			} catch (err) {
-				console.info(err)
-				showError(err.response.data.errors[0])
+			this.signDoc({ fileId: this.uuid, password: this.password })
+
+			if (this['error/getError'].length > 0) {
 				this.updating = false
 				this.disableButton = false
+			} else {
+				this.updating = true
+				this.disableButton = true
 			}
 		},
 		changePfx(value) {
