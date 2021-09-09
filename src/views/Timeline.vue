@@ -40,13 +40,10 @@
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Timeline',
@@ -68,13 +65,18 @@ export default {
 		...mapState({
 			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
-			myFiles: state => state.files,
+			file: state => state.files,
 		}),
-		...mapGetters(['myFiles/pendingFilter', 'myFiles/signedFilter', 'myFiles/orderFiles']),
+		...mapGetters([
+			'files/pendingFilter',
+			'files/signedFilter',
+			'files/orderFiles',
+			'error/getError',
+		]),
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
-					return this['myFiles/orderFiles']
+					return this['files/orderFiles']
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1
@@ -89,23 +91,28 @@ export default {
 		},
 	},
 	created() {
-		this.getData()
+		this.getAllFiles()
 	},
 
 	methods: {
-		...mapActions({ setSidebarStatus: 'sidebar/setStatus', getAllFiles: 'files/GET_ALL_FILES', resetSidebarStatus: 'sidebar/RESET' }),
+		...mapActions({
+			setSidebarStatus: 'sidebar/setStatus',
+			getAllFiles: 'files/GET_ALL_FILES',
+			resetSidebarStatus: 'sidebar/RESET',
+			signDoc: 'sign/SIGN_DOCUMENT',
+		}),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this['myFiles/pendingFilter']
+				this.filterFile = this['files/pendingFilter']
 				this.filterActive = 1
 				break
 			case 2:
-				this.filterFile = this['myFiles/signedFilter']
+				this.filterFile = this['files/signedFilter']
 				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this['myFiles/orderFiles']
+				this.filterFile = this['files/orderFiles']
 				this.filterActive = 3
 				break
 			default:
@@ -113,28 +120,20 @@ export default {
 			}
 		},
 		setSidebar(objectFile) {
-			this.$store.dispatch('myFiles/SET_FILE', objectFile)
+			this.$store.dispatch('files/SET_FILE', objectFile)
 			this.setSidebarStatus(true)
 		},
-		async signDocument(param) {
-			try {
-				this.loading = true
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
-					password: param.password,
-				})
-				this.getAllFiles()
-				this.setSidebarStatus(false)
-				this.loading = false
-				return showSuccess(response.data.message)
-			} catch (err) {
-				this.loading = false
-				console.error(err)
-				err.response.data.errors.map(
-					error => {
-						showError(error)
-					}
-				)
-			}
+		async signDocument({ fileId, password }) {
+			this.loading = true
+			this.signDoc({ fileId, password })
+
+			const error = this['error/getError']
+
+			error.length > 0
+				? this.setSidebarStatus(true)
+				: this.setSidebarStatus(false)
+
+			this.loading = false
 		},
 	},
 }
