@@ -4,7 +4,7 @@ const state = {
 }
 
 const getters = {
-	getErrorsCode: (state) => {
+	getErrorCode: (state) => {
 		return state.code
 	},
 	getErrorMessage: state => {
