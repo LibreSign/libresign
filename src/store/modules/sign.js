@@ -21,9 +21,9 @@ const actions = {
 			}
 			dispatch('files/GET_ALL_FILES', {}, { root: true })
 			dispatch('error/CLEAN', {}, { root: true })
+			dispatch('sidebar/RESET', {}, { root: true })
 			showSuccess(response.data.message)
 		} catch (err) {
-			console.info('error', err)
 			err.response.data.errors.forEach(error => {
 				dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
 				showError(rootGetters['error/getError'])

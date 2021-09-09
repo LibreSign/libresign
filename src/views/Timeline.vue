@@ -126,13 +126,6 @@ export default {
 		async signDocument({ fileId, password }) {
 			this.loading = true
 			this.signDoc({ fileId, password })
-
-			const error = this['error/getError']
-
-			error.length > 0
-				? this.setSidebarStatus(true)
-				: this.setSidebarStatus(false)
-
 			this.loading = false
 		},
 	},
