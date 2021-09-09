@@ -72,7 +72,7 @@ export default {
 	},
 	computed: {
 		...mapGetters({
-			file: 'myFiles/getFile',
+			file: 'files/getFile',
 			statusSidebar: 'sidebar/getStatus',
 			getHasPfx: 'getHasPfx',
 		}),
