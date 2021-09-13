@@ -29,6 +29,7 @@ import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
+import modal from './modules/modal'
 
 Vue.use(Vuex)
 
@@ -110,5 +111,6 @@ export default new Store({
 		sign,
 		validate,
 		error,
+		modal,
 	},
 })
