@@ -244,7 +244,7 @@ export default {
 			}
 
 			.signature-fav{
-				width: 100%;
+				width: 90%;
 				margin: 10px;
 
 				header{
@@ -278,7 +278,16 @@ export default {
 				}
 			}
 		}
+
+		@media (max-width: 650px) {
+			flex-direction: column;
+
+			.user{
+				width: 100%;
+			}
+		}
 	}
+
 }
 
 .container-modal-customize-signatures{
