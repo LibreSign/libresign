@@ -38,6 +38,7 @@
 import icon from '../assets/images/logo-white.png'
 import { translate as t } from '@nextcloud/l10n'
 import { loadState } from '@nextcloud/initial-state'
+import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'DefaultPageSuccess',
 	data() {
@@ -61,7 +62,9 @@ export default {
 	},
 	methods: {
 		sendToView() {
-			this.$router.push(`/validation/${this.myUuid}`)
+			const rootUrl = window.location.href.split('libresign')[0]
+			const url = `${rootUrl}libresign${generateUrl(`validation/${this.myUuid}`)}`
+			window.location.href = url
 		},
 	},
 }

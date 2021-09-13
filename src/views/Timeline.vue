@@ -2,13 +2,13 @@
 	<div class="container-timeline">
 		<div class="content-timeline">
 			<div class="filtered" vif>
-				<a :class="filterActive === 'allFiles' ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
+				<a :class="filterActive === 3 ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
-				<a :class="filterActive === 'pending' ? 'pending active': 'pending'" @click="changeFilter(1)">
+				<a :class="filterActive === 1 ? 'pending active': 'pending'" @click="changeFilter(1)">
 					{{ t('libresign', 'Pending') }}
 				</a>
-				<a :class="filterActive === 'signed' ? 'signed active' : 'signed'" @click="changeFilter(2)">
+				<a :class="filterActive === 2 ? 'signed active' : 'signed'" @click="changeFilter(2)">
 					{{ t('libresign', 'Signed') }}
 				</a>
 			</div>
@@ -29,24 +29,21 @@
 				</template>
 			</EmptyContent>
 		</div>
-		<Sidebar v-if="sidebar"
+		<Sidebar v-if="statusSidebar"
 			ref="sidebar"
 			:loading="loading"
 			:views-in-files="true"
-			@update="getData"
+			@update="getAllFiles"
 			@sign:document="signDocument"
-			@closeSidebar="closeSidebar" />
+			@closeSidebar="setSidebarStatus(false)" />
 	</div>
 </template>
 
 <script>
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../Components/File'
 import Sidebar from '../Components/File/Sidebar.vue'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Timeline',
@@ -60,31 +57,26 @@ export default {
 			sidebar: false,
 			loading: false,
 			fileFilter: this.files,
-			filterActive: 'allFiles',
+			filterActive: 3,
 		}
 	},
 
 	computed: {
 		...mapState({
 			files: state => state.files,
+			statusSidebar: state => state.sidebar.status,
+			file: state => state.files,
 		}),
-		...mapGetters(['getFiles']),
-		pendingFilter() {
-			return this.files.slice().filter(
-				(a) => (a.status === 'pending')).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		signedFilter() {
-			return this.files.slice().filter(
-				(a) => (a.status === 'signed')).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
+		...mapGetters([
+			'files/pendingFilter',
+			'files/signedFilter',
+			'files/orderFiles',
+			'error/getError',
+		]),
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
-					return this.files.slice().sort(
-						(a, b) => (a.request_date < b.request_date) ? 1 : -1
-					)
+					return this['files/orderFiles']
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1
@@ -97,71 +89,44 @@ export default {
 		emptyContentFile() {
 			return this.filterFile.length <= 0
 		},
-
 	},
-
 	created() {
-		this.getData()
+		this.getAllFiles()
 	},
 
 	methods: {
+		...mapActions({
+			setSidebarStatus: 'sidebar/setStatus',
+			getAllFiles: 'files/GET_ALL_FILES',
+			resetSidebarStatus: 'sidebar/RESET',
+			signDoc: 'sign/SIGN_DOCUMENT',
+		}),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this.pendingFilter
-				this.filterActive = 'pending'
+				this.filterFile = this['files/pendingFilter']
+				this.filterActive = 1
 				break
 			case 2:
-				this.filterFile = this.signedFilter
-				this.filterActive = 'signed'
+				this.filterFile = this['files/signedFilter']
+				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this.files.sort(
-					(a, b) => (a.request_date < b.request_date) ? 1 : -1
-				)
-				this.filterActive = 'allFiles'
+				this.filterFile = this['files/orderFiles']
+				this.filterActive = 3
 				break
 			default:
 				break
 			}
 		},
-		async getData() {
-			try {
-				const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
-				this.$store.commit('setFiles', response.data.data)
-			} catch (err) {
-				showError('An error occurred while fetching the files')
-			}
-		},
-		openSidebar() {
-			this.sidebar = true
-		},
 		setSidebar(objectFile) {
-			this.closeSidebar()
-			this.$store.commit('setCurrentFile', objectFile)
-			this.openSidebar()
+			this.$store.dispatch('files/SET_FILE', objectFile)
+			this.setSidebarStatus(true)
 		},
-		closeSidebar() {
-			this.sidebar = false
-		},
-		async signDocument(param) {
-			try {
-				this.loading = true
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${param.fileId}`), {
-					password: param.password,
-				})
-				this.getData()
-				this.closeSidebar()
-				this.loading = false
-				return showSuccess(response.data.message)
-			} catch (err) {
-				this.loading = false
-				err.response.data.errors.map(
-					error => {
-						showError(error)
-					}
-				)
-			}
+		async signDocument({ fileId, password }) {
+			this.loading = true
+			this.signDoc({ fileId, password })
+			this.loading = false
 		},
 	},
 }

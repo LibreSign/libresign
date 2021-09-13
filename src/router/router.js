@@ -62,11 +62,11 @@ const routes = [
 			uuid: route.params.uuid,
 		}),
 	}, {
-		path: '/apps/libresign/sign/:uuid/error',
+		path: '/apps/libresign/sign/:uuid#error',
 		component: () => import('../views/DefaultPageError'),
 		name: 'DefaultPageError',
 	}, {
-		path: '/apps/libresign/sign/:uuid/success',
+		path: '/apps/libresign/sign/:uuid#success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
 	}, {
