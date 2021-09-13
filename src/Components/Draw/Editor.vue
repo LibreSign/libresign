@@ -136,5 +136,5 @@ export default {
 		width: 560px;
 		height: 360px;
 	}
-	}
+}
 </style>
