@@ -37,6 +37,45 @@
 					</div>
 				</div>
 			</div>
+			<div class="user sinatures">
+				<h1>{{ t('libresign', 'Your signatures') }}</h1>
+				<div class="signature-fav">
+					<header>
+						<h2>{{ t('libresign', 'Signature') }}</h2>
+						<div v-if="haveSignature" class="icon icon-rename" @click="editSignatures" />
+					</header>
+
+					<img v-if="haveSignature" :src="sinatures">
+					<div v-else class="no-signatures" @click="editSignatures">
+						<span>
+							{{ t('libresign', 'No signature, click here to create a new') }}
+						</span>
+					</div>
+				</div>
+				<div class="signature-fav">
+					<header>
+						<h2>{{ t('libresign', 'Initials') }}</h2>
+						<div v-if="haveInitials" class="icon icon-rename" @click="editInitials" />
+					</header>
+					<img v-if="haveInitials" :src="sinatures">
+					<div v-else class="no-signatures" @click="editInitials">
+						<span>
+							{{ t('libresign', 'No initials, click here to create a new') }}
+						</span>
+					</div>
+				</div>
+			</div>
+			<Modal v-if="modalStatus" :size="'large'" @close="closeModal">
+				<div class="container-modal-customize-signatures">
+					<header>
+						<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
+					</header>
+
+					<div class="content">
+						<Editor />
+					</div>
+				</div>
+			</Modal>
 		</div>
 	</Content>
 </template>
@@ -46,33 +85,52 @@ import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { getCurrentUser } from '@nextcloud/auth'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import CreatePassword from './CreatePassword.vue'
 import ResetPassword from './ResetPassword.vue'
+import Signature from '../assets/images/image.png-3.png'
+import Editor from '../Components/Draw/Editor.vue'
 
 export default {
 	name: 'Account',
+
 	components: {
 		Content,
 		Avatar,
 		Modal,
 		CreatePassword,
 		ResetPassword,
+		Editor,
 	},
+
 	data() {
 		return {
 			user: getCurrentUser(),
 			modal: false,
+			sinatures: Signature,
 		}
 	},
 	computed: {
 		...mapGetters({
 			hasSignature: 'getHasPfx',
+			modalStatus: 'modal/getStatus',
+			haveSignature: 'signatures/haveSignatures',
+			haveInitials: 'signatures/haveInitials',
 		}),
 	},
 	methods: {
+		...mapActions({
+			openModal: 'modal/OPEN_MODAL',
+			closeModal: 'modal/CLOSE_MODAL',
+		}),
 		handleModal(status) {
 			this.modal = status
+		},
+		editSignatures() {
+			this.openModal()
+		},
+		editInitials() {
+			this.openModal()
 		},
 	},
 }
@@ -174,6 +232,75 @@ export default {
 			}
 		}
 
+		.sinatures {
+			align-items: flex-start;
+
+			h1{
+				font-size: 1.3rem;
+				font-weight: bold;
+				border-bottom: 1px solid #000;
+				padding-left: 5px;
+				width: 100%;
+			}
+
+			.signature-fav{
+				width: 100%;
+				margin: 10px;
+
+				header{
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+
+					.icon{
+						cursor: pointer;
+					}
+				}
+
+				.no-signatures{
+					width: 100%;
+					padding: 15px;
+					margin: 5px;
+					border-radius: 10px;
+					background-color: #cecece;
+					cursor: pointer;
+					span{
+						cursor: inherit;
+					}
+				}
+
+				h2{
+					padding-left: 5px;
+					border-bottom: 1px solid #000;
+					width: 50%;
+					font-size: 1rem;
+					font-weight: normal;
+				}
+			}
+		}
+	}
+}
+
+.container-modal-customize-signatures{
+	width: 100%;
+	height: 100%;
+	margin: 20px;
+
+	header{
+		width: 100%;
+
+		h1{
+			border-bottom: 2px solid #000;
+			width: 95%;
+			font-size: 1.5rem;
+			padding-bottom: 5px;
+			padding-left: 10px;
+		}
+	}
+
+	.content{
+		display: flex;
+		flex-direction: column;
 	}
 }
 </style>
