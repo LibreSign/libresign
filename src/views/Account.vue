@@ -72,7 +72,8 @@
 					</header>
 
 					<div class="content">
-						<Editor />
+						<Editor v-show="false" @close="closeModal" />
+						<TextInput @close="closeModal" />
 					</div>
 				</div>
 			</Modal>
@@ -90,6 +91,7 @@ import CreatePassword from './CreatePassword.vue'
 import ResetPassword from './ResetPassword.vue'
 import Signature from '../assets/images/image.png-3.png'
 import Editor from '../Components/Draw/Editor.vue'
+import TextInput from '../Components/Draw/Text.vue'
 
 export default {
 	name: 'Account',
@@ -101,6 +103,7 @@ export default {
 		CreatePassword,
 		ResetPassword,
 		Editor,
+		TextInput,
 	},
 
 	data() {
