@@ -18,22 +18,43 @@
 				height="260"
 				@mousedown="beginDrawing"
 				@mousemove="keepDrawing"
+				@mouseleave="stopDrawing"
 				@mouseup="stopDrawing" />
 		</div>
 		<div class="action-buttons">
-			<button class="primary">
+			<button class="primary" @click="confirmationDraw">
 				{{ t('libresign', 'Apply') }}
 			</button>
-			<button class="danger">
+			<button class="danger" @click="close">
 				{{ t('libresign', 'Cancel') }}
 			</button>
 		</div>
+		<Modal v-if="modal" @close="handleModal(false)">
+			<div class="modal-confirm">
+				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
+				<img :src="imageData">
+				<div class="actions-modal">
+					<button class="primary" @click="saveSignature">
+						{{ t('libresign', 'Save') }}
+					</button>
+					<button @click="handleModal(false)">
+						{{ t('libresign', 'Cancel') }}
+					</button>
+				</div>
+			</div>
+		</Modal>
 	</div>
 </template>
 
 <script>
+import Modal from '@nextcloud/vue/dist/Components/Modal'
+
 export default {
 	name: 'Editor',
+
+	components: {
+		Modal,
+	},
 
 	data: () => ({
 		canvasWidth: 450,
@@ -43,11 +64,16 @@ export default {
 		y: 0,
 		isDrawing: false,
 		color: '#000000',
+		imageData: null,
+		modal: false,
 	}),
 
 	mounted() {
 		this.canvas = this.$refs.canvas.getContext('2d')
+	},
 
+	beforeDestroy() {
+		this.clearCanvas()
 	},
 
 	methods: {
@@ -91,6 +117,26 @@ export default {
 
 		clearCanvas() {
 			this.canvas.clearRect(0, 0, 560, 360)
+		},
+
+		createDataImage() {
+			this.imageData = this.$refs.canvas.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+		},
+
+		confirmationDraw() {
+			this.createDataImage()
+			this.handleModal(true)
+		},
+
+		handleModal(status) {
+			this.modal = status
+		},
+
+		close() {
+			this.$emit('close')
+		},
+		saveSignature() {
+			console.info(this.imageData)
 		},
 	},
 }
@@ -167,6 +213,30 @@ export default {
 		border: 1px solid #dbdbdb;
 		width: 560px;
 		height: 260px;
+	}
+}
+
+.modal-confirm{
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+
+	h1{
+		font-size: 1.4rem;
+		font-weight: bold;
+		margin: 10px;
+	}
+
+	img{
+		padding: 20px;
+	}
+
+	.actions-modal{
+		display: flex;
+		flex-direction: row;
+		align-self: flex-end;
 	}
 }
 </style>
