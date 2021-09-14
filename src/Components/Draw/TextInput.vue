@@ -16,7 +16,7 @@
 				</button>
 			</div>
 		</div>
-		<Modal v-if="modal" @close="handleModal(false)">
+		<Modal v-if="modal" @close="cancelConfirm">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -37,7 +37,7 @@
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 
 export default {
-	name: 'Text',
+	name: 'TextInput',
 	components: {
 		Modal,
 	},
