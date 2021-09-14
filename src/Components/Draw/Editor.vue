@@ -1,24 +1,33 @@
 <template>
 	<div class="container-draw">
-		<h1>Drawing with mousemove event</h1>
-		<div class="actions">
-			<ul>
-				<li>{{ t('libresign','Colors: ') }} </li>
-				<li class="action-color black" @click="chooseColor('#000')" />
-				<li class="action-color red" @click="chooseColor('#ff0000')" />
-				<li class="action-color blue" @click="chooseColor('#0000ff')" />
-				<li class="action-color green" @click="chooseColor('#008000')" />
-			</ul>
-			<div class="action-delete icon-delete" @click="clearCanvas" />
+		<div class="canva">
+			<div class="actions">
+				<ul>
+					<li>{{ t('libresign','Colors: ') }} </li>
+					<li class="action-color black" @click="chooseColor('#000')" />
+					<li class="action-color red" @click="chooseColor('#ff0000')" />
+					<li class="action-color blue" @click="chooseColor('#0000ff')" />
+					<li class="action-color green" @click="chooseColor('#008000')" />
+				</ul>
+				<div class="action-delete icon-delete" @click="clearCanvas" />
+			</div>
+			<canvas id="myCanvas"
+				ref="canvas"
+				class="canvas"
+				width="560"
+				height="260"
+				@mousedown="beginDrawing"
+				@mousemove="keepDrawing"
+				@mouseup="stopDrawing" />
 		</div>
-		<canvas id="myCanvas"
-			ref="canvas"
-			class="canvas"
-			width="560"
-			height="360"
-			@mousedown="beginDrawing"
-			@mousemove="keepDrawing"
-			@mouseup="stopDrawing" />
+		<div class="action-buttons">
+			<button class="primary">
+				{{ t('libresign', 'Apply') }}
+			</button>
+			<button class="danger">
+				{{ t('libresign', 'Cancel') }}
+			</button>
+		</div>
 	</div>
 </template>
 
@@ -89,52 +98,75 @@ export default {
 
 <style lang="scss" scoped>
 .container-draw{
-	.actions{
-		display: flex;
-		flex-direction: row;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	width: 100%;
+	height: 100%;
 
-		ul{
+	.canva{
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		height: 100%;
+
+		.actions{
 			display: flex;
 			flex-direction: row;
+			justify-content: space-between;
 
-			.action-color{
-				width: 10px;
-				height: 10px;
-				margin: 0 5px;
-				cursor: pointer;
-				border-radius: 50%;
+			ul{
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
 
-				&:first-child{
-					margin: 0 15px;
+				.action-color{
+					width: 10px;
+					height: 10px;
+					margin: 0 5px;
+					cursor: pointer;
+					border-radius: 50%;
+
+					&:first-child{
+						margin: 0 15px;
+					}
+				}
+
+				.black{
+					background-color: #000000;
+				}
+
+				.red{
+					background-color: #ff0000;
+				}
+
+				.blue{
+					background-color: #0000ff;
+				}
+
+				.green{
+					background-color: #008000;
 				}
 			}
-
-			.black{
-				background-color: #000000;
-			}
-
-			.red{
-				background-color: #ff0000;
-			}
-
-			.blue{
-				background-color: #0000ff;
-			}
-
-			.green{
-				background-color: #008000;
+			.action-delete{
+				cursor: pointer;
+				margin-right: 10%;
 			}
 		}
-		.action-delete{
-			cursor: pointer;
-			margin-left: 30%;
+	}
+
+	.action-buttons{
+		align-self: flex-end;
+		button{
+			margin: 0 10px;
 		}
 	}
 
 	.canvas{
 		border: 1px solid #dbdbdb;
 		width: 560px;
-		height: 360px;
+		height: 260px;
 	}
 }
 </style>
