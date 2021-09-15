@@ -147,8 +147,9 @@ export default {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	width: 100%;
+	width: calc(100% - 20px);
 	height: 100%;
+	margin: 10px;
 
 	.canva{
 		display: flex;
