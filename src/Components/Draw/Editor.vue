@@ -232,6 +232,7 @@ export default {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	margin: 15px;
 
 	h1{
 		font-size: 1.4rem;
