@@ -14,7 +14,6 @@
 			<canvas id="myCanvas"
 				ref="canvas"
 				class="canvas"
-				width="560"
 				height="260"
 				@mousedown="beginDrawing"
 				@mousemove="keepDrawing"
@@ -60,8 +59,6 @@ export default {
 		canvasWidth: 450,
 		canvasHeight: 400,
 		canvas: null,
-		x: 0,
-		y: 0,
 		isDrawing: false,
 		color: '#000000',
 		imageData: null,
@@ -100,28 +97,41 @@ export default {
 
 		beginDrawing(e) {
 			e.preventDefault()
-			this.x = e.offsetX
-			this.y = e.offsetY
+			const mousepos = this.getMousePositionOnCanvas(e)
+
+			this.canvas.beginPath()
+			this.canvas.moveTo(mousepos.x, mousepos.y)
+			this.canvas.lineWidth = 1
+			this.canvas.strokeStyle = this.color
+			this.canvas.fill()
 			this.isDrawing = true
+		},
+
+		getMousePositionOnCanvas(e) {
+			const clientX = e.clientX || e.touches[0].clientX
+			const clientY = e.clientY || e.touches[0].clientY
+			const { offsetLeft, offsetTop } = e.target
+			const canvasX = clientX - offsetLeft
+			const canvasY = clientY - offsetTop
+			return { x: canvasX, y: canvasY }
 		},
 
 		keepDrawing(e) {
 			e.preventDefault()
+
 			if (this.isDrawing) {
-				this.drawLine(this.x, this.y, e.offsetX, e.offsetY)
-				this.x = e.offsetX
-				this.y = e.offsetY
+				const mousepos = this.getMousePositionOnCanvas(e)
+				this.canvas.lineTo(mousepos.x, mousepos.y)
+				this.canvas.stroke()
 			}
 		},
 
 		stopDrawing(e) {
 			e.preventDefault()
 			if (this.isDrawing) {
-				this.drawLine(this.x, this.y, e.offsetX, e.offsetY)
-				this.x = 0
-				this.y = 0
-				this.isDrawing = false
+				this.canvas.stroke()
 			}
+			this.isDrawing = false
 		},
 
 		clearCanvas() {
