@@ -223,6 +223,10 @@ export default {
 		height: 260px;
 		background-color: #cecece;
 		border-radius: 10px;
+
+		@media screen and (max-width: 650px) {
+			width: 100%;
+		}
 	}
 }
 
@@ -242,6 +246,10 @@ export default {
 
 	img{
 		padding: 20px;
+
+		@media screen and (max-width: 650px){
+			width: 100%;
+		}
 	}
 
 	.actions-modal{

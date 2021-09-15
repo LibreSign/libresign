@@ -5,7 +5,7 @@
 				<canvas
 					ref="canvas"
 					v-insert-signature="signaturePath"
-					width="560"
+					class="canva"
 					height="120" />
 				<input ref="input" v-model="signaturePath" type="text">
 				<span> {{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}</span>
@@ -123,6 +123,7 @@ export default {
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		width: 80%;
 
 		.text-input{
 			width: calc(100% - 20px);
@@ -131,6 +132,10 @@ export default {
 			flex-direction: column;
 			align-items: center;
 			margin-top: 22px;
+
+			.canva{
+				width: 100%;
+			}
 
 			input{
 				width: calc(100% - 20px);
@@ -161,10 +166,17 @@ export default {
 
 .modal-confirm{
 	display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 	margin: 15px;
+
+	img{
+		padding: 20px;
+		@media screen and (max-width: 650px){
+			width: 100%;
+		}
+	}
 
 	.actions-modal{
 		align-self: flex-end;
