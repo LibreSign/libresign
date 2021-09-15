@@ -160,6 +160,15 @@ export default {
 }
 
 .modal-confirm{
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 	margin: 15px;
+
+	.actions-modal{
+		align-self: flex-end;
+	}
+
 }
 </style>
