@@ -8,6 +8,7 @@
 					width="560"
 					height="120" />
 				<input ref="input" v-model="signaturePath" type="text">
+				<span> {{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}</span>
 			</div>
 			<div class="actions">
 				<button class="primary" @click="confirmSignature">
@@ -133,6 +134,12 @@ export default {
 
 			input{
 				width: calc(100% - 20px);
+			}
+
+			span{
+				font-size: 14px;
+				color: #464242;
+				font-style: italic;
 			}
 		}
 
