@@ -130,6 +130,7 @@ OC.L10N.register(
     "Create an account" : "Crie a sua conta aqui ",
     "User created!" : "Usuário criado!",
     "Password created!" : "Senha criada! ",
+    "Page not found" : "Página não encontrada",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe mas a página que você está procurando não existe, foi removida, movida ou está temporariamente indisponível.",
     "See Document Validation" : "Veja a Validação do Documento",
     "Congratulations you have digitally signed a document using LibreSign" : "Parabéns, você assinou digitalmente um documento usando LibreSign ",
