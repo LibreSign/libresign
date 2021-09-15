@@ -7,7 +7,7 @@
 					v-insert-signature="signaturePath"
 					width="560"
 					height="120" />
-				<input v-model="signaturePath" type="text">
+				<input ref="input" v-model="signaturePath" type="text">
 			</div>
 			<div class="actions">
 				<button class="primary" @click="confirmSignature">
@@ -63,6 +63,14 @@ export default {
 	methods: {
 		saveSignature() {
 			console.info(this.imageData)
+		},
+
+		setFocus() {
+			console.info('FOCUS')
+
+			this.$nextTick(() => {
+				this.$refs.input.focus()
+			})
 		},
 
 		closeModal() {
@@ -134,11 +142,11 @@ export default {
 			align-self: flex-end;
 
 			button{
-				margin: 0 20px 10px 0px;
+				margin: 0 10px 20px 0px;
 
 				&:first-child{
-					margin: 0px 14px 10px 0px;
-					}
+					margin: 0px 14px 20px 0px;
+				}
 			}
 		}
 	}
