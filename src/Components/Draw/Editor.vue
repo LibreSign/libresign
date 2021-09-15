@@ -153,6 +153,7 @@ export default {
 	.canva{
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 		width: 100%;
 		height: 100%;
 
@@ -160,6 +161,7 @@ export default {
 			display: flex;
 			flex-direction: row;
 			justify-content: space-between;
+			width: 100%;
 
 			ul{
 				display: flex;
@@ -197,22 +199,29 @@ export default {
 			}
 			.action-delete{
 				cursor: pointer;
-				margin-right: 10%;
+				margin-right: 20px;
 			}
 		}
 	}
 
 	.action-buttons{
 		align-self: flex-end;
+
 		button{
-			margin: 0 10px;
+			margin: 0 20px 10px 0;
+
+			&:first-child{
+				margin: 0px 10px 10px 0px;
+			}
 		}
 	}
 
 	.canvas{
 		border: 1px solid #dbdbdb;
-		width: 560px;
+		width: calc(560px - 20px);
 		height: 260px;
+		background-color: #cecece;
+		border-radius: 10px;
 	}
 }
 
