@@ -50,9 +50,15 @@ export default {
 	ul{
 		display: flex;
 		flex-direction: row;
+		height: 49px;
 
 		li{
 			padding: 10px;
+			position: absolute;
+
+			&:nth-child(2n){
+				margin-left: 50px;
+			}
 
 			&:hover{
 				border: 1px solid #dbdbdbad;
@@ -67,7 +73,9 @@ export default {
 
 	li.active{
 		border: 1px solid #dbdbdb;
-		border-bottom: none;
+		border-bottom: 1px solid #fff;
+		margin-top: -1px;
+		border-radius: 5px;
 	}
 }
 </style>
