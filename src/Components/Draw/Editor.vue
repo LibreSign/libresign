@@ -70,6 +70,12 @@ export default {
 
 	mounted() {
 		this.canvas = this.$refs.canvas.getContext('2d')
+
+		const canvas = this.$refs.canvas
+
+		canvas.addEventListener('touchstart', this.beginDrawing)
+		canvas.addEventListener('touchmove', this.keepDrawing)
+		canvas.addEventListener('touchend', this.stopDrawing)
 	},
 
 	beforeDestroy() {
@@ -93,12 +99,14 @@ export default {
 		},
 
 		beginDrawing(e) {
+			e.preventDefault()
 			this.x = e.offsetX
 			this.y = e.offsetY
 			this.isDrawing = true
 		},
 
 		keepDrawing(e) {
+			e.preventDefault()
 			if (this.isDrawing) {
 				this.drawLine(this.x, this.y, e.offsetX, e.offsetY)
 				this.x = e.offsetX
@@ -107,6 +115,7 @@ export default {
 		},
 
 		stopDrawing(e) {
+			e.preventDefault()
 			if (this.isDrawing) {
 				this.drawLine(this.x, this.y, e.offsetX, e.offsetY)
 				this.x = 0
