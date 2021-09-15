@@ -37,6 +37,7 @@
 					</div>
 				</div>
 			</div>
+
 			<div class="user sinatures">
 				<h1>{{ t('libresign', 'Your signatures') }}</h1>
 				<div class="signature-fav">
@@ -65,6 +66,7 @@
 					</div>
 				</div>
 			</div>
+
 			<Modal v-if="modalStatus" :size="'large'" @close="closeModal">
 				<div class="container-modal-customize-signatures">
 					<header>
@@ -140,6 +142,10 @@ export default {
 	max-width: 600px;
 	height: 100%;
 	max-height: 560px;
+
+	@media screen and (max-width: 450px ) {
+		width: 80%;
+	}
 }
 
 .container-account{
@@ -157,6 +163,10 @@ export default {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
+
+			@media screen and (max-width: 768px) {
+				width: 50%
+			}
 
 			.user-image {
 				display: flex;
