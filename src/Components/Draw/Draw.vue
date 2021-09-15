@@ -1,20 +1,26 @@
 <template>
 	<div class="container">
 		<ul>
-			<li :class="{active: isActive('text')}">
-				<a href="#text"
-					@click.prevent="setActive('text')">Text</a>
+			<li
+				:class="{active: isActive('text')}"
+				@click.prevent="setActive('text')">
+				<img :src="texticon" alt="Text">
+				Text
 			</li>
-			<li :class="{active: isActive('draw')}">
-				<a
-					href="#draw"
-					@click.prevent="setActive('draw')">Draw</a>
+			<li
+				:class="{active: isActive('draw')}"
+				@click.prevent="setActive('draw')">
+				<img :src="drawnIcon" alt="draw">
+				Draw
 			</li>
 		</ul>
 
 		<div class="content">
 			<Editor v-show="isActive('draw')" :class="{'active show': isActive('draw')}" />
-			<TextInput v-show="isActive('text')" :class="{'active show': isActive('text')}" />
+			<TextInput v-show="isActive('text')"
+				ref="text"
+				:class="{'active show': isActive('text')}"
+				@close="close" />
 		</div>
 	</div>
 </template>
@@ -22,18 +28,28 @@
 <script>
 import Editor from './Editor.vue'
 import TextInput from './TextInput.vue'
+import DrawIcon from '../../assets/images/curvature.png'
+import TextIcon from '../../assets/images/text.png'
 export default {
 	components: { TextInput, Editor },
 
 	data: () => ({
 		toolSelected: 'draw',
+		drawnIcon: DrawIcon,
+		texticon: TextIcon,
 	}),
 
 	methods: {
 		isActive(tabItem) {
 			return this.toolSelected === tabItem
 		},
+		close() {
+			this.$emit('close')
+		},
 		setActive(tabItem) {
+			if (tabItem === 'text') {
+				this.$refs.text.setFocus()
+			}
 			this.toolSelected = tabItem
 		},
 	},
@@ -43,7 +59,7 @@ export default {
 .container{
 	display: flex;
 	flex-direction: column;
-	width: 100%;
+	width: calc(100% - 20px);
 	height: 100%;
 	margin-top: 10px;
 
@@ -55,14 +71,19 @@ export default {
 		li{
 			padding: 10px;
 			position: absolute;
+			border: 1px solid #dbdbdbad;
+			border-radius: 5px 5px 0 0;
+			cursor: pointer;
+
+			img{
+				width: 14px;
+				margin-right: 10px;
+			}
 
 			&:nth-child(2n){
-				margin-left: 50px;
+				margin-left: 85px;
 			}
 
-			&:hover{
-				border: 1px solid #dbdbdbad;
-			}
 		}
 	}
 
@@ -75,7 +96,7 @@ export default {
 		border: 1px solid #dbdbdb;
 		border-bottom: 1px solid #fff;
 		margin-top: -1px;
-		border-radius: 5px;
+		border-radius: 5px 5px 0 0;
 	}
 }
 </style>
