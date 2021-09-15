@@ -134,11 +134,11 @@ export default {
 			align-self: flex-end;
 
 			button{
-				margin-right: 22px;
+				margin: 0 20px 10px 0px;
 
 				&:first-child{
-					margin-right: 15px;
-				}
+					margin: 0px 14px 10px 0px;
+					}
 			}
 		}
 	}
