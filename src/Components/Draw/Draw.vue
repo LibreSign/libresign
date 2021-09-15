@@ -16,8 +16,12 @@
 		</ul>
 
 		<div class="content">
-			<Editor v-show="isActive('draw')" :class="{'active show': isActive('draw')}" />
-			<TextInput v-show="isActive('text')"
+			<Editor
+				v-show="isActive('draw')"
+				:class="{'active show': isActive('draw')}"
+				@close="close" />
+			<TextInput
+				v-show="isActive('text')"
 				ref="text"
 				:class="{'active show': isActive('text')}"
 				@close="close" />
