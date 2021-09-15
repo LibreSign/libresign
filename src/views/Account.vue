@@ -72,7 +72,7 @@
 					</header>
 
 					<div class="content">
-						<Draw />
+						<Draw @close="closeModal" />
 					</div>
 				</div>
 			</Modal>
