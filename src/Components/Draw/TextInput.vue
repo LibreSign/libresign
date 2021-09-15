@@ -1,12 +1,14 @@
 <template>
 	<div class="container">
 		<div class="content">
-			<h1>Text</h1>
-			<canvas v-show="false"
-				ref="canvas"
-				width="560"
-				height="120" />
-			<input v-model="signaturePath" type="text">
+			<div class="text-input">
+				<canvas
+					ref="canvas"
+					v-insert-signature="signaturePath"
+					width="560"
+					height="120" />
+				<input v-model="signaturePath" type="text">
+			</div>
 			<div class="actions">
 				<button class="primary" @click="confirmSignature">
 					{{ t('libresign', 'Apply') }}
@@ -42,6 +44,16 @@ export default {
 		Modal,
 	},
 
+	directives: {
+		insertSignature: (canvasElement, binding) => {
+			const ctx = canvasElement.getContext('2d')
+			ctx.clearRect(0, 0, 560, 120)
+			ctx.fillStyle = 'black'
+			ctx.font = '30px DancingScript'
+			ctx.fillText(binding.value, 10, 50)
+		},
+	},
+
 	data: () => ({
 		signaturePath: '',
 		modal: false,
@@ -52,14 +64,17 @@ export default {
 		saveSignature() {
 			console.info(this.imageData)
 		},
+
 		closeModal() {
 			this.$emit('close')
 		},
+
 		clearCanvas() {
 			const ctx = this.$refs.canvas.getContext('2d')
 			ctx.clearRect(0, 0, 560, 120)
 			this.imageData = null
 		},
+
 		handleModal(status) {
 			this.modal = status
 		},
@@ -70,16 +85,12 @@ export default {
 		},
 
 		stringToImage() {
-			const ctx = this.$refs.canvas.getContext('2d')
-			ctx.font = '30px DancingScript'
-			ctx.fillText(this.signaturePath, 10, 50)
 			this.imageData = this.$refs.canvas.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
 		},
 
 		confirmSignature() {
 			this.stringToImage()
 			this.handleModal(true)
-
 		},
 	},
 }
@@ -104,14 +115,31 @@ export default {
 		justify-content: center;
 		align-items: center;
 
-		input{
-			width: 80%;
+		.text-input{
+			width: calc(100% - 20px);
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 22px;
+
+			input{
+				width: calc(100% - 20px);
+			}
 		}
 
 		.actions{
 			display: flex;
 			flex-direction: row;
 			align-self: flex-end;
+
+			button{
+				margin-right: 22px;
+
+				&:first-child{
+					margin-right: 15px;
+				}
+			}
 		}
 	}
 }
