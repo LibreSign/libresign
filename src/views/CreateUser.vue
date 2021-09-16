@@ -118,12 +118,11 @@
 <script>
 import md5 from 'crypto-js/md5'
 import { loadState } from '@nextcloud/initial-state'
-import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
+import { showError } from '@nextcloud/dialogs'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
 	name: 'CreateUser',
@@ -171,6 +170,9 @@ export default {
 		}
 	},
 	computed: {
+		...mapGetters({
+			errorCreateUser: 'user/getError',
+		}),
 		isEqualEmail() {
 			return this.initial.settings.accountHash === md5(this.email).toString()
 		},
@@ -212,37 +214,36 @@ export default {
 	},
 
 	methods: {
+		...mapActions({
+			createUSER: 'user/CREATE',
+			createPFXAction: 'user/CREATE_PFX',
+		}),
+
 		async createUser() {
 			this.hasLoading = true
-			try {
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${this.$route.params.uuid}`), {
-					email: this.email,
-					password: this.pass,
-					signPassword: this.pfx,
-				})
-				this.$store.commit('setPdfData', response.data)
-				showSuccess(t('libresign', 'User created!'))
-				this.passwordSign = true
-				this.hasLoading = false
-			} catch (err) {
-				showError(err.response.data.message)
+			await this.createUSER({
+				email: this.email,
+				password: this.pass,
+				signPassword: this.pfx,
+				uuid: this.$route.params.uuid,
+			})
+
+			if (this.errorCreateUser) {
 				this.passwordSign = false
+				this.hasLoading = false
+			} else {
+				this.passwordSign = true
 				this.hasLoading = false
 			}
 		},
 		async createPfx() {
 			this.hasLoading = true
+			await this.createPFXAction({ signPassword: this.pfx })
 
-			try {
-				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
-					signPassword: this.pfx,
-				})
-				this.$store.commit('setHasPfx', true)
-				showSuccess(t('libresign', 'Password created!'))
-				this.$router.push({ name: 'SignPDF' })
-			} catch (err) {
-				showError(err.response.data.message)
+			if (this.errorCreateUser) {
 				this.hasLoading = false
+			} else {
+				this.$router.push({ name: 'SignPDF' })
 			}
 		},
 		changeSizeAvatar() {
@@ -316,7 +317,9 @@ export default {
 		validatorback() {
 			if (this.validator.name === false && this.validator.passConfirm === false) {
 				if (this.email.length > 2 && this.passConfirm.length > 2) {
-					this.validator.back = true
+					if (this.isEqualEmail) {
+						this.validator.back = true
+					}
 				} else {
 					this.validator.back = false
 				}
