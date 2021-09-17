@@ -32,7 +32,7 @@
 						:user="email.length ? email : ''"
 						:size="sizeAvatar" />
 
-					<div v-show="!passwordSign" class="form-account">
+					<div v-show="controllerView === 0" class="form-account">
 						<h2>{{ t('libresign', 'You need to create an account with the same email you received the invitation') }}</h2>
 
 						<div class="group">
@@ -49,6 +49,7 @@
 								@focus="tooltip.nameFocus = true; tooltip.name = false"
 								@blur="tooltip.nameFocus = false; validationName()">
 						</div>
+
 						<div v-show="!passwordSign" class="group">
 							<input
 								v-model="pass"
@@ -63,6 +64,7 @@
 								@focus="tooltip.passFocus = true; tooltip.pass = false"
 								@blur="tooltip.passFocus = false; validationPass()">
 						</div>
+
 						<div v-show="!passwordSign" class="group">
 							<input
 								v-model="passConfirm"
@@ -79,7 +81,7 @@
 						</div>
 					</div>
 
-					<div v-show="passwordSign" class="form-password">
+					<div v-show="controllerView === 1" class="form-password">
 						<h2>{{ t('libresign', 'Set a password to sign the document') }}</h2>
 						<div
 							class="group">
@@ -91,7 +93,26 @@
 						</div>
 					</div>
 
-					<div class="buttons">
+					<div v-show="controllerView === 2" class="form-signatures-initials">
+						<div class="group">
+							<h2 v-show="!viewDraw">
+								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
+							</h2>
+							<Modal v-show="viewDraw">
+								<Draw @close="cancelCreateDraw" />
+							</Modal>
+						</div>
+						<div v-show="!viewDraw" class="actions-buttons">
+							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="handleDraw(true)">
+								{{ t('libresign', 'Yes') }}
+							</button>
+							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="handleDraw(false)">
+								{{ t('libresign', 'No') }}
+							</button>
+						</div>
+					</div>
+
+					<div v-show="controllerView !== 2" class="buttons">
 						<button
 							v-if="!passwordSign"
 							:class="hasLoading ? 'btn-load primary loading':'btn'"
@@ -121,14 +142,18 @@ import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { showError } from '@nextcloud/dialogs'
 import { mapActions, mapGetters } from 'vuex'
+import Draw from '../Components/Draw'
 
 export default {
 	name: 'CreateUser',
 	components: {
 		Content,
 		Avatar,
+		Draw,
+		Modal,
 	},
 
 	props: {
@@ -167,6 +192,8 @@ export default {
 
 			},
 			initial: null,
+			controllerView: 0,
+			viewDraw: false,
 		}
 	},
 	computed: {
@@ -218,6 +245,18 @@ export default {
 			createUSER: 'user/CREATE',
 			createPFXAction: 'user/CREATE_PFX',
 		}),
+
+		handleDraw(status) {
+			this.viewDraw = status
+		},
+
+		handleViews(view) {
+			this.controllerView = view
+		},
+
+		cancelCreateDraw() {
+			this.$router.push({ name: 'SignPDF' })
+		},
 
 		async createUser() {
 			this.hasLoading = true
