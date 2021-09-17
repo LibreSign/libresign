@@ -99,7 +99,7 @@
 								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
 							</h2>
 							<Modal v-show="viewDraw">
-								<Draw @close="cancelCreateDraw" />
+								<Draw @close="cancelCreateDraw" @save="saveSignatureAndInitials" />
 							</Modal>
 						</div>
 						<div v-show="!viewDraw" class="actions-buttons">
@@ -252,6 +252,10 @@ export default {
 
 		handleViews(view) {
 			this.controllerView = view
+		},
+
+		saveSignatureAndInitials(param) {
+			console.info(param)
 		},
 
 		cancelCreateDraw() {
