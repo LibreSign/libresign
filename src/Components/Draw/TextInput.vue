@@ -6,6 +6,7 @@
 					ref="canvas"
 					v-insert-signature="signaturePath"
 					class="canva"
+					width="540"
 					height="120" />
 				<input ref="input" v-model="signaturePath" type="text">
 				<span> {{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}</span>
@@ -123,7 +124,7 @@ export default {
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		width: 80%;
+		width: 100%;
 
 		.text-input{
 			width: calc(100% - 20px);
