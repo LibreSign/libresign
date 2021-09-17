@@ -130,6 +130,7 @@ OC.L10N.register(
     "Create an account" : "Vytvoriť účet",
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
+    "Page not found" : "Stránka nenájdená",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ospravedlňujeme sa, ale hľadaná stránka neexistuje, bola odstránená, presunutá alebo je dočasne nedostupná.",
     "See Document Validation" : "Pozrite si Overenie dokumentu",
     "Congratulations you have digitally signed a document using LibreSign" : "Blahoželáme vám, že ste digitálne podpísali dokument pomocou LibreSign",

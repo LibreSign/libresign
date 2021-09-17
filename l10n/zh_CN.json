@@ -127,6 +127,7 @@
     "Create an account" : "创建一个账号",
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
+    "Page not found" : "未找到页面",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "对不起，你正在寻找的页面不存在、已被删除、移动或暂时不可用。",
     "See Document Validation" : "参见文档验证",
     "Congratulations you have digitally signed a document using LibreSign" : "祝贺您使用LibreSign对文档进行了数字签名 ",

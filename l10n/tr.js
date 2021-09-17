@@ -130,6 +130,7 @@ OC.L10N.register(
     "Create an account" : "Hesap açın",
     "User created!" : "Kullanıcı eklendi!",
     "Password created!" : "Parola oluşturuldu!",
+    "Page not found" : "Sayfa bulunamadı",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Maalesef aradığınız sayfa bulunamadı. Silinmiş, taşınmış ya da geçici olarak kullanılamıyor olabilir.",
     "See Document Validation" : "Belge doğrulamasına bakın",
     "Congratulations you have digitally signed a document using LibreSign" : "Tebrikler, LibreSign kullanarak bir belgeyi imzaladınız",

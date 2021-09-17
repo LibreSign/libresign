@@ -117,7 +117,7 @@ OC.L10N.register(
     "New password to sign documents has been created" : "Ein neues Passwort zum Signieren von Dokumenten wurde erstellt",
     "Error creating new password, please contact the administrator" : "Fehler beim Erstellem des neune Passworts, bitte kontaktiere Deinen Administrator.",
     "Create new subscription." : "Erstelle ein neues Abonnement",
-    "Root certificate has not been configured by the Administrator!" : "Wurzelzertifikat wurde vom Admin noch nicht konfiguriert!",
+    "Root certificate has not been configured by the Administrator!" : "Wurzelzertifikat wurde vom Administrator noch nicht konfiguriert!",
     "You need to create an account with the same email you received the invitation" : "Du musst ein Konto mit derselben E-Mail-Adresse erstellen, über die Du die Einladung erhalten hast",
     "The email entered is not the same as the email in the invitation" : "Die eingegebene E-Mail-Adresse stimmt nicht mit der Adresse in der Einladung überein",
     "Password must be at least 3 characters." : "Passwort muss mindestens 3 Zeichen haben.",
