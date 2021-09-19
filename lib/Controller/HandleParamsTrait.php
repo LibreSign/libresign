@@ -12,4 +12,8 @@ trait HandleParamsTrait {
 			}
 		}
 	}
+
+	protected function trimParams(array $params): array {
+		return array_map('trim', $params);
+	}
 }

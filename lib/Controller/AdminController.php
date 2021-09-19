@@ -36,7 +36,7 @@ class AdminController extends Controller {
 		string $configPath = null
 	): DataResponse {
 		try {
-			$this->checkParams([
+			$params = $this->trimParams([
 				'commonName' => $commonName,
 				'country' => $country,
 				'organization' => $organization,
@@ -45,14 +45,9 @@ class AdminController extends Controller {
 				'configPath' => $configPath
 			]);
 
-			$this->adminSignatureService->generate(
-				$commonName,
-				$country,
-				$organization,
-				$organizationUnit,
-				$cfsslUri,
-				$configPath
-			);
+			$this->checkParams($params);
+
+			$this->adminSignatureService->generate(...array_values($params));
 
 			return new DataResponse([
 				'success' => true
