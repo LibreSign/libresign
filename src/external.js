@@ -31,7 +31,8 @@ import External from './External'
 import router from './router'
 import store from './store'
 
-import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
+import './directives/VTooltip'
+import './plugins/vuelidate'
 
 import '@nextcloud/dialogs/styles/toast.scss'
 
@@ -47,8 +48,6 @@ __webpack_nonce__ = btoa(getRequestToken())
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
 sync(store, router)
-
-Vue.directive('Tooltip', VTooltip)
 
 Vue.prototype.t = t
 Vue.prototype.n = n
