@@ -26,7 +26,8 @@
 		<div id="container">
 			<div class="bg">
 				<form>
-					<Avatar id="avatar"
+					<Avatar v-show="controllerView !==3"
+						id="avatar"
 						:is-guest="true"
 						:disable-menu="true"
 						:user="email.length ? email : ''"
@@ -113,6 +114,9 @@
 								{{ t('libresign', 'No') }}
 							</button>
 						</div>
+					</div>
+					<div v-show="controllerView === 3" class="form-sucess">
+						<h2>{{ t('libresign', 'Congratulations, you have created your account. Please wait, we will redirect you to the requested signature file.') }}</h2>
 					</div>
 				</form>
 			</div>
@@ -241,7 +245,6 @@ export default {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
 		this.initial = JSON.parse(loadState('libresign', 'config'))
-		console.info('params: ', this.$route.params)
 	},
 
 	methods: {
@@ -255,6 +258,13 @@ export default {
 
 		handleDraw(status) {
 			this.viewDraw = status
+		},
+
+		createSuccess() {
+			this.controllerView = 3
+			setTimeout(() => {
+				this.$router.push({ name: 'SignPDF' })
+			}, 5000)
 		},
 
 		handleViews(view) {
