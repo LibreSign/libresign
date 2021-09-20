@@ -30,6 +30,17 @@ form{
 	width: 100%;
 	margin: 10px 0px 10px 0px;
 	z-index: 3;
+
+	.form-sucess {
+		margin: 15px;
+		font-size: 1.3rem;
+		font-weight: normal;
+		text-align: justify;
+		align-self: center;
+		width: 50%;
+		margin-left: auto;
+		margin-right: auto;
+	}
 }
 
 form > div{
