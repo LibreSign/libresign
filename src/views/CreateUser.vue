@@ -37,47 +37,41 @@
 
 						<div class="group">
 							<input
-								v-model="email"
-								v-tooltip.top="{
-									content: t('libresign', 'The email entered is not the same as the email in the invitation'),
-									show: tooltip.email,
-									trigger: 'false'
-								}"
+								v-model.trim="$v.email.$model"
 								type="email"
-								:required="validator.name"
-								:placeholder="t('libresign', 'Email')"
-								@focus="tooltip.nameFocus = true; tooltip.name = false"
-								@blur="tooltip.nameFocus = false; validationName()">
+								:placeholder="t('libresign', 'Email')">
+							<span v-show="showErrorEmail" class="error">
+								{{ emailError }}
+							</span>
 						</div>
 
 						<div v-show="!passwordSign" class="group">
 							<input
-								v-model="pass"
-								v-tooltip.bottom="{
-									content: t('libresign', 'Password must be at least 3 characters.'),
-									show: tooltip.pass,
-									trigger: 'false'
-								}"
+								v-model.trim="$v.password.$model"
 								type="password"
-								:required="validator.pass"
-								:placeholder="t('libresign', 'Password')"
-								@focus="tooltip.passFocus = true; tooltip.pass = false"
-								@blur="tooltip.passFocus = false; validationPass()">
+								:placeholder="t('libresign', 'Password')">
+							<span v-show="$v.password.$error">
+								{{ t('libresign', 'Your password must be greater than 4 digits') }}
+							</span>
 						</div>
 
 						<div v-show="!passwordSign" class="group">
 							<input
-								v-model="passConfirm"
-								v-tooltip.bottom="{
-									content: t('libresign', 'Passwords do not match'),
-									show: tooltip.passConfirm,
-									trigger: 'false'
-								}"
+								v-model.trim="$v.passwordConfirm.$model"
 								type="password"
-								:required="validator.passConfirm"
-								:placeholder="t('libresign', 'Confirm password')"
-								@focus="tooltip.passConfirmFocus = true; tooltip.passConfirm = false"
-								@blur="tooltip.passConfirmFocus = false; validationPasswords()">
+								:placeholder="t('libresign', 'Confirm password')">
+							<span v-show="!isEqualPassword">
+								{{ t('libresign', 'Passwords does not match') }}
+							</span>
+						</div>
+
+						<div class="buttons">
+							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'"
+								:disabled="!hableCreateUserButton"
+								type="submit"
+								@click.prevent="createUser">
+								{{ t('libresign', 'Next') }}
+							</button>
 						</div>
 					</div>
 
@@ -88,8 +82,16 @@
 							<input
 								v-model="pfx"
 								type="password"
-								:required="validator.pfx"
 								:placeholder="t('libresign', 'Password for sign document.')">
+						</div>
+						<div class="buttons">
+							<button
+								ref="btn"
+								:class="hasLoading ? 'btn-load primary loading':'btn'"
+								:disabled="hableCreatePfx"
+								@click.prevent="createPfx">
+								{{ t('libresign', 'Create password to sign document') }}
+							</button>
 						</div>
 					</div>
 
@@ -111,25 +113,6 @@
 							</button>
 						</div>
 					</div>
-
-					<div v-show="controllerView !== 2" class="buttons">
-						<button
-							v-if="!passwordSign"
-							:class="hasLoading ? 'btn-load primary loading':'btn'"
-							:disabled="!validator.back"
-							type="submit"
-							@click.prevent="createUser">
-							{{ t('libresign', 'Next') }}
-						</button>
-
-						<button v-if="passwordSign"
-							ref="btn"
-							:class="hasLoading ? 'btn-load primary loading':'btn'"
-							:disabled="!validator.btn"
-							@click.prevent="createPfx">
-							{{ t('libresign', 'Create password to sign document') }}
-						</button>
-					</div>
 				</form>
 			</div>
 		</div>
@@ -140,11 +123,14 @@
 import md5 from 'crypto-js/md5'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
+import { showError } from '@nextcloud/dialogs'
+import { mapActions, mapGetters } from 'vuex'
+
+import { required, email, minLength } from 'vuelidate/lib/validators'
+
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
-import { showError } from '@nextcloud/dialogs'
-import { mapActions, mapGetters } from 'vuex'
 import Draw from '../Components/Draw'
 
 export default {
@@ -159,78 +145,88 @@ export default {
 	props: {
 		messageToast: {
 			type: String,
-			default: 'Create a user',
+			default: 'Create user',
 		},
 	},
 
 	data() {
 		return {
-			btnRegisterName: t('libresign', 'Create an account'),
 			hasLoading: false,
 			email: '',
-			pass: '',
-			passConfirm: '',
+			password: '',
+			passwordConfirm: '',
 			pfx: '',
 			sizeAvatar: 100,
 			passwordSign: false,
-			validator: {
-				name: false,
-				pass: false,
-				passConfirm: false,
-				pfx: false,
-				btn: false,
-				back: false,
-			},
-			tooltip: {
-				name: false,
-				email: false,
-				nameFocus: false,
-				pass: false,
-				passFocus: false,
-				passConfirm: false,
-				passConfirmFocus: false,
-
-			},
 			initial: null,
 			controllerView: 0,
 			viewDraw: false,
 		}
 	},
+
+	validations: {
+		email: { required, email },
+		password: { required, minLength: minLength(4) },
+		passwordConfirm: { required, minLength: minLength(4) },
+		pfx: { required, minLength: minLength(4) },
+	},
+
 	computed: {
 		...mapGetters({
 			errorCreateUser: 'user/getError',
 		}),
+		isValidCreateUser() {
+			return this.$v.email.$invalid && !this.$v.password.$invalid
+						&& (this.$v.password.$model === this.$v.passwordConfirm.$model
+						)
+		},
+		emailError() {
+			if (this.$v.email.$model) {
+				if (this.$v.email.$error) {
+					return t('libresign', 'This is not a valid email')
+				} else if (this.isEqualEmail === false) {
+					return t('libresign', 'The email entered is not the same as the email in the invitation')
+				}
+			}
+			return ''
+		},
+		showErrorEmail() {
+			if (this.$v.email.$dirty) {
+				return this.emailError.length > 2
+			}
+			return 0
+		},
+		passwordError() {
+			if (this.$v.password.$model && this.$v.passwordConfirm.$model) {
+				return t('libresign', 'Your password must be greater than 4 digits')
+			}
+			return ''
+		},
+		showErrorPassword() {
+			if (this.$v.password.$model) {
+				return this.$v.password.$error
+			}
+			return 0
+		},
+		isEqualPassword() {
+			return this.password === this.passwordConfirm
+		},
 		isEqualEmail() {
 			return this.initial.settings.accountHash === md5(this.email).toString()
 		},
-		alignButtons() {
-			if (this.hasLoading) {
-				return 'btn-load primary loading'
+		hableCreateUserButton() {
+			if (this.$v.email.$model) {
+				if (this.isEqualEmail) {
+					if (this.isEqualPassword) {
+						return true
+					}
+					return false
+				}
 			}
-			if (!this.passwordSign) {
-				return 'btn-align'
-			}
-			return 'btn'
+			return false
 		},
-	},
-	watch: {
-		email() {
-			this.validationName()
-			this.validationBtn()
-		},
-		pass() {
-			this.validationPass()
-			this.validationPasswords()
-			this.validationBtn()
-		},
-		passConfirm() {
-			this.validationPassConfirm()
-			this.validationPasswords()
-			this.validatorback()
-		},
-		pfx() {
-			this.validationPfx()
-			this.validationBtn()
+		hableCreatePfx() {
+			return this.$v.pfx.$model ? this.$v.pfx.$error : false
 		},
 	},
 
@@ -238,6 +234,7 @@ export default {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
 		this.initial = JSON.parse(loadState('libresign', 'config'))
+		console.info('params: ', this.$route.params)
 	},
 
 	methods: {
@@ -245,6 +242,9 @@ export default {
 			createUSER: 'user/CREATE',
 			createPFXAction: 'user/CREATE_PFX',
 		}),
+		isEqual(val1, val2) {
+			return val1 === val2
+		},
 
 		handleDraw(status) {
 			this.viewDraw = status
@@ -266,8 +266,7 @@ export default {
 			this.hasLoading = true
 			await this.createUSER({
 				email: this.email,
-				password: this.pass,
-				signPassword: this.pfx,
+				password: this.password,
 				uuid: this.$route.params.uuid,
 			})
 
@@ -277,8 +276,10 @@ export default {
 			} else {
 				this.passwordSign = true
 				this.hasLoading = false
+				this.controllerView = 1
 			}
 		},
+
 		async createPfx() {
 			this.hasLoading = true
 			await this.createPFXAction({ signPassword: this.pfx })
@@ -286,100 +287,11 @@ export default {
 			if (this.errorCreateUser) {
 				this.hasLoading = false
 			} else {
-				this.$router.push({ name: 'SignPDF' })
+				this.controllerView = 2
 			}
 		},
 		changeSizeAvatar() {
 			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
-		},
-		validationName() {
-			this.isEqualEmail === false ? this.tooltip.email = true : this.tooltip.email = false
-
-			if (this.email.length < 3) {
-				this.validator.name = true
-				if (this.tooltip.nameFocus === false) {
-					this.tooltip.name = true
-				} else {
-					this.tooltip.name = false
-					this.tooltip.name = false
-				}
-			} else {
-				this.validator.name = false
-				this.tooltip.name = false
-			}
-		},
-		validationPass() {
-			if (this.pass.length < 3) {
-				this.validator.pass = true
-				if (this.tooltip.passFocus === false) {
-					this.tooltip.pass = true
-				} else {
-					this.tooltip.pass = false
-				}
-			} else {
-				this.validator.pass = false
-				this.tooltip.pass = false
-			}
-			if (this.pass.length > 0 && this.passConfirm.length > 0 && this.pass !== this.passConfirm) {
-				this.validator.pass = true
-				this.validator.passConfirm = true
-			} else {
-				this.validator.pass = false
-				this.validator.passConfirm = false
-			}
-		},
-		validationPassConfirm() {
-			if (this.passConfirm.length < 3) {
-				this.validator.passConfirm = true
-			} else {
-				this.validator.passConfirm = false
-				this.validator.pass = false
-			}
-		},
-		validationPfx() {
-			if (this.pfx.length < 3) {
-				this.validator.pfx = true
-			} else {
-				this.validator.pfx = false
-			}
-		},
-		validationPasswords() {
-			if (this.pass !== this.passConfirm) {
-				this.validator.pass = true
-				this.validator.passConfirm = true
-				if (this.tooltip.passConfirmFocus === false && this.tooltip.passFocus === false) {
-					this.tooltip.passConfirm = true
-				} else {
-					this.tooltip.passConfirm = false
-				}
-			} else {
-				this.validator.pass = false
-				this.validator.passConfirm = false
-			}
-		},
-		validatorback() {
-			if (this.validator.name === false && this.validator.passConfirm === false) {
-				if (this.email.length > 2 && this.passConfirm.length > 2) {
-					if (this.isEqualEmail) {
-						this.validator.back = true
-					}
-				} else {
-					this.validator.back = false
-				}
-			} else {
-				this.validator.back = false
-			}
-		},
-		validationBtn() {
-			if (this.validator.name === false && this.validator.passConfirm === false && this.validator.pfx === false) {
-				if (this.email.length > 2 && this.passConfirm.length > 2 && this.pfx.length > 2) {
-					this.validator.btn = true
-				} else {
-					this.validator.btn = false
-				}
-			} else {
-				this.validator.btn = false
-			}
 		},
 	},
 }
