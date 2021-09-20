@@ -80,9 +80,10 @@
 						<div
 							class="group">
 							<input
-								v-model="pfx"
+								v-model="$v.pfx.$model"
 								type="password"
 								:placeholder="t('libresign', 'Password for sign document.')">
+							<span v-show="showPfxError">{{ t('libresign', 'Your password must be greater than 4 digits') }} </span>
 						</div>
 						<div class="buttons">
 							<button
@@ -207,6 +208,12 @@ export default {
 				return this.$v.password.$error
 			}
 			return 0
+		},
+		showPfxError() {
+			if (this.$v.pfx.$model) {
+				return this.$v.pfx.$error
+			}
+			return false
 		},
 		isEqualPassword() {
 			return this.password === this.passwordConfirm
