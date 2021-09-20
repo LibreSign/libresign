@@ -30,7 +30,7 @@ import Validation from './views/Validation'
 import router from './router'
 import store from './store'
 
-import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
+import './directives/VTooltip'
 
 import '@nextcloud/dialogs/styles/toast.scss'
 
@@ -47,8 +47,6 @@ __webpack_public_path__ = generateFilePath('libresign', '', 'js/');
 
 sync(store, router)
 
-Vue.directive('Tooltip', VTooltip)
-
 Vue.prototype.t = t
 Vue.prototype.n = n
 
@@ -56,8 +54,7 @@ Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
 
 if (
-	window.location.pathname.split('/')[1] === 'index.php'
-  && OC.config.modRewriteWorking
+	window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking
 ) {
 	router.push({ name: 'Validation' })
 }
