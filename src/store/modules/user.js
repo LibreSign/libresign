@@ -27,13 +27,12 @@ const mutations = {
 }
 
 const actions = {
-	CREATE: async({ commit, dispatch }, { email, password, signPassword, uuid }) => {
+	CREATE: async({ commit, dispatch }, { email, password, uuid }) => {
 		try {
 			dispatch('CLEAR_ERROR')
 			const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${uuid}`), {
 				email,
 				password,
-				signPassword,
 			})
 			console.info(response)
 			if (response.data.sucess === false) {
