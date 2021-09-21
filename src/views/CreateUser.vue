@@ -102,15 +102,16 @@
 							<h2 v-show="!viewDraw">
 								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
 							</h2>
-							<Modal v-show="viewDraw">
-								<Draw @close="cancelCreateDraw" @save="saveSignatureAndInitials" />
+							<Modal v-show="viewDraw" @close="createSuccess">
+								<Draw @close="createSuccess" @save="saveSignatureAndInitials" />
 							</Modal>
 						</div>
+
 						<div v-show="!viewDraw" class="actions-buttons">
 							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="handleDraw(true)">
 								{{ t('libresign', 'Yes') }}
 							</button>
-							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="handleDraw(false)">
+							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="createSuccess">
 								{{ t('libresign', 'No') }}
 							</button>
 						</div>
@@ -262,9 +263,10 @@ export default {
 
 		createSuccess() {
 			this.controllerView = 3
+
 			setTimeout(() => {
 				this.$router.push({ name: 'SignPDF' })
-			}, 5000)
+			}, 3000)
 		},
 
 		handleViews(view) {
