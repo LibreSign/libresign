@@ -128,6 +128,7 @@
     "Create an account" : "建立帳號",
     "User created!" : "使用者已建立！",
     "Password created!" : "已建立密碼！",
+    "Page not found" : "找不到頁面",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，但您正在尋找的頁面並不存在，可能已被移除、移動或暫時無法使用。",
     "See Document Validation" : "檢視文件驗證",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜，您使用 LibreSign 數位簽署了文件",

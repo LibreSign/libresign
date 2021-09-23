@@ -130,6 +130,7 @@ OC.L10N.register(
     "Create an account" : "Sortu kontu bat ",
     "User created!" : "Erabiltzailea sortuta!",
     "Password created!" : "Pasahitza sortu da!",
+    "Page not found" : "Orria ez da aurkitu",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Bilatzen ari zaren orria ez da existitzen, kendu egin da, mugitu egin da edo aldi baterako ez dago erabilgarri.",
     "See Document Validation" : "Ikus dokumentuen baliozkotzea",
     "Congratulations you have digitally signed a document using LibreSign" : "Zorionak, LibreSign erabiliz dokumentu bat digitalki sinatu duzu",
