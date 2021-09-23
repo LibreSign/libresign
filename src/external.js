@@ -33,6 +33,7 @@ import store from './store'
 
 import './directives/VTooltip'
 import './plugins/vuelidate'
+import './init'
 
 import '@nextcloud/dialogs/styles/toast.scss'
 
@@ -58,6 +59,8 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'ExternalRoot' })
 }
+
+store.dispatch('GET_STATES')
 
 store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 
