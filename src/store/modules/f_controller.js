@@ -41,8 +41,9 @@ const actions = {
 		dispatch('GET_CONFIG_ENABLED_FEATURES')
 	},
 	ENABLE_FEATURE: async({ state, dispatch, getters }, feature) => {
-		const newF = state.enabledFeatures
-		const newEnabled = [...newF, feature]
+		dispatch('GET_STATES')
+
+		const newEnabled = [...state.enabledFeatures, feature]
 		const parsed = JSON.stringify(newEnabled)
 
 		OCP.AppConfig.setValue('libresign', 'features_enabled', parsed)
