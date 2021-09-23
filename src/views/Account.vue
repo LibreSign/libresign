@@ -38,7 +38,7 @@
 				</div>
 			</div>
 
-			<div class="user sinatures">
+			<div v-if="enabledFeatures.includes('manage_signatures')" class="user sinatures">
 				<h1>{{ t('libresign', 'Your signatures') }}</h1>
 				<div class="signature-fav">
 					<header>
@@ -117,6 +117,7 @@ export default {
 			modalStatus: 'modal/getStatus',
 			haveSignature: 'signatures/haveSignatures',
 			haveInitials: 'signatures/haveInitials',
+			enabledFeatures: 'fController/getEnabledFeatures',
 		}),
 	},
 	methods: {
