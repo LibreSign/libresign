@@ -32,6 +32,7 @@ import error from './modules/errors'
 import modal from './modules/modal'
 import signatures from './modules/signatures'
 import user from './modules/user'
+import fController from './modules/f_controller'
 
 Vue.use(Vuex)
 
@@ -109,5 +110,6 @@ export default new Store({
 		modal,
 		signatures,
 		user,
+		fController,
 	},
 })

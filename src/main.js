@@ -27,6 +27,7 @@ import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import './init'
 
 import './plugins/vuelidate'
 import './directives/VTooltip'
