@@ -27,10 +27,10 @@ import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
-import './init'
 
 import './plugins/vuelidate'
 import './directives/VTooltip'
+import './init'
 
 import App from './App'
 import router from './router'
@@ -62,6 +62,8 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'home' })
 }
+
+store.dispatch('fController/GET_STATES')
 
 store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 
