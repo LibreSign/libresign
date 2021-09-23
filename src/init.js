@@ -10,3 +10,6 @@ if (window.OCA && !window.OCA.LibreSign) {
 window.OCA.LibreSign.enableFeature = (feature) => {
 	store.dispatch('fController/ENABLE_FEATURE', feature)
 }
+window.OCA.LibreSign.getFeatures = () => {
+	store.dispatch('fController/GET_STATES')
+}
