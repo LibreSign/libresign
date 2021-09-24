@@ -180,7 +180,7 @@ export default {
 	computed: {
 		...mapGetters({
 			errorCreateUser: 'user/getError',
-			enabledFeatures: 'fController/getEnabledFeatures',
+			enabledFeatures: 'featureController/getEnabledFeatures',
 		}),
 		isValidCreateUser() {
 			return this.$v.email.$invalid && !this.$v.password.$invalid

@@ -8,13 +8,13 @@ if (window.OCA && !window.OCA.LibreSign) {
 
 // Enable NewFeature
 window.OCA.LibreSign.enableFeature = (feature) => {
-	store.dispatch('fController/ENABLE_FEATURE', feature)
+	store.dispatch('featureController/ENABLE_FEATURE', feature)
 }
 window.OCA.LibreSign.disableFeature = (feature) => {
-	store.dispatch('fController/DISABLE_FEATURE', feature)
+	store.dispatch('featureController/DISABLE_FEATURE', feature)
 }
 window.OCA.LibreSign.getFeatures = () => {
-	store.dispatch('fController/GET_STATES')
-	console.debug('Features: ', store.state.fController.features)
-	console.debug('Enabled Features: ', store.state.fController.enabledFeatures)
+	store.dispatch('featureController/GET_STATES')
+	console.debug('Features: ', store.state.featureController.features)
+	console.debug('Enabled Features: ', store.state.featureController.enabledFeatures)
 }

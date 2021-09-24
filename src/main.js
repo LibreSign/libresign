@@ -63,7 +63,7 @@ if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewri
 	router.push({ name: 'home' })
 }
 
-store.dispatch('fController/GET_STATES')
+store.dispatch('featureController/GET_STATES')
 
 store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 

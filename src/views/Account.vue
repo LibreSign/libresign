@@ -117,7 +117,7 @@ export default {
 			modalStatus: 'modal/getStatus',
 			haveSignature: 'signatures/haveSignatures',
 			haveInitials: 'signatures/haveInitials',
-			enabledFeatures: 'fController/getEnabledFeatures',
+			enabledFeatures: 'featureController/getEnabledFeatures',
 		}),
 		isModalSignature() {
 			return this.enabledFeatures.includes('manage_signatures') ? this.modalStatus : false
