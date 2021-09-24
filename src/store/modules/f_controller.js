@@ -21,6 +21,17 @@ const mutations = {
 	setEnabledFeatures: (state, feature) => {
 		state.enabledFeatures = feature
 	},
+	apiFeature: async(feature) => {
+		try {
+			const response = await axios.post(
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/features_enabled', {
+					value: feature,
+				})
+			console.info(response)
+		} catch (err) {
+			console.error(err)
+		}
+	},
 }
 
 const actions = {
@@ -44,8 +55,8 @@ const actions = {
 		dispatch('GET_CONFIG_FEATURES')
 		dispatch('GET_CONFIG_ENABLED_FEATURES')
 	},
-	ENABLE_FEATURE: async({ state, dispatch, getters }, feature) => {
-		dispatch('GET_STATES')
+	ENABLE_FEATURE: async({ state, dispatch, commit }, feature) => {
+		await dispatch('GET_STATES')
 
 		if (!state.features.includes(feature)) {
 			return console.error(t('libresign', 'This feature does not exist.'))
@@ -58,12 +69,14 @@ const actions = {
 		const newEnabled = [...state.enabledFeatures, feature]
 		const parsed = JSON.stringify(newEnabled)
 
-		OCP.AppConfig.setValue('libresign', 'features_enabled', parsed)
+		await OCP.AppConfig.setValue('libresign', 'features_enabled', parsed)
 
-		dispatch('GET_STATES')
+		setTimeout(() => {
+			dispatch('GET_STATES')
+		}, 2000)
 		console.debug(t('libresign', 'Feature enabled.'))
 	},
-	DISABLE_FEATURE: async({ state, getters, dispatch }, feature) => {
+	DISABLE_FEATURE: async({ state, getters, dispatch, commit }, feature) => {
 		dispatch('GET_STATES')
 
 		const enabledState = getters.getEnabledFeatures
@@ -74,15 +87,23 @@ const actions = {
 
 		if (enabledState.length <= 1) {
 			OCP.AppConfig.setValue('libresign', 'features_enabled', '')
+			// commit('apiFeature', '')
+			setTimeout(() => {
+				dispatch('GET_STATES')
+			}, 2000)
 			return console.debug(t('libresign', 'Feature disabled.'))
 
 		}
 
 		const newEnabled = enabledState.splice(enabledState.indexOf(feature), 1)
 		const parsed = JSON.stringify(newEnabled)
+		commit('apiFeature', parsed)
 
 		OCP.AppConfig.setValue('libresign', 'features_enabled', parsed)
-		dispatch('GET_STATES')
+
+		setTimeout(() => {
+			dispatch('GET_STATES')
+		}, 3000)
 		console.debug(t('libresign', 'Feature disabled.'))
 
 	},
