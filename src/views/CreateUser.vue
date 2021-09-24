@@ -306,8 +306,10 @@ export default {
 
 			if (this.errorCreateUser) {
 				this.hasLoading = false
-			} else {
+			} else if (this.enabledFeatures.includes('manage_signatures')) {
 				this.controllerView = 2
+			} else {
+				this.createSuccess()
 			}
 		},
 		changeSizeAvatar() {
