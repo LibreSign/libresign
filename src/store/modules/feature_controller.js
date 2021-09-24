@@ -62,8 +62,8 @@ const actions = {
 
 		setTimeout(() => {
 			dispatch('GET_STATES')
-		}, 2000)
-		console.debug(t('libresign', 'Feature enabled.'))
+			console.debug(t('libresign', 'Feature enabled.'))
+		}, 5000)
 	},
 	DISABLE_FEATURE: async({ state, getters, dispatch, commit }, feature) => {
 		dispatch('GET_STATES')
@@ -78,8 +78,8 @@ const actions = {
 			OCP.AppConfig.setValue('libresign', 'features_enabled', '')
 			setTimeout(() => {
 				dispatch('GET_STATES')
+				return console.debug(t('libresign', 'Feature disabled.'))
 			}, 2000)
-			return console.debug(t('libresign', 'Feature disabled.'))
 
 		}
 
@@ -90,8 +90,8 @@ const actions = {
 
 		setTimeout(() => {
 			dispatch('GET_STATES')
+			console.debug(t('libresign', 'Feature disabled.'))
 		}, 3000)
-		console.debug(t('libresign', 'Feature disabled.'))
 
 	},
 }
