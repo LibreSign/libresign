@@ -34,13 +34,13 @@ const actions = {
 				email,
 				password,
 			})
-			console.info(response)
 			if (response.data.sucess === false) {
 				commit('setError', response.data.message)
 			}
+
 			commit('setPdfData', response.data, { root: true })
 			dispatch('files/SET_FILE_TO_SIGN', response.data, { root: true })
-			showSuccess('libresign', 'User created!')
+			showSuccess(t('libresign', 'User created!'))
 		} catch (err) {
 			showError(err.response.data.message)
 			console.info(err.response)
