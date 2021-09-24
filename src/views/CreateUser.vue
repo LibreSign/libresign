@@ -97,7 +97,7 @@
 						</div>
 					</div>
 
-					<div v-show="controllerView === 2" class="form-signatures-initials">
+					<div v-show="controllerView === 2" v-if="enabledFeatures.includes('manage_signatures')" class="form-signatures-initials">
 						<div class="group">
 							<h2 v-show="!viewDraw">
 								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
@@ -180,6 +180,7 @@ export default {
 	computed: {
 		...mapGetters({
 			errorCreateUser: 'user/getError',
+			enabledFeatures: 'fController/getEnabledFeatures',
 		}),
 		isValidCreateUser() {
 			return this.$v.email.$invalid && !this.$v.password.$invalid
