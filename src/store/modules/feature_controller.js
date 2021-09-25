@@ -44,6 +44,24 @@ const actions = {
 		dispatch('GET_CONFIG_FEATURES')
 		dispatch('GET_CONFIG_ENABLED_FEATURES')
 	},
+	SET_NEW_FEATURE: async({ state, dispatch }, feature) => {
+		await dispatch('GET_STATES')
+		console.info('t', state.features.includes(feature))
+
+		if (state.features.includes(feature)) {
+			return console.error(t('libresign', 'This feature already exists'))
+		}
+
+		const newFeatures = [...state.features, feature]
+		const parsed = JSON.stringify(newFeatures)
+
+		await OCP.AppConfig.setValue('libresign', 'features', parsed)
+
+		setTimeout(() => {
+			dispatch('GET_STATES')
+			console.debug(t('libresign', 'Feature {feature} enabled', { feature }))
+		}, 3000)
+	},
 	ENABLE_FEATURE: async({ state, dispatch, commit }, feature) => {
 		await dispatch('GET_STATES')
 
