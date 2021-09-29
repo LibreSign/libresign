@@ -26,7 +26,7 @@ const mutations = {
 }
 
 const actions = {
-	fetchSignatures: async({ commit }) => {
+	FETCH_SIGNATURES: async({ commit }) => {
 		const response = await apiClient.loadSignatures()
 		const signature = response.filter(arr => arr.type === 'signature')
 		const initials = response.filter(arr => arr.type === 'initials')
@@ -34,7 +34,7 @@ const actions = {
 		commit('setSignature', signature)
 		commit('setInitials', initials)
 	},
-	getElement: async({ commit }, { id }) => {
+	GET_ELEMENTS: async({ commit }, { id }) => {
 		const response = await apiClient.newSignature(id)
 
 		if (response.type === 'signature') {
@@ -43,7 +43,7 @@ const actions = {
 			commit('signature/setInitials', response)
 		}
 	},
-	newSignature: async({ commit }, { type, file }) => {
+	NEW_SIGNATURE: async({ commit }, { type, file }) => {
 		try {
 			const response = await apiClient.newElement({ type, file })
 			showSuccess(response.message)
