@@ -19,11 +19,13 @@
 			<Editor
 				v-show="isActive('draw')"
 				:class="{'active show': isActive('draw')}"
-				@close="close" />
+				@close="close"
+				@save="save" />
 			<TextInput
 				v-show="isActive('text')"
 				ref="text"
 				:class="{'active show': isActive('text')}"
+				@save="save"
 				@close="close" />
 		</div>
 	</div>
@@ -49,6 +51,9 @@ export default {
 		},
 		close() {
 			this.$emit('close')
+		},
+		save(param) {
+			this.$emit('save', param)
 		},
 		setActive(tabItem) {
 			if (tabItem === 'text') {

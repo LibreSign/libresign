@@ -6,6 +6,7 @@
 					ref="canvas"
 					v-insert-signature="signaturePath"
 					class="canva"
+					width="540"
 					height="120" />
 				<input ref="input" v-model="signaturePath" type="text">
 				<span> {{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}</span>
@@ -38,6 +39,7 @@
 
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import '@fontsource/dancing-script'
 
 export default {
 	name: 'TextInput',
@@ -50,7 +52,7 @@ export default {
 			const ctx = canvasElement.getContext('2d')
 			ctx.clearRect(0, 0, 560, 120)
 			ctx.fillStyle = 'black'
-			ctx.font = '30px DancingScript'
+			ctx.font = "30px 'Dancing Script'"
 			ctx.fillText(binding.value, 10, 50)
 		},
 	},
@@ -67,8 +69,6 @@ export default {
 		},
 
 		setFocus() {
-			console.info('FOCUS')
-
 			this.$nextTick(() => {
 				this.$refs.input.focus()
 			})
@@ -106,12 +106,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@font-face {
-	font-family: 'DancingScript';
-	src: local('DancingScript'),
-		url(../../assets/fonts/DancingScript/DancingScript.ttf?raw=true) format('truetype')
-}
-
 .container{
 	display: flex;
 	width: 100%;
@@ -123,7 +117,7 @@ export default {
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		width: 80%;
+		width: 100%;
 
 		.text-input{
 			width: calc(100% - 20px);

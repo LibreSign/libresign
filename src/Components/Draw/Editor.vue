@@ -14,6 +14,7 @@
 			<canvas id="myCanvas"
 				ref="canvas"
 				class="canvas"
+				width="540"
 				height="260"
 				@mousedown="beginDrawing"
 				@mousemove="keepDrawing"
@@ -155,7 +156,7 @@ export default {
 			this.$emit('close')
 		},
 		saveSignature() {
-			console.info(this.imageData)
+			this.$emit('save', this.imageData)
 		},
 	},
 }
@@ -238,7 +239,7 @@ export default {
 
 	.canvas{
 		border: 1px solid #dbdbdb;
-		width: calc(560px - 20px);
+		width: 540px;
 		height: 260px;
 		background-color: #cecece;
 		border-radius: 10px;

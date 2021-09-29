@@ -31,6 +31,8 @@ import validate from './modules/validate'
 import error from './modules/errors'
 import modal from './modules/modal'
 import signatures from './modules/signatures'
+import user from './modules/user'
+import featureController from './modules/feature_controller'
 
 Vue.use(Vuex)
 
@@ -41,15 +43,11 @@ export default new Store({
 	state: {
 		errors: [],
 		pdfData: {},
-		user: {},
 		settings: {},
 		uuidToValidate: '',
 	},
 
 	mutations: {
-		setUser(state, user) {
-			this.state.user = user
-		},
 		setError: (state, errorMessage) => {
 			state.errors = errorMessage
 		},
@@ -98,9 +96,6 @@ export default new Store({
 		getPdfData(state) {
 			return state.pdfData
 		},
-		getUser(state) {
-			return state.user
-		},
 		getUuidToValidate(state) {
 			return state.uuidToValidate
 		},
@@ -114,5 +109,7 @@ export default new Store({
 		error,
 		modal,
 		signatures,
+		user,
+		featureController,
 	},
 })

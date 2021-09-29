@@ -38,7 +38,7 @@
 				</div>
 			</div>
 
-			<div class="user sinatures">
+			<div v-if="enabledFeatures.includes('manage_signatures')" class="user sinatures">
 				<h1>{{ t('libresign', 'Your signatures') }}</h1>
 				<div class="signature-fav">
 					<header>
@@ -67,7 +67,7 @@
 				</div>
 			</div>
 
-			<Modal v-if="modalStatus" :size="'large'" @close="closeModal">
+			<Modal v-if="isModalSignature" :size="'large'" @close="closeModal">
 				<div class="container-modal-customize-signatures">
 					<header>
 						<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
@@ -117,7 +117,11 @@ export default {
 			modalStatus: 'modal/getStatus',
 			haveSignature: 'signatures/haveSignatures',
 			haveInitials: 'signatures/haveInitials',
+			enabledFeatures: 'featureController/getEnabledFeatures',
 		}),
+		isModalSignature() {
+			return this.enabledFeatures.includes('manage_signatures') ? this.modalStatus : false
+		},
 	},
 	methods: {
 		...mapActions({
