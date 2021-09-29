@@ -38,16 +38,16 @@
 				</div>
 			</div>
 
-			<div v-if="enabledFeatures.includes('manage_signatures')" class="user sinatures">
+			<div v-if="enabledFeatures.includes('manage_signatures')" class="user signatures">
 				<h1>{{ t('libresign', 'Your signatures') }}</h1>
 				<div class="signature-fav">
 					<header>
 						<h2>{{ t('libresign', 'Signature') }}</h2>
-						<div v-if="haveSignature" class="icon icon-rename" @click="editSignatures" />
+						<div v-if="haveSignature" class="icon icon-rename" @click="editSignatures('signature')" />
 					</header>
 
-					<img v-if="haveSignature" :src="sinatures">
-					<div v-else class="no-signatures" @click="editSignatures">
+					<img v-if="haveSignature" :src="signature">
+					<div v-else class="no-signatures" @click="editSignatures('signature')">
 						<span>
 							{{ t('libresign', 'No signature, click here to create a new') }}
 						</span>
@@ -56,10 +56,10 @@
 				<div class="signature-fav">
 					<header>
 						<h2>{{ t('libresign', 'Initials') }}</h2>
-						<div v-if="haveInitials" class="icon icon-rename" @click="editInitials" />
+						<div v-if="haveInitials" class="icon icon-rename" @click="editSignatures('initials')" />
 					</header>
-					<img v-if="haveInitials" :src="sinatures">
-					<div v-else class="no-signatures" @click="editInitials">
+					<img v-if="haveInitials" :src="initials">
+					<div v-else class="no-signatures" @click="editSignatures('initials')">
 						<span>
 							{{ t('libresign', 'No initials, click here to create a new') }}
 						</span>
@@ -74,7 +74,7 @@
 					</header>
 
 					<div class="content">
-						<Draw @close="closeModal" />
+						<Draw @save="addNewSignature" @close="closeModal" />
 					</div>
 				</div>
 			</Modal>
@@ -87,10 +87,9 @@ import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { getCurrentUser } from '@nextcloud/auth'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import CreatePassword from './CreatePassword.vue'
 import ResetPassword from './ResetPassword.vue'
-import Signature from '../assets/images/image.png-3.png'
 import Draw from '../Components/Draw'
 export default {
 	name: 'Account',
@@ -108,10 +107,15 @@ export default {
 		return {
 			user: getCurrentUser(),
 			modal: false,
-			sinatures: Signature,
+			type: '',
 		}
 	},
+
 	computed: {
+		...mapState({
+			signature: state => state.signatures.signatures.file.base64,
+			initials: state => state.signatures.initials.file.base64,
+		}),
 		...mapGetters({
 			hasSignature: 'getHasPfx',
 			modalStatus: 'modal/getStatus',
@@ -123,16 +127,32 @@ export default {
 			return this.enabledFeatures.includes('manage_signatures') ? this.modalStatus : false
 		},
 	},
+	created() {
+		this.fetchSignatures()
+		console.info('c: ', this.signature)
+	},
 	methods: {
 		...mapActions({
 			openModal: 'modal/OPEN_MODAL',
 			closeModal: 'modal/CLOSE_MODAL',
+			fetchSignatures: 'signatures/FETCH_SIGNATURES',
+			newSignature: 'signatures/NEW_SIGNATURE',
 		}),
 		handleModal(status) {
 			this.modal = status
 		},
-		editSignatures() {
+		editSignatures(type) {
+			this.type = type
 			this.openModal()
+		},
+		addNewSignature(param) {
+			console.info(param)
+			this.newSignature({
+				type: this.type,
+				file: {
+					base64: param,
+				},
+			})
 		},
 		editInitials() {
 			this.openModal()
@@ -140,6 +160,7 @@ export default {
 	},
 }
 </script>
+
 <style lang="scss">
 .modal-wrapper--large .modal-container[data-v-3e0b109b]{
 	width: 50%;
@@ -247,7 +268,7 @@ export default {
 			}
 		}
 
-		.sinatures {
+		.signatures {
 			align-items: flex-start;
 
 			h1{
@@ -270,6 +291,10 @@ export default {
 					.icon{
 						cursor: pointer;
 					}
+				}
+
+				img{
+					max-width: 250px;
 				}
 
 				.no-signatures{
