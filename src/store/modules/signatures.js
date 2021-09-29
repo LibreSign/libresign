@@ -4,15 +4,28 @@ import { SignaturesService } from '../../services/SignaturesService'
 const apiClient = new SignaturesService()
 
 const state = {
-	signatures: {},
-	initials: {},
+	signatures: {
+		file: {},
+	},
+	initials: {
+		file: {},
+	},
 }
 const getters = {
 	haveSignatures: state => {
-		return state.signatures.length > 0
+		console.info('url' in state.signatures.file)
+		if ('base64' in state.signatures.file) {
+			return state.signatures.file.base64.length > 0
+		} else {
+			return false
+		}
 	},
 	haveInitials: state => {
-		return state.initials.length > 0
+		if ('base64' in state.initials.file) {
+			return state.initials.file.base64.length > 0
+		} else {
+			return false
+		}
 	},
 }
 
@@ -28,8 +41,8 @@ const mutations = {
 const actions = {
 	FETCH_SIGNATURES: async({ commit }) => {
 		const response = await apiClient.loadSignatures()
-		const signature = response.filter(arr => arr.type === 'signature')
-		const initials = response.filter(arr => arr.type === 'initials')
+		const signature = response.filter(arr => arr.type === 'signature')[0]
+		const initials = response.filter(arr => arr.type === 'initials')[0]
 
 		commit('setSignature', signature)
 		commit('setInitials', initials)
