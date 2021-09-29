@@ -146,7 +146,6 @@ export default {
 			this.openModal()
 		},
 		addNewSignature(param) {
-			console.info(param)
 			this.newSignature({
 				type: this.type,
 				file: {
