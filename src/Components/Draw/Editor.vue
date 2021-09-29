@@ -140,7 +140,7 @@ export default {
 		},
 
 		createDataImage() {
-			this.imageData = this.$refs.canvas.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+			this.imageData = this.$refs.canvas.toDataURL('image/png')
 		},
 
 		confirmationDraw() {
