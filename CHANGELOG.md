@@ -25,6 +25,7 @@ Types of changes:
 - API: return LibreSign UUID on sign methods
 - Endpoint: /account/create/{uuid}, remove required of field signPassword
 - FPDI replaced by TCPDF
+- Reader PDF and Method to get document coordinates for insert signatures or initials. 
 
 ## 2.4.3 - 2021-07-14
 
