@@ -13,7 +13,6 @@ const state = {
 }
 const getters = {
 	haveSignatures: state => {
-		console.info('url' in state.signatures.file)
 		if ('base64' in state.signatures.file) {
 			return state.signatures.file.base64.length > 0
 		} else {
@@ -60,6 +59,7 @@ const actions = {
 		try {
 			const response = await apiClient.newElement({ type, file })
 			showSuccess(response.message)
+			commit('modal/setStatus', false, { root: true })
 		} catch (err) {
 			showError(err)
 		}
