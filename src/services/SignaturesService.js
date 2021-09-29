@@ -29,19 +29,17 @@ export class SignaturesService {
 	async newSignature() {}
 
 	async getElement(elementId) {
-		return [
-			{
-				type: 'signature',
-				file: {
-					url: 'http://cloud.test.coop/s/ry384r6t384/download/signature.png',
-				},
-				id: 5,
-				metadata: {
-					text: 'string',
-					dateFormat: 'string',
-				},
+		return {
+			type: 'signature',
+			file: {
+				url: 'http://cloud.test.coop/s/ry384r6t384/download/signature.png',
 			},
-		]
+			id: 5,
+			metadata: {
+				text: 'string',
+				dateFormat: 'string',
+			},
+		}
 	}
 
 	async updateElement(element) {
@@ -49,18 +47,20 @@ export class SignaturesService {
 
 		if (oldElement.id === element.id) {
 			if (element.type === 'signature') {
-				store.commit('signature/setSignature', element)
+				store.commit('signatures/setSignature', element)
 			} else {
-				store.commit('signature/setInitials', element)
+				store.commit('signatures/setInitials', element)
 			}
 		}
 	}
 
 	async newElement(element) {
+		console.info('API: ', element)
+
 		if (element.type === 'signature') {
-			store.commit('signature/setSignature', element)
+			store.commit('signatures/setSignature', element)
 		} else {
-			store.commit('signature/setInitials', element)
+			store.commit('signatures/setInitials', element)
 		}
 		return { message: 'Success' }
 	}
