@@ -44,7 +44,6 @@ const actions = {
 		dispatch('GET_CONFIG_FEATURES')
 		dispatch('GET_CONFIG_ENABLED_FEATURES')
 	},
-<<<<<<< HEAD
 	SET_NEW_FEATURE: async({ state, dispatch }, feature) => {
 		await dispatch('GET_STATES')
 		console.info('t', state.features.includes(feature))
@@ -63,8 +62,6 @@ const actions = {
 			console.debug(t('libresign', 'Feature {feature} enabled', { feature }))
 		}, 3000)
 	},
-=======
->>>>>>> 0a8596812dd7aa8d8b316847378ce4366bbbfdae
 	ENABLE_FEATURE: async({ state, dispatch, commit }, feature) => {
 		await dispatch('GET_STATES')
 
