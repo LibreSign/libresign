@@ -55,8 +55,6 @@ export class SignaturesService {
 	}
 
 	async newElement(element) {
-		console.info('API: ', element)
-
 		if (element.type === 'signature') {
 			store.commit('signatures/setSignature', element)
 		} else {
