@@ -4,8 +4,8 @@ import { SignaturesService } from '../../services/SignaturesService'
 const apiClient = new SignaturesService()
 
 const state = {
-	signatures: [],
-	initials: [],
+	signatures: {},
+	initials: {},
 }
 const getters = {
 	haveSignatures: state => {
