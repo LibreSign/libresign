@@ -41,8 +41,8 @@
 
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
-import File from '../Components/File'
-import Sidebar from '../Components/File/Sidebar.vue'
+import File from '../../Components/File'
+import Sidebar from '../../Components/File/Sidebar.vue'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 
 export default {

@@ -1,6 +1,6 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VueRouter from 'vue-router'
-import Timeline from '../../views/Timeline.vue'
+import Timeline from './Timeline.vue'
 import store from '../../store'
 import Vuex from 'vuex'
 

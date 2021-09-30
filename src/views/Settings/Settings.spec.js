@@ -1,6 +1,6 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VueRouter from 'vue-router'
-import Settings from '../../views/Settings.vue'
+import Settings from './Settings.vue'
 
 let wrapper
 const localVue = createLocalVue()

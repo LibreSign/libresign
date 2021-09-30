@@ -29,7 +29,7 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 const routes = [
 	{
 		path: '/apps/libresign/#timeline/sign',
-		component: () => import('../views/Timeline'),
+		component: () => import('../views/Timeline/Timeline.vue'),
 		name: 'signFiles',
 	}, {
 		path: '/apps/libresign/#request',
