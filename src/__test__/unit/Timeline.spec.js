@@ -1,6 +1,7 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VueRouter from 'vue-router'
 import Timeline from '../../views/Timeline.vue'
+import store from '../../store'
 import Vuex from 'vuex'
 
 let wrapper
@@ -9,35 +10,9 @@ localVue.use(VueRouter)
 localVue.use(Vuex)
 const router = new VueRouter()
 
-const store = new Vuex.Store({
-	state: {
-		files: [],
-		currentFile: {},
-	},
-	mutations: {
-		setCurrentFile(state, file) {
-			state.currentFile = file
-		},
-	},
-	modules: {
-		sidebar: {
-			namespaced: true,
-			state: {
-				status: false,
-			},
-			mutations: {
-				setStatus(state, status) {
-					state.status = status
-				},
-			},
-			actions: {
-				setStatus({ commit }, status) {
-					commit('setStatus', status)
-				},
-			},
-		},
-	},
-})
+jest.mock('@nextcloud/initial-state', () => ({
+	loadState: jest.fn().mockReturnValue('{"settings":{"hasSignatureFile":true}}'),
+}))
 
 const OC = () => {
 	return window.OC
@@ -65,13 +40,13 @@ describe('Timeline', () => {
 	})
 
 	it('Files start empty', () => {
-		expect(store.state.files).toEqual([])
+		expect(store.state.files.files).toEqual([])
 		expect(wrapper.vm.emptyContentFile).toBe(true)
 		expect(wrapper.vm.sidebar).toBe(false)
 	})
 
 	it('If have Files', () => {
-		store.state.files = [
+		store.state.files.files = [
 			{
 				uuid: '83adaa74-d110-4503-a067-dc7481f062d1',
 				name: 'sample',
@@ -111,6 +86,7 @@ describe('Timeline', () => {
 				status: 'pending',
 			},
 		]
+
 		expect(wrapper.vm.emptyContentFile).toBe(false)
 		expect(wrapper.vm.filterFile.length > 0).toBe(true)
 		expect(wrapper.vm.sidebar).toBe(false)
@@ -155,7 +131,9 @@ describe('Timeline', () => {
 			],
 			status: 'pending',
 		}
+
 		wrapper.vm.$emit('sidebar', file)
+
 		expect(wrapper.emitted().sidebar).toBeTruthy()
 		await wrapper.vm.$nextTick()
 		wrapper.vm.setSidebar()
