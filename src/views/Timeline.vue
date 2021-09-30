@@ -67,16 +67,16 @@ export default {
 			statusSidebar: state => state.sidebar.status,
 			file: state => state.files,
 		}),
-		...mapGetters([
-			'files/pendingFilter',
-			'files/signedFilter',
-			'files/orderFiles',
-			'error/getError',
-		]),
+		...mapGetters({
+			pendingFilter: 'files/pendingFilter',
+			signedFilter: 'files/signedFilter',
+			orderFiles: 'files/orderFiles',
+			getError: 'error/getError',
+		}),
 		filterFile: {
 			get() {
 				if (this.fileFilter === undefined || '') {
-					return this['files/orderFiles']
+					return this.orderFiles
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1
@@ -104,15 +104,15 @@ export default {
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this['files/pendingFilter']
+				this.filterFile = this.pendingFilter
 				this.filterActive = 1
 				break
 			case 2:
-				this.filterFile = this['files/signedFilter']
+				this.filterFile = this.signedFilter
 				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this['files/orderFiles']
+				this.filterFile = this.orderFiles
 				this.filterActive = 3
 				break
 			default:
@@ -131,6 +131,7 @@ export default {
 	},
 }
 </script>
+
 <style lang="scss" scoped>
 .container-timeline{
 	display: flex;
