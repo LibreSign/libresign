@@ -10,10 +10,6 @@ localVue.use(VueRouter)
 localVue.use(Vuex)
 const router = new VueRouter()
 
-jest.mock('@nextcloud/initial-state', () => ({
-	loadState: jest.fn().mockReturnValue('{"settings":{"hasSignatureFile":true}}'),
-}))
-
 const OC = () => {
 	return window.OC
 }
