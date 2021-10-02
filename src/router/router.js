@@ -75,7 +75,7 @@ const routes = [
 		name: 'ResetPassword',
 	}, {
 		path: '/apps/libresign/#account',
-		component: () => import('../views/Account'),
+		component: () => import('../views/Account/Account'),
 		name: 'Account',
 	}, {
 		path: '/apps/libresign/#create-password',
