@@ -1,7 +1,5 @@
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { SignaturesService } from '../../services/SignaturesService'
-
-const apiClient = new SignaturesService()
+import { loadSignatures, newSignature, newElement } from '../../services/SignaturesService'
 
 const state = {
 	signatures: {
@@ -39,7 +37,7 @@ const mutations = {
 
 const actions = {
 	FETCH_SIGNATURES: async({ commit }) => {
-		const response = await apiClient.loadSignatures()
+		const response = await loadSignatures()
 		const signature = response.filter(arr => arr.type === 'signature')[0]
 		const initials = response.filter(arr => arr.type === 'initials')[0]
 
@@ -47,7 +45,7 @@ const actions = {
 		commit('setInitials', initials)
 	},
 	GET_ELEMENTS: async({ commit }, { id }) => {
-		const response = await apiClient.newSignature(id)
+		const response = await newSignature(id)
 
 		if (response.type === 'signature') {
 			commit('signature/setSignature', response)
@@ -57,7 +55,7 @@ const actions = {
 	},
 	NEW_SIGNATURE: async({ commit }, { type, file }) => {
 		try {
-			const response = await apiClient.newElement({ type, file })
+			const response = await newElement({ type, file })
 			showSuccess(response.message)
 			commit('modal/setStatus', false, { root: true })
 		} catch (err) {
