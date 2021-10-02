@@ -5,6 +5,13 @@ jest.mock('@nextcloud/initial-state', () => ({
 	loadState: jest.fn().mockReturnValue('{"settings":{"hasSignatureFile":true}}'),
 }))
 
+jest.mock('@nextcloud/auth', () => ({
+	getCurrentUser: jest.fn().mockReturnValue({
+		displayName: 'admin',
+		uid: 'admin',
+	}),
+}))
+
 global.OC = {
 	coreApps: [
 		'core',
