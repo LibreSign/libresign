@@ -3,21 +3,10 @@ import { generateUrl } from '@nextcloud/router'
 import store from '../store'
 
 export const loadSignatures = async() => {
-	return [
-		{
-			type: 'signature',
-			file: {
-				url: 'http://cloud.test.coop/s/ry384r6t384/download/signature.png',
-			},
-			id: 5,
-		}, {
-			type: 'initials',
-			file: {
-				url: 'http://cloud.test.coop/s/ry384r6t384/download/signature.png',
-			},
-			id: 5,
-		},
-	]
+	const response = await axios.get(
+		generateUrl('/apps/libresign/api/0.1/account/signatures/elements')
+	)
+	return response
 }
 
 export const newSignature = async(type, base64) => {
@@ -29,34 +18,22 @@ export const newSignature = async(type, base64) => {
 			},
 		})
 	)
-
-	console.info(response)
+	return response
 }
 
 export const getElement = async(elementId) => {
-	return {
-		type: 'signature',
-		file: {
-			url: 'http://cloud.test.coop/s/ry384r6t384/download/signature.png',
-		},
-		id: 5,
-		metadata: {
-			text: 'string',
-			dateFormat: 'string',
-		},
-	}
+	const response = await axios.get(
+		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementId}`)
+	)
+
+	return response
 }
 
-export const updateElement = async(element) => {
-	const oldElement = this.getElement(element.id)
-
-	if (oldElement.id === element.id) {
-		if (element.type === 'signature') {
-			store.commit('signatures/setSignature', element)
-		} else {
-			store.commit('signatures/setInitials', element)
-		}
-	}
+export const updateElement = async(elementId) => {
+	const response = await axios.patch(
+		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementId}`)
+	)
+	return response
 }
 
 export const newElement = async(element) => {
@@ -68,5 +45,9 @@ export const newElement = async(element) => {
 	return { message: 'Success' }
 }
 
-export const deleteElement = async(elementId) => {
+export const deleteElement = async(elementID) => {
+	const response = await axios.delete(
+		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementID}`)
+	)
+	return response
 }
