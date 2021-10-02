@@ -25,14 +25,17 @@ export const getElement = async(elementId) => {
 	const response = await axios.get(
 		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementId}`)
 	)
-
+	store.commit('signatures/setSignature', response.data)
 	return response
 }
 
-export const updateElement = async(elementId) => {
+export const updateElement = async(element) => {
 	const response = await axios.patch(
-		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementId}`)
+		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${element.id}`, {
+			element,
+		})
 	)
+	store.commit('signatures/setSignature', element)
 	return response
 }
 

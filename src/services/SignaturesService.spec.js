@@ -34,7 +34,6 @@ describe('SignaturesService', () => {
 		mockAxios.mockResponse(response)
 
 		expect(mockAxios.get).toHaveReturnedTimes(1)
-
 	})
 
 	test('newSignature, call to API to create a new Signature', () => {
@@ -93,7 +92,7 @@ describe('SignaturesService', () => {
 			id: 5,
 		}
 
-		updateElement(5)
+		updateElement(response)
 
 		expect(mockAxios.patch).toHaveBeenCalled()
 		expect(mockAxios.patch).toHaveBeenCalledTimes(1)
