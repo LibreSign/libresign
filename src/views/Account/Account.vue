@@ -88,9 +88,9 @@ import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapActions, mapGetters, mapState } from 'vuex'
-import CreatePassword from './CreatePassword.vue'
-import ResetPassword from './ResetPassword.vue'
-import Draw from '../Components/Draw'
+import CreatePassword from '../CreatePassword.vue'
+import ResetPassword from '../ResetPassword.vue'
+import Draw from '../../Components/Draw'
 export default {
 	name: 'Account',
 
@@ -129,7 +129,6 @@ export default {
 	},
 	created() {
 		this.fetchSignatures()
-		console.info('c: ', this.signature)
 	},
 	methods: {
 		...mapActions({
