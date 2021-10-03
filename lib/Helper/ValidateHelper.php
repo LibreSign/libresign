@@ -104,8 +104,32 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElement(array $element) {
+	public function validateVisibleElement(array $element): void {
 		$this->validateElementType($element);
+		$this->validateFile($element);
+		$this->validateElementCoordinates($element);
+	}
+
+	public function validateElementCoordinates(array $element): void {
+		if (!array_key_exists('coordinates', $element)) {
+			return;
+		}
+		$this->validateElementPage($element);
+	}
+
+	protected function acceptedCoordinates() {
+	}
+
+	public function validateElementPage(array $element): void {
+		if (!array_key_exists('page', $element['coordinates'])) {
+			return;
+		}
+		if (!is_int($element['coordinates']['page'])) {
+			throw new \Exception($this->l10n->t('Page need be a integer type'));
+		}
+		if ($element['coordinates']['page'] < 1) {
+			throw new \Exception($this->l10n->t('Page need be equal or greater than 1'));
+		}
 	}
 
 	public function validateElementType(array $element) {
