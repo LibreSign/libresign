@@ -389,7 +389,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$elements = [[
 			'type' => 'signature',
 			'file' => [
-				'base64' => 'base64here'
+				'base64' => 'dGVzdA=='
 			]
 		]];
 		$actual = $this->getValidateHelper()->validateVisibleElements($elements);
@@ -403,19 +403,52 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
-		$actual = $this->getValidateHelper()->validateVisibleElements($element);
+		$actual = $this->getValidateHelper()->validateElementType($element);
 		$this->assertNull($actual);
 	}
 
 	public function dataElementType() {
 		return [
-			[[['type' => 'signature']], ''],
-			[[['type' => 'initial']], ''],
-			[[['type' => 'date']], ''],
-			[[['type' => 'datetime']], ''],
-			[[['type' => 'text']], ''],
-			[[['type' => 'INVALID']], 'Invalid element type'],
+			[['type' => 'signature'], ''],
+			[['type' => 'initial'], ''],
+			[['type' => 'date'], ''],
+			[['type' => 'datetime'], ''],
+			[['type' => 'text'], ''],
+			[['type' => 'INVALID'], 'Invalid element type'],
 			[['file' => []], 'Element need a type']
+		];
+	}
+
+	/**
+	 * @dataProvider dataValidateElementCoordinates
+	 */
+	public function testValidateElementCoordinates(array $element) {
+		$actual = $this->getValidateHelper()->validateElementCoordinates($element);
+		$this->assertNull($actual);
+	}
+
+	public function dataValidateElementCoordinates() {
+		return [
+			[[]],
+			[['coordinates' => ['page' => 1]]]
+		];
+	}
+
+	/**
+	 * @dataProvider dataValidateElementPage
+	 */
+	public function testValidateElementPage(array $element, string $exception) {
+		if ($exception) {
+			$this->expectExceptionMessage($exception);
+		}
+		$actual = $this->getValidateHelper()->validateElementPage($element);
+		$this->assertNull($actual);
+	}
+
+	public function dataValidateElementPage() {
+		return [
+			[['coordinates' => ['page' => '']], 'Page need be a integer type'],
+			[['coordinates' => ['page' => 0]], 'Page need be equal or greater than 1']
 		];
 	}
 }
