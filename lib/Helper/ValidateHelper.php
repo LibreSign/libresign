@@ -52,6 +52,13 @@ class ValidateHelper {
 		$this->root = $root;
 	}
 	public function validateNewFile(array $data) {
+		$this->validateFile($data);
+		if (!empty($data['file']['fileId'])) {
+			$this->validateNotRequestedSign((int)$data['file']['fileId']);
+		}
+	}
+
+	public function validateFile(array $data) {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -62,7 +69,6 @@ class ValidateHelper {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
-			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 			$this->validateIfNodeIdExists((int)$data['file']['fileId']);
 			$this->validateMimeTypeAccepted((int)$data['file']['fileId']);
 		}
@@ -86,6 +92,28 @@ class ValidateHelper {
 		}
 		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
+		}
+	}
+
+	public function validateVisibleElements($visibleElements) {
+		if (!is_array($visibleElements)) {
+			throw new \Exception($this->l10n->t('Visible elements need to be an array'));
+		}
+		foreach ($visibleElements as $element) {
+			$this->validateVisibleElement($element);
+		}
+	}
+
+	public function validateVisibleElement(array $element) {
+		$this->validateElementType($element);
+	}
+
+	public function validateElementType(array $element) {
+		if (!array_key_exists('type', $element)) {
+			throw new \Exception($this->l10n->t('Element need a type'));
+		}
+		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
+			throw new \Exception($this->l10n->t('Invalid element type'));
 		}
 	}
 

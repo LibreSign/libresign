@@ -723,4 +723,25 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$this->assertNull($actual);
 	}
+
+	/**
+	 * @dataProvider dataValidateVisibleElementsWithSuccess
+	 */
+	public function testValidateVisibleElementsWithSuccess(array $elements) {
+		$actual = $this->service->validateVisibleElements([]);
+		$this->assertNull($actual);
+	}
+
+	public function dataValidateVisibleElementsWithSuccess() {
+		return [
+			[[]],
+			[[
+				'type' => 'signature',
+				'file' => [
+					'base64' => 'base64here'
+				]
+			]
+			]
+		];
+	}
 }
