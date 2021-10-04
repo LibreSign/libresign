@@ -1,6 +1,10 @@
 import 'regenerator-runtime/runtime'
 import Vue from 'vue'
 
+jest.mock('@nextcloud/initial-state', () => ({
+	loadState: jest.fn().mockReturnValue('{"settings":{"hasSignatureFile":true}}'),
+}))
+
 global.OC = {
 	coreApps: [
 		'core',
@@ -28,6 +32,9 @@ global.OC = {
 global.OCP = {
 	AppConfig: {},
 }
+global.OCA = {
+	LibreSign: {},
+}
 
 // TODO: use nextcloud-l10n lib once https://github.com/nextcloud/nextcloud-l10n/issues/271 is solved
 global.t = jest.fn().mockImplementation((app, text) => text)
@@ -36,4 +43,5 @@ global.n = jest.fn().mockImplementation((app, text) => text)
 Vue.prototype.t = global.t
 Vue.prototype.n = global.n
 Vue.prototype.OC = OC
-Vue.prototype.OCA = OCP
+Vue.prototype.OCA = OCA
+Vue.prototype.OCP = OCP

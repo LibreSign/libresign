@@ -17,6 +17,8 @@ Types of changes:
 
 # Added
 - Added clickable link in the PDF footer
+- Manager signatures in profile
+- Feature Display Controller
 
 # Changed
 - PDF preview on mobile when signing

@@ -27,9 +27,20 @@ form{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	width: 80%;
+	width: 100%;
 	margin: 10px 0px 10px 0px;
 	z-index: 3;
+
+	.form-sucess {
+		margin: 15px;
+		font-size: 1.3rem;
+		font-weight: normal;
+		text-align: justify;
+		align-self: center;
+		width: 50%;
+		margin-left: auto;
+		margin-right: auto;
+	}
 }
 
 form > div{
@@ -63,9 +74,15 @@ input {
 
 .group{
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	width: 100%;
+
+	span{
+		font-size: 14px;
+		color: var(--color-error);
+	}
 }
 
 .btn{
@@ -92,7 +109,8 @@ input {
 	background: linear-gradient(134.01deg, rgba(196, 196, 196, 0.4) 5.27%, rgba(196, 196, 196, 0.1) 90.05%);
 	box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.1);
 	backdrop-filter: blur(20px);
-	width: 400px;
+	min-width: 400px;
+	max-width: 600px;
 	border-radius: 5px;
 	transition: all;
 	transition-duration: 1s;
@@ -179,7 +197,11 @@ input {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	width: 100%;
+	width: 60%;
+
+	@media (max-width: 750px) {
+		width: 80%;
+	}
 
 	span{
 		font-size: 1rem;
@@ -203,7 +225,7 @@ input {
 	justify-content: center;
 	align-items: center;
 	text-align: justify;
-
+	width: 80%;
 
 	h2{
 		font-size: 1rem;
@@ -217,4 +239,37 @@ input {
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
+
+	@media (min-width: 800px) {
+		width: 60%;
+	}
+}
+
+.form-signatures-initials {
+	display: flex;
+	flex-direction: column;
+
+	.group{
+		h2{
+			font-size: 1rem;
+			line-height: 20px;
+			font-weight: normal;
+			text-align: justify;
+		}
+		.container-draw{
+			width: 100%;
+		}
+	}
+
+	.actions-buttons{
+		display: flex;
+		flex-direction: row;
+		margin: 10px;
+
+		button{
+			&:first-child{
+				margin-right: 30%;
+			}
+		}
+	}
 }

@@ -21,20 +21,20 @@
  *
  */
 
+import Vue from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
-import Vue from 'vue'
+
+import './plugins/vuelidate'
+import './directives/VTooltip'
+import './init'
 
 import App from './App'
 import router from './router'
 import store from './store'
-
-import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
-
-import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.mixin({ methods: { t, n } })
 Vue.prototype.t = translate
@@ -53,9 +53,6 @@ __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
 sync(store, router)
 
-Vue.directive('Tooltip', VTooltip)
-VTooltip.options.autohide = true
-
 Vue.prototype.t = t
 Vue.prototype.n = n
 
@@ -65,6 +62,8 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'home' })
 }
+
+store.dispatch('featureController/GET_STATES')
 
 store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
 

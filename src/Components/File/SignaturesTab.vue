@@ -105,7 +105,6 @@ export default {
 				this.disableBtn = false
 				showSuccess(response.data.message)
 			} catch (err) {
-				console.error(err)
 				this.disableBtn = false
 				showError(err)
 			}
