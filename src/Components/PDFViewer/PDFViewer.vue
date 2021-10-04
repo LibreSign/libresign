@@ -22,12 +22,28 @@
 -->
 
 <template>
-	<iframe :src="pdf">
-		{{ t("libresign", "This iframe is not supported in your browser.") }}
-	</iframe>
+	<div class="container">
+		<div class="document">
+			<div class="container-tools">
+				<div ref="tools" class="tools">
+					<img class="tool" :src="zoomInIcon" alt="Zoom In">
+					<img class="tool" :src="zoomOutIcon" alt="Zoom Out">
+				</div>
+				<div class="thumbnails" />
+			</div>
+			<div v-for="image in myPdf.images" :key="image.id" class="page">
+				<span>Pagina: {{ image.id }} de {{ myPdf.images.length }}</span>
+				<img :src="image.src" @mousedown="getCoordinates" @mousemove="getCoordinatesMove">
+			</div>
+		</div>
+	</div>
 </template>
 
 <script>
+import MyImage1 from '../../assets/images/pdf/image.png'
+import ZoomIn from '../../assets/images/zoom_in.png'
+import ZoomOut from '../../assets/images/zoom_out.png'
+
 export default {
 	name: 'PDFViewer',
 
@@ -41,12 +57,85 @@ export default {
 
 	data() {
 		return {
+			zoomInIcon: ZoomIn,
+			zoomOutIcon: ZoomOut,
 			pdf: this.url,
+			myPdf: {
+				id: 123,
+				name: 'Profile.pdf',
+				url: this.url,
+				images: [{ id: 1, src: MyImage1 }, { id: 2, src: MyImage1 }],
+			},
+			startSelection: false,
+			coordinates: {
+				startX: 0,
+				startY: 0,
+				relativeStartX: 0,
+				relativeStartY: 0,
+				endX: 0,
+				endY: 0,
+			},
 		}
+	},
+
+	methods: {
+		getCoordinates(event) {
+			const { clientX, clientY, offsetX, offsetY } = event
+			this.coordinates.startX = clientX
+			this.coordinates.startY = clientY
+			this.coordinates.relativeStartX = offsetX
+			this.coordinates.relativeStartY = offsetY
+			this.startSelection = true
+		},
+
+		getCoordinatesMove(event) {
+			const { clientX, clientY } = event
+			this.coordinates.endX = clientX
+			this.coordinates.endY = clientY
+		},
 	},
 }
 </script>
 
 <style lang="scss" scoped>
-@import './styles';
+.container{
+	overflow: scroll;
+	position: relative;
+	display: inline-block;
+	widows: 818px;
+	height: 2214px;
+	justify-content: center;
+
+	.document{
+		transform-origin: 0% 0%;
+		overflow: visible;
+		background-color: rgb(233, 233, 233);
+
+		img{
+			display: block;
+			width: 816px;
+		}
+
+		.container-tools{
+			display: flex;
+			flex-direction: row;
+			border-bottom: 1px solid #cecece;
+
+			.tools{
+				width: 90%;
+				display: flex;
+				flex-direction: row;
+
+				img{
+					width: 22px;
+					height: 22px;
+				}
+
+				.tool{
+					margin: 0 10px;
+				}
+			}
+		}
+	}
+}
 </style>
