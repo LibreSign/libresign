@@ -50,9 +50,6 @@ router.beforeEach((to, from, next) => {
 		if (libresignVar.sign) {
 			store.commit('setPdfData', libresignVar.sign)
 		}
-		if (libresignVar.user) {
-			store.commit('setUser', libresignVar.user)
-		}
 		if (libresignVar.errors) {
 			store.commit('setError', libresignVar.errors)
 		}
