@@ -26,14 +26,14 @@ import Vuex from 'vuex'
 import { imagePath } from '@nextcloud/router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/LibresignTab'
-import VTooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
+import './directives/VTooltip'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.prototype.t = t
 Vue.prototype.n = n
 Vue.use(Vuex)
-Vue.directive('Tooltip', VTooltip)
+
 if (!window.OCA.Libresign) {
 	window.OCA.Libresign = {}
 }

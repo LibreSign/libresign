@@ -44,7 +44,7 @@
 import AdminFormLibresign from './AdminFormLibresign'
 import AllowedGroups from './AllowedGroups'
 import UrlValidation from './UrlValidation'
-import Textarea from '../Components/Textarea/Textarea'
+import Textarea from '../../Components/Textarea/Textarea'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'

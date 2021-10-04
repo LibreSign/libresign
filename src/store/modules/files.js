@@ -6,6 +6,9 @@ const state = {
 	file: {},
 	files: [],
 	filterFiles: [],
+	fileToSign: {
+
+	},
 }
 
 const mutations = {
@@ -15,6 +18,9 @@ const mutations = {
 	setFiles: (state, files) => {
 		state.files = files
 	},
+	setFileToSign: (state, data) => {
+		state.fileToSign = data
+	},
 }
 
 const actions = {
@@ -23,6 +29,9 @@ const actions = {
 	},
 	SET_FILES: ({ commit }, files) => {
 		commit('setFiles', files)
+	},
+	SET_FILE_TO_SIGN: ({ commit }, data) => {
+		commit('setFileToSign', data)
 	},
 	GET_ALL_FILES: async({ dispatch }) => {
 		try {
@@ -54,6 +63,7 @@ const getters = {
 	orderFiles: state => {
 		return state.files.sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
 	},
+	getFileToSign: state => state.fileToSign,
 }
 
 export default {

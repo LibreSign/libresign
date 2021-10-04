@@ -22,7 +22,8 @@
  */
 
 import Vue from 'vue'
-import Settings from './views/Settings'
+import Settings from './views/Settings/Settings.vue'
+import './init'
 
 Vue.mixin({ methods: { t, n } })
 
