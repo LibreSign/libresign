@@ -29,10 +29,16 @@
 					<img class="tool" :src="zoomInIcon" alt="Zoom In">
 					<img class="tool" :src="zoomOutIcon" alt="Zoom Out">
 				</div>
-				<div class="thumbnails" />
+				<div class="thumbnails">
+					<div class="icon-toggle-pictures" />
+				</div>
 			</div>
+
 			<div v-for="image in myPdf.images" :key="image.id" class="page">
-				<span>Pagina: {{ image.id }} de {{ myPdf.images.length }}</span>
+				<div class="header">
+					<span>{{ myPdf.name }}</span>
+					<span>{{ t('libresign', '{pageNumber} of {totalPage}', { pageNumber: image.id, totalPage: totalPages }) }}</span>
+				</div>
 				<img :src="image.src" @mousedown="getCoordinates" @mousemove="getCoordinatesMove">
 			</div>
 		</div>
@@ -76,6 +82,12 @@ export default {
 				endY: 0,
 			},
 		}
+	},
+
+	computed: {
+		totalPages() {
+			return this.myPdf.images.length
+		},
 	},
 
 	methods: {
@@ -122,16 +134,33 @@ export default {
 			border-bottom: 1px solid #cecece;
 
 			.tools{
-				width: 90%;
+				width: 100%;
 				display: flex;
 				flex-direction: row;
 
 				img{
-					width: 22px;
-					height: 22px;
+					width: 16px;
+					height: 16px;
 				}
 
 				.tool{
+					margin: 10px;
+				}
+
+			}
+			.thumbnails{
+				margin: 10px;
+			}
+		}
+
+		.page{
+			margin: 10px 0;
+
+			.header{
+				display: flex;
+				flex-direction: row;
+
+				span{
 					margin: 0 10px;
 				}
 			}
