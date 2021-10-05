@@ -52,21 +52,20 @@
     "Description" : "Descripcion",
     "Add" : "Apondre",
     "Users" : "Utilizaires",
+    "Password Creation" : "Creacion del senhal",
+    "Enter a password" : "Picatz un senhal",
+    "Confirm password" : "Confirmar lo senhal",
+    "Return" : "Tornar",
+    "Verify signatures" : "Verificar las signaturas",
     "Name (CN)" : "Nom (CN)",
     "Country (C)" : "País (C)",
     "Organization (O)" : "Organizacion (O)",
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",
-    "Password Creation" : "Creacion del senhal",
-    "Enter a password" : "Picatz un senhal",
-    "Passwords do not match" : "Los senhals correspondon pas",
-    "Confirm password" : "Confirmar lo senhal",
-    "User created!" : "Utilizaire creat !",
-    "Return" : "Tornar",
-    "Verify signatures" : "Verificar las signaturas",
     "View" : "Veire",
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
-    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr."
+    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
+    "User created!" : "Utilizaire creat !"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

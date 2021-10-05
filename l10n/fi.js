@@ -20,13 +20,8 @@ OC.L10N.register(
     "Users" : "Käyttäjät",
     "Account" : "Tili",
     "Enter a password" : "Syötä salasana",
-    "Password must be at least 3 characters." : "Salasanan tulee olla vähintään 3 merkkiä pitkä",
-    "Passwords do not match" : "Salasanat eivät täsmää",
     "Confirm password" : "Vahvista salasana",
     "Next" : "Seuraava",
-    "Create an account" : "Luo käyttäjä",
-    "User created!" : "Käyttäjä luotu!",
-    "Password created!" : "Salasana luotu!",
     "Status" : "Tila",
     "Add users" : "Lisää käyttäjiä",
     "Select your file" : "Valitse tiedostosi",
@@ -34,6 +29,8 @@ OC.L10N.register(
     "Repeat password" : "Toista salasana",
     "All Files" : "Kaikki tiedostot",
     "View" : "Näytä",
-    "No date" : "Ei päiväystä"
+    "No date" : "Ei päiväystä",
+    "User created!" : "Käyttäjä luotu!",
+    "Password created!" : "Salasana luotu!"
 },
 "nplurals=2; plural=(n != 1);");
