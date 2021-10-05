@@ -70,7 +70,7 @@ const actions = {
 		}
 
 		if (state.enabledFeatures.includes(feature)) {
-			return console.debug(t('libresign', 'This feature already enabled.'))
+			return console.debug(t('libresign', 'This feature is already enabled.'))
 		}
 
 		const newEnabled = [...state.enabledFeatures, feature]
