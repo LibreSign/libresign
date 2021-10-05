@@ -23,17 +23,17 @@
 
 <template>
 	<div class="container">
-		<div class="document">
-			<div class="container-tools">
-				<div ref="tools" class="tools">
-					<img class="tool" :src="zoomInIcon" alt="Zoom In">
-					<img class="tool" :src="zoomOutIcon" alt="Zoom Out">
-				</div>
-				<div class="thumbnails">
-					<div class="icon-toggle-pictures" />
-				</div>
+		<div class="container-tools">
+			<div ref="tools" class="tools">
+				<img class="tool" :src="zoomInIcon" alt="Zoom In">
+				<img class="tool" :src="zoomOutIcon" alt="Zoom Out">
 			</div>
+			<div class="thumbnails" style="display: none;">
+				<div class="icon-toggle-pictures" />
+			</div>
+		</div>
 
+		<div class="document">
 			<div v-for="image in myPdf.images" :key="image.id" class="page">
 				<div class="header">
 					<span>{{ myPdf.name }}</span>
@@ -111,24 +111,17 @@ export default {
 
 <style lang="scss" scoped>
 .container{
+	background-color: rgb(233, 233, 233);
 	overflow: scroll;
 	position: relative;
-	display: inline-block;
-	widows: 818px;
-	height: 2214px;
+	display: flex;
+	width: 100%;
+	flex-direction: column !important;
+	align-items: center;
 	justify-content: center;
 
-	.document{
-		transform-origin: 0% 0%;
-		overflow: visible;
-		background-color: rgb(233, 233, 233);
-
-		img{
-			display: block;
-			width: 816px;
-		}
-
 		.container-tools{
+			width: 100%;
 			display: flex;
 			flex-direction: row;
 			border-bottom: 1px solid #cecece;
@@ -137,6 +130,7 @@ export default {
 				width: 100%;
 				display: flex;
 				flex-direction: row;
+				margin-left: 50%;
 
 				img{
 					width: 16px;
@@ -151,6 +145,17 @@ export default {
 			.thumbnails{
 				margin: 10px;
 			}
+		}
+
+	.document{
+		transform-origin: 0% 0%;
+		overflow: visible;
+		background-color: rgb(233, 233, 233);
+		height: 90%;
+
+		img{
+			display: block;
+			width: 816px;
 		}
 
 		.page{
