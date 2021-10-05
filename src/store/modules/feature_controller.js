@@ -89,7 +89,7 @@ const actions = {
 		const enabledState = getters.getEnabledFeatures
 
 		if (!enabledState.includes(feature)) {
-			return console.error(t('libresign', 'This feature does not enabled.'))
+			return console.error(t('libresign', 'This feature is not enabled.'))
 		}
 
 		if (enabledState.length <= 1) {
