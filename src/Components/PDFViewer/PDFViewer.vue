@@ -120,32 +120,32 @@ export default {
 	align-items: center;
 	justify-content: center;
 
-		.container-tools{
+	.container-tools{
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		border-bottom: 1px solid #cecece;
+
+		.tools{
 			width: 100%;
 			display: flex;
 			flex-direction: row;
-			border-bottom: 1px solid #cecece;
+			margin-left: 50%;
 
-			.tools{
-				width: 100%;
-				display: flex;
-				flex-direction: row;
-				margin-left: 50%;
-
-				img{
-					width: 16px;
-					height: 16px;
-				}
-
-				.tool{
-					margin: 10px;
-				}
-
+			img{
+				width: 16px;
+				height: 16px;
 			}
-			.thumbnails{
+
+			.tool{
 				margin: 10px;
 			}
+
 		}
+		.thumbnails{
+			margin: 10px;
+		}
+	}
 
 	.document{
 		transform-origin: 0% 0%;
