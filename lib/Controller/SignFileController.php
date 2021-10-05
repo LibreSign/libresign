@@ -65,12 +65,13 @@ class SignFileController extends ApiController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
-	public function requestSign(array $file, array $users, string $name, ?string $callback = null) {
+	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
+			'visibleElements' => $visibleElements,
 			'callback' => $callback,
 			'userManager' => $user
 		];

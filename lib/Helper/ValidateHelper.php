@@ -52,6 +52,13 @@ class ValidateHelper {
 		$this->root = $root;
 	}
 	public function validateNewFile(array $data) {
+		$this->validateFile($data);
+		if (!empty($data['file']['fileId'])) {
+			$this->validateNotRequestedSign((int)$data['file']['fileId']);
+		}
+	}
+
+	public function validateFile(array $data) {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -62,7 +69,6 @@ class ValidateHelper {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
-			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 			$this->validateIfNodeIdExists((int)$data['file']['fileId']);
 			$this->validateMimeTypeAccepted((int)$data['file']['fileId']);
 		}
@@ -86,6 +92,52 @@ class ValidateHelper {
 		}
 		if (!empty($fileMapper)) {
 			throw new \Exception($this->l10n->t('Already asked to sign this document'));
+		}
+	}
+
+	public function validateVisibleElements($visibleElements) {
+		if (!is_array($visibleElements)) {
+			throw new \Exception($this->l10n->t('Visible elements need to be an array'));
+		}
+		foreach ($visibleElements as $element) {
+			$this->validateVisibleElement($element);
+		}
+	}
+
+	public function validateVisibleElement(array $element): void {
+		$this->validateElementType($element);
+		$this->validateFile($element);
+		$this->validateElementCoordinates($element);
+	}
+
+	public function validateElementCoordinates(array $element): void {
+		if (!array_key_exists('coordinates', $element)) {
+			return;
+		}
+		$this->validateElementPage($element);
+	}
+
+	protected function acceptedCoordinates() {
+	}
+
+	public function validateElementPage(array $element): void {
+		if (!array_key_exists('page', $element['coordinates'])) {
+			return;
+		}
+		if (!is_int($element['coordinates']['page'])) {
+			throw new \Exception($this->l10n->t('Page need be a integer type'));
+		}
+		if ($element['coordinates']['page'] < 1) {
+			throw new \Exception($this->l10n->t('Page need be equal or greater than 1'));
+		}
+	}
+
+	public function validateElementType(array $element) {
+		if (!array_key_exists('type', $element)) {
+			throw new \Exception($this->l10n->t('Element need a type'));
+		}
+		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
+			throw new \Exception($this->l10n->t('Invalid element type'));
 		}
 	}
 

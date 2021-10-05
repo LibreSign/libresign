@@ -265,6 +265,14 @@ class SignFileService {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
+		$this->validateVisibleElements($data);
+	}
+
+	public function validateVisibleElements(array $data): void {
+		if (empty($data['visibleElements'])) {
+			return;
+		}
+		$this->validateHelper->validateVisibleElements($data['visibleElements']);
 	}
 
 	public function validateUserManager(array $user) {
