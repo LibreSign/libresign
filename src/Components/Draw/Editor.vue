@@ -3,7 +3,7 @@
 		<div class="canva">
 			<div class="actions">
 				<ul>
-					<li>{{ t('libresign','Colors: ') }} </li>
+					<li>{{ t('libresign','Colors:') }} </li>
 					<li class="action-color black" @click="chooseColor('#000')" />
 					<li class="action-color red" @click="chooseColor('#ff0000')" />
 					<li class="action-color blue" @click="chooseColor('#0000ff')" />
@@ -140,7 +140,7 @@ export default {
 		},
 
 		createDataImage() {
-			this.imageData = this.$refs.canvas.toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')
+			this.imageData = this.$refs.canvas.toDataURL('image/png')
 		},
 
 		confirmationDraw() {

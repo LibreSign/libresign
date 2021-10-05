@@ -65,7 +65,7 @@ export default {
 
 	methods: {
 		saveSignature() {
-			console.info(this.imageData)
+			this.$emit('save', this.imageData)
 		},
 
 		setFocus() {

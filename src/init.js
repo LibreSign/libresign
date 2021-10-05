@@ -18,3 +18,6 @@ window.OCA.LibreSign.getFeatures = () => {
 	console.debug('Features: ', store.state.featureController.features)
 	console.debug('Enabled Features: ', store.state.featureController.enabledFeatures)
 }
+window.OCA.LibreSign.setFeature = (feature) => {
+	store.dispatch('featureController/SET_NEW_FEATURE', feature)
+}

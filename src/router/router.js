@@ -29,7 +29,7 @@ const libresignVar = JSON.parse(loadState('libresign', 'config'))
 const routes = [
 	{
 		path: '/apps/libresign/#timeline/sign',
-		component: () => import('../views/Timeline'),
+		component: () => import('../views/Timeline/Timeline.vue'),
 		name: 'signFiles',
 	}, {
 		path: '/apps/libresign/#request',
@@ -75,7 +75,7 @@ const routes = [
 		name: 'ResetPassword',
 	}, {
 		path: '/apps/libresign/#account',
-		component: () => import('../views/Account'),
+		component: () => import('../views/Account/Account'),
 		name: 'Account',
 	}, {
 		path: '/apps/libresign/#create-password',

@@ -27,15 +27,11 @@
     "Profile picture" : "Φωτογραφία προφίλ",
     "Details" : "Λεπτομέριες",
     "Reset password" : "Επαναφορά συνθηματικού",
-    "Country (C)" : "Χώρα (Χ)",
     "Password Creation" : "Δημιουργία συνθηματικού",
     "Enter a password" : "Εισάγετε συνθηματικό",
-    "Passwords do not match" : "Τα συνθηματικά δεν ταιριάζουν",
     "Confirm password" : "Επιβεβαίωση συνθηματικού",
-    "Password for sign document." : "Συνθηματικό για υπογραφή του εγγράφου.",
     "Next" : "Επόμενο",
-    "Create an account" : "Δημιουργία λογαριασμού",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Password for sign document." : "Συνθηματικό για υπογραφή του εγγράφου.",
     "Generate Subscription." : "Δημιουργία συνδρομής.",
     "Return" : "Επιστροφή",
     "Pending" : "Σε αναμονή",
@@ -46,11 +42,13 @@
     "Enter new password and then repeat it" : "Εισάγετε νέο συνθηματικό και μετά επαναλάβετέ το",
     "New password" : "Νέο συνθηματικό",
     "Repeat password" : "Επανάληψη συνθηματικού",
-    "All Files" : "Όλα τα αρχεία",
+    "Country (C)" : "Χώρα (Χ)",
     "Validation URL" : "URL επικύρωσης",
+    "All Files" : "Όλα τα αρχεία",
     "View" : "Προβολή",
     "Subscriptions:" : "Συνδρομές:",
     "Validate Subscription." : "Επικύρωση συνδρομής.",
-    "Validation" : "Επικύρωση"
+    "Validation" : "Επικύρωση",
+    "User created!" : "Ο χρήστης δημιουργήθηκε!"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
