@@ -29,7 +29,6 @@ import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
 
 import './plugins/vuelidate'
-import './plugins/panzoom'
 import './directives/VTooltip'
 import './init'
 

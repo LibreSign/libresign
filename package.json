@@ -34,7 +34,6 @@
     "marked": "^2.1.3",
     "style-loader": "^1.2.1",
     "vue": "^2.6.12",
-    "vue-panzoom": "^1.1.6",
     "vue-pdf": "^4.3.0",
     "vue-router": "^3.5.1",
     "vuelidate": "^0.7.6",
