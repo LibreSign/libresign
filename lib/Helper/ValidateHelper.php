@@ -128,7 +128,7 @@ class ValidateHelper {
 			throw new \Exception($this->l10n->t('Page need be a integer type'));
 		}
 		if ($element['coordinates']['page'] < 1) {
-			throw new \Exception($this->l10n->t('Page need be equal or greater than 1'));
+			throw new \Exception($this->l10n->t('Page must be equal to or greater than 1'));
 		}
 	}
 
