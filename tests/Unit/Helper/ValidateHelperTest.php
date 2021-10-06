@@ -448,7 +448,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function dataValidateElementPage() {
 		return [
 			[['coordinates' => ['page' => '']], 'Page need be a integer type'],
-			[['coordinates' => ['page' => 0]], 'Page must be equal or greater than 1']
+			[['coordinates' => ['page' => 0]], 'Page must be equal to or greater than 1']
 		];
 	}
 }
