@@ -415,7 +415,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['type' => 'datetime'], ''],
 			[['type' => 'text'], ''],
 			[['type' => 'INVALID'], 'Invalid element type'],
-			[['file' => []], 'Element need a type']
+			[['file' => []], 'Element needs a type']
 		];
 	}
 
@@ -447,7 +447,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function dataValidateElementPage() {
 		return [
-			[['coordinates' => ['page' => '']], 'Page need be a integer type'],
+			[['coordinates' => ['page' => '']], 'Page number must be an interger'],
 			[['coordinates' => ['page' => 0]], 'Page must be equal to or greater than 1']
 		];
 	}
