@@ -125,7 +125,7 @@ class ValidateHelper {
 			return;
 		}
 		if (!is_int($element['coordinates']['page'])) {
-			throw new \Exception($this->l10n->t('Page need be a integer type'));
+			throw new \Exception($this->l10n->t('Page number must be an interger'));
 		}
 		if ($element['coordinates']['page'] < 1) {
 			throw new \Exception($this->l10n->t('Page must be equal to or greater than 1'));
@@ -134,7 +134,7 @@ class ValidateHelper {
 
 	public function validateElementType(array $element) {
 		if (!array_key_exists('type', $element)) {
-			throw new \Exception($this->l10n->t('Element need a type'));
+			throw new \Exception($this->l10n->t('Element needs a type'));
 		}
 		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
 			throw new \Exception($this->l10n->t('Invalid element type'));
