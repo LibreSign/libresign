@@ -22,8 +22,8 @@
 -->
 
 <template>
-	<div class="container">
-		<div class="container-tools">
+	<div class="container-viewer">
+		<div v-show="enableTools" class="container-tools">
 			<div ref="tools" class="tools">
 				<img class="tool" :src="zoomInIcon" alt="Zoom In">
 				<img class="tool" :src="zoomOutIcon" alt="Zoom Out">
@@ -39,25 +39,60 @@
 					<span>{{ myPdf.name }}</span>
 					<span>{{ t('libresign', '{pageNumber} of {totalPage}', { pageNumber: image.id, totalPage: totalPages }) }}</span>
 				</div>
-				<img :src="image.src" @mousedown="getCoordinates" @mousemove="getCoordinatesMove">
+				<img :src="image.src" @click="showMyCoordinates">
+			</div>
+			<div v-show="enableButtons"
+				id="containerTools"
+				ref="containerTools"
+				class="container-tools">
+				<header v-show="isMobile">
+					<h1>{{ myPdf.name }}</h1>
+				</header>
+				<div class="content-actions-tools">
+					<button v-show="isMobile" class="primary">
+						{{ t('libresign', 'Sign') }}
+					</button>
+					<button>
+						{{ t('libresign', 'Insert Signature and/or Initials') }}
+					</button>
+				</div>
+				<div class="content-tools-sign">
+					<Sign :pf="getHasPfx" />
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import MyImage1 from '../../assets/images/pdf/image.png'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
+import Sign from '../Sign'
 
 export default {
 	name: 'PDFViewer',
 
+	components: {
+		Sign,
+	},
+
 	props: {
+		isMobile: {
+			type: Boolean,
+			required: false,
+			default: true,
+		},
 		url: {
 			type: String,
 			required: false,
 			default: '',
+		},
+		enableTools: {
+			type: Boolean,
+			required: false,
+			default: false,
 		},
 	},
 
@@ -70,7 +105,7 @@ export default {
 				id: 123,
 				name: 'Profile.pdf',
 				url: this.url,
-				images: [{ id: 1, src: MyImage1 }, { id: 2, src: MyImage1 }],
+				images: [{ id: 1, src: MyImage1 }, { id: 2, src: MyImage1 }, { id: 3, src: MyImage1 }, { id: 4, src: MyImage1 }, { id: 5, src: MyImage1 }, { id: 6, src: MyImage1 }, { id: 7, src: MyImage1 }],
 			},
 			startSelection: false,
 			coordinates: {
@@ -81,10 +116,14 @@ export default {
 				endX: 0,
 				endY: 0,
 			},
+			enableButtons: false,
 		}
 	},
 
 	computed: {
+		...mapGetters({
+			getHasPfx: 'getHasPfx',
+		}),
 		totalPages() {
 			return this.myPdf.images.length
 		},
@@ -98,6 +137,24 @@ export default {
 			this.coordinates.relativeStartX = offsetX
 			this.coordinates.relativeStartY = offsetY
 			this.startSelection = true
+
+			console.info('Coordinates: ', clientX, clientY, offsetX, offsetY)
+		},
+		handleTools() {
+			this.enableButtons = !this.enableButtons
+		},
+
+		showMyCoordinates(event) {
+			const width = window.innerWidth
+
+			if (width <= 767) {
+				this.handleTools()
+				const containerTools = this.$refs.containerTools
+
+				// add 11 to top and 106 to left for centralized to the point click
+				containerTools.style.top = `${event.clientY + 11}px`
+				containerTools.style.left = `${event.clientX - 106}px`
+			}
 		},
 
 		getCoordinatesMove(event) {
@@ -110,15 +167,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container{
+.container-viewer{
+	display: flex;
+	width: 100%;
 	background-color: rgb(233, 233, 233);
 	overflow: scroll;
 	position: relative;
-	display: flex;
-	width: 100%;
 	flex-direction: column !important;
 	align-items: center;
-	justify-content: center;
 
 	.container-tools{
 		width: 100%;
@@ -153,13 +209,79 @@ export default {
 		background-color: rgb(233, 233, 233);
 		height: 90%;
 
+		.container-tools{
+			top: 200px;
+			left: 130px;
+			position: fixed;
+			background-color: #fff;
+			border: 1px solid #e9e9e9;
+			z-index: 1000;
+			min-width: 200px;
+			width: auto;
+			text-align: left;
+			border-radius: 10px;
+			padding: 10px;
+			flex-direction: column;
+
+			&::before{
+				top: -11px;
+				left: 105px;
+				border: solid transparent;
+				border-bottom-color: #e9e9e9;
+				border-top-width: 0;
+				content: '';
+				display: block;
+				position: absolute;
+				pointer-events: none;
+				z-index: 0;
+			}
+
+			&::after{
+				top: -10px;
+				left: 100px;
+				border: solid transparent;
+				border-width: 10px;
+				content: '';
+				display: block;
+				position: absolute;
+				pointer-events: none;
+				z-index: 3;
+				border-bottom-color: #fff;
+				border-top-width: 0;
+			}
+
+			header{
+				margin-bottom: 10px;
+				border-bottom-color: 1px solid #dedede;
+				font-size: 1rem;
+				font-style: italic;
+				font-weight: bold;
+			}
+
+			.content-actions-tools{
+				display: flex;
+				flex-direction: row;
+				width: 100%;
+				justify-content: center;
+				align-items: center;
+				margin: 10px;
+
+				button{
+					&:first-child{
+						margin-right: 10px;
+					}
+				}
+			}
+		}
+
 		img{
 			display: block;
-			width: 816px;
+			width: 100%;
+			max-width: 816px;
 		}
 
 		.page{
-			margin: 10px 0;
+			margin: 30px 0;
 
 			.header{
 				display: flex;
