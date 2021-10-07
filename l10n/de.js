@@ -14,6 +14,8 @@ OC.L10N.register(
     "Invalid fileID" : "Ungültige Datei-ID",
     "Invalid base64 file" : "Ungültige Base64 Datei",
     "Already asked to sign this document" : "Bereits aufgefordert, dieses Dokument zu unterschreiben.",
+    "Visible elements need to be an array" : "Sichtbare Elemente müssen ein Array sein",
+    "Page need be a integer type" : "Seite muss ein ganze Zahl sein",
     "Must be a fileID of a PDF" : "Dies muss eine Datei-ID eines PDFs sein",
     "You are not allowed to request signing" : "Du hast nicht die Berechtigung zu signieren",
     "You do not have permission for this action." : "Du hast nicht die erforderlichen Rechte für diese Aktion",
@@ -170,6 +172,7 @@ OC.L10N.register(
     "Validation URL" : "Überprüfungs-URL",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
     "All Files" : "Alle Dateien",
+    "There are no documents" : "Es gibt keine Dokumente",
     "View" : "Ansehen",
     "Subscriptions:" : "Abonnements:",
     "Document Informations" : "Informationen zum Dokument",
@@ -179,10 +182,13 @@ OC.L10N.register(
     "No date" : "Kein Datum",
     "This document is valid" : "Dieses Dokument ist gültig",
     "You need to create an account to sign this file." : "Du musst ein Konto erstellen, um diese Datei zu unterschreiben.",
+    "This feature already exists." : "Diese Funktion existiert bereits.",
+    "Feature {feature} enabled." : "Funktion {feature} aktiviert.",
     "This feature does not exist." : "Diese Funktion existiert nicht.",
     "Feature enabled." : "Funktion aktiviert.",
     "Feature disabled." : "Funktion deaktiviert",
     "User created!" : "Benutzer erstellt!",
-    "Password created!" : "Passwort erstellt"
+    "Password created!" : "Passwort erstellt",
+    "Open in LibreSign" : "In LibreSign öffnen"
 },
 "nplurals=2; plural=(n != 1);");
