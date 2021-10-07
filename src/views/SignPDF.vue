@@ -133,6 +133,7 @@ export default {
 		justify-content: center;
 		align-items: center;
 		background: #cecece;
+		height: 100%;
 
 		@media (max-width: 1024px){
 			width: 60%;
