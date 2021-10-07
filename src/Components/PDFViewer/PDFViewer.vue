@@ -48,16 +48,22 @@
 				<header v-show="isMobile">
 					<h1>{{ myPdf.name }}</h1>
 				</header>
-				<div class="content-actions-tools">
-					<button v-show="isMobile" class="primary">
+				<div v-show="!signSelected" class="content-actions-tools">
+					<button v-show="isMobile" class="primary" @click="signSelected = true">
 						{{ t('libresign', 'Sign') }}
 					</button>
 					<button>
 						{{ t('libresign', 'Insert Signature and/or Initials') }}
 					</button>
 				</div>
-				<div class="content-tools-sign">
-					<Sign :pf="getHasPfx" />
+				<div v-if="signSelected" class="content-tools-sign">
+					<Sign :pfx="getHasPfx" @sign:document="signDocument">
+						<template #actions>
+							<button class="" @click="signSelected = false">
+								{{ t('libresign', 'Return') }}
+							</button>
+						</template>
+					</Sign>
 				</div>
 			</div>
 		</div>
@@ -65,11 +71,12 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import MyImage1 from '../../assets/images/pdf/image.png'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
 import Sign from '../Sign'
+import { getCurrentUser } from '@nextcloud/auth'
 
 export default {
 	name: 'PDFViewer',
@@ -106,7 +113,9 @@ export default {
 				name: 'Profile.pdf',
 				url: this.url,
 				images: [{ id: 1, src: MyImage1 }, { id: 2, src: MyImage1 }, { id: 3, src: MyImage1 }, { id: 4, src: MyImage1 }, { id: 5, src: MyImage1 }, { id: 6, src: MyImage1 }, { id: 7, src: MyImage1 }],
+				uuid: 'aisdjaiosdjaso',
 			},
+			signSelected: false,
 			startSelection: false,
 			coordinates: {
 				startX: 0,
@@ -119,6 +128,18 @@ export default {
 			enableButtons: false,
 		}
 	},
+	watch: {
+		enableButtons(newVal, oldVal) {
+			console.info(`OLD: ${oldVal}, newVal: ${newVal}`)
+			if (newVal === false) {
+				this.signSelected = false
+			}
+		},
+	},
+
+	created() {
+		console.info('Current User: ', getCurrentUser())
+	},
 
 	computed: {
 		...mapGetters({
@@ -130,6 +151,9 @@ export default {
 	},
 
 	methods: {
+		...mapActions({
+			signDocument: 'sign/SIGN_DOCUMENT',
+		}),
 		getCoordinates(event) {
 			const { clientX, clientY, offsetX, offsetY } = event
 			this.coordinates.startX = clientX
@@ -142,6 +166,20 @@ export default {
 		},
 		handleTools() {
 			this.enableButtons = !this.enableButtons
+		},
+		async signDocument(param) {
+			this.updating = true
+			this.disableButton = true
+			console.info(param)
+			this.signDoc({ fileId: this.myPdf.uuid, password: param })
+
+			if (this['error/getError'].length > 0) {
+				this.updating = false
+				this.disableButton = false
+			} else {
+				this.updating = true
+				this.disableButton = true
+			}
 		},
 
 		showMyCoordinates(event) {
