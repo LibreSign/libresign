@@ -23,6 +23,9 @@
 
 <template>
 	<div class="container-viewer">
+		<header v-show="isMobile" class="info">
+			<span>{{ t('libresign', 'Click to open options') }}</span>
+		</header>
 		<div v-show="enableTools" class="container-tools">
 			<div ref="tools" class="tools">
 				<img class="tool" :src="zoomInIcon" alt="Zoom In">
@@ -42,6 +45,7 @@
 				<img :src="image.src" @click="showMyCoordinates">
 			</div>
 			<div v-show="enableButtons"
+				v-if="isMobile"
 				id="containerTools"
 				ref="containerTools"
 				class="container-tools">
@@ -77,6 +81,7 @@ import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
 import Sign from '../Sign'
 import { getCurrentUser } from '@nextcloud/auth'
+import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 
 export default {
 	name: 'PDFViewer',
@@ -84,13 +89,9 @@ export default {
 	components: {
 		Sign,
 	},
+	mixins: [isMobile],
 
 	props: {
-		isMobile: {
-			type: Boolean,
-			required: false,
-			default: true,
-		},
 		url: {
 			type: String,
 			required: false,
@@ -183,9 +184,7 @@ export default {
 		},
 
 		showMyCoordinates(event) {
-			const width = window.innerWidth
-
-			if (width <= 767) {
+			if (this.isMobile) {
 				this.handleTools()
 				const containerTools = this.$refs.containerTools
 
@@ -213,6 +212,23 @@ export default {
 	position: relative;
 	flex-direction: column !important;
 	align-items: center;
+
+	header.info{
+		width: 100%;
+		padding: 10px;
+		background-color: #2b936b;
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		justify-content: center;
+		align-items: center;
+		display: flex;
+
+		span{
+			font-size: 1rem;
+			font-weight: bold;
+		}
+	}
 
 	.container-tools{
 		width: 100%;
@@ -246,6 +262,7 @@ export default {
 		overflow: visible;
 		background-color: rgb(233, 233, 233);
 		height: 90%;
+		margin-top: 15px;
 
 		.container-tools{
 			top: 200px;
