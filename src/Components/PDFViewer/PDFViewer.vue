@@ -72,7 +72,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import MyImage1 from '../../assets/images/pdf/image.png'
+import MyImage1 from '../../assets/images/image.jpg'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
 import Sign from '../Sign'
@@ -128,6 +128,15 @@ export default {
 			enableButtons: false,
 		}
 	},
+
+	computed: {
+		...mapGetters({
+			getHasPfx: 'getHasPfx',
+		}),
+		totalPages() {
+			return this.myPdf.images.length
+		},
+	},
 	watch: {
 		enableButtons(newVal, oldVal) {
 			console.info(`OLD: ${oldVal}, newVal: ${newVal}`)
@@ -139,15 +148,6 @@ export default {
 
 	created() {
 		console.info('Current User: ', getCurrentUser())
-	},
-
-	computed: {
-		...mapGetters({
-			getHasPfx: 'getHasPfx',
-		}),
-		totalPages() {
-			return this.myPdf.images.length
-		},
 	},
 
 	methods: {
