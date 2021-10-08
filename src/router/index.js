@@ -24,13 +24,13 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { generateUrl, getRootUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
 import routes from './router'
 import store from '../store'
 
 Vue.use(Router)
 
-const libresignVar = JSON.parse(loadState('libresign', 'config'))
+store.dispatch('user/GET_INITIAL_SETTINGS')
+const libresignVar = store.getters.getSettings
 
 const router = new Router({
 	mode: 'history',
