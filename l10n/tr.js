@@ -15,8 +15,6 @@ OC.L10N.register(
     "Invalid base64 file" : "Base64 dosyası geçersiz.",
     "Already asked to sign this document" : "Bu belgenin imzalanması zaten istenmiş",
     "Visible elements need to be an array" : "Görülebilir bileşenler bir dizi olmalıdır",
-    "Page need be a integer type" : "Sayfa değeri tamsayı olmalıdır",
-    "Element need a type" : "Bileşenin bir türü olmalıdır",
     "Invalid element type" : "Bileşen türü geçersiz",
     "Must be a fileID of a PDF" : "Bir dosya kodu ya da bir PDF olmalıdır",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
