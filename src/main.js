@@ -22,7 +22,6 @@
  */
 
 import Vue from 'vue'
-import { loadState } from '@nextcloud/initial-state'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
@@ -64,8 +63,7 @@ if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewri
 }
 
 store.dispatch('featureController/GET_STATES')
-
-store.commit('setSettings', JSON.parse(loadState('libresign', 'config')))
+store.dispatch('user/GET_INITIAL_SETTINGS')
 
 export default new Vue({
 	el: '#content',

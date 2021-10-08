@@ -1,10 +1,12 @@
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
+import { getInitialState } from '../../services/InitialStateService'
 const state = {
 	user: {},
 	pfx: {},
 	error: {},
+	config: {},
 }
 
 const getters = {
@@ -46,6 +48,10 @@ const actions = {
 			console.info(err.response)
 			commit('setError', err.response.data.message)
 		}
+	},
+	GET_INITIAL_SETTINGS: ({ commit }) => {
+		const initialState = getInitialState()
+		commit('setSettings', initialState, { root: true })
 	},
 	CREATE_PFX: async({ commit, dispatch }, { signPassword }) => {
 		try {
