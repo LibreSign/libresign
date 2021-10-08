@@ -63,24 +63,11 @@ export default {
 			name: '',
 			user: '',
 			viewDoc: true,
-			width: window.innerWidth,
 		}
-	},
-
-	watch: {
-		width(newVal, oldVal) {
-			console.info('isMobile: ', this.isMobile)
-		},
 	},
 
 	created() {
 		this.getData()
-		this.$nextTick(() => {
-			window.addEventListener('resize', this.onResize)
-		})
-		this.width <= 650
-			? this.viewDoc = false
-			: this.viewDoc = true
 	},
 
 	methods: {
@@ -93,9 +80,6 @@ export default {
 		},
 		showDocument(param) {
 			this.viewDoc = param
-		},
-		onResize() {
-			this.width = window.innerWidth
 		},
 	},
 }
