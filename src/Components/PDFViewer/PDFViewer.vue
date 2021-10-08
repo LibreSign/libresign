@@ -153,7 +153,7 @@ export default {
 
 	methods: {
 		...mapActions({
-			signDocument: 'sign/SIGN_DOCUMENT',
+			signDoc: 'sign/SIGN_DOCUMENT',
 		}),
 		getCoordinates(event) {
 			const { clientX, clientY, offsetX, offsetY } = event
@@ -171,7 +171,6 @@ export default {
 		async signDocument(param) {
 			this.updating = true
 			this.disableButton = true
-			console.info(param)
 			this.signDoc({ fileId: this.myPdf.uuid, password: param })
 
 			if (this['error/getError'].length > 0) {
