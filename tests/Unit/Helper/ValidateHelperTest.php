@@ -115,28 +115,33 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->validateLibreSignNodeId(1);
 	}
 
-	public function testValidateMimeTypeAcceptedWhenFileIsNotPDF() {
+	/**
+	 * @dataProvider dataValidateMimeTypeAccepted
+	 */
+	public function testValidateMimeTypeAccepted(string $mimetype, string $destination, string $exception) {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
 			->method('getMimeType')
-			->willReturn('invalid');
+			->willReturn($mimetype);
 		$this->root
 			->method('getById')
 			->willReturn([$file]);
-		$this->expectExceptionMessage('Must be a fileID of a PDF');
-		$this->getValidateHelper()->validateMimeTypeAccepted(171);
+		if ($exception) {
+			$this->expectExceptionMessage($exception);
+		}
+		$actual = $this->getValidateHelper()->validateMimeTypeAccepted(171, $destination);
+		if (!$exception) {
+			$this->assertNull($actual);
+		}
 	}
 
-	public function testValidateMimeTypeAcceptedWithValidFile() {
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getMimeType')
-			->willReturn('application/pdf');
-		$this->root
-			->method('getById')
-			->willReturn([$file]);
-		$actual = $this->getValidateHelper()->validateMimeTypeAccepted(171);
-		$this->assertNull($actual);
+	public function dataValidateMimeTypeAccepted() {
+		return [
+			['invalid',         'to_sign',         'Must be a fileID of %s format'],
+			['application/pdf', 'to_sign',         ''],
+			['invalid',         'visible_element', 'Must be a fileID of %s format'],
+			['image/png', 'visible_element', ''],
+		];
 	}
 
 	public function testValidateLibreSignNodeIdWhenSuccess() {

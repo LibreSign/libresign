@@ -52,13 +52,17 @@ class ValidateHelper {
 		$this->root = $root;
 	}
 	public function validateNewFile(array $data) {
-		$this->validateFile($data);
+		$this->validateFile($data, 'to_sign');
 		if (!empty($data['file']['fileId'])) {
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 		}
 	}
 
-	public function validateFile(array $data) {
+	/**
+	 * @property array $data
+	 * @property string $destination to_sign|visible_element
+	 */
+	public function validateFile(array $data, string $destination = 'to_sign') {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -70,7 +74,7 @@ class ValidateHelper {
 				throw new \Exception($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['fileId']);
-			$this->validateMimeTypeAccepted((int)$data['file']['fileId']);
+			$this->validateMimeTypeAccepted((int)$data['file']['fileId'], $destination);
 		}
 		if (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64']);
@@ -106,7 +110,7 @@ class ValidateHelper {
 
 	public function validateVisibleElement(array $element): void {
 		$this->validateElementType($element);
-		$this->validateFile($element);
+		$this->validateFile($element, 'visible_element');
 		$this->validateElementCoordinates($element);
 	}
 
@@ -153,11 +157,17 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateMimeTypeAccepted(int $nodeId) {
+	public function validateMimeTypeAccepted(int $nodeId, string $destination = 'to_sign') {
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
-		if ($file->getMimeType() !== 'application/pdf') {
-			throw new \Exception($this->l10n->t('Must be a fileID of a PDF'));
+		if ($destination === 'to_sign') {
+			if ($file->getMimeType() !== 'application/pdf') {
+				throw new \Exception($this->l10n->t('Must be a fileID of %s format', 'PDF'));
+			}
+		} elseif ($destination === 'visible_element') {
+			if ($file->getMimeType() !== 'image/png') {
+				throw new \Exception($this->l10n->t('Must be a fileID of %s format', 'png'));
+			}
 		}
 	}
 
