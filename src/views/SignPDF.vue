@@ -22,11 +22,11 @@
 -->
 
 <template>
-	<div class="container">
+	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
 			<PDFViewer :url="pdfData" />
 		</div>
-		<div id="description" class="content">
+		<div v-show="!isMobile" id="description" class="content">
 			<Description
 				:uuid="uuid"
 				:pdf-name="name"
@@ -39,11 +39,16 @@
 <script>
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
+import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 
 export default {
 	name: 'SignPDF',
 
 	components: { Description, PDFViewer },
+
+	mixins: [
+		isMobile,
+	],
 
 	props: {
 		uuid: {
@@ -64,12 +69,7 @@ export default {
 
 	watch: {
 		width(newVal, oldVal) {
-			if (newVal <= 650) {
-				this.viewDoc = false
-			}
-			if (newVal > 650) {
-				this.viewDoc = true
-			}
+			console.info('isMobile: ', this.isMobile)
 		},
 	},
 
@@ -150,6 +150,12 @@ export default {
 		flex-direction: column;
 	}
 
+}
+
+.mobile{
+	#viewer{
+		width: 100% !important;
+	}
 }
 
 </style>
