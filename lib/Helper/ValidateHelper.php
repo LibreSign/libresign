@@ -210,6 +210,22 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateExistingFile(array $data) {
+		if (isset($data['uuid'])) {
+			$this->validateFileUuid($data);
+			$file = $this->fileMapper->getByUuid($data['uuid']);
+			$this->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
+		} elseif (isset($data['file'])) {
+			if (!isset($data['file']['fileId'])) {
+				throw new \Exception($this->l10n->t('Invalid fileID'));
+			}
+			$this->validateLibreSignNodeId($data['file']['fileId']);
+			$this->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
+		} else {
+			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
+		}
+	}
+
 	public function haveValidMail(array $data) {
 		if (empty($data)) {
 			throw new \Exception($this->l10n->t('No user data'));
