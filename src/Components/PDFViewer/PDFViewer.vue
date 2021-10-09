@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<div class="container-viewer">
+	<div class="container-viewer" @scroll="disableToolbox">
 		<header v-show="isMobile" class="info">
 			<span>{{ t('libresign', 'Click to open options') }}</span>
 		</header>
@@ -42,7 +42,7 @@
 					<span>{{ myPdf.name }}</span>
 					<span>{{ t('libresign', '{pageNumber} of {totalPage}', { pageNumber: image.id, totalPage: totalPages }) }}</span>
 				</div>
-				<img :src="image.src" @click="showMyCoordinates">
+				<img ref="documentimage" :src="image.src" @click="showMyCoordinates">
 			</div>
 			<div v-show="enableButtons"
 				v-if="isMobile"
@@ -80,7 +80,6 @@ import MyImage1 from '../../assets/images/image.jpg'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
 import Sign from '../Sign'
-import { getCurrentUser } from '@nextcloud/auth'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 
 export default {
@@ -138,23 +137,24 @@ export default {
 			return this.myPdf.images.length
 		},
 	},
+
 	watch: {
 		enableButtons(newVal, oldVal) {
-			console.info(`OLD: ${oldVal}, newVal: ${newVal}`)
 			if (newVal === false) {
 				this.signSelected = false
 			}
 		},
 	},
 
-	created() {
-		console.info('Current User: ', getCurrentUser())
-	},
-
 	methods: {
 		...mapActions({
 			signDoc: 'sign/SIGN_DOCUMENT',
 		}),
+
+		disableToolbox() {
+			this.enableButtons = false
+		},
+
 		getCoordinates(event) {
 			const { clientX, clientY, offsetX, offsetY } = event
 			this.coordinates.startX = clientX
@@ -162,12 +162,12 @@ export default {
 			this.coordinates.relativeStartX = offsetX
 			this.coordinates.relativeStartY = offsetY
 			this.startSelection = true
-
-			console.info('Coordinates: ', clientX, clientY, offsetX, offsetY)
 		},
+
 		handleTools() {
 			this.enableButtons = !this.enableButtons
 		},
+
 		async signDocument(param) {
 			this.updating = true
 			this.disableButton = true
@@ -183,13 +183,20 @@ export default {
 		},
 
 		showMyCoordinates(event) {
+			const documentWidth = this.$refs.documentimage[3].width
+			const containerTools = this.$refs.containerTools
+			const maxPositionLeft = documentWidth - (containerTools.offsetWidth - 30)
+
 			if (this.isMobile) {
 				this.handleTools()
-				const containerTools = this.$refs.containerTools
 
 				// add 11 to top and 106 to left for centralized to the point click
 				containerTools.style.top = `${event.clientY + 11}px`
-				containerTools.style.left = `${event.clientX - 106}px`
+				if (event.clientX >= maxPositionLeft) {
+					containerTools.style.left = `${maxPositionLeft}px`
+				} else {
+					containerTools.style.left = `${event.clientX - 106}px`
+				}
 			}
 		},
 
