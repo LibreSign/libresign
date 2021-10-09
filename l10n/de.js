@@ -15,6 +15,7 @@ OC.L10N.register(
     "Invalid base64 file" : "Ungültige Base64 Datei",
     "Already asked to sign this document" : "Bereits aufgefordert, dieses Dokument zu unterschreiben.",
     "Visible elements need to be an array" : "Sichtbare Elemente müssen ein Array sein",
+    "Page number must be an integer" : "Seitennummer muss eine ganze Zahl sein",
     "Page must be equal to or greater than 1" : "Seite muss 1 oder größer sein",
     "Must be a fileID of a PDF" : "Dies muss eine Datei-ID eines PDFs sein",
     "You are not allowed to request signing" : "Du hast nicht die Berechtigung zu signieren",
