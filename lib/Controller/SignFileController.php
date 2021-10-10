@@ -121,6 +121,7 @@ class SignFileController extends ApiController {
 		try {
 			$this->signFile->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
+			$this->signFile->validateVisibleElements($data);
 			$return = $this->signFile->save($data);
 			unset(
 				$return['id'],
