@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
@@ -46,6 +47,8 @@ class SignFileService {
 	private $validateHelper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var FileElement */
+	private $fileElement;
 
 	public function __construct(
 		IL10N $l10n,
@@ -59,7 +62,8 @@ class SignFileService {
 		MailService $mail,
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
-		IRootFolder $root
+		IRootFolder $root,
+		FileElement $fileElement
 	) {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;

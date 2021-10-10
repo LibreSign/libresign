@@ -1,44 +1,54 @@
 <?php
 
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N */
+	/** @var IL10N\|MockObject */
 	private $l10n;
-	/** @var Pkcs7Handler */
+	/** @var Pkcs7Handler|MockObject */
 	private $pkcs7Handler;
-	/** @var Pkcs12Handler */
+	/** @var Pkcs12Handler|MockObject */
 	private $pkcs12Handler;
-	/** @var SignFileService */
+	/** @var SignFileService|MockObject */
 	private $service;
-	/** @var FileMapper */
+	/** @var FileMapper|MockObject */
 	private $file;
-	/** @var FileUserMapper */
+	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
-	/** @var IUser */
+	/** @var IUser|MockObject */
 	private $user;
-	/** @var IClientService */
+	/** @var IClientService|MockObject */
 	private $clientService;
-	/** @var IUserManager */
+	/** @var IUserManager|MockObject */
 	private $userManager;
-	/** @var FolderService */
+	/** @var FolderService|MockObject */
 	private $folder;
-	/** @var LoggerInterface */
+	/** @var LoggerInterface|MockObject */
 	private $logger;
+	/** @var ValidateHelper|MockObject */
+	private $validateHelper;
+	/** @var IRootFolder|MockObject */
+	private $root;
+	/** @var FileElement|MockObject */
+	private $fileElement;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -57,6 +67,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->fileElement = $this->createMock(FileElement::class);
 		$this->service = new SignFileService(
 			$this->l10n,
 			$this->file,
@@ -69,7 +80,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->root
+			$this->root,
+			$this->fileElement
 		);
 	}
 

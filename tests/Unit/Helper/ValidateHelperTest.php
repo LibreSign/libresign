@@ -11,19 +11,20 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N */
+	/** @var IL10N\|MockObject */
 	private $l10n;
-	/** @var FileUserMapper */
+	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
-	/** @var FileMapper */
+	/** @var FileMapper|MockObject */
 	private $fileMapper;
-	/** @var AccountFileMapper */
+	/** @var AccountFileMapper|MockObject */
 	private $accountFileMapper;
-	/** @var IGroupManager */
+	/** @var IGroupManager|MockObject */
 	private $groupManager;
-	/** @var IRootFolder */
+	/** @var IRootFolder|MockObject */
 	private $root;
 
 	public function setUp(): void {

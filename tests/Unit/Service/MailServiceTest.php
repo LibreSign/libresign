@@ -11,6 +11,7 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -19,15 +20,15 @@ use Psr\Log\LoggerInterface;
 final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var Mailer */
+	/** @var Mailer|MockObject */
 	private $mailer;
-	/** @var FileMapper */
+	/** @var FileMapper|MockObject */
 	private $fileMapper;
-	/** @var IL10N */
+	/** @var IL10N\|MockObject */
 	private $l10n;
-	/** @var IURLGenerator */
+	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
-	/** @var IConfig */
+	/** @var IConfig|MockObject */
 	private $config;
 	/** @var MailService */
 	private $service;
