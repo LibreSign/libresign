@@ -76,17 +76,7 @@ class SignFileService {
 	}
 
 	public function save(array $data) {
-		if (!empty($data['uuid'])) {
-			$file = $this->fileMapper->getByUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			try {
-				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
-			} catch (\Throwable $th) {
-				$file = $this->saveFile($data);
-			}
-		} else {
-			$file = $this->saveFile($data);
-		}
+		$file = $this->saveFile($data);
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
@@ -100,6 +90,16 @@ class SignFileService {
 	 * @return FileEntity
 	 */
 	public function saveFile(array $data): FileEntity {
+		if (!empty($data['uuid'])) {
+			return $this->fileMapper->getByUuid($data['uuid']);
+		}
+		if (!empty($data['file']['fileId'])) {
+			try {
+				return $this->fileMapper->getByFileId($data['file']['fileId']);
+			} catch (\Throwable $th) {
+			}
+		}
+
 		$node = $this->getNodeFromData($data);
 
 		$file = new FileEntity();
