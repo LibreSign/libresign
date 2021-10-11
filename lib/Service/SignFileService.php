@@ -102,7 +102,7 @@ class SignFileService {
 		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
 			$fileElement = new FileElement();
-			if ($element['elementId']) {
+			if (!empty($element['elementId'])) {
 				$fileElement->setId($element['elementId']);
 			} else {
 				$fileElement->setCreatedAt($this->timeFactory->getDateTime());
