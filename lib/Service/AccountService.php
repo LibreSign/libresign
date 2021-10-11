@@ -259,12 +259,8 @@ class AccountService {
 	}
 
 	/**
-	 * 	 *
-	 *
 	 * @param string $formatOfPdfOnSign (base64,url,file)
-	 *
 	 * @return (array|int|mixed)[]
-	 *
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
 	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
@@ -275,7 +271,6 @@ class AccountService {
 
 	/**
 	 * @return (array|int|mixed)[]
-	 *
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
 	 */
 	private function getInfoOfFileToSign(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
