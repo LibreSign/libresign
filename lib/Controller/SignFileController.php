@@ -28,6 +28,8 @@ class SignFileController extends ApiController {
 	private $fileMapper;
 	/** @var SignFileService */
 	protected $signFile;
+	/** @var ValidateHelper */
+	protected $validateHelper;
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -107,17 +109,19 @@ class SignFileController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
+	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = []) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
 			'file' => $file,
 			'users' => $users,
-			'userManager' => $user
+			'userManager' => $user,
+			'visibleElements' => $visibleElements
 		];
 		try {
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
+			$this->signFile->validateVisibleElements($data);
 			$return = $this->signFile->save($data);
 			unset(
 				$return['id'],
@@ -262,7 +266,7 @@ class SignFileController extends ApiController {
 				]
 			];
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
 			$this->signFile->unassociateToUser($fileId, $signatureId);
 		} catch (\Throwable $th) {
@@ -298,7 +302,7 @@ class SignFileController extends ApiController {
 				]
 			];
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
 			$this->signFile->deleteSignRequest($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(

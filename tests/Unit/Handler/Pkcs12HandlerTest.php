@@ -4,15 +4,16 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IConfig;
 use OCP\IL10N;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var Pkcs12Handler */
 	protected $pkcs12Handler;
-	/** @var FolderService */
+	/** @var FolderService|MockObject */
 	protected $folderService;
-	/** @var IConfig */
+	/** @var IConfig|MockObject */
 	private $config;
-	/** @var IL10N */
+	/** @var IL10N|MockObject */
 	private $l10n;
 
 	public function setUp(): void {

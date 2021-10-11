@@ -20,41 +20,42 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
  * @group DB
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N */
+	/** @var IL10N\|MockObject */
 	private $l10n;
-	/** @var FileUserMapper */
+	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
-	/** @var IUserManager */
+	/** @var IUserManager|MockObject */
 	private $userManagerInstance;
-	/** @var IRootFolder */
+	/** @var IRootFolder|MockObject */
 	private $root;
-	/** @var FileMapper */
+	/** @var FileMapper|MockObject */
 	private $fileMapper;
-	/** @var ReportDao */
+	/** @var ReportDao|MockObject */
 	private $reportDao;
-	/** @var SignFileService */
+	/** @var SignFileService|MockObject */
 	private $signFile;
-	/** @var IConfig */
+	/** @var IConfig|MockObject */
 	private $config;
-	/** @var NewUserMailHelper */
+	/** @var NewUserMailHelper|MockObject */
 	private $newUserMail;
-	/** @var ValidateHelper */
+	/** @var ValidateHelper|MockObject */
 	private $validateHelper;
-	/** @var IURLGenerator */
+	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
-	/** @var CfsslHandler */
+	/** @var CfsslHandler|MockObject */
 	private $cfsslHandler;
-	/** @var AccountService */
+	/** @var AccountService|MockObject */
 	private $accountService;
-	/** @var IGroupManager */
+	/** @var IGroupManager|MockObject */
 	private $groupManager;
-	/** @var AccountFileService */
+	/** @var AccountFileService|MockObject */
 	private $accountFile;
 
 	public function setUp(): void {

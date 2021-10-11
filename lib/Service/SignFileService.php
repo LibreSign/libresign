@@ -2,7 +2,10 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
@@ -46,6 +49,10 @@ class SignFileService {
 	private $validateHelper;
 	/** @var IRootFolder */
 	private $root;
+	/** @var FileElementMapper */
+	private $fileElementMapper;
+	/** @var TimeFactory; */
+	private $timeFactory;
 
 	public function __construct(
 		IL10N $l10n,
@@ -59,7 +66,9 @@ class SignFileService {
 		MailService $mail,
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
-		IRootFolder $root
+		IRootFolder $root,
+		FileElementMapper $fileElementMapper,
+		TimeFactory $timeFactory
 	) {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
@@ -73,24 +82,44 @@ class SignFileService {
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
 		$this->root = $root;
+		$this->fileElementMapper = $fileElementMapper;
+		$this->timeFactory = $timeFactory;
 	}
 
 	public function save(array $data) {
-		if (!empty($data['uuid'])) {
-			$file = $this->fileMapper->getByUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			try {
-				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
-			} catch (\Throwable $th) {
-				$file = $this->saveFile($data);
-			}
-		} else {
-			$file = $this->saveFile($data);
-		}
+		$file = $this->saveFile($data);
+		$this->saveVisibleElements($data, $file);
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
+	}
+
+	private function saveVisibleElements(array $data, FileEntity $file): array {
+		if (empty($data['visibleElements'])) {
+			return [];
+		}
+		$elements = $data['visibleElements'];
+		foreach ($elements as $key => $element) {
+			$fileElement = new FileElement();
+			if (!empty($element['elementId'])) {
+				$fileElement->setId($element['elementId']);
+			} else {
+				$fileElement->setCreatedAt($this->timeFactory->getDateTime());
+			}
+			$fileElement->setFileId($file->getId());
+			$fileElement->setUserId($element['uid']);
+			$fileElement->setType($element['type']);
+			$fileElement->setPage($element['page'] ?? 1);
+			$fileElement->setUrx($element['urx'] ?? 0);
+			$fileElement->setUry($element['ury'] ?? 0);
+			$fileElement->setLlx($element['llx'] ?? 0);
+			$fileElement->setLly($element['lly'] ?? 0);
+			$fileElement->setMetadata(json_encode($element['metadata'] ?? null));
+			$this->fileElementMapper->insertOrUpdate($fileElement);
+			$elements[$key] = $fileElement;
+		}
+		return $elements;
 	}
 
 	/**
@@ -100,6 +129,16 @@ class SignFileService {
 	 * @return FileEntity
 	 */
 	public function saveFile(array $data): FileEntity {
+		if (!empty($data['uuid'])) {
+			return $this->fileMapper->getByUuid($data['uuid']);
+		}
+		if (!empty($data['file']['fileId'])) {
+			try {
+				return $this->fileMapper->getByFileId($data['file']['fileId']);
+			} catch (\Throwable $th) {
+			}
+		}
+
 		$node = $this->getNodeFromData($data);
 
 		$file = new FileEntity();
@@ -287,22 +326,6 @@ class SignFileService {
 			throw new \Exception($this->l10n->t('Name is mandatory'));
 		}
 		$this->validateHelper->validateNewFile($data);
-	}
-
-	public function validateExistingFile(array $data) {
-		if (isset($data['uuid'])) {
-			$this->validateHelper->validateFileUuid($data);
-			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
-		} elseif (isset($data['file'])) {
-			if (!isset($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileID'));
-			}
-			$this->validateHelper->validateLibreSignNodeId($data['file']['fileId']);
-			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
-		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
-		}
 	}
 
 	public function validateUsers(array $data) {

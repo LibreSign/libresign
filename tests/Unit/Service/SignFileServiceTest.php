@@ -1,44 +1,57 @@
 <?php
 
+use OC\AppFramework\Utility\TimeFactory;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N */
+	/** @var IL10N\|MockObject */
 	private $l10n;
-	/** @var Pkcs7Handler */
+	/** @var Pkcs7Handler|MockObject */
 	private $pkcs7Handler;
-	/** @var Pkcs12Handler */
+	/** @var Pkcs12Handler|MockObject */
 	private $pkcs12Handler;
-	/** @var SignFileService */
+	/** @var SignFileService|MockObject */
 	private $service;
-	/** @var FileMapper */
+	/** @var FileMapper|MockObject */
 	private $file;
-	/** @var FileUserMapper */
+	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
-	/** @var IUser */
+	/** @var IUser|MockObject */
 	private $user;
-	/** @var IClientService */
+	/** @var IClientService|MockObject */
 	private $clientService;
-	/** @var IUserManager */
+	/** @var IUserManager|MockObject */
 	private $userManager;
-	/** @var FolderService */
+	/** @var FolderService|MockObject */
 	private $folder;
-	/** @var LoggerInterface */
+	/** @var LoggerInterface|MockObject */
 	private $logger;
+	/** @var ValidateHelper|MockObject */
+	private $validateHelper;
+	/** @var IRootFolder|MockObject */
+	private $root;
+	/** @var FileElementMapper|MockObject */
+	private $fileElementMapper;
+	/** @var TimeFactory|MockObject */
+	private $timeFactory;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -57,6 +70,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
+		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->service = new SignFileService(
 			$this->l10n,
 			$this->file,
@@ -69,7 +84,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
-			$this->root
+			$this->root,
+			$this->fileElementMapper,
+			$this->timeFactory
 		);
 	}
 
@@ -702,28 +719,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->service->validateUserManager([]);
 	}
 
-	public function testValidateExistingFileWithoutUuidAndFileId() {
-		$this->expectExceptionMessage('Inform or UUID or a File object');
-		$this->service->validateExistingFile([]);
-	}
-
-	public function testValidateExistingFileWithInvalidFileId() {
-		$this->expectExceptionMessage('Invalid fileID');
-		$this->service->validateExistingFile([
-			'file' => 'invalid'
-		]);
-	}
-
-	public function testValidateExistingFileUsingFileIdWithSuccess() {
-		$actual = $this->service->validateExistingFile([
-			'userManager' => $this->user,
-			'file' => [
-				'fileId' => 171
-			]
-		]);
-		$this->assertNull($actual);
-	}
-
 	/**
 	 * @dataProvider dataValidateVisibleElementsWithSuccess
 	 */
@@ -742,6 +737,43 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			]
 			]
+		];
+	}
+
+	/**
+	 * @dataProvider dataSaveVisibleElements
+	 */
+	public function testSaveVisibleElements($elements) {
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		if (!empty($elements)) {
+			$libreSignFile->setId(1);
+			$this->fileElementMapper
+				->expects($this->once())
+				->method('insertOrUpdate');
+			if (empty($elements[0]['elementId'])) {
+				$timeFactory = new TimeFactory();
+				$mockDateTime = $timeFactory->getDateTime();
+				$this->timeFactory
+					->method('getDateTime')
+					->willReturn($mockDateTime);
+			}
+		}
+		$actual = self::invokePrivate($this->service, 'saveVisibleElements', [
+			['visibleElements' => $elements], $libreSignFile
+		]);
+		if (!empty($elements[0]['elementId'])) {
+			$this->assertEquals(1, $actual[0]->getId());
+		} elseif (!empty($elements[0])) {
+			$this->assertEquals($mockDateTime, $actual[0]->getCreatedAt());
+		}
+		$this->assertSameSize($elements, $actual);
+	}
+
+	public function dataSaveVisibleElements() {
+		return [
+			[[]],
+			[[['uid' => 1, 'type' => 'signature', 'page' => 1, 'urx' => 1, 'ury' => 1]]],
+			[[['elementId' => 1, 'uid' => 1, 'type' => 'signature', 'page' => 1, 'urx' => 1, 'ury' => 1]]],
 		];
 	}
 }
