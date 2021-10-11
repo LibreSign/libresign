@@ -66,7 +66,7 @@ class FileElement extends Entity {
 	/** @var integer */
 	protected $lly;
 
-	/** @var string */
+	/** @var \DateTime */
 	protected $createdAt;
 
 	public function __construct() {
@@ -81,6 +81,6 @@ class FileElement extends Entity {
 		$this->addType('ury', 'integer');
 		$this->addType('llx', 'integer');
 		$this->addType('lly', 'integer');
-		$this->addType('createdAt', 'string');
+		$this->addType('createdAt', 'datetime');
 	}
 }
