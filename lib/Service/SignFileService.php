@@ -88,17 +88,18 @@ class SignFileService {
 
 	public function save(array $data) {
 		$file = $this->saveFile($data);
-		$this->saveVisibleElements($data['visibleElements'], $file);
+		$this->saveVisibleElements($data, $file);
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
 	}
 
-	private function saveVisibleElements(array $elements, FileEntity $file): array {
-		if (empty($elements)) {
-			return $elements;
+	private function saveVisibleElements(array $data, FileEntity $file): array {
+		if (empty($data['visibleElements'])) {
+			return [];
 		}
+		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
 			$fileElement = new FileElement();
 			if ($element['elementId']) {

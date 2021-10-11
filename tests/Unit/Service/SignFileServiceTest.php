@@ -759,7 +759,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			}
 		}
 		$actual = self::invokePrivate($this->service, 'saveVisibleElements', [
-			$elements, $libreSignFile
+			['visibleElements' => $elements], $libreSignFile
 		]);
 		if (!empty($elements[0]['elementId'])) {
 			$this->assertEquals(1, $actual[0]->getId());
