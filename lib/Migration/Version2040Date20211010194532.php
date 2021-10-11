@@ -34,7 +34,7 @@ class Version2040Date20211010194532 extends SimpleMigrationStep {
 				'notnull' => true,
 				'unsigned' => true,
 			]);
-			$table->addColumn('userId', Types::STRING, [
+			$table->addColumn('user_id', Types::STRING, [
 				'notnull' => true,
 				'length' => 255,
 			]);
