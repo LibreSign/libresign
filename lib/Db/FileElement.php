@@ -30,7 +30,6 @@ use OCP\AppFramework\Db\Entity;
  * @method integer getLly()
  * @method void setLly(int $lly)
  * @method string getCreatedAt()
- * @method void setCreatedAt(string $createdAt)
  */
 class FileElement extends Entity {
 	/** @var integer */
@@ -82,5 +81,13 @@ class FileElement extends Entity {
 		$this->addType('llx', 'integer');
 		$this->addType('lly', 'integer');
 		$this->addType('createdAt', 'datetime');
+	}
+
+	public function setCreatedAt($createdAt) {
+		if (!$createdAt instanceof \DateTime) {
+			$createdAt = new \DateTime($createdAt);
+		}
+		$this->createdAt = $createdAt;
+		$this->markFieldUpdated('createdAt');
 	}
 }
