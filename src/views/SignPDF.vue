@@ -125,7 +125,6 @@ export default {
 
 		@media (max-width: 650px) {
 			width: 100%;
-			height: 70%;
 		}
 	}
 
