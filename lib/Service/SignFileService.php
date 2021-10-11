@@ -128,8 +128,8 @@ class SignFileService {
 	/**
 	 * Save file data
 	 *
+	 *
 	 * @param array{userManager: IUserManager, name: string, callback: string} $data
-	 * @return FileEntity
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
@@ -223,8 +223,10 @@ class SignFileService {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress MixedMethodCall
+	 *
+	 * @return false|resource|string
 	 */
-	private function getFileRaw(array $data): string {
+	private function getFileRaw(array $data) {
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));

@@ -29,7 +29,7 @@ class NotifyController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function signers($fileId, $signers) {
+	public function signers($fileId, $signers): JSONResponse {
 		try {
 			$this->notifyService->signers($fileId, $signers);
 		} catch (\Throwable $th) {

@@ -25,8 +25,8 @@ class SettingController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
 	 * @todo remove NoCSRFRequired
+	 * @return DataResponse
 	 */
 	public function hasRootCert() {
 		$checkData = [

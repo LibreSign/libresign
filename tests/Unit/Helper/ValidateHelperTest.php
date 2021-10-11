@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Helper;
 
+use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -240,6 +241,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSignerWasAssociatedWithNotLibreSignFileLoaded() {
 		$this->expectExceptionMessage('File not loaded');
+		$this->fileMapper
+			->method('getByFileId')
+			->will($this->returnCallback(function () {
+				throw new \Exception('not found');
+			}));
 		$this->getValidateHelper()->signerWasAssociated([
 			'email' => 'invalid@test.coop'
 		]);
@@ -292,6 +298,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testNotSignedWithFileNotLoaded() {
 		$this->expectExceptionMessage('File not loaded');
+		$this->fileMapper
+			->method('getByFileId')
+			->will($this->returnCallback(function () {
+				throw new \Exception('not found');
+			}));
 		$this->getValidateHelper()->notSigned([]);
 	}
 
@@ -356,7 +367,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testUserHasFileWithType() {
 		$this->expectExceptionMessage('A file of this type has been associated.');
-		$file = $this->createMock(\OCP\Files\File::class);
+		$file = $this->createMock(AccountFile::class);
 		$this->accountFileMapper
 			->method('getByUserAndType')
 			->willReturn($file);

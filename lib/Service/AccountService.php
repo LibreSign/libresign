@@ -441,7 +441,7 @@ class AccountService {
 		];
 	}
 
-	public function addFilesToAccount($files, $user): void {
+	public function addFilesToAccount(array $files, IUser $user): void {
 		$this->validateAccountFiles($files, $user);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;

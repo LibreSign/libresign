@@ -27,6 +27,9 @@ class TCPDILibresign extends TCPDI {
 		return $this->parsers[$filename]->getPageCount();
 	}
 
+	/**
+	 * @return void
+	 */
 	protected function _putXMP() {
 	}
 

@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="4.10.0@916b098b008f6de4543892b1e0651c1c3b92cbfa">
+  <file src="lib/AppInfo/Application.php">
+    <UndefinedClass occurrences="2">
+      <code>App</code>
+      <code>IBootstrap</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/AccountController.php">
+    <UndefinedClass occurrences="1">
+      <code>ApiController</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/AccountDeprecatedController.php">
+    <MissingDependency occurrences="1">
+      <code>AccountController</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Controller/AdminController.php">
+    <UndefinedClass occurrences="1">
+      <code>Controller</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/LibreSignFileController.php">
+    <UndefinedClass occurrences="1">
+      <code>Controller</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/NotifyController.php">
+    <UndefinedClass occurrences="1">
+      <code>Controller</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/PageController.php">
+    <UndefinedClass occurrences="1">
+      <code>Controller</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/SettingController.php">
+    <UndefinedClass occurrences="1">
+      <code>Controller</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/SettingDeprecatedController.php">
+    <MissingDependency occurrences="1">
+      <code>SettingController</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Controller/SignFileController.php">
+    <UndefinedClass occurrences="1">
+      <code>ApiController</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Controller/SignFileDeprecatedController.php">
+    <MissingDependency occurrences="1">
+      <code>SignFileController</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Db/AccountFile.php">
+    <UndefinedClass occurrences="1">
+      <code>Entity</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/AccountFileMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>QBMapper</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/File.php">
+    <UndefinedClass occurrences="1">
+      <code>Entity</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileElement.php">
+    <UndefinedClass occurrences="1">
+      <code>Entity</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileElementMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>QBMapper</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>QBMapper</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileType.php">
+    <UndefinedClass occurrences="1">
+      <code>Entity</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileUser.php">
+    <UndefinedClass occurrences="1">
+      <code>Entity</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/FileUserMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>QBMapper</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Db/PagerFantaQueryAdapter.php">
+    <InvalidClone occurrences="2">
+      <code>clone $this-&gt;queryBuilder</code>
+      <code>clone $this-&gt;queryBuilder</code>
+    </InvalidClone>
+    <UndefinedClass occurrences="4">
+      <code>$qb</code>
+      <code>IQueryBuilder</code>
+      <code>IQueryBuilder</code>
+      <code>IQueryBuilder</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="2">
+      <code>callable(QueryBuilder): void</code>
+      <code>callable(QueryBuilder): void</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Db/ReportDao.php">
+    <MissingDependency occurrences="3">
+      <code>$this-&gt;fileUserMapper</code>
+      <code>FileUserMapper</code>
+      <code>FileUserMapper</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="5">
+      <code>IDBConnection</code>
+      <code>IQueryBuilder</code>
+      <code>IQueryBuilder</code>
+      <code>IQueryBuilder</code>
+      <code>IURLGenerator</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="4">
+      <code>$this-&gt;db</code>
+      <code>$this-&gt;urlGenerator</code>
+      <code>IDBConnection</code>
+      <code>IURLGenerator</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Handler/CfsslHandler.php">
+    <InvalidReturnStatement occurrences="1">
+      <code>$this-&gt;client</code>
+    </InvalidReturnStatement>
+    <InvalidReturnType occurrences="1">
+      <code>ClientInterface</code>
+    </InvalidReturnType>
+    <UndefinedClass occurrences="12">
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>$th</code>
+      <code>Client</code>
+      <code>ClientInterface</code>
+      <code>TransferException</code>
+      <code>TransferException</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="3">
+      <code>$this-&gt;getClient()</code>
+      <code>$this-&gt;getClient()</code>
+      <code>ClientInterface</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Handler/ISignHandler.php">
+    <UndefinedClass occurrences="2">
+      <code>File</code>
+      <code>File</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Handler/JSignPdfHandler.php">
+    <MethodSignatureMismatch occurrences="2">
+      <code>$certificate</code>
+      <code>$inputFile</code>
+    </MethodSignatureMismatch>
+    <MissingDependency occurrences="2">
+      <code>Application</code>
+      <code>Application</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="3">
+      <code>IConfig</code>
+      <code>Node</code>
+      <code>Node</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="3">
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>IConfig</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Handler/Pkcs12Handler.php">
+    <MissingDependency occurrences="1">
+      <code>Application</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="9">
+      <code>File</code>
+      <code>File</code>
+      <code>File</code>
+      <code>IConfig</code>
+      <code>IL10N</code>
+      <code>Node</code>
+      <code>Node</code>
+      <code>\OC</code>
+      <code>\OCP\Files\Node</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="3">
+      <code>$this-&gt;config</code>
+      <code>IConfig</code>
+      <code>IL10N</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Handler/Pkcs7Handler.php">
+    <UndefinedClass occurrences="3">
+      <code>Node</code>
+      <code>Node</code>
+      <code>Node</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Handler/SignEngineInterface.php">
+    <UndefinedClass occurrences="2">
+      <code>File</code>
+      <code>File</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Handler/TCPDILibresign.php">
+    <InvalidReturnType occurrences="1">
+      <code>_putXMP</code>
+    </InvalidReturnType>
+    <UndefinedClass occurrences="1">
+      <code>File</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Helper/Pagination.php">
+    <UndefinedClass occurrences="1">
+      <code>IQueryBuilder</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Helper/ValidateHelper.php">
+    <MissingDependency occurrences="16">
+      <code>$this-&gt;accountFileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>AccountFileMapper</code>
+      <code>AccountFileMapper</code>
+      <code>Application</code>
+      <code>FileMapper</code>
+      <code>FileMapper</code>
+      <code>FileUserMapper</code>
+      <code>FileUserMapper</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="7">
+      <code>IConfig</code>
+      <code>IGroupManager</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+      <code>IUser</code>
+      <code>IUser</code>
+      <code>\OCP\Files\File</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="37">
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>IConfig</code>
+      <code>IGroupManager</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+      <code>\OCP\Files\File[]</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Listener/LoadSidebarListener.php">
+    <UndefinedClass occurrences="1">
+      <code>IEventListener</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version1000Date20210209004203.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version1000Date20210209011129.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version1000Date20210502200600.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version1000Date20210502200800.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version2040Date20210619135352.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version2040Date20210730022217.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version2040Date20211010194532.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Migration/Version2040Date20211010200549.php">
+    <UndefinedClass occurrences="1">
+      <code>SimpleMigrationStep</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Service/AccountFileService.php">
+    <MissingDependency occurrences="3">
+      <code>AccountFileMapper</code>
+      <code>AccountFileMapper</code>
+      <code>File</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="1">
+      <code>IUser</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Service/AccountService.php">
+    <MissingDependency occurrences="18">
+      <code>$fileUser</code>
+      <code>$fileUser</code>
+      <code>$fileUser</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>FileMapper</code>
+      <code>FileMapper</code>
+      <code>FileUser</code>
+      <code>FileUser</code>
+      <code>FileUserMapper</code>
+      <code>FileUserMapper</code>
+      <code>array{fileData: \OCA\Libresign\DbFile|\OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|mixed}</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="14">
+      <code>?IUser</code>
+      <code>?IUser</code>
+      <code>File</code>
+      <code>IConfig</code>
+      <code>IGroupManager</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+      <code>IURLGenerator</code>
+      <code>IUser</code>
+      <code>IUser</code>
+      <code>IUser</code>
+      <code>IUserManager</code>
+      <code>NewUserMailHelper</code>
+      <code>UUIDUtil</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="25">
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;newUserMail</code>
+      <code>$this-&gt;newUserMail</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;userManager</code>
+      <code>IConfig</code>
+      <code>IGroupManager</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+      <code>IURLGenerator</code>
+      <code>IUserManager</code>
+      <code>NewUserMailHelper</code>
+      <code>\OCA\Files\Node\File</code>
+      <code>\OCA\Libresign\DbFile</code>
+      <code>\OCP\Files\File</code>
+      <code>array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list&lt;mixed&gt;, redirect?: mixed, settings?: array{accountHash: string}}</code>
+      <code>array{fileData: \OCA\Libresign\DbFile|\OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|mixed}</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/AdminSignatureService.php">
+    <MissingDependency occurrences="14">
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+      <code>Application</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="1">
+      <code>IConfig</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="15">
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>IConfig</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/FolderService.php">
+    <UndefinedClass occurrences="5">
+      <code>Folder</code>
+      <code>Folder</code>
+      <code>IConfig</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="6">
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;config</code>
+      <code>$this-&gt;l10n</code>
+      <code>IConfig</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/MailService.php">
+    <MissingDependency occurrences="6">
+      <code>File</code>
+      <code>FileMapper</code>
+      <code>FileMapper</code>
+      <code>FileUser</code>
+      <code>FileUser</code>
+      <code>FileUser</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="4">
+      <code>IConfig</code>
+      <code>IL10N</code>
+      <code>IMailer</code>
+      <code>IURLGenerator</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="4">
+      <code>IConfig</code>
+      <code>IL10N</code>
+      <code>IURLGenerator</code>
+      <code>Mailer</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/NotifyService.php">
+    <MissingDependency occurrences="3">
+      <code>$this-&gt;fileUserMapper</code>
+      <code>FileUserMapper</code>
+      <code>FileUserMapper</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="1">
+      <code>IUserSession</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="3">
+      <code>$this-&gt;userSession</code>
+      <code>$this-&gt;userSession</code>
+      <code>IUserSession</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Service/SignFileService.php">
+    <MissingDependency occurrences="36">
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>$this-&gt;fileUserMapper</code>
+      <code>FileElementMapper</code>
+      <code>FileElementMapper</code>
+      <code>FileEntity</code>
+      <code>FileEntity</code>
+      <code>FileEntity</code>
+      <code>FileEntity</code>
+      <code>FileEntity</code>
+      <code>FileMapper</code>
+      <code>FileMapper</code>
+      <code>FileUserEntity</code>
+      <code>FileUserEntity</code>
+      <code>FileUserEntity</code>
+      <code>FileUserEntity</code>
+      <code>FileUserEntity</code>
+      <code>FileUserMapper</code>
+      <code>FileUserMapper</code>
+      <code>list&lt;FileUserEntity&gt;</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="16">
+      <code>$userFolder</code>
+      <code>$userFolder</code>
+      <code>$userFolder</code>
+      <code>File</code>
+      <code>File</code>
+      <code>File</code>
+      <code>Http</code>
+      <code>IClientService</code>
+      <code>IL10N</code>
+      <code>IResponse</code>
+      <code>IRootFolder</code>
+      <code>IUserManager</code>
+      <code>TimeFactory</code>
+      <code>\OCP\Files\Node</code>
+      <code>\OCP\Files\Node</code>
+      <code>\OCP\Files\Node</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="26">
+      <code>$this-&gt;client</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>$this-&gt;l10n</code>
+      <code>IClientService</code>
+      <code>IL10N</code>
+      <code>IRootFolder</code>
+      <code>IUserManager</code>
+      <code>Type\PdfTypeException</code>
+      <code>array{callback: string, name: string, userManager: OCP\IUserManager}</code>
+      <code>array{settings: array, name: string, userManager: IUser}</code>
+      <code>array{userManager: IUserManager, name: string, callback: string}</code>
+    </UndefinedDocblockClass>
+    <UndefinedMethod occurrences="2">
+      <code>delete</code>
+      <code>delete</code>
+    </UndefinedMethod>
+  </file>
+  <file src="lib/Service/SignatureService.php">
+    <MissingDependency occurrences="1">
+      <code>Application</code>
+    </MissingDependency>
+    <UndefinedClass occurrences="1">
+      <code>IConfig</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="2">
+      <code>$this-&gt;config</code>
+      <code>IConfig</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Settings/Admin.php">
+    <UndefinedClass occurrences="1">
+      <code>ISettings</code>
+    </UndefinedClass>
+  </file>
+  <file src="lib/Settings/AdminSettings.php">
+    <UndefinedClass occurrences="1">
+      <code>IIconSection</code>
+    </UndefinedClass>
+  </file>
+</files>

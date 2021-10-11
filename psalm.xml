@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="1"
+    errorLevel="5"
     resolveFromConfigFile="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    errorBaseline="tests/psalm-baseline.xml"
 >
     <projectFiles>
         <directory name="lib" />
@@ -12,94 +13,4 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
-    <extraFiles>
-        <directory name="vendor" />
-        <ignoreFiles>
-            <directory name="vendor/phpunit/php-code-coverage" />
-            <directory name="vendor/vimeo" />
-            <directory name="vendor/friendsofphp" />
-        </ignoreFiles>
-    </extraFiles>
-    <issueHandlers>
-        <UndefinedMagicMethod>
-            <errorLevel type="suppress">
-                <referencedMethod name="/Db\\.*::.*/" />
-            </errorLevel>
-        </UndefinedMagicMethod>
-        <UndefinedClass>
-            <errorLevel type="suppress">
-                <referencedClass name="GuzzleHttp\Client" />
-                <referencedClass name="GuzzleHttp\Exception\TransferException" />
-                <referencedClass name="OCA\Settings\Mailer\NewUserMailHelper" />
-                <referencedClass name="OCP\AppFramework\ApiController" />
-                <referencedClass name="OCP\AppFramework\App" />
-                <referencedClass name="OCP\AppFramework\Bootstrap\IBootstrap" />
-                <referencedClass name="OCP\AppFramework\Controller" />
-                <referencedClass name="OCP\AppFramework\Db\Entity" />
-                <referencedClass name="OCP\AppFramework\Db\QBMapper" />
-                <referencedClass name="OCP\AppFramework\Http" />
-                <referencedClass name="OCP\DB\QueryBuilder\IQueryBuilder" />
-                <referencedClass name="OCP\EventDispatcher\IEventListener" />
-                <referencedClass name="OCP\Files\File" />
-                <referencedClass name="OCP\Files\Folder" />
-                <referencedClass name="OCP\Files\IRootFolder" />
-                <referencedClass name="OCP\Files\Node" />
-                <referencedClass name="OCP\Http\Client\IClientService" />
-                <referencedClass name="OCP\Http\Client\IResponse" />
-                <referencedClass name="OCP\IConfig" />
-                <referencedClass name="OCP\IDBConnection" />
-                <referencedClass name="OCP\IGroupManager" />
-                <referencedClass name="OCP\IL10N" />
-                <referencedClass name="OCP\IURLGenerator" />
-                <referencedClass name="OCP\IUser" />
-                <referencedClass name="OCP\IUserManager" />
-                <referencedClass name="OCP\IUserSession" />
-                <referencedClass name="OCP\Mail\IMailer" />
-                <referencedClass name="OCP\Migration\SimpleMigrationStep" />
-                <referencedClass name="OCP\Settings\IIconSection" />
-                <referencedClass name="OCP\Settings\ISettings" />
-                <referencedClass name="Sabre\DAV\UUIDUtil" />
-            </errorLevel>
-        </UndefinedClass>
-        <MissingDependency>
-            <errorLevel type="suppress">
-                <file name="lib/Controller/AccountDeprecatedController.php" />
-                <file name="lib/Controller/SettingDeprecatedController.php" />
-                <file name="lib/Controller/SignFileDeprecatedController.php" />
-                <file name="lib/Db/ReportDao.php" />
-                <file name="lib/Handler/JSignPdfHandler.php" />
-                <file name="lib/Helper/ValidateHelper.php" />
-                <file name="lib/Service/AccountFileService.php" />
-                <file name="lib/Service/AccountService.php" />
-                <file name="lib/Service/AdminSignatureService.php" />
-                <file name="lib/Service/MailService.php" />
-                <file name="lib/Service/NotifyService.php" />
-                <file name="lib/Service/SignFileService.php" />
-                <file name="lib/Service/SignatureService.php" />
-            </errorLevel>
-        </MissingDependency>
-        <UndefinedDocblockClass>
-            <errorLevel type="suppress">
-                <referencedClass name="Doctrine\DBAL\Query\QueryBuilder" />
-                <referencedClass name="GuzzleHttp\Client" />
-                <referencedClass name="OCA\Files\Node\File" />
-                <referencedClass name="OCA\Libresign\DbFile" />
-                <referencedClass name="OCA\Libresign\Db\Entity" />
-                <referencedClass name="OCA\Libresign\Service\Mailer" />
-                <referencedClass name="OCA\Libresign\Service\Type\PdfTypeException" />
-                <referencedClass name="OCA\Settings\Mailer\NewUserMailHelper" />
-                <referencedClass name="OCP\Files\File" />
-                <referencedClass name="OCP\Files\IRootFolder" />
-                <referencedClass name="OCP\Files\Node" />
-                <referencedClass name="OCP\Http\Client\IClientService" />
-                <referencedClass name="OCP\IConfig" />
-                <referencedClass name="OCP\IDBConnection" />
-                <referencedClass name="OCP\IGroupManager" />
-                <referencedClass name="OCP\IL10N" />
-                <referencedClass name="OCP\IURLGenerator" />
-                <referencedClass name="OCP\IUserManager" />
-                <referencedClass name="OCP\IUserSession" />
-            </errorLevel>
-        </UndefinedDocblockClass>
-    </issueHandlers>
 </psalm>

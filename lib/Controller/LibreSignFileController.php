@@ -71,7 +71,7 @@ class LibreSignFileController extends Controller {
 		return $this->validate('FileId', $fileId);
 	}
 
-	private function validate(string $type, $identifier) {
+	private function validate(string $type, $identifier): JSONResponse {
 		$canSign = false;
 		try {
 			if ($this->userSession->getUser()) {
@@ -144,7 +144,7 @@ class LibreSignFileController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function list($page = null, $length = null) {
+	public function list($page = null, $length = null): JSONResponse {
 		$return = $this->account->list($this->userSession->getUser(), $page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
 	}

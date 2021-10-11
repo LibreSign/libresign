@@ -57,8 +57,10 @@ class ValidateHelper {
 	/**
 	 * @property array $data
 	 * @property string $destination to_sign|visible_element
+	 *
+	 * @return void
 	 */
-	public function validateFile(array $data, string $destination = 'to_sign') {
+	public function validateFile(array $data, string $destination = 'to_sign'): void {
 		if (empty($data['file'])) {
 			throw new \Exception($this->l10n->t('Empty file'));
 		}
@@ -95,7 +97,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElements($visibleElements) {
+	public function validateVisibleElements($visibleElements): void {
 		if (!is_array($visibleElements)) {
 			throw new \Exception($this->l10n->t('Visible elements need to be an array'));
 		}
@@ -117,7 +119,7 @@ class ValidateHelper {
 		$this->validateElementPage($element);
 	}
 
-	protected function acceptedCoordinates() {
+	protected function acceptedCoordinates(): void {
 	}
 
 	public function validateElementPage(array $element): void {
@@ -132,7 +134,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateElementType(array $element) {
+	public function validateElementType(array $element): void {
 		if (!array_key_exists('type', $element)) {
 			throw new \Exception($this->l10n->t('Element needs a type'));
 		}
@@ -177,10 +179,14 @@ class ValidateHelper {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
+	 *
 	 * @param integer $nodeId
-	 * @return \OCP\Files\File
+	 *
+	 * @return \OCP\Files\Node|\OCP\Files\Node[]
+	 *
+	 * @psalm-return \OCP\Files\Node|array<\OCP\Files\Node>
 	 */
-	private function getLibreSignFileByNodeId(int $nodeId): \OCP\Files\File {
+	private function getLibreSignFileByNodeId(int $nodeId) {
 		if (empty($this->file[$nodeId])) {
 			$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
@@ -240,8 +246,9 @@ class ValidateHelper {
 	}
 
 	public function signerWasAssociated(array $signer): void {
-		$libresignFile = $this->fileMapper->getByFileId();
-		if (!$libresignFile) {
+		try {
+			$libresignFile = $this->fileMapper->getByFileId();
+		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
@@ -252,8 +259,9 @@ class ValidateHelper {
 	}
 
 	public function notSigned(array $signer): void {
-		$libresignFile = $this->fileMapper->getByFileId();
-		if (!$libresignFile) {
+		try {
+			$libresignFile = $this->fileMapper->getByFileId();
+		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
@@ -284,7 +292,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateUserHasNoFileWithThisType(string $uid, string $type) {
+	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
 		} catch (\Throwable $th) {
@@ -294,7 +302,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateFileTypeExists(string $type) {
+	public function validateFileTypeExists(string $type): void {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($type, $profileFileTypes)) {
 			throw new \Exception($this->l10n->t('Invalid file type.'));
