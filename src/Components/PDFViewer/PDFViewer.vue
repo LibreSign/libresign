@@ -42,51 +42,28 @@
 					<span>{{ myPdf.name }}</span>
 					<span>{{ t('libresign', '{pageNumber} of {totalPage}', { pageNumber: image.id, totalPage: totalPages }) }}</span>
 				</div>
-				<img ref="documentimage" :src="image.src" @click="showMyCoordinates">
-			</div>
-			<div v-show="enableButtons"
-				v-if="isMobile"
-				id="containerTools"
-				ref="containerTools"
-				class="container-tools">
-				<header v-show="isMobile">
-					<h1>{{ myPdf.name }}</h1>
-				</header>
-				<div v-show="!signSelected" class="content-actions-tools">
-					<button v-show="isMobile" class="primary" @click="signSelected = true">
-						{{ t('libresign', 'Sign') }}
-					</button>
-					<button>
-						{{ t('libresign', 'Insert Signature and/or Initials') }}
-					</button>
-				</div>
-				<div v-if="signSelected" class="content-tools-sign">
-					<Sign :pfx="getHasPfx" @sign:document="signDocument">
-						<template #actions>
-							<button class="" @click="signSelected = false">
-								{{ t('libresign', 'Return') }}
-							</button>
-						</template>
-					</Sign>
-				</div>
+				<img ref="documentimage" :src="image.src" @click="displayTools">
+				<Tools class="tools"
+					:enabled="toolsVisible"
+					:document="myPdf"
+					:position="positionToolsContainer" />
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 import MyImage1 from '../../assets/images/image.jpg'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
-import Sign from '../Sign'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
+import Tools from './Tools.vue'
 
 export default {
 	name: 'PDFViewer',
-
 	components: {
-		Sign,
+		Tools,
 	},
 	mixins: [isMobile],
 
@@ -115,34 +92,17 @@ export default {
 				images: [{ id: 1, src: MyImage1 }, { id: 2, src: MyImage1 }, { id: 3, src: MyImage1 }, { id: 4, src: MyImage1 }, { id: 5, src: MyImage1 }, { id: 6, src: MyImage1 }, { id: 7, src: MyImage1 }],
 				uuid: 'aisdjaiosdjaso',
 			},
-			signSelected: false,
-			startSelection: false,
-			coordinates: {
-				startX: 0,
-				startY: 0,
-				relativeStartX: 0,
-				relativeStartY: 0,
-				endX: 0,
-				endY: 0,
+			positionToolsContainer: {
+				top: 0,
+				left: 0,
 			},
-			enableButtons: false,
+			toolsVisible: false,
 		}
 	},
 
 	computed: {
-		...mapGetters({
-			getHasPfx: 'getHasPfx',
-		}),
 		totalPages() {
 			return this.myPdf.images.length
-		},
-	},
-
-	watch: {
-		enableButtons(newVal, oldVal) {
-			if (newVal === false) {
-				this.signSelected = false
-			}
 		},
 	},
 
@@ -152,58 +112,31 @@ export default {
 		}),
 
 		disableToolbox() {
-			this.enableButtons = false
-		},
-
-		getCoordinates(event) {
-			const { clientX, clientY, offsetX, offsetY } = event
-			this.coordinates.startX = clientX
-			this.coordinates.startY = clientY
-			this.coordinates.relativeStartX = offsetX
-			this.coordinates.relativeStartY = offsetY
-			this.startSelection = true
+			this.toolsVisible = false
 		},
 
 		handleTools() {
-			this.enableButtons = !this.enableButtons
+			this.toolsVisible = !this.toolsVisible
 		},
 
-		async signDocument(param) {
-			this.updating = true
-			this.disableButton = true
-			this.signDoc({ fileId: this.myPdf.uuid, password: param })
+		renderContainerTools(e) {
+			const documentWidth = this.$refs.documentimage[0].width
 
-			if (this['error/getError'].length > 0) {
-				this.updating = false
-				this.disableButton = false
+			this.handleTools()
+
+			this.positionToolsContainer.top = e.clientY + 11
+
+			if (e.clientX >= (documentWidth - 330)) {
+				this.positionToolsContainer.left = documentWidth - 330
 			} else {
-				this.updating = true
-				this.disableButton = true
+				this.positionToolsContainer.left = e.clientX - 106
 			}
 		},
 
-		showMyCoordinates(event) {
-			const documentWidth = this.$refs.documentimage[3].width
-			const containerTools = this.$refs.containerTools
-			const maxPositionLeft = documentWidth - (containerTools.offsetWidth - 30)
-
+		displayTools(event) {
 			if (this.isMobile) {
-				this.handleTools()
-
-				// add 11 to top and 106 to left for centralized to the point click
-				containerTools.style.top = `${event.clientY + 11}px`
-				if (event.clientX >= maxPositionLeft) {
-					containerTools.style.left = `${maxPositionLeft}px`
-				} else {
-					containerTools.style.left = `${event.clientX - 106}px`
-				}
+				this.renderContainerTools(event)
 			}
-		},
-
-		getCoordinatesMove(event) {
-			const { clientX, clientY } = event
-			this.coordinates.endX = clientX
-			this.coordinates.endY = clientY
 		},
 	},
 }
@@ -270,75 +203,13 @@ export default {
 		height: 90%;
 		margin-top: 15px;
 
-		.container-tools{
-			top: 200px;
-			left: 130px;
-			position: fixed;
-			background-color: #fff;
-			border: 1px solid #e9e9e9;
-			z-index: 1000;
-			min-width: 200px;
-			width: auto;
-			text-align: left;
-			border-radius: 10px;
-			padding: 10px;
-			flex-direction: column;
-
-			&::before{
-				top: -11px;
-				left: 105px;
-				border: solid transparent;
-				border-bottom-color: #e9e9e9;
-				border-top-width: 0;
-				content: '';
-				display: block;
-				position: absolute;
-				pointer-events: none;
-				z-index: 0;
-			}
-
-			&::after{
-				top: -10px;
-				left: 100px;
-				border: solid transparent;
-				border-width: 10px;
-				content: '';
-				display: block;
-				position: absolute;
-				pointer-events: none;
-				z-index: 3;
-				border-bottom-color: #fff;
-				border-top-width: 0;
-			}
-
-			header{
-				margin-bottom: 10px;
-				border-bottom-color: 1px solid #dedede;
-				font-size: 1rem;
-				font-style: italic;
-				font-weight: bold;
-			}
-
-			.content-actions-tools{
-				display: flex;
-				flex-direction: row;
-				width: 100%;
-				justify-content: center;
-				align-items: center;
-				margin: 10px;
-
-				button{
-					&:first-child{
-						margin-right: 10px;
-					}
-				}
-			}
-		}
-
 		img{
 			display: block;
 			width: 100%;
-			max-width: 816px;
+		}
+
+		.tools{
+			width: 330px;
 		}
 
 		.page{
