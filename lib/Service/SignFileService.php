@@ -2,8 +2,10 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
@@ -47,8 +49,10 @@ class SignFileService {
 	private $validateHelper;
 	/** @var IRootFolder */
 	private $root;
-	/** @var FileElement */
-	private $fileElement;
+	/** @var FileElementMapper */
+	private $fileElementMapper;
+	/** @var TimeFactory; */
+	private $timeFactory;
 
 	public function __construct(
 		IL10N $l10n,
@@ -63,7 +67,8 @@ class SignFileService {
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
 		IRootFolder $root,
-		FileElement $fileElement
+		FileElementMapper $fileElementMapper,
+		TimeFactory $timeFactory
 	) {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
@@ -77,14 +82,43 @@ class SignFileService {
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
 		$this->root = $root;
+		$this->fileElementMapper = $fileElementMapper;
+		$this->timeFactory = $timeFactory;
 	}
 
 	public function save(array $data) {
 		$file = $this->saveFile($data);
+		$this->saveVisibleElements($data['visibleElements'], $file);
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
 		$return['users'] = $this->associateToUsers($data, $file->getId());
 		return $return;
+	}
+
+	private function saveVisibleElements(array $elements, FileEntity $file): array {
+		if (empty($elements)) {
+			return $elements;
+		}
+		foreach ($elements as $key => $element) {
+			$fileElement = new FileElement();
+			if ($element['elementId']) {
+				$fileElement->setId($element['elementId']);
+			} else {
+				$fileElement->setCreatedAt($this->timeFactory->getDateTime());
+			}
+			$fileElement->setFileId($file->getId());
+			$fileElement->setUserId($element['uid']);
+			$fileElement->setType($element['type']);
+			$fileElement->setPage($element['page'] ?? 1);
+			$fileElement->setUrx($element['urx'] ?? 0);
+			$fileElement->setUry($element['ury'] ?? 0);
+			$fileElement->setLlx($element['llx'] ?? 0);
+			$fileElement->setLly($element['lly'] ?? 0);
+			$fileElement->setMetadata(json_encode($element['metadata'] ?? null));
+			$this->fileElementMapper->insertOrUpdate($fileElement);
+			$elements[$key] = $fileElement;
+		}
+		return $elements;
 	}
 
 	/**
