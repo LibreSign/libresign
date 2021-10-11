@@ -5,7 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Handler;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
-use OCP\Http\Client\IResponse;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * @internal
@@ -33,7 +33,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$class = new CfsslHandler();
 		$this->expectErrorMessage('Error while generating certificate keys!');
 		$this->expectExceptionCode(500);
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => false
 		]));
@@ -66,7 +66,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('Error while creating certificate file');
 		$this->expectExceptionCode(500);
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$cert = [
 			'certificate' => null,
 			'private_key' => null
@@ -85,7 +85,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testGenerateCertificateWithValidCert() {
 		$class = new CfsslHandler();
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$cert = file_get_contents(__DIR__ . '/mock/cert.json');
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => 'success',
@@ -130,7 +130,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testHealthWithoutSuccess() {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('Error while check cfssl API health!');
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => false,
 			'result' => true
@@ -145,7 +145,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testHealthWithSuccess() {
 		$class = new CfsslHandler();
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(ResponseInterface::class);
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => 'success',
 			'result' => ['healthy' => true]
