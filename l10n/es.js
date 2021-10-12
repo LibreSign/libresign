@@ -14,7 +14,6 @@ OC.L10N.register(
     "Invalid fileID" : "fileID no válido",
     "Invalid base64 file" : "Archivo base64 no válido",
     "Already asked to sign this document" : "Ya se ha solicitado firmar este documento",
-    "Must be a fileID of a PDF" : "Debe ser un fileID de un PDF",
     "You are not allowed to request signing" : "Usted no está autorizado a solicitar la firma",
     "Email required" : "Correo electrónico requerido",
     "Invalid email" : "Email no válido",

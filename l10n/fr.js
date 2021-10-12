@@ -14,7 +14,6 @@ OC.L10N.register(
     "Invalid fileID" : "fileID non valide",
     "Invalid base64 file" : "Fichier base64 non valide",
     "Already asked to sign this document" : "Demande de signature de ce document déjà adressée",
-    "Must be a fileID of a PDF" : "Le fileID doit correspondre à un PDF",
     "You are not allowed to request signing" : "Vous n'êtes pas autorisé à demander la signature ",
     "You do not have permission for this action." : "Vous n'avez pas la permission de réaliser cette action.",
     "No user data" : "Pas de données utilisateur",
