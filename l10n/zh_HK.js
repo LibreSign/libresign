@@ -19,6 +19,7 @@ OC.L10N.register(
     "Page must be equal to or greater than 1" : "頁碼必須等或大於 1",
     "Element needs a type" : "元素需要指定類型",
     "Invalid element type" : "元素類型無效",
+    "Must be a fileID of %s format" : "fileID 必須採用 %s 格式",
     "You are not allowed to request signing" : "你無權請求簽署",
     "You do not have permission for this action." : "您無權執行此操作。",
     "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",

@@ -17,6 +17,7 @@
     "Page must be equal to or greater than 1" : "Strona musi być równa lub większa od 1",
     "Element needs a type" : "Element potrzebuje typu",
     "Invalid element type" : "Nieprawidłowy typ elementu",
+    "Must be a fileID of %s format" : "Musi być identyfikatorem pliku w formacie %s",
     "You are not allowed to request signing" : "Nie możesz poprosić o podpisanie",
     "You do not have permission for this action." : "Nie masz uprawnień do tego działania.",
     "Inform or UUID or a File object" : "Inform lub UUID lub obiekt pliku",

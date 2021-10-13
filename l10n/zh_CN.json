@@ -17,6 +17,7 @@
     "Page must be equal to or greater than 1" : "页码必须大于等于1",
     "Element needs a type" : "元素需要一个类型",
     "Invalid element type" : "无效的元素类型",
+    "Must be a fileID of %s format" : "必须为 %s 格式的 fileID",
     "You are not allowed to request signing" : "系统不允许你请求签名",
     "You do not have permission for this action." : "你没有此操作的权限",
     "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",

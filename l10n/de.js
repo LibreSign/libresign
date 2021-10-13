@@ -79,6 +79,7 @@ OC.L10N.register(
     "Create password to sign document" : "Passwort zum Signieren des Dokuments erstellen",
     "Sign the document." : "Unterschreibe das Dokument.",
     "Show Document" : "Dokument anzeigen",
+    "Colors:" : "Farben:",
     "Cancel" : "Abbrechen",
     "Confirm your signature" : "Bestätige Deine Signatur",
     "Save" : "Speichern",

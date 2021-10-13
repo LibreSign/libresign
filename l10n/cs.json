@@ -17,6 +17,7 @@
     "Page must be equal to or greater than 1" : "Je třeba, aby stránka byla rovná nebo větší než 1",
     "Element needs a type" : "Prvek potřebuje typ",
     "Invalid element type" : "Neplatný typ prvku",
+    "Must be a fileID of %s format" : "Je třeba, aby bylo identifikátorem souboru ve formátu %s",
     "You are not allowed to request signing" : "Nemáte oprávnění požadovat podepsání",
     "You do not have permission for this action." : "Pro provedení tohoto úkonu nemáte oprávnění.",
     "Inform or UUID or a File object" : "Inform nebo UUID nebo objekt-soubor",
