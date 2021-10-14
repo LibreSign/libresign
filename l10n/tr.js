@@ -19,6 +19,7 @@ OC.L10N.register(
     "Page must be equal to or greater than 1" : "Sayfa 1 değerine eşit ya da büyük olmalıdır",
     "Element needs a type" : "Bileşenin bir türü olmalıdır",
     "Invalid element type" : "Bileşen türü geçersiz",
+    "Must be a fileID of %s format" : "%s biçiminde bir dosya kodu olmalıdır",
     "You are not allowed to request signing" : "İmzalama isteğinde bulunma izniniz yok",
     "You do not have permission for this action." : "Bu işlemi yapma izniniz yok.",
     "Inform or UUID or a File object" : "Bilgi ya da UUID ya da dosya nesnesi",
