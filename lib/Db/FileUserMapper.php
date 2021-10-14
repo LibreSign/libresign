@@ -31,7 +31,6 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Returns all users who have not signed
 	 *
-	 *
 	 * @return \OCP\AppFramework\Db\Entity[] all fetched entities
 	 *
 	 * @psalm-return array<\OCP\AppFramework\Db\Entity>
@@ -87,8 +86,11 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
+	 * @param int $fileId
 	 *
-	 * @param string $fileId
+	 * @return FileUser|\OCP\AppFramework\Db\Entity[]
+	 *
+	 * @psalm-return FileUser|array<int, \OCP\AppFramework\Db\Entity>
 	 */
 	public function getByFileId(int $fileId) {
 		if (!isset($this->signers['fileId'][$fileId])) {
@@ -129,7 +131,9 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
-	 * @param string $nodeId
+	 *
+	 * @param int $nodeId
+	 *
 	 * @return FileUser[]
 	 */
 	public function getByNodeId(int $nodeId) {

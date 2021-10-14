@@ -196,7 +196,10 @@ class AccountService {
 		return $this->fileUser;
 	}
 
-	public function createToSign($uuid, $uid, $password, $signPassword): void {
+	/**
+	 * @param null|string $signPassword
+	 */
+	public function createToSign(string $uuid, string $uid, string $password, ?string $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
 		$newUser = $this->userManager->createUser($uid, $password);

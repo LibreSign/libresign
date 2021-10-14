@@ -55,19 +55,27 @@ class LibreSignFileController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
+	 *
 	 * @PublicPage
+	 *
+	 * @return JSONResponse
 	 */
-	public function validateUuid($uuid) {
+	public function validateUuid($uuid): JSONResponse {
 		return $this->validate('Uuid', $uuid);
 	}
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
+	 *
 	 * @PublicPage
+	 *
+	 * @return JSONResponse
 	 */
-	public function validateFileId($fileId) {
+	public function validateFileId($fileId): JSONResponse {
 		return $this->validate('FileId', $fileId);
 	}
 
