@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "64409b0d22f6160a03af3b6bc7048155",
+    "content-hash": "b35a4fbf151cd6c64d28f1c36de3a181",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1784,29 +1784,27 @@
         },
         {
             "name": "christophwurst/nextcloud",
-            "version": "dev-master",
+            "version": "dev-stable21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ChristophWurst/nextcloud_composer.git",
-                "reference": "cd9bc02320e8163cc676f85a5d3733cf12cc5196"
+                "reference": "be42b39d878f042fca36ffb7f71b09f8de8cd9d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/cd9bc02320e8163cc676f85a5d3733cf12cc5196",
-                "reference": "cd9bc02320e8163cc676f85a5d3733cf12cc5196",
+                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/be42b39d878f042fca36ffb7f71b09f8de8cd9d1",
+                "reference": "be42b39d878f042fca36ffb7f71b09f8de8cd9d1",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.3 || ~8.0.0",
                 "psr/container": "^1.0",
-                "psr/event-dispatcher": "^1.0",
                 "psr/log": "^1.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "23.0.0-dev"
+                    "dev-master": "21.0.0-dev"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -1822,9 +1820,9 @@
             "description": "Composer package containing Nextcloud's public API (classes, interfaces)",
             "support": {
                 "issues": "https://github.com/ChristophWurst/nextcloud_composer/issues",
-                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/master"
+                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/stable21"
             },
-            "time": "2021-10-08T01:12:54+00:00"
+            "time": "2021-03-26T07:42:50+00:00"
         },
         {
             "name": "composer/package-versions-deprecated",
