@@ -145,6 +145,7 @@ OC.L10N.register(
     "Webhook" : "Spletni povezovalnik",
     "Select authorized groups." : "Izbor overjenih skupin.",
     "Legal information" : "Pravne podrobnosti",
+    "This information will appear on the validation page" : "Ti podatki bodo prikazani na strani overitve",
     "Legal Information" : "Pravne podrobnosti",
     "Validation URL" : "Naslov URL overjanja",
     "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
