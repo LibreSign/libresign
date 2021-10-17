@@ -19,8 +19,7 @@
     "guzzlehttp/psr7": "^1.8",
     "mikey179/vfsstream": "^1.6",
     "donatj/mock-webserver": "^2.2",
-    "vimeo/psalm": "^4.9",
-    "christophwurst/nextcloud": "dev-stable21"
+    "vimeo/psalm": "^4.9"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
