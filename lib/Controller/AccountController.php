@@ -211,7 +211,7 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function createSignatureElement($elements) {
+	public function createSignatureElement(array $elements) {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 		} catch (\Throwable $th) {
