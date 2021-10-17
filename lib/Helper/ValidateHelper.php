@@ -146,7 +146,7 @@ class ValidateHelper {
 	public function validateIfNodeIdExists(int $nodeId): void {
 		try {
 			$file = $this->root->getById($nodeId);
-			$file = $file[0];
+			$file = $file[0] ?? null;
 		} catch (\Throwable $th) {
 			throw new \Exception($this->l10n->t('Invalid fileID'));
 		}
