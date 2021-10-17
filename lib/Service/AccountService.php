@@ -476,35 +476,39 @@ class AccountService {
 		}
 	}
 
-	public function saveVisibleElements(array $elements, string $userId): void {
+	public function saveVisibleElements(array $elements, IUser $user): void {
 		foreach ($elements as $element) {
-			if (isset($element['file']['fileId'])) {
-				$userFolder = $this->folderService->getFolder($element['file']['fileId']);
-				$file = $userFolder->getById($element['file']['fileId'])[0];
-			} else {
-				$userFolder = $this->folderService->getFolder();
-				$folderName = $this->getFolderName->getFolderName($element);
-				if ($userFolder->nodeExists($folderName)) {
-					throw new \Exception($this->l10n->t('File already exists'));
-				}
-				$folderToFile = $userFolder->newFolder($folderName);
-				$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
-			}
-
-			$userElement = new UserElement();
-
-			if (!empty($element['elementId'])) {
-				$userElement->setId($element['elementId']);
-			} else {
-				$userElement->setCreatedAt($this->timeFactory->getDateTime());
-			}
-
-			$userElement->setFileId($file->getId());
-			$userElement->setType($element['type']);
-			$userElement->setStarred(isset($element['starred']) && $element['starred']);
-			$userElement->setUserId($userId);
-			$this->userElementMapper->insertOrUpdate($userElement);
+			$this->saveVisibleElement($element, $user);
 		}
+	}
+
+	public function saveVisibleElement(array $element, IUser $user): void {
+		if (isset($element['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($element['file']['fileId']);
+			$file = $userFolder->getById($element['file']['fileId'])[0];
+		} else {
+			$userFolder = $this->folderService->getFolder();
+			$folderName = $this->folderService->getFolderName($element, $user);
+			if ($userFolder->nodeExists($folderName)) {
+				throw new \Exception($this->l10n->t('File already exists'));
+			}
+			$folderToFile = $userFolder->newFolder($folderName);
+			$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
+		}
+
+		$userElement = new UserElement();
+
+		if (!empty($element['elementId'])) {
+			$userElement->setId($element['elementId']);
+		} else {
+			$userElement->setCreatedAt($this->timeFactory->getDateTime());
+		}
+
+		$userElement->setFileId($file->getId());
+		$userElement->setType($element['type']);
+		$userElement->setStarred(isset($element['starred']) && $element['starred']);
+		$userElement->setUserId($user->getUID());
+		$this->userElementMapper->insertOrUpdate($userElement);
 	}
 
 	/**

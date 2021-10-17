@@ -212,7 +212,7 @@ class SignFileService {
 			return $userFolder->getById($data['file']['fileId'])[0];
 		}
 		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data);
+		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
 		if ($userFolder->nodeExists($folderName)) {
 			throw new \Exception($this->l10n->t('File already exists'));
 		}

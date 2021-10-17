@@ -214,7 +214,7 @@ class AccountController extends ApiController {
 	public function createSignatureElement(array $elements) {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->account->saveVisibleElements($elements, $this->userSession->getUser()->getUID());
+			$this->account->saveVisibleElements($elements, $this->userSession->getUser());
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -277,6 +277,39 @@ class AccountController extends ApiController {
 					'message' => $this->l10n->t('Element not found')
 				],
 				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function patchSignatureElement($elementId, string $type = '', array $file = []) {
+		try {
+			$element['elementId'] = $elementId;
+			if ($type) {
+				$element['type'] = $type;
+			}
+			if ($file) {
+				$element['file'] = $file;
+			}
+			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->account->saveVisibleElement($element, $this->userSession->getUser());
+			return new JSONResponse(
+				[
+					'success' => true,
+					'message' => $this->l10n->t('Element updated with success')
+				],
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
 	}

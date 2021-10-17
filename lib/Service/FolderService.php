@@ -6,6 +6,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IUser;
 
 class FolderService {
 	/** @var IRootFolder */
@@ -96,9 +97,10 @@ class FolderService {
 	}
 
 	/**
-	 * @param array{settings: array, name: string, userManager: IUser} $data
+	 * @param array{settings: array, name: string} $data
+	 * @param IUser $owner
 	 */
-	public function getFolderName(array $data): string {
+	public function getFolderName(array $data, IUser $owner): string {
 		if (!isset($data['settings']['folderPatterns'])) {
 			$data['settings']['separator'] = '_';
 			$data['settings']['folderPatterns'][] = [
@@ -124,7 +126,7 @@ class FolderService {
 					}
 					break;
 				case 'userId':
-					$folderName[] = $data['userManager']->getUID();
+					$folderName[] = $owner->getUID();
 					break;
 			}
 		}
