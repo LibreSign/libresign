@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
@@ -17,6 +18,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -67,6 +69,10 @@ class AccountService {
 	private $userElementMapper;
 	/** @var FolderService */
 	private $folderService;
+	/** @var IClientService */
+	private $clientService;
+	/** @var TimeFactory */
+	private $timeFactory;
 
 	public function __construct(
 		IL10N $l10n,
@@ -85,7 +91,9 @@ class AccountService {
 		IGroupManager $groupManager,
 		AccountFileService $accountFileService,
 		UserElementMapper $userElementMapper,
-		FolderService $folderService
+		FolderService $folderService,
+		IClientService $clientService,
+		TimeFactory $timeFactory
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -104,6 +112,8 @@ class AccountService {
 		$this->accountFileService = $accountFileService;
 		$this->userElementMapper = $userElementMapper;
 		$this->folderService = $folderService;
+		$this->clientService = $clientService;
+		$this->timeFactory = $timeFactory;
 	}
 
 	public function validateCreateToSign(array $data): void {
@@ -468,8 +478,6 @@ class AccountService {
 
 	public function saveVisibleElements(array $elements, string $userId): void {
 		foreach ($elements as $element) {
-			$element = new UserElement();
-
 			if (isset($element['file']['fileId'])) {
 				$userFolder = $this->folderService->getFolder($element['file']['fileId']);
 				$file = $userFolder->getById($element['file']['fileId'])[0];
@@ -482,11 +490,45 @@ class AccountService {
 				$folderToFile = $userFolder->newFolder($folderName);
 				$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
 			}
-			$element->setFileId($file->getId());
 
-			$element->setType($element['type']);
-			$element->userId($userId);
-			$this->userElementMapper->insertOrUpdate($element);
+			$userElement = new UserElement();
+
+			if (!empty($element['elementId'])) {
+				$userElement->setId($element['elementId']);
+			} else {
+				$userElement->setCreatedAt($this->timeFactory->getDateTime());
+			}
+
+			$userElement->setFileId($file->getId());
+			$userElement->setType($element['type']);
+			$userElement->setUserId($userId);
+			$this->userElementMapper->insertOrUpdate($userElement);
 		}
+	}
+
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 *
+	 * @return false|resource|string
+	 */
+	private function getFileRaw(array $data) {
+		if (!empty($data['file']['url'])) {
+			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
+				throw new \Exception($this->l10n->t('Invalid URL file'));
+			}
+			$response = $this->clientService->newClient()->get($data['file']['url']);
+			$contentType = $response->getHeader('Content-Type');
+			if ($contentType !== 'image/png') {
+				throw new \Exception($this->l10n->t('Visible element file must be png.'));
+			}
+			$content = $response->getBody();
+			if (!$content) {
+				throw new \Exception($this->l10n->t('Empty file'));
+			}
+		} else {
+			$content = base64_decode($data['file']['base64']);
+		}
+		return $content;
 	}
 }

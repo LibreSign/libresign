@@ -19,7 +19,7 @@ use OCP\AppFramework\Db\Entity;
 class UserElement extends Entity {
 
 	/** @var integer */
-	protected $id;
+	public $id;
 	/** @var string */
 	protected $type;
 	/** @var integer */

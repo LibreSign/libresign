@@ -214,6 +214,7 @@ class AccountController extends ApiController {
 	public function createSignatureElement(array $elements) {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->account->saveVisibleElements($elements, $this->userSession->getUser()->getUID());
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -223,6 +224,16 @@ class AccountController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		$this->account->saveVisibleElements($elements, $this->userSession->getUser()->getUID());
+		return new JSONResponse(
+			[
+				'success' => true,
+				'message' => $this->l10n->n(
+					'Element created with success',
+					'Elements created with success',
+					count($elements)
+				)
+			],
+			Http::STATUS_OK
+		);
 	}
 }
