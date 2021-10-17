@@ -223,5 +223,6 @@ class AccountController extends ApiController {
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
+		$this->account->saveVisibleElements($elements, $this->userSession->getUser()->getUID());
 	}
 }

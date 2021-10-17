@@ -7,6 +7,8 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
+use OCA\Libresign\Db\UserElement;
+use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -61,6 +63,10 @@ class AccountService {
 	private $groupManager;
 	/** @var AccountFileService */
 	private $accountFileService;
+	/** @var UserElementMapper */
+	private $userElementMapper;
+	/** @var FolderService */
+	private $folderService;
 
 	public function __construct(
 		IL10N $l10n,
@@ -77,7 +83,9 @@ class AccountService {
 		CfsslHandler $cfsslHandler,
 		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
-		AccountFileService $accountFileService
+		AccountFileService $accountFileService,
+		UserElementMapper $userElementMapper,
+		FolderService $folderService
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -94,6 +102,8 @@ class AccountService {
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
+		$this->userElementMapper = $userElementMapper;
+		$this->folderService = $folderService;
 	}
 
 	public function validateCreateToSign(array $data): void {
@@ -453,6 +463,30 @@ class AccountService {
 			$file = $this->signFile->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
+		}
+	}
+
+	public function saveVisibleElements(array $elements, string $userId): void {
+		foreach ($elements as $element) {
+			$element = new UserElement();
+
+			if (isset($element['file']['fileId'])) {
+				$userFolder = $this->folderService->getFolder($element['file']['fileId']);
+				$file = $userFolder->getById($element['file']['fileId'])[0];
+			} else {
+				$userFolder = $this->folderService->getFolder();
+				$folderName = $this->getFolderName->getFolderName($element);
+				if ($userFolder->nodeExists($folderName)) {
+					throw new \Exception($this->l10n->t('File already exists'));
+				}
+				$folderToFile = $userFolder->newFolder($folderName);
+				$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
+			}
+			$element->setFileId($file->getId());
+
+			$element->setType($element['type']);
+			$element->userId($userId);
+			$this->userElementMapper->insertOrUpdate($element);
 		}
 	}
 }
