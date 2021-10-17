@@ -16,7 +16,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
  */
-class FileUser extends Entity {
+class UserElement extends Entity {
 
 	/** @var integer */
 	protected $id;
