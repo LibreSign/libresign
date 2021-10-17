@@ -32,9 +32,9 @@ class ValidateHelper {
 	private $root;
 	/** @var \OCP\Files\File[] */
 	private $file;
-	const TYPE_TO_SIGN = 1;
-	const TYPE_VISIBLE_ELEMENT_PDF = 2;
-	const TYPE_VISIBLE_ELEMENT_USER = 3;
+	public const TYPE_TO_SIGN = 1;
+	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
+	public const TYPE_VISIBLE_ELEMENT_USER = 3;
 
 	public function __construct(
 		IL10N $l10n,
