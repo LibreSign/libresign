@@ -16,6 +16,7 @@ return [
 		['name' => 'account#getSignatureElements',    'url' => '/api/0.1/account/signature/elements', 'verb' => 'GET'],
 		['name' => 'account#getSignatureElement',     'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'GET'],
 		['name' => 'account#patchSignatureElement',   'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'PATCH'],
+		['name' => 'account#deleteSignatureElement',  'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'DELETE'],
 
 		// Deprecated
 		['name' => 'signFileDeprecated#requestSign',  'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],

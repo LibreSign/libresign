@@ -569,4 +569,9 @@ class AccountService {
 			'createdAt' => $element->getCreatedAt()
 		];
 	}
+
+	public function deleteSignatureElement(string $userId, int $elementId) {
+		$element = $this->userElementMapper->getByUserIdAndElementId($userId, $elementId);
+		$this->userElementMapper->delete($element);
+	}
 }

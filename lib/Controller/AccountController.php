@@ -313,4 +313,28 @@ class AccountController extends ApiController {
 			);
 		}
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function deleteSignatureElement($elementId) {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			$this->account->deleteSignatureElement($userId, $elementId);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Element not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Visible element deleted')
+			],
+			Http::STATUS_OK
+		);
+	}
 }
