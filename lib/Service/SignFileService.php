@@ -212,7 +212,7 @@ class SignFileService {
 			return $userFolder->getById($data['file']['fileId'])[0];
 		}
 		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->getFolderName($data);
+		$folderName = $this->folderService->getFolderName($data);
 		if ($userFolder->nodeExists($folderName)) {
 			throw new \Exception($this->l10n->t('File already exists'));
 		}
@@ -261,42 +261,6 @@ class SignFileService {
 			$this->logger->error($th->getMessage());
 			throw new \Exception($this->l10n->t('Invalid PDF'));
 		}
-	}
-
-	/**
-	 * @param array{settings: array, name: string, userManager: IUser} $data
-	 */
-	private function getFolderName(array $data): string {
-		if (!isset($data['settings']['folderPatterns'])) {
-			$data['settings']['separator'] = '_';
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'date',
-				'setting' => 'Y-m-d\TH:i:s'
-			];
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'name'
-			];
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'userId'
-			];
-		}
-		$folderName = null;
-		foreach ($data['settings']['folderPatterns'] as $pattern) {
-			switch ($pattern['name']) {
-				case 'date':
-					$folderName[] = (new \DateTime('NOW'))->format($pattern['setting']);
-					break;
-				case 'name':
-					if (!empty($data['name'])) {
-						$folderName[] = $data['name'];
-					}
-					break;
-				case 'userId':
-					$folderName[] = $data['userManager']->getUID();
-					break;
-			}
-		}
-		return implode($data['settings']['separator'], $folderName);
 	}
 
 	/**

@@ -94,4 +94,40 @@ class FolderService {
 
 		return $path;
 	}
+
+	/**
+	 * @param array{settings: array, name: string, userManager: IUser} $data
+	 */
+	public function getFolderName(array $data): string {
+		if (!isset($data['settings']['folderPatterns'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
+		}
+		$folderName = null;
+		foreach ($data['settings']['folderPatterns'] as $pattern) {
+			switch ($pattern['name']) {
+				case 'date':
+					$folderName[] = (new \DateTime('NOW'))->format($pattern['setting']);
+					break;
+				case 'name':
+					if (!empty($data['name'])) {
+						$folderName[] = $data['name'];
+					}
+					break;
+				case 'userId':
+					$folderName[] = $data['userManager']->getUID();
+					break;
+			}
+		}
+		return implode($data['settings']['separator'], $folderName);
+	}
 }
