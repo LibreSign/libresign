@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
@@ -22,5 +23,20 @@ class UserElementMapper extends QBMapper {
 	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_user_element');
+	}
+
+	/**
+	 * @return UserElement[]
+	 */
+	public function getByUserId($userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('ue.*')
+			->from($this->getTableName(), 'ue')
+			->where(
+				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+			);
+
+		return $this->findEntities($qb);
 	}
 }

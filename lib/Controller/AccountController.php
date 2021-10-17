@@ -236,4 +236,27 @@ class AccountController extends ApiController {
 			Http::STATUS_OK
 		);
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function getSignatureElements() {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			return new JSONResponse(
+				[
+					'elements' => $this->account->getUserElements($userId)
+				],
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Elements not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
 }

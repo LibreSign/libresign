@@ -23,15 +23,15 @@ class UserElement extends Entity {
 	/** @var integer */
 	public $id;
 	/** @var string */
-	protected $type;
+	public $type;
 	/** @var integer */
 	protected $fileId;
 	/** @var string */
 	protected $userId;
 	/** @var bool */
-	protected $starred;
+	public $starred;
 	/** @var \DateTime */
-	protected $createdAt;
+	public $createdAt;
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('type', 'string');

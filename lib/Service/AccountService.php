@@ -532,4 +532,22 @@ class AccountService {
 		}
 		return $content;
 	}
+
+	public function getUserElements($userId): array {
+		$elements = $this->userElementMapper->getByUserId($userId);
+		foreach ($elements as $key => $element) {
+			$return[] = [
+				'id' =>  $element->getId(),
+				'type' => $element->getType(),
+				'file' => [
+					'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+					'fileId' => $element->getFileId()
+				],
+				'uid' => $element->getUserId(),
+				'starred' => $element->getStarred() ? true : false,
+				'createdAt' => $element->getCreatedAt()
+			];
+		}
+		return $return;
+	}
 }
