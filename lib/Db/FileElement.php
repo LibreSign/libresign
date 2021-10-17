@@ -7,29 +7,29 @@ namespace OCA\Libresign\Db;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * @method integer getId()
+ * @method int getId()
  * @method void setId(int $id)
- * @method integer getFileId()
+ * @method int getFileId()
  * @method void setFileId(int $fileId)
  * @method string getUserId()
  * @method void setUserId(string $userId)
  * @method string getType()
  * @method void setType(string $type)
- * @method integer getSignatureFileId()
+ * @method int getSignatureFileId()
  * @method void setSignatureFileId(int $signatureFileId)
  * @method string getMetadata()
  * @method void setMetadata(string $metadata)
- * @method integer getPage()
+ * @method int getPage()
  * @method void setPage(int $page)
- * @method integer getUrx()
+ * @method int getUrx()
  * @method void setUrx(int $urx)
- * @method integer getUry()
+ * @method int getUry()
  * @method void setUry(int $ury)
- * @method integer getLlx()
+ * @method int getLlx()
  * @method void setLlx(int $llx)
- * @method integer getLly()
+ * @method int getLly()
  * @method void setLly(int $lly)
- * @method string getCreatedAt()
+ * @method \DateTime getCreatedAt()
  */
 class FileElement extends Entity {
 	/** @var integer */
