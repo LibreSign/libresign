@@ -118,7 +118,7 @@ class SignFileService {
 			$fileElement->setUry($element['ury'] ?? 0);
 			$fileElement->setLlx($element['llx'] ?? 0);
 			$fileElement->setLly($element['lly'] ?? 0);
-			$fileElement->setMetadata(json_encode($element['metadata'] ?? null));
+			$fileElement->setMetadata(!empty($element['metadata']) ? json_encode($element['metadata']) : null);
 			$this->fileElementMapper->insertOrUpdate($fileElement);
 			$elements[$key] = $fileElement;
 		}
@@ -332,14 +332,14 @@ class SignFileService {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
-		$this->validateVisibleElements($data);
+		$this->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 	}
 
-	public function validateVisibleElements(array $data): void {
+	public function validateVisibleElements(array $data, int $type): void {
 		if (empty($data['visibleElements'])) {
 			return;
 		}
-		$this->validateHelper->validateVisibleElements($data['visibleElements']);
+		$this->validateHelper->validateVisibleElements($data['visibleElements'], $type);
 	}
 
 	public function validateUserManager(array $user): void {
