@@ -18,6 +18,8 @@ use OCP\IDBConnection;
  * @method FileUser delete(FileUser $entity)
  */
 class FileElementMapper extends QBMapper {
+	/** @var FileElement[][] */
+	private $signers = [];
 
 	/**
 	 * @param IDBConnection $db
@@ -27,8 +29,6 @@ class FileElementMapper extends QBMapper {
 	}
 
 	/**
-	 * Undocumented function
-	 *
 	 * @param integer $fileId
 	 * @return FileElement[]
 	 */
@@ -42,5 +42,23 @@ class FileElementMapper extends QBMapper {
 			);
 
 		return $this->findEntities($qb);
+	}
+
+	public function getByFileIdAndFileUserId(int $fileId, int $userId) {
+		if (!isset($this->signers['fileId'][$fileId][$userId])) {
+			$qb = $this->db->getQueryBuilder();
+
+			$qb->select('fe.*')
+				->from($this->getTableName(), 'fe')
+				->where(
+					$qb->expr()->eq('fe.signature_file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
+				)
+				->andWhere(
+					$qb->expr()->eq('fe.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+				);
+
+			$this->signers['fileId'][$fileId][$userId] = $this->findEntity($qb);
+		}
+		return $this->signers['fileId'][$fileId][$userId];
 	}
 }

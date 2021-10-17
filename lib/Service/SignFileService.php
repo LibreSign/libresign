@@ -477,6 +477,10 @@ class SignFileService {
 	public function unassociateToUser(int $fileId, int $signatureId): void {
 		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
 		$this->fileUserMapper->delete($fileUser);
+		$visibleElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+		foreach ($visibleElements as $visibleElement) {
+			$this->fileElementMapper->delete($visibleElement);
+		}
 	}
 
 	/**
