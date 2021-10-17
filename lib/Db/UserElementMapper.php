@@ -39,4 +39,19 @@ class UserElementMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	public function getByUserIdAndElementId(string $userId, int $elementId): UserElement {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('ue.*')
+			->from($this->getTableName(), 'ue')
+			->where(
+				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+			)
+			->andWhere(
+				$qb->expr()->eq('ue.id', $qb->createNamedParameter($elementId, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntity($qb);
+	}
 }

@@ -259,4 +259,25 @@ class AccountController extends ApiController {
 			);
 		}
 	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function getSignatureElement($elementId) {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			return new JSONResponse(
+				$this->account->getUserElementByElementId($userId, $elementId),
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Element not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
 }

@@ -14,6 +14,7 @@ return [
 		['name' => 'account#addFiles',                'url' => '/api/0.1/account/files', 'verb' => 'POST'],
 		['name' => 'account#createSignatureElement',  'url' => '/api/0.1/account/signature/elements', 'verb' => 'POST'],
 		['name' => 'account#getSignatureElements',    'url' => '/api/0.1/account/signature/elements', 'verb' => 'GET'],
+		['name' => 'account#getSignatureElement',     'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'GET'],
 
 		// Deprecated
 		['name' => 'signFileDeprecated#requestSign',  'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],

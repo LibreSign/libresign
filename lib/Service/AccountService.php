@@ -550,4 +550,19 @@ class AccountService {
 		}
 		return $return;
 	}
+
+	public function getUserElementByElementId($userId, $elementId): array {
+		$element = $this->userElementMapper->getByUserIdAndElementId($userId, $elementId);
+		return [
+			'id' =>  $element->getId(),
+			'type' => $element->getType(),
+			'file' => [
+				'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+				'fileId' => $element->getFileId()
+			],
+			'uid' => $element->getUserId(),
+			'starred' => $element->getStarred() ? true : false,
+			'createdAt' => $element->getCreatedAt()
+		];
+	}
 }
