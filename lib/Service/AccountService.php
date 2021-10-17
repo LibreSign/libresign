@@ -541,7 +541,7 @@ class AccountService {
 		$elements = $this->userElementMapper->getByUserId($userId);
 		foreach ($elements as $key => $element) {
 			$return[] = [
-				'id' =>  $element->getId(),
+				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
 					'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
@@ -558,7 +558,7 @@ class AccountService {
 	public function getUserElementByElementId($userId, $elementId): array {
 		$element = $this->userElementMapper->getByUserIdAndElementId($userId, $elementId);
 		return [
-			'id' =>  $element->getId(),
+			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
 				'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
