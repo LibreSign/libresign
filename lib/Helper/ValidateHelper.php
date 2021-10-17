@@ -73,6 +73,11 @@ class ValidateHelper {
 			if ($type === self::TYPE_TO_SIGN) {
 				throw new \Exception($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
 			}
+			if ($type === self::TYPE_VISIBLE_ELEMENT_USER) {
+				if ($this->elementNeedFile($data)) {
+					throw new \Exception($this->l10n->t('Elements of type %s need file.', [$data['type']]));
+				}
+			}
 			return;
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
@@ -88,6 +93,10 @@ class ValidateHelper {
 		if (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
 		}
+	}
+
+	private function elementNeedFile(array $data) {
+		return in_array($data['type'], ['signature', 'initial']);
 	}
 
 	private function getTypeOfFile(int $type) {

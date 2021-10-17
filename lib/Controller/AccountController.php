@@ -6,6 +6,7 @@ use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -26,6 +27,8 @@ class AccountController extends ApiController {
 	private $urlGenerator;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var ValidateHelper */
+	private $validateHelper;
 
 	public function __construct(
 		IRequest $request,
@@ -33,7 +36,8 @@ class AccountController extends ApiController {
 		AccountService $account,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
-		IUserSession $userSession
+		IUserSession $userSession,
+		ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -41,6 +45,7 @@ class AccountController extends ApiController {
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
+		$this->validateHelper = $validateHelper;
 	}
 
 	/**
@@ -200,5 +205,23 @@ class AccountController extends ApiController {
 			],
 			Http::STATUS_OK
 		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function createSignatureElement($elements) {
+		try {
+			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 	}
 }
