@@ -501,6 +501,7 @@ class AccountService {
 
 			$userElement->setFileId($file->getId());
 			$userElement->setType($element['type']);
+			$userElement->setStarred(isset($element['starred']) && $element['starred']);
 			$userElement->setUserId($userId);
 			$this->userElementMapper->insertOrUpdate($userElement);
 		}
