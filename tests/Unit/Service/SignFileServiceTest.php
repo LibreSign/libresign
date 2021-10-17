@@ -105,6 +105,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->expects($this->once())
 			->method('getFolder')
 			->willReturn($folder);
+		$this->user
+			->method('getUID')
+			->willReturn('test');
 		$this->service->saveFile([
 			'file' => ['url' => 'qwert'],
 			'name' => 'test',
@@ -256,6 +259,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
 		$folder->method('getById')->willReturn([$folder]);
 		$this->folder->method('getFolder')->will($this->returnValue($folder));
+		$this->user
+			->method('getUID')
+			->willReturn('user');
 		$actual = $this->service->saveFile([
 			'file' => ['fileId' => 123],
 			'userManager' => $this->user,
@@ -479,7 +485,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($folder);
 		$this->folder
 			->method('getUserId')
-			->willReturn(1);
+			->willReturn('user');
 		$actual = $this->service->save([
 			'file' => [
 				'fileId' => 123
@@ -670,7 +676,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$fileUser = new \OCA\Libresign\Db\FileUser();
 		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
-		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+		$this->assertInstanceOf(\OCP\Files\Node::class, $actual);
 	}
 
 	public function testSignNonPdfWithSuccess() {
@@ -711,7 +717,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$fileUser = new \OCA\Libresign\Db\FileUser();
 		$actual = $this->service->sign($libreSignFile, $fileUser, 'password');
-		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
+		$this->assertInstanceOf(\OCP\Files\Node::class, $actual);
 	}
 
 	public function testValidateUserManagerWithoutUserManager() {

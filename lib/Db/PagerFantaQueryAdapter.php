@@ -43,6 +43,9 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 		return (int) $values[0];
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 */
 	public function getSlice(int $offset, int $length): iterable {
 		$qb = clone $this->queryBuilder;
 
@@ -52,6 +55,9 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 			->fetchAll();
 	}
 
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 */
 	private function prepareCountQueryBuilder(): IQueryBuilder {
 		$qb = clone $this->queryBuilder;
 		$callable = $this->countQueryBuilderModifier;

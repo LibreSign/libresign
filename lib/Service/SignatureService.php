@@ -15,7 +15,7 @@ class SignatureService {
 		$this->config = $config;
 	}
 
-	public function hasRootCert() {
+	public function hasRootCert(): bool {
 		return !empty($this->config->getAppValue(Application::APP_ID, 'authkey'));
 	}
 }

@@ -31,9 +31,11 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Returns all users who have not signed
 	 *
-	 * @return Entity[] all fetched entities
+	 * @return \OCP\AppFramework\Db\Entity[] all fetched entities
+	 *
+	 * @psalm-return array<\OCP\AppFramework\Db\Entity>
 	 */
-	public function findUnsigned() {
+	public function findUnsigned(): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -66,7 +68,7 @@ class FileUserMapper extends QBMapper {
 		return $this->signers['fileUserUuid'][$uuid];
 	}
 
-	public function getByEmailAndFileId(string $email, int $fileId) {
+	public function getByEmailAndFileId(string $email, int $fileId): \OCP\AppFramework\Db\Entity {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -84,8 +86,11 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
-	 * @param string $fileId
-	 * @return FileUser[]
+	 * @param int $fileId
+	 *
+	 * @return FileUser|\OCP\AppFramework\Db\Entity[]
+	 *
+	 * @psalm-return FileUser|array<int, \OCP\AppFramework\Db\Entity>
 	 */
 	public function getByFileId(int $fileId) {
 		if (!isset($this->signers['fileId'][$fileId])) {
@@ -97,6 +102,7 @@ class FileUserMapper extends QBMapper {
 					$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 				);
 			$signers = $this->findEntities($qb);
+			$this->signers['fileId'][$fileId] = [];
 			foreach ($signers as $signer) {
 				$this->signers['fileId'][$fileId][$signer->getId()] = $signer;
 			}
@@ -125,7 +131,9 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
-	 * @param string $nodeId
+	 *
+	 * @param int $nodeId
+	 *
 	 * @return FileUser[]
 	 */
 	public function getByNodeId(int $nodeId) {
@@ -166,7 +174,7 @@ class FileUserMapper extends QBMapper {
 		return $this->signers['fileUuid'][$uuid];
 	}
 
-	public function getByUuidAndUserId(string $uuid, string $userId) {
+	public function getByUuidAndUserId(string $uuid, string $userId): \OCP\AppFramework\Db\Entity {
 		if (!isset($this->signers['fileUserUuid'][$uuid])) {
 			$qb = $this->db->getQueryBuilder();
 
@@ -184,7 +192,7 @@ class FileUserMapper extends QBMapper {
 		return $this->signers['fileUserUuid'][$uuid];
 	}
 
-	public function getByFileIdAndUserId(string $file_id, string $userId) {
+	public function getByFileIdAndUserId(string $file_id, string $userId): \OCP\AppFramework\Db\Entity {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('fu.*')
@@ -200,7 +208,7 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function getByFileIdAndEmail(string $file_id, string $email) {
+	public function getByFileIdAndEmail(string $file_id, string $email): \OCP\AppFramework\Db\Entity {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('fu.*')

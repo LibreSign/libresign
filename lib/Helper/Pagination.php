@@ -17,12 +17,16 @@ class Pagination extends Pagerfanta {
 		parent::__construct($adapter);
 	}
 
-	public function setRootPath(string $rootPath = '') {
+	public function setRootPath(string $rootPath = ''): self {
 		$this->rootPath = $rootPath;
 		return $this;
 	}
 
-	public function getPagination($page, $length) {
+	/**
+	 * @param int|null $page
+	 * @param int|null $length
+	 */
+	public function getPagination(?int $page, ?int $length): array {
 		$this->setMaxPerPage($length);
 		$pagination['total'] = $this->count();
 		if ($pagination['total'] > $length) {

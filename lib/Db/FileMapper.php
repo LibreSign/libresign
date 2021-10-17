@@ -33,7 +33,7 @@ class FileMapper extends QBMapper {
 	 *
 	 * @return File Row of table libresign_file
 	 */
-	public function getById($id) {
+	public function getById(int $id): File {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -47,10 +47,8 @@ class FileMapper extends QBMapper {
 
 	/**
 	 * Return LibreSign file by UUID
-	 *
-	 * @return Entity Row of table libresign_file
 	 */
-	public function getByUuid(?string $uuid = null) {
+	public function getByUuid(?string $uuid = null): \OCP\AppFramework\Db\Entity {
 		if (!$uuid) {
 			return array_values($this->file)[0];
 		}
@@ -70,10 +68,8 @@ class FileMapper extends QBMapper {
 
 	/**
 	 * Return LibreSign file by fileId
-	 *
-	 * @return Entity Row of table libresign_file
 	 */
-	public function getByFileId(?int $fileId = null) {
+	public function getByFileId(?int $fileId = null): File {
 		if (!$fileId) {
 			return array_values($this->file)[0];
 		}

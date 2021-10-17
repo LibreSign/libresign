@@ -14,7 +14,7 @@ class FolderService {
 	private $config;
 	/** @var IL10N */
 	private $l10n;
-	/** @var string */
+	/** @var string|null */
 	private $userId;
 
 	public function __construct(
@@ -29,17 +29,20 @@ class FolderService {
 		$this->userId = $userId;
 	}
 
-	public function setUserId($userId) {
+	public function setUserId(string $userId): void {
 		$this->userId = $userId;
 	}
 
-	public function getUserId() {
+	public function getUserId(): ?string {
 		return $this->userId;
 	}
 
 	/**
 	 * Get folder for user
 	 *
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress InvalidReturnStatement
+	 * @psalm-suppress MixedMethodCall
 	 * @param int $nodeId
 	 * @return Folder
 	 */
@@ -59,12 +62,14 @@ class FolderService {
 	/**
 	 * Finds a folder and creates it if non-existent
 	 *
+	 * @psalm-suppress MixedReturnStatement
+	 *
 	 * @return Folder
 	 *
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
-	private function getOrCreateFolder() {
+	private function getOrCreateFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
 		$userFolder = $this->root->getUserFolder($this->getUserId());
 		if ($userFolder->nodeExists($path)) {
@@ -76,12 +81,13 @@ class FolderService {
 	}
 
 	/**
+	 * @psalm-suppress MixedReturnStatement
 	 * @return string
 	 */
-	public function getLibreSignDefaultPath() {
+	public function getLibreSignDefaultPath(): string {
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');
 
-		if (!$path) {
+		if (empty($path)) {
 			$path = '/' . $this->l10n->t('LibreSign');
 			$this->config->setUserValue($this->userId, 'libresign', 'folder', $path);
 		}

@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\TransferException;
 use OCA\Libresign\Exception\LibresignException;
 
@@ -15,7 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getPassword()
  * @method CfsslHandler setCommonName(string $commonName)
  * @method string getCommonName()
- * @method CfsslHandler setHosts(string $hosts)
+ * @method CfsslHandler setHosts(array $hosts)
  * @method array getHosts()
  * @method CfsslHandler setCountry(string $country)
  * @method string getCountry()
@@ -25,7 +26,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getOrganizationUnit()
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
- * @method CfsslHandler setClient(Client $client)
+ * @method CfsslHandler setClient(ClientInterface $client)
  * @method Client getClient()
  */
 class CfsslHandler {
@@ -36,6 +37,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
+	/** @var ClientInterface */
 	private $client;
 	public function __call($name, $arguments) {
 		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
@@ -52,7 +54,7 @@ class CfsslHandler {
 		return $this;
 	}
 
-	public function getClient() {
+	public function getClient(): ClientInterface {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
@@ -71,7 +73,11 @@ class CfsslHandler {
 		return $certContent;
 	}
 
-	private function newCert() {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @return array
+	 */
+	private function newCert(): array {
 		$json = [
 			'json' => [
 				'profile' => 'CA',
@@ -95,7 +101,7 @@ class CfsslHandler {
 		];
 		try {
 			$response = $this->getClient()
-				->post(
+				->request('post',
 					'newcert',
 					$json
 				)
@@ -115,10 +121,15 @@ class CfsslHandler {
 		return $responseDecoded['result'];
 	}
 
-	public function health(string $cfsslUri) {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param string $cfsslUri
+	 * @return array
+	 */
+	public function health(string $cfsslUri): array {
 		try {
 			$response = $this->getClient()
-				->get(
+				->request('get',
 					'health',
 					[
 						'base_uri' => $cfsslUri

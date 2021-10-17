@@ -83,7 +83,7 @@ class FileElement extends Entity {
 		$this->addType('createdAt', 'datetime');
 	}
 
-	public function setCreatedAt($createdAt) {
+	public function setCreatedAt($createdAt): void {
 		if (!$createdAt instanceof \DateTime) {
 			$createdAt = new \DateTime($createdAt);
 		}
