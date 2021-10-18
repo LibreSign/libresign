@@ -6,6 +6,7 @@ use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -26,6 +27,8 @@ class AccountController extends ApiController {
 	private $urlGenerator;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var ValidateHelper */
+	private $validateHelper;
 
 	public function __construct(
 		IRequest $request,
@@ -33,7 +36,8 @@ class AccountController extends ApiController {
 		AccountService $account,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
-		IUserSession $userSession
+		IUserSession $userSession,
+		ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
@@ -41,6 +45,7 @@ class AccountController extends ApiController {
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
+		$this->validateHelper = $validateHelper;
 	}
 
 	/**
@@ -197,6 +202,137 @@ class AccountController extends ApiController {
 					'displayName' => $user->getDisplayName()
 				],
 				'settings' => $this->account->getSettings($this->userSession->getUser())
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function createSignatureElement(array $elements) {
+		try {
+			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->account->saveVisibleElements($elements, $this->userSession->getUser());
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+		return new JSONResponse(
+			[
+				'success' => true,
+				'message' => $this->l10n->n(
+					'Element created with success',
+					'Elements created with success',
+					count($elements)
+				)
+			],
+			Http::STATUS_OK
+		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function getSignatureElements() {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			return new JSONResponse(
+				[
+					'elements' => $this->account->getUserElements($userId)
+				],
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Elements not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function getSignatureElement($elementId) {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			return new JSONResponse(
+				$this->account->getUserElementByElementId($userId, $elementId),
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Element not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function patchSignatureElement($elementId, string $type = '', array $file = []) {
+		try {
+			$element['elementId'] = $elementId;
+			if ($type) {
+				$element['type'] = $type;
+			}
+			if ($file) {
+				$element['file'] = $file;
+			}
+			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
+			$this->account->saveVisibleElement($element, $this->userSession->getUser());
+			return new JSONResponse(
+				[
+					'success' => true,
+					'message' => $this->l10n->t('Element updated with success')
+				],
+				Http::STATUS_OK
+			);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function deleteSignatureElement($elementId) {
+		$userId = $this->userSession->getUser()->getUID();
+		try {
+			$this->account->deleteSignatureElement($userId, $elementId);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Element not found')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'message' => $this->l10n->t('Visible element deleted')
 			],
 			Http::STATUS_OK
 		);

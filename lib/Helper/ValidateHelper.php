@@ -11,6 +11,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 
 class ValidateHelper {
 	/** @var IL10N */
@@ -25,10 +26,15 @@ class ValidateHelper {
 	private $config;
 	/** @var IGroupManager */
 	private $groupManager;
+	/** @var IUserManager */
+	private $userManager;
 	/** @var IRootFolder */
 	private $root;
 	/** @var \OCP\Files\File[] */
 	private $file;
+	public const TYPE_TO_SIGN = 1;
+	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
+	public const TYPE_VISIBLE_ELEMENT_USER = 3;
 
 	public function __construct(
 		IL10N $l10n,
@@ -37,6 +43,7 @@ class ValidateHelper {
 		AccountFileMapper $accountFileMapper,
 		IConfig $config,
 		IGroupManager $groupManager,
+		IUserManager $userManager,
 		IRootFolder $root
 	) {
 		$this->l10n = $l10n;
@@ -45,10 +52,11 @@ class ValidateHelper {
 		$this->accountFileMapper = $accountFileMapper;
 		$this->config = $config;
 		$this->groupManager = $groupManager;
+		$this->userManager = $userManager;
 		$this->root = $root;
 	}
 	public function validateNewFile(array $data): void {
-		$this->validateFile($data, 'to_sign');
+		$this->validateFile($data, self::TYPE_TO_SIGN);
 		if (!empty($data['file']['fileId'])) {
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 		}
@@ -56,34 +64,53 @@ class ValidateHelper {
 
 	/**
 	 * @property array $data
-	 * @property string $destination to_sign|visible_element
+	 * @property int $type to_sign|visible_element
 	 *
 	 * @return void
 	 */
-	public function validateFile(array $data, string $destination = 'to_sign'): void {
+	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN): void {
 		if (empty($data['file'])) {
-			throw new \Exception($this->l10n->t('Empty file'));
+			if ($type === self::TYPE_TO_SIGN) {
+				throw new \Exception($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
+			}
+			if ($type === self::TYPE_VISIBLE_ELEMENT_USER) {
+				if ($this->elementNeedFile($data)) {
+					throw new \Exception($this->l10n->t('Elements of type %s need file.', [$data['type']]));
+				}
+			}
+			return;
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new \Exception($this->l10n->t('Inform URL or base64 or fileID to sign'));
+			throw new \Exception($this->l10n->t('File type: %s. Inform URL or base64 or fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileID'));
+				throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
-			$this->validateIfNodeIdExists((int)$data['file']['fileId']);
-			$this->validateMimeTypeAccepted((int)$data['file']['fileId'], $destination);
+			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $type);
+			$this->validateMimeTypeAccepted((int)$data['file']['fileId'], $type);
 		}
 		if (!empty($data['file']['base64'])) {
-			$this->validateBase64($data['file']['base64']);
+			$this->validateBase64($data['file']['base64'], $type);
 		}
 	}
 
-	public function validateBase64(string $base64): void {
+	private function elementNeedFile(array $data) {
+		return in_array($data['type'], ['signature', 'initial']);
+	}
+
+	private function getTypeOfFile(int $type) {
+		if ($type === self::TYPE_TO_SIGN) {
+			return $this->l10n->t('document to sign');
+		}
+		return $this->l10n->t('visible element');
+	}
+
+	public function validateBase64(string $base64, int $type = self::TYPE_TO_SIGN): void {
 		$string = base64_decode($base64);
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
-			throw new \Exception($this->l10n->t('Invalid base64 file'));
+			throw new \Exception($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
@@ -97,19 +124,32 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElements($visibleElements): void {
+	public function validateVisibleElements($visibleElements, int $type): void {
 		if (!is_array($visibleElements)) {
 			throw new \Exception($this->l10n->t('Visible elements need to be an array'));
 		}
 		foreach ($visibleElements as $element) {
-			$this->validateVisibleElement($element);
+			$this->validateVisibleElement($element, $type);
 		}
 	}
 
-	public function validateVisibleElement(array $element): void {
+	public function validateVisibleElement(array $element, int $type): void {
 		$this->validateElementType($element);
-		$this->validateFile($element, 'visible_element');
+		$this->validateElementUid($element, $type);
+		$this->validateFile($element, $type);
 		$this->validateElementCoordinates($element);
+	}
+
+	public function validateElementUid(array $element, int $type): void {
+		if ($type !== self::TYPE_VISIBLE_ELEMENT_PDF) {
+			return;
+		}
+		if (!array_key_exists('uid', $element)) {
+			throw new \Exception($this->l10n->t('Element must be associated with a user'));
+		}
+		if (!$this->userManager->userExists($element['uid'])) {
+			throw new \Exception($this->l10n->t('User not found for element.'));
+		}
 	}
 
 	public function validateElementCoordinates(array $element): void {
@@ -117,9 +157,20 @@ class ValidateHelper {
 			return;
 		}
 		$this->validateElementPage($element);
+		$this->validateElementCoordinate($element);
 	}
 
-	protected function acceptedCoordinates(): void {
+	private function validateElementCoordinate($element): void {
+		foreach ($element['coordinates'] as $type => $value) {
+			if (in_array($type, ['llx', 'lly', 'urx', 'ury'])) {
+				if (!is_int($value)) {
+					throw new \Exception($this->l10n->t('Coordinate %s must be an integer', [$type]));
+				}
+				if ($value < 0) {
+					throw new \Exception($this->l10n->t('Coordinate %s must be equal to or greater than 0', [$type]));
+				}
+			}
+		}
 	}
 
 	public function validateElementPage(array $element): void {
@@ -136,36 +187,43 @@ class ValidateHelper {
 
 	public function validateElementType(array $element): void {
 		if (!array_key_exists('type', $element)) {
-			throw new \Exception($this->l10n->t('Element needs a type'));
+			if (!array_key_exists('elementId', $element)) {
+				throw new \Exception($this->l10n->t('Element needs a type'));
+			}
+			return;
 		}
 		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
 			throw new \Exception($this->l10n->t('Invalid element type'));
 		}
 	}
 
-	public function validateIfNodeIdExists(int $nodeId): void {
+	public function validateIfNodeIdExists(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
 		try {
 			$file = $this->root->getById($nodeId);
-			$file = $file[0];
+			$file = $file[0] ?? null;
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid fileID'));
+			throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!$file) {
-			throw new \Exception($this->l10n->t('Invalid fileID'));
+			throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
-	public function validateMimeTypeAccepted(int $nodeId, string $destination = 'to_sign'): void {
+	public function validateMimeTypeAccepted(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
-		if ($destination === 'to_sign') {
-			if ($file->getMimeType() !== 'application/pdf') {
-				throw new \Exception($this->l10n->t('Must be a fileID of %s format', 'PDF'));
-			}
-		} elseif ($destination === 'visible_element') {
-			if ($file->getMimeType() !== 'image/png') {
-				throw new \Exception($this->l10n->t('Must be a fileID of %s format', 'png'));
-			}
+		switch ($type) {
+			case self::TYPE_TO_SIGN:
+				if ($file->getMimeType() !== 'application/pdf') {
+					throw new \Exception($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
+				}
+				break;
+			case self::TYPE_VISIBLE_ELEMENT_PDF:
+			case self::TYPE_VISIBLE_ELEMENT_USER:
+				if ($file->getMimeType() !== 'image/png') {
+					throw new \Exception($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
+				}
+				break;
 		}
 	}
 

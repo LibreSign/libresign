@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -28,10 +29,12 @@ class LibreSignFileController extends Controller {
 	private $account;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var IUserSession */
-	private $userSession;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IUserSession */
+	private $userSession;
+	/** @var FileElementMapper */
+	private $fileElementMapper;
 
 	public function __construct(
 		IRequest $request,
@@ -41,7 +44,8 @@ class LibreSignFileController extends Controller {
 		AccountService $account,
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
-		IUserSession $userSession
+		IUserSession $userSession,
+		FileElementMapper $fileElementMapper
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->fileUserMapper = $fileUserMapper;
@@ -51,6 +55,7 @@ class LibreSignFileController extends Controller {
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
+		$this->fileElementMapper = $fileElementMapper;
 	}
 
 	/**
@@ -122,6 +127,28 @@ class LibreSignFileController extends Controller {
 					}
 				}
 				$return['signers'][] = $signatureToShow;
+			}
+			try {
+				$visibleElements = $this->fileElementMapper->getByFileId($file->id);
+				foreach ($visibleElements as $visibleElement) {
+					$element = [
+						'elementId' => $visibleElement->getId(),
+						'uid' => $visibleElement->getUserId(),
+						'type' => $visibleElement->getType(),
+						'coordinates' => [
+							'page' => $visibleElement->getPage(),
+							'urx' => $visibleElement->getUrx(),
+							'ury' => $visibleElement->getUry(),
+							'llx' => $visibleElement->getLlx(),
+							'lly' => $visibleElement->getLly()
+						]
+					];
+					if ($visibleElement->getSignatureFileId()) {
+						$return['file']['url'] = $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $visibleElement->getSignatureFileId()]);
+					}
+					$return['visibleElements'][] = $element;
+				}
+			} catch (\Throwable $th) {
 			}
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
