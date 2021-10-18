@@ -44,10 +44,10 @@ class Version2040Date20211010200549 extends SimpleMigrationStep {
 				'notnull' => true,
 				'length' => 255,
 			]);
-			$table->addColumn('starred', Types::BOOLEAN, [
+			$table->addColumn('starred', Types::SMALLINT, [
 				'notnull' => true,
 				'length' => 255,
-				'default' => false
+				'default' => 0
 			]);
 			$table->addColumn('created_at', Types::DATETIME_MUTABLE, [
 				'notnull' => true,

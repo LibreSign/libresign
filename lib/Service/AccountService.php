@@ -506,7 +506,7 @@ class AccountService {
 
 		$userElement->setFileId($file->getId());
 		$userElement->setType($element['type']);
-		$userElement->setStarred(isset($element['starred']) && $element['starred']);
+		$userElement->setStarred(isset($element['starred']) && $element['starred'] ? 1 : 0);
 		$userElement->setUserId($user->getUID());
 		$this->userElementMapper->insertOrUpdate($userElement);
 	}
@@ -548,7 +548,7 @@ class AccountService {
 					'fileId' => $element->getFileId()
 				],
 				'uid' => $element->getUserId(),
-				'starred' => $element->getStarred() ? true : false,
+				'starred' => $element->getStarred() ? 1 : 0,
 				'createdAt' => $element->getCreatedAt()
 			];
 		}
@@ -565,7 +565,7 @@ class AccountService {
 				'fileId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
-			'starred' => $element->getStarred() ? true : false,
+			'starred' => $element->getStarred() ? 1 : 0,
 			'createdAt' => $element->getCreatedAt()
 		];
 	}

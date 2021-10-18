@@ -2,16 +2,20 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
+use OC\AppFramework\Utility\TimeFactory;
+use OC\Http\Client\ClientService;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
+use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\IRootFolder;
@@ -55,8 +59,16 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountService;
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
-	/** @var AccountFileService|MockObject */
-	private $accountFile;
+	/** @var AccountFileService */
+	private $accountFileService;
+	/** @var UserElementMapper */
+	private $userElementMapper;
+	/** @var FolderService */
+	private $folderService;
+	/** @var ClientService */
+	private $clientService;
+	/** @var TimeFactory|MockObject */
+	private $timeFactory;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -77,6 +89,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
+		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->folderService = $this->createMock(FolderService::class);
+		$this->clientService = $this->createMock(ClientService::class);
+		$this->timeFactory = $this->createMock(TimeFactory::class);
 
 		$this->accountService = new AccountService(
 			$this->l10n,
@@ -93,7 +109,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService
+			$this->accountFileService,
+			$this->userElementMapper,
+			$this->folderService,
+			$this->clientService,
+			$this->timeFactory
 		);
 	}
 
@@ -120,7 +140,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService
+			$this->accountFileService,
+			$this->userElementMapper,
+			$this->folderService,
+			$this->clientService,
+			$this->timeFactory
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCreateToSign($arguments);
@@ -275,7 +299,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService
+			$this->accountFileService,
+			$this->userElementMapper,
+			$this->folderService,
+			$this->clientService,
+			$this->timeFactory
 		);
 		$this->expectExceptionMessage($expectedErrorMessage);
 		$this->accountService->validateCertificateData($arguments);
@@ -384,7 +412,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService
+			$this->accountFileService,
+			$this->userElementMapper,
+			$this->folderService,
+			$this->clientService,
+			$this->timeFactory
 		);
 		$actual = $this->accountService->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
@@ -545,7 +577,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
-			$this->accountFileService
+			$this->accountFileService,
+			$this->userElementMapper,
+			$this->folderService,
+			$this->clientService,
+			$this->timeFactory
 		);
 		$actual = $this->accountService->getConfig($uuid, $userId, $formatOfPdfOnSign);
 		$actual = json_encode($actual);

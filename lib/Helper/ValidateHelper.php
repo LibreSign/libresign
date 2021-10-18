@@ -350,7 +350,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateUserHasNoFileWithThisType(string $uid, int $type): void {
+	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
 		} catch (\Throwable $th) {
@@ -360,7 +360,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateFileTypeExists(int $type): void {
+	public function validateFileTypeExists(string $type): void {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($type, $profileFileTypes)) {
 			throw new \Exception($this->l10n->t('Invalid file type.'));

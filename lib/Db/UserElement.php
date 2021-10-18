@@ -13,8 +13,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getFileId()
  * @method void setUserId(string $userId)
  * @method string getUserId()
- * @method void setStarred(bool $starred)
- * @method bool getStarred()
+ * @method void setStarred(int $starred)
+ * @method int getStarred()
  * @method void setCreatedAt(\DateTime $createdAt)
  * @method \DateTime getCreatedAt()
  */
@@ -37,7 +37,7 @@ class UserElement extends Entity {
 		$this->addType('type', 'string');
 		$this->addType('fileId', 'integer');
 		$this->addType('userId', 'string');
-		$this->addType('starred', 'boolean');
+		$this->addType('starred', 'integer');
 		$this->addType('createdAt', 'datetime');
 	}
 

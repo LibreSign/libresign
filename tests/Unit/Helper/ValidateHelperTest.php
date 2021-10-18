@@ -12,6 +12,7 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -25,6 +26,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
+	/** @var IUserManager */
+	private $userManager;
 	/** @var IRootFolder|MockObject */
 	private $root;
 
@@ -38,6 +41,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 	}
 
@@ -49,13 +53,14 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->accountFileMapper,
 			$this->config,
 			$this->groupManager,
+			$this->userManager,
 			$this->root
 		);
 		return $validateHelper;
 	}
 
 	public function testValidateFileWithoutAllNecessaryData() {
-		$this->expectExceptionMessage('Inform URL or base64 or fileID to sign');
+		$this->expectExceptionMessage('File type: %s. Inform URL or base64 or fileID.');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['invalid'],
 			'name' => 'test'
@@ -121,7 +126,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateMimeTypeAccepted
 	 */
-	public function testValidateMimeTypeAccepted(string $mimetype, string $destination, string $exception) {
+	public function testValidateMimeTypeAccepted(string $mimetype, int $destination, string $exception) {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
 			->method('getMimeType')
@@ -140,10 +145,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function dataValidateMimeTypeAccepted() {
 		return [
-			['invalid',         'to_sign',         'Must be a fileID of %s format'],
-			['application/pdf', 'to_sign',         ''],
-			['invalid',         'visible_element', 'Must be a fileID of %s format'],
-			['image/png', 'visible_element', ''],
+			['invalid',         ValidateHelper::TYPE_TO_SIGN,             'Must be a fileID of %s format'],
+			['application/pdf', ValidateHelper::TYPE_TO_SIGN,             ''],
+			['invalid',         ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF, 'Must be a fileID of %s format'],
+			['image/png',       ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF, ''],
 		];
 	}
 
@@ -353,7 +358,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->willReturn('["IDENTIFICATION"]');
-		$this->getValidateHelper()->validateFileTypeExists('invalid');
+		$this->getValidateHelper()->validateFileTypeExists(0);
 	}
 
 	public function testValidFileType() {
@@ -371,7 +376,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper
 			->method('getByUserAndType')
 			->willReturn($file);
-		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', 'IDENTIFICATION');
+		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
 	}
 
 	public function testUserHasNoFileWithThisType() {
@@ -380,7 +385,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnCallback(function () {
 				throw new \Exception('not found');
 			}));
-		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', 'IDENTIFICATION');
+		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
@@ -399,7 +404,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateVisibleElementsWithInvalidElementType() {
 		$this->expectExceptionMessage('Visible elements need to be an array');
-		$actual = $this->getValidateHelper()->validateVisibleElements(null);
+		$actual = $this->getValidateHelper()->validateVisibleElements(null, ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
@@ -410,7 +415,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'base64' => 'dGVzdA=='
 			]
 		]];
-		$actual = $this->getValidateHelper()->validateVisibleElements($elements);
+		$actual = $this->getValidateHelper()->validateVisibleElements($elements, ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
