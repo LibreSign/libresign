@@ -729,7 +729,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider dataValidateVisibleElementsWithSuccess
 	 */
 	public function testValidateVisibleElementsWithSuccess(array $elements) {
-		$actual = $this->service->validateVisibleElements([]);
+		$actual = $this->service->validateVisibleElements([], ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
