@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf878141616bcc1aa2c3a84b68e83064",
+    "content-hash": "4d09f20da048807aa75b7f5e44453b44",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -238,16 +238,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "1.0.6",
+            "version": "dev-validate-if-jsignpdf-exists",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPDF/jsignpdf-php.git",
-                "reference": "efd0081e944753f0b6f523fa47fea3345abf47f7"
+                "reference": "c446552a47e23b6c90114a8dcc657ab1cd744bff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/efd0081e944753f0b6f523fa47fea3345abf47f7",
-                "reference": "efd0081e944753f0b6f523fa47fea3345abf47f7",
+                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/c446552a47e23b6c90114a8dcc657ab1cd744bff",
+                "reference": "c446552a47e23b6c90114a8dcc657ab1cd744bff",
                 "shasum": ""
             },
             "require": {
@@ -264,11 +264,7 @@
                     "Jeidison\\JSignPDF\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Jeidison\\JSignPDF\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -280,31 +276,31 @@
             ],
             "description": "jsignpdf-php",
             "keywords": [
-                "JSignPdf",
-                "PDF",
                 "PDF Sign PHP",
-                "PHP",
                 "PHP Signature",
-                "Signature"
+                "jsignpdf",
+                "pdf",
+                "php",
+                "signature"
             ],
             "support": {
-                "source": "https://github.com/JSignPDF/jsignpdf-php/tree/1.0.6",
-                "issues": "https://github.com/JSignPDF/jsignpdf-php/issues"
+                "issues": "https://github.com/JSignPDF/jsignpdf-php/issues",
+                "source": "https://github.com/JSignPDF/jsignpdf-php/tree/validate-if-jsignpdf-exists"
             },
-            "time": "2021-09-13T20:20:18+00:00"
+            "time": "2021-10-19T17:56:33+00:00"
         },
         {
             "name": "pagerfanta/pagerfanta",
-            "version": "v3.3.0",
+            "version": "v3.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BabDev/Pagerfanta.git",
-                "reference": "6c58ae41b7c6e721c0f328ab3d8040399568cec0"
+                "reference": "4adb94321b8c52cd5ae50fb23e45f98d82cf3c05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/6c58ae41b7c6e721c0f328ab3d8040399568cec0",
-                "reference": "6c58ae41b7c6e721c0f328ab3d8040399568cec0",
+                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/4adb94321b8c52cd5ae50fb23e45f98d82cf3c05",
+                "reference": "4adb94321b8c52cd5ae50fb23e45f98d82cf3c05",
                 "shasum": ""
             },
             "require": {
@@ -339,13 +335,14 @@
                 "doctrine/cache": "^1.11 || ^2.0",
                 "doctrine/collections": "^1.6",
                 "doctrine/dbal": "^2.12 || ^3.0",
+                "doctrine/mongodb-odm": "^2.2.2",
                 "doctrine/orm": "^2.8",
                 "doctrine/phpcr-odm": "^1.5",
-                "friendsofphp/php-cs-fixer": "^3.0",
+                "friendsofphp/php-cs-fixer": "^3.1",
                 "jackalope/jackalope-doctrine-dbal": "^1.6",
                 "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "^0.12.93",
-                "phpstan/phpstan-phpunit": "^0.12.21",
+                "phpstan/phpstan": "^0.12.99",
+                "phpstan/phpstan-phpunit": "^0.12.22",
                 "phpunit/phpunit": "^9.5",
                 "ruflin/elastica": "^6.0 || ^7.0",
                 "solarium/solarium": "^5.0 || ^6.0",
@@ -386,7 +383,7 @@
             ],
             "support": {
                 "issues": "https://github.com/BabDev/Pagerfanta/issues",
-                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.3.0"
+                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.3.1"
             },
             "funding": [
                 {
@@ -394,7 +391,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-08-08T16:20:05+00:00"
+            "time": "2021-10-16T14:38:05+00:00"
         },
         {
             "name": "setasign/fpdi",
@@ -4959,6 +4956,7 @@
                     "type": "github"
                 }
             ],
+            "abandoned": true,
             "time": "2020-09-28T06:45:17+00:00"
         },
         {
@@ -6702,6 +6700,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "jsignpdf/jsignpdf-php": 20,
         "byjg/swagger-test": 20
     },
     "prefer-stable": false,

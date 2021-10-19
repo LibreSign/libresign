@@ -4,7 +4,7 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jsignpdf/jsignpdf-php": "^1",
+    "jsignpdf/jsignpdf-php": "dev-validate-if-jsignpdf-exists",
     "endroid/qr-code": "^4.2",
     "pagerfanta/pagerfanta": "^3.2",
     "tecnickcom/tc-lib-pdf": "^8.0",
@@ -33,10 +33,6 @@
     }
   },
   "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/jsignpdf/jsignpdf-php"
-    },
     {
       "type": "vcs",
       "url": "https://github.com/LibreCodeCoop/php-swagger-test"
