@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "80aa5524523a1f60f227e16d42075597",
+    "content-hash": "b29642bc43dcb3be6a39926fe6586bee",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -242,12 +242,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPDF/jsignpdf-php.git",
-                "reference": "180fc98195ee83420f13b5fc343ce32eb98434f1"
+                "reference": "b88d6b383c48aa2a335c799489ea1f1df3f411c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/180fc98195ee83420f13b5fc343ce32eb98434f1",
-                "reference": "180fc98195ee83420f13b5fc343ce32eb98434f1",
+                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/b88d6b383c48aa2a335c799489ea1f1df3f411c9",
+                "reference": "b88d6b383c48aa2a335c799489ea1f1df3f411c9",
                 "shasum": ""
             },
             "require": {
@@ -287,7 +287,7 @@
                 "issues": "https://github.com/JSignPDF/jsignpdf-php/issues",
                 "source": "https://github.com/JSignPDF/jsignpdf-php/tree/make-compatible-with-jsignpdf2.0.0"
             },
-            "time": "2021-10-19T18:57:02+00:00"
+            "time": "2021-10-19T19:06:20+00:00"
         },
         {
             "name": "pagerfanta/pagerfanta",
@@ -3165,16 +3165,16 @@
         },
         {
             "name": "phpdocumentor/reflection-docblock",
-            "version": "5.2.2",
+            "version": "5.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "069a785b2141f5bcf49f3e353548dc1cce6df556"
+                "reference": "622548b623e81ca6d78b721c5e029f4ce664f170"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/069a785b2141f5bcf49f3e353548dc1cce6df556",
-                "reference": "069a785b2141f5bcf49f3e353548dc1cce6df556",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/622548b623e81ca6d78b721c5e029f4ce664f170",
+                "reference": "622548b623e81ca6d78b721c5e029f4ce664f170",
                 "shasum": ""
             },
             "require": {
@@ -3185,7 +3185,8 @@
                 "webmozart/assert": "^1.9.1"
             },
             "require-dev": {
-                "mockery/mockery": "~1.3.2"
+                "mockery/mockery": "~1.3.2",
+                "psalm/phar": "^4.8"
             },
             "type": "library",
             "extra": {
@@ -3215,9 +3216,9 @@
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
             "support": {
                 "issues": "https://github.com/phpDocumentor/ReflectionDocBlock/issues",
-                "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/master"
+                "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/5.3.0"
             },
-            "time": "2020-09-03T19:13:55+00:00"
+            "time": "2021-10-19T17:43:47+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
