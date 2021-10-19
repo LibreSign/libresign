@@ -28,6 +28,7 @@ Types of changes:
 - API: return LibreSign UUID on sign methods
 - Endpoint: /account/create/{uuid}, remove required of field signPassword
 - FPDI replaced by TCPDF
+- Bump jsignpdf from 1.6.5 to 2.0.0
 
 ## 2.4.3 - 2021-07-14
 
