@@ -47,7 +47,7 @@ class JSignPdfHandler implements ISignHandler {
 				)
 				->setIsUseJavaInstalled(true)
 				->setjSignPdfJarPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-1.6.5/JSignPdf.jar')
+					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-2.0.0/JSignPdf.jar')
 				);
 		}
 		return $this->jSignParam;
@@ -69,6 +69,7 @@ class JSignPdfHandler implements ISignHandler {
 			->setCertificate($certificate->getContent())
 			->setPdf($inputFile->getContent())
 			->setPassword($password);
+			// ->setJSignParameters('-llx 10 -lly 10 -urx 250 -ury 100 --bg-path ~/vidalu/Documents/Assinatura/assinatura-vitor/Vitor/assinatura.png -V');
 
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
