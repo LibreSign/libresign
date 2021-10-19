@@ -31,6 +31,9 @@ Types of changes:
 - Bump jsignpdf from 1.6.5 to 2.0.0
 - Add more specific log message when jar of jsignpdf not found
 
+# Fixed
+- Fixed: error on sign specific documents
+
 ## 2.4.3 - 2021-07-14
 
 # Changed
