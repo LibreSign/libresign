@@ -28,17 +28,11 @@ class TCPDILibresign extends TCPDI {
 	}
 
 	/**
-	 * @return void
-	 */
-	protected function _putXMP() {
-	}
-
-	/**
 	 * @inheritDoc
 	 */
 	protected function _textstring($s, $n = 0) {
 		if (preg_match('/TCPDF.*\(http.*\)/', $s)) {
-			$s = 'LibreSign (https://librecode.coop)';
+			$s = 'LibreSign (https://libresign.coop)';
 		}
 		return parent::_textstring($s, $n);
 	}
