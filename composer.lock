@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4d09f20da048807aa75b7f5e44453b44",
+    "content-hash": "80aa5524523a1f60f227e16d42075597",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -238,16 +238,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "dev-validate-if-jsignpdf-exists",
+            "version": "dev-make-compatible-with-jsignpdf2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPDF/jsignpdf-php.git",
-                "reference": "c446552a47e23b6c90114a8dcc657ab1cd744bff"
+                "reference": "180fc98195ee83420f13b5fc343ce32eb98434f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/c446552a47e23b6c90114a8dcc657ab1cd744bff",
-                "reference": "c446552a47e23b6c90114a8dcc657ab1cd744bff",
+                "url": "https://api.github.com/repos/JSignPDF/jsignpdf-php/zipball/180fc98195ee83420f13b5fc343ce32eb98434f1",
+                "reference": "180fc98195ee83420f13b5fc343ce32eb98434f1",
                 "shasum": ""
             },
             "require": {
@@ -285,9 +285,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPDF/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPDF/jsignpdf-php/tree/validate-if-jsignpdf-exists"
+                "source": "https://github.com/JSignPDF/jsignpdf-php/tree/make-compatible-with-jsignpdf2.0.0"
             },
-            "time": "2021-10-19T17:56:33+00:00"
+            "time": "2021-10-19T18:57:02+00:00"
         },
         {
             "name": "pagerfanta/pagerfanta",

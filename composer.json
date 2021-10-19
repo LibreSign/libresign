@@ -4,7 +4,7 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jsignpdf/jsignpdf-php": "dev-validate-if-jsignpdf-exists",
+    "jsignpdf/jsignpdf-php": "dev-make-compatible-with-jsignpdf2.0.0",
     "endroid/qr-code": "^4.2",
     "pagerfanta/pagerfanta": "^3.2",
     "tecnickcom/tc-lib-pdf": "^8.0",
