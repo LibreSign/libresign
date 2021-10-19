@@ -29,6 +29,7 @@ Types of changes:
 - Endpoint: /account/create/{uuid}, remove required of field signPassword
 - FPDI replaced by TCPDF
 - Bump jsignpdf from 1.6.5 to 2.0.0
+- Add more specific log message when jar of jsignpdf not found
 
 ## 2.4.3 - 2021-07-14
 
