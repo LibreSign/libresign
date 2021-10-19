@@ -141,13 +141,16 @@ class Pkcs12Handler {
 				$this->writeQrCode($validation_site, $pdf);
 				$x += $this->qrCode->getSize();
 			}
+			$pdf->SetXY($x, -15);
+			$pdf->Write(
+				8,
+				iconv('UTF-8', 'windows-1252', $this->l10n->t('Digital signed by LibreSign.')),
+				'https://libresign.coop'
+			);
 			$pdf->SetXY($x, -10);
 			$pdf->Write(
 				8,
-				iconv('UTF-8', 'windows-1252', $this->l10n->t(
-					'Digital signed by LibreSign. Validate in %s',
-					$validation_site
-				)),
+				iconv('UTF-8', 'windows-1252', $this->l10n->t('Validate in %s', $validation_site)),
 				$validation_site
 			);
 		}

@@ -33,6 +33,7 @@ Types of changes:
 
 # Fixed
 - Fixed: error on sign specific documents
+- Add line break on footer to prevent hide signature url
 
 ## 2.4.3 - 2021-07-14
 
