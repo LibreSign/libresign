@@ -69,7 +69,6 @@ class JSignPdfHandler implements ISignHandler {
 			->setCertificate($certificate->getContent())
 			->setPdf($inputFile->getContent())
 			->setPassword($password);
-			// ->setJSignParameters('-llx 10 -lly 10 -urx 250 -ury 100 --bg-path ~/vidalu/Documents/Assinatura/assinatura-vitor/Vitor/assinatura.png -V');
 
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
