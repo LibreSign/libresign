@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -51,8 +52,18 @@ class SignFileService {
 	private $root;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
+	/** @var UserElementMapper */
+	private $userElementMapper;
 	/** @var TimeFactory; */
 	private $timeFactory;
+	/** @var FileUserEntity */
+	private $fileUser;
+	/** @var string */
+	private $password;
+	/** @var FileEntity */
+	private $libreSignFile;
+	/** @var array */
+	private $elements;
 
 	public function __construct(
 		IL10N $l10n,
@@ -68,6 +79,7 @@ class SignFileService {
 		ValidateHelper $validateHelper,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
+		UserElementMapper $userElementMapper,
 		TimeFactory $timeFactory
 	) {
 		$this->l10n = $l10n;
@@ -83,6 +95,7 @@ class SignFileService {
 		$this->validateHelper = $validateHelper;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
+		$this->userElementMapper = $userElementMapper;
 		$this->timeFactory = $timeFactory;
 	}
 
@@ -479,21 +492,46 @@ class SignFileService {
 		return $this->client->newClient()->post($uri, $options);
 	}
 
-	public function sign(FileEntity $libreSignFile, FileUserEntity $fileUser, string $password): \OCP\Files\Node {
-		$fileToSign = $this->getFileToSing($libreSignFile);
-		$pfxFile = $this->pkcs12Handler->getPfx($fileUser->getUserId());
+	public function setLibreSignFile(FileEntity $libreSignFile): self {
+		$this->libreSignFile = $libreSignFile;
+		return $this;
+	}
+
+	public function setFileUser(FileUserEntity $fileUser): self {
+		$this->fileUser = $fileUser;
+		return $this;
+	}
+
+	public function setPassword(string $password): self {
+		$this->password = $password;
+		return $this;
+	}
+
+	public function setVisibleElements(array $list): self {
+		foreach ($list as $element) {
+			$this->elements[] = [
+				'documentElement' => $this->fileElementMapper->getById($element['documentElementId']),
+				'profileElement' => $this->userElementMapper->getById($element['profileElementId'])
+			];
+		}
+		return $this;
+	}
+
+	public function sign(): \OCP\Files\Node {
+		$fileToSign = $this->getFileToSing($this->libreSignFile);
+		$pfxFile = $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
-				$signedFile = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $password);
+				$signedFile = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $this->password);
 				break;
 			default:
-				$signedFile = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $password);
+				$signedFile = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $this->password);
 		}
 
-		$fileUser->setSigned(time());
-		$this->fileUserMapper->update($fileUser);
-		$libreSignFile->setSignedNodeId($signedFile->getId());
-		$this->fileMapper->update($libreSignFile);
+		$this->fileUser->setSigned(time());
+		$this->fileUserMapper->update($this->fileUser);
+		$this->libreSignFile->setSignedNodeId($signedFile->getId());
+		$this->fileMapper->update($this->libreSignFile);
 
 		return $signedFile;
 	}

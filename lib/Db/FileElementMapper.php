@@ -19,7 +19,7 @@ use OCP\IDBConnection;
  */
 class FileElementMapper extends QBMapper {
 	/** @var FileElement[][] */
-	private $signers = [];
+	private $cache = [];
 
 	/**
 	 * @param IDBConnection $db
@@ -44,8 +44,8 @@ class FileElementMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
-	public function getByFileIdAndFileUserId(int $fileId, int $userId) {
-		if (!isset($this->signers['fileId'][$fileId][$userId])) {
+	public function getByFileIdAndFileUserId(int $fileId, int $userId): FileElement {
+		if (!isset($this->cache['fileId'][$fileId][$userId])) {
 			$qb = $this->db->getQueryBuilder();
 
 			$qb->select('fe.*')
@@ -57,8 +57,41 @@ class FileElementMapper extends QBMapper {
 					$qb->expr()->eq('fe.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
 				);
 
-			$this->signers['fileId'][$fileId][$userId] = $this->findEntity($qb);
+			$this->cache['fileId'][$fileId][$userId] = $this->findEntity($qb);
 		}
-		return $this->signers['fileId'][$fileId][$userId];
+		return $this->cache['fileId'][$fileId][$userId];
+	}
+
+	public function getByDocumentElementIdAndFileUserId(int $documentElementId, string $userId): FileElement {
+		if (!isset($this->cache['documentElementId'][$documentElementId])) {
+			$qb = $this->db->getQueryBuilder();
+
+			$qb->select('fe.*')
+				->from($this->getTableName(), 'fe')
+				->where(
+					$qb->expr()->eq('fe.id', $qb->createNamedParameter($documentElementId, IQueryBuilder::PARAM_INT))
+				)
+				->andWhere(
+					$qb->expr()->eq('fe.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+				);
+
+			$this->cache['documentElementId'][$documentElementId] = $this->findEntity($qb);
+		}
+		return $this->cache['documentElementId'][$documentElementId];
+	}
+
+	public function getById(int $id): FileElement {
+		if (!isset($this->cache[$id])) {
+			$qb = $this->db->getQueryBuilder();
+
+			$qb->select('fe.*')
+				->from($this->getTableName(), 'fe')
+				->where(
+					$qb->expr()->eq('fe.id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+				);
+
+			$this->cache['documentElementId'][$id] = $this->findEntity($qb);
+		}
+		return $this->cache['documentElementId'][$id];
 	}
 }

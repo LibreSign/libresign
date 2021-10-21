@@ -4,8 +4,11 @@ namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\UserElementMapper;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -20,8 +23,12 @@ class ValidateHelper {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var FileElementMapper */
+	private $fileElementMapper;
 	/** @var AccountFileMapper */
 	private $accountFileMapper;
+	/** @var UserElementMapper */
+	private $userElementMapper;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -40,7 +47,9 @@ class ValidateHelper {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
+		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
+		UserElementMapper $userElementMapper,
 		IConfig $config,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
@@ -49,7 +58,9 @@ class ValidateHelper {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
+		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
+		$this->userElementMapper = $userElementMapper;
 		$this->config = $config;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
@@ -194,6 +205,27 @@ class ValidateHelper {
 		}
 		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
 			throw new \Exception($this->l10n->t('Invalid element type'));
+		}
+	}
+
+	public function validateVisibleElementsRelation(array $list, FileUser $fileUser) {
+		foreach ($list as $elements) {
+			if (!array_key_exists('documentElementId', $elements)) {
+				throw new \Exception($this->l10n->t('Field %s not found', ['documentElementId']));
+			}
+			if (!array_key_exists('profileElementId', $elements)) {
+				throw new \Exception($this->l10n->t('Field %s not found', ['profileElementId']));
+			}
+			try {
+				$this->fileElementMapper->getByDocumentElementIdAndFileUserId($elements['documentElementId'], $fileUser->getUserId());
+			} catch (\Throwable $th) {
+				throw new \Exception($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
+			}
+			try {
+				$this->userElementMapper->getByElementIdAndUserId($elements['documentElementId'], $fileUser->getUserId());
+			} catch (\Throwable $th) {
+				throw new \Exception($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
+			}
 		}
 	}
 
