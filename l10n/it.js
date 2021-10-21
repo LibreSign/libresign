@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "File già firmato da te",
     "File signed" : "File firmato",
     "Internal error. Contact admin." : "Errore interno. Contatta l'amministratore.",
-    "Digital signed by LibreSign. Validate in %s" : "Firmato digitalmente da LibreSign. Convalida in %s",
     "Already asked to sign this document" : "Già chiesto di firmare questo documento",
     "Invalid fileID" : "fileID non valido",
     "You are not allowed to request signing" : "Non ti è consentito richiedere la firma",

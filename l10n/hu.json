@@ -6,7 +6,6 @@
     "File already signed by you" : "A fájlt Ön már aláírta",
     "File signed" : "Fájl aláírva",
     "Internal error. Contact admin." : "Belső hiba. Lépjen kapcsolatba az adminisztrátorral.",
-    "Digital signed by LibreSign. Validate in %s" : "Digitális aláírás: LibreSign. Érvényesítés %s alatt",
     "Invalid fileID" : "Hibás fileID",
     "You are not allowed to request signing" : "Nincs jogosultságod az aláírás igényléséhez.",
     "You do not have permission for this action." : "Nincs jogosultságod a művelethez.",

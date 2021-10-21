@@ -13,7 +13,6 @@ OC.L10N.register(
     "File already signed by you" : "檔案已被您簽署",
     "File signed" : "檔案已簽署",
     "Internal error. Contact admin." : "內部錯誤。請聯絡管理員。",
-    "Digital signed by LibreSign. Validate in %s" : "由 LibreSign 數位簽署。在 %s 驗證",
     "File type: %s. Empty file." : "檔案類型：%s。空檔案。",
     "Elements of type %s need file." : "元素類型 %s 需要檔案。",
     "File type: %s. Inform URL or base64 or fileID." : "檔案類型：%s。通知 URL 或 base64 或 fileID。",

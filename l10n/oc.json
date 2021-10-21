@@ -5,7 +5,6 @@
     "File already signed by you" : "Avètz ja signat lo fichièr",
     "File signed" : "Fichièr signat",
     "Internal error. Contact admin." : "Error intèrna. Contactatz l’admin.",
-    "Digital signed by LibreSign. Validate in %s" : "Signat numericament per LibreSign. Validar dins %s",
     "Invalid fileID" : "fileID invalid",
     "You are not allowed to request signing" : "Avètz pas l'autorizacion de demandar una signatura",
     "Invalid email" : "Email invalid",

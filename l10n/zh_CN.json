@@ -11,7 +11,6 @@
     "File already signed by you" : "文件已由你签署",
     "File signed" : "签署的文件",
     "Internal error. Contact admin." : "内部错误。联系管理员 ",
-    "Digital signed by LibreSign. Validate in %s" : "由 Libresign 进行数字签名。验证于 %s",
     "File type: %s. Empty file." : "文件类型：%s。空文件",
     "Elements of type %s need file." : "类型 %s 的元素需要文件",
     "File type: %s. Inform URL or base64 or fileID." : "文件类型：%s。告知 URL 或 base64 或 fileID",

@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Je hebt dit bestand al ondertekend",
     "File signed" : "Bestand ondertekend",
     "Internal error. Contact admin." : "Interne fout,. Neem contact op met de beheerder.",
-    "Digital signed by LibreSign. Validate in %s" : "Digitaal ondertekend door LibreSign. Valideren over %s",
     "Already asked to sign this document" : "Altijd vragen om dit document te tekenen",
     "Invalid fileID" : "Ongeldig veldID",
     "You are not allowed to request signing" : "Je bent niet bevoegd om ondertekening aan te vragen.",

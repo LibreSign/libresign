@@ -6,7 +6,6 @@
     "File already signed by you" : "Vous avez déjà signé ce fichier",
     "File signed" : "Fichier signé",
     "Internal error. Contact admin." : "Erreur interne. Contactez l'administrateur.",
-    "Digital signed by LibreSign. Validate in %s" : "Signé numériquement par LibreSign. Validé le %s",
     "Already asked to sign this document" : "Demande de signature de ce document déjà adressée",
     "Invalid fileID" : "fileID non valide",
     "You are not allowed to request signing" : "Vous n'êtes pas autorisé à demander la signature ",

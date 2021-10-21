@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Fitxategia dagoeneko sinatu duzu",
     "File signed" : "Fitxategia sinatuta",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
-    "Digital signed by LibreSign. Validate in %s" : "LibreSign-en sinadura digitala. Balioztatu %s-n",
     "Already asked to sign this document" : "Dagoeneko dokumentu hau sinatzeko eskatu duzu ",
     "Visible elements need to be an array" : "Elementu ikusgarriak matrize bat izan behar dira",
     "Page number must be an integer" : "Orri zenbakia zenbaki oso bat izan behar da",

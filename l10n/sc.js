@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Archìviu giai firmadu dae te",
     "File signed" : "Archìviu firmadu",
     "Internal error. Contact admin." : "Errore de intro. Cuntata s'amministratzione.",
-    "Digital signed by LibreSign. Validate in %s" : "Posta sa firma digitale dae LibreSign. Cunvàlida in %s",
     "Already asked to sign this document" : "Giai fata sa dimanda pro firmare custu documentu",
     "Invalid fileID" : "fileID non bàlidu",
     "You are not allowed to request signing" : "Non tenes su permissu pro rechèdere sa firma",

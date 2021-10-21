@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Datoteka je že podpisana",
     "File signed" : "Datoteka je podpisana",
     "Internal error. Contact admin." : "Notranja napaka, stopite v stik s skrbnikom.",
-    "Digital signed by LibreSign. Validate in %s" : "Digitalno podpisano z LibreSign. Podpis overite v %s.",
     "Already asked to sign this document" : "Zahteva za popis je bila že podana.",
     "Visible elements need to be an array" : "Vidni predmeti morajo biti zabeleženi kot polje",
     "Page must be equal to or greater than 1" : "Stran mora biti enaka ali večja od 1",

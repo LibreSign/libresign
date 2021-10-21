@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Već ste potpisali datoteku",
     "File signed" : "Datoteka je potpisana",
     "Internal error. Contact admin." : "Unutarnja pogreška. Obratite se administratoru.",
-    "Digital signed by LibreSign. Validate in %s" : "Digitalno potpisao LibreSign. Potvrdite u %s",
     "Already asked to sign this document" : "Već je zatraženo da potpišete ovaj dokument",
     "Invalid fileID" : "Nevažeći fileID",
     "You are not allowed to request signing" : "Nije vam dopušteno zatražiti potpisivanje",

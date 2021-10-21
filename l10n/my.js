@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "ဖိုင်အား သင် အမှတ်အသားပြုလုပ်ပြီးပါပြီ",
     "File signed" : "ဖိုင်အား အမှတ်အသားရေးထိုးပြီး",
     "Internal error. Contact admin." : "အတွင်းပြဿနာပေါ်ပေါက်ခဲ့သည်။ အက်ဒမင်နှင့်ဆက်သွယ်ရန်။",
-    "Digital signed by LibreSign. Validate in %s" : "ဒစ်ဂျစ်တယ်လက်မှတ်ကို LibreSign ဖြင့်ရေးထိုးထားသည်။ ခိုင်လုံမှုကို %s အတွင်းစစ်ဆေးရန်။",
     "Empty file" : "ဗလာဖိုင်",
     "Password Creation" : "လျှို့ဝှက်ကုဒ် ဖန်တီးရန်",
     "Status" : "အခြေအနေ",

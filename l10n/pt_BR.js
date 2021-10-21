@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Arquivo já assinado por você",
     "File signed" : "Arquivo assinado",
     "Internal error. Contact admin." : "Erro interno. Contacte o admin.",
-    "Digital signed by LibreSign. Validate in %s" : "Assinado digitalmente por LibreSign. Valide em %s",
     "Already asked to sign this document" : "Já pedi para assinar este documento ",
     "Visible elements need to be an array" : "Os elementos visíveis precisam ser uma matriz",
     "Page number must be an integer" : "O número da página deve ser um inteiro",

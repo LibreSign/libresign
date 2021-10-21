@@ -8,7 +8,6 @@ OC.L10N.register(
     "File already signed by you" : "Súbor je už od vás podpísaný",
     "File signed" : "Podpísaný súbor",
     "Internal error. Contact admin." : "Interná chyba. Kontaktujte administrátora.",
-    "Digital signed by LibreSign. Validate in %s" : "Digitálne podpísané od LibreSign. Platné v %s",
     "Already asked to sign this document" : "Už ste požiadali o podpísanie tohoto dokumentu",
     "Visible elements need to be an array" : "Viditeľné prvky musia byť pole",
     "Page number must be an integer" : "Stránka musí byť číslo",

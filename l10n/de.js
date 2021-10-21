@@ -13,7 +13,6 @@ OC.L10N.register(
     "File already signed by you" : "Datei wurde bereits von Dir signiert",
     "File signed" : "Datei unterschrieben",
     "Internal error. Contact admin." : "Interner Fehler. Kontaktiere einen Administrator.",
-    "Digital signed by LibreSign. Validate in %s" : "Digital unterschrieben mit LibreSign. Überprüfe in %s",
     "File type: %s. Empty file." : "Dateityp: %s. Leere Datei.",
     "Elements of type %s need file." : "Elemente von Typ %s benötigen eine Datei.",
     "File type: %s. Invalid fileID." : "Dateityp: %s. Ungültige fileID.",
