@@ -18,6 +18,9 @@ use OCP\IDBConnection;
  * @method UserElement delete(UserElement $entity)
  */
 class UserElementMapper extends QBMapper {
+	/** @var UserElement[] */
+	private $cache = [];
+
 	/**
 	 * @param IDBConnection $db
 	 */
@@ -40,18 +43,41 @@ class UserElementMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
-	public function getByUserIdAndElementId(string $userId, int $elementId): UserElement {
-		$qb = $this->db->getQueryBuilder();
+	/**
+	 * @param integer $elementId
+	 * @param string $userId
+	 * @return UserElement
+	 */
+	public function getByElementIdAndUserId(int $elementId, string $userId) {
+		if (!isset($this->cache[$elementId])) {
+			$qb = $this->db->getQueryBuilder();
 
-		$qb->select('ue.*')
-			->from($this->getTableName(), 'ue')
-			->where(
-				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
-			)
-			->andWhere(
-				$qb->expr()->eq('ue.id', $qb->createNamedParameter($elementId, IQueryBuilder::PARAM_INT))
-			);
+			$qb->select('ue.*')
+				->from($this->getTableName(), 'ue')
+				->where(
+					$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+				)
+				->andWhere(
+					$qb->expr()->eq('ue.id', $qb->createNamedParameter($elementId, IQueryBuilder::PARAM_INT))
+				);
 
-		return $this->findEntity($qb);
+			$this->cache[$elementId] = $this->findEntity($qb);
+		}
+		return $this->cache[$elementId];
+	}
+
+	public function getById(int $id): UserElement {
+		if (!isset($this->cache[$id])) {
+			$qb = $this->db->getQueryBuilder();
+
+			$qb->select('ue.*')
+				->from($this->getTableName(), 'ue')
+				->where(
+					$qb->expr()->eq('ue.id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+				);
+
+			$this->cache[$id] = $this->findEntity($qb);
+		}
+		return $this->cache[$id];
 	}
 }

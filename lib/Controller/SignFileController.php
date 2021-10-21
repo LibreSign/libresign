@@ -152,8 +152,8 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingFileid(string $fileId, string $password): JSONResponse {
-		return $this->sign($password, $fileId);
+	public function signUsingFileid(string $fileId, string $password, array $elements = []): JSONResponse {
+		return $this->sign($password, $fileId, null, $elements);
 	}
 
 	/**
@@ -164,11 +164,11 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingUuid(string $uuid, string $password): JSONResponse {
-		return $this->sign($password, null, $uuid);
+	public function signUsingUuid(string $uuid, string $password, array $elements = []): JSONResponse {
+		return $this->sign($password, null, $uuid, $elements);
 	}
 
-	public function sign(string $password, string $file_id = null, string $uuid = null): JSONResponse {
+	public function sign(string $password, string $file_id = null, string $uuid = null, array $elements): JSONResponse {
 		try {
 			try {
 				$user = $this->userSession->getUser();
@@ -183,8 +183,14 @@ class SignFileController extends ApiController {
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
+			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
-			$signedFile = $this->signFile->sign($libreSignFile, $fileUser, $password);
+			$signedFile = $this->signFile
+				->setLibreSignFile($libreSignFile)
+				->setFileUser($fileUser)
+				->setVisibleElements($elements)
+				->setPassword($password)
+				->sign();
 
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
 			$total = array_reduce($signers, function ($carry, $signer) {

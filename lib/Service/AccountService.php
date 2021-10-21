@@ -556,7 +556,7 @@ class AccountService {
 	}
 
 	public function getUserElementByElementId($userId, $elementId): array {
-		$element = $this->userElementMapper->getByUserIdAndElementId($userId, $elementId);
+		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
 		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
@@ -571,7 +571,7 @@ class AccountService {
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId) {
-		$element = $this->userElementMapper->getByUserIdAndElementId($userId, $elementId);
+		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
 		$this->userElementMapper->delete($element);
 	}
 }
