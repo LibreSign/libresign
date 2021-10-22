@@ -13,6 +13,8 @@ OC.L10N.register(
     "File already signed by you" : "Dosyayı zaten imzalamışsınız",
     "File signed" : "Dosya imzalanmış",
     "Internal error. Contact admin." : "İçeride bir sorun çıktı. BT yöneticiniz ile görüşün.",
+    "Digital signed by LibreSign." : "LibreSign tarafından sayısal olarak imzalanmış. ",
+    "Validate in %s" : "%s üzerinden doğrulayın",
     "File type: %s. Empty file." : "Dosya türü: %s. Boş dosya.",
     "Elements of type %s need file." : "%s türündeki bileşenleri dosyası olmalı.",
     "File type: %s. Inform URL or base64 or fileID." : "Dosya türü: %s. Bilgilendirme adresi ya da base64 ya da dosya kodu.",

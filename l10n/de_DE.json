@@ -11,6 +11,8 @@
     "File already signed by you" : "Datei wurde bereits von Ihnen signiert",
     "File signed" : "Datei signiert",
     "Internal error. Contact admin." : "Interner Fehler. Bitte den Administrator kontaktieren.",
+    "Digital signed by LibreSign." : "Digital signiert durch LibreSign.",
+    "Validate in %s" : "Validieren in %s",
     "File type: %s. Empty file." : "Dateityp: %s. Leere Datei.",
     "Elements of type %s need file." : "Elemente von Typ %s benötigen eine Datei.",
     "File type: %s. Inform URL or base64 or fileID." : "Dateityp: %s. Inform-URL oder Base64 oder fileID.",

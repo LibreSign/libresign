@@ -13,6 +13,8 @@ OC.L10N.register(
     "File already signed by you" : "Plik już podpisany przez Ciebie",
     "File signed" : "Plik podpisany",
     "Internal error. Contact admin." : "Błąd wewnętrzny. Skontaktuj się z administratorem.",
+    "Digital signed by LibreSign." : "Podpisane cyfrowo przez LibreSign.",
+    "Validate in %s" : "Sprawdź w %s",
     "File type: %s. Empty file." : "Typ pliku: %s. Pusty plik.",
     "Elements of type %s need file." : "Elementy typu %s wymagają pliku.",
     "File type: %s. Inform URL or base64 or fileID." : "Typ pliku: %s. Podaj adres URL, base64 lub fileID.",
