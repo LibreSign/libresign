@@ -164,7 +164,7 @@
       <code>ClientInterface</code>
     </UndefinedDocblockClass>
   </file>
-  <file src="lib/Handler/ISignHandler.php">
+  <file src="lib/Handler/ISignEngineHandler.php">
     <UndefinedClass occurrences="2">
       <code>File</code>
       <code>File</code>

@@ -84,7 +84,7 @@ class Pkcs12Handler {
 		return $folder->get($this->pfxFilename);
 	}
 
-	private function getHandler(): ISignHandler {
+	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		if (!property_exists($this, $sign_engine . 'Handler')) {
 			throw new \Exception('Invalid Sign engine', 400);
