@@ -30,6 +30,8 @@
     "Page must be equal to or greater than 1" : "頁碼必須等或大於 1",
     "Element needs a type" : "元素需要指定類型",
     "Invalid element type" : "元素類型無效",
+    "Field %s not found" : "未找到字段 %s",
+    "Field %s does not belong to user" : "字段 %s 不屬於用戶",
     "File type: %s. Must be a fileID of %s format." : "檔案類型：%s。必須為 %s 格式的 fileID。",
     "Invalid fileID" : "無效的 fileID",
     "You are not allowed to request signing" : "你無權請求簽署",

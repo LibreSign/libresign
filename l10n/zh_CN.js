@@ -32,6 +32,8 @@ OC.L10N.register(
     "Page must be equal to or greater than 1" : "页码必须大于等于1",
     "Element needs a type" : "元素需要一个类型",
     "Invalid element type" : "无效的元素类型",
+    "Field %s not found" : "未找到字段 %s",
+    "Field %s does not belong to user" : "字段 %s 不属于用户",
     "File type: %s. Must be a fileID of %s format." : "文件类型：%s。必须是 %s 格式的一个 fileID",
     "Invalid fileID" : "无效的 fileID",
     "You are not allowed to request signing" : "系统不允许你请求签名",

@@ -30,6 +30,8 @@
     "Page must be equal to or greater than 1" : "Strona musi być równa lub większa od 1",
     "Element needs a type" : "Element potrzebuje typu",
     "Invalid element type" : "Nieprawidłowy typ elementu",
+    "Field %s not found" : "Nie znaleziono pola %s",
+    "Field %s does not belong to user" : "Pole %s nie należy do użytkownika",
     "File type: %s. Must be a fileID of %s format." : "Typ pliku: %s. Musi być fileID w formacie %s.",
     "Invalid fileID" : "Nieprawidłowy fileID",
     "You are not allowed to request signing" : "Nie możesz poprosić o podpisanie",
