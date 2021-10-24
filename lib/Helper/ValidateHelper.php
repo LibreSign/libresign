@@ -82,21 +82,21 @@ class ValidateHelper {
 	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN): void {
 		if (empty($data['file'])) {
 			if ($type === self::TYPE_TO_SIGN) {
-				throw new \Exception($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
+				throw new LibresignException($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
 			}
 			if ($type === self::TYPE_VISIBLE_ELEMENT_USER) {
 				if ($this->elementNeedFile($data)) {
-					throw new \Exception($this->l10n->t('Elements of type %s need file.', [$data['type']]));
+					throw new LibresignException($this->l10n->t('Elements of type %s need file.', [$data['type']]));
 				}
 			}
 			return;
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new \Exception($this->l10n->t('File type: %s. Inform URL or base64 or fileID.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Inform URL or base64 or fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $type);
 			$this->validateMimeTypeAccepted((int)$data['file']['fileId'], $type);
@@ -121,7 +121,7 @@ class ValidateHelper {
 		$string = base64_decode($base64);
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
-			throw new \Exception($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
@@ -131,13 +131,13 @@ class ValidateHelper {
 		} catch (\Throwable $th) {
 		}
 		if (!empty($fileMapper)) {
-			throw new \Exception($this->l10n->t('Already asked to sign this document'));
+			throw new LibresignException($this->l10n->t('Already asked to sign this document'));
 		}
 	}
 
 	public function validateVisibleElements($visibleElements, int $type): void {
 		if (!is_array($visibleElements)) {
-			throw new \Exception($this->l10n->t('Visible elements need to be an array'));
+			throw new LibresignException($this->l10n->t('Visible elements need to be an array'));
 		}
 		foreach ($visibleElements as $element) {
 			$this->validateVisibleElement($element, $type);
@@ -156,10 +156,10 @@ class ValidateHelper {
 			return;
 		}
 		if (!array_key_exists('uid', $element)) {
-			throw new \Exception($this->l10n->t('Element must be associated with a user'));
+			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
 		if (!$this->userManager->userExists($element['uid'])) {
-			throw new \Exception($this->l10n->t('User not found for element.'));
+			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}
 	}
 
@@ -175,10 +175,10 @@ class ValidateHelper {
 		foreach ($element['coordinates'] as $type => $value) {
 			if (in_array($type, ['llx', 'lly', 'urx', 'ury'])) {
 				if (!is_int($value)) {
-					throw new \Exception($this->l10n->t('Coordinate %s must be an integer', [$type]));
+					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}
 				if ($value < 0) {
-					throw new \Exception($this->l10n->t('Coordinate %s must be equal to or greater than 0', [$type]));
+					throw new LibresignException($this->l10n->t('Coordinate %s must be equal to or greater than 0', [$type]));
 				}
 			}
 		}
@@ -189,42 +189,42 @@ class ValidateHelper {
 			return;
 		}
 		if (!is_int($element['coordinates']['page'])) {
-			throw new \Exception($this->l10n->t('Page number must be an integer'));
+			throw new LibresignException($this->l10n->t('Page number must be an integer'));
 		}
 		if ($element['coordinates']['page'] < 1) {
-			throw new \Exception($this->l10n->t('Page must be equal to or greater than 1'));
+			throw new LibresignException($this->l10n->t('Page must be equal to or greater than 1'));
 		}
 	}
 
 	public function validateElementType(array $element): void {
 		if (!array_key_exists('type', $element)) {
 			if (!array_key_exists('elementId', $element)) {
-				throw new \Exception($this->l10n->t('Element needs a type'));
+				throw new LibresignException($this->l10n->t('Element needs a type'));
 			}
 			return;
 		}
 		if (!in_array($element['type'], ['signature', 'initial', 'date', 'datetime', 'text'])) {
-			throw new \Exception($this->l10n->t('Invalid element type'));
+			throw new LibresignException($this->l10n->t('Invalid element type'));
 		}
 	}
 
 	public function validateVisibleElementsRelation(array $list, FileUser $fileUser) {
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
-				throw new \Exception($this->l10n->t('Field %s not found', ['documentElementId']));
+				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
 			if (!array_key_exists('profileElementId', $elements)) {
-				throw new \Exception($this->l10n->t('Field %s not found', ['profileElementId']));
+				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
 			}
 			try {
 				$this->fileElementMapper->getByDocumentElementIdAndFileUserId($elements['documentElementId'], $fileUser->getUserId());
 			} catch (\Throwable $th) {
-				throw new \Exception($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
 			}
 			try {
-				$this->userElementMapper->getByElementIdAndUserId($elements['documentElementId'], $fileUser->getUserId());
+				$this->userElementMapper->getByElementIdAndUserId($elements['profileElementId'], $fileUser->getUserId());
 			} catch (\Throwable $th) {
-				throw new \Exception($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
 		}
 	}
@@ -234,10 +234,10 @@ class ValidateHelper {
 			$file = $this->root->getById($nodeId);
 			$file = $file[0] ?? null;
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!$file) {
-			throw new \Exception($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
@@ -247,13 +247,13 @@ class ValidateHelper {
 		switch ($type) {
 			case self::TYPE_TO_SIGN:
 				if ($file->getMimeType() !== 'application/pdf') {
-					throw new \Exception($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
+					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 				}
 				break;
 			case self::TYPE_VISIBLE_ELEMENT_PDF:
 			case self::TYPE_VISIBLE_ELEMENT_USER:
 				if ($file->getMimeType() !== 'image/png') {
-					throw new \Exception($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
+					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 				}
 				break;
 		}
@@ -263,7 +263,7 @@ class ValidateHelper {
 		try {
 			$this->getLibreSignFileByNodeId($nodeId);
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid fileID'));
+			throw new LibresignException($this->l10n->t('Invalid fileID'));
 		}
 	}
 
@@ -292,18 +292,18 @@ class ValidateHelper {
 	public function canRequestSign(IUser $user): void {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized) || !is_array($authorized)) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!array_intersect($userGroups, $authorized)) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
 		}
 	}
 
 	public function iRequestedSignThisFile(IUser $user, int $nodeId): void {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
-			throw new \Exception($this->l10n->t('You do not have permission for this action.'));
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
 
@@ -314,24 +314,24 @@ class ValidateHelper {
 			$this->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
 		} elseif (isset($data['file'])) {
 			if (!isset($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileID'));
+				throw new LibresignException($this->l10n->t('Invalid fileID'));
 			}
 			$this->validateLibreSignNodeId($data['file']['fileId']);
 			$this->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
 		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
+			throw new LibresignException($this->l10n->t('Inform or UUID or a File object'));
 		}
 	}
 
 	public function haveValidMail(array $data): void {
 		if (empty($data)) {
-			throw new \Exception($this->l10n->t('No user data'));
+			throw new LibresignException($this->l10n->t('No user data'));
 		}
 		if (empty($data['email'])) {
-			throw new \Exception($this->l10n->t('Email required'));
+			throw new LibresignException($this->l10n->t('Email required'));
 		}
 		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-			throw new \Exception($this->l10n->t('Invalid email'));
+			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
 
@@ -339,12 +339,12 @@ class ValidateHelper {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('File not loaded'));
+			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
 		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
 		if (!$exists) {
-			throw new \Exception($this->l10n->t('No signature was requested to %s', $signer['email']));
+			throw new LibresignException($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
 	}
 
@@ -352,7 +352,7 @@ class ValidateHelper {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('File not loaded'));
+			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
 		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email'] && $s->getSigned());
@@ -361,16 +361,16 @@ class ValidateHelper {
 		}
 		$firstSigner = array_values($exists)[0];
 		if ($firstSigner->getDisplayName()) {
-			throw new \Exception($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
+			throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 		}
-		throw new \Exception($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
+		throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 	}
 
 	public function validateFileUuid(array $data): void {
 		try {
 			$this->fileMapper->getByUuid($data['uuid']);
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Invalid UUID file'));
+			throw new LibresignException($this->l10n->t('Invalid UUID file'));
 		}
 	}
 
@@ -378,7 +378,7 @@ class ValidateHelper {
 		try {
 			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
 		} catch (\Throwable $th) {
-			throw new \Exception($this->l10n->t('Signer not associated to this file'));
+			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
 		}
 	}
 
@@ -388,14 +388,14 @@ class ValidateHelper {
 		} catch (\Throwable $th) {
 		}
 		if (!empty($exists)) {
-			throw new \Exception($this->l10n->t('A file of this type has been associated.'));
+			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
 		}
 	}
 
 	public function validateFileTypeExists(string $type): void {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($type, $profileFileTypes)) {
-			throw new \Exception($this->l10n->t('Invalid file type.'));
+			throw new LibresignException($this->l10n->t('Invalid file type.'));
 		}
 	}
 }
