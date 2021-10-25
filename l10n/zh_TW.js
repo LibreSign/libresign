@@ -32,6 +32,8 @@ OC.L10N.register(
     "Page must be equal to or greater than 1" : "頁面必須大於等於 1",
     "Element needs a type" : "元素需要類型",
     "Invalid element type" : "無效元素類型",
+    "Field %s not found" : "找不到欄位 %s",
+    "Field %s does not belong to user" : "欄位 %s 不屬於使用者",
     "File type: %s. Must be a fileID of %s format." : "檔案類型：%s。必須為 %s 格式的 fileID。",
     "Invalid fileID" : "無效的檔案 ID",
     "You are not allowed to request signing" : "您無權要求簽署",
