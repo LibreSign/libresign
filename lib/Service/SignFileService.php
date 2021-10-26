@@ -126,11 +126,11 @@ class SignFileService {
 			$fileElement->setFileId($file->getId());
 			$fileElement->setUserId($element['uid']);
 			$fileElement->setType($element['type']);
-			$fileElement->setPage($element['page'] ?? 1);
-			$fileElement->setUrx($element['urx'] ?? 0);
-			$fileElement->setUry($element['ury'] ?? 0);
-			$fileElement->setLlx($element['llx'] ?? 0);
-			$fileElement->setLly($element['lly'] ?? 0);
+			$fileElement->setPage($element['coordinates']['page'] ?? 1);
+			$fileElement->setUrx($element['coordinates']['urx'] ?? 0);
+			$fileElement->setUry($element['coordinates']['ury'] ?? 0);
+			$fileElement->setLlx($element['coordinates']['llx'] ?? 0);
+			$fileElement->setLly($element['coordinates']['lly'] ?? 0);
 			$fileElement->setMetadata(!empty($element['metadata']) ? json_encode($element['metadata']) : null);
 			$this->fileElementMapper->insertOrUpdate($fileElement);
 			$elements[$key] = $fileElement;
