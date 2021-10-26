@@ -14,12 +14,11 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-use OCP\Files\Node;
 use OCP\IConfig;
 use OCP\IL10N;
 use TCPDI;
 
-class Pkcs12Handler {
+class Pkcs12Handler extends SignEngineHandler {
 
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
@@ -97,14 +96,15 @@ class Pkcs12Handler {
 		return $this->$property;
 	}
 
-	public function sign(
-		Node $fileToSign,
-		Node $certificate,
-		string $password
-	): File {
-		$signedContent = $this->getHandler()->sign($fileToSign, $certificate, $password);
-		$fileToSign->putContent($signedContent);
-		return $fileToSign;
+	public function sign(): File {
+		$signedContent = $this->getHandler()
+			->setCertificate($this->getCertificate())
+			->setInputFile($this->getInputFile())
+			->setPassword($this->getPassword())
+			->setVisibleElements($this->getvisibleElements())
+			->sign();
+		$this->getInputFile()->putContent($signedContent);
+		return $this->getInputFile();
 	}
 
 	/**

@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;

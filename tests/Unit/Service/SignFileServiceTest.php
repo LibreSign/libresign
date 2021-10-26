@@ -17,6 +17,7 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
+use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -55,6 +56,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $userElementMapper;
 	/** @var TimeFactory|MockObject */
 	private $timeFactory;
+	/** @var ITempManager|MockObject */
+	private $tempManager;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -76,6 +79,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
+		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->service = new SignFileService(
 			$this->l10n,
 			$this->fileMapper,
@@ -91,7 +95,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 			$this->fileElementMapper,
 			$this->userElementMapper,
-			$this->timeFactory
+			$this->timeFactory,
+			$this->tempManager
 		);
 	}
 

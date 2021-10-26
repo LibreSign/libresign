@@ -8,7 +8,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCP\Files\Node;
 use OCP\IConfig;
 
-class JSignPdfHandler implements ISignHandler {
+class JSignPdfHandler extends SignEngineHandler {
 	/** @var JSignPDF */
 	private $jSignPdf;
 	/** @var JSignParam */
@@ -60,18 +60,43 @@ class JSignPdfHandler implements ISignHandler {
 	 * @param string $password
 	 * @return string
 	 */
-	public function sign(
-		Node $inputFile,
-		Node $certificate,
-		string $password
-	): string {
+	public function sign(): string {
 		$param = $this->getJSignParam()
-			->setCertificate($certificate->getContent())
-			->setPdf($inputFile->getContent())
-			->setPassword($password);
+			->setCertificate($this->getCertificate()->getContent())
+			->setPdf($this->getInputFile()->getContent())
+			->setPassword($this->getPassword());
 
+		$signed = $this->signUsingVisibleElements();
+		if ($signed) {
+			return $signed;
+		}
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
 		return $jSignPdf->sign();
+	}
+
+	private function signUsingVisibleElements(): string {
+		$visibleElements = $this->getvisibleElements();
+		if ($visibleElements) {
+			$jSignPdf = $this->getJSignPdf();
+			$param = $this->getJSignParam();
+			foreach ($visibleElements as $element) {
+				$param
+					->setJSignParameters(
+						' -pg ' . $element->getFileElement()->getPage() .
+						' -llx ' . $element->getFileElement()->getLlx() .
+						' -lly ' . $element->getFileElement()->getLly() .
+						' -urx ' . $element->getFileElement()->getUrx() .
+						' -ury ' . $element->getFileElement()->getUry() .
+						' --l2-text ""' .
+						' -V ' .
+						' --bg-path ' . $element->getTempFile()
+					);
+				$jSignPdf->setParam($param);
+				$signed = $jSignPdf->sign();
+			}
+			return $signed;
+		}
+		return '';
 	}
 }

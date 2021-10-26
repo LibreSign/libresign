@@ -52,9 +52,9 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	}
 
 	/**
-	 * @return VisibleElementAssoc[]
+	 * @return VisibleElementAssoc[]|null
 	 */
-	public function getvisibleElements(): array {
+	public function getvisibleElements(): ?array {
 		return $this->visibleElements;
 	}
 }
