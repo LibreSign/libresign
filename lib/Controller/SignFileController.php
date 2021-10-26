@@ -244,15 +244,15 @@ class SignFileController extends ApiController {
 					$this->logger->error($message);
 					$message = $this->l10n->t('Internal error. Contact admin.');
 			}
-			return new JSONResponse(
-				[
-					'success' => false,
-					'action' => $action,
-					'errors' => [$message]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
 		}
+		return new JSONResponse(
+			[
+				'success' => false,
+				'action' => $action,
+				'errors' => [$message]
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
 	}
 
 	/**
