@@ -78,7 +78,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new \Exception($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		return $folder->get($this->pfxFilename);
 	}
@@ -86,7 +86,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		if (!property_exists($this, $sign_engine . 'Handler')) {
-			throw new \Exception($this->l10n->t('Invalid Sign engine.'), 400);
+			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
 		$property = $sign_engine . 'Handler';
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
