@@ -17,6 +17,7 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
+use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -55,6 +56,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $userElementMapper;
 	/** @var TimeFactory|MockObject */
 	private $timeFactory;
+	/** @var ITempManager|MockObject */
+	private $tempManager;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -76,6 +79,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
+		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->service = new SignFileService(
 			$this->l10n,
 			$this->fileMapper,
@@ -91,7 +95,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 			$this->fileElementMapper,
 			$this->userElementMapper,
-			$this->timeFactory
+			$this->timeFactory,
+			$this->tempManager
 		);
 	}
 
@@ -652,89 +657,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->setFileUser($fileUser)
 			->setPassword('password')
 			->sign();
-	}
-
-	public function testSignPdfFileWithSuccess() {
-		$this->createUser('username', 'password');
-
-		$libreSignFile = new \OCA\Libresign\Db\File();
-		$libreSignFile->setUserId('username');
-		$libreSignFile->setUuid('uuid');
-
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getExtension')
-			->willReturn('pdf');
-
-		$this->root
-			->method('getById')
-			->willReturn([$file]);
-		$this->root
-			->method('nodeExists')
-			->willReturn(true);
-		$this->root
-			->method('get')
-			->willReturn($file);
-		$this->root->method('getUserFolder')
-			->willReturn($this->root);
-		$this->root->method('newFile')
-			->willReturn($file);
-		$this->pkcs12Handler
-			->method('getPfx')
-			->willReturn($file);
-
-		$fileUser = new \OCA\Libresign\Db\FileUser();
-		$actual = $this->service
-			->setLibreSignFile($libreSignFile)
-			->setFileUser($fileUser)
-			->setPassword('password')
-			->sign();
-		$this->assertInstanceOf(\OCP\Files\Node::class, $actual);
-	}
-
-	public function testSignNonPdfWithSuccess() {
-		$this->createUser('username', 'password');
-
-		$libreSignFile = new \OCA\Libresign\Db\File();
-		$libreSignFile->setUserId('username');
-
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getExtension')
-			->willReturn('txt');
-		$file
-			->method('getName')
-			->willReturn('non.txt');
-		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder
-			->method('newFile')
-			->willReturn($file);
-		$file
-			->method('getParent')
-			->willReturn($folder);
-
-		$this->root
-			->method('getById')
-			->willReturn([$file]);
-		$this->root
-			->method('nodeExists')
-			->willReturn(true);
-		$this->root
-			->method('get')
-			->willReturn($file);
-		$this->root->method('getUserFolder')
-			->willReturn($this->root);
-		$this->pkcs12Handler
-			->method('getPfx')
-			->willReturn($file);
-
-		$fileUser = new \OCA\Libresign\Db\FileUser();
-		$actual = $this->service
-			->setLibreSignFile($libreSignFile)
-			->setFileUser($fileUser)
-			->setPassword('password')
-			->sign();
-		$this->assertInstanceOf(\OCP\Files\Node::class, $actual);
 	}
 
 	public function testValidateUserManagerWithoutUserManager() {

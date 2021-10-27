@@ -2,12 +2,13 @@
 
 namespace OCA\Libresign\Handler;
 
+use OCP\Files\File;
 use OCP\Files\Node;
 
 /**
  * @codeCoverageIgnore
  */
-class Pkcs7Handler {
+class Pkcs7Handler extends SignEngineHandler {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 * @param Node $fileToSign
@@ -15,23 +16,19 @@ class Pkcs7Handler {
 	 * @param string $passphrase
 	 * @return Node
 	 */
-	public function sign(
-		Node $fileToSign,
-		Node $certificate,
-		string $passphrase
-	): Node {
-		$newName = $fileToSign->getName() . '.p7s';
-		$p7sFile = $fileToSign
+	public function sign(): File {
+		$newName = $this->getInputFile()->getName() . '.p7s';
+		$p7sFile = $this->getInputFile()
 			->getParent()
 			->newFile($newName);
-		openssl_pkcs12_read($certificate->getContent(), $certificateData, $passphrase);
+		openssl_pkcs12_read($this->getCertificate()->getContent(), $certificateData, $this->getPassword());
 		$tempntam = tempnam('/temp', 'pkey');
 		file_put_contents($tempntam, $certificateData['pkey']);
 		openssl_pkcs7_sign(
-			$fileToSign->getInternalPath(),
+			$this->getInputFile()->getInternalPath(),
 			$p7sFile->getInternalPath(),
 			'file:/' . $tempntam,
-			$passphrase,
+			$this->getPassword(),
 			[]
 		);
 		return $p7sFile;

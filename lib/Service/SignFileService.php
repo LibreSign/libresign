@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
+use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
@@ -20,6 +21,7 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
+use OCP\ITempManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
@@ -56,14 +58,16 @@ class SignFileService {
 	private $userElementMapper;
 	/** @var TimeFactory; */
 	private $timeFactory;
+	/** @var ITempManager */
+	private $tempManager;
 	/** @var FileUserEntity */
 	private $fileUser;
 	/** @var string */
 	private $password;
 	/** @var FileEntity */
 	private $libreSignFile;
-	/** @var array */
-	private $elements;
+	/** @var VisibleElementAssoc[] */
+	private $elements = [];
 
 	public function __construct(
 		IL10N $l10n,
@@ -80,7 +84,8 @@ class SignFileService {
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
-		TimeFactory $timeFactory
+		TimeFactory $timeFactory,
+		ITempManager $tempManager
 	) {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
@@ -97,6 +102,7 @@ class SignFileService {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
 		$this->timeFactory = $timeFactory;
+		$this->tempManager = $tempManager;
 	}
 
 	/**
@@ -126,11 +132,11 @@ class SignFileService {
 			$fileElement->setFileId($file->getId());
 			$fileElement->setUserId($element['uid']);
 			$fileElement->setType($element['type']);
-			$fileElement->setPage($element['page'] ?? 1);
-			$fileElement->setUrx($element['urx'] ?? 0);
-			$fileElement->setUry($element['ury'] ?? 0);
-			$fileElement->setLlx($element['llx'] ?? 0);
-			$fileElement->setLly($element['lly'] ?? 0);
+			$fileElement->setPage($element['coordinates']['page'] ?? 1);
+			$fileElement->setUrx($element['coordinates']['urx'] ?? 0);
+			$fileElement->setUry($element['coordinates']['ury'] ?? 0);
+			$fileElement->setLlx($element['coordinates']['llx'] ?? 0);
+			$fileElement->setLly($element['coordinates']['lly'] ?? 0);
 			$fileElement->setMetadata(!empty($element['metadata']) ? json_encode($element['metadata']) : null);
 			$this->fileElementMapper->insertOrUpdate($fileElement);
 			$elements[$key] = $fileElement;
@@ -509,10 +515,17 @@ class SignFileService {
 
 	public function setVisibleElements(array $list): self {
 		foreach ($list as $element) {
-			$this->elements[] = [
-				'documentElement' => $this->fileElementMapper->getById($element['documentElementId']),
-				'profileElement' => $this->userElementMapper->getById($element['profileElementId'])
-			];
+			$documentElement = $this->fileElementMapper->getById($element['documentElementId']);
+			$userElement = $this->userElementMapper->getById($element['profileElementId']);
+			$node = $this->root->getById($userElement->getFileId())[0];
+			$tempFile = $this->tempManager->getTemporaryFile('.png');
+			file_put_contents($tempFile, $node->getContent());
+			$visibleElements = new VisibleElementAssoc(
+				$documentElement,
+				$this->userElementMapper->getById($element['profileElementId']),
+				$tempFile
+			);
+			$this->elements[] = $visibleElements;
 		}
 		return $this;
 	}
@@ -522,10 +535,19 @@ class SignFileService {
 		$pfxFile = $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
-				$signedFile = $this->pkcs12Handler->sign($fileToSign, $pfxFile, $this->password);
+				$signedFile = $this->pkcs12Handler
+					->setInputFile($fileToSign)
+					->setCertificate($pfxFile)
+					->setVisibleElements($this->elements)
+					->setPassword($this->password)
+					->sign();
 				break;
 			default:
-				$signedFile = $this->pkcs7Handler->sign($fileToSign, $pfxFile, $this->password);
+				$signedFile = $this->pkcs7Handler
+					->setInputFile($fileToSign)
+					->setCertificate($pfxFile)
+					->setPassword($this->password)
+					->sign();
 		}
 
 		$this->fileUser->setSigned(time());

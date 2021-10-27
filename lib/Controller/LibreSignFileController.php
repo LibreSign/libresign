@@ -96,10 +96,10 @@ class LibreSignFileController extends Controller {
 					$identifier
 				);
 			} catch (\Throwable $th) {
-				throw new LibresignException('Invalid data to validate file', 404);
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 			if (!$file) {
-				throw new LibresignException('Invalid file identifier', 404);
+				throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
 			}
 
 			$return['success'] = true;

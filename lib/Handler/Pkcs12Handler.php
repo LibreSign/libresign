@@ -14,12 +14,11 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
-use OCP\Files\Node;
 use OCP\IConfig;
 use OCP\IL10N;
 use TCPDI;
 
-class Pkcs12Handler {
+class Pkcs12Handler extends SignEngineHandler {
 
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
@@ -79,15 +78,15 @@ class Pkcs12Handler {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
+			throw new \Exception($this->l10n->t('Password to sign not defined. Create a password to sign'), 400);
 		}
 		return $folder->get($this->pfxFilename);
 	}
 
-	private function getHandler(): ISignHandler {
+	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		if (!property_exists($this, $sign_engine . 'Handler')) {
-			throw new \Exception('Invalid Sign engine', 400);
+			throw new \Exception($this->l10n->t('Invalid Sign engine'), 400);
 		}
 		$property = $sign_engine . 'Handler';
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
@@ -97,14 +96,15 @@ class Pkcs12Handler {
 		return $this->$property;
 	}
 
-	public function sign(
-		Node $fileToSign,
-		Node $certificate,
-		string $password
-	): File {
-		$signedContent = $this->getHandler()->sign($fileToSign, $certificate, $password);
-		$fileToSign->putContent($signedContent);
-		return $fileToSign;
+	public function sign(): File {
+		$signedContent = $this->getHandler()
+			->setCertificate($this->getCertificate())
+			->setInputFile($this->getInputFile())
+			->setPassword($this->getPassword())
+			->setVisibleElements($this->getvisibleElements())
+			->sign();
+		$this->getInputFile()->putContent($signedContent);
+		return $this->getInputFile();
 	}
 
 	/**
