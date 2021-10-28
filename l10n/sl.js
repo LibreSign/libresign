@@ -9,7 +9,6 @@ OC.L10N.register(
     "File signed" : "Datoteka je podpisana",
     "Internal error. Contact admin." : "Notranja napaka, stopite v stik s skrbnikom.",
     "Digital signed by LibreSign." : "Digitalno podpisano z LibreSign.",
-    "Validate in %s" : "Overi v %s",
     "File type: %s. Empty file." : "Vrsta datoteke: %s. Prazna datoteka.",
     "document to sign" : "dokument za podpis",
     "File type: %s. Invalid base64 file." : "Vrsta datoteke: %s. Neveljavna datoteka base64.",

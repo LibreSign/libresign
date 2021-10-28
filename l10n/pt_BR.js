@@ -14,7 +14,6 @@ OC.L10N.register(
     "File signed" : "Arquivo assinado",
     "Internal error. Contact admin." : "Erro interno. Contacte o admin.",
     "Digital signed by LibreSign." : "Digital assinado por LibreSign.",
-    "Validate in %s" : "Validar em %s",
     "File type: %s. Empty file." : "Arquivo tipo: %s. Arquivo vazio.",
     "Elements of type %s need file." : "Os elementos do tipo %s precisam do arquivo. ",
     "File type: %s. Inform URL or base64 or fileID." : "Tipo de arquivo: %s. Informe a URL ou base64 ou fileID.",

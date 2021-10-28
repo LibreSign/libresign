@@ -14,7 +14,6 @@ OC.L10N.register(
     "File signed" : "Fitxategia sinatuta",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
     "Digital signed by LibreSign." : "LibreSign-en sinadura digitala.",
-    "Validate in %s" : "Balioztatu %s-n",
     "File type: %s. Empty file." : "Fitxategi mota: %s. Fitxategi hutsa.",
     "Elements of type %s need file." : "%s motako elementuak fitxategia behar dute.",
     "File type: %s. Inform URL or base64 or fileID." : "Fitxategi mota: %s. Idatzi URL edo base64 edo fileID.",

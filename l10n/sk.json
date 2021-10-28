@@ -12,7 +12,6 @@
     "File signed" : "Podpísaný súbor",
     "Internal error. Contact admin." : "Interná chyba. Kontaktujte administrátora.",
     "Digital signed by LibreSign." : "Digitálne podpísané od LibreSign.",
-    "Validate in %s" : "Overiť v %s",
     "File type: %s. Empty file." : "Typ súboru: %s. Prázdny súbor.",
     "Elements of type %s need file." : "Prvok typu %s potrebuje súbor.",
     "File type: %s. Inform URL or base64 or fileID." : "Typ súboru: %s. Inform URL alebo base64 alebo fileID.",
