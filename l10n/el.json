@@ -1,6 +1,11 @@
 { "translations": {
     "Success" : "Επιτυχής",
     "Invalid user or password" : "Μη έγκυρος χρήστης ή συνθηματικό",
+    "_Element created with success_::_Elements created with success_" : ["Στοιχεία δημιουργήθηκαν με επιτυχία","Στοιχεία δημιουργήθηκαν με επιτυχία"],
+    "Elements not found" : "Τα στοιχεία δεν βρέθηκαν",
+    "Element not found" : "Το στοιχείο δεν βρέθηκε",
+    "Element updated with success" : "Τα στοιχεία ανανεώθηκαν επιτυχώς ",
+    "document to sign" : "Έγγραφο προς υπογραφή ",
     "File not loaded" : "Το αρχείο δεν φορτώθηκε",
     "Invalid UUID" : "Μη έγκυρο UUID",
     "This is not your file" : "Αυτό δεν είναι το αρχείο σας",
