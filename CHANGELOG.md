@@ -30,7 +30,7 @@ Types of changes:
 - FPDI replaced by TCPDF
 - Bump jsignpdf from 1.6.5 to 2.0.0
 - Add more specific log message when jar of jsignpdf not found
-- Account improviments, remove dead code and split components.
+- Account improvements, remove dead code and split components.
 
 # Fixed
 - Fixed: error on sign specific documents
