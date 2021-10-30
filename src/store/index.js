@@ -28,7 +28,6 @@ import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
-import modal from './modules/modal'
 import signatures from './modules/signatures'
 import user from './modules/user'
 import featureController from './modules/feature_controller'
@@ -107,7 +106,6 @@ export default new Store({
 		sign,
 		validate,
 		error,
-		modal,
 		signatures,
 		user,
 		featureController,
