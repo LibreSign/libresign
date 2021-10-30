@@ -47,7 +47,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 
 		if (!$table->hasColumn('metadata')) {
 			$table->addColumn('metadata', Types::TEXT, [
-				'notnull' => true
+				'notnull' => false
 			]);
 		}
 
