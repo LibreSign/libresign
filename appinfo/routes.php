@@ -34,6 +34,7 @@ return [
 		['name' => 'libreSignFile#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
+		['name' => 'libreSignFile#getPage',           'url' => '/api/0.1/file/page/{uuid}/{page}.png', 'verb' => 'GET'],
 
 		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
 

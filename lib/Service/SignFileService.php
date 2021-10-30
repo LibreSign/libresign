@@ -14,6 +14,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
@@ -169,12 +170,19 @@ class SignFileService {
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
 		$file->setName($data['name']);
+		$file->setMetadata(json_encode($this->getFileMetadata($node)));
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
 		}
 		$file->setEnabled(1);
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	public function getFileMetadata(\OCP\Files\Node $node): array {
+		$pdf = new TCPDILibresign();
+		$pdf->setNextcloudSourceFile($node);
+		return $pdf->getPagesMetadata();
 	}
 
 	public function saveFileUser(FileUserEntity $fileUser): void {

@@ -369,6 +369,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$folder->method('nodeExists')->willReturn(false);
 		$folder->method('newFolder')->willReturn($folder);
 		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getContent')
+			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$folder->method('newFile')->willReturn($file);
 		$this->folderService->method('getFolder')->will($this->returnValue($folder));
 		$this->user->method('getUID')->willReturn('uuid');
@@ -486,6 +489,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 
 		$file = $this->createMock(\OCP\Files\File::class);
+		$file
+			->method('getContent')
+			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder
 			->method('getById')
