@@ -2,12 +2,14 @@
 	<div class="container">
 		<ul>
 			<li
+				v-if="textEditor"
 				:class="{active: isActive('text')}"
 				@click.prevent="setActive('text')">
 				<img :src="texticon" alt="Text">
 				Text
 			</li>
 			<li
+				v-if="drawEditor"
 				:class="{active: isActive('draw')}"
 				@click.prevent="setActive('draw')">
 				<img :src="drawnIcon" alt="draw">
@@ -36,8 +38,22 @@ import Editor from './Editor.vue'
 import TextInput from './TextInput.vue'
 import DrawIcon from '../../assets/images/curvature.png'
 import TextIcon from '../../assets/images/text.png'
+
 export default {
+	name: 'Draw',
 	components: { TextInput, Editor },
+	props: {
+		drawEditor: {
+			type: Boolean,
+			required: false,
+			default: true,
+		},
+		textEditor: {
+			type: Boolean,
+			required: false,
+			default: false,
+		},
+	},
 
 	data: () => ({
 		toolSelected: 'draw',

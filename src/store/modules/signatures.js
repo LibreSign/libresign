@@ -57,7 +57,6 @@ const actions = {
 		try {
 			const response = await newElement({ type, file })
 			showSuccess(response.message)
-			commit('modal/setStatus', false, { root: true })
 		} catch (err) {
 			showError(err)
 		}
