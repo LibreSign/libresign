@@ -54,7 +54,7 @@
 
 <script>
 import { mapActions } from 'vuex'
-import MyImage1 from '../../assets/images/image.jpg'
+import MyImage1 from '../../assets/images/bg.png'
 import ZoomIn from '../../assets/images/zoom_in.png'
 import ZoomOut from '../../assets/images/zoom_out.png'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
