@@ -13,7 +13,7 @@
 					<div class="user-password">
 						<h3>{{ t('libresign', 'Password & Security') }}</h3>
 						<div class="user-display-password icon-password">
-							<button v-if="!hasSignature" @click="handleModal(true)">
+							<button v-if="!getHasPfx" @click="handleModal(true)">
 								{{ t('libresign', 'Create password key') }}
 							</button>
 							<button v-else @click="handleModal(true)">
@@ -24,8 +24,8 @@
 							class="password-modal"
 							size="large"
 							@close="handleModal(false)">
-							<CreatePassword v-if="!hasSignature" @close="handleModal(false)" />
-							<ResetPassword v-if="hasSignature" @close="handleModal(false)" />
+							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
+							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
 						</Modal>
 					</div>
 				</div>
@@ -40,7 +40,7 @@
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { getCurrentUser } from '@nextcloud/auth'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
@@ -62,7 +62,6 @@ export default {
 		return {
 			user: getCurrentUser(),
 			modal: false,
-			type: '',
 		}
 	},
 
@@ -72,23 +71,10 @@ export default {
 			initials: state => state.signatures.initials.file.base64,
 		}),
 		...mapGetters({
-			hasSignature: 'getHasPfx',
-			modalStatus: 'modal/getStatus',
-			haveSignature: 'signatures/haveSignatures',
-			haveInitials: 'signatures/haveInitials',
-			enabledFeatures: 'featureController/getEnabledFeatures',
+			getHasPfx: 'getHasPfx',
 		}),
-		isModalSignature() {
-			return this.modalStatus
-		},
-	},
-	created() {
-		this.fetchSignatures()
 	},
 	methods: {
-		...mapActions({
-			fetchSignatures: 'signatures/FETCH_SIGNATURES',
-		}),
 		handleModal(status) {
 			this.modal = status
 		},
