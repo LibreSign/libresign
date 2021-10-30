@@ -5,14 +5,15 @@ namespace OCA\Libresign\Tests\Unit;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IGroupManager;
 use OCP\IUserManager;
+use PHPUnit\Framework\MockObject\MockObject;
 
 trait UserTrait {
 	use LibresignFileTrait;
 
-	/** @var IGroupManager */
+	/** @var IGroupManager|MockObject */
 	private $userTraitGroupManager;
 
-	/** @var IUserManager */
+	/** @var IUserManager|MockObject */
 	private $userTraitUserManager;
 
 	private $userTraitTestGroup;

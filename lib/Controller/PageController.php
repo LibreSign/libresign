@@ -40,12 +40,13 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Render default template
+	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * Render default template
+	 * @return TemplateResponse
 	 */
-	public function index() {
+	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
 			$this->session->get('user_id'),
@@ -65,8 +66,9 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
+	 * @return TemplateResponse
 	 */
-	public function sign($uuid) {
+	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$uuid,
 			$this->session->get('user_id'),
@@ -89,6 +91,7 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
+	 * @return DataResponse|FileDisplayResponse
 	 */
 	public function getPdf($uuid) {
 		try {
@@ -112,6 +115,7 @@ class PageController extends Controller {
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
+	 * @return DataResponse|FileDisplayResponse
 	 */
 	public function getPdfUser($uuid) {
 		$config = $this->accountService->getConfig(
@@ -138,8 +142,9 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
+	 * @return TemplateResponse
 	 */
-	public function validation() {
+	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
 			$this->session->get('user_id'),
@@ -158,8 +163,9 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
+	 * @return TemplateResponse
 	 */
-	public function resetPassword() {
+	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
 			$this->session->get('user_id'),
@@ -179,7 +185,7 @@ class PageController extends Controller {
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 */
-	public function validationFile(string $uuid) {
+	public function validationFile(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$uuid,
 			$this->session->get('user_id'),

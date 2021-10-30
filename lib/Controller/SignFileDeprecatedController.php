@@ -80,7 +80,7 @@ class SignFileDeprecatedController extends SignFileController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
-	public function requestSign(array $file, array $users, string $name, ?string $callback = null) {
+	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null) {
 		return parent::requestSign($file, $users, $name, $callback);
 	}
 
@@ -92,7 +92,7 @@ class SignFileDeprecatedController extends SignFileController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
+	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = []) {
 		return parent::updateSign($users, $uuid, $file);
 	}
 
@@ -113,7 +113,7 @@ class SignFileDeprecatedController extends SignFileController {
 		];
 		try {
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
 			$deletedUsers = $this->signFile->deleteSignRequestDeprecated($data);
 			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);

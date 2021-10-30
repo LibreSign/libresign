@@ -1,6 +1,16 @@
 OC.L10N.register(
     "libresign",
     {
+    "Success" : "Выполнено",
+    "Invalid user or password" : "Неверное имя пользователя или пароль",
+    "_Element created with success_::_Elements created with success_" : ["Элемент создан успешно","Элементы созданы успешно","Элементы созданы успешно","Элементы созданы успешно"],
+    "Elements not found" : "Элементы не найдены",
+    "Element not found" : "Элемент не найден",
+    "Element updated with success" : "Элемент обновлен успешно",
+    "Visible element deleted" : "Видимый элемент удален",
+    "Notification sent with success." : "Уведомление отправлено успешно",
+    "File signed" : "Файл подписан",
+    "visible element" : "видимый элемент",
     "Document already signed" : "Документ уже подписан",
     "Files" : "Файлы",
     "Request" : "Запросы",

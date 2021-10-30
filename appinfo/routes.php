@@ -12,6 +12,11 @@ return [
 		['name' => 'account#me',                      'url' => '/api/0.1/account/me', 'verb' => 'GET'],
 		['name' => 'account#signatureGenerate',       'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
 		['name' => 'account#addFiles',                'url' => '/api/0.1/account/files', 'verb' => 'POST'],
+		['name' => 'account#createSignatureElement',  'url' => '/api/0.1/account/signature/elements', 'verb' => 'POST'],
+		['name' => 'account#getSignatureElements',    'url' => '/api/0.1/account/signature/elements', 'verb' => 'GET'],
+		['name' => 'account#getSignatureElement',     'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'GET'],
+		['name' => 'account#patchSignatureElement',   'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'PATCH'],
+		['name' => 'account#deleteSignatureElement',  'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'DELETE'],
 
 		// Deprecated
 		['name' => 'signFileDeprecated#requestSign',  'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
@@ -29,6 +34,7 @@ return [
 		['name' => 'libreSignFile#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
+		['name' => 'libreSignFile#getPage',           'url' => '/api/0.1/file/page/{uuid}/{page}.png', 'verb' => 'GET'],
 
 		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
 

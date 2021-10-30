@@ -28,6 +28,8 @@ class SignFileController extends ApiController {
 	private $fileMapper;
 	/** @var SignFileService */
 	protected $signFile;
+	/** @var ValidateHelper */
+	protected $validateHelper;
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -65,12 +67,13 @@ class SignFileController extends ApiController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
-	public function requestSign(array $file, array $users, string $name, ?string $callback = null) {
+	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
+			'visibleElements' => $visibleElements,
 			'callback' => $callback,
 			'userManager' => $user
 		];
@@ -106,17 +109,19 @@ class SignFileController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $file = []) {
+	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = []) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
 			'file' => $file,
 			'users' => $users,
-			'userManager' => $user
+			'userManager' => $user,
+			'visibleElements' => $visibleElements
 		];
 		try {
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
+			$this->signFile->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			$return = $this->signFile->save($data);
 			unset(
 				$return['id'],
@@ -147,8 +152,8 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingFileid(string $fileId, string $password): JSONResponse {
-		return $this->sign($password, $fileId);
+	public function signUsingFileid(string $fileId, string $password, array $elements = []): JSONResponse {
+		return $this->sign($password, $fileId, null, $elements);
 	}
 
 	/**
@@ -159,11 +164,11 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingUuid(string $uuid, string $password): JSONResponse {
-		return $this->sign($password, null, $uuid);
+	public function signUsingUuid(string $uuid, string $password, array $elements = []): JSONResponse {
+		return $this->sign($password, null, $uuid, $elements);
 	}
 
-	public function sign(string $password, string $file_id = null, string $uuid = null): JSONResponse {
+	public function sign(string $password, string $file_id = null, string $uuid = null, array $elements): JSONResponse {
 		try {
 			try {
 				$user = $this->userSession->getUser();
@@ -178,8 +183,14 @@ class SignFileController extends ApiController {
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
+			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
-			$signedFile = $this->signFile->sign($libreSignFile, $fileUser, $password);
+			$signedFile = $this->signFile
+				->setLibreSignFile($libreSignFile)
+				->setFileUser($fileUser)
+				->setVisibleElements($elements)
+				->setPassword($password)
+				->sign();
 
 			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
 			$total = array_reduce($signers, function ($carry, $signer) {
@@ -233,15 +244,15 @@ class SignFileController extends ApiController {
 					$this->logger->error($message);
 					$message = $this->l10n->t('Internal error. Contact admin.');
 			}
-			return new JSONResponse(
-				[
-					'success' => false,
-					'action' => $action,
-					'errors' => [$message]
-				],
-				Http::STATUS_UNPROCESSABLE_ENTITY
-			);
 		}
+		return new JSONResponse(
+			[
+				'success' => false,
+				'action' => $action,
+				'errors' => [$message]
+			],
+			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
 	}
 
 	/**
@@ -261,7 +272,7 @@ class SignFileController extends ApiController {
 				]
 			];
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
 			$this->signFile->unassociateToUser($fileId, $signatureId);
 		} catch (\Throwable $th) {
@@ -297,7 +308,7 @@ class SignFileController extends ApiController {
 				]
 			];
 			$this->signFile->validateUserManager($data);
-			$this->signFile->validateExistingFile($data);
+			$this->validateHelper->validateExistingFile($data);
 			$this->signFile->deleteSignRequest($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(

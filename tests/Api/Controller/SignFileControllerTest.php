@@ -162,7 +162,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Password to sign not defined. Create a password to sign', $body['errors'][0]);
+		$this->assertEquals('Password to sign not defined. Create a password to sign.', $body['errors'][0]);
 	}
 
 	/**

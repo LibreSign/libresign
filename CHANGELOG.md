@@ -13,12 +13,13 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 2.4.6 - Draft
+## 2.5.0 - Draft
 
 # Added
 - Added clickable link in the PDF footer
 - Manager signatures in profile
 - Feature Display Controller
+- API: endpoints to add visible elements on PDF file
 
 # Changed
 - PDF preview on mobile when signing
@@ -27,7 +28,12 @@ Types of changes:
 - API: return LibreSign UUID on sign methods
 - Endpoint: /account/create/{uuid}, remove required of field signPassword
 - FPDI replaced by TCPDF
-- Reader PDF and Method to get document coordinates for insert signatures or initials. 
+- Bump jsignpdf from 1.6.5 to 2.0.0
+- Add more specific log message when jar of jsignpdf not found
+
+# Fixed
+- Fixed: error on sign specific documents
+- Add line break on footer to prevent hide signature url
 
 ## 2.4.3 - 2021-07-14
 

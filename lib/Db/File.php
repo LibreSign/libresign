@@ -25,6 +25,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getCallback()
  * @method void setEnabled(int $enabled)
  * @method int getEnabled()
+ * @method void setPages(int $pages)
+ * @method int getPages()
  */
 class File extends Entity {
 	/** @var integer */
@@ -54,6 +56,9 @@ class File extends Entity {
 	/** @var integer */
 	protected $enabled;
 
+	/** @var string */
+	protected $metadata;
+
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('nodeId', 'integer');
@@ -63,5 +68,6 @@ class File extends Entity {
 		$this->addType('name', 'string');
 		$this->addType('callback', 'string');
 		$this->addType('enabled', 'integer');
+		$this->addType('metadata', 'string');
 	}
 }

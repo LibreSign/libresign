@@ -18,7 +18,7 @@ use OCP\IConfig;
 use OCP\IL10N;
 use TCPDI;
 
-class Pkcs12Handler {
+class Pkcs12Handler extends SignEngineHandler {
 
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
@@ -44,7 +44,13 @@ class Pkcs12Handler {
 		$this->l10n = $l10n;
 	}
 
-	public function savePfx($uid, $content): File {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param string $uid
+	 * @param string $content
+	 * @return File
+	 */
+	public function savePfx(string $uid, string $content): File {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
@@ -64,22 +70,23 @@ class Pkcs12Handler {
 	/**
 	 * Get pfx file
 	 *
+	 * @psalm-suppress MixedReturnStatement
 	 * @param string $uid user id
 	 * @return \OCP\Files\Node
 	 */
-	public function getPfx($uid) {
+	public function getPfx($uid): \OCP\Files\Node {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
-			throw new \Exception('Password to sign not defined. Create a password to sign', 400);
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
 		return $folder->get($this->pfxFilename);
 	}
 
-	private function getHandler(): ISignHandler {
+	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
 		if (!property_exists($this, $sign_engine . 'Handler')) {
-			throw new \Exception('Invalid Sign engine', 400);
+			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
 		$property = $sign_engine . 'Handler';
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
@@ -89,24 +96,31 @@ class Pkcs12Handler {
 		return $this->$property;
 	}
 
-	public function sign(
-		File $fileToSign,
-		File $certificate,
-		string $password
-	): File {
-		$signedContent = $this->getHandler()->sign($fileToSign, $certificate, $password);
-		$fileToSign->putContent($signedContent);
-		return $fileToSign;
+	public function sign(): File {
+		$signedContent = $this->getHandler()
+			->setCertificate($this->getCertificate())
+			->setInputFile($this->getInputFile())
+			->setPassword($this->getPassword())
+			->setVisibleElements($this->getvisibleElements())
+			->sign();
+		$this->getInputFile()->putContent($signedContent);
+		return $this->getInputFile();
 	}
 
-	public function writeFooter(File $file, string $uuid) {
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @param File $file
+	 * @param string $uuid
+	 * @return string
+	 */
+	public function writeFooter(File $file, string $uuid): string {
 		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
 		if (!$add_footer) {
-			return;
+			return '';
 		}
 		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
 		if (!$validation_site) {
-			return;
+			return '';
 		}
 		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 
@@ -127,13 +141,16 @@ class Pkcs12Handler {
 				$this->writeQrCode($validation_site, $pdf);
 				$x += $this->qrCode->getSize();
 			}
+			$pdf->SetXY($x, -15);
+			$pdf->Write(
+				8,
+				iconv('UTF-8', 'windows-1252', $this->l10n->t('Digital signed by LibreSign.')),
+				'https://libresign.coop'
+			);
 			$pdf->SetXY($x, -10);
 			$pdf->Write(
 				8,
-				iconv('UTF-8', 'windows-1252', $this->l10n->t(
-					'Digital signed by LibreSign. Validate in %s',
-					$validation_site
-				)),
+				iconv('UTF-8', 'windows-1252', $this->l10n->t('Validate in %s.', $validation_site)),
 				$validation_site
 			);
 		}
@@ -141,7 +158,7 @@ class Pkcs12Handler {
 		return $pdf->Output(null, 'S');
 	}
 
-	private function writeQrCode(string $text, TCPDI $fpdf) {
+	private function writeQrCode(string $text, TCPDI $fpdf): void {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
@@ -178,7 +195,7 @@ class Pkcs12Handler {
 		}
 	}
 
-	private function setQrCodeSize(array $blockValues) {
+	private function setQrCodeSize(array $blockValues): void {
 		$this->qrCode->setSize(self::MIN_QRCODE_SIZE);
 		$blockSize = $this->qrCode->getSize() / count($blockValues);
 		if ($blockSize < 1) {
@@ -186,6 +203,11 @@ class Pkcs12Handler {
 		}
 	}
 
+	/**
+	 * @return int[][]
+	 *
+	 * @psalm-return array<0|positive-int, array<0|positive-int, int>>
+	 */
 	private function getQrCodeBlocks(): array {
 		$baconErrorCorrectionLevel = ErrorCorrectionLevelConverter::convertToBaconErrorCorrectionLevel($this->qrCode->getErrorCorrectionLevel());
 		$baconMatrix = Encoder::encode($this->qrCode->getData(), $baconErrorCorrectionLevel, strval($this->qrCode->getEncoding()))->getMatrix();

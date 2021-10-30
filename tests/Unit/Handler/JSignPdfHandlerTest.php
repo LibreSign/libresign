@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\IConfig;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
@@ -12,7 +13,7 @@ use OCP\IConfig;
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var JSignPdfHandler */
 	private $class;
-	/** @var IConfig */
+	/** @var IConfig|MockObject */
 	private $config;
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
@@ -27,7 +28,10 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
 		$this->class->setJSignPdf($mock);
-		$actual = $this->class->sign($inputFile, $certificate, 'password');
+		$this->class->setInputFile($inputFile);
+		$this->class->setCertificate($certificate);
+		$this->class->setPassword('password');
+		$actual = $this->class->sign();
 		$this->assertEquals('content', $actual);
 	}
 }

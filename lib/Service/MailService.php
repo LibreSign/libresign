@@ -46,17 +46,23 @@ class MailService {
 	/**
 	 * Undocumented function
 	 *
+	 * @psalm-suppress MixedReturnStatement
 	 * @param int $fileId
 	 * @return File
 	 */
-	private function getFileById($fileId) {
+	private function getFileById($fileId): File {
 		if (!isset($this->files[$fileId])) {
 			$this->files[$fileId] = $this->fileMapper->getById($fileId);
 		}
 		return $this->files[$fileId];
 	}
 
-	public function notifySignDataUpdated(FileUser $data) {
+	/**
+	 * @psalm-suppress MixedMethodCall
+	 * @param FileUser $data
+	 * @return void
+	 */
+	public function notifySignDataUpdated(FileUser $data): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
@@ -83,7 +89,12 @@ class MailService {
 		}
 	}
 
-	public function notifyUnsignedUser(FileUser $data) {
+	/**
+	 * @psalm-suppress MixedMethodCall
+	 * @param FileUser $data
+	 * @return void
+	 */
+	public function notifyUnsignedUser(FileUser $data): void {
 		$notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true);
 		if (!$notifyUnsignedUser) {
 			return;
@@ -114,7 +125,12 @@ class MailService {
 		}
 	}
 
-	public function notifyCancelSign(FileUser $data) {
+	/**
+	 * @psalm-suppress MixedMethodCall
+	 * @param FileUser $data
+	 * @return void
+	 */
+	public function notifyCancelSign(FileUser $data): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Signature request cancelled'));
 		$emailTemplate->addHeader();

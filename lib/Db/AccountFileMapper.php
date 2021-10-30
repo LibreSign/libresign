@@ -25,10 +25,7 @@ class AccountFileMapper extends QBMapper {
 		parent::__construct($db, 'libresign_account_file');
 	}
 
-	/**
-	 * @return Entity Row of table libresign_account_file
-	 */
-	public function getByUserAndType(string $userId, string $type) {
+	public function getByUserAndType(string $userId, string $type): AccountFile {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')

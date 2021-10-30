@@ -49,7 +49,7 @@ const actions = {
 		console.info('t', state.features.includes(feature))
 
 		if (state.features.includes(feature)) {
-			return console.error(t('libresign', 'This feature already exists'))
+			return console.error(t('libresign', 'This feature already exists.'))
 		}
 
 		const newFeatures = [...state.features, feature]
@@ -59,7 +59,7 @@ const actions = {
 
 		setTimeout(() => {
 			dispatch('GET_STATES')
-			console.debug(t('libresign', 'Feature {feature} enabled', { feature }))
+			console.debug(t('libresign', 'Feature {feature} enabled.', { feature }))
 		}, 3000)
 	},
 	ENABLE_FEATURE: async({ state, dispatch, commit }, feature) => {
@@ -70,7 +70,7 @@ const actions = {
 		}
 
 		if (state.enabledFeatures.includes(feature)) {
-			return console.debug(t('libresign', 'This feature already enabled.'))
+			return console.debug(t('libresign', 'This feature is already enabled.'))
 		}
 
 		const newEnabled = [...state.enabledFeatures, feature]
@@ -89,7 +89,7 @@ const actions = {
 		const enabledState = getters.getEnabledFeatures
 
 		if (!enabledState.includes(feature)) {
-			return console.error(t('libresign', 'This feature does not enabled'))
+			return console.error(t('libresign', 'This feature is not enabled.'))
 		}
 
 		if (enabledState.length <= 1) {

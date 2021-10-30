@@ -4,7 +4,7 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jsignpdf/jsignpdf-php": "^1",
+    "jsignpdf/jsignpdf-php": "dev-make-compatible-with-jsignpdf2.0.0",
     "endroid/qr-code": "^4.2",
     "pagerfanta/pagerfanta": "^3.2",
     "tecnickcom/tc-lib-pdf": "^8.0",
@@ -18,7 +18,8 @@
     "symfony/yaml": "^5.2",
     "guzzlehttp/psr7": "^1.8",
     "mikey179/vfsstream": "^1.6",
-    "donatj/mock-webserver": "^2.2"
+    "donatj/mock-webserver": "^2.2",
+    "vimeo/psalm": "^4.9"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
@@ -27,14 +28,11 @@
   },
   "autoload": {
     "psr-4": {
+      "OCP\\": "vendor/christophwurst/nextcloud/OCP",
       "OCA\\Libresign\\": "lib/"
     }
   },
   "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/jsignpdf/jsignpdf-php"
-    },
     {
       "type": "vcs",
       "url": "https://github.com/LibreCodeCoop/php-swagger-test"

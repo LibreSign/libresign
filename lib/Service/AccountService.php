@@ -2,11 +2,14 @@
 
 namespace OCA\Libresign\Service;
 
+use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
+use OCA\Libresign\Db\UserElement;
+use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -15,6 +18,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -61,6 +65,14 @@ class AccountService {
 	private $groupManager;
 	/** @var AccountFileService */
 	private $accountFileService;
+	/** @var UserElementMapper */
+	private $userElementMapper;
+	/** @var FolderService */
+	private $folderService;
+	/** @var IClientService */
+	private $clientService;
+	/** @var TimeFactory */
+	private $timeFactory;
 
 	public function __construct(
 		IL10N $l10n,
@@ -77,7 +89,11 @@ class AccountService {
 		CfsslHandler $cfsslHandler,
 		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
-		AccountFileService $accountFileService
+		AccountFileService $accountFileService,
+		UserElementMapper $userElementMapper,
+		FolderService $folderService,
+		IClientService $clientService,
+		TimeFactory $timeFactory
 	) {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
@@ -94,9 +110,13 @@ class AccountService {
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
+		$this->userElementMapper = $userElementMapper;
+		$this->folderService = $folderService;
+		$this->clientService = $clientService;
+		$this->timeFactory = $timeFactory;
 	}
 
-	public function validateCreateToSign(array $data) {
+	public function validateCreateToSign(array $data): void {
 		if (!UUIDUtil::validateUUID($data['uuid'])) {
 			throw new LibresignException($this->l10n->t('Invalid UUID'), 1);
 		}
@@ -120,7 +140,12 @@ class AccountService {
 		}
 	}
 
-	public function getFileByUuid(string $uuid) {
+	/**
+	 * @return (\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCA\Libresign\Db\File|mixed)[]
+	 *
+	 * @psalm-return array{fileData: \OCA\Libresign\DbFile|\OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|mixed}
+	 */
+	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
@@ -137,7 +162,7 @@ class AccountService {
 		];
 	}
 
-	public function validateCertificateData(array $data) {
+	public function validateCertificateData(array $data): void {
 		if (!$data['email']) {
 			throw new LibresignException($this->l10n->t('You must have an email. You can define the email in your profile.'), 1);
 		}
@@ -149,13 +174,22 @@ class AccountService {
 		}
 	}
 
-	public function validateAccountFiles(array $files, IUser $user) {
+	public function validateAccountFiles(array $files, IUser $user): void {
 		foreach ($files as $fileIndex => $file) {
 			$this->validateAccountFile($fileIndex, $file, $user);
 		}
 	}
 
-	private function validateAccountFile(int $fileIndex, array $file, IUser $user) {
+	private function validateAccountFile(int $fileIndex, array $file, IUser $user): void {
+		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
+		if (!in_array($file['type'], $profileFileTypes)) {
+			throw new LibresignException(json_encode([
+				'type' => 'danger',
+				'file' => $fileIndex,
+				'message' => $this->l10n->t('Invalid file type.')
+			]));
+		}
+
 		try {
 			$this->validateHelper->validateFileTypeExists($file['type']);
 			$this->validateHelper->validateNewFile($file);
@@ -175,14 +209,17 @@ class AccountService {
 	 * @param string $uuid
 	 * @return FileUser
 	 */
-	public function getFileUserByUuid($uuid) {
+	public function getFileUserByUuid($uuid): FileUser {
 		if (!$this->fileUser) {
 			$this->fileUser = $this->fileUserMapper->getByUuid($uuid);
 		}
 		return $this->fileUser;
 	}
 
-	public function createToSign($uuid, $uid, $password, $signPassword) {
+	/**
+	 * @param null|string $signPassword
+	 */
+	public function createToSign(string $uuid, string $uid, string $password, ?string $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
 		$newUser = $this->userManager->createUser($uid, $password);
@@ -206,7 +243,7 @@ class AccountService {
 		}
 	}
 
-	public function getCertificateHandler() {
+	public function getCertificateHandler(): CfsslHandler {
 		if (!$this->cfsslHandler->getCommonName()) {
 			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
 		}
@@ -245,10 +282,9 @@ class AccountService {
 	}
 
 	/**
-	 * Undocumented function
-	 *
 	 * @param string $formatOfPdfOnSign (base64,url,file)
-	 * @return array|string
+	 * @return (array|int|mixed)[]
+	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
 	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
@@ -256,6 +292,10 @@ class AccountService {
 		return $info;
 	}
 
+	/**
+	 * @return (array|int|mixed)[]
+	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
+	 */
 	private function getInfoOfFileToSign(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
 		$return = [];
 		try {
@@ -326,6 +366,7 @@ class AccountService {
 		$fileToSign = $fileToSign[0];
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['user']['name'] = $fileUser->getDisplayName();
+		$pdf = null;
 		switch ($formatOfPdfOnSign) {
 			case 'base64':
 				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
@@ -349,7 +390,7 @@ class AccountService {
 		return $return;
 	}
 
-	public function hasSignatureFile(?string $userId = null) {
+	public function hasSignatureFile(?string $userId = null): bool {
 		if (!$userId) {
 			return false;
 		}
@@ -364,11 +405,12 @@ class AccountService {
 	/**
 	 * Get PDF node by UUID
 	 *
+	 * @psalm-suppress MixedReturnStatement
 	 * @param string $uuid
 	 * @throws Throwable
 	 * @return \OCP\Files\File
 	 */
-	public function getPdfByUuid(string $uuid): \OCP\Files\File {
+	public function getPdfByUuid(string $uuid) {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
@@ -406,7 +448,12 @@ class AccountService {
 		return $return;
 	}
 
-	public function list(IUser $user, $page = null, $length = null) {
+	/**
+	 * @return array[]
+	 *
+	 * @psalm-return array{data: array, pagination: array}
+	 */
+	public function list(IUser $user, $page = null, $length = null): array {
 		$page = $page ?? 1;
 		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
@@ -417,7 +464,7 @@ class AccountService {
 		];
 	}
 
-	public function addFilesToAccount($files, $user) {
+	public function addFilesToAccount(array $files, IUser $user): void {
 		$this->validateAccountFiles($files, $user);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;
@@ -427,5 +474,104 @@ class AccountService {
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}
+	}
+
+	public function saveVisibleElements(array $elements, IUser $user): void {
+		foreach ($elements as $element) {
+			$this->saveVisibleElement($element, $user);
+		}
+	}
+
+	public function saveVisibleElement(array $element, IUser $user): void {
+		if (isset($element['file']['fileId'])) {
+			$userFolder = $this->folderService->getFolder($element['file']['fileId']);
+			$file = $userFolder->getById($element['file']['fileId'])[0];
+		} else {
+			$userFolder = $this->folderService->getFolder();
+			$folderName = $this->folderService->getFolderName($element, $user);
+			if ($userFolder->nodeExists($folderName)) {
+				throw new \Exception($this->l10n->t('File already exists'));
+			}
+			$folderToFile = $userFolder->newFolder($folderName);
+			$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
+		}
+
+		$userElement = new UserElement();
+
+		if (!empty($element['elementId'])) {
+			$userElement->setId($element['elementId']);
+		} else {
+			$userElement->setCreatedAt($this->timeFactory->getDateTime());
+		}
+
+		$userElement->setFileId($file->getId());
+		$userElement->setType($element['type']);
+		$userElement->setStarred(isset($element['starred']) && $element['starred'] ? 1 : 0);
+		$userElement->setUserId($user->getUID());
+		$this->userElementMapper->insertOrUpdate($userElement);
+	}
+
+	/**
+	 * @psalm-suppress MixedReturnStatement
+	 * @psalm-suppress MixedMethodCall
+	 *
+	 * @return false|resource|string
+	 */
+	private function getFileRaw(array $data) {
+		if (!empty($data['file']['url'])) {
+			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
+				throw new \Exception($this->l10n->t('Invalid URL file'));
+			}
+			$response = $this->clientService->newClient()->get($data['file']['url']);
+			$contentType = $response->getHeader('Content-Type');
+			if ($contentType !== 'image/png') {
+				throw new \Exception($this->l10n->t('Visible element file must be png.'));
+			}
+			$content = $response->getBody();
+			if (!$content) {
+				throw new \Exception($this->l10n->t('Empty file'));
+			}
+		} else {
+			$content = base64_decode($data['file']['base64']);
+		}
+		return $content;
+	}
+
+	public function getUserElements($userId): array {
+		$elements = $this->userElementMapper->getByUserId($userId);
+		foreach ($elements as $key => $element) {
+			$return[] = [
+				'id' => $element->getId(),
+				'type' => $element->getType(),
+				'file' => [
+					'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+					'fileId' => $element->getFileId()
+				],
+				'uid' => $element->getUserId(),
+				'starred' => $element->getStarred() ? 1 : 0,
+				'createdAt' => $element->getCreatedAt()
+			];
+		}
+		return $return;
+	}
+
+	public function getUserElementByElementId($userId, $elementId): array {
+		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		return [
+			'id' => $element->getId(),
+			'type' => $element->getType(),
+			'file' => [
+				'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+				'fileId' => $element->getFileId()
+			],
+			'uid' => $element->getUserId(),
+			'starred' => $element->getStarred() ? 1 : 0,
+			'createdAt' => $element->getCreatedAt()
+		];
+	}
+
+	public function deleteSignatureElement(string $userId, int $elementId) {
+		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		$this->userElementMapper->delete($element);
 	}
 }
