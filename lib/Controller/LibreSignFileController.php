@@ -193,7 +193,7 @@ class LibreSignFileController extends Controller {
 			);
 		}
 		if ($return['settings']['canSign']) {
-			$return['messages'][
+			$return['messages'] = [
 				[
 					'type' => 'info',
 					'message' => $this->l10n->t('You need to sign this document')
@@ -201,7 +201,7 @@ class LibreSignFileController extends Controller {
 			];
 		}
 		if (!$return['settings']['canRequestSign'] && empty($return['signatures'])) {
-			$return['messages'][
+			$return['messages'] = [
 				[
 					'type' => 'info',
 					'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
