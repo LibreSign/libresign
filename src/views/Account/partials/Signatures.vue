@@ -1,5 +1,12 @@
 <script>
+import { imagePath } from '@nextcloud/router'
 import Signature from './Signature.vue'
+import { service } from '../../../domains/signatures'
+
+const emptySignature = {
+	id: 0,
+	value: '',
+}
 
 export default {
 	name: 'Signatures',
@@ -9,14 +16,45 @@ export default {
 	data() {
 		return {
 			sings: {
-				signature: '',
-				initials: '',
+				signature: { ...emptySignature },
+				initials: { ...emptySignature },
 			},
 		}
 	},
+	mounted() {
+		this.loadSignatures()
+	},
 	methods: {
-		update({ base64, type }) {
-			this.sings[type] = base64
+		async update({ base64, type }) {
+			this.sings[type].value = base64
+
+			this.$nextTick(() => {
+				const entry = {
+					...this.sings[type],
+				}
+
+				if (entry.id > 0) {
+					// update
+					service.updateSignature(entry.id, { type, base64 })
+					return
+				}
+
+				// create
+				service.createSignature(type, base64)
+			})
+		},
+		async loadSignatures() {
+			const { elements } = await service.loadSignatures()
+
+			this.sings = (elements || [])
+				.reduce((acc, current) => {
+					acc[current.type] = {
+						...emptySignature,
+						id: current.id,
+						value: imagePath('files', current.file.url),
+					}
+					return acc
+				}, { ...this.sings })
 		},
 	},
 }
@@ -26,7 +64,7 @@ export default {
 	<div class="signatures">
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
-		<Signature :value="sings.signature" type="signature" v-on="{ update }">
+		<Signature :value="sings.signature.value" type="signature" v-on="{ update }">
 			<template slot="title">
 				{{ t('libresign', 'Signature') }}
 			</template>
@@ -36,7 +74,7 @@ export default {
 			</span>
 		</Signature>
 
-		<Signature :value="sings.initials" type="initials" v-on="{ update }">
+		<Signature :value="sings.initials.value" type="initials" v-on="{ update }">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
 			</template>
