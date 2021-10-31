@@ -61,6 +61,17 @@ class PageController extends Controller {
 	}
 
 	/**
+	 * Render front template
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return TemplateResponse
+	 */
+	public function front(): TemplateResponse {
+		return $this->index();
+	}
+
+	/**
 	 * Show signature page
 	 *
 	 * @NoAdminRequired

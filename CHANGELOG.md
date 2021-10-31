@@ -20,6 +20,7 @@ Types of changes:
 - Manager signatures in profile
 - Feature Display Controller
 - API: endpoints to add visible elements on PDF file
+- API: status to LibreSign file
 
 # Changed
 - PDF preview on mobile when signing
@@ -31,6 +32,8 @@ Types of changes:
 - Bump jsignpdf from 1.6.5 to 2.0.0
 - Add more specific log message when jar of jsignpdf not found
 - Account improvements, remove dead code and split components.
+- Revert PDFSign changes
+- Add page prefix to improve frontend UX
 
 # Fixed
 - Fixed: error on sign specific documents

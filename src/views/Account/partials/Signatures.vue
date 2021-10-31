@@ -1,5 +1,14 @@
 <script>
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { linkTo } from '@nextcloud/router'
+import { get } from 'lodash-es'
 import Signature from './Signature.vue'
+import { service } from '../../../domains/signatures'
+
+const emptySignature = {
+	id: 0,
+	value: '',
+}
 
 export default {
 	name: 'Signatures',
@@ -9,14 +18,71 @@ export default {
 	data() {
 		return {
 			sings: {
-				signature: '',
-				initials: '',
+				signature: { ...emptySignature },
+				initial: { ...emptySignature },
 			},
 		}
 	},
+	mounted() {
+		this.loadSignatures()
+	},
 	methods: {
-		update({ base64, type }) {
-			this.sings[type] = base64
+		onError(err) {
+			const message = get(err, ['response', 'data', 'message'], err.message)
+
+			showError(message)
+		},
+		save({ base64, type }) {
+			this.sings[type] = {
+				...this.sings[type],
+				value: base64,
+			}
+
+			this.$nextTick(async() => {
+				const entry = {
+					...this.sings[type],
+				}
+
+				entry.id > 0
+					? await this.update(entry.id, { type, base64 })
+					: await this.create({ type, base64 })
+
+				this.loadSignatures()
+			})
+		},
+		async update(id, { type, base64 }) {
+			try {
+				const res = await service.updateSignature(id, { type, base64 })
+				showSuccess(res.message)
+			} catch (err) {
+				this.onError(err)
+			}
+		},
+		async create({ type, base64 }) {
+			try {
+				const res = await service.createSignature(type, base64)
+				showSuccess(res.message)
+			} catch (err) {
+				this.onError(err)
+			}
+
+		},
+		async loadSignatures() {
+			try {
+				const { elements } = await service.loadSignatures()
+
+				this.sings = (elements || [])
+					.reduce((acc, current) => {
+						acc[current.type] = {
+							...emptySignature,
+							id: current.id,
+							value: linkTo('core', `preview?fileId=${current.file.fileId}`),
+						}
+						return acc
+					}, { ...this.sings })
+			} catch (err) {
+				this.onError(err)
+			}
 		},
 	},
 }
@@ -26,7 +92,7 @@ export default {
 	<div class="signatures">
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
-		<Signature :value="sings.signature" type="signature" v-on="{ update }">
+		<Signature :value="sings.signature.value" type="signature" v-on="{ save }">
 			<template slot="title">
 				{{ t('libresign', 'Signature') }}
 			</template>
@@ -36,7 +102,7 @@ export default {
 			</span>
 		</Signature>
 
-		<Signature :value="sings.initials" type="initials" v-on="{ update }">
+		<Signature :value="sings.initial.value" type="initial" v-on="{ save }">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
 			</template>

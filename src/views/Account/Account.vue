@@ -40,7 +40,7 @@
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { getCurrentUser } from '@nextcloud/auth'
-import { mapGetters, mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
@@ -66,10 +66,6 @@ export default {
 	},
 
 	computed: {
-		...mapState({
-			signature: state => state.signatures.signatures.file.base64,
-			initials: state => state.signatures.initials.file.base64,
-		}),
 		...mapGetters({
 			getHasPfx: 'getHasPfx',
 		}),

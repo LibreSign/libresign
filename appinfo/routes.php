@@ -50,10 +50,12 @@ return [
 		['name' => 'page#index',                      'url' => '/', 'verb' => 'GET'],
 		['name' => 'page#getPdfUser',                 'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#resetPassword',              'url' => '/reset-password', 'verb' => 'GET'],
+		['name' => 'page#front',                      'url' => '/f/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+']],
 		// Pages - public
-		['name' => 'page#sign',                       'url' => '/sign/{uuid}', 'verb' => 'GET'],
-		['name' => 'page#validation',                 'url' => '/validation', 'verb' => 'GET'],
-		['name' => 'page#validationFile',             'url' => '/validation/{uuid}', 'verb' => 'GET'],
-		['name' => 'page#getPdf',                     'url' => '/pdf/{uuid}', 'verb' => 'GET']
+		['name' => 'page#sign',                       'url' => '/p/sign/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#sign',                  	  'url' => '/p/sign/{uuid}/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'extra'],
+		['name' => 'page#validation',                 'url' => '/p/validation', 'verb' => 'GET'],
+		['name' => 'page#validationFile',             'url' => '/p/validation/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#getPdf',                     'url' => '/p/pdf/{uuid}', 'verb' => 'GET']
 	],
 ];

@@ -35,7 +35,7 @@ export default {
 			this.isEditing = false
 		},
 		save(value) {
-			this.$emit('update', {
+			this.$emit('save', {
 				base64: value,
 				type: this.type,
 			})
