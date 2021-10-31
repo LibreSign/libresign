@@ -24,13 +24,13 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
-			<PDFViewer :url="pdfData" />
+			<PDFViewer :url="sign.pdf.url" />
 		</div>
 		<div v-show="!isMobile" id="description" class="content">
 			<Description
 				:uuid="uuid"
-				:pdf-name="name"
-				:pdf-description="desc"
+				:pdf-name="sign.filename"
+				:pdf-description="sign.description"
 				@onDocument="showDocument" />
 		</div>
 	</div>
@@ -40,6 +40,9 @@
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
+import { getInitialState } from '../services/InitialStateService'
+import { defaultsDeep } from 'lodash-es'
+import { service as signService } from '../domains/sign'
 
 export default {
 	name: 'SignPDF',
@@ -57,29 +60,38 @@ export default {
 		},
 	},
 	data() {
-		return {
-			desc: '',
-			pdfData: '',
-			name: '',
-			user: '',
+		const state = getInitialState() || {}
+		return defaultsDeep(state, {
+			action: 250,
+			user: {
+				name: '',
+			},
+			sign: {
+				pdf: {
+					url: '',
+				},
+				uuid: '',
+				filename: '',
+				description: null,
+			},
+			settings: {
+				hasSignatureFile: true,
+			},
 			viewDoc: true,
-		}
+		})
 	},
 
-	created() {
-		this.getData()
+	mounted() {
+		this.validate(this.sign.uuid)
 	},
-
 	methods: {
-		getData() {
-			this.name = this.$store.getters.getPdfData.filename
-			this.desc = this.$store.getters.getPdfData.description ? this.$store.getters.getPdfData.description : ''
-			this.pdfData = this.$store.getters.getPdfData.url
-				? this.$store.getters.getPdfData.url
-				: this.$store.getters.getPdfData.base64
-		},
 		showDocument(param) {
 			this.viewDoc = param
+		},
+		async validate() {
+			const data = await signService.validateByUUID(this.sign.uuid)
+
+			console.log(data)
 		},
 	},
 }

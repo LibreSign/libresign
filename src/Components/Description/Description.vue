@@ -86,7 +86,6 @@ import Image from '../../assets/images/application-pdf.png'
 import { generateUrl } from '@nextcloud/router'
 import marked from 'marked'
 import dompurify from 'dompurify'
-import { loadState } from '@nextcloud/initial-state'
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
@@ -132,15 +131,9 @@ export default {
 
 	computed: {
 		...mapGetters(['error/getError']),
-		hasSavePossible() {
-			return !!this.password
-		},
 		markedDescription() {
-			return dompurify.sanitize(marked(this.pdfDescription), { USE_PROFILES: { html: false } })
-		},
-		configUuid() {
-			const configg = JSON.parse(loadState('libresign', 'config')).sign.uuid
-			return configg
+			const description = this.pdfDescription || ''
+			return dompurify.sanitize(marked(description), { USE_PROFILES: { html: false } })
 		},
 	},
 
