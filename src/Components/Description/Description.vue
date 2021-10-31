@@ -175,6 +175,8 @@ export default {
 				this.updating = true
 				this.disableButton = true
 			}
+
+			// TODO: redirect
 		},
 		changePfx(value) {
 			this.havePfx = value
