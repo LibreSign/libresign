@@ -67,18 +67,19 @@ class SignFileController extends ApiController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
-	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null) {
+	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null, ?int $status = 1) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
+			'status' => $status,
 			'visibleElements' => $visibleElements,
 			'callback' => $callback,
 			'userManager' => $user
 		];
 		try {
-			$this->signFile->validate($data);
+			$this->signFile->validateNewRequestToFile($data);
 			$return = $this->signFile->save($data);
 			unset(
 				$return['id'],
@@ -109,18 +110,20 @@ class SignFileController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = []) {
+	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
 			'file' => $file,
 			'users' => $users,
 			'userManager' => $user,
+			'status' => $status,
 			'visibleElements' => $visibleElements
 		];
 		try {
 			$this->signFile->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
+			$this->validateHelper->validateFileStatus($data);
 			$this->signFile->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			$return = $this->signFile->save($data);
 			unset(
@@ -185,6 +188,7 @@ class SignFileController extends ApiController {
 			}
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
+			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$signedFile = $this->signFile
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)

@@ -157,7 +157,12 @@ class SignFileService {
 		}
 		if (!empty($data['file']['fileId'])) {
 			try {
-				return $this->fileMapper->getByFileId($data['file']['fileId']);
+				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+				if ($data['status'] && $data['status'] > $file->getStatus()) {
+					$file->setStatus($data['status']);
+					return $this->fileMapper->update($file);
+				}
+				return $file;
 			} catch (\Throwable $th) {
 			}
 		}
@@ -174,7 +179,11 @@ class SignFileService {
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
 		}
-		$file->setEnabled(1);
+		if (isset($data['status'])) {
+			$file->setStatus($data['status']);
+		} else {
+			$file->setStatus(ValidateHelper::STATUS_ABLE_TO_SIGN);
+		}
 		$this->fileMapper->insert($file);
 		return $file;
 	}
@@ -185,13 +194,17 @@ class SignFileService {
 		return $pdf->getPagesMetadata();
 	}
 
-	public function saveFileUser(FileUserEntity $fileUser): void {
+	public function saveFileUser(FileUserEntity $fileUser, bool $notifyAsNewUser = false): void {
 		if ($fileUser->getId()) {
 			$this->fileUserMapper->update($fileUser);
-			$this->mail->notifySignDataUpdated($fileUser);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
+			$notifyAsNewUser = true;
+		}
+		if ($notifyAsNewUser) {
 			$this->mail->notifyUnsignedUser($fileUser);
+		} else {
+			$this->mail->notifySignDataUpdated($fileUser);
 		}
 	}
 
@@ -203,11 +216,15 @@ class SignFileService {
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
+			$forceNotifyAsNewUser = false;
+			if (isset($data['status']) && $data['status'] === ValidateHelper::STATUS_ABLE_TO_SIGN) {
+				$forceNotifyAsNewUser = true;
+			}
 			foreach ($data['users'] as $user) {
 				$user['email'] = strtolower($user['email']);
 				$fileUser = $this->getFileUser($user['email'], $fileId);
 				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser);
+				$this->saveFileUser($fileUser, $forceNotifyAsNewUser);
 				$return[] = $fileUser;
 			}
 		}
@@ -319,11 +336,12 @@ class SignFileService {
 		}
 	}
 
-	public function validate(array $data): void {
+	public function validateNewRequestToFile(array $data): void {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
 		$this->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+		$this->validateHelper->validateFileStatus($data);
 	}
 
 	public function validateVisibleElements(array $data, int $type): void {

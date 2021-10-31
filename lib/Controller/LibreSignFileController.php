@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -104,6 +105,7 @@ class LibreSignFileController extends Controller {
 				$uid = $this->userSession->getUser()->getUID();
 			}
 			try {
+				/** @var File */
 				$file = call_user_func(
 					[$this->fileMapper, 'getBy' . $type],
 					$identifier
@@ -116,6 +118,7 @@ class LibreSignFileController extends Controller {
 			}
 
 			$return['success'] = true;
+			$return['status'] = $file->getStatus();
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signers = $this->fileUserMapper->getByFileId($file->id);
