@@ -63,7 +63,7 @@ export default {
 	methods: {
 		sendToView() {
 			const rootUrl = window.location.href.split('libresign')[0]
-			const url = `${rootUrl}libresign${generateUrl(`validation/${this.myUuid}`)}`
+			const url = `${rootUrl}libresign${generateUrl(`f/validation/${this.myUuid}`)}`
 			window.location.href = url
 		},
 	},
