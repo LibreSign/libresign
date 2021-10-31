@@ -1,6 +1,6 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { imagePath } from '@nextcloud/router'
+import { linkTo } from '@nextcloud/router'
 import { get } from 'lodash-es'
 import Signature from './Signature.vue'
 import { service } from '../../../domains/signatures'
@@ -48,7 +48,6 @@ export default {
 					: await this.create({ type, base64 })
 
 				this.loadSignatures()
-
 			})
 		},
 		async update(id, { type, base64 }) {
@@ -69,17 +68,21 @@ export default {
 
 		},
 		async loadSignatures() {
-			const { elements } = await service.loadSignatures()
+			try {
+				const { elements } = await service.loadSignatures()
 
-			this.sings = (elements || [])
-				.reduce((acc, current) => {
-					acc[current.type] = {
-						...emptySignature,
-						id: current.id,
-						value: imagePath('files', current.file.url),
-					}
-					return acc
-				}, { ...this.sings })
+				this.sings = (elements || [])
+					.reduce((acc, current) => {
+						acc[current.type] = {
+							...emptySignature,
+							id: current.id,
+							value: linkTo('core', `preview?fileId=${current.file.fileId}`),
+						}
+						return acc
+					}, { ...this.sings })
+			} catch (err) {
+				this.onError(err)
+			}
 		},
 	},
 }
