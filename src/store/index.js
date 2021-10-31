@@ -28,7 +28,6 @@ import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
-import signatures from './modules/signatures'
 import user from './modules/user'
 import featureController from './modules/feature_controller'
 import { getInitialState } from '../services/InitialStateService'
@@ -106,7 +105,6 @@ export default new Store({
 		sign,
 		validate,
 		error,
-		signatures,
 		user,
 		featureController,
 	},
