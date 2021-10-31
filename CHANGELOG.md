@@ -20,6 +20,7 @@ Types of changes:
 - Manager signatures in profile
 - Feature Display Controller
 - API: endpoints to add visible elements on PDF file
+- API: status to LibreSign file
 
 # Changed
 - PDF preview on mobile when signing

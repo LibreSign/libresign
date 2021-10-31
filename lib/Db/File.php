@@ -23,8 +23,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getName()
  * @method void setCallback(string $callback)
  * @method string getCallback()
- * @method void setEnabled(int $enabled)
- * @method int getEnabled()
+ * @method void setStatus(int $status)
+ * @method int getStatus()
  * @method void setPages(int $pages)
  * @method int getPages()
  */
@@ -54,7 +54,7 @@ class File extends Entity {
 	protected $callback;
 
 	/** @var integer */
-	protected $enabled;
+	protected $status;
 
 	/** @var string */
 	protected $metadata;
@@ -67,7 +67,7 @@ class File extends Entity {
 		$this->addType('createdAt', 'string');
 		$this->addType('name', 'string');
 		$this->addType('callback', 'string');
-		$this->addType('enabled', 'integer');
+		$this->addType('status', 'integer');
 		$this->addType('metadata', 'string');
 	}
 }

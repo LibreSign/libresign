@@ -266,8 +266,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSaveFileUsingFileIdSuccess() {
+		$file = $this->createMock(OCP\Files\File::class);
+		$file->method('getContent')
+			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('getById')->willReturn([$folder]);
+		$folder->method('getById')->willReturn([$file]);
 		$this->folderService->method('getFolder')->will($this->returnValue($folder));
 		$this->user
 			->method('getUID')
@@ -415,7 +418,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				})],
 				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
 				[$this->equalTo('getDescription')],
-				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
+				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])],
+				[$this->equalTo('setUserId')],
+				[$this->equalTo('setDisplayName')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getId')],
+				[$this->equalTo('getFileId')]
 			)
 			->will($this->returnValueMap([
 				['setFileId', [], null],
@@ -423,7 +431,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['setUuid', [], null],
 				['setEmail', [], null],
 				['getDescription', [], null],
-				['setDescription', [], null]
+				['setDescription', [], null],
+				['setUserId', [], 123],
+				['setDisplayName', [], 123],
+				['getId', [], 123],
+				['getId', [], 123],
+				['getFileId', [], 123]
 			]));
 		$this->fileUserMapper
 			->method('getByEmailAndFileId')
@@ -544,7 +557,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateNameIsMandatory() {
 		$this->expectExceptionMessage('Name is mandatory');
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['url' => 'qwert'],
 			'userManager' => $this->user
 		]);
@@ -565,7 +578,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('newClient')
 			->will($this->returnValue($client));
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['url' => 'http://test.coop'],
 			'name' => 'test',
 			'userManager' => $this->user
@@ -575,7 +588,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateEmptyUsersCollection() {
 		$this->expectExceptionMessage('Empty users list');
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'userManager' => $this->user
@@ -585,7 +598,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateUserCollectionNotArray() {
 		$this->expectExceptionMessage('User list needs to be an array');
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => 'asdfg',
@@ -596,7 +609,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateUserEmptyCollection() {
 		$this->expectExceptionMessage('Empty users list');
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => null,
@@ -607,7 +620,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateUserDuplicatedEmail() {
 		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
 
-		$this->service->validate([
+		$this->service->validateNewRequestToFile([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [
@@ -623,7 +636,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateSuccess() {
-		$actual = $this->service->validate([
+		$actual = $this->service->validateNewRequestToFile([
 			'file' => ['base64' => 'dGVzdA=='],
 			'name' => 'test',
 			'users' => [

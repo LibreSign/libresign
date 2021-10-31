@@ -4,6 +4,7 @@ namespace OCA\Libresign\Helper;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -40,9 +41,16 @@ class ValidateHelper {
 	private $root;
 	/** @var \OCP\Files\File[] */
 	private $file;
+
 	public const TYPE_TO_SIGN = 1;
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
 	public const TYPE_VISIBLE_ELEMENT_USER = 3;
+
+	public const STATUS_DRAFT = 0;
+	public const STATUS_ABLE_TO_SIGN = 1;
+	public const STATUS_PARTIAL_SIGNED = 2;
+	public const STATUS_SIGNED = 3;
+	public const STATUS_DELETED = 4;
 
 	public function __construct(
 		IL10N $l10n,
@@ -230,6 +238,17 @@ class ValidateHelper {
 		}
 	}
 
+	public function fileCanBeSigned(File $file) {
+		$statusList = [
+			ValidateHelper::STATUS_ABLE_TO_SIGN,
+			ValidateHelper::STATUS_PARTIAL_SIGNED
+		];
+		if (!in_array($file->getStatus(), $statusList)) {
+			$statusText = $this->getTextOfStatus($file->getStatus());
+			throw new LibresignException($this->l10n->t('This file cannot be signed. Invalid status: %s', $statusText));
+		}
+	}
+
 	public function validateIfNodeIdExists(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
 		try {
 			$file = $this->root->getById($nodeId);
@@ -305,6 +324,35 @@ class ValidateHelper {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 		if ($libresignFile->getUserId() !== $user->getUID()) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		}
+	}
+
+	public function validateFileStatus(array $data): void {
+		if (array_key_exists('status', $data)) {
+			$validStatusList = [
+				ValidateHelper::STATUS_DRAFT,
+				ValidateHelper::STATUS_ABLE_TO_SIGN,
+				ValidateHelper::STATUS_DELETED
+			];
+			if (!in_array($data['status'], $validStatusList)) {
+				throw new LibresignException($this->l10n->t('Invalid status code to file.'));
+			}
+			if (!empty($data['uuid'])) {
+				$file = $this->fileMapper->getByUuid($data['uuid']);
+			} elseif (!empty($data['file']['fileId'])) {
+				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+			}
+			if (isset($file)) {
+				if ($data['status'] >= $file->getStatus()) {
+					if ($file->getStatus() >= ValidateHelper::STATUS_ABLE_TO_SIGN) {
+						if ($data['status'] !== ValidateHelper::STATUS_DELETED) {
+							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
+						}
+					}
+				}
+			} elseif ($data['status'] === ValidateHelper::STATUS_DELETED) {
+				throw new LibresignException($this->l10n->t('Invalid status code to file.'));
+			}
 		}
 	}
 
@@ -397,6 +445,21 @@ class ValidateHelper {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($type, $profileFileTypes)) {
 			throw new LibresignException($this->l10n->t('Invalid file type.'));
+		}
+	}
+
+	public function getTextOfStatus(int $status) {
+		switch ($status) {
+			case self::STATUS_DRAFT:
+				return $this->l10n->t('draft');
+			case self::STATUS_ABLE_TO_SIGN:
+				return $this->l10n->t('able to sign');
+			case self::STATUS_PARTIAL_SIGNED:
+				return $this->l10n->t('partial signed');
+			case self::STATUS_SIGNED:
+				return $this->l10n->t('signed');
+			case self::STATUS_DELETED:
+				return $this->l10n->t('deleted');
 		}
 	}
 }

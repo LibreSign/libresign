@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -104,6 +105,7 @@ class LibreSignFileController extends Controller {
 				$uid = $this->userSession->getUser()->getUID();
 			}
 			try {
+				/** @var File */
 				$file = call_user_func(
 					[$this->fileMapper, 'getBy' . $type],
 					$identifier
@@ -116,6 +118,7 @@ class LibreSignFileController extends Controller {
 			}
 
 			$return['success'] = true;
+			$return['status'] = $file->getStatus();
 			$return['name'] = $file->getName();
 			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
 			$signers = $this->fileUserMapper->getByFileId($file->id);
@@ -191,6 +194,22 @@ class LibreSignFileController extends Controller {
 				$return['settings'],
 				$this->account->getSettings($this->userSession->getUser())
 			);
+		}
+		if ($return['settings']['canSign']) {
+			$return['messages'] = [
+				[
+					'type' => 'info',
+					'message' => $this->l10n->t('You need to sign this document')
+				]
+			];
+		}
+		if (!$return['settings']['canRequestSign'] && empty($return['signatures'])) {
+			$return['messages'] = [
+				[
+					'type' => 'info',
+					'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
+				]
+			];
 		}
 		return new JSONResponse($return, $statusCode);
 	}
