@@ -24,13 +24,13 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
-			<PDFViewer :url="sign.pdf.url" />
+			<PDFViewer :url="pdfData.url" />
 		</div>
 		<div v-show="!isMobile" id="description" class="content">
 			<Description
-				:uuid="uuid"
-				:pdf-name="sign.filename"
-				:pdf-description="sign.description"
+				:uuid="pdfData.uuid"
+				:pdf-name="pdfData.filename"
+				:pdf-description="pdfData.description"
 				@onDocument="showDocument" />
 		</div>
 	</div>
@@ -60,9 +60,8 @@ export default {
 		},
 	},
 	data() {
-		const state = getInitialState() || {}
-		return defaultsDeep(state, {
-			action: 250,
+		const state = defaultsDeep(getInitialState() || {}, {
+			action: 0,
 			user: {
 				name: '',
 			},
@@ -75,12 +74,27 @@ export default {
 				description: null,
 			},
 			settings: {
-				hasSignatureFile: true,
+				hasSignatureFile: false,
 			},
-			viewDoc: true,
 		})
-	},
 
+		return {
+			state,
+			viewDoc: true,
+		}
+	},
+	computed: {
+		pdfData() {
+			const { sign, pdf } = this.state
+
+			return {
+				url: pdf.url,
+				uuid: sign.uuid,
+				filename: sign.filename,
+				description: sign.filename,
+			}
+		},
+	},
 	mounted() {
 		this.validate(this.sign.uuid)
 	},
