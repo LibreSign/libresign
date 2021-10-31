@@ -33,6 +33,7 @@ Types of changes:
 - Add more specific log message when jar of jsignpdf not found
 - Account improvements, remove dead code and split components.
 - Revert PDFSign changes
+- Add page prefix to improve frontend UX
 
 # Fixed
 - Fixed: error on sign specific documents
