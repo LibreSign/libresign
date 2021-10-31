@@ -1,7 +1,8 @@
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+
 const state = {
-	features: [],
+	features: [], // manage_signatures
 	enabledFeatures: [],
 }
 

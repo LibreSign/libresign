@@ -23,20 +23,18 @@
 
 import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
-import { loadState } from '@nextcloud/initial-state'
 import sidebar from './modules/sidebar'
 import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
-import modal from './modules/modal'
-import signatures from './modules/signatures'
 import user from './modules/user'
 import featureController from './modules/feature_controller'
+import { getInitialState } from '../services/InitialStateService'
 
 Vue.use(Vuex)
 
-const libresignVar = JSON.parse(loadState('libresign', 'config'))
+const libresignVar = getInitialState()
 
 export default new Store({
 
@@ -107,8 +105,6 @@ export default new Store({
 		sign,
 		validate,
 		error,
-		modal,
-		signatures,
 		user,
 		featureController,
 	},

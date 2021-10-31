@@ -24,6 +24,8 @@ const mutations = {
 }
 
 const actions = {
+	FETCH_FILE_TO_SIGN: async() => {
+	},
 	SET_FILE: ({ commit }, file) => {
 		commit('setFile', file)
 	},

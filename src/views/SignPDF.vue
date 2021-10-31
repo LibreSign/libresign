@@ -22,15 +22,15 @@
 -->
 
 <template>
-	<div class="container">
+	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
-			<PDFViewer :url="pdfData" />
+			<PDFViewer :url="pdfData.url" />
 		</div>
-		<div id="description" class="content">
+		<div v-show="!isMobile" id="description" class="content">
 			<Description
-				:uuid="uuid"
-				:pdf-name="name"
-				:pdf-description="desc"
+				:uuid="pdfData.uuid"
+				:pdf-name="pdfData.filename"
+				:pdf-description="pdfData.description"
 				@onDocument="showDocument" />
 		</div>
 	</div>
@@ -39,11 +39,19 @@
 <script>
 import Description from '../Components/Description'
 import PDFViewer from '../Components/PDFViewer'
+import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
+import { getInitialState } from '../services/InitialStateService'
+import { defaultsDeep } from 'lodash-es'
+import { service as signService } from '../domains/sign'
 
 export default {
 	name: 'SignPDF',
 
 	components: { Description, PDFViewer },
+
+	mixins: [
+		isMobile,
+	],
 
 	props: {
 		uuid: {
@@ -52,50 +60,52 @@ export default {
 		},
 	},
 	data() {
+		const state = defaultsDeep(getInitialState() || {}, {
+			action: 0,
+			user: {
+				name: '',
+			},
+			sign: {
+				pdf: {
+					url: '',
+				},
+				uuid: '',
+				filename: '',
+				description: null,
+			},
+			settings: {
+				hasSignatureFile: false,
+			},
+		})
+
 		return {
-			desc: '',
-			pdfData: '',
-			name: '',
-			user: '',
+			state,
 			viewDoc: true,
-			width: window.innerWidth,
 		}
 	},
+	computed: {
+		pdfData() {
+			const { sign, pdf } = this.state
 
-	watch: {
-		width(newVal, oldVal) {
-			if (newVal <= 650) {
-				this.viewDoc = false
-			}
-			if (newVal > 650) {
-				this.viewDoc = true
+			return {
+				url: pdf.url,
+				uuid: sign.uuid,
+				filename: sign.filename,
+				description: sign.filename,
 			}
 		},
 	},
-
-	created() {
-		this.getData()
-		this.$nextTick(() => {
-			window.addEventListener('resize', this.onResize)
-		})
-		this.width <= 650
-			? this.viewDoc = false
-			: this.viewDoc = true
+	mounted() {
+		this.validate(this.sign.uuid)
 	},
-
 	methods: {
-		getData() {
-			this.name = this.$store.getters.getPdfData.filename
-			this.desc = this.$store.getters.getPdfData.description ? this.$store.getters.getPdfData.description : ''
-			this.pdfData = this.$store.getters.getPdfData.url
-				? this.$store.getters.getPdfData.url
-				: this.$store.getters.getPdfData.base64
-		},
 		showDocument(param) {
 			this.viewDoc = param
 		},
-		onResize() {
-			this.width = window.innerWidth
+		async validate() {
+			const data = await signService.validateByUUID(this.sign.uuid)
+
+			console.log(data)
 		},
 	},
 }
@@ -133,6 +143,7 @@ export default {
 		justify-content: center;
 		align-items: center;
 		background: #cecece;
+		height: 100%;
 
 		@media (max-width: 1024px){
 			width: 60%;
@@ -140,7 +151,6 @@ export default {
 
 		@media (max-width: 650px) {
 			width: 100%;
-			height: 70%;
 		}
 	}
 
@@ -149,6 +159,12 @@ export default {
 		flex-direction: column;
 	}
 
+}
+
+.mobile{
+	#viewer{
+		width: 100% !important;
+	}
 }
 
 </style>

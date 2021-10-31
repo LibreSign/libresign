@@ -21,9 +21,9 @@
  *
  */
 
-import { loadState } from '@nextcloud/initial-state'
+import { getInitialState } from '../services/InitialStateService'
 
-const libresignVar = JSON.parse(loadState('libresign', 'config'))
+const libresignVar = getInitialState()
 
 const redirectURL = libresignVar.redirect ? libresignVar.redirect : 'Home'
 

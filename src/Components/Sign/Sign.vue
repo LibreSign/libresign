@@ -84,7 +84,12 @@ export default {
 	},
 	computed: {
 		userName() {
-			return getCurrentUser().uid
+			const currentUser = getCurrentUser()
+			if (currentUser === null) {
+				return ''
+			} else {
+				return currentUser.uid
+			}
 		},
 		havePfx() {
 			return this.pfx ? this.pfx : false

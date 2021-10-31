@@ -127,7 +127,6 @@
 
 <script>
 import md5 from 'crypto-js/md5'
-import { loadState } from '@nextcloud/initial-state'
 import { translate as t } from '@nextcloud/l10n'
 import { showError } from '@nextcloud/dialogs'
 import { mapActions, mapGetters } from 'vuex'
@@ -138,6 +137,7 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Draw from '../Components/Draw'
+import { getInitialState } from '../services/InitialStateService'
 
 export default {
 	name: 'CreateUser',
@@ -246,7 +246,7 @@ export default {
 	created() {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
-		this.initial = JSON.parse(loadState('libresign', 'config'))
+		this.initial = getInitialState()
 	},
 
 	methods: {
