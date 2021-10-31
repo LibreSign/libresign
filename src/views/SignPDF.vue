@@ -42,7 +42,7 @@ import PDFViewer from '../Components/PDFViewer'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 import { getInitialState } from '../services/InitialStateService'
 import { defaultsDeep } from 'lodash-es'
-import { service as signService } from '../domains/sign'
+// import { service as signService } from '../domains/sign'
 
 export default {
 	name: 'SignPDF',
@@ -96,17 +96,15 @@ export default {
 		},
 	},
 	mounted() {
-		this.validate(this.sign.uuid)
+		// this.validate(this.sign.uuid)
 	},
 	methods: {
 		showDocument(param) {
 			this.viewDoc = param
 		},
-		async validate() {
-			const data = await signService.validateByUUID(this.sign.uuid)
-
-			console.log(data)
-		},
+		// async validate() {
+		// const data = await signService.validateByUUID(this.sign.uuid)
+		// },
 	},
 }
 </script>
