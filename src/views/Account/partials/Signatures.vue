@@ -17,7 +17,7 @@ export default {
 		return {
 			sings: {
 				signature: { ...emptySignature },
-				initials: { ...emptySignature },
+				initial: { ...emptySignature },
 			},
 		}
 	},
@@ -74,7 +74,7 @@ export default {
 			</span>
 		</Signature>
 
-		<Signature :value="sings.initials.value" type="initials" v-on="{ update }">
+		<Signature :value="sings.initial.value" type="initial" v-on="{ update }">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
 			</template>
