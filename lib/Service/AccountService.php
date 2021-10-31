@@ -544,7 +544,7 @@ class AccountService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileid' => $element->getFileId()]),
 					'fileId' => $element->getFileId()
 				],
 				'uid' => $element->getUserId(),
