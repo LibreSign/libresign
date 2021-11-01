@@ -21,6 +21,7 @@
     "Signer not associated to this file" : "Ondertekenaar niet verbonden aan dit bestand",
     "A file of this type has been associated." : "Er is al een bestand van dit type toegewezen.",
     "Invalid file type." : "Ongeldig bestandstype",
+    "signed" : "getekend",
     "Invalid UUID" : "Ongeldig UUID",
     "UUID not found" : "UUID niet gevonden",
     "This is not your file" : "Dit is niet jouw bestand",
@@ -52,7 +53,6 @@
     "User list needs to be an array" : "Gebruikersoverzicht moet een matrix zijn",
     "Remove duplicated users, email address need to be unique" : "Verwijder dubbele gebruikers, e-mailadres moet uniek zijn",
     "Document already signed" : "Het document is al ondertekend",
-    "signed" : "getekend",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre digitale handtekeningen app voor Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.\n* **Voorwaarden :**\n* CFSSL-server\n* Java\n* JSignPDF",
     "Files" : "Bestanden",
@@ -78,6 +78,7 @@
     "Are you sure you want to exclude user {email} from the request?" : "Weet je zeker dat je gebruiker {email} wilt uitsluiten van de aanvraag?",
     "Account not exist" : "Account bestaat niet",
     "This iframe is not supported in your browser." : "Dit iframe wordt niet ondersteund door je browser.",
+    "Return" : "Terug",
     "Email" : "E-mailadres",
     "Description" : "Beschrijving",
     "Add" : "Toevoegen",
@@ -86,11 +87,11 @@
     "Account" : "Account",
     "Enter your password to sign this document" : "Voor je wachtwoord in om dit document te tekenen",
     "You need to create a password to sign this document. Click \"Create password to sign document\" and create a password." : "Je moet een wachtwoord aanmaken om dit document te ondertekenen. Klik op \"Wachtwoord maken om document te ondertekenen\" en maak een wachtwoord aan.",
-    "Profile picture" : "Profielafbeelding",
     "Details" : "Details",
     "Password & Security" : "Wachtwoord & Beveiliging",
     "Create password key" : "Creëer een wachtwoordsleutel",
     "Reset password" : "Reset wachtwoord",
+    "Profile picture" : "Profielafbeelding",
     "Password Creation" : "Wachtwoordcreatie",
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Om veiligheidsredenen moet je een wachtwoord aanmaken om de documenten te ondertekenen. Voer je nieuwe wachtwoord in het onderstaande veld in.",
     "Enter a password" : "Voer een wachtwoord in",
@@ -112,7 +113,6 @@
     "Subscription generated and available at {path}!" : "Abonnement gegenereerd en beschikbaar op {path}!",
     "Could not create signature." : "Kon geen handtekening maken.",
     "Status" : "Status",
-    "Return" : "Terug",
     "Pending" : "In behandeling",
     "Signed" : "Getekend",
     "There was an error completing your request" : "Er trad een fout op bij het verwerken van je aanvraag",
@@ -156,6 +156,7 @@
     "No date" : "Geen datum",
     "This document is valid" : "Dit document is geldig",
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
-    "User created!" : "Gebruiker aangemaakt!"
+    "User created!" : "Gebruiker aangemaakt!",
+    "Open in LibreSign" : "Openen in LibreSign"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
