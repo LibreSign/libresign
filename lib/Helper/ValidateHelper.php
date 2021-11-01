@@ -455,7 +455,7 @@ class ValidateHelper {
 			case self::STATUS_ABLE_TO_SIGN:
 				return $this->l10n->t('able to sign');
 			case self::STATUS_PARTIAL_SIGNED:
-				return $this->l10n->t('partial signed');
+				return $this->l10n->t('partially signed');
 			case self::STATUS_SIGNED:
 				return $this->l10n->t('signed');
 			case self::STATUS_DELETED:
