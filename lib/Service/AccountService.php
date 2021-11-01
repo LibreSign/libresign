@@ -564,7 +564,7 @@ class AccountService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileid' => $element->getFileId()]),
+					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => 540, 'y' => 260]),
 					'fileId' => $element->getFileId()
 				],
 				'uid' => $element->getUserId(),
@@ -581,7 +581,7 @@ class AccountService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $element->getFileId()]),
+				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => 540, 'y' => 260]),
 				'fileId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
