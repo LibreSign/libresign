@@ -335,7 +335,7 @@ class ValidateHelper {
 				ValidateHelper::STATUS_DELETED
 			];
 			if (!in_array($data['status'], $validStatusList)) {
-				throw new LibresignException($this->l10n->t('Invalid status code to file.'));
+				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 			if (!empty($data['uuid'])) {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
@@ -351,7 +351,7 @@ class ValidateHelper {
 					}
 				}
 			} elseif ($data['status'] === ValidateHelper::STATUS_DELETED) {
-				throw new LibresignException($this->l10n->t('Invalid status code to file.'));
+				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 		}
 	}
