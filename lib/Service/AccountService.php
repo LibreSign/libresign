@@ -482,33 +482,53 @@ class AccountService {
 		}
 	}
 
-	public function saveVisibleElement(array $element, IUser $user): void {
-		if (isset($element['file']['fileId'])) {
-			$userFolder = $this->folderService->getFolder($element['file']['fileId']);
-			$file = $userFolder->getById($element['file']['fileId'])[0];
+	public function saveVisibleElement(array $data, IUser $user): void {
+		if (isset($data['elementId'])) {
+			$this->updateFileOfVisibleElement($data);
+			$this->updateDataOfVisibleElement($data);
 		} else {
-			$userFolder = $this->folderService->getFolder();
-			$folderName = $this->folderService->getFolderName($element, $user);
-			if ($userFolder->nodeExists($folderName)) {
-				throw new \Exception($this->l10n->t('File already exists'));
-			}
-			$folderToFile = $userFolder->newFolder($folderName);
-			$file = $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($element));
+			$file = $this->insertFileOfVisibleElement($data, $user);
+			$this->insertVisibleElement($data, $user, $file);
 		}
+	}
 
+	private function updateFileOfVisibleElement(array $data): void {
+		if (!isset($data['file'])) {
+			return;
+		}
+		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userFolder = $this->folderService->getFolder($userElement->getFileId());
+		$file = $userFolder->getById($userElement->getFileId())[0];
+		$file->putContent($this->getFileRaw($data));
+	}
+
+	private function updateDataOfVisibleElement(array $data): void {
+		if (!isset($data['starred'])) {
+			return;
+		}
+		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userElement->setStarred($data['starred'] ? 1 : 0);
+		$this->userElementMapper->update($userElement);
+	}
+
+	private function insertFileOfVisibleElement(array $data, IUser $user): File {
+		$userFolder = $this->folderService->getFolder();
+		$folderName = $this->folderService->getFolderName($data, $user);
+		if ($userFolder->nodeExists($folderName)) {
+			throw new \Exception($this->l10n->t('File already exists'));
+		}
+		$folderToFile = $userFolder->newFolder($folderName);
+		return $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($data));
+	}
+
+	private function insertVisibleElement(array $data, IUser $user, File $file) {
 		$userElement = new UserElement();
-
-		if (!empty($element['elementId'])) {
-			$userElement->setId($element['elementId']);
-		} else {
-			$userElement->setCreatedAt($this->timeFactory->getDateTime());
-		}
-
+		$userElement->setType($data['type']);
 		$userElement->setFileId($file->getId());
-		$userElement->setType($element['type']);
-		$userElement->setStarred(isset($element['starred']) && $element['starred'] ? 1 : 0);
 		$userElement->setUserId($user->getUID());
-		$this->userElementMapper->insertOrUpdate($userElement);
+		$userElement->setStarred(isset($data['starred']) && $data['starred'] ? 1 : 0);
+		$userElement->setCreatedAt($this->timeFactory->getDateTime());
+		$this->userElementMapper->insert($userElement);
 	}
 
 	/**
