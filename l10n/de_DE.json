@@ -42,7 +42,7 @@
     "Field %s not found" : "Feld %s nicht gefunden",
     "Field %s does not belong to user" : "Das Feld %s gehört nicht zum Benutzer",
     "This file cannot be signed. Invalid status: %s" : "Dies Datei kann nicht signiert werden. Ungültiger Status: %s",
-    "File type: %s. Must be a fileID of %s format." : "Dateityp: %s. Dies muss eine DateiID eines %s sein.",
+    "File type: %s. Must be a fileID of %s format." : "Dateityp: %s. Dies muss eine DateiID des %s-Formats sein.",
     "Invalid fileID" : "Ungültige Datei-ID",
     "You are not allowed to request signing" : "Sie haben nicht das Recht zu signieren",
     "You do not have permission for this action." : "Sie haben nicht die erforderlichen Rechte für diese Aktion",
