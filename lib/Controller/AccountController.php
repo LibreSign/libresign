@@ -7,10 +7,12 @@ use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -20,7 +22,11 @@ class AccountController extends ApiController {
 	/** @var IL10N */
 	private $l10n;
 	/** @var AccountService */
-	private $account;
+	private $accountService;
+	/** @var AccountFileService */
+	private $accountFileService;
+	/** @var IConfig */
+	private $config;
 	/** @var Chain */
 	private $loginChain;
 	/** @var IURLGenerator */
@@ -33,7 +39,9 @@ class AccountController extends ApiController {
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
-		AccountService $account,
+		AccountService $accountService,
+		AccountFileService $accountFileService,
+		IConfig $config,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
@@ -41,7 +49,9 @@ class AccountController extends ApiController {
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
-		$this->account = $account;
+		$this->accountService = $accountService;
+		$this->accountFileService = $accountFileService;
+		$this->config = $config;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
@@ -64,15 +74,15 @@ class AccountController extends ApiController {
 				'password' => $password,
 				'signPassword' => $signPassword
 			];
-			$this->account->validateCreateToSign($data);
+			$this->accountService->validateCreateToSign($data);
 			if ($signPassword) {
-				$this->account->validateCertificateData($data);
+				$this->accountService->validateCertificateData($data);
 			}
 
-			$fileToSign = $this->account->getFileByUuid($uuid);
-			$fileUser = $this->account->getFileUserByUuid($uuid);
+			$fileToSign = $this->accountService->getFileByUuid($uuid);
+			$fileUser = $this->accountService->getFileUserByUuid($uuid);
 
-			$this->account->createToSign($uuid, $email, $password, $signPassword);
+			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
 				'success' => true,
 				'message' => $this->l10n->t('Success'),
@@ -119,8 +129,8 @@ class AccountController extends ApiController {
 				'signPassword' => $signPassword,
 				'userId' => $this->userSession->getUser()->getUID()
 			];
-			$this->account->validateCertificateData($data);
-			$signaturePath = $this->account->generateCertificate(...array_values($data));
+			$this->accountService->validateCertificateData($data);
+			$signaturePath = $this->accountService->generateCertificate(...array_values($data));
 
 			return new JSONResponse([
 				'success' => true,
@@ -143,7 +153,7 @@ class AccountController extends ApiController {
 	 */
 	public function addFiles(array $files): JSONResponse {
 		try {
-			$this->account->addFilesToAccount($files, $this->userSession->getUser());
+			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
 			return new JSONResponse([
 				'success' => true
 			], Http::STATUS_OK);
@@ -201,7 +211,7 @@ class AccountController extends ApiController {
 					'uid' => $user->getUID(),
 					'displayName' => $user->getDisplayName()
 				],
-				'settings' => $this->account->getSettings($this->userSession->getUser())
+				'settings' => $this->accountService->getSettings($this->userSession->getUser())
 			],
 			Http::STATUS_OK
 		);
@@ -214,7 +224,7 @@ class AccountController extends ApiController {
 	public function createSignatureElement(array $elements) {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->account->saveVisibleElements($elements, $this->userSession->getUser());
+			$this->accountService->saveVisibleElements($elements, $this->userSession->getUser());
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -246,7 +256,7 @@ class AccountController extends ApiController {
 		try {
 			return new JSONResponse(
 				[
-					'elements' => $this->account->getUserElements($userId)
+					'elements' => $this->accountService->getUserElements($userId)
 				],
 				Http::STATUS_OK
 			);
@@ -268,7 +278,7 @@ class AccountController extends ApiController {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
-				$this->account->getUserElementByElementId($userId, $elementId),
+				$this->accountService->getUserElementByElementId($userId, $elementId),
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
@@ -295,7 +305,7 @@ class AccountController extends ApiController {
 				$element['file'] = $file;
 			}
 			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->account->saveVisibleElement($element, $this->userSession->getUser());
+			$this->accountService->saveVisibleElement($element, $this->userSession->getUser());
 			return new JSONResponse(
 				[
 					'success' => true,
@@ -321,7 +331,7 @@ class AccountController extends ApiController {
 	public function deleteSignatureElement($elementId) {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
-			$this->account->deleteSignatureElement($userId, $elementId);
+			$this->accountService->deleteSignatureElement($userId, $elementId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -336,5 +346,23 @@ class AccountController extends ApiController {
 			],
 			Http::STATUS_OK
 		);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function accountFileList(array $filter = [], $page = null, $length = null): JSONResponse {
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
+		if (!$authorized) {
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('You are not allowed to approve user profile documents.')
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		$return = $this->accountFileService->accountFileList($filter, $page, $length);
+		return new JSONResponse($return, Http::STATUS_OK);
 	}
 }

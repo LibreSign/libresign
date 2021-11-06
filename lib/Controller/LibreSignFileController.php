@@ -32,7 +32,7 @@ class LibreSignFileController extends Controller {
 	/** @var IL10N */
 	private $l10n;
 	/** @var AccountService */
-	private $account;
+	private $accountService;
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var IURLGenerator */
@@ -51,7 +51,7 @@ class LibreSignFileController extends Controller {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IL10N $l10n,
-		AccountService $account,
+		AccountService $accountService,
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
@@ -63,7 +63,7 @@ class LibreSignFileController extends Controller {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->l10n = $l10n;
-		$this->account = $account;
+		$this->accountService = $accountService;
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
@@ -192,7 +192,7 @@ class LibreSignFileController extends Controller {
 		if (!empty($uid)) {
 			$return['settings'] = array_merge(
 				$return['settings'],
-				$this->account->getSettings($this->userSession->getUser())
+				$this->accountService->getSettings($this->userSession->getUser())
 			);
 		}
 		if ($return['settings']['canSign']) {
@@ -219,7 +219,7 @@ class LibreSignFileController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function list($page = null, $length = null): JSONResponse {
-		$return = $this->account->list($this->userSession->getUser(), $page, $length);
+		$return = $this->accountService->listAssociatedFilesOfSignFlow($this->userSession->getUser(), $page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
 	}
 

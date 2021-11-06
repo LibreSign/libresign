@@ -340,7 +340,10 @@ class ValidateHelper {
 			if (!empty($data['uuid'])) {
 				$file = $this->fileMapper->getByUuid($data['uuid']);
 			} elseif (!empty($data['file']['fileId'])) {
-				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+				try {
+					$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+				} catch (\Throwable $th) {
+				}
 			}
 			if (isset($file)) {
 				if ($data['status'] >= $file->getStatus()) {
