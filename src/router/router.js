@@ -75,7 +75,13 @@ const routes = [
 		path: '/f/timeline/sign',
 		component: () => import('../views/Timeline/Timeline.vue'),
 		name: 'signFiles',
-	}, {
+	},
+	{
+		path: '/f/sign/:uuid',
+		component: () => import('../views/SignDetail/SignDetail.vue'),
+		name: 'f.sign.detail',
+	},
+	{
 		path: '/f/request',
 		component: () => import('../views/Request'),
 		name: 'requestFiles',

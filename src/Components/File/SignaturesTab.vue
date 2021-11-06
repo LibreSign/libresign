@@ -37,18 +37,22 @@
 				</div>
 			</li>
 		</ul>
+
+		<router-link tag="button" :to="{name: 'f.sign.detail', params: { uuid }}" class="primary">
+			{{ t('libresign', 'Details') }}
+		</router-link>
 	</div>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
 import { format } from 'date-fns'
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import { get } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
@@ -62,10 +66,18 @@ export default {
 		}
 	},
 	computed: {
-		...mapState({
-			signers: state => state.files.file.signers,
-			fileId: state => state.files.file.file.nodeId,
+		...mapGetters('files', {
+			currentFile: 'getFile',
 		}),
+		signers() {
+			return get(this.currentFile, 'signers', [])
+		},
+		fileId() {
+			return get(this.currentFile, 'file.nodeId', 0)
+		},
+		uuid() {
+			return get(this.currentFile, 'uuid', '')
+		},
 	},
 	methods: {
 		hasStatus(item) {

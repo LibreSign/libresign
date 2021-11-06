@@ -47,8 +47,8 @@
 			</template>
 		</AppNavigation>
 		<AppContent :class="{'icon-loading' : loading }">
-			<router-view v-show="!loading" :key="$route.name " :loading.sync="loading" />
-			<EmptyContent v-show="isRoot" class="emp-content">
+			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
+			<EmptyContent v-if="isRoot" class="emp-content">
 				<template #icon>
 					<img :src="icon">
 				</template>

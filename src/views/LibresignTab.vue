@@ -120,6 +120,21 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
 import Request from '../Components/Request'
+import { forEach } from 'lodash-es'
+
+const showErrors = errList => {
+	forEach(errList, err => {
+		showError(err)
+	})
+}
+
+const showResponseError = res => {
+	if (res.data.errors) {
+		return showErrors(res.data.errors)
+	}
+
+	return showError(res.data.message)
+}
 
 export default {
 	name: 'LibresignTab',
@@ -298,7 +313,7 @@ export default {
 				}
 				this.disabledSign = false
 				this.loadingInput = false
-				return showError(err.response.data.errors[0])
+				return showResponseError(err.response)
 			}
 		},
 		async deleteUserRequest(user) {
@@ -331,14 +346,7 @@ export default {
 
 				showSuccess(response.data.message)
 			} catch (err) {
-				if (err.response.data.messages) {
-					err.response.data.messages.forEach(error => {
-						showError(error.message)
-					})
-				} else {
-					showError(t('libresign', 'There was an error completing your request'))
-				}
-
+				return showResponseError(err.response)
 			}
 		},
 
@@ -362,6 +370,7 @@ export default {
 						fileId: this.fileInfo.id,
 					},
 					name: this.fileInfo.name.split('.pdf')[0],
+					// status: 0,
 					users,
 				})
 				this.option('request')
@@ -369,10 +378,7 @@ export default {
 				this.getInfo()
 				return showSuccess(response.data.message)
 			} catch (err) {
-				if (err.response.data.errors) {
-					return showError(err.response.data.errors[0])
-				}
-				return showError(err.response.data.message)
+				return showResponseError(err.response)
 			}
 		},
 
