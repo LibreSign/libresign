@@ -5,6 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Service\AccountFileService;
+use OCP\IConfig;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -13,11 +14,15 @@ final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $service;
 	/** @var AccountFileMapper|MockObject */
 	private $accountFileMapper;
+	/** @var IConfig */
+	private $config;
 
 	public function setUp(): void {
-		$this->accountFileMapper = $this->createMock(accountFileMapper::class);
+		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
+		$this->config = $this->createMock(IConfig::class);
 		$this->service = new AccountFileService(
-			$this->accountFileMapper
+			$this->accountFileMapper,
+			$this->config
 		);
 	}
 

@@ -7,10 +7,12 @@ use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -21,6 +23,10 @@ class AccountController extends ApiController {
 	private $l10n;
 	/** @var AccountService */
 	private $accountService;
+	/** @var AccountFileService */
+	private $accountFileService;
+	/** @var IConfig */
+	private $config;
 	/** @var Chain */
 	private $loginChain;
 	/** @var IURLGenerator */
@@ -34,6 +40,8 @@ class AccountController extends ApiController {
 		IRequest $request,
 		IL10N $l10n,
 		AccountService $accountService,
+		AccountFileService $accountFileService,
+		IConfig $config,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
@@ -42,6 +50,8 @@ class AccountController extends ApiController {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->accountService = $accountService;
+		$this->accountFileService = $accountFileService;
+		$this->config = $config;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
@@ -342,7 +352,7 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function accountFileList() {
+	public function accountFileList(array $filter = [], $page = null, $length = null): JSONResponse {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
 		if (!$authorized) {
 			return new JSONResponse(
@@ -352,6 +362,8 @@ class AccountController extends ApiController {
 				Http::STATUS_NOT_FOUND
 			);
 		}
+		$return = $this->accountFileService->accountFileList($filter, $page, $length);
+		return new JSONResponse($return, Http::STATUS_OK);
 		$json = <<<MOCK
 		{
 			"data": [
