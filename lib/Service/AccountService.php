@@ -453,7 +453,7 @@ class AccountService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function list(IUser $user, $page = null, $length = null): array {
+	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
 		$page = $page ?? 1;
 		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
 		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
