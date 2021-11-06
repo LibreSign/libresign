@@ -189,7 +189,7 @@ class SignFileService {
 	}
 
 	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$pdf = new TCPDILibresign();
+		$pdf = new TCPDILibresign('P', 'px');
 		$pdf->setNextcloudSourceFile($node);
 		return $pdf->getPagesMetadata();
 	}
