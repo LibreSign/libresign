@@ -284,6 +284,11 @@ class LibreSignFileController extends Controller {
 		}
 	}
 
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return JSONResponse|FileDisplayResponse
+	 */
 	public function postElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
@@ -312,10 +317,20 @@ class LibreSignFileController extends Controller {
 		return new JSONResponse($return, $statusCode);
 	}
 
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return JSONResponse|FileDisplayResponse
+	 */
 	public function patchElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', array $metadata = [], array $coordinates = []) {
 		return $this->postElement($uuid, $elementId, $type , $uid , $metadata , $coordinates);
 	}
 
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return JSONResponse|FileDisplayResponse
+	 */
 	public function deletelement(string $uuid, int $elementId): JSONResponse {
 		try {
 			$this->validateHelper->validateExistingFile([
