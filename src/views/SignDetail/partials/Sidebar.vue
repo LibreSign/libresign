@@ -1,15 +1,11 @@
 
 <script>
-import Actions from '@nextcloud/vue/dist/Components/Actions'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import Signer from './Signer.vue'
+import Signer from './SignerRow.vue'
 
 export default {
 	name: 'Sidebar',
 	components: {
 		Signer,
-		Actions,
-		ActionButton,
 
 	},
 	props: {
@@ -18,24 +14,30 @@ export default {
 			required: true,
 		},
 	},
+	methods: {
+		selectSigner(signer) {
+			this.$emit('select:signer', { ...signer })
+		},
+	},
 }
 </script>
 
 <template>
 	<div>
 		<ul>
-			<Signer v-for="user in signers" :key="user.signatureId" :signer="user">
-				<template slot="actions">
-					<Actions>
-						<ActionButton icon="icon-delete">
-							Remove
-						</ActionButton>
-						<ActionButton icon="icon-edit">
-							Notify
-						</ActionButton>
-						<!-- <ActionLink icon="icon-external" title="Link" href="https://nextcloud.com" /> -->
-					</Actions>
-				</template>
+			<Signer
+				v-for="user in signers"
+				:key="`signature-${user.signatureId}`"
+				:signer="user"
+				@click="selectSigner(user)">
+				<!-- <template slot="actions">
+					<ActionButton icon="icon-delete">
+						Remove
+					</ActionButton>
+					<ActionButton icon="icon-edit">
+						Notify
+					</ActionButton>
+				</template> -->
 			</Signer>
 		</ul>
 		<pre>{{ signers }}</pre>

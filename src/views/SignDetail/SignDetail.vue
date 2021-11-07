@@ -20,6 +20,10 @@ export default {
 				signers: [],
 				pages: [],
 			},
+			currentSigner: {
+				data: {},
+				element: {},
+			},
 		}
 	},
 	computed: {
@@ -50,6 +54,9 @@ export default {
 		resize(newRect) {
 			console.log(newRect)
 		},
+		onSelectSigner(signer) {
+			console.log({ signer })
+		},
 	},
 }
 </script>
@@ -58,7 +65,9 @@ export default {
 	<Content class="view-sign-detail" app-name="libresign">
 		<div>
 			<h2>{{ document.name }}</h2>
-			<Sidebar class="view-sign-detail--sidebar" :signers="document.signers" />
+			<Sidebar class="view-sign-detail--sidebar"
+				:signers="document.signers"
+				@select:signer="onSelectSigner" />
 		</div>
 		<div class="image-page">
 			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
