@@ -1,10 +1,10 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import { get } from 'lodash-es'
 import { service as signService } from '../../domains/sign'
 import DragResize from 'vue-drag-resize'
 import Sidebar from './partials/Sidebar.vue'
+import PageNavigation from './partials/PageNavigation.vue'
 
 const emptySignerData = () => ({
 	data: {},
@@ -23,7 +23,7 @@ export default {
 		Content,
 		DragResize,
 		Sidebar,
-		ActionButton,
+		PageNavigation,
 	},
 	data() {
 		return {
@@ -96,6 +96,7 @@ export default {
 			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
 				<img :src="page.url">
 			</div> -->
+			<PageNavigation v-model="currentSigner.element.page" v-bind="{ pages }" width="827px" />
 			<div class="image-page--main">
 				<div
 					class="image-page--container"
