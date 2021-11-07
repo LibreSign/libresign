@@ -3,18 +3,21 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import { get } from 'lodash-es'
 import { service as signService } from '../../domains/sign'
 import DragResize from 'vue-drag-resize'
+import Sidebar from './partials/Sidebar.vue'
 
 export default {
 	name: 'SignDetail',
 	components: {
 		Content,
 		DragResize,
+		Sidebar,
 	},
 	data() {
 		return {
 			pageIndex: 0,
 			document: {
 				name: '',
+				signers: [],
 				pages: [],
 			},
 		}
@@ -52,9 +55,12 @@ export default {
 </script>
 
 <template>
-	<Content app-name="libresign">
-		<div class="image-page">
+	<Content class="view-sign-detail" app-name="libresign">
+		<div>
 			<h2>{{ document.name }}</h2>
+			<Sidebar class="view-sign-detail--sidebar" :signers="document.signers" />
+		</div>
+		<div class="image-page">
 			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
 			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
 				<img :src="page.url">
@@ -80,7 +86,15 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.view-sign-detail {
+	&--sidebar {
+		width: 300px;
+	}
+}
+
 .image-page {
+	width: 100%;
+	margin: 0.5em;
 	&--main {
 		position: relative;
 	}
@@ -89,15 +103,27 @@ export default {
 		height: 100%;
 		display: inline-block;
 		position: absolute;
+		cursor: grab;
 		background: rgba(0, 0, 0, 0.300);
+		&:active {
+			cursor: grabbing;
+		}
 	}
 	&--container {
-		position: absolute;
+		border-color: #000;
+		border-style: solid;
+		border-width: thin;
 		width: var(--page-img-w);
 		height: var(--page-img-h);
-		padding-left: 1em;
 		left: 0;
 		top: 0;
+		&, img {
+			user-select: none;
+			outline: 0;
+		}
+		img {
+			max-width: 100%;
+		}
 	}
 }
 </style>
