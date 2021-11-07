@@ -1,9 +1,21 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
+import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import { get } from 'lodash-es'
 import { service as signService } from '../../domains/sign'
 import DragResize from 'vue-drag-resize'
 import Sidebar from './partials/Sidebar.vue'
+
+const emptySignerData = () => ({
+	data: {},
+	element: {
+		page: 0,
+		height: 90,
+		left: 100,
+		top: 100,
+		width: 370,
+	},
+})
 
 export default {
 	name: 'SignDetail',
@@ -11,24 +23,25 @@ export default {
 		Content,
 		DragResize,
 		Sidebar,
+		ActionButton,
 	},
 	data() {
 		return {
-			pageIndex: 0,
 			document: {
 				name: '',
 				signers: [],
 				pages: [],
+				visibleElements: [],
 			},
-			currentSigner: {
-				data: {},
-				element: {},
-			},
+			currentSigner: emptySignerData(),
 		}
 	},
 	computed: {
 		uuid() {
 			return this.$route.params.uuid || ''
+		},
+		pageIndex() {
+			return this.currentSigner.element.page
 		},
 		pages() {
 			return get(this.document, 'pages', [])
@@ -42,6 +55,9 @@ export default {
 				},
 			}
 		},
+		hasSignerSelected() {
+			return !!this.currentSigner.data.email
+		},
 	},
 	async mounted() {
 		try {
@@ -52,10 +68,16 @@ export default {
 	},
 	methods: {
 		resize(newRect) {
-			console.log(newRect)
+			this.currentSigner.element = {
+				...this.currentSigner.element,
+				...newRect,
+			}
 		},
 		onSelectSigner(signer) {
-			console.log({ signer })
+			this.currentSigner = {
+				...emptySignerData(),
+				data: signer,
+			}
 		},
 	},
 }
@@ -79,13 +101,21 @@ export default {
 					class="image-page--container"
 					:style="{ '--page-img-w': '827px', '--page-img-h': '1169px' }">
 					<DragResize
+						v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
 						:w="370"
 						:h="90"
 						@resizing="resize"
 						@dragging="resize">
-						<div class="image-page--element" />
+						<div class="image-page--element">
+							{{ currentSigner.data.email }}
+						</div>
+						<div class="image-page--action">
+							<button class="primary">
+								{{ t('libresign', 'Save') }}
+							</button>
+						</div>
 					</DragResize>
 					<img :src="page.url">
 				</div>
@@ -110,13 +140,23 @@ export default {
 	&--element {
 		width: 100%;
 		height: 100%;
-		display: inline-block;
+		display: flex;
 		position: absolute;
 		cursor: grab;
-		background: rgba(0, 0, 0, 0.300);
+		background: rgba(0, 0, 0, 0.3);
+		color: #FFF;
+		font-weight: bold;
+		justify-content: space-around;
+		align-items: center;
+		flex-direction: row;
 		&:active {
 			cursor: grabbing;
 		}
+	}
+	&--action {
+		width: 100%;
+		position: absolute;
+		top: 100%;
 	}
 	&--container {
 		border-color: #000;
