@@ -5,19 +5,24 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCP\AppFramework\Utility\ITimeFactory;
 
 class LibreSignFileService {
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
+	/** @var ITimeFactory */
+	private $timeFactory;
 
 	public function __construct(
 		FileMapper $fileMapper,
-		FileElementMapper $fileElementMapper
+		FileElementMapper $fileElementMapper,
+		ITimeFactory $timeFactory
 	) {
 		$this->fileMapper = $fileMapper;
 		$this->fileElementMapper = $fileElementMapper;
+		$this->timeFactory = $timeFactory;
 	}
 
 	public function saveVisibleElement(array $element, string $uuid = '') {
