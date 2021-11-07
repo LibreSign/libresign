@@ -5,7 +5,6 @@ namespace OCA\Libresign\Service;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
@@ -57,6 +56,8 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var LibreSignFileService */
+	private $libreSignFileService;
 	/** @var TimeFactory; */
 	private $timeFactory;
 	/** @var ITempManager */
@@ -85,6 +86,7 @@ class SignFileService {
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
+		LibreSignFileService $libreSignFileService,
 		TimeFactory $timeFactory,
 		ITempManager $tempManager
 	) {
@@ -102,6 +104,7 @@ class SignFileService {
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
+		$this->libreSignFileService = $libreSignFileService;
 		$this->timeFactory = $timeFactory;
 		$this->tempManager = $tempManager;
 	}
@@ -124,23 +127,8 @@ class SignFileService {
 		}
 		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
-			$fileElement = new FileElement();
-			if (!empty($element['elementId'])) {
-				$fileElement->setId($element['elementId']);
-			} else {
-				$fileElement->setCreatedAt($this->timeFactory->getDateTime());
-			}
-			$fileElement->setFileId($file->getId());
-			$fileElement->setUserId($element['uid']);
-			$fileElement->setType($element['type']);
-			$fileElement->setPage($element['coordinates']['page'] ?? 1);
-			$fileElement->setUrx($element['coordinates']['urx'] ?? 0);
-			$fileElement->setUry($element['coordinates']['ury'] ?? 0);
-			$fileElement->setLlx($element['coordinates']['llx'] ?? 0);
-			$fileElement->setLly($element['coordinates']['lly'] ?? 0);
-			$fileElement->setMetadata(!empty($element['metadata']) ? json_encode($element['metadata']) : null);
-			$this->fileElementMapper->insertOrUpdate($fileElement);
-			$elements[$key] = $fileElement;
+			$element['fileId'] = $file->getId();
+			$elements[$key] = $this->libreSignFileService->saveVisibleElement($element);
 		}
 		return $elements;
 	}
@@ -340,15 +328,10 @@ class SignFileService {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
-		$this->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
-		$this->validateHelper->validateFileStatus($data);
-	}
-
-	public function validateVisibleElements(array $data, int $type): void {
-		if (empty($data['visibleElements'])) {
-			return;
+		if (!empty($data['visibleElements'])) {
+			$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 		}
-		$this->validateHelper->validateVisibleElements($data['visibleElements'], $type);
+		$this->validateHelper->validateFileStatus($data);
 	}
 
 	public function validateUserManager(array $user): void {
