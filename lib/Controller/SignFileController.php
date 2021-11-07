@@ -27,7 +27,7 @@ class SignFileController extends ApiController {
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var SignFileService */
-	protected $signFile;
+	protected $signFileService;
 	/** @var ValidateHelper */
 	protected $validateHelper;
 	/** @var LoggerInterface */
@@ -40,7 +40,7 @@ class SignFileController extends ApiController {
 		FileMapper $fileMapper,
 		IUserSession $userSession,
 		ValidateHelper $validateHelper,
-		SignFileService $signFile,
+		SignFileService $signFileService,
 		LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -49,7 +49,7 @@ class SignFileController extends ApiController {
 		$this->fileMapper = $fileMapper;
 		$this->userSession = $userSession;
 		$this->validateHelper = $validateHelper;
-		$this->signFile = $signFile;
+		$this->signFileService = $signFileService;
 		$this->logger = $logger;
 	}
 
@@ -79,8 +79,8 @@ class SignFileController extends ApiController {
 			'userManager' => $user
 		];
 		try {
-			$this->signFile->validateNewRequestToFile($data);
-			$return = $this->signFile->save($data);
+			$this->signFileService->validateNewRequestToFile($data);
+			$return = $this->signFileService->save($data);
 			unset(
 				$return['id'],
 				$return['users'],
@@ -121,11 +121,13 @@ class SignFileController extends ApiController {
 			'visibleElements' => $visibleElements
 		];
 		try {
-			$this->signFile->validateUserManager($data);
+			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
-			$this->signFile->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
-			$return = $this->signFile->save($data);
+			if (!empty($data['visibleElements'])) {
+				$this->validateHelper->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+			}
+			$return = $this->signFileService->save($data);
 			unset(
 				$return['id'],
 				$return['users'],
@@ -189,7 +191,7 @@ class SignFileController extends ApiController {
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
-			$signedFile = $this->signFile
+			$signedFile = $this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
 				->setVisibleElements($elements)
@@ -204,7 +206,7 @@ class SignFileController extends ApiController {
 			if (count($signers) === $total) {
 				$callbackUrl = $libreSignFile->getCallback();
 				if ($callbackUrl) {
-					$this->signFile->notifyCallback(
+					$this->signFileService->notifyCallback(
 						$callbackUrl,
 						$libreSignFile->getUuid(),
 						$signedFile
@@ -275,10 +277,10 @@ class SignFileController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->signFile->validateUserManager($data);
+			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
-			$this->signFile->unassociateToUser($fileId, $signatureId);
+			$this->signFileService->unassociateToUser($fileId, $signatureId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -311,9 +313,9 @@ class SignFileController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->signFile->validateUserManager($data);
+			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
-			$this->signFile->deleteSignRequest($data);
+			$this->signFileService->deleteSignRequest($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

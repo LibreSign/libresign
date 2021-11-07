@@ -36,6 +36,9 @@ return [
 		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
 		['name' => 'libreSignFile#getPage',           'url' => '/api/0.1/file/page/{uuid}/{page}.png', 'verb' => 'GET'],
+		['name' => 'libreSignFile#postElement',       'url' => '/api/0.1/file/{uuid}/elements', 'verb' => 'POST'],
+		['name' => 'libreSignFile#patchElement',      'url' => '/api/0.1/file/{uuid}/elements/{elementId}', 'verb' => 'PATCH'],
+		['name' => 'libreSignFile#deletelement',      'url' => '/api/0.1/file/{uuid}/elements/{elementId}', 'verb' => 'DELETE'],
 
 		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
 

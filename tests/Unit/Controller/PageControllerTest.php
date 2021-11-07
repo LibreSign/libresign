@@ -2,125 +2,123 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use OCA\Libresign\Controller\PageController;
+use OCA\Libresign\Service\AccountService;
+use OCP\AppFramework\Services\IInitialState;
+use OCP\IRequest;
+use OCP\ISession;
+use OCP\IUserManager;
+
 /**
  * @group DB
  */
 final class PageControllerTest extends TestCase {
+	/** @var IRequest|MockObject */
+	private $request;
+	/** @var ISession|MockObject */
+	private $session;
+	/** @var IUserManager|MockObject */
+	private $userManager;
+	/** @var IInitialState|MockObject */
+	private $initialState;
+	/** @var AccountService|MockObject */
+	private $accountService;
+	/** @var PageController */
+	private $controller;
+
+	public function setUp(): void {
+		$this->request = $this->createMock(IRequest::class);
+		$this->session = $this->createMock(ISession::class);
+		$this->userManager = $this->createMock(IUserManager::class);
+		$this->initialState = $this->createMock(IInitialState::class);
+		$this->accountService = $this->createMock(AccountService::class);
+		$this->controller = new PageController(
+			$this->request,
+			$this->session,
+			$this->userManager,
+			$this->initialState,
+			$this->accountService
+		);
+	}
+
 	public function testIndexScriptsAndTemplate() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->index();
+		$response = $this->controller->index();
 		$this->assertEquals('main', $response->getTemplateName());
 		$this->assertContains('libresign/js/libresign-main', \OC_Util::$scripts);
 	}
 
-	public function testIndexInitialState() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$controller->index();
-		$initialState = \OC::$server->get(\OC\InitialStateService::class);
-		$initialStates = $initialState->getInitialStates();
-		$this->assertArrayHasKey('libresign-config', $initialStates);
+	public function testIndexReturnStatus() {
+		$response = $this->controller->index();
+		$this->assertEquals(200, $response->getStatus());
 	}
 
 	public function testSignScriptsAndTemplate() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->sign('uuid');
+		$response = $this->controller->sign('uuid');
 		$this->assertEquals('external', $response->getTemplateName());
 		$this->assertContains('libresign/js/libresign-external', \OC_Util::$scripts);
 	}
 
 	public function testSignPolices() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->sign('uuid');
+		$response = $this->controller->sign('uuid');
 		$polices = $response->getContentSecurityPolicy();
 		$this->assertCount(1, $polices->getAllowedFrameDomains());
 		$this->assertContains("'self'", $polices->getAllowedFrameDomains());
 	}
 
-	public function testSignInitialState() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$controller->sign('uuid');
-		$initialState = \OC::$server->get(\OC\InitialStateService::class);
-		$initialStates = $initialState->getInitialStates();
-		$this->assertArrayHasKey('libresign-config', $initialStates);
+	public function testSignReturnStatus() {
+		$response = $this->controller->sign('uuid');
+		$this->assertEquals(200, $response->getStatus());
 	}
 
 	public function testGetPdfNotFound() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->getPdf('uuid');
+		$file = $this->createMock(\OCP\Files\File::class);
+		$this->accountService
+			->method('getPdfByUuid')
+			->willThrowException($this->createMock(\Exception::class));
+
+		$response = $this->controller->getPdf('uuid');
 		$this->assertInstanceOf(\OCP\AppFramework\Http\DataResponse::class, $response);
 		$this->assertEquals(404, $response->getStatus());
 	}
 
 	public function testGetPdfHeader() {
-		$user = $this->createUser('username', 'password');
+		$file = $this->createMock(\OCP\Files\File::class);
+		$this->accountService
+			->method('getPdfByUuid')
+			->willReturn($file);
 
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'person@test.coop'
-				]
-			],
-			'userManager' => $user
-		]);
-
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->getPdf($file['uuid']);
+		$response = $this->controller->getPdf('sfsdf');
 		$headers = $response->getHeaders();
 		$this->assertArrayHasKey('Content-Type', $headers);
 		$this->assertEquals('application/pdf', $headers['Content-Type']);
 	}
 
 	public function testGetPdfStatusCode() {
-		$user = $this->createUser('username', 'password');
+		$file = $this->createMock(\OCP\Files\File::class);
+		$this->accountService
+			->method('getPdfByUuid')
+			->willReturn($file);
 
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'person@test.coop'
-				]
-			],
-			'userManager' => $user
-		]);
-
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->getPdf($file['uuid']);
+		$response = $this->controller->getPdf('uuid');
 		$this->assertEquals(200, $response->getStatus());
 	}
 
 	public function testGetPdfUserNotFound() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->getPdfUser('uuid');
+		$response = $this->controller->getPdfUser('uuid');
 		$this->assertInstanceOf(\OCP\AppFramework\Http\DataResponse::class, $response);
 		$this->assertEquals(404, $response->getStatus());
 	}
 
 	public function testGetPdfUserHeaderAndStatusCode() {
-		$user = $this->createUser('username', 'password');
+		$file = $this->createMock(\OCP\Files\File::class);
+		$this->accountService
+			->method('getPdfByUuid')
+			->willReturn($file);
+		$this->accountService
+			->method('getConfig')
+			->willReturn(['sign' => ['pdf' => ['file' => $file]]]);
 
-		$user->setEMailAddress('person@test.coop');
-		$file = $this->requestSignFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'person@test.coop'
-				]
-			],
-			'userManager' => $user
-		]);
-
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-
-		$session = \OC::$server->get(\OCP\ISession::class);
-		$session->set('user_id', 'username');
-
-		$response = $controller->getPdfUser($file['users'][0]->getUuid());
+		$response = $this->controller->getPdfUser('username');
 		$headers = $response->getHeaders();
 		$this->assertArrayHasKey('Content-Type', $headers);
 		$this->assertEquals('application/pdf', $headers['Content-Type']);
@@ -128,47 +126,30 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testValidationScriptsAndTemplate() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->validation();
+		$response = $this->controller->validation();
 		$this->assertEquals('validation', $response->getTemplateName());
 		$this->assertContains('libresign/js/libresign-validation', \OC_Util::$scripts);
 	}
 
-	public function testValidationInitialState() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$controller->validation();
-		$initialState = \OC::$server->get(\OC\InitialStateService::class);
-		$initialStates = $initialState->getInitialStates();
-		$this->assertArrayHasKey('libresign-config', $initialStates);
+	public function testValidationReturnStatus() {
+		$response = $this->controller->validation();
+		$this->assertEquals(200, $response->getStatus());
 	}
 
 	public function testResetPasswordScriptsAndTemplate() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->resetPassword();
+		$response = $this->controller->resetPassword();
 		$this->assertEquals('reset_password', $response->getTemplateName());
 		$this->assertContains('libresign/js/libresign-main', \OC_Util::$scripts);
 	}
 
-	public function testResetPasswordInitialState() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$controller->validation();
-		$initialState = \OC::$server->get(\OC\InitialStateService::class);
-		$initialStates = $initialState->getInitialStates();
-		$this->assertArrayHasKey('libresign-config', $initialStates);
-	}
-
 	public function testValidationFileScriptsAndTemplate() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$response = $controller->validationFile('uuid');
+		$response = $this->controller->validationFile('uuid');
 		$this->assertEquals('validation', $response->getTemplateName());
 		$this->assertContains('libresign/js/libresign-validation', \OC_Util::$scripts);
 	}
 
-	public function testValidationFileInitialState() {
-		$controller = \OC::$server->get(\OCA\Libresign\Controller\PageController::class);
-		$controller->validationFile('uuid');
-		$initialState = \OC::$server->get(\OC\InitialStateService::class);
-		$initialStates = $initialState->getInitialStates();
-		$this->assertArrayHasKey('libresign-config', $initialStates);
+	public function testValidationFileReturnStatus() {
+		$response = $this->controller->validationFile('uuid');
+		$this->assertEquals(200, $response->getStatus());
 	}
 }
