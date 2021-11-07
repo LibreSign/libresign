@@ -217,7 +217,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElementsRelation(array $list, FileUser $fileUser) {
+	public function validateVisibleElementsRelation(array $list, FileUser $fileUser): void {
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
@@ -225,11 +225,7 @@ class ValidateHelper {
 			if (!array_key_exists('profileElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
 			}
-			try {
-				$this->fileElementMapper->getByDocumentElementIdAndFileUserId($elements['documentElementId'], $fileUser->getUserId());
-			} catch (\Throwable $th) {
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['documentElementId']));
-			}
+			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $fileUser->getUserId());
 			try {
 				$this->userElementMapper->getByElementIdAndUserId($elements['profileElementId'], $fileUser->getUserId());
 			} catch (\Throwable $th) {
@@ -238,7 +234,15 @@ class ValidateHelper {
 		}
 	}
 
-	public function fileCanBeSigned(File $file) {
+	public function validateUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
+		try {
+			$this->fileElementMapper->getByDocumentElementIdAndFileUserId($documentElementId, $uid);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+		}
+	}
+
+	public function fileCanBeSigned(File $file): void {
 		$statusList = [
 			ValidateHelper::STATUS_ABLE_TO_SIGN,
 			ValidateHelper::STATUS_PARTIAL_SIGNED

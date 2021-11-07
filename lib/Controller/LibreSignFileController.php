@@ -10,7 +10,9 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\LibreSignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
@@ -19,7 +21,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -41,10 +42,12 @@ class LibreSignFileController extends Controller {
 	private $userSession;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
+	/** @var ValidateHelper */
+	private $validateHelper;
+	/** @var LibreSignFileService */
+	private $libreSignFileService;
 	/** @var IRootFolder */
 	private $rootFolder;
-	/** @var ITempManager */
-	private $tempManager;
 
 	public function __construct(
 		IRequest $request,
@@ -56,8 +59,9 @@ class LibreSignFileController extends Controller {
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
 		FileElementMapper $fileElementMapper,
-		IRootFolder $rootFolder,
-		ITempManager $tempManager
+		LibreSignFileService $libreSignFileService,
+		ValidateHelper $validateHelper,
+		IRootFolder $rootFolder
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->fileUserMapper = $fileUserMapper;
@@ -68,8 +72,9 @@ class LibreSignFileController extends Controller {
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
 		$this->fileElementMapper = $fileElementMapper;
+		$this->libreSignFileService = $libreSignFileService;
+		$this->validateHelper = $validateHelper;
 		$this->rootFolder = $rootFolder;
-		$this->tempManager = $tempManager;
 	}
 
 	/**
@@ -277,5 +282,58 @@ class LibreSignFileController extends Controller {
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 			return new JSONResponse($return, $statusCode);
 		}
+	}
+
+	public function postElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', array $metadata = [], array $coordinates = []): JSONResponse {
+		$visibleElement = [
+			'elementId' => $elementId,
+			'type' => $type,
+			'uid' => $uid,
+			'coordinates' => $coordinates,
+			'metadata' => $metadata
+		];
+		try {
+			$this->validateHelper->validateVisibleElement($visibleElement, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+			$this->validateHelper->validateExistingFile([
+				'uuid' => $uuid,
+				'userManager' => $this->userSession->getUser()
+			]);
+			$this->libreSignFileService->saveVisibleElement($visibleElement, $uuid);
+			$return = [];
+			$statusCode = Http::STATUS_OK;
+		} catch (\Throwable $th) {
+			$this->logger->error($th->getMessage());
+			$return = [
+				'success' => false,
+				'errors' => [$th->getMessage()]
+			];
+			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
+		}
+		return new JSONResponse($return, $statusCode);
+	}
+
+	public function patchElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', array $metadata = [], array $coordinates = []) {
+		return $this->postElement($uuid, $elementId, $type , $uid , $metadata , $coordinates);
+	}
+
+	public function deletelement(string $uuid, int $elementId): JSONResponse {
+		try {
+			$this->validateHelper->validateExistingFile([
+				'uuid' => $uuid,
+				'userManager' => $this->userSession->getUser()
+			]);
+			$this->validateHelper->validateUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->libreSignFileService->deleteVisibleElement($elementId);
+			$return = [];
+			$statusCode = Http::STATUS_OK;
+		} catch (\Throwable $th) {
+			$this->logger->error($th->getMessage());
+			$return = [
+				'success' => false,
+				'errors' => [$th->getMessage()]
+			];
+			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
+		}
+		return new JSONResponse($return, $statusCode);
 	}
 }
