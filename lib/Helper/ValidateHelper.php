@@ -182,7 +182,7 @@ class ValidateHelper {
 
 	private function validateElementCoordinate($element): void {
 		foreach ($element['coordinates'] as $type => $value) {
-			if (in_array($type, ['llx', 'lly', 'urx', 'ury'])) {
+			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
 				if (!is_int($value)) {
 					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}

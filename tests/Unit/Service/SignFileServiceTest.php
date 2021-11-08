@@ -8,8 +8,8 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\LibreSignFileService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Files\Folder;
@@ -55,8 +55,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileElementMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
-	/** @var LibreSignFileService|MockObject */
-	private $libreSignFileService;
+	/** @var FileElementService|MockObject */
+	private $fileElementService;
 	/** @var TimeFactory|MockObject */
 	private $timeFactory;
 	/** @var ITempManager|MockObject */
@@ -81,7 +81,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
-		$this->libreSignFileService = $this->createMock(LibreSignFileService::class);
+		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->service = new SignFileService(
@@ -99,7 +99,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->root,
 			$this->fileElementMapper,
 			$this->userElementMapper,
-			$this->libreSignFileService,
+			$this->fileElementService,
 			$this->timeFactory,
 			$this->tempManager
 		);
@@ -695,7 +695,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		if (!empty($elements)) {
 			$libreSignFile->setId(1);
-			$this->libreSignFileService
+			$this->fileElementService
 				->expects($this->exactly(count($elements)))
 				->method('saveVisibleElement');
 		}
