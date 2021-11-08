@@ -8,6 +8,7 @@ OC.L10N.register(
     "Element not found" : "Element nicht gefunden",
     "Element updated with success" : "Element erfolgreich aktualisiert",
     "Visible element deleted" : "Angezeigtes Element gelöscht",
+    "You are not allowed to approve user profile documents." : "Sie dürfen Benutzerprofildokumente nicht genehmigen.",
     "Invalid data to validate file" : "Ungültige Daten zum Überprüfen der Datei",
     "Invalid file identifier" : "Ungültiger Datei-Identifizierer",
     "You need to sign this document" : "Sie müssen dieses Dokument unterschreiben",

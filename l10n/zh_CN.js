@@ -8,6 +8,7 @@ OC.L10N.register(
     "Element not found" : "未找到元素",
     "Element updated with success" : "成功更新了元素",
     "Visible element deleted" : "删除了可见元素",
+    "You are not allowed to approve user profile documents." : "你未被允许审批用户配置文档。",
     "Invalid data to validate file" : "验证文件的数据无效",
     "Invalid file identifier" : "无效的文件标识符",
     "You need to sign this document" : "你需要在这份文件上签字",

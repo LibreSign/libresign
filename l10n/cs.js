@@ -8,6 +8,7 @@ OC.L10N.register(
     "Element not found" : "Prvek nenalezen",
     "Element updated with success" : "Prvek úspěšně aktualizován",
     "Visible element deleted" : "Viditelný prvek smazán",
+    "You are not allowed to approve user profile documents." : "Nemáte oprávnění schvalovat dokumenty v uživatelských profilech.",
     "Invalid data to validate file" : "Neplatná data pro ověření souboru",
     "Invalid file identifier" : "Neplatný identifikátor souboru",
     "You need to sign this document" : "Je třeba, abyste tento dokument podepsali",
