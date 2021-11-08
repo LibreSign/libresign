@@ -56,8 +56,8 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
-	/** @var LibreSignFileService */
-	private $libreSignFileService;
+	/** @var FileService */
+	private $fileService;
 	/** @var TimeFactory; */
 	private $timeFactory;
 	/** @var ITempManager */
@@ -86,7 +86,7 @@ class SignFileService {
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
-		LibreSignFileService $libreSignFileService,
+		FileElementService $fileElementService,
 		TimeFactory $timeFactory,
 		ITempManager $tempManager
 	) {
@@ -104,7 +104,7 @@ class SignFileService {
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
-		$this->libreSignFileService = $libreSignFileService;
+		$this->fileElementService = $fileElementService;
 		$this->timeFactory = $timeFactory;
 		$this->tempManager = $tempManager;
 	}
@@ -128,7 +128,7 @@ class SignFileService {
 		$elements = $data['visibleElements'];
 		foreach ($elements as $key => $element) {
 			$element['fileId'] = $file->getId();
-			$elements[$key] = $this->libreSignFileService->saveVisibleElement($element);
+			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
 		}
 		return $elements;
 	}
