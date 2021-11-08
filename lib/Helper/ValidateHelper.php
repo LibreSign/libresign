@@ -384,9 +384,18 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('No user data'));
 		}
 		if (empty($data['email'])) {
-			throw new LibresignException($this->l10n->t('Email required'));
-		}
-		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+			if (!empty($data['uid'])) {
+				$user = $this->userManager->get($data['uid']);
+				if (!$user) {
+					throw new LibresignException($this->l10n->t('User not found.'));
+				}
+				if (!$user->getEMailAddress()) {
+					throw new LibresignException($this->l10n->t('User %s has no email.', [$data['uid']]));
+				}
+			} else {
+				throw new LibresignException($this->l10n->t('Email required'));
+			}
+		} elseif (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}

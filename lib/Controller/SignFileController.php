@@ -125,7 +125,7 @@ class SignFileController extends ApiController {
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			if (!empty($data['visibleElements'])) {
-				$this->validateHelper->validateVisibleElements($data, $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
+				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
 			$return = $this->signFileService->save($data);
 			unset(

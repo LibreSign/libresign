@@ -209,7 +209,7 @@ class SignFileService {
 				$forceNotifyAsNewUser = true;
 			}
 			foreach ($data['users'] as $user) {
-				$user['email'] = strtolower($user['email']);
+				$user['email'] = $this->getUserEmail($user);
 				$fileUser = $this->getFileUser($user['email'], $fileId);
 				$this->setDataToUser($fileUser, $user, $fileId);
 				$this->saveFileUser($fileUser, $forceNotifyAsNewUser);
@@ -307,7 +307,7 @@ class SignFileService {
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 			$fileUser->setDescription($user['description']);
 		}
-		if (empty($user['user_id'])) {
+		if (empty($user['uid'])) {
 			$userToSign = $this->userManager->getByEmail($user['email']);
 			if ($userToSign) {
 				$fileUser->setUserId($userToSign[0]->getUID());
@@ -315,6 +315,8 @@ class SignFileService {
 					$user['displayName'] = $userToSign[0]->getDisplayName();
 				}
 			}
+		} else {
+			$fileUser->setUserId($user['uid']);
 		}
 		if (!empty($user['displayName'])) {
 			$fileUser->setDisplayName($user['displayName']);
@@ -374,11 +376,21 @@ class SignFileService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
-			$emails[$index] = strtolower($user['email']);
+			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
 		if (count($emails) > count($uniques)) {
 			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
+		}
+	}
+
+	private function getUserEmail(array $user): ?string {
+		if (!empty($user['email'])) {
+			return strtolower($user['email']);
+		}
+		if (!empty($user['uid'])) {
+			$user = $this->userManager->get($user['uid']);
+			return $user->getEMailAddress();
 		}
 	}
 
