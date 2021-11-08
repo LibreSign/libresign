@@ -106,7 +106,7 @@ class FileElementService {
 
 	public function translateCoordinatesFromInternalNotation(array $properties, File $file): array {
 		$metadata = json_decode($file->getMetadata(), true);
-		$dimension = $metadata['d'][$properties['page'] - 1];
+		$dimension = $metadata['d'][$properties['coordinates']['page'] - 1];
 
 		$translated['left'] = $properties['coordinates']['llx'];
 		$translated['height'] = $properties['coordinates']['ury'] - $properties['coordinates']['lly'];
