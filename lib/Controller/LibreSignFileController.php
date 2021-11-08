@@ -164,6 +164,7 @@ class LibreSignFileController extends Controller {
 							'lly' => $visibleElement->getLly()
 						]
 					];
+					$element['coordinates'] = $this->fileElementService->translateCoordinatesFromInternalNotation($element, $file);
 					if ($visibleElement->getSignatureFileId()) {
 						$return['file']['url'] = $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $visibleElement->getSignatureFileId()]);
 					}

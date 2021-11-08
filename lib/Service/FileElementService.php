@@ -6,7 +6,6 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Handler\TCPDILibresign;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 class FileElementService {
@@ -60,7 +59,7 @@ class FileElementService {
 		return $fileElement;
 	}
 
-	private function translateCoordinatesToInternalNotation(array $properties, File $file) {
+	private function translateCoordinatesToInternalNotation(array $properties, File $file): array {
 		$translated['page'] = $properties['coordinates']['page'] ?? 1;
 		$metadata = json_decode($file->getMetadata(), true);
 		$dimension = $metadata['d'][$translated['page'] - 1];
@@ -75,12 +74,12 @@ class FileElementService {
 
 		if (isset($properties['coordinates']['lly'])) {
 			$translated['lly'] = $properties['coordinates']['lly'];
-		} elseif (isset($properties['coordinates']['width'])) {
-			if ($properties['coordinates']['width'] > $translated['ury']) {
-				$translated['ury'] = $properties['coordinates']['width'];
+		} elseif (isset($properties['coordinates']['height'])) {
+			if ($properties['coordinates']['height'] > $translated['ury']) {
+				$translated['ury'] = $properties['coordinates']['height'];
 				$translated['lly'] = 0;
 			} else {
-				$translated['lly'] = $translated['ury'] - $properties['coordinates']['width'];
+				$translated['lly'] = $translated['ury'] - $properties['coordinates']['height'];
 			}
 		} else {
 			$translated['lly'] = 0;
@@ -96,11 +95,23 @@ class FileElementService {
 
 		if (isset($properties['coordinates']['urx'])) {
 			$translated['urx'] = $properties['coordinates']['urx'];
-		} elseif (isset($properties['coordinates']['height'])) {
-			$translated['urx'] = $translated['llx'] + $properties['coordinates']['height'];
+		} elseif (isset($properties['coordinates']['width'])) {
+			$translated['urx'] = $translated['llx'] + $properties['coordinates']['width'];
 		} else {
 			$translated['urx'] = 0;
 		}
+
+		return $translated;
+	}
+
+	public function translateCoordinatesFromInternalNotation(array $properties, File $file): array {
+		$metadata = json_decode($file->getMetadata(), true);
+		$dimension = $metadata['d'][$properties['page'] - 1];
+
+		$translated['left'] = $properties['coordinates']['llx'];
+		$translated['height'] = $properties['coordinates']['ury'] - $properties['coordinates']['lly'];
+		$translated['top'] = $dimension['h'] - $properties['coordinates']['ury'];
+		$translated['width'] = $properties['coordinates']['urx'] - $properties['coordinates']['llx'];
 
 		return $translated;
 	}
