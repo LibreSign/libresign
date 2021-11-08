@@ -390,7 +390,8 @@ class ValidateHelper {
 					throw new LibresignException($this->l10n->t('User not found.'));
 				}
 				if (!$user->getEMailAddress()) {
-					throw new LibresignException($this->l10n->t('User %s has no email.', [$data['uid']]));
+					// TRANSLATORS There is no email address for given user
+					throw new LibresignException($this->l10n->t('User %s has no email address.', [$data['uid']]));
 				}
 			} else {
 				throw new LibresignException($this->l10n->t('Email required'));
