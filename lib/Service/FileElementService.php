@@ -15,8 +15,6 @@ class FileElementService {
 	private $fileElementMapper;
 	/** @var ITimeFactory */
 	private $timeFactory;
-	/** @var SignFileService */
-	private $signFileService;
 	/** @var array */
 	private $fileMetadata = [];
 
@@ -28,7 +26,6 @@ class FileElementService {
 		$this->fileMapper = $fileMapper;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->timeFactory = $timeFactory;
-		// $this->signFileService = $signFileService;
 	}
 
 	public function saveVisibleElement(array $element, string $uuid = '') {
@@ -70,5 +67,12 @@ class FileElementService {
 		$fileElement = new FileElement();
 		$fileElement->fromRow(['id' => $elementId]);
 		$this->fileElementMapper->delete($fileElement);
+	}
+
+	public function deleteVisibleElements($fileId) {
+		$visibleElements = $this->fileElementMapper->getByFileId($fileId);
+		foreach ($visibleElements as $visibleElement) {
+			$this->fileElementMapper->delete($visibleElement);
+		}
 	}
 }
