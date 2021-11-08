@@ -5,6 +5,8 @@ import { service as signService } from '../../domains/sign'
 import DragResize from 'vue-drag-resize'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
+import { showResponseError } from '../../helpers/errors'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 
 const emptySignerData = () => ({
 	data: {},
@@ -55,6 +57,17 @@ export default {
 				},
 			}
 		},
+		pageDimensions() {
+			const { w, h } = this.page.resolution
+			return {
+				height: h,
+				width: w,
+				css: {
+					height: `${Math.ceil(h)}px`,
+					width: `${Math.ceil(w)}px`,
+				},
+			}
+		},
 		hasSignerSelected() {
 			return !!this.currentSigner.data.email
 		},
@@ -65,6 +78,8 @@ export default {
 		} catch (err) {
 			console.error(err)
 		}
+
+		this.$refs.img.setAttribute('draggable', false)
 	},
 	methods: {
 		resize(newRect) {
@@ -77,6 +92,32 @@ export default {
 			this.currentSigner = {
 				...emptySignerData(),
 				data: signer,
+			}
+		},
+		async saveElement() {
+			const { element, data } = this.currentSigner
+
+			const payload = {
+				coordinates: {
+					page: element.page + 1,
+					urx: element.top + element.height,
+					ury: element.top,
+					llx: element.left + element.width,
+					lly: element.left,
+				},
+				type: 'signature',
+				uid: data.email,
+			}
+
+			try {
+				await signService.addElement(this.uuid, payload)
+				showSuccess(t('libresign', 'Element created'))
+			} catch (err) {
+				if (err.response) {
+					return showResponseError(err.response)
+				}
+
+				return showError(err.message)
 			}
 		},
 	},
@@ -96,11 +137,14 @@ export default {
 			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
 				<img :src="page.url">
 			</div> -->
-			<PageNavigation v-model="currentSigner.element.page" v-bind="{ pages }" width="827px" />
+			<PageNavigation
+				v-model="currentSigner.element.page"
+				v-bind="{ pages }"
+				:width="pageDimensions.css.width" />
 			<div class="image-page--main">
 				<div
 					class="image-page--container"
-					:style="{ '--page-img-w': '827px', '--page-img-h': '1169px' }">
+					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
 					<DragResize
 						v-if="hasSignerSelected"
 						parent-limitation
@@ -113,12 +157,12 @@ export default {
 							{{ currentSigner.data.email }}
 						</div>
 						<div class="image-page--action">
-							<button class="primary">
+							<button class="primary" @click="saveElement">
 								{{ t('libresign', 'Save') }}
 							</button>
 						</div>
 					</DragResize>
-					<img :src="page.url">
+					<img ref="img" :src="page.url">
 				</div>
 			</div>
 		</div>

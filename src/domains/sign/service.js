@@ -16,12 +16,18 @@ const buildService = (http) => {
 	return ({
 
 		/**
-     * @param   {string}  uuid
-     *
-     * @return  {*}
-     */
+		 * @param   {string}  uuid
+		 *
+		 * @return  {*}
+		 */
 		async validateByUUID(uuid) {
 			const { data } = await http.get(getURL(`file/validate/uuid/${uuid}`))
+
+			return data
+		},
+
+		async addElement(fileUUID, body) {
+			const { data } = await http.post(getURL(`file/${fileUUID}/elements`), body)
 
 			return data
 		},
