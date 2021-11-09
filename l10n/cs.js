@@ -53,6 +53,7 @@ OC.L10N.register(
     "Sign process already started. Unable to change status." : "Proces podepisování už začal. Není možné změnit stav.",
     "Inform or UUID or a File object" : "Inform nebo UUID nebo objekt-soubor",
     "No user data" : "Žádná uživatelská data",
+    "User not found." : "Uživatel nenalezen.",
     "Email required" : "Vyžadován e-mail",
     "Invalid email" : "Neplatný e-mail",
     "File not loaded" : "Soubor nebyl načten",

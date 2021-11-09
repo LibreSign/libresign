@@ -51,6 +51,7 @@
     "Sign process already started. Unable to change status." : "Proces podpisywania już się rozpoczął. Nie udało się zmienić statusu.",
     "Inform or UUID or a File object" : "Inform lub UUID lub obiekt pliku",
     "No user data" : "Brak danych użytkownika",
+    "User not found." : "Użytkownik nie znaleziony.",
     "Email required" : "Wymagany e-mail",
     "Invalid email" : "Nieprawidłowy e-mail",
     "File not loaded" : "Plik nie został załadowany",

@@ -51,6 +51,7 @@
     "Sign process already started. Unable to change status." : "Signaturprozess bereits gestartet. Status kann nicht geändert werden.",
     "Inform or UUID or a File object" : "Inform oder UUID oder ein Dateiobjekt",
     "No user data" : "Keine Nutzerdaten",
+    "User not found." : "Konto nicht gefunden.",
     "Email required" : "E-Mail-Adresse erforderlich",
     "Invalid email" : "Ungültige E-Mail-Adresse",
     "File not loaded" : "Datei nicht geladen",

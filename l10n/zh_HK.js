@@ -53,6 +53,7 @@ OC.L10N.register(
     "Sign process already started. Unable to change status." : "簽署過程已經開始。無法更改狀態。",
     "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",
     "No user data" : "沒有用戶數據",
+    "User not found." : "未找到用戶。",
     "Email required" : "電郵地址為必填",
     "Invalid email" : "無效的電郵地址",
     "File not loaded" : "檔案未加載",
