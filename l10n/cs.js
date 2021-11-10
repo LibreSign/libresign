@@ -54,6 +54,7 @@ OC.L10N.register(
     "Inform or UUID or a File object" : "Inform nebo UUID nebo objekt-soubor",
     "No user data" : "Žádná uživatelská data",
     "User not found." : "Uživatel nenalezen.",
+    "User %s has no email address." : "Uživatel %s nemá žádnou e-mailovou adresu.",
     "Email required" : "Vyžadován e-mail",
     "Invalid email" : "Neplatný e-mail",
     "File not loaded" : "Soubor nebyl načten",

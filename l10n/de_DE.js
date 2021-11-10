@@ -54,6 +54,7 @@ OC.L10N.register(
     "Inform or UUID or a File object" : "Inform oder UUID oder ein Dateiobjekt",
     "No user data" : "Keine Nutzerdaten",
     "User not found." : "Konto nicht gefunden.",
+    "User %s has no email address." : "Benutzer %s hat keine E-Mail-Adresse.",
     "Email required" : "E-Mail-Adresse erforderlich",
     "Invalid email" : "Ungültige E-Mail-Adresse",
     "File not loaded" : "Datei nicht geladen",

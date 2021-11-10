@@ -1,0 +1,26 @@
+{ "translations": {
+    "Success" : "Успех",
+    "Invalid user or password" : "Невалиден потребител или парола",
+    "_Element created with success_::_Elements created with success_" : ["Елементите са успешно създадени","Елементите са успешно създадени"],
+    "Elements not found" : "Елементите не са намерени",
+    "Element not found" : "Елеменът не е намерен",
+    "Element updated with success" : "Елементът е обновен успешно",
+    "Visible element deleted" : "Изтрит е видим елемент",
+    "You are not allowed to approve user profile documents." : "Нямате право да одобрявате документи за потребителски профил.",
+    "Invalid data to validate file" : "Невалидни данни за проверка на файл",
+    "Invalid file identifier" : "Невалиден идентификатор на файл",
+    "You need to sign this document" : "Трябва да подпишете този документ",
+    "You cannot request signature for this document, please contact your administrator" : "Не можете да поискате подпис за този документ, моля, свържете се с вашия администратор",
+    "No signers." : "Няма подписващи.",
+    "You must not sign this file." : "Не трябва да подписвате този файл.",
+    "Page not found." : "Страницата не е намерена.",
+    "Notification sent with success." : "Известието е изпратено успешно.",
+    "Invalid data to sign file" : "Невалидни данни за подписване на файл",
+    "File already signed by you" : "Файлът вече е подписан от вас",
+    "File signed" : "Файлът е подписан",
+    "Internal error. Contact admin." : "Вътрешна грешка. Свържете се с администратора.",
+    "Password to sign not defined. Create a password to sign." : "Паролата за подпис не е дефинирана. Създайте парола за подпис.",
+    "Invalid Sign engine." : "Невалиден двигател на подпис.",
+    "Digital signed by LibreSign." : "Цифров подпис от LibreSign."
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
