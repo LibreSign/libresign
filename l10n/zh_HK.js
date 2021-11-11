@@ -54,6 +54,7 @@ OC.L10N.register(
     "Inform or UUID or a File object" : "通知或 UUID 或一个文件对象",
     "No user data" : "沒有用戶數據",
     "User not found." : "未找到用戶。",
+    "User %s has no email address." : "用戶 %s 未提供電郵地址。",
     "Email required" : "電郵地址為必填",
     "Invalid email" : "無效的電郵地址",
     "File not loaded" : "檔案未加載",
