@@ -1,23 +1,37 @@
 <script>
-import Content from '@nextcloud/vue/dist/Components/Content'
-import { get } from 'lodash-es'
-import { service as signService } from '../../domains/sign'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
+import { get, pick, find, map } from 'lodash-es'
+import Content from '@nextcloud/vue/dist/Components/Content'
+import { service as signService } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+
+const emptyElement = () => {
+	return {
+		coordinates: {
+			page: 0,
+			height: 90,
+			left: 100,
+			top: 100,
+			width: 370,
+		},
+		elementId: 0,
+	}
+}
 
 const emptySignerData = () => ({
-	data: {},
-	element: {
-		page: 0,
-		height: 90,
-		left: 100,
-		top: 100,
-		width: 370,
-	},
+	signed: null,
+	displayName: '',
+	fullName: null,
+	me: true,
+	signatureId: 0,
+	email: '',
+	element: emptyElement(),
 })
+
+const deepCopy = val => JSON.parse(JSON.stringify(val))
 
 export default {
 	name: 'SignDetail',
@@ -29,6 +43,7 @@ export default {
 	},
 	data() {
 		return {
+			signers: [],
 			document: {
 				name: '',
 				signers: [],
@@ -43,7 +58,7 @@ export default {
 			return this.$route.params.uuid || ''
 		},
 		pageIndex() {
-			return this.currentSigner.element.page
+			return this.currentSigner.element.coordinates.page
 		},
 		pages() {
 			return get(this.document, 'pages', [])
@@ -69,12 +84,16 @@ export default {
 			}
 		},
 		hasSignerSelected() {
-			return !!this.currentSigner.data.email
+			return !!this.currentSigner.email
 		},
 	},
 	async mounted() {
 		try {
+			this.signers = []
 			this.document = await signService.validateByUUID(this.uuid)
+			this.$nextTick(() => {
+				this.updateSigners()
+			})
 		} catch (err) {
 			console.error(err)
 		}
@@ -82,31 +101,54 @@ export default {
 		this.$refs.img.setAttribute('draggable', false)
 	},
 	methods: {
+		updateSigners() {
+			const [signers, visibleElements] = deepCopy([this.document.signers, this.document.visibleElements])
+
+			this.signers = map(signers, signer => {
+				const element = find(visibleElements, (el) => {
+					return el.email === signer.email || el.uid === signer.displayName // TODO!: change to signer.uid
+				})
+
+				const row = {
+					...signer,
+					element: emptyElement(),
+				}
+
+				if (element) {
+					const coordinates = pick(element.coordinates, ['top', 'left', 'width', 'height', 'page'])
+
+					row.element = {
+						coordinates,
+						page: coordinates.page - 1,
+						elementId: element.elementId,
+					}
+				}
+
+				return row
+			})
+		},
 		resize(newRect) {
-			this.currentSigner.element = {
-				...this.currentSigner.element,
+			this.currentSigner.coordinates = {
+				...this.currentSigner.coordinates,
 				...newRect,
 			}
 		},
 		onSelectSigner(signer) {
-			this.currentSigner = {
-				...emptySignerData(),
-				data: signer,
-			}
+			this.currentSigner = { ...signer }
+		},
+		publish() {
+
 		},
 		async saveElement() {
-			const { element, data } = this.currentSigner
+			const { coordinates, email } = this.currentSigner
 
 			const payload = {
 				coordinates: {
-					page: element.page + 1,
-					urx: element.top + element.height,
-					ury: element.top,
-					llx: element.left + element.width,
-					lly: element.left,
+					...coordinates,
+					page: coordinates.page + 1,
 				},
 				type: 'signature',
-				uid: data.email,
+				email,
 			}
 
 			try {
@@ -129,8 +171,12 @@ export default {
 		<div>
 			<h2>{{ document.name }}</h2>
 			<Sidebar class="view-sign-detail--sidebar"
-				:signers="document.signers"
-				@select:signer="onSelectSigner" />
+				:signers="signers"
+				@select:signer="onSelectSigner">
+				<button class="primary" @click="publish">
+					{{ t('libresign', 'Request sign') }}
+				</button>
+			</Sidebar>
 		</div>
 		<div class="image-page">
 			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
@@ -138,7 +184,7 @@ export default {
 				<img :src="page.url">
 			</div> -->
 			<PageNavigation
-				v-model="currentSigner.element.page"
+				v-model="currentSigner.element.coordinates.page"
 				v-bind="{ pages }"
 				:width="pageDimensions.css.width" />
 			<div class="image-page--main">
@@ -154,7 +200,7 @@ export default {
 						@resizing="resize"
 						@dragging="resize">
 						<div class="image-page--element">
-							{{ currentSigner.data.email }}
+							{{ currentSigner.email }}
 						</div>
 						<div class="image-page--action">
 							<button class="primary" @click="saveElement">

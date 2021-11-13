@@ -40,7 +40,8 @@ export default {
 				</template> -->
 			</Signer>
 		</ul>
-		<!-- <pre>{{ signers }}</pre> -->
+
+		<slot />
 	</div>
 </template>
 
