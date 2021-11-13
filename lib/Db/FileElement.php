@@ -11,8 +11,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setId(int $id)
  * @method int getFileId()
  * @method void setFileId(int $fileId)
- * @method string getUserId()
- * @method void setUserId(string $userId)
+ * @method int getFileUserId()
+ * @method void setFileUserId(int $fileUserId)
  * @method string getType()
  * @method void setType(string $type)
  * @method int getSignatureFileId()
@@ -38,8 +38,8 @@ class FileElement extends Entity {
 	/** @var integer */
 	protected $fileId;
 
-	/** @var string */
-	protected $userId;
+	/** @var int */
+	protected $fileUserId;
 
 	/** @var string */
 	protected $type;
@@ -71,7 +71,7 @@ class FileElement extends Entity {
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
-		$this->addType('userId', 'string');
+		$this->addType('fileUserId', 'integer');
 		$this->addType('type', 'string');
 		$this->addType('signatureFileId', 'integer');
 		$this->addType('metadata', 'string');

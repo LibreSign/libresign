@@ -34,9 +34,9 @@ class Version2040Date20211010194532 extends SimpleMigrationStep {
 				'notnull' => true,
 				'unsigned' => true,
 			]);
-			$table->addColumn('user_id', Types::STRING, [
+			$table->addColumn('file_user_id', Types::BIGINT, [
 				'notnull' => true,
-				'length' => 255,
+				'unsigned' => true,
 			]);
 			$table->addColumn('type', Types::STRING, [
 				'notnull' => true,

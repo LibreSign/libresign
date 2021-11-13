@@ -22,6 +22,7 @@ use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -40,6 +41,8 @@ class LibreSignFileController extends Controller {
 	private $urlGenerator;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var IUserManager */
+	private $userManager;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
 	/** @var ValidateHelper */
@@ -58,6 +61,7 @@ class LibreSignFileController extends Controller {
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
+		IUserManager $userManager,
 		FileElementMapper $fileElementMapper,
 		FileElementService $fileElementService,
 		ValidateHelper $validateHelper,
@@ -71,6 +75,7 @@ class LibreSignFileController extends Controller {
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
+		$this->userManager = $userManager;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->fileElementService = $fileElementService;
 		$this->validateHelper = $validateHelper;
@@ -138,11 +143,15 @@ class LibreSignFileController extends Controller {
 					'displayName' => $signer->getDisplayName(),
 					'fullName' => $signer->getFullName(),
 					'me' => false,
-					'signatureId' => $signer->getId()
+					'fileUserId' => $signer->getId()
 				];
 				if (!empty($uid)) {
 					if ($uid === $file->getUserId()) {
 						$signatureToShow['email'] = $signer->getEmail();
+						$user = $this->userManager->getByEmail($signer->getEmail());
+						if ($user) {
+							$signatureToShow['uid'] = $user[0]->getUID();
+						}
 					}
 					$signatureToShow['me'] = $uid === $signer->getUserId();
 					if ($uid === $signer->getUserId() && !$signer->getSigned()) {
@@ -156,7 +165,7 @@ class LibreSignFileController extends Controller {
 				foreach ($visibleElements as $visibleElement) {
 					$element = [
 						'elementId' => $visibleElement->getId(),
-						'uid' => $visibleElement->getUserId(),
+						'fileUserId' => $visibleElement->getFileUserId(),
 						'type' => $visibleElement->getType(),
 						'coordinates' => [
 							'page' => $visibleElement->getPage(),
@@ -166,6 +175,10 @@ class LibreSignFileController extends Controller {
 							'lly' => $visibleElement->getLly()
 						]
 					];
+					if ($uid === $file->getUserId()) {
+						$element['uid'] = $visibleElement->getUserId();
+						$element['email'] = $visibleElement->getEmail();
+					}
 					$element['coordinates'] = array_merge(
 						$element['coordinates'],
 						$this->fileElementService->translateCoordinatesFromInternalNotation($element, $file)
@@ -295,12 +308,11 @@ class LibreSignFileController extends Controller {
 	 * @NoCSRFRequired
 	 * @return JSONResponse|FileDisplayResponse
 	 */
-	public function postElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', string $email = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function postElement(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
-			'uid' => $uid,
-			'email' => $email,
+			'fileUserId' => $fileUserId,
 			'coordinates' => $coordinates,
 			'metadata' => $metadata,
 			'fileUuid' => $uuid,
@@ -313,7 +325,7 @@ class LibreSignFileController extends Controller {
 			]);
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [
-				'elementId' => $fileElement->getId(),
+				'fileElementId' => $fileElement->getId(),
 				'success' => true,
 			];
 			$statusCode = Http::STATUS_OK;
