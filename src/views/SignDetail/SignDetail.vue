@@ -136,7 +136,10 @@ export default {
 			}
 		},
 		onSelectSigner(signer) {
-			this.currentSigner = { ...signer }
+			this.currentSigner = emptySignerData()
+			this.$nextTick(() => {
+				this.currentSigner = { ...signer }
+			})
 		},
 		publish() {
 
@@ -197,8 +200,10 @@ export default {
 						v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
-						:w="370"
-						:h="90"
+						:w="currentSigner.element.coordinates.width"
+						:h="currentSigner.element.coordinates.height"
+						:x="currentSigner.element.coordinates.left"
+						:y="currentSigner.element.coordinates.top"
 						@resizing="resize"
 						@dragging="resize">
 						<div class="image-page--element">
