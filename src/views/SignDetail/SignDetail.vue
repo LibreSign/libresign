@@ -128,8 +128,10 @@ export default {
 			})
 		},
 		resize(newRect) {
-			this.currentSigner.coordinates = {
-				...this.currentSigner.coordinates,
+			const { coordinates } = this.currentSigner.element
+
+			this.currentSigner.element.coordinates = {
+				...coordinates,
 				...newRect,
 			}
 		},
@@ -140,12 +142,12 @@ export default {
 
 		},
 		async saveElement() {
-			const { coordinates, email } = this.currentSigner
+			const { element, email } = this.currentSigner
 
 			const payload = {
 				coordinates: {
-					...coordinates,
-					page: coordinates.page + 1,
+					...element.coordinates,
+					page: element.coordinates.page + 1,
 				},
 				type: 'signature',
 				email,
