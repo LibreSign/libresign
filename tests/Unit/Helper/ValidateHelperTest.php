@@ -243,7 +243,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testHaveValidMailWithDataProvider($data, $errorMessage) {
 		$this->expectExceptionMessage($errorMessage);
-		$this->getValidateHelper()->haveValidMail($data);
+		$this->getValidateHelper()->haveValidMail($data, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 	}
 
 	public function dataProviderHaveValidMail() {

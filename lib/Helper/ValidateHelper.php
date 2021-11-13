@@ -155,7 +155,7 @@ class ValidateHelper {
 
 	public function validateVisibleElement(array $element, int $type): void {
 		$this->validateElementType($element);
-		$this->validateElementUid($element, $type);
+		$this->haveValidMail($element, $type);
 		$this->validateFile($element, $type);
 		$this->validateElementCoordinates($element);
 	}
@@ -379,7 +379,10 @@ class ValidateHelper {
 		}
 	}
 
-	public function haveValidMail(array $data): void {
+	public function haveValidMail(array $data, ?int $type = null): void {
+		if ($type === self::TYPE_TO_SIGN) {
+			return;
+		}
 		if (empty($data)) {
 			throw new LibresignException($this->l10n->t('No user data'));
 		}
