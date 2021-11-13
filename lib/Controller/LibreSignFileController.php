@@ -12,7 +12,7 @@ use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\LibreSignFileService;
+use OCA\Libresign\Service\FileElementService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
@@ -44,8 +44,8 @@ class LibreSignFileController extends Controller {
 	private $fileElementMapper;
 	/** @var ValidateHelper */
 	private $validateHelper;
-	/** @var LibreSignFileService */
-	private $libreSignFileService;
+	/** @var FileElementService */
+	private $fileElementService;
 	/** @var IRootFolder */
 	private $rootFolder;
 
@@ -59,7 +59,7 @@ class LibreSignFileController extends Controller {
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
 		FileElementMapper $fileElementMapper,
-		LibreSignFileService $libreSignFileService,
+		FileElementService $fileElementService,
 		ValidateHelper $validateHelper,
 		IRootFolder $rootFolder
 	) {
@@ -72,7 +72,7 @@ class LibreSignFileController extends Controller {
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
 		$this->fileElementMapper = $fileElementMapper;
-		$this->libreSignFileService = $libreSignFileService;
+		$this->fileElementService = $fileElementService;
 		$this->validateHelper = $validateHelper;
 		$this->rootFolder = $rootFolder;
 	}
@@ -164,6 +164,10 @@ class LibreSignFileController extends Controller {
 							'lly' => $visibleElement->getLly()
 						]
 					];
+					$element['coordinates'] = array_merge(
+						$element['coordinates'],
+						$this->fileElementService->translateCoordinatesFromInternalNotation($element, $file)
+					);
 					if ($visibleElement->getSignatureFileId()) {
 						$return['file']['url'] = $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $visibleElement->getSignatureFileId()]);
 					}
@@ -303,7 +307,7 @@ class LibreSignFileController extends Controller {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->libreSignFileService->saveVisibleElement($visibleElement, $uuid);
+			$this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [];
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
@@ -338,7 +342,7 @@ class LibreSignFileController extends Controller {
 				'userManager' => $this->userSession->getUser()
 			]);
 			$this->validateHelper->validateUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
-			$this->libreSignFileService->deleteVisibleElement($elementId);
+			$this->fileElementService->deleteVisibleElement($elementId);
 			$return = [];
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {

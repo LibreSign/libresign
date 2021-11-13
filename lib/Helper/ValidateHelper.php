@@ -182,7 +182,7 @@ class ValidateHelper {
 
 	private function validateElementCoordinate($element): void {
 		foreach ($element['coordinates'] as $type => $value) {
-			if (in_array($type, ['llx', 'lly', 'urx', 'ury'])) {
+			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
 				if (!is_int($value)) {
 					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}
@@ -384,9 +384,19 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('No user data'));
 		}
 		if (empty($data['email'])) {
-			throw new LibresignException($this->l10n->t('Email required'));
-		}
-		if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+			if (!empty($data['uid'])) {
+				$user = $this->userManager->get($data['uid']);
+				if (!$user) {
+					throw new LibresignException($this->l10n->t('User not found.'));
+				}
+				if (!$user->getEMailAddress()) {
+					// TRANSLATORS There is no email address for given user
+					throw new LibresignException($this->l10n->t('User %s has no email address.', [$data['uid']]));
+				}
+			} else {
+				throw new LibresignException($this->l10n->t('Email required'));
+			}
+		} elseif (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
