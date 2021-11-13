@@ -293,13 +293,15 @@ class LibreSignFileController extends Controller {
 	 * @NoCSRFRequired
 	 * @return JSONResponse|FileDisplayResponse
 	 */
-	public function postElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function postElement(string $uuid, int $elementId = null, string $type = '', string $uid = '', string $email = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
 			'uid' => $uid,
+			'email' => $email,
 			'coordinates' => $coordinates,
-			'metadata' => $metadata
+			'metadata' => $metadata,
+			'fileUuid' => $uuid,
 		];
 		try {
 			$this->validateHelper->validateVisibleElement($visibleElement, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
@@ -307,8 +309,11 @@ class LibreSignFileController extends Controller {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->fileElementService->saveVisibleElement($visibleElement, $uuid);
-			$return = [];
+			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
+			$return = [
+				'elementId' => $fileElement->getId(),
+				'success' => true,
+			];
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());

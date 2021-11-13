@@ -28,9 +28,10 @@ class FileElementService {
 		$this->timeFactory = $timeFactory;
 	}
 
-	public function saveVisibleElement(array $element, string $uuid = '') {
+	public function saveVisibleElement(array $element, string $uuid = ''): FileElement {
 		$fileElement = $this->getVisibleElementFromProperties($element, $uuid);
 		$this->fileElementMapper->insertOrUpdate($fileElement);
+		return $fileElement;
 	}
 
 	private function getVisibleElementFromProperties(array $properties, string $uuid = ''): FileElement {
