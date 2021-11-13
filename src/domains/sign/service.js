@@ -25,9 +25,45 @@ const buildService = (http) => {
 
 			return data
 		},
-
+		/**
+		 * @param   {string}  fileUUID
+		 * @param   {Object}  body
+		 *
+		 * @return  {*}
+		 */
 		async addElement(fileUUID, body) {
 			const { data } = await http.post(getURL(`file/${fileUUID}/elements`), body)
+
+			return data
+		},
+		/**
+		 * @param   {string}  fileID
+		 * @param   {string}  email
+		 *
+		 * @return  {*}
+		 */
+		async notifySigner(fileID, email) {
+			const body = {
+				fileId: fileID,
+				signers: [
+					{
+						email,
+					},
+				],
+			}
+
+			const { data } = await http.post(getURL('notify/signers'), body)
+
+			return data
+		},
+		/**
+		 * @param   {string}  fileID
+		 * @param   {string}  signerId
+		 *
+		 * @return  {*}
+		 */
+		async removeSigner(fileID, signerId) {
+			const { data } = await http.delete(getURL(`sign/file_id/${fileID}/${signerId}`))
 
 			return data
 		},

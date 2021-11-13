@@ -6,7 +6,6 @@ export default {
 	name: 'Sidebar',
 	components: {
 		Signer,
-
 	},
 	props: {
 		signers: {
@@ -30,14 +29,10 @@ export default {
 				:key="`signature-${user.signatureId}`"
 				:signer="user"
 				@click="selectSigner(user)">
-				<!-- <template slot="actions">
-					<ActionButton icon="icon-delete">
-						Remove
-					</ActionButton>
-					<ActionButton icon="icon-edit">
-						Notify
-					</ActionButton>
-				</template> -->
+				<slot
+					slot="actions"
+					v-bind="{signer: user}"
+					name="actions" />
 			</Signer>
 		</ul>
 

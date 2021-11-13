@@ -7,6 +7,7 @@ import { service as signService } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
+import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 
 const emptyElement = () => {
 	return {
@@ -40,11 +41,13 @@ export default {
 		DragResize,
 		Sidebar,
 		PageNavigation,
+		ActionButton,
 	},
 	data() {
 		return {
 			signers: [],
 			document: {
+				id: '',
 				name: '',
 				signers: [],
 				pages: [],
@@ -88,19 +91,17 @@ export default {
 		},
 	},
 	async mounted() {
-		try {
-			this.signers = []
-			this.document = await signService.validateByUUID(this.uuid)
-			this.$nextTick(() => {
-				this.updateSigners()
-			})
-		} catch (err) {
-			console.error(err)
-		}
-
+		this.loadDocument()
 		this.$refs.img.setAttribute('draggable', false)
 	},
 	methods: {
+		onError(err) {
+			if (err.response) {
+				return showResponseError(err.response)
+			}
+
+			return showError(err.message)
+		},
 		updateSigners() {
 			const [signers, visibleElements] = deepCopy([this.document.signers, this.document.visibleElements])
 
@@ -144,6 +145,40 @@ export default {
 		publish() {
 
 		},
+		async loadDocument() {
+			try {
+				this.signers = []
+				this.document = await signService.validateByUUID(this.uuid)
+				this.$nextTick(() => {
+					this.updateSigners()
+				})
+			} catch (err) {
+				this.onError(err)
+			}
+		},
+		async sendNotify({ signer }) {
+			try {
+				const data = await signService.notifySigner(this.document.fileId, signer.email)
+				showSuccess(t('libresign', data.message))
+			} catch (err) {
+				this.onError(err)
+			}
+
+		},
+		async removeSigner(signer) {
+			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: signer.email }))
+
+			if (result === false) {
+				return
+			}
+
+			try {
+				const data = await signService.removeSigner(this.document.fileId, signer.signatureId)
+				showSuccess(t('libresign', data.message))
+			} catch (err) {
+				this.onError(err)
+			}
+		},
 		async saveElement() {
 			const { element, email } = this.currentSigner
 
@@ -160,11 +195,7 @@ export default {
 				await signService.addElement(this.uuid, payload)
 				showSuccess(t('libresign', 'Element created'))
 			} catch (err) {
-				if (err.response) {
-					return showResponseError(err.response)
-				}
-
-				return showError(err.message)
+				this.onError(err)
 			}
 		},
 	},
@@ -178,8 +209,17 @@ export default {
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				@select:signer="onSelectSigner">
-				<button class="primary" @click="publish">
-					{{ t('libresign', 'Request sign') }}
+				<template #actions="{signer}">
+					<ActionButton icon="icon-comment" @click="sendNotify(signer)">
+						{{ t('libresign', 'Send reminder') }}
+					</ActionButton>
+					<ActionButton icon="icon-delete" @click="removeSigner(signer)">
+						{{ t('libresign', 'Remove') }}
+					</ActionButton>
+				</template>
+
+				<button class="primary publish-btn" @click="publish">
+					{{ t('libresign', 'Request') }}
 				</button>
 			</Sidebar>
 		</div>
@@ -272,5 +312,9 @@ export default {
 			max-width: 100%;
 		}
 	}
+}
+
+.publish-btn {
+	width: 100%;
 }
 </style>
