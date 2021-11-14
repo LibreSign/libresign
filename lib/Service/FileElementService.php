@@ -30,12 +30,21 @@ class FileElementService {
 
 	public function saveVisibleElement(array $element, string $uuid = ''): FileElement {
 		$fileElement = $this->getVisibleElementFromProperties($element, $uuid);
-		$this->fileElementMapper->insertOrUpdate($fileElement);
+		if ($fileElement->getId()) {
+			$this->fileElementMapper->update($fileElement);
+		} else {
+			$this->fileElementMapper->insert($fileElement);
+		}
 		return $fileElement;
 	}
 
 	private function getVisibleElementFromProperties(array $properties, string $uuid = ''): FileElement {
-		$fileElement = new FileElement();
+		if (!empty($properties['elementId'])) {
+			$fileElement = $this->fileElementMapper->getById($properties['elementId']);
+		} else {
+			$fileElement = new FileElement();
+			$fileElement->setCreatedAt($this->timeFactory->getDateTime());
+		}
 		if ($uuid) {
 			$file = $this->fileMapper->getByUuid($uuid);
 			$fileElement->setFileId($file->getId());
@@ -52,11 +61,6 @@ class FileElementService {
 		$fileElement->setLlx($coordinates['llx']);
 		$fileElement->setLly($coordinates['lly']);
 		$fileElement->setMetadata(!empty($properties['metadata']) ? json_encode($properties['metadata']) : null);
-		if (!empty($properties['elementId'])) {
-			$fileElement->setId($properties['elementId']);
-		} else {
-			$fileElement->setCreatedAt($this->timeFactory->getDateTime());
-		}
 		return $fileElement;
 	}
 
