@@ -1,7 +1,7 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
-import { get, pick, find, map } from 'lodash-es'
+import { get, pick, find, map, cloneDeep } from 'lodash-es'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { service as signService } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
@@ -12,7 +12,7 @@ import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 const emptyElement = () => {
 	return {
 		coordinates: {
-			page: 0,
+			page: 1,
 			height: 90,
 			left: 100,
 			top: 100,
@@ -27,7 +27,7 @@ const emptySignerData = () => ({
 	displayName: '',
 	fullName: null,
 	me: true,
-	signatureId: 0,
+	fileUserId: 0,
 	email: '',
 	element: emptyElement(),
 })
@@ -61,7 +61,7 @@ export default {
 			return this.$route.params.uuid || ''
 		},
 		pageIndex() {
-			return this.currentSigner.element.coordinates.page
+			return this.currentSigner.element.coordinates.page - 1
 		},
 		pages() {
 			return get(this.document, 'pages', [])
@@ -89,6 +89,9 @@ export default {
 		hasSignerSelected() {
 			return !!this.currentSigner.email
 		},
+		editingElement() {
+			return this.currentSigner.element.elementId > 0
+		},
 	},
 	async mounted() {
 		this.loadDocument()
@@ -103,11 +106,15 @@ export default {
 			return showError(err.message)
 		},
 		updateSigners() {
+			const { fileUserId } = this.currentSigner
+
+			this.currentSigner = emptySignerData()
+
 			const [signers, visibleElements] = deepCopy([this.document.signers, this.document.visibleElements])
 
 			this.signers = map(signers, signer => {
 				const element = find(visibleElements, (el) => {
-					return el.email === signer.email || el.uid === signer.displayName // TODO!: change to signer.uid
+					return el.fileUserId === signer.fileUserId
 				})
 
 				const row = {
@@ -119,13 +126,22 @@ export default {
 					const coordinates = pick(element.coordinates, ['top', 'left', 'width', 'height', 'page'])
 
 					row.element = {
-						coordinates,
-						page: coordinates.page - 1,
 						elementId: element.elementId,
+						coordinates,
 					}
 				}
 
 				return row
+			})
+
+			this.$nextTick(() => {
+				if (fileUserId === 0) {
+					return
+				}
+
+				const current = this.signers.find(signer => signer.fileUserId === fileUserId)
+
+				this.onSelectSigner({ ...current })
 			})
 		},
 		resize(newRect) {
@@ -137,9 +153,15 @@ export default {
 			}
 		},
 		onSelectSigner(signer) {
+			const page = this.pageIndex + 1
+
 			this.currentSigner = emptySignerData()
 			this.$nextTick(() => {
-				this.currentSigner = { ...signer }
+				this.currentSigner = cloneDeep(signer)
+
+				if (signer.element.elementId === 0) {
+					this.currentSigner.element.coordinates.page = page
+				}
 			})
 		},
 		publish() {
@@ -149,9 +171,7 @@ export default {
 			try {
 				this.signers = []
 				this.document = await signService.validateByUUID(this.uuid)
-				this.$nextTick(() => {
-					this.updateSigners()
-				})
+				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
 				this.onError(err)
 			}
@@ -173,27 +193,31 @@ export default {
 			}
 
 			try {
-				const data = await signService.removeSigner(this.document.fileId, signer.signatureId)
+				const data = await signService.removeSigner(this.document.fileId, signer.fileUserId)
 				showSuccess(t('libresign', data.message))
 			} catch (err) {
 				this.onError(err)
 			}
 		},
 		async saveElement() {
-			const { element, email } = this.currentSigner
+			const { element, fileUserId } = this.currentSigner
 
 			const payload = {
 				coordinates: {
 					...element.coordinates,
-					page: element.coordinates.page + 1,
+					page: element.coordinates.page,
 				},
 				type: 'signature',
-				email,
+				fileUserId,
 			}
 
 			try {
-				await signService.addElement(this.uuid, payload)
+				this.editingElement
+					? await signService.updateElement(this.uuid, element.elementId, payload)
+					: await signService.addElement(this.uuid, payload)
 				showSuccess(t('libresign', 'Element created'))
+
+				this.$nextTick(() => this.loadDocument())
 			} catch (err) {
 				this.onError(err)
 			}
@@ -251,7 +275,7 @@ export default {
 						</div>
 						<div class="image-page--action">
 							<button class="primary" @click="saveElement">
-								{{ t('libresign', 'Save') }}
+								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
 							</button>
 						</div>
 					</DragResize>

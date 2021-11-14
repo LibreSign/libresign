@@ -44,15 +44,20 @@ export default {
 		signDate() {
 			return this.signer.sign_date
 		},
+		element() {
+			return this.signer.element || {}
+		},
+		hasElement() {
+			return this.element.elementId > 0
+		},
 	},
 }
 </script>
 
 <template>
 	<ListItem
-		v-bind="{ to }"
+		v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
 		:title="displayName"
-		:bold="false"
 		:details="signDate"
 		v-on="$listeners">
 		<template #icon>

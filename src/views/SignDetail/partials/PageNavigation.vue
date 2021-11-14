@@ -24,7 +24,7 @@ export default {
 			return size(this.pages)
 		},
 		actual() {
-			return this.value + 1
+			return this.value
 		},
 		allowNext() {
 			return this.actual < this.size

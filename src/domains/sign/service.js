@@ -37,6 +37,18 @@ const buildService = (http) => {
 			return data
 		},
 		/**
+		 * @param   {string}  fileUUID
+		 * @param   {string}  elementID
+		 * @param   {Object}  body
+		 *
+		 * @return  {*}
+		 */
+		async updateElement(fileUUID, elementID, body) {
+			const { data } = await http.patch(getURL(`file/${fileUUID}/elements/${elementID}`), body)
+
+			return data
+		},
+		/**
 		 * @param   {string}  fileID
 		 * @param   {string}  email
 		 *
