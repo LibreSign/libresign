@@ -26,7 +26,7 @@ export default {
 		<ul>
 			<Signer
 				v-for="user in signers"
-				:key="`signature-${user.signatureId}`"
+				:key="`signature-${user.fileUserId}`"
 				:signer="user"
 				@click="selectSigner(user)">
 				<slot
