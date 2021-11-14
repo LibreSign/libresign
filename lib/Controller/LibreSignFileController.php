@@ -176,8 +176,12 @@ class LibreSignFileController extends Controller {
 						]
 					];
 					if ($uid === $file->getUserId()) {
-						$element['uid'] = $visibleElement->getUserId();
-						$element['email'] = $visibleElement->getEmail();
+						$fileUser = $this->fileUserMapper->getById($visibleElement->getFileUserId());
+						$userAssociatedToVisibleElement = $this->userManager->getByEmail($fileUser->getEmail());
+						if ($userAssociatedToVisibleElement) {
+							$element['uid'] = $userAssociatedToVisibleElement[0]->getUID();
+						}
+						$element['email'] = $fileUser->getEmail();
 					}
 					$element['coordinates'] = array_merge(
 						$element['coordinates'],
