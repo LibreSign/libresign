@@ -46,13 +46,10 @@ import { defaultsDeep } from 'lodash-es'
 
 export default {
 	name: 'SignPDF',
-
 	components: { Description, PDFViewer },
-
 	mixins: [
 		isMobile,
 	],
-
 	props: {
 		uuid: {
 			type: String,
@@ -85,13 +82,13 @@ export default {
 	},
 	computed: {
 		pdfData() {
-			const { sign, pdf } = this.state
+			const { sign } = this.state
 
 			return {
-				url: pdf.url,
-				uuid: sign.uuid,
-				filename: sign.filename,
-				description: sign.filename,
+				url: sign?.pdf?.url,
+				uuid: sign?.uuid,
+				filename: sign?.filename,
+				description: sign?.filename,
 			}
 		},
 	},

@@ -33,12 +33,12 @@ const routes = [
 		redirect: { name: selectAction(libresignVar.action) },
 	},
 	{
-		path: '/p/sign/:uuid',
+		path: '/p/sign/:uuid/pdf',
 		component: () => import('../views/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
-		path: '/p/sign/:uuid',
+		path: '/p/sign/:uuid/sign-in',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
 		props: (route) => ({
