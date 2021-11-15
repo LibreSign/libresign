@@ -7,16 +7,18 @@ const state = {
 }
 
 const actions = {
-	SIGN_DOCUMENT: async({ dispatch, rootGetters }, { fileId, password }) => {
+	SIGN_DOCUMENT: async({ dispatch, rootGetters }, { fileId, password, elements }) => {
 		try {
 			let response
 			if (fileId.length >= 10) {
 				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/uuid/${fileId}`), {
 					password,
+					elements,
 				})
 			} else {
 				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
 					password,
+					elements,
 				})
 			}
 			dispatch('files/GET_ALL_FILES', {}, { root: true })

@@ -6,7 +6,7 @@ import dompurify from 'dompurify'
 import { mapActions, mapGetters } from 'vuex'
 import PasswordManager from './ModalPasswordManager.vue'
 import Image from '../../../assets/images/application-pdf.png'
-import { service as signerService } from '../../../domains/signatures'
+// import { service as signerService } from '../../../domains/signatures'
 
 export default {
 	name: 'Description',
@@ -14,10 +14,13 @@ export default {
 		PasswordManager,
 	},
 	props: {
+		user: {
+			type: Object,
+			required: true,
+		},
 		pdfName: {
 			type: String,
 			required: true,
-			default: 'PDF Name',
 		},
 		pdfDescription: {
 			type: String,
@@ -28,6 +31,10 @@ export default {
 			type: String,
 			required: true,
 			default: '',
+		},
+		elements: {
+			type: Array,
+			required: true,
 		},
 	},
 
@@ -64,6 +71,12 @@ export default {
 				this.showDoc = false
 			}
 		},
+		user: {
+			immediate: true,
+			handler(val) {
+				this.havePfx = val.settings.hasSignatureFile
+			},
+		},
 	},
 	created() {
 		this.$nextTick(() => {
@@ -72,8 +85,6 @@ export default {
 		this.width <= 650
 			? this.showDoc = true
 			: this.showDoc = false
-
-		this.getMe()
 	},
 
 	methods: {
@@ -84,7 +95,13 @@ export default {
 			this.updating = true
 			this.disableButton = true
 
-			this.signDoc({ fileId: this.uuid, password: this.password })
+			const elements = this.elements
+				.map(row => ({
+					documentElementId: row.documentElementId,
+					profileElementId: row.profileElementId,
+				}))
+
+			this.signDoc({ fileId: this.uuid, password: this.password, elements })
 
 			if (this['error/getError'].length > 0) {
 				this.updating = false
@@ -98,11 +115,6 @@ export default {
 		},
 		changePfx(value) {
 			this.havePfx = value
-		},
-		async getMe() {
-			const data = await signerService.loadMe()
-
-			this.havePfx = data.settings.hasSignatureFile
 		},
 		handleModal(status) {
 			this.modal = status
@@ -128,6 +140,11 @@ export default {
 			<span v-html="markedDescription" />
 		</header>
 		<div id="body">
+			<div class="sign-elements">
+				<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
+					<img :src="element.url" alt="">
+				</figure>
+			</div>
 			<form @submit="(e) => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
 					<label for="password">{{
@@ -271,6 +288,12 @@ export default {
 	}
 	.button{
 		margin-top: 15px;
+	}
+}
+
+.sign-elements {
+	img {
+		max-width: 100%;
 	}
 }
 </style>

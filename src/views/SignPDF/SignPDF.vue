@@ -28,6 +28,8 @@
 		</div>
 		<div v-show="!isMobile" id="description" class="content">
 			<Description
+				:elements="elements"
+				:user="user"
 				:uuid="pdfData.uuid"
 				:pdf-name="pdfData.filename"
 				:pdf-description="pdfData.description"
@@ -115,6 +117,20 @@ export default {
 				description: sign?.filename,
 			}
 		},
+		siganture() {
+			return this.userSignatures.find(row => {
+				return row.type === 'signature'
+			})
+		},
+		elements() {
+			const { siganture, visibleElements } = this
+
+			return visibleElements.map(el => ({
+				url: siganture.file.url,
+				documentElementId: el.elementId,
+				profileElementId: siganture.id,
+			}))
+		},
 	},
 	mounted() {
 		this.loadSignatures()
@@ -141,7 +157,8 @@ export default {
 		},
 		async loadSignatures() {
 			try {
-				this.userSignatures = await signerService.loadSignatures()
+				const { elements } = await signerService.loadSignatures()
+				this.userSignatures = elements
 			} catch (err) {
 				onError(err)
 			}
