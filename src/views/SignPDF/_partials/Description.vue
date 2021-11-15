@@ -1,0 +1,284 @@
+<!-- eslint-disable vue/no-v-html -->
+
+<script>
+import Modal from '@nextcloud/vue/dist/Components/Modal'
+import axios from '@nextcloud/axios'
+import marked from 'marked'
+import dompurify from 'dompurify'
+import { mapActions, mapGetters } from 'vuex'
+import { generateUrl } from '@nextcloud/router'
+import ResetPassword from '../../../views/ResetPassword.vue'
+import CreatePassword from '../../../views/CreatePassword.vue'
+import Image from '../../../assets/images/application-pdf.png'
+
+export default {
+	name: 'Description',
+	components: {
+		Modal,
+		ResetPassword,
+		CreatePassword,
+	},
+	props: {
+		pdfName: {
+			type: String,
+			required: true,
+			default: 'PDF Name',
+		},
+		pdfDescription: {
+			type: String,
+			required: false,
+			default: 'Description',
+		},
+		uuid: {
+			type: String,
+			required: true,
+			default: '',
+		},
+	},
+
+	data() {
+		return {
+			image: Image,
+			updating: false,
+			disableButton: false,
+			signaturePath: '2',
+			password: '',
+			asign: true,
+			modal: false,
+			havePfx: false,
+			showDoc: false,
+			viewHeader: false,
+			width: window.innerWidth,
+		}
+	},
+
+	computed: {
+		...mapGetters(['error/getError']),
+		markedDescription() {
+			const description = this.pdfDescription || ''
+			return dompurify.sanitize(marked(description), { USE_PROFILES: { html: false } })
+		},
+	},
+
+	watch: {
+		width(newVal, oldVal) {
+			if (newVal <= 650) {
+				this.showDoc = true
+			}
+			if (newVal > 650) {
+				this.showDoc = false
+			}
+		},
+	},
+	created() {
+		this.$nextTick(() => {
+			window.addEventListener('resize', this.onResize)
+		})
+		this.width <= 650
+			? this.showDoc = true
+			: this.showDoc = false
+
+		this.getMe()
+	},
+
+	methods: {
+		...mapActions({
+			signDoc: 'sign/SIGN_DOCUMENT',
+		}),
+		async signDocument() {
+			this.updating = true
+			this.disableButton = true
+
+			this.signDoc({ fileId: this.uuid, password: this.password })
+
+			if (this['error/getError'].length > 0) {
+				this.updating = false
+				this.disableButton = false
+			} else {
+				this.updating = true
+				this.disableButton = true
+			}
+
+			// TODO: redirect
+		},
+		changePfx(value) {
+			this.havePfx = value
+		},
+		async getMe() {
+			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+			this.havePfx = response.data.settings.hasSignatureFile
+		},
+		handleModal(status) {
+			this.modal = status
+		},
+		emitShow() {
+			this.$emit('onDocument', true)
+			this.showDoc = false
+			this.viewHeader = true
+		},
+		onResize() {
+			this.width = window.innerWidth
+		},
+
+	},
+}
+</script>
+
+<template>
+	<div class="container-desc">
+		<header v-show="!viewHeader">
+			<img :src="image">
+			<p>{{ t('libresign', pdfName) }}</p>
+			<span v-html="markedDescription" />
+		</header>
+		<div id="body">
+			<form @submit="(e) => e.preventDefault()">
+				<div v-show="signaturePath" class="form-group">
+					<label for="password">{{
+						t('libresign', 'Subscription password.')
+					}}</label>
+					<div class="form-ib-group">
+						<input id="password"
+							v-model="password"
+							v-tooltip.left="{
+								content: t('libresign', 'Create your password for signing PDF'),
+								trigger: 'false',
+								show: !havePfx
+							}"
+							:disabled="!havePfx"
+							type="password">
+						<a class="forgot" @click="handleModal(true)">
+							{{ havePfx ? t('libresign', 'Forgot your password?') : t('libresign', 'Create password to sign document') }}
+						</a>
+						<button
+							type="button"
+							:value=" t('libresign', 'Sign the document.')"
+							:class="!updating ? 'primary' : 'primary loading'"
+							:disabled="disableButton"
+							@click="signDocument">
+							{{ t('libresign', 'Sign the document.') }}
+						</button>
+						<button v-show="showDoc"
+							type="button"
+							class="button secondary"
+							@click="emitShow">
+							{{ t('libresign', 'Show Document') }}
+						</button>
+					</div>
+				</div>
+			</form>
+			<Modal v-if="modal"
+				size="normal"
+				@close="handleModal(false)">
+				<ResetPassword v-if="havePfx" class="modal-dialog" @close="handleModal(false)" />
+				<CreatePassword v-if="!havePfx"
+					@changePfx="changePfx"
+					@close="handleModal(false)" />
+			</Modal>
+		</div>
+	</div>
+</template>
+
+<style lang="scss">
+.modal-wrapper .modal-container{
+	width: 50%;
+	height: 100%;
+}
+
+.container-desc{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+
+	width: 100%;
+	height: 100%;
+
+	header{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		padding-top: 50px;
+		padding-bottom: 50px;
+
+		img {
+			width: 100px;
+			height: 125px;
+		}
+
+		p {
+			font-size: 23px;
+			font-weight:  bold;
+			padding-top: 10px;
+			padding-bottom: 30px;
+		}
+
+		span{
+			width: 80%;
+			min-width: 150px;
+			max-width: 350px;
+			font-size: 17px;
+			text-indent: 15px;
+			text-align: justify;
+			max-height: 416px;
+			text-justify: inter-word;
+
+			overflow-y: scroll;
+			overflow-x: scroll;
+			scrollbar-width: 100px;
+			::-webkit-scrollbar{
+				width: 100px;
+			}
+			@media screen and (max-height: 800px){
+				max-height: 316px;
+			}
+			@media screen and (max-height: 660px) {
+				max-height: 216px;
+			}
+		}
+	}
+
+	#body{
+		width: 80%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+
+		form{
+
+			input {
+				width: 100%;
+			}
+
+		}
+	}
+
+	.form-group{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.form-group:first-child{
+		padding-bottom: 20px;
+	}
+
+	.form-ib-group{
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.forgot {
+		text-align: end;
+		opacity: .7;
+		font-size: 14px;
+		cursor: pointer;
+		margin-bottom: 20px;
+	}
+	.button{
+		margin-top: 15px;
+	}
+}
+</style>

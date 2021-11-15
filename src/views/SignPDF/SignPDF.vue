@@ -37,12 +37,11 @@
 </template>
 
 <script>
-import Description from '../Components/Description'
-import PDFViewer from '../Components/PDFViewer'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
-import { getInitialState } from '../services/InitialStateService'
 import { defaultsDeep } from 'lodash-es'
-// import { service as signService } from '../domains/sign'
+import { getInitialState } from '../../services/InitialStateService'
+import Description from './_partials/Description'
+import PDFViewer from '../../Components/PDFViewer'
 
 export default {
 	name: 'SignPDF',

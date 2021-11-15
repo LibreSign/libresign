@@ -34,7 +34,7 @@ const routes = [
 	},
 	{
 		path: '/p/sign/:uuid/pdf',
-		component: () => import('../views/SignPDF'),
+		component: () => import('../views/SignPDF/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
