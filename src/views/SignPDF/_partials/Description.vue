@@ -1,13 +1,12 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <script>
-import axios from '@nextcloud/axios'
 import marked from 'marked'
 import dompurify from 'dompurify'
 import { mapActions, mapGetters } from 'vuex'
-import { generateUrl } from '@nextcloud/router'
-import Image from '../../../assets/images/application-pdf.png'
 import PasswordManager from './ModalPasswordManager.vue'
+import Image from '../../../assets/images/application-pdf.png'
+import { service as signerService } from '../../../domains/signatures'
 
 export default {
 	name: 'Description',
@@ -101,8 +100,9 @@ export default {
 			this.havePfx = value
 		},
 		async getMe() {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
-			this.havePfx = response.data.settings.hasSignatureFile
+			const data = await signerService.loadMe()
+
+			this.havePfx = data.settings.hasSignatureFile
 		},
 		handleModal(status) {
 			this.modal = status

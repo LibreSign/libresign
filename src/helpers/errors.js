@@ -15,7 +15,16 @@ const showResponseError = res => {
 	return showError(res.data.message)
 }
 
+const onError = err => {
+	if (err.response) {
+		return showResponseError(err.response)
+	}
+
+	return showError(err.message)
+}
+
 export {
+	onError,
 	showResponseError,
 	showErrors,
 }

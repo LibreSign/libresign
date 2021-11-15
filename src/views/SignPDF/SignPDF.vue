@@ -42,6 +42,9 @@ import { defaultsDeep } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
 import Description from './_partials/Description'
 import PDFViewer from '../../Components/PDFViewer'
+import { service as signerService } from '../../domains/signatures'
+import { service as signService } from '../../domains/sign'
+import { onError } from '../../helpers/errors'
 
 export default {
 	name: 'SignPDF',
@@ -77,9 +80,31 @@ export default {
 		return {
 			state,
 			viewDoc: true,
+			document: {
+				id: '',
+				name: '',
+				signers: [],
+				pages: [],
+				visibleElements: [],
+			},
+			user: {
+				account: { uid: '', displayName: '' },
+				settings: { canRequestSign: false, hasSignatureFile: true },
+			},
+			userSignatures: [],
 		}
 	},
 	computed: {
+		documentUUID() {
+			return this.state?.sign?.uuid
+		},
+		signer() {
+			return this.document.signers.find(row => row.me)
+		},
+		visibleElements() {
+			return (this.document.visibleElements || [])
+				.filter(row => row.fileUserId === this.signer.fileUserId)
+		},
 		pdfData() {
 			const { sign } = this.state
 
@@ -92,15 +117,35 @@ export default {
 		},
 	},
 	mounted() {
-		// this.validate(this.sign.uuid)
+		this.loadSignatures()
+		this.loadDocument()
+		this.loadUser()
 	},
 	methods: {
 		showDocument(param) {
 			this.viewDoc = param
 		},
-		// async validate() {
-		// const data = await signService.validateByUUID(this.sign.uuid)
-		// },
+		async loadDocument() {
+			try {
+				this.document = await signService.validateByUUID(this.documentUUID)
+			} catch (err) {
+				onError(err)
+			}
+		},
+		async loadUser() {
+			try {
+				this.user = await signerService.loadMe()
+			} catch (err) {
+				onError(err)
+			}
+		},
+		async loadSignatures() {
+			try {
+				this.userSignatures = await signerService.loadSignatures()
+			} catch (err) {
+				onError(err)
+			}
+		},
 	},
 }
 </script>
