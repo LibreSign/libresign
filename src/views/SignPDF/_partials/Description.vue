@@ -1,22 +1,18 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
 import axios from '@nextcloud/axios'
 import marked from 'marked'
 import dompurify from 'dompurify'
 import { mapActions, mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
-import ResetPassword from '../../../views/ResetPassword.vue'
-import CreatePassword from '../../../views/CreatePassword.vue'
 import Image from '../../../assets/images/application-pdf.png'
+import PasswordManager from './ModalPasswordManager.vue'
 
 export default {
 	name: 'Description',
 	components: {
-		Modal,
-		ResetPassword,
-		CreatePassword,
+		PasswordManager,
 	},
 	props: {
 		pdfName: {
@@ -167,14 +163,10 @@ export default {
 					</div>
 				</div>
 			</form>
-			<Modal v-if="modal"
-				size="normal"
-				@close="handleModal(false)">
-				<ResetPassword v-if="havePfx" class="modal-dialog" @close="handleModal(false)" />
-				<CreatePassword v-if="!havePfx"
-					@changePfx="changePfx"
-					@close="handleModal(false)" />
-			</Modal>
+			<PasswordManager v-if="modal"
+				:has-password="havePfx"
+				@close="handleModal(false)"
+				@change="changePfx" />
 		</div>
 	</div>
 </template>
