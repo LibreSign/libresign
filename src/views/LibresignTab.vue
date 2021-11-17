@@ -152,6 +152,9 @@ export default {
 			hasPfx: false,
 			showValidation: false,
 			uuid: '',
+
+			signWithSMS: null,
+			phoneNumberIsRequired: null,
 		}
 	},
 
@@ -261,6 +264,8 @@ export default {
 					this.haveRequest = true
 					this.canRequestSign = true
 					this.signers = response.data.signers
+					this.signWithSMS = true
+					this.phoneNumberIsRequired = true
 				} else {
 					this.signers = []
 				}
