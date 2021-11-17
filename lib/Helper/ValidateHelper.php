@@ -155,19 +155,21 @@ class ValidateHelper {
 
 	public function validateVisibleElement(array $element, int $type): void {
 		$this->validateElementType($element);
-		$this->validateElementUid($element, $type);
+		$this->validateElementFileUserId($element, $type);
 		$this->validateFile($element, $type);
 		$this->validateElementCoordinates($element);
 	}
 
-	public function validateElementUid(array $element, int $type): void {
+	public function validateElementFileUserId(array $element, int $type): void {
 		if ($type !== self::TYPE_VISIBLE_ELEMENT_PDF) {
 			return;
 		}
-		if (!array_key_exists('uid', $element)) {
+		if (!array_key_exists('fileUserId', $element)) {
 			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
-		if (!$this->userManager->userExists($element['uid'])) {
+		try {
+			$this->fileUserMapper->getById($element['fileUserId']);
+		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}
 	}
@@ -379,7 +381,10 @@ class ValidateHelper {
 		}
 	}
 
-	public function haveValidMail(array $data): void {
+	public function haveValidMail(array $data, ?int $type = null): void {
+		if ($type === self::TYPE_TO_SIGN) {
+			return;
+		}
 		if (empty($data)) {
 			throw new LibresignException($this->l10n->t('No user data'));
 		}

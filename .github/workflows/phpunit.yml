@@ -19,7 +19,7 @@ jobs:
         databases: ['sqlite']
         coverage: ['xdebug']
         xdebug_mode: ['debug']
-        server-versions: ['stable20', 'stable21', 'stable22', 'master']
+        server-versions: ['stable21', 'stable22', 'stable23', 'master']
         include:
           - php-versions: '8.0'
             databases: 'sqlite'

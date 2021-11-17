@@ -330,9 +330,6 @@ class SignFileService {
 		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
-		if (!empty($data['visibleElements'])) {
-			$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
-		}
 		$this->validateHelper->validateFileStatus($data);
 	}
 

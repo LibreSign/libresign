@@ -67,14 +67,13 @@ class SignFileController extends ApiController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
-	public function requestSign(array $file, array $users, string $name, ?array $visibleElements, ?string $callback = null, ?int $status = 1) {
+	public function requestSign(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
 			'name' => $name,
 			'users' => $users,
 			'status' => $status,
-			'visibleElements' => $visibleElements,
 			'callback' => $callback,
 			'userManager' => $user
 		];
@@ -110,7 +109,7 @@ class SignFileController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = null) {
+	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
@@ -173,7 +172,7 @@ class SignFileController extends ApiController {
 		return $this->sign($password, null, $uuid, $elements);
 	}
 
-	public function sign(string $password, string $file_id = null, string $uuid = null, array $elements): JSONResponse {
+	public function sign(string $password, string $file_id = null, string $uuid = null, array $elements = []): JSONResponse {
 		try {
 			try {
 				$user = $this->userSession->getUser();

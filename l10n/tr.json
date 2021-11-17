@@ -52,6 +52,7 @@
     "Inform or UUID or a File object" : "Bilgi ya da UUID ya da dosya nesnesi",
     "No user data" : "Kullanıcı verisi yok",
     "User not found." : "Kullanıcı bulunamadı.",
+    "User %s has no email address." : "%s kullanıcısının bir e-posta adresi yok.",
     "Email required" : "E-posta adresinin yazılması zorunludur.",
     "Invalid email" : "E-posta adresi geçersiz",
     "File not loaded" : "Dosya yüklenmedi",
