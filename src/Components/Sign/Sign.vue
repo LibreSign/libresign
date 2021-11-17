@@ -83,6 +83,9 @@ export default {
 		}
 	},
 	computed: {
+		user() {
+			return getCurrentUser()
+		},
 		userName() {
 			const currentUser = getCurrentUser()
 			if (currentUser === null) {
@@ -106,6 +109,9 @@ export default {
 			}
 			return true
 		},
+	},
+	mounted() {
+		console.log(this.user)
 	},
 	methods: {
 		clearInput() {
