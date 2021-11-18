@@ -28,19 +28,26 @@
 		</div>
 		<div v-show="!isMobile" id="description" class="content">
 			<Description
+				:enable="enableToSign"
 				:elements="elements"
 				:user="user"
 				:uuid="pdfData.uuid"
 				:pdf-name="pdfData.filename"
 				:pdf-description="pdfData.description"
-				@onDocument="showDocument" />
+				@onDocument="showDocument">
+				<div v-if="needSignature && !hasSignatures">
+					<button class="primary" @click="gotoAccount">
+						{{ t('libresign', 'Create your signature') }}
+					</button>
+				</div>
+			</Description>
 		</div>
 	</div>
 </template>
 
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
-import { defaultsDeep } from 'lodash-es'
+import { defaultsDeep, get, isEmpty } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
 import Description from './_partials/Description'
 import PDFViewer from '../../Components/PDFViewer'
@@ -117,19 +124,37 @@ export default {
 				description: sign?.filename,
 			}
 		},
-		siganture() {
+		signature() {
 			return this.userSignatures.find(row => {
 				return row.type === 'signature'
-			})
+			}) ?? {}
 		},
 		elements() {
-			const { siganture, visibleElements } = this
+			const { signature, visibleElements } = this
+
+			const url = get(signature, ['file', 'url'])
+			const id = get(signature, ['id'])
 
 			return visibleElements.map(el => ({
-				url: siganture.file.url,
 				documentElementId: el.elementId,
-				profileElementId: siganture.id,
+				profileElementId: id,
+				url,
 			}))
+		},
+		hasSignatures() {
+			return !isEmpty(this.userSignatures)
+		},
+		needSignature() {
+			return !isEmpty(this.document.visibleElements)
+		},
+		enableToSign() {
+			const { needSignature, hasSignatures } = this
+
+			if (!needSignature) {
+				return true
+			}
+
+			return hasSignatures
 		},
 	},
 	mounted() {
@@ -140,6 +165,11 @@ export default {
 	methods: {
 		showDocument(param) {
 			this.viewDoc = param
+		},
+		gotoAccount() {
+			const url = this.$router.resolve({ name: 'Account' })
+
+			window.location.href = url.href
 		},
 		async loadDocument() {
 			try {

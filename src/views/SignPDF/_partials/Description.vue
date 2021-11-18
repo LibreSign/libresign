@@ -18,6 +18,10 @@ export default {
 			type: Object,
 			required: true,
 		},
+		enable: {
+			type: Boolean,
+			required: true,
+		},
 		pdfName: {
 			type: String,
 			required: true,
@@ -145,7 +149,7 @@ export default {
 					<img :src="element.url" alt="">
 				</figure>
 			</div>
-			<form @submit="(e) => e.preventDefault()">
+			<form v-if="enable" @submit="(e) => e.preventDefault()">
 				<div v-show="signaturePath" class="form-group">
 					<label for="password">{{
 						t('libresign', 'Subscription password.')
@@ -180,6 +184,7 @@ export default {
 					</div>
 				</div>
 			</form>
+			<slot />
 			<PasswordManager v-if="modal"
 				:has-password="havePfx"
 				@close="handleModal(false)"
