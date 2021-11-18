@@ -152,9 +152,6 @@ export default {
 			hasPfx: false,
 			showValidation: false,
 			uuid: '',
-
-			signWithSMS: null,
-			phoneNumberIsRequired: null,
 		}
 	},
 
