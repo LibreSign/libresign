@@ -92,7 +92,7 @@ class SignFileDeprecatedController extends SignFileController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(array $users, ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = 1) {
+	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = 1) {
 		return parent::updateSign($users, $uuid, $file);
 	}
 
