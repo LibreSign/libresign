@@ -5,38 +5,85 @@
 			<span>{{ userName }}</span>
 		</div>
 
-		<InputAction
-			ref="input"
-			class="input"
-			:type="'password'"
-			:disabled="disabledButton"
-			:loading="hasLoading"
-			@submit="sign" />
-		<a class="forgot-sign" @click="handleModal(true)">
-			{{ messageForgot }}
-		</a>
-		<EmptyContent class="emp-content">
-			<template #desc>
-				<p v-if="havePfx">
-					{{ t('libresign', 'Enter your password to sign this document') }}
-				</p>
-				<p v-else>
-					{{
-						t('libresign',
-							'You need to create a password to sign this document. Click "Create password to sign document" and create a password.')
-					}}
-				</p>
+		<template v-if="!signWithSMS">
+			<InputAction
+				ref="input"
+				class="input"
+				:type="'password'"
+				:disabled="disabledButton"
+				:loading="hasLoading"
+				@submit="sign" />
+			<a class="forgot-sign" @click="handleModal(true)">
+				{{ messageForgot }}
+			</a>
+			<EmptyContent class="emp-content">
+				<template #desc>
+					<p v-if="havePfx">
+						{{ t('libresign', 'Enter your password to sign this document') }}
+					</p>
+					<p v-else>
+						{{
+							t('libresign',
+								'You need to create a password to sign this document. Click "Create password to sign document" and create a password.')
+						}}
+					</p>
+				</template>
+				<template #icon>
+					<img v-if="havePfx" :src="icon">
+					<div v-else class="icon icon-rename" />
+				</template>
+			</EmptyContent>
+			<slot name="actions" />
+			<Modal v-if="modal" size="large" @close="handleModal(false)">
+				<ResetPassword v-if="havePfx" @close="handleModal(false)" />
+				<CreatePassword v-if="!havePfx" @changePfx="changePfx" @close="handleModal(false)" />
+			</Modal>
+		</template>
+		<template v-else>
+			<template v-if="!tokenSent">
+				<div style="font-size: 0.9em;">
+					We'll send an SMS token to *****637.
+				</div>
+				<div style="display: flex;">
+					<div>
+						<button
+							style="margin-right: 10px;"
+							class="button-vue btn btn-green"
+							:disabled="sendingToken"
+							@click="sendToken()">
+							<template v-if="!sendingToken">
+								Send SMS Token
+							</template>
+							<template v-else>
+								Sending token...
+							</template>
+						</button>
+					</div>
+					<div>
+						<button class="button-vue btn btn-blue" @click="signWithSMS = false">
+							Sign with password
+						</button>
+					</div>
+				</div>
 			</template>
-			<template #icon>
-				<img v-if="havePfx" :src="icon">
-				<div v-else class="icon icon-rename" />
+			<template v-else>
+				<div>
+					<div>Token sent! Type it below:</div>
+					<div class="display: flex; align-items: center;">
+						<div>
+							<input class="" v-model="smsToken" type="text">
+						</div>
+						<div>
+							<button
+								class="button-vue btn btn-green"
+								:disabled="!smsToken">
+								Sign
+							</button>
+						</div>
+					</div>
+				</div>
 			</template>
-		</EmptyContent>
-		<slot name="actions" />
-		<Modal v-if="modal" size="large" @close="handleModal(false)">
-			<ResetPassword v-if="havePfx" @close="handleModal(false)" />
-			<CreatePassword v-if="!havePfx" @changePfx="changePfx" @close="handleModal(false)" />
-		</Modal>
+		</template>
 	</div>
 </template>
 
@@ -49,6 +96,8 @@ import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
+
+import { getInitialState } from '../../services/InitialStateService'
 
 export default {
 	name: 'Sign',
@@ -80,6 +129,14 @@ export default {
 		return {
 			icon: Icon,
 			modal: false,
+
+			signWithSMS: true,
+			phoneNumberIsRequired: null,
+
+			sendingToken: false,
+			tokenSent: false,
+
+			smsToken: null,
 		}
 	},
 	computed: {
@@ -112,6 +169,8 @@ export default {
 	},
 	mounted() {
 		console.log(this.user)
+
+		console.log(getInitialState())
 	},
 	methods: {
 		clearInput() {
@@ -128,10 +187,59 @@ export default {
 		handleModal(state) {
 			this.modal = state
 		},
+
+		sendToken() {
+			this.sendingToken = true
+
+			setTimeout(() => {
+				this.sendingToken = false
+				this.tokenSent = true
+			}, 1200)
+		},
 	},
 }
 </script>
 
 <style lang="scss">
 @import './styles';
+
+.btn{
+	border: 1px solid #ddd;
+	padding: 8px 12px;
+	border-radius: 12px;
+	cursor: pointer;
+	background-color: #fff;
+	color: #333;
+	font-weight: bold;
+
+	&[disabled=disabled] {
+		cursor: default;
+		background-color: #ddd !important;
+		color: #777 !important;
+	}
+
+	&.btn-green{
+		border-color: #393;
+		background-color: #393;
+		color: white;
+
+		&[disabled=disabled] {
+			border-color: #6A6;
+			background-color: #6A6 !important;
+			color: #ddd !important;
+		}
+	}
+
+	&.btn-blue{
+		border-color: #339;
+		background-color: #339;
+		color: white;
+
+		&[disabled=disabled] {
+			border-color: #66A;
+			background-color: #66A !important;
+			color: #ddd !important;
+		}
+	}
+}
 </style>
