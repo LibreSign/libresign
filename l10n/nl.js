@@ -121,7 +121,7 @@ OC.L10N.register(
     "Show Document" : "Toon document",
     "Colors:" : "Kleuren:",
     "Apply" : "Pas toe",
-    "Cancel" : "Cancel",
+    "Cancel" : "Annuleren",
     "Confirm your signature" : "Bevestig je handtekening",
     "Save" : "Opslaan",
     "Enter your Full Name or Initials to create Signature" : "Voer je Volledige Naam of Initialen in om Handtekening te creëren",
