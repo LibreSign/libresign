@@ -7,6 +7,7 @@ import { mapActions, mapGetters } from 'vuex'
 import PasswordManager from './ModalPasswordManager.vue'
 import Image from '../../../assets/images/application-pdf.png'
 // import { service as signerService } from '../../../domains/signatures'
+import { isEmpty } from 'lodash-es'
 
 export default {
 	name: 'Description',
@@ -105,7 +106,13 @@ export default {
 					profileElementId: row.profileElementId,
 				}))
 
-			this.signDoc({ fileId: this.uuid, password: this.password, elements })
+			const data = { fileId: this.uuid, password: this.password }
+
+			if (!isEmpty(elements)) {
+				data.elements = elements
+			}
+
+			await this.signDoc(data)
 
 			if (this['error/getError'].length > 0) {
 				this.updating = false
@@ -115,7 +122,9 @@ export default {
 				this.disableButton = true
 			}
 
-			// TODO: redirect
+			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
+
+			window.location.href = url.href
 		},
 		changePfx(value) {
 			this.havePfx = value
