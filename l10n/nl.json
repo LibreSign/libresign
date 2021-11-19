@@ -46,7 +46,7 @@
     "File type: %s. Must be a fileID of %s format." : "Bestandstype: %s. Moet een fileID of %s formaat zijn.",
     "Invalid fileID" : "Ongeldig veldID",
     "You are not allowed to request signing" : "Je bent niet bevoegd om ondertekening aan te vragen.",
-    "You do not have permission for this action." : "Je hebt geen autorisatie voor deze actie.",
+    "You do not have permission for this action." : "Je hebt geen machtiging voor deze actie.",
     "Invalid status code for file." : "Ongeldige status code voor bestand.",
     "Sign process already started. Unable to change status." : "Signeerproces reeds begonnen. Kan status niet veranderen.",
     "Inform or UUID or a File object" : "Informeren van UUID of een bestandsobject",
