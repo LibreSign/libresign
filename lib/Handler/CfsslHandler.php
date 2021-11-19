@@ -18,6 +18,8 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getCommonName()
  * @method CfsslHandler setHosts(array $hosts)
  * @method array getHosts()
+ * @method CfsslHandler setFriendlyName(string $friendlyName)
+ * @method string getFriendlyName()
  * @method CfsslHandler setCountry(string $country)
  * @method string getCountry()
  * @method CfsslHandler setOrganization(string $organization)
@@ -32,6 +34,7 @@ use OCA\Libresign\Exception\LibresignException;
 class CfsslHandler {
 	private $commonName;
 	private $hosts = [];
+	private $friendlyName;
 	private $country;
 	private $organization;
 	private $organizationUnit;
@@ -65,7 +68,13 @@ class CfsslHandler {
 		$certKeys = $this->newCert();
 		$certContent = null;
 		try {
-			openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], $this->getPassword());
+			openssl_pkcs12_export(
+				$certKeys['certificate'],
+				$certContent,
+				$certKeys['private_key'],
+				$this->getPassword(),
+				['friendly_name' => $this->getFriendlyName()],
+			);
 		} catch (\Throwable $th) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}

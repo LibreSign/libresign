@@ -273,6 +273,7 @@ class AccountService {
 	public function generateCertificate(string $email, string $signPassword, string $uid): File {
 		$content = $this->getCertificateHandler()
 			->setHosts([$email])
+			->setFriendlyName($uid)
 			->setPassword($signPassword)
 			->generateCertificate();
 		if (!$content) {
