@@ -120,7 +120,9 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
 import Request from '../Components/Request'
-import { forEach } from 'lodash-es'
+import { forEach, get } from 'lodash-es'
+import { service as signService, SIGN_STATUS } from '../domains/sign'
+import { getAPPURL } from '../helpers/path'
 
 const showErrors = errList => {
 	forEach(errList, err => {
@@ -129,11 +131,15 @@ const showErrors = errList => {
 }
 
 const showResponseError = res => {
-	if (res.data.errors) {
-		return showErrors(res.data.errors)
+	const errors = get(res, ['data', 'errors'])
+
+	if (errors) {
+		return showErrors(errors)
 	}
 
-	return showError(res.data.message)
+	const message = get(res, ['data', 'message'], res?.message)
+
+	return showError(message || 'unknown error')
 }
 
 export default {
@@ -350,36 +356,69 @@ export default {
 			}
 		},
 
+		async updateRegister(users, fileInfo) {
+			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
+				file: {
+					fileId: this.fileInfo.id,
+				},
+				users,
+			})
+			this.option('request')
+			this.clearRequestList()
+			this.getInfo()
+
+			return showSuccess(response.data.message)
+		},
+
+		async createRegister(users, fileInfo) {
+			const needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
+
+			const status = needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN
+
+			const [name] = this.fileInfo.name.split('.pdf')
+			const params = {
+				name,
+				users,
+				status,
+				fileId: this.fileInfo.id,
+			}
+
+			const { message, data } = await signService.createRegister(params)
+
+			showSuccess(message)
+
+			if (needElements) {
+				this.gotoDetails(data.uuid)
+			}
+
+			await this.$nextTick()
+				.then(() => {
+					this.option('request')
+					this.clearRequestList()
+				})
+				.then(() => {
+					return this.getInfo()
+				})
+		},
+
 		async requestSignatures(users, fileInfo) {
 			try {
 				if (this.haveRequest) {
-					const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-						file: {
-							fileId: this.fileInfo.id,
-						},
-						users,
-					})
-					this.option('request')
-					this.clearRequestList()
-					this.getInfo()
-					return showSuccess(response.data.message)
+					await this.updateRegister(users, fileInfo)
+					return
 				}
 
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-					file: {
-						fileId: this.fileInfo.id,
-					},
-					name: this.fileInfo.name.split('.pdf')[0],
-					// status: 0,
-					users,
-				})
-				this.option('request')
-				this.clearRequestList()
-				this.getInfo()
-				return showSuccess(response.data.message)
+				await this.createRegister(users, fileInfo)
+
 			} catch (err) {
-				return showResponseError(err.response)
+				return showResponseError(get(err, ['response'], err))
 			}
+		},
+
+		gotoDetails(uuid) {
+			const href = getAPPURL(`/f/sign/${uuid}`)
+
+			window.location.href = href
 		},
 
 		option(value) {
@@ -401,7 +440,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateUrl(`/apps/libresign/validation/${this.fileInfo.id}`)
+			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
 		},
 	},
 }

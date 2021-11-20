@@ -1,11 +1,22 @@
+/* eslint-disable valid-jsdoc */
+
 import { generateUrl } from '@nextcloud/router'
 
 const rgxBegin = new RegExp('^/')
 const rgxEnd = new RegExp('/$')
 
-const BASE_PATH = '/apps/libresign/api/0.1/'
+const API_PATH = '/apps/libresign/api/0.1/'
+const APP_PATH = '/apps/libresign/'
 
-const getURL = path => generateUrl(pathJoin(BASE_PATH, path))
+/**
+ * generate a full URL from libresign API
+ *
+ * @param {string} path
+ *
+ * @returns {string}
+ */
+const getAPIURL = path => generateUrl(pathJoin(API_PATH, path))
+const getAPPURL = path => generateUrl(pathJoin(APP_PATH, path))
 
 const pathJoin = (...parts) => {
 	const s = parts.length - 1
@@ -26,7 +37,9 @@ const pathJoin = (...parts) => {
 }
 
 export {
-	BASE_PATH,
-	getURL,
+	// @deprecated
+	getAPIURL as getURL,
+	getAPIURL,
+	getAPPURL,
 	pathJoin,
 }

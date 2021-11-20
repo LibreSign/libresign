@@ -1,11 +1,8 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import { pathJoin } from '../../helpers/path'
-
-const BASE_PATH = '/apps/libresign/api/0.1/'
-
-const getURL = path => generateUrl(pathJoin(BASE_PATH, path))
+import {
+	getURL,
+} from '../../helpers/path'
 
 /**
  * build sign service
@@ -76,6 +73,20 @@ const buildService = (http) => {
 		 */
 		async removeSigner(fileID, signerId) {
 			const { data } = await http.delete(getURL(`sign/file_id/${fileID}/${signerId}`))
+
+			return data
+		},
+		async createRegister({ users, name, fileId, status }) {
+			const url = getURL('sign/register')
+
+			const body = {
+				users,
+				name,
+				status,
+				file: { fileId },
+			}
+
+			const { data } = await http.post(url, body)
 
 			return data
 		},
