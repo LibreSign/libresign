@@ -9,6 +9,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
+use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -21,6 +22,8 @@ use OCP\IUserSession;
 class AccountController extends ApiController {
 	/** @var IL10N */
 	private $l10n;
+	/** @var IAccountManager */
+	private $accountManager;
 	/** @var AccountService */
 	private $accountService;
 	/** @var AccountFileService */
@@ -39,6 +42,7 @@ class AccountController extends ApiController {
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
+		IAccountManager $accountManager,
 		AccountService $accountService,
 		AccountFileService $accountFileService,
 		IConfig $config,
@@ -49,6 +53,7 @@ class AccountController extends ApiController {
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
+		$this->accountManager = $accountManager;
 		$this->accountService = $accountService;
 		$this->accountFileService = $accountFileService;
 		$this->config = $config;
@@ -364,5 +369,45 @@ class AccountController extends ApiController {
 		}
 		$return = $this->accountFileService->accountFileList($filter, $page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function updateSettings(?string $phone = null): JSONResponse {
+		try {
+			$user = $this->userSession->getUser();
+			$userAccount = $this->accountManager->getAccount($user);
+			$updatable = [
+				IAccountManager::PROPERTY_PHONE => ['value' => $phone],
+			];
+			foreach ($updatable as $property => $data) {
+				$property = $userAccount->getProperty($property);
+				if (null !== $data['value']) {
+					$property->setValue($data['value']);
+				}
+			}
+			$this->accountManager->updateAccount($userAccount);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'message' => $th->getMessage(),
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+		return new JSONResponse(
+			[
+				'success' => true,
+				'data' => [
+					'userId' => $user->getUID(),
+					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),
+					'message' => $this->l10n->t('Settings saved'),
+				],
+			],
+			Http::STATUS_OK
+		);
 	}
 }

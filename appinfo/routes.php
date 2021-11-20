@@ -10,6 +10,7 @@ return [
 
 		['name' => 'account#createToSign',            'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#me',                      'url' => '/api/0.1/account/me', 'verb' => 'GET'],
+		['name' => 'account#updateSettings',          'url' => '/api/0.1/account/settings', 'verb' => 'PATCH'],
 		['name' => 'account#signatureGenerate',       'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
 		['name' => 'account#addFiles',                'url' => '/api/0.1/account/files', 'verb' => 'POST'],
 		['name' => 'account#accountFileList',            'url' => '/api/0.1/account/files/approval/list', 'verb' => 'GET'],
