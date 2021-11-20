@@ -1,5 +1,5 @@
 import { showError } from '@nextcloud/dialogs'
-import { forEach } from 'lodash-es'
+import { forEach, get } from 'lodash-es'
 
 const showErrors = errList => {
 	forEach(errList, err => {
@@ -8,11 +8,15 @@ const showErrors = errList => {
 }
 
 const showResponseError = res => {
-	if (res.data.errors) {
-		return showErrors(res.data.errors)
+	const errors = get(res, ['data', 'errors'])
+
+	if (errors) {
+		return showErrors(errors)
 	}
 
-	return showError(res.data.message)
+	const message = get(res, ['data', 'message'], res?.message)
+
+	return showError(message || 'unknown error')
 }
 
 const onError = err => {
