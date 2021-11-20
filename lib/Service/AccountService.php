@@ -497,7 +497,7 @@ class AccountService {
 		if (!isset($data['file'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
 		$userFolder = $this->folderService->getFolder($userElement->getFileId());
 		$file = $userFolder->getById($userElement->getFileId())[0];
 		$file->putContent($this->getFileRaw($data));
@@ -507,7 +507,7 @@ class AccountService {
 		if (!isset($data['starred'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
 		$userElement->setStarred($data['starred'] ? 1 : 0);
 		$this->userElementMapper->update($userElement);
 	}
@@ -559,7 +559,7 @@ class AccountService {
 	}
 
 	public function getUserElements($userId): array {
-		$elements = $this->userElementMapper->getByUserId($userId);
+		$elements = $this->userElementMapper->find(['user_id' => $userId]);
 		foreach ($elements as $key => $element) {
 			$return[] = [
 				'id' => $element->getId(),
@@ -577,7 +577,7 @@ class AccountService {
 	}
 
 	public function getUserElementByElementId($userId, $elementId): array {
-		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
 		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
@@ -592,7 +592,7 @@ class AccountService {
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId) {
-		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
 	}
 }

@@ -5,6 +5,7 @@ namespace OCA\Libresign\Helper;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -229,10 +230,35 @@ class ValidateHelper {
 			}
 			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $fileUser->getUserId());
 			try {
-				$this->userElementMapper->getByElementIdAndUserId($elements['profileElementId'], $fileUser->getUserId());
+				$this->userElementMapper->find(['id' => $elements['profileElementId'], 'user_id' => $fileUser->getUserId()]);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
+		}
+		$this->validateUserHasNecessaryElements($fileUser, $list);
+	}
+
+	private function validateUserHasNecessaryElements(FileUser $fileUser, array $list = []): void {
+		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $fileUser->getUserId());
+		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $fileUser): bool {
+			$found = array_filter($list, function ($item) use ($fileElement): bool {
+				return $item['documentElementId'] === $fileElement->getId();
+			});
+			if (!$found) {
+				try {
+					$userElements = $this->userElementMapper->find([
+						'user_id' => $fileUser->getUserId(),
+						'type' => $fileElement->getType(),
+					]);
+					return true;
+				} catch (\Throwable $th) {
+					throw new LibresignException($this->l10n->t('You need define a visible signature or initial to sign this document.'));
+				}
+			}
+			return true;
+		});
+		if (count($total) !== count($fileElements)) {
+			throw new LibresignException($this->l10n->t('You need define a visible signature or initial to sign this document.'));
 		}
 	}
 
