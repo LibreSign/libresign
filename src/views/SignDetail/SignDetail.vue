@@ -197,7 +197,7 @@ export default {
 				this.onError(err)
 			}
 		},
-		async sendNotify({ signer }) {
+		async sendNotify(signer) {
 			try {
 				const data = await signService.notifySigner(this.document.fileId, signer.email)
 				showSuccess(t('libresign', data.message))
