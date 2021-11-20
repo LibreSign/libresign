@@ -31,9 +31,10 @@
 				:enable="enableToSign"
 				:elements="elements"
 				:user="user"
-				:uuid="pdfData.uuid"
+				:uuid="uuid"
 				:pdf-name="pdfData.filename"
 				:pdf-description="pdfData.description"
+				@signed="onSigned"
 				@onDocument="showDocument">
 				<div v-if="needSignature && !hasSignatures">
 					<button class="primary" @click="gotoAccount">
@@ -54,6 +55,7 @@ import PDFViewer from '../../Components/PDFViewer'
 import { service as signerService } from '../../domains/signatures'
 import { service as signService } from '../../domains/sign'
 import { onError } from '../../helpers/errors'
+import { showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'SignPDF',
@@ -169,6 +171,11 @@ export default {
 		gotoAccount() {
 			const url = this.$router.resolve({ name: 'Account' })
 
+			window.location.href = url.href
+		},
+		onSigned(data) {
+			showSuccess(data.message)
+			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.documentUUID } })
 			window.location.href = url.href
 		},
 		async loadDocument() {

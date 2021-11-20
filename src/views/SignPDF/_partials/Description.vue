@@ -6,7 +6,8 @@ import dompurify from 'dompurify'
 import { mapActions, mapGetters } from 'vuex'
 import PasswordManager from './ModalPasswordManager.vue'
 import Image from '../../../assets/images/application-pdf.png'
-// import { service as signerService } from '../../../domains/signatures'
+import { service as signerService } from '../../../domains/sign'
+import { onError } from '../../../helpers/errors'
 import { isEmpty } from 'lodash-es'
 
 export default {
@@ -106,25 +107,21 @@ export default {
 					profileElementId: row.profileElementId,
 				}))
 
-			const data = { fileId: this.uuid, password: this.password }
+			const payload = { fileId: this.uuid, password: this.password }
 
 			if (!isEmpty(elements)) {
-				data.elements = elements
+				payload.elements = elements
 			}
 
-			await this.signDoc(data)
-
-			if (this['error/getError'].length > 0) {
-				this.updating = false
-				this.disableButton = false
-			} else {
+			try {
+				const data = await signerService.signDocument(payload)
+				this.$emit('signed', data)
+			} catch (err) {
+				onError(err)
+			} finally {
 				this.updating = true
 				this.disableButton = true
 			}
-
-			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
-
-			window.location.href = url.href
 		},
 		changePfx(value) {
 			this.havePfx = value

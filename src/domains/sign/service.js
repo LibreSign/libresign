@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
 import {
-	getURL,
+	getAPIURL,
 } from '../../helpers/path'
 
 /**
@@ -18,7 +18,21 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async validateByUUID(uuid) {
-			const { data } = await http.get(getURL(`file/validate/uuid/${uuid}`))
+			const { data } = await http.get(getAPIURL(`file/validate/uuid/${uuid}`))
+
+			return data
+		},
+		async signDocument({ fileId, password, elements }) {
+			const url = String(fileId).length >= 10
+				? getAPIURL(`sign/uuid/${fileId}`)
+				: getAPIURL(`sign/id/${fileId}`)
+
+			const payload = {
+				password,
+				elements,
+			}
+
+			const { data } = await http.post(url, payload)
 
 			return data
 		},
@@ -29,7 +43,7 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async addElement(fileUUID, body) {
-			const { data } = await http.post(getURL(`file/${fileUUID}/elements`), body)
+			const { data } = await http.post(getAPIURL(`file/${fileUUID}/elements`), body)
 
 			return data
 		},
@@ -41,7 +55,7 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async updateElement(fileUUID, elementID, body) {
-			const { data } = await http.patch(getURL(`file/${fileUUID}/elements/${elementID}`), body)
+			const { data } = await http.patch(getAPIURL(`file/${fileUUID}/elements/${elementID}`), body)
 
 			return data
 		},
@@ -61,7 +75,7 @@ const buildService = (http) => {
 				],
 			}
 
-			const { data } = await http.post(getURL('notify/signers'), body)
+			const { data } = await http.post(getAPIURL('notify/signers'), body)
 
 			return data
 		},
@@ -72,12 +86,12 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async removeSigner(fileID, signerId) {
-			const { data } = await http.delete(getURL(`sign/file_id/${fileID}/${signerId}`))
+			const { data } = await http.delete(getAPIURL(`sign/file_id/${fileID}/${signerId}`))
 
 			return data
 		},
 		async createRegister({ users, name, fileId, status }) {
-			const url = getURL('sign/register')
+			const url = getAPIURL('sign/register')
 
 			const body = {
 				users,
@@ -99,7 +113,7 @@ const buildService = (http) => {
 		 * @return  {Promise<unknown>}
 		 */
 		async updateRegister(fileId, content = {}) {
-			const url = getURL('sign/register')
+			const url = getAPIURL('sign/register')
 
 			const body = {
 				file: { fileId },

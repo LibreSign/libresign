@@ -21,13 +21,14 @@ const actions = {
 					elements,
 				})
 			}
-			dispatch('files/GET_ALL_FILES', {}, { root: true })
-			dispatch('error/CLEAN', {}, { root: true })
-			dispatch('sidebar/RESET', {}, { root: true })
+			await dispatch('files/GET_ALL_FILES', {}, { root: true })
+			await dispatch('error/CLEAN', {}, { root: true })
+			await dispatch('sidebar/RESET', {}, { root: true })
+
 			showSuccess(response.data.message)
 		} catch (err) {
-			err.response.data.errors.forEach(error => {
-				dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
+			err.response.data.errors.forEach(async error => {
+				await dispatch('error/SET_ERROR', { code: err.response.status, message: error }, { root: true })
 				showError(rootGetters['error/getError'])
 			})
 		}
