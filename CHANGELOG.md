@@ -21,7 +21,8 @@ Types of changes:
 - Feature Display Controller
 - API: endpoints to add visible elements on PDF file
 - API: status to LibreSign file
-- Entpoint to list all attached files to LibreSign profile
+- Endpoint to list all attached files to LibreSign profile
+- Endpoint to add phone number to account settings
 - Add friendly name on pfx file
 
 # Changed
