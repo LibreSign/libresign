@@ -438,7 +438,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdSignatureIdWithSuccess() {
+	public function testDeleteSignFileIdFileUserIdWithSuccess() {
 		$user = $this->createUser('username', 'password');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -470,7 +470,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdSignatureIdWithError() {
+	public function testDeleteSignFileIdFileUserIdWithError() {
 		$user = $this->createUser('username', 'password');
 
 		$this->request

@@ -476,11 +476,11 @@ class SignFileService {
 		$this->fileElementService->deleteVisibleElements($fileData->getId());
 	}
 
-	public function unassociateToUser(int $fileId, int $signatureId): void {
-		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+	public function unassociateToUser(int $fileId, int $fileUserId): void {
+		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
 		$this->fileUserMapper->delete($fileUser);
 		try {
-			$visibleElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+			$visibleElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}

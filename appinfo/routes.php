@@ -30,7 +30,7 @@ return [
 		['name' => 'signFile#signUsingUuid',          'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
 		['name' => 'signFile#signUsingFileid',        'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 		['name' => 'signFile#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
-		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{signatureId}', 'verb' => 'DELETE'],
+		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
 		['name' => 'libreSignFile#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],

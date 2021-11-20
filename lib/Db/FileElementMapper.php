@@ -54,7 +54,7 @@ class FileElementMapper extends QBMapper {
 					$qb->expr()->eq('fe.signature_file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
 				)
 				->andWhere(
-					$qb->expr()->eq('fe.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fe.file_user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
 				);
 
 			$this->cache['fileId'][$fileId][$userId] = $this->findEntity($qb);
