@@ -51,6 +51,7 @@ const actions = {
 	},
 	GET_INITIAL_SETTINGS: ({ commit }) => {
 		const initialState = getInitialState()
+		initialState.settings.phone = '+5521972230837'
 		commit('setSettings', initialState, { root: true })
 	},
 	CREATE_PFX: async({ commit, dispatch }, { signPassword }) => {

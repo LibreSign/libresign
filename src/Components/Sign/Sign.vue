@@ -40,46 +40,61 @@
 			</Modal>
 		</template>
 		<template v-else>
-			<template v-if="!tokenSent">
-				<div style="font-size: 0.9em;">
-					We'll send an SMS token to *****637.
-				</div>
-				<div style="display: flex;">
-					<div>
-						<button
-							style="margin-right: 10px;"
-							class="button-vue btn btn-green"
-							:disabled="sendingToken"
-							@click="sendToken()">
-							<template v-if="!sendingToken">
-								Send SMS Token
-							</template>
-							<template v-else>
-								Sending token...
-							</template>
-						</button>
+			<template v-if="$store.state.settings.data.settings.phone">
+				<template v-if="!tokenSent">
+					<div style="font-size: 0.9em;">
+						We'll send an SMS token to *****543.
 					</div>
-					<div>
-						<button class="button-vue btn btn-blue" @click="signWithSMS = false">
-							Sign with password
-						</button>
-					</div>
-				</div>
-			</template>
-			<template v-else>
-				<div>
-					<div>Token sent! Type it below:</div>
-					<div class="display: flex; align-items: center;">
-						<div>
-							<input class="" v-model="smsToken" type="text">
-						</div>
+					<div style="display: flex;">
 						<div>
 							<button
+								style="margin-right: 10px;"
 								class="button-vue btn btn-green"
-								:disabled="!smsToken">
-								Sign
+								:disabled="sendingToken"
+								@click="sendToken()">
+								<template v-if="!sendingToken">
+									Send SMS Token
+								</template>
+								<template v-else>
+									Sending token...
+								</template>
 							</button>
 						</div>
+						<div>
+							<button class="button-vue btn btn-blue" @click="signWithSMS = false">
+								Sign with password
+							</button>
+						</div>
+					</div>
+				</template>
+				<template v-else>
+					<div>
+						<div>Token sent! Type it below:</div>
+						<div class="display: flex; align-items: center;">
+							<div>
+								<input v-model="smsToken" class="" type="text">
+							</div>
+							<div>
+								<button
+									class="button-vue btn btn-green"
+									:disabled="!smsToken">
+									Sign
+								</button>
+							</div>
+						</div>
+					</div>
+				</template>
+			</template>
+			<template v-else>
+				<div>Phone number:</div>
+				<div class="flex">
+					<div>
+						<input v-model="phone" type="text">
+					</div>
+					<div>
+						<button class="btn btn-green" @click="savePhone">
+							Save
+						</button>
 					</div>
 				</div>
 			</template>
@@ -96,8 +111,6 @@ import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import InputAction from '../InputAction'
 import Icon from '../../assets/images/signed-icon.svg'
 import { getCurrentUser } from '@nextcloud/auth'
-
-import { getInitialState } from '../../services/InitialStateService'
 
 export default {
 	name: 'Sign',
@@ -136,6 +149,7 @@ export default {
 			sendingToken: false,
 			tokenSent: false,
 
+			phone: null,
 			smsToken: null,
 		}
 	},
@@ -168,9 +182,6 @@ export default {
 		},
 	},
 	mounted() {
-		console.log(this.user)
-
-		console.log(getInitialState())
 	},
 	methods: {
 		clearInput() {
@@ -196,12 +207,32 @@ export default {
 				this.tokenSent = true
 			}, 1200)
 		},
+		savePhone() {
+			if (this.phone) {
+				// try {
+				// const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
+
+				// if (this.signers.length <= 0) {
+				//    this.option('signatures')
+				// }
+
+				//    this.getInfo()
+				//    showSuccess(response.data.message)
+				//    } catch (err) {
+				//        showError(err)
+				//    }
+			}
+		},
 	},
 }
 </script>
 
 <style lang="scss">
 @import './styles';
+
+.flex {
+	display: flex;
+}
 
 .btn{
 	border: 1px solid #ddd;
