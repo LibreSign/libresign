@@ -265,10 +265,10 @@ class SignFileController extends ApiController {
 	 * @NoCSRFRequired
 	 *
 	 * @param integer $fileId
-	 * @param integer $signatureId
+	 * @param integer $fileUserId
 	 * @return JSONResponse
 	 */
-	public function deleteOneSignRequestUsingFileId(int $fileId, int $signatureId) {
+	public function deleteOneSignRequestUsingFileId(int $fileId, int $fileUserId) {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -278,8 +278,8 @@ class SignFileController extends ApiController {
 			];
 			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
-			$this->validateHelper->validateIsSignerOfFile($signatureId, $fileId);
-			$this->signFileService->unassociateToUser($fileId, $signatureId);
+			$this->validateHelper->validateIsSignerOfFile($fileUserId, $fileId);
+			$this->signFileService->unassociateToUser($fileId, $fileUserId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

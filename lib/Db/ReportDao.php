@@ -117,7 +117,7 @@ class ReportDao {
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
-						'signatureId' => $signer->getId(),
+						'fileUserId' => $signer->getId(),
 						'me' => $userId === $signer->getUserId()
 					];
 					if ($signer->getSigned()) {

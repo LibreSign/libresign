@@ -445,9 +445,9 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIsSignerOfFile(int $signatureId, int $fileId): void {
+	public function validateIsSignerOfFile(int $fileUserId, int $fileId): void {
 		try {
-			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $signatureId);
+			$this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
 		}

@@ -94,7 +94,7 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileId}/${user.signatureId}`))
+					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileId}/${user.fileUserId}`))
 
 					this.update()
 					showSuccess(response.data.message)
