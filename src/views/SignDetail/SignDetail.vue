@@ -3,7 +3,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep } from 'lodash-es'
 import Content from '@nextcloud/vue/dist/Components/Content'
-import { service as signService } from '../../domains/sign'
+import { service as signService, getStatusLabel, SIGN_STATUS } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
@@ -65,6 +65,16 @@ export default {
 		},
 		pages() {
 			return get(this.document, 'pages', [])
+		},
+
+		status() {
+			return Number(get(this.document, 'status', -1))
+		},
+		statusLabel() {
+			return getStatusLabel(this.status)
+		},
+		isDraft() {
+			return this.status === SIGN_STATUS.DRAFT
 		},
 		page() {
 			return this.pages[this.pageIndex] || {
@@ -164,8 +174,19 @@ export default {
 				}
 			})
 		},
-		publish() {
+		async publish() {
+			const allow = confirm(t('libresign', 'Request signatures?'))
 
+			if (!allow) {
+				return
+			}
+
+			try {
+				await signService.changeRegisterStatus(this.document.fileId, SIGN_STATUS.ABLE_TO_SIGN)
+				this.$nextTick(() => this.loadDocument())
+			} catch (err) {
+				this.onError(err)
+			}
 		},
 		async loadDocument() {
 			try {
@@ -229,7 +250,7 @@ export default {
 <template>
 	<Content class="view-sign-detail" app-name="libresign">
 		<div>
-			<h2>{{ document.name }}</h2>
+			<h2>[{{ statusLabel }}] {{ document.name }}</h2>
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				@select:signer="onSelectSigner">
@@ -242,7 +263,7 @@ export default {
 					</ActionButton>
 				</template>
 
-				<button class="primary publish-btn" @click="publish">
+				<button v-if="isDraft" class="primary publish-btn" @click="publish">
 					{{ t('libresign', 'Request') }}
 				</button>
 			</Sidebar>

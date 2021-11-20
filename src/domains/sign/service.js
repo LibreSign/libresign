@@ -90,6 +90,37 @@ const buildService = (http) => {
 
 			return data
 		},
+		/**
+		 * update sign document register
+		 *
+		 * @param   {string}  fileId
+		 * @param   {Record<string, unknown>}  content
+		 *
+		 * @return  {Promise<unknown>}
+		 */
+		async updateRegister(fileId, content = {}) {
+			const url = getURL('sign/register')
+
+			const body = {
+				file: { fileId },
+				...content,
+			}
+
+			const { data } = await http.patch(url, body)
+
+			return data
+		},
+		/**
+		 * change document sign status
+		 *
+		 * @param   {string}  fileId
+		 * @param   {number}  status  new status
+		 *
+		 * @return  {Promise<unknown>}
+		 */
+		changeRegisterStatus(fileId, status) {
+			return this.updateRegister(fileId, { status })
+		},
 	})
 }
 
