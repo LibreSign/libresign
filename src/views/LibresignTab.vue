@@ -41,6 +41,9 @@
 				<button v-if="haveRequest" @click="option('signatures')">
 					{{ t('libresign', 'Status') }}
 				</button>
+				<button v-if="haveRequest" @click="gotoDetails(uuid)">
+					{{ t('libresign', 'Details') }}
+				</button>
 				<button v-if="showValidation" @click="redirectToValidation">
 					{{ t('libresign', 'Validate Document') }}
 				</button>
@@ -277,7 +280,8 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-				this.uuid = response.data.file.split('pdf/')[1]
+				this.uuid = response.data.uuid
+
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.canRequestSign = true
