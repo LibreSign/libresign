@@ -103,6 +103,11 @@
 </template>
 
 <script>
+
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import ResetPassword from '../../views/ResetPassword.vue'
 import CreatePassword from '../../views/CreatePassword.vue'
@@ -207,20 +212,23 @@ export default {
 				this.tokenSent = true
 			}, 1200)
 		},
-		savePhone() {
+		async savePhone() {
 			if (this.phone) {
-				// try {
-				// const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
+				try {
+					// const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
+					const response = await axios.post(generateUrl('/apps/libresign/api/0.1/'))
 
-				// if (this.signers.length <= 0) {
-				//    this.option('signatures')
-				// }
+					if (this.signers.length <= 0) {
+						this.option('signatures')
+					}
 
-				//    this.getInfo()
-				//    showSuccess(response.data.message)
-				//    } catch (err) {
-				//        showError(err)
-				//    }
+				   await this.getInfo()
+				   this.sendToken()
+
+				   showSuccess(response.data.message)
+				} catch (err) {
+					showError(err)
+				}
 			}
 		},
 	},
