@@ -40,13 +40,13 @@
 			</Modal>
 		</template>
 		<template v-else>
-			<template v-if="$store.state.settings.data.settings.phone">
+			<template v-if="settings.data.settings.phone && !setNewPhone">
 				<template v-if="!tokenSent">
-					<div style="font-size: 0.9em;">
-						We'll send an SMS token to *****543.
+					<div style="font-size: 0.9em; margin-bottom: 20px;">
+						We'll send an SMS token to {{ settings.data.settings.phone.replace(/.(?=.{3,}$)/g, '*') }}.
 					</div>
 					<div style="display: flex;">
-						<div>
+						<div style="display:flex; flex-direction: column; margin-right: 20px;">
 							<button
 								style="margin-right: 10px;"
 								class="button-vue btn btn-green"
@@ -59,6 +59,8 @@
 									Sending token...
 								</template>
 							</button>
+
+							<span style="cursor: pointer; color: #00C; font-size: 0.8em;" @click="setNewPhone = true">Change phone number</span>
 						</div>
 						<div>
 							<button class="button-vue btn btn-blue" @click="signWithSMS = false">
@@ -103,6 +105,8 @@
 </template>
 
 <script>
+
+import { mapGetters } from 'vuex'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -153,12 +157,15 @@ export default {
 
 			sendingToken: false,
 			tokenSent: false,
-
+			setNewPhone: false,
 			phone: null,
 			smsToken: null,
 		}
 	},
 	computed: {
+		...mapGetters({
+			settings: 'getSettings',
+		}),
 		user() {
 			return getCurrentUser()
 		},
@@ -204,31 +211,35 @@ export default {
 			this.modal = state
 		},
 
-		sendToken() {
+		async sendToken() {
 			this.sendingToken = true
 
 			setTimeout(() => {
 				this.sendingToken = false
 				this.tokenSent = true
-			}, 1200)
+			}, 5000)
 		},
 		async savePhone() {
-			if (this.phone) {
-				try {
-					// const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.signatureId}`))
-					const response = await axios.post(generateUrl('/apps/libresign/api/0.1/'))
-
-					if (this.signers.length <= 0) {
-						this.option('signatures')
-					}
-
-				   await this.getInfo()
-				   this.sendToken()
-
-				   showSuccess(response.data.message)
-				} catch (err) {
-					showError(err)
+			try {
+				const postData = {
+					phone: this.phone,
 				}
+				const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/account/settings'), postData)
+
+				const data = Object.assign({}, this.settings.data)
+				if (response.data.data.phone) {
+
+					data.settings.phone = response.data.data.phone
+
+					this.$store.commit('setSettings', data, { root: true })
+
+					await this.sendToken()
+				} else {
+					showError('Invalid phone number')
+				}
+				showSuccess(response.data.message)
+			} catch (err) {
+				showError(err)
 			}
 		},
 	},
