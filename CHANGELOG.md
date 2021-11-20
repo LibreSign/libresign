@@ -22,6 +22,7 @@ Types of changes:
 - API: endpoints to add visible elements on PDF file
 - API: status to LibreSign file
 - Entpoint to list all attached files to LibreSign profile
+- Add friendly name on pfx file
 
 # Changed
 - PDF preview on mobile when signing
