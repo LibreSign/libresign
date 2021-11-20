@@ -525,15 +525,25 @@ class SignFileService {
 	}
 
 	public function setVisibleElements(array $list): self {
-		foreach ($list as $element) {
-			$documentElement = $this->fileElementMapper->getById($element['documentElementId']);
-			$userElement = $this->userElementMapper->getById($element['profileElementId']);
+		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($this->fileUser->getFileId(), $this->fileUser->getUserId());
+		foreach ($fileElements as $fileElement) {
+			$element = array_filter($list, function (array $element) use ($fileElement): bool {
+				return $element['documentElementId'] === $fileElement->getId();
+			});
+			if ($element) {
+				$userElement = $this->userElementMapper->find(['id' => $element['profileElementId']]);
+			} else {
+				$userElement = $this->userElementMapper->find([
+					'user_id' => $this->fileUser->getUserId(),
+					'type' => $fileElement->getType(),
+				]);
+			}
 			$node = $this->root->getById($userElement->getFileId())[0];
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
 			file_put_contents($tempFile, $node->getContent());
 			$visibleElements = new VisibleElementAssoc(
-				$documentElement,
-				$this->userElementMapper->getById($element['profileElementId']),
+				$fileElement,
+				$userElement,
 				$tempFile
 			);
 			$this->elements[] = $visibleElements;
