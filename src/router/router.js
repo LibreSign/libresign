@@ -54,6 +54,14 @@ const routes = [
 		name: 'DefaultPageSuccess',
 	},
 	{
+		path: '/p/validation/:uuid',
+		component: () => import('../views/Validation'),
+		name: 'validationFilePublic',
+		props: (route) => ({
+			uuid: route.params.uuid,
+		}),
+	},
+	{
 		path: '/reset-password',
 		component: () => import('../views/ResetPassword'),
 		name: 'ResetPassword',

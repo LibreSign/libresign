@@ -72,7 +72,8 @@ import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime } from 'date-fns'
 
 export default {
-	name: 'Validation',
+	// eslint-disable-next-line vue/match-component-file-name
+	name: 'ViewValidation',
 
 	components: {
 		Content,
