@@ -28,7 +28,7 @@ class UserElementMapper extends QBMapper {
 		parent::__construct($db, 'libresign_user_element');
 	}
 
-	public function find(array $data): UserElement {
+	private function getQueryBuilder(array $data): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('ue.*')
 			->from($this->getTableName(), 'ue');
@@ -56,6 +56,11 @@ class UserElementMapper extends QBMapper {
 				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($data['user_id'], IQueryBuilder::PARAM_STR))
 			);
 		}
+		return $qb;
+	}
+
+	public function findOne(array $data): UserElement {
+		$qb = $this->getQueryBuilder($data);
 		try {
 			$row = $this->findOneQuery($qb);
 		} catch (\Throwable $th) {
@@ -67,5 +72,13 @@ class UserElementMapper extends QBMapper {
 		$userElement = $this->mapRowToEntity($row);
 		$this->cache[$userElement->getId()] = $userElement;
 		return $userElement;
+	}
+
+	/**
+	 * @return UserElement[]
+	 */
+	public function findMany(array $data): array {
+		$qb = $this->getQueryBuilder($data);
+		return $this->findEntities($qb);
 	}
 }

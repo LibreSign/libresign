@@ -6,6 +6,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Types;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -23,12 +24,21 @@ class Version2040Date20211030204227 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();
 		/** @var Table */
-		$table = $schema->getTable('libresign_file');
-		$table->dropColumn('enabled');
-		$table->addColumn('status', 'smallint', [
-			'notnull' => true,
-			'length' => 1,
-		]);
+		$libresignFile = $schema->getTable('libresign_file');
+		if (!$libresignFile->hasColumn('status')) {
+			$libresignFile->dropColumn('enabled');
+			$libresignFile->addColumn('status', 'smallint', [
+				'notnull' => true,
+				'length' => 1,
+			]);
+		}
+		$libresignFileUser = $schema->getTable('libresign_file_user');
+		if (!$libresignFileUser->hasColumn('code')) {
+			$libresignFileUser->addColumn('code', Types::STRING, [
+				'notnull' => false,
+				'length' => 256,
+			]);
+		}
 		return $schema;
 	}
 }

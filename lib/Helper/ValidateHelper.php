@@ -18,6 +18,7 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 
 class ValidateHelper {
 	/** @var IL10N */
@@ -32,6 +33,8 @@ class ValidateHelper {
 	private $accountFileMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var IHasher */
+	private $hasher;
 	/** @var IConfig */
 	private $config;
 	/** @var IGroupManager */
@@ -60,6 +63,7 @@ class ValidateHelper {
 		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
 		UserElementMapper $userElementMapper,
+		IHasher $hasher,
 		IConfig $config,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
@@ -71,6 +75,7 @@ class ValidateHelper {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->userElementMapper = $userElementMapper;
+		$this->hasher = $hasher;
 		$this->config = $config;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
@@ -230,7 +235,7 @@ class ValidateHelper {
 			}
 			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $fileUser->getUserId());
 			try {
-				$this->userElementMapper->find(['id' => $elements['profileElementId'], 'user_id' => $fileUser->getUserId()]);
+				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $fileUser->getUserId()]);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
@@ -246,7 +251,7 @@ class ValidateHelper {
 			});
 			if (!$found) {
 				try {
-					$userElements = $this->userElementMapper->find([
+					$this->userElementMapper->findMany([
 						'user_id' => $fileUser->getUserId(),
 						'type' => $fileElement->getType(),
 					]);
@@ -487,6 +492,28 @@ class ValidateHelper {
 		if (!empty($exists)) {
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));
 		}
+	}
+
+	public function canRequestCode(): bool {
+		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+		return $signMethod !== 'password';
+	}
+
+	public function validateCredentials(FileUser $fileUser, array $params): void {
+		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+		switch ($signMethod) {
+			case 'sms':
+				$this->validateSms($fileUser, $params);
+				break;
+		}
+	}
+
+	public function validateSms(FileUser $fileUser, array $params): void {
+		if (!$this->hasher->verify($params['code'], $fileUser->getCode())) {
+			throw new LibresignException($this->l10n->t('Invalid code.'));
+		}
+		$fileUser->setCode('');
+		$this->fileUserMapper->update($fileUser);
 	}
 
 	public function validateFileTypeExists(string $type): void {

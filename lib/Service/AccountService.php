@@ -11,7 +11,6 @@ use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -50,8 +49,6 @@ class AccountService {
 	private $validateHelper;
 	/** @var IURLGenerator */
 	private $urlGenerator;
-	/** @var CfsslHandler */
-	private $cfsslHandler;
 	/** @var Pkcs12Handler */
 	private $pkcs12Handler;
 	/** @var FileMapper */
@@ -90,7 +87,6 @@ class AccountService {
 		NewUserMailHelper $newUserMail,
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
-		CfsslHandler $cfsslHandler,
 		Pkcs12Handler $pkcs12Handler,
 		IGroupManager $groupManager,
 		AccountFileService $accountFileService,
@@ -111,7 +107,6 @@ class AccountService {
 		$this->newUserMail = $newUserMail;
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
-		$this->cfsslHandler = $cfsslHandler;
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->groupManager = $groupManager;
 		$this->accountFileService = $accountFileService;
@@ -244,47 +239,8 @@ class AccountService {
 		}
 
 		if ($signPassword) {
-			$this->generateCertificate($uid, $signPassword, $newUser->getUID());
+			$this->pkcs12Handler->generateCertificate($uid, $signPassword, $newUser->getUID());
 		}
-	}
-
-	public function getCertificateHandler(): CfsslHandler {
-		if (!$this->cfsslHandler->getCommonName()) {
-			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
-		}
-		if (!$this->cfsslHandler->getCountry()) {
-			$this->cfsslHandler->setCountry($this->config->getAppValue(Application::APP_ID, 'country'));
-		}
-		if (!$this->cfsslHandler->getOrganization()) {
-			$this->cfsslHandler->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'));
-		}
-		if (!$this->cfsslHandler->getOrganizationUnit()) {
-			$this->cfsslHandler->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'));
-		}
-		if (!$this->cfsslHandler->getCfsslUri()) {
-			$this->cfsslHandler->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'));
-		}
-		return $this->cfsslHandler;
-	}
-
-	/**
-	 * Generate certificate
-	 *
-	 * @param string $email Email
-	 * @param string $signPassword Password of signature
-	 * @param string $uid User id
-	 * @return File
-	 */
-	public function generateCertificate(string $email, string $signPassword, string $uid): File {
-		$content = $this->getCertificateHandler()
-			->setHosts([$email])
-			->setFriendlyName($uid)
-			->setPassword($signPassword)
-			->generateCertificate();
-		if (!$content) {
-			throw new LibresignException('Failure on generate certificate', 1);
-		}
-		return $this->pkcs12Handler->savePfx($uid, $content);
 	}
 
 	/**
@@ -512,7 +468,7 @@ class AccountService {
 		if (!isset($data['file'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
+		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
 		$userFolder = $this->folderService->getFolder($userElement->getFileId());
 		$file = $userFolder->getById($userElement->getFileId())[0];
 		$file->putContent($this->getFileRaw($data));
@@ -522,7 +478,7 @@ class AccountService {
 		if (!isset($data['starred'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
+		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
 		$userElement->setStarred($data['starred'] ? 1 : 0);
 		$this->userElementMapper->update($userElement);
 	}
@@ -574,7 +530,7 @@ class AccountService {
 	}
 
 	public function getUserElements($userId): array {
-		$elements = $this->userElementMapper->find(['user_id' => $userId]);
+		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		foreach ($elements as $key => $element) {
 			$return[] = [
 				'id' => $element->getId(),
@@ -592,7 +548,7 @@ class AccountService {
 	}
 
 	public function getUserElementByElementId($userId, $elementId): array {
-		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
+		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
@@ -607,7 +563,7 @@ class AccountService {
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId) {
-		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
+		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
 	}
 }

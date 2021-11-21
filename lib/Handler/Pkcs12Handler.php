@@ -28,6 +28,8 @@ class Pkcs12Handler extends SignEngineHandler {
 	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
+	/** @var CfsslHandler */
+	private $cfsslHandler;
 	/** @var IL10N */
 	private $l10n;
 	/** @var QrCode */
@@ -37,10 +39,12 @@ class Pkcs12Handler extends SignEngineHandler {
 	public function __construct(
 		FolderService $folderService,
 		IConfig $config,
+		CfsslHandler $cfsslHandler,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
 		$this->config = $config;
+		$this->cfsslHandler = $cfsslHandler;
 		$this->l10n = $l10n;
 	}
 
@@ -50,7 +54,10 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param string $content
 	 * @return File
 	 */
-	public function savePfx(string $uid, string $content): File {
+	public function savePfx(string $uid, string $content, bool $isTempFile = false): File {
+		if ($isTempFile) {
+			$this->pfxFilename = 'temp.pfx';
+		}
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
@@ -222,5 +229,44 @@ class Pkcs12Handler extends SignEngineHandler {
 			}
 		}
 		return $blockValues;
+	}
+
+	private function getCertificateHandler(): CfsslHandler {
+		if (!$this->cfsslHandler->getCommonName()) {
+			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
+		}
+		if (!$this->cfsslHandler->getCountry()) {
+			$this->cfsslHandler->setCountry($this->config->getAppValue(Application::APP_ID, 'country'));
+		}
+		if (!$this->cfsslHandler->getOrganization()) {
+			$this->cfsslHandler->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'));
+		}
+		if (!$this->cfsslHandler->getOrganizationUnit()) {
+			$this->cfsslHandler->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'));
+		}
+		if (!$this->cfsslHandler->getCfsslUri()) {
+			$this->cfsslHandler->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'));
+		}
+		return $this->cfsslHandler;
+	}
+
+	/**
+	 * Generate certificate
+	 *
+	 * @param string $email Email
+	 * @param string $signPassword Password of signature
+	 * @param string $uid User id
+	 * @return File
+	 */
+	public function generateCertificate(string $email, string $signPassword, string $uid, bool $isTempFile = false): File {
+		$content = $this->getCertificateHandler()
+			->setHosts([$email])
+			->setFriendlyName($uid)
+			->setPassword($signPassword)
+			->generateCertificate();
+		if (!$content) {
+			throw new LibresignException('Failure on generate certificate', 1);
+		}
+		return $this->savePfx($uid, $content, $isTempFile);
 	}
 }
