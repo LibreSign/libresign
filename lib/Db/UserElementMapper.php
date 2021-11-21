@@ -28,56 +28,44 @@ class UserElementMapper extends QBMapper {
 		parent::__construct($db, 'libresign_user_element');
 	}
 
-	/**
-	 * @return UserElement[]
-	 */
-	public function getByUserId($userId): array {
+	public function find(array $data): UserElement {
 		$qb = $this->db->getQueryBuilder();
-
 		$qb->select('ue.*')
-			->from($this->getTableName(), 'ue')
-			->where(
-				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+			->from($this->getTableName(), 'ue');
+
+		if (isset($data['id'])) {
+			if ($this->cache[$data['id']]) {
+				return $this->cache[$data['id']];
+			}
+			$qb->andWhere(
+				$qb->expr()->eq('ue.id', $qb->createNamedParameter($data['id'], IQueryBuilder::PARAM_INT))
 			);
-
-		return $this->findEntities($qb);
-	}
-
-	/**
-	 * @param integer $elementId
-	 * @param string $userId
-	 * @return UserElement
-	 */
-	public function getByElementIdAndUserId(int $elementId, string $userId) {
-		if (!isset($this->cache[$elementId])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('ue.*')
-				->from($this->getTableName(), 'ue')
-				->where(
-					$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
-				)
-				->andWhere(
-					$qb->expr()->eq('ue.id', $qb->createNamedParameter($elementId, IQueryBuilder::PARAM_INT))
-				);
-
-			$this->cache[$elementId] = $this->findEntity($qb);
 		}
-		return $this->cache[$elementId];
-	}
-
-	public function getById(int $id): UserElement {
-		if (!isset($this->cache[$id])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('ue.*')
-				->from($this->getTableName(), 'ue')
-				->where(
-					$qb->expr()->eq('ue.id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-				);
-
-			$this->cache[$id] = $this->findEntity($qb);
+		if (isset($data['file_id'])) {
+			$qb->andWhere(
+				$qb->expr()->eq('ue.file_id', $qb->createNamedParameter($data['file_id'], IQueryBuilder::PARAM_INT))
+			);
 		}
-		return $this->cache[$id];
+		if (isset($data['type'])) {
+			$qb->andWhere(
+				$qb->expr()->eq('ue.type', $qb->createNamedParameter($data['type'], IQueryBuilder::PARAM_STR))
+			);
+		}
+		if (isset($data['user_id'])) {
+			$qb->andWhere(
+				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($data['user_id'], IQueryBuilder::PARAM_STR))
+			);
+		}
+		try {
+			$row = $this->findOneQuery($qb);
+		} catch (\Throwable $th) {
+			$qb->andWhere(
+				$qb->expr()->eq('ue.starred', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
+			);
+			$row = $this->findOneQuery($qb);
+		}
+		$userElement = $this->mapRowToEntity($row);
+		$this->cache[$userElement->getId()] = $userElement;
+		return $userElement;
 	}
 }

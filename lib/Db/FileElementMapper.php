@@ -44,20 +44,26 @@ class FileElementMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
-	public function getByFileIdAndFileUserId(int $fileId, int $userId): FileElement {
+	/**
+	 * @param integer $fileId
+	 * @param string $userId
+	 * @return FileElement[]
+	 */
+	public function getByFileIdAndUserId(int $fileId, string $userId): array {
 		if (!isset($this->cache['fileId'][$fileId][$userId])) {
 			$qb = $this->db->getQueryBuilder();
 
 			$qb->select('fe.*')
 				->from($this->getTableName(), 'fe')
+				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
 				->where(
-					$qb->expr()->eq('fe.signature_file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
 				)
 				->andWhere(
-					$qb->expr()->eq('fe.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
 				);
 
-			$this->cache['fileId'][$fileId][$userId] = $this->findEntity($qb);
+			$this->cache['fileId'][$fileId][$userId] = $this->findEntities($qb);
 		}
 		return $this->cache['fileId'][$fileId][$userId];
 	}

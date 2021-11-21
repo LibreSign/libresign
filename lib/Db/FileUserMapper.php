@@ -238,8 +238,8 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function getByFileIdAndFileUserId(int $fileId, int $signatureId): FileUser {
-		if (!isset($this->signers['fileId'][$fileId][$signatureId])) {
+	public function getByFileIdAndFileUserId(int $fileId, int $fileUserId): FileUser {
+		if (!isset($this->signers['fileId'][$fileId][$fileUserId])) {
 			$qb = $this->db->getQueryBuilder();
 	
 			$qb->select('fu.*')
@@ -249,11 +249,11 @@ class FileUserMapper extends QBMapper {
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.id', $qb->createNamedParameter($signatureId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fu.id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_STR))
 				);
 	
-			$this->signers['fileId'][$fileId][$signatureId] = $this->findEntity($qb);
+			$this->signers['fileId'][$fileId][$fileUserId] = $this->findEntity($qb);
 		}
-		return $this->signers['fileId'][$fileId][$signatureId];
+		return $this->signers['fileId'][$fileId][$fileUserId];
 	}
 }
