@@ -157,6 +157,7 @@ export default {
 	computed: {
 		...mapGetters({
 			settings: 'getSettings',
+			fileToBeSigned: 'files/fileToBeSigned',
 		}),
 		user() {
 			return getCurrentUser()
@@ -206,10 +207,17 @@ export default {
 		async sendToken() {
 			this.sendingToken = true
 
-			setTimeout(() => {
-				this.sendingToken = false
-				this.tokenSent = true
-			}, 5000)
+			try {
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileToBeSigned.nodeId}/token`), null)
+
+				console.log(response.data)
+
+				showError('Invalid phone number')
+
+				showSuccess(response.data.message)
+			} catch (err) {
+				showError(err)
+			}
 		},
 		async savePhone() {
 			try {
@@ -226,10 +234,12 @@ export default {
 					this.$store.commit('setSettings', data, { root: true })
 
 					await this.sendToken()
+
+					showSuccess(response.data.message)
+
 				} else {
 					showError('Invalid phone number')
 				}
-				showSuccess(response.data.message)
 			} catch (err) {
 				showError(err)
 			}
