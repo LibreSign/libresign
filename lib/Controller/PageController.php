@@ -12,30 +12,25 @@ use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
-use OCP\ISession;
-use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\Util;
 
 class PageController extends Controller {
-	/** @var ISession */
-	private $session;
-	/** @var IUserManager */
-	protected $userManager;
+	/** @var IUserSession */
+	protected $userSession;
 	/** @var IInitialState */
 	private $initialState;
 	/** @var AccountService */
 	private $accountService;
 	public function __construct(
 		IRequest $request,
-		ISession $session,
-		IUserManager $userManager,
+		IUserSession $userSession,
 		IInitialState $initialState,
 		AccountService $accountService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->session = $session;
 		$this->initialState = $initialState;
-		$this->userManager = $userManager;
+		$this->userSession = $userSession;
 		$this->accountService = $accountService;
 	}
 
@@ -49,7 +44,7 @@ class PageController extends Controller {
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'url'
 		)));
 
@@ -71,7 +66,7 @@ class PageController extends Controller {
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$uuid,
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'url'
 		)));
 
@@ -120,7 +115,7 @@ class PageController extends Controller {
 	public function getPdfUser($uuid) {
 		$config = $this->accountService->getConfig(
 			$uuid,
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'file'
 		);
 		if (!isset($config['sign'])) {
@@ -147,7 +142,7 @@ class PageController extends Controller {
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'url'
 		)));
 
@@ -168,7 +163,7 @@ class PageController extends Controller {
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$this->request->getParam('uuid'),
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'url'
 		)));
 
@@ -188,7 +183,7 @@ class PageController extends Controller {
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
 			$uuid,
-			$this->session->get('user_id'),
+			$this->userSession->getUser(),
 			'url'
 		)));
 

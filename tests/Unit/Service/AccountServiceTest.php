@@ -18,11 +18,13 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Accounts\IAccountManager;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -37,6 +39,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileUserMapper;
 	/** @var IUserManager|MockObject */
 	private $userManagerInstance;
+	/** @var IAccountManager */
+	private $accountManager;
 	/** @var IRootFolder|MockObject */
 	private $root;
 	/** @var FileMapper|MockObject */
@@ -77,6 +81,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->userManagerInstance = $this->createMock(IUserManager::class);
+		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->reportDao = $this->createMock(ReportDao::class);
@@ -98,6 +103,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
+			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -129,6 +135,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
+			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -288,6 +295,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
+			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -401,6 +409,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
+			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -566,6 +575,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
+			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
 			$this->reportDao,
@@ -583,7 +593,15 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->clientService,
 			$this->timeFactory
 		);
-		$actual = $this->accountService->getConfig($uuid, $userId, $formatOfPdfOnSign);
+		if ($userId) {
+			/** @var IUser|MockObject */
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')
+				->willReturn($userId);
+		} else {
+			$user = null;
+		}
+		$actual = $this->accountService->getConfig($uuid, $user, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString(
 			$actual,
@@ -597,7 +615,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				null, null, 'filetype',
 				[
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], null
 			],
@@ -609,7 +629,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'This is not your file'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
@@ -632,6 +654,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'action' => JSActions::ACTION_CREATE_USER,
 					'settings' => [
 						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 						'accountHash' => md5('valid@test.coop')
 					]
 				], function ($self) {
@@ -661,7 +685,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'This is not your file'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
@@ -687,7 +713,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'Invalid UUID'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->fileUserMapper
@@ -706,7 +734,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 					'redirect' => '',
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$user = $self->createUser('username', 'password');
@@ -741,7 +771,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'File already signed.'
 					],
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					],
 					'uuid' => null
 				], function ($self) {
@@ -776,7 +808,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					],
 					'redirect' => '',
 					'settings' => [
-						'hasSignatureFile' => false
+						'hasSignatureFile' => false,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
@@ -805,7 +839,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'Invalid user'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$fileUser = $self->createMock(FileUser::class);
@@ -834,7 +870,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'File not found'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -878,7 +916,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				null, 'username', 'filetype',
 				[
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -900,7 +940,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => 'username'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -958,7 +1000,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => 'username'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -1016,7 +1060,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => 'username'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -1074,7 +1120,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'name' => 'username'
 					],
 					'settings' => [
-						'hasSignatureFile' => true
+						'hasSignatureFile' => true,
+						'phoneNumber' => '',
+						'signMethod' => null,
 					]
 				], function ($self) {
 					$self->createUser('username', 'password');
@@ -1158,7 +1206,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($folder);
 
-		$actual = $this->accountService->getConfig('uuid', 'username', 'file');
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')
+			->willReturn('username');
+
+		$actual = $this->accountService->getConfig('uuid', $user, 'file');
 		$this->assertJsonStringEqualsJsonString(
 			json_encode($actual),
 			json_encode([
@@ -1175,7 +1227,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'name' => 'username'
 				],
 				'settings' => [
-					'hasSignatureFile' => true
+					'hasSignatureFile' => true,
+					'phoneNumber' => '',
+					'signMethod' => null,
 				]
 			])
 		);
