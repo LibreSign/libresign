@@ -5,6 +5,7 @@ namespace OCA\Libresign\Controller;
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
@@ -28,6 +29,8 @@ class AccountController extends ApiController {
 	private $accountService;
 	/** @var AccountFileService */
 	private $accountFileService;
+	/** @var pkcs12Handler */
+	private $pkcs12Handler;
 	/** @var IConfig */
 	private $config;
 	/** @var Chain */
@@ -45,6 +48,7 @@ class AccountController extends ApiController {
 		IAccountManager $accountManager,
 		AccountService $accountService,
 		AccountFileService $accountFileService,
+		Pkcs12Handler $pkcs12Handler,
 		IConfig $config,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
@@ -56,6 +60,7 @@ class AccountController extends ApiController {
 		$this->accountManager = $accountManager;
 		$this->accountService = $accountService;
 		$this->accountFileService = $accountFileService;
+		$this->pkcs12Handler = $pkcs12Handler;
 		$this->config = $config;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
@@ -135,7 +140,7 @@ class AccountController extends ApiController {
 				'userId' => $this->userSession->getUser()->getUID()
 			];
 			$this->accountService->validateCertificateData($data);
-			$signaturePath = $this->accountService->generateCertificate(...array_values($data));
+			$signaturePath = $this->pkcs12Handler->generateCertificate(...array_values($data));
 
 			return new JSONResponse([
 				'success' => true,

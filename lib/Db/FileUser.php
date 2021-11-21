@@ -25,6 +25,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getDisplayName()
  * @method void setFullName(string $fullName)
  * @method string getFullName()
+ * @method void setCode(string $code)
+ * @method string getCode()
  */
 class FileUser extends Entity {
 	/** @var integer */
@@ -57,6 +59,9 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $signed;
 
+	/** @var string */
+	protected $code;
+
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
@@ -68,5 +73,6 @@ class FileUser extends Entity {
 		$this->addType('description', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
+		$this->addType('code', 'string');
 	}
 }

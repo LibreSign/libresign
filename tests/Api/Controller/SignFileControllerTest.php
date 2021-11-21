@@ -113,6 +113,12 @@ final class SignFileControllerTest extends ApiTestCase {
 		$libresignFolder = $folderService->getFolder();
 		$libresignFolder->delete();
 
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+			],
+		]);
+
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -146,6 +152,12 @@ final class SignFileControllerTest extends ApiTestCase {
 				]
 			],
 			'userManager' => $user
+		]);
+
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+			],
 		]);
 
 		$this->request
@@ -182,8 +194,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user
 		]);
-		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
-		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler->generateCertificate('person@test.coop', 'secretPassword', 'username');
+
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+			],
+		]);
 
 		$this->request
 			->withMethod('POST')
@@ -219,8 +237,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user
 		]);
-		$accountService = \OC::$server->get(\OCA\Libresign\Service\AccountService::class);
-		$accountService->generateCertificate('person@test.coop', 'secretPassword', 'username');
+		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler->generateCertificate('person@test.coop', 'secretPassword', 'username');
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
@@ -229,6 +247,12 @@ final class SignFileControllerTest extends ApiTestCase {
 		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler) {
 			return $jsignHandler;
 		});
+
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+			],
+		]);
 
 		$this->request
 			->withMethod('POST')
@@ -393,7 +417,8 @@ final class SignFileControllerTest extends ApiTestCase {
 				'country' => 'Brazil',
 				'organization' => 'Organization',
 				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
+				'sign_method' => 'password',
 			]
 		]);
 

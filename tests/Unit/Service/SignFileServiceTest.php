@@ -21,6 +21,7 @@ use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -49,6 +50,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $logger;
 	/** @var ValidateHelper|MockObject */
 	private $validateHelper;
+	/** @var IHasher|MockObject */
+	private $hasher;
 	/** @var IRootFolder|MockObject */
 	private $root;
 	/** @var FileElementMapper|MockObject */
@@ -78,6 +81,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->hasher = $this->createMock(IHasher::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -96,6 +100,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->mail,
 			$this->logger,
 			$this->validateHelper,
+			$this->hasher,
 			$this->root,
 			$this->fileElementMapper,
 			$this->userElementMapper,
