@@ -29,7 +29,9 @@ return [
 		['name' => 'signFile#requestSign',            'url' => '/api/0.1/sign/register', 'verb' => 'POST'],
 		['name' => 'signFile#updateSign',             'url' => '/api/0.1/sign/register', 'verb' => 'PATCH'],
 		['name' => 'signFile#signUsingUuid',          'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
-		['name' => 'signFile#signUsingFileid',        'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
+		['name' => 'signFile#signUsingFileId',        'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
+		['name' => 'signFile#getCodeUsingUuid',      'url' => '/api/0.1/sign/uuid/{uuid}/code', 'verb' => 'POST'],
+		['name' => 'signFile#getCodeUsingFileId',    'url' => '/api/0.1/sign/file_id/{fileId}/code', 'verb' => 'POST'],
 		['name' => 'signFile#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
 		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
