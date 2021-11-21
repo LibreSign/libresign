@@ -66,6 +66,7 @@ const getters = {
 		return state.files.sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
 	},
 	getFileToSign: state => state.fileToSign,
+	fileToBeSigned: state => state.file.file,
 }
 
 export default {
