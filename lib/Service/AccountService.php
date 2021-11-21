@@ -300,7 +300,7 @@ class AccountService {
 		return $info;
 	}
 
-	public function getPhoneNumber(?IUser $user) {
+	private function getPhoneNumber(?IUser $user) {
 		if (!$user) {
 			return '';
 		}
