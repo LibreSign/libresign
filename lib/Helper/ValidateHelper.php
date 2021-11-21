@@ -503,12 +503,13 @@ class ValidateHelper {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
 			case 'sms':
-				$this->validateSms($fileUser, $params);
+			case 'email':
+				$this->valdateCode($fileUser, $params);
 				break;
 		}
 	}
 
-	public function validateSms(FileUser $fileUser, array $params): void {
+	public function valdateCode(FileUser $fileUser, array $params): void {
 		if (!$this->hasher->verify($params['code'], $fileUser->getCode())) {
 			throw new LibresignException($this->l10n->t('Invalid code.'));
 		}

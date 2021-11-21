@@ -17,6 +17,7 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IUser;
@@ -48,6 +49,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $folderService;
 	/** @var LoggerInterface|MockObject */
 	private $logger;
+	/** @var IConfig */
+	private $config;
 	/** @var ValidateHelper|MockObject */
 	private $validateHelper;
 	/** @var IHasher|MockObject */
@@ -80,6 +83,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->mail = $this->createMock(MailService::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
@@ -99,6 +103,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userManager,
 			$this->mail,
 			$this->logger,
+			$this->config,
 			$this->validateHelper,
 			$this->hasher,
 			$this->root,
