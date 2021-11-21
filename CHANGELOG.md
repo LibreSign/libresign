@@ -24,6 +24,7 @@ Types of changes:
 - Endpoint to list all attached files to LibreSign profile
 - Endpoint to add phone number to account settings
 - Endpoint to request code to sign file
+- Make possible sign using token sent by email
 - Changes on sign endpoint to make possible sign using code
 - Add friendly name on pfx file
 
