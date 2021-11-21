@@ -13,6 +13,8 @@ final class LibreSignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateUsignUuidWithInvalidData() {
+		$this->mockConfig(['libresign' => []]);
+
 		$this->request
 			->withPath('/file/validate/uuid/invalid')
 			->assertResponseCode(404);

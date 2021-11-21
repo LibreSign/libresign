@@ -16,6 +16,7 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
+use OCP\Accounts\IAccountManager;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -37,6 +38,8 @@ class AccountService {
 	private $fileUser;
 	/** @var IUserManager */
 	protected $userManager;
+	/** @var IAccountManager */
+	private $accountManager;
 	/** @var IRootFolder */
 	private $root;
 	/** @var IConfig */
@@ -78,6 +81,7 @@ class AccountService {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		IUserManager $userManager,
+		IAccountManager $accountManager,
 		IRootFolder $root,
 		FileMapper $fileMapper,
 		ReportDao $reportDao,
@@ -98,6 +102,7 @@ class AccountService {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->userManager = $userManager;
+		$this->accountManager = $accountManager;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
 		$this->reportDao = $reportDao;
@@ -287,17 +292,27 @@ class AccountService {
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
-	public function getConfig(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
-		$info = $this->getInfoOfFileToSign($uuid, $userId, $formatOfPdfOnSign);
-		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($userId);
+	public function getConfig(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+		$info = $this->getInfoOfFileToSign($uuid, $user, $formatOfPdfOnSign);
+		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
+		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
+		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		return $info;
+	}
+
+	private function getPhoneNumber(?IUser $user) {
+		if (!$user) {
+			return '';
+		}
+		$userAccount = $this->accountManager->getAccount($user);
+		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 	}
 
 	/**
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
 	 */
-	private function getInfoOfFileToSign(?string $uuid, ?string $userId, string $formatOfPdfOnSign): array {
+	private function getInfoOfFileToSign(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		$return = [];
 		try {
 			if (!$uuid) {
@@ -312,7 +327,7 @@ class AccountService {
 		}
 		$fileUserId = $fileUser->getUserId();
 		if (!$fileUserId) {
-			if ($userId) {
+			if ($user) {
 				$return['action'] = JSActions::ACTION_DO_NOTHING;
 				$return['errors'][] = $this->l10n->t('This is not your file');
 				return $return;
@@ -339,7 +354,7 @@ class AccountService {
 			$return['errors'][] = $this->l10n->t('File already signed.');
 			return $return;
 		}
-		if (!$userId) {
+		if (!$user) {
 			$return['action'] = JSActions::ACTION_REDIRECT;
 
 			$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
@@ -351,7 +366,7 @@ class AccountService {
 			$return['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
 			return $return;
 		}
-		if ($fileUserId !== $userId) {
+		if ($fileUserId !== $user->getUID()) {
 			$return['action'] = JSActions::ACTION_DO_NOTHING;
 			$return['errors'][] = $this->l10n->t('Invalid user');
 			return $return;
@@ -391,12 +406,12 @@ class AccountService {
 		return $return;
 	}
 
-	public function hasSignatureFile(?string $userId = null): bool {
-		if (!$userId) {
+	public function hasSignatureFile(?IUser $user = null): bool {
+		if (!$user) {
 			return false;
 		}
 		try {
-			$this->pkcs12Handler->getPfx($userId);
+			$this->pkcs12Handler->getPfx($user->getUID());
 			return true;
 		} catch (\Throwable $th) {
 		}
@@ -445,7 +460,7 @@ class AccountService {
 
 	public function getSettings(?IUser $user = null): array {
 		$return['canRequestSign'] = $this->canRequestSign($user);
-		$return['hasSignatureFile'] = $this->hasSignatureFile($user->getUID());
+		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
 		return $return;
 	}
 
@@ -497,7 +512,7 @@ class AccountService {
 		if (!isset($data['file'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
 		$userFolder = $this->folderService->getFolder($userElement->getFileId());
 		$file = $userFolder->getById($userElement->getFileId())[0];
 		$file->putContent($this->getFileRaw($data));
@@ -507,7 +522,7 @@ class AccountService {
 		if (!isset($data['starred'])) {
 			return;
 		}
-		$userElement = $this->userElementMapper->getById($data['elementId']);
+		$userElement = $this->userElementMapper->find(['id' => $data['elementId']]);
 		$userElement->setStarred($data['starred'] ? 1 : 0);
 		$this->userElementMapper->update($userElement);
 	}
@@ -559,7 +574,7 @@ class AccountService {
 	}
 
 	public function getUserElements($userId): array {
-		$elements = $this->userElementMapper->getByUserId($userId);
+		$elements = $this->userElementMapper->find(['user_id' => $userId]);
 		foreach ($elements as $key => $element) {
 			$return[] = [
 				'id' => $element->getId(),
@@ -577,7 +592,7 @@ class AccountService {
 	}
 
 	public function getUserElementByElementId($userId, $elementId): array {
-		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
 		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
@@ -592,7 +607,7 @@ class AccountService {
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId) {
-		$element = $this->userElementMapper->getByElementIdAndUserId($elementId, $userId);
+		$element = $this->userElementMapper->find(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
 	}
 }

@@ -13,15 +13,18 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileElementService;
+use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -33,6 +36,10 @@ class LibreSignFileController extends Controller {
 	private $fileMapper;
 	/** @var IL10N */
 	private $l10n;
+	/** @var IConfig */
+	private $config;
+	/** @var IAccountManager */
+	private $accountManager;
 	/** @var AccountService */
 	private $accountService;
 	/** @var LoggerInterface */
@@ -57,6 +64,8 @@ class LibreSignFileController extends Controller {
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
 		IL10N $l10n,
+		IConfig $config,
+		IAccountManager $accountManager,
 		AccountService $accountService,
 		LoggerInterface $logger,
 		IURLGenerator $urlGenerator,
@@ -71,6 +80,8 @@ class LibreSignFileController extends Controller {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
 		$this->l10n = $l10n;
+		$this->config = $config;
+		$this->accountManager = $accountManager;
 		$this->accountService = $accountService;
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
@@ -215,7 +226,9 @@ class LibreSignFileController extends Controller {
 		$return['settings'] = [
 			'canSign' => $canSign,
 			'canRequestSign' => false,
-			'hasSignatureFile' => false
+			'hasSignatureFile' => false,
+			'phoneNumber' => $this->getPhoneNumber($this->userSession->getUser()),
+			'signMethod' => $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password'),
 		];
 		if (!empty($uid)) {
 			$return['settings'] = array_merge(
@@ -240,6 +253,14 @@ class LibreSignFileController extends Controller {
 			];
 		}
 		return new JSONResponse($return, $statusCode);
+	}
+
+	private function getPhoneNumber(?IUser $user) {
+		if (!$user) {
+			return '';
+		}
+		$userAccount = $this->accountManager->getAccount($user);
+		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 	}
 
 	/**
