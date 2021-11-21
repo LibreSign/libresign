@@ -149,4 +149,25 @@ class MailService {
 			throw new LibresignException('Notify cancel sign notification mail could not be sent', 1);
 		}
 	}
+
+	public function sendCodeToSign(FileUser $fileUser, string $code): void {
+		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
+		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
+		$emailTemplate->addHeader();
+		$emailTemplate->addBodyText($this->l10n->t('Use this code to sign the document:'));
+		$emailTemplate->addBodyText($code);
+		$message = $this->mailer->createMessage();
+		if ($fileUser->getDisplayName()) {
+			$message->setTo([$fileUser->getEmail() => $fileUser->getDisplayName()]);
+		} else {
+			$message->setTo([$fileUser->getEmail()]);
+		}
+		$message->useTemplate($emailTemplate);
+		try {
+			$this->mailer->send($message);
+		} catch (\Exception $e) {
+			$this->logger->error('Mail with code to sign document could not be sent: ' . $e->getMessage());
+			throw new LibresignException('Mail with code to sign document could not be sent', 1);
+		}
+	}
 }

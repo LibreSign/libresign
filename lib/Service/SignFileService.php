@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
@@ -20,6 +21,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IUser;
@@ -50,6 +52,8 @@ class SignFileService {
 	private $mail;
 	/** @var LoggerInterface */
 	private $logger;
+	/** @var IConfig */
+	private $config;
 	/** @var ValidateHelper */
 	private $validateHelper;
 	/** @var IHasher */
@@ -88,6 +92,7 @@ class SignFileService {
 		IUserManager $userManager,
 		MailService $mail,
 		LoggerInterface $logger,
+		IConfig $config,
 		ValidateHelper $validateHelper,
 		IHasher $hasher,
 		IRootFolder $root,
@@ -107,6 +112,7 @@ class SignFileService {
 		$this->userManager = $userManager;
 		$this->mail = $mail;
 		$this->logger = $logger;
+		$this->config = $config;
 		$this->validateHelper = $validateHelper;
 		$this->hasher = $hasher;
 		$this->root = $root;
@@ -634,7 +640,27 @@ class SignFileService {
 		$token = rand(1000,9999);
 		$fileUser->setCode($this->hasher->hash($token));
 		$this->fileUserMapper->update($fileUser);
+		$this->sendCode($fileUser, $token);
 		return $token;
+	}
+
+	private function sendCode(FileUserEntity $fileUser, string $code) {
+		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+		switch ($signMethod) {
+			case 'sms':
+				$this->sendCodeBySms($fileUser, $code);
+				break;
+			case 'email':
+				$this->sendCodeByEmail($fileUser, $code);
+				break;
+		}
+	}
+
+	private function sendCodeBySms(FileUserEntity $fileUser, string $code) {
+	}
+
+	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {
+		$this->mail->sendCodeToSign($fileUser, $code);
 	}
 
 	/**
