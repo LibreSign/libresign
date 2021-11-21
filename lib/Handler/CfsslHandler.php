@@ -146,10 +146,15 @@ class CfsslHandler {
 				)
 			;
 		} catch (TransferException $th) {
-			if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
-				throw new \Exception($th->getHandlerContext()['error'], 1);
+			switch ($th->getCode()) {
+				case 404:
+					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
+				default:
+					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
+						throw new \Exception($th->getHandlerContext()['error'], 1);
+					}
+					throw new LibresignException($th->getMessage(), 500);
 			}
-			throw new LibresignException($th->getMessage(), 500);
 		}
 
 		$responseDecoded = json_decode($response->getBody(), true);
