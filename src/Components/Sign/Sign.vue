@@ -5,7 +5,7 @@
 			<span>{{ userName }}</span>
 		</div>
 
-		<template v-if="!signWithSMS">
+		<template v-if="settings.data.settings.signMethod === 'password'">
 			<InputAction
 				ref="input"
 				class="input"
@@ -39,11 +39,11 @@
 				<CreatePassword v-if="!havePfx" @changePfx="changePfx" @close="handleModal(false)" />
 			</Modal>
 		</template>
-		<template v-else>
-			<template v-if="settings.data.settings.phone && !setNewPhone">
+		<template v-else-if="settings.data.settings.signMethod === 'sms'">
+			<template v-if="settings.data.settings.phoneNumber && !setNewPhone">
 				<template v-if="!tokenSent">
 					<div style="font-size: 0.9em; margin-bottom: 20px;">
-						We'll send an SMS token to {{ settings.data.settings.phone.replace(/.(?=.{3,}$)/g, '*') }}.
+						We'll send an SMS token to {{ settings.data.settings.phoneNumber.replace(/.(?=.{3,}$)/g, '*') }}.
 					</div>
 					<div style="display: flex;">
 						<div style="display:flex; flex-direction: column; margin-right: 20px;">
@@ -62,27 +62,19 @@
 
 							<span style="cursor: pointer; color: #00C; font-size: 0.8em;" @click="setNewPhone = true">Change phone number</span>
 						</div>
-						<div>
-							<button class="button-vue btn btn-blue" @click="signWithSMS = false">
-								Sign with password
-							</button>
-						</div>
 					</div>
 				</template>
 				<template v-else>
 					<div>
-						<div>Token sent! Type it below:</div>
+						<div>Token sent! Type it in the field below:</div>
 						<div class="display: flex; align-items: center;">
-							<div>
-								<input v-model="smsToken" class="" type="text">
-							</div>
-							<div>
-								<button
-									class="button-vue btn btn-green"
-									:disabled="!smsToken">
-									Sign
-								</button>
-							</div>
+							<input v-model="smsToken" class="" type="text">
+							<button
+								class="button-vue btn btn-green"
+								:disabled="!smsToken"
+								@click="signDocument">
+								Sign
+							</button>
 						</div>
 					</div>
 				</template>
@@ -238,6 +230,28 @@ export default {
 					showError('Invalid phone number')
 				}
 				showSuccess(response.data.message)
+			} catch (err) {
+				showError(err)
+			}
+		},
+		async signDocument() {
+			try {
+				// const postData = {
+				// smsToken: this.smsToken,
+				// }
+				// const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/account/settings'), postData)
+
+				// if (response.data.data.phone) {
+
+				// data.settings.phone = response.data.data.phone
+
+				// this.$store.commit('setSettings', data, { root: true })
+
+				// await this.sendToken()
+				// } else {
+				// showError('Invalid phone number')
+				// }
+				// showSuccess(response.data.message)
 			} catch (err) {
 				showError(err)
 			}
