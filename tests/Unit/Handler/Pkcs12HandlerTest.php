@@ -1,5 +1,6 @@
 <?php
 
+use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IConfig;
@@ -13,12 +14,15 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected $folderService;
 	/** @var IConfig|MockObject */
 	private $config;
+	/** @var CfsslHandler|MockObject */
+	private $cfsslHandler;
 	/** @var IL10N|MockObject */
 	private $l10n;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->config = $this->createMock(IConfig::class);
+		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')
@@ -26,6 +30,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->cfsslHandler,
 			$this->l10n
 		);
 	}
@@ -77,6 +82,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->cfsslHandler,
 			$this->l10n
 		);
 		$file = $this->createMock(\OCP\Files\File::class);
@@ -98,6 +104,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->cfsslHandler,
 			$this->l10n
 		);
 
@@ -108,5 +115,22 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$actual = $this->pkcs12Handler->writeFooter($file, 'uuid');
 		$this->assertEquals(17301, strlen($actual));
+	}
+
+	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
+		if (strpos($functionName, 'set') === 0) {
+			$this->cfsslHandlerBuffer[substr($functionName, 3)] = $value;
+		}
+		return true;
+	}
+
+	public function cfsslHandlerCallbackToGetSetReturn($functionName) {
+		if (strpos($functionName, 'set') === 0) {
+			return $this->cfsslHandler;
+		}
+		if (isset($this->cfsslHandlerBuffer[substr($functionName, 3)])) {
+			return $this->cfsslHandlerBuffer[substr($functionName, 3)];
+		}
+		return null;
 	}
 }

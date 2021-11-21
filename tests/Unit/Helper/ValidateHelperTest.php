@@ -15,6 +15,7 @@ use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -30,6 +31,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
+	/** @var IHasher */
+	private $hasher;
+	/** @var IConfig|MockObject */
+	private $config;
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
 	/** @var IUserManager */
@@ -47,6 +52,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->hasher = $this->createMock(IHasher::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -61,6 +67,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
+			$this->hasher,
 			$this->config,
 			$this->groupManager,
 			$this->userManager,

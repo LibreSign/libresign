@@ -22,7 +22,9 @@ use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IL10N;
 use OCP\ITempManager;
+use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use TCPDF_PARSER;
@@ -50,6 +52,8 @@ class SignFileService {
 	private $logger;
 	/** @var ValidateHelper */
 	private $validateHelper;
+	/** @var IHasher */
+	private $hasher;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
@@ -70,6 +74,8 @@ class SignFileService {
 	private $libreSignFile;
 	/** @var VisibleElementAssoc[] */
 	private $elements = [];
+	/** @var bool */
+	private $signWithoutPassword = false;
 
 	public function __construct(
 		IL10N $l10n,
@@ -83,6 +89,7 @@ class SignFileService {
 		MailService $mail,
 		LoggerInterface $logger,
 		ValidateHelper $validateHelper,
+		IHasher $hasher,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
@@ -101,6 +108,7 @@ class SignFileService {
 		$this->mail = $mail;
 		$this->logger = $logger;
 		$this->validateHelper = $validateHelper;
+		$this->hasher = $hasher;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -519,7 +527,12 @@ class SignFileService {
 		return $this;
 	}
 
-	public function setPassword(string $password): self {
+	public function setSignWithoutPassword(bool $signWithoutPassword): self {
+		$this->signWithoutPassword = $signWithoutPassword;
+		return $this;
+	}
+
+	public function setPassword(?string $password = null): self {
 		$this->password = $password;
 		return $this;
 	}
@@ -531,14 +544,18 @@ class SignFileService {
 				return $element['documentElementId'] === $fileElement->getId();
 			});
 			if ($element) {
-				$userElement = $this->userElementMapper->find(['id' => $element['profileElementId']]);
+				$userElement = $this->userElementMapper->findOne(['id' => $element['profileElementId']]);
 			} else {
-				$userElement = $this->userElementMapper->find([
+				$userElement = $this->userElementMapper->findOne([
 					'user_id' => $this->fileUser->getUserId(),
 					'type' => $fileElement->getType(),
 				]);
 			}
-			$node = $this->root->getById($userElement->getFileId())[0];
+			try {
+				$node = $this->root->getById($userElement->getFileId())[0];
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+			}
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
 			file_put_contents($tempFile, $node->getContent());
 			$visibleElements = new VisibleElementAssoc(
@@ -553,7 +570,7 @@ class SignFileService {
 
 	public function sign(): \OCP\Files\Node {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
-		$pfxFile = $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
+		$pfxFile = $this->getPfxFile();
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
 				$signedFile = $this->pkcs12Handler
@@ -579,6 +596,20 @@ class SignFileService {
 		return $signedFile;
 	}
 
+	private function getPfxFile(): \OCP\Files\Node {
+		if ($this->signWithoutPassword) {
+			$tempPassword = sha1(time());
+			$this->setPassword($tempPassword);
+			return $this->pkcs12Handler->generateCertificate(
+				$this->fileUser->getEmail(),
+				$tempPassword,
+				$this->fileUser->getUserId(),
+				true
+			);
+		}
+		return $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
+	}
+
 	/**
 	 * Get file to sign
 	 *
@@ -597,6 +628,13 @@ class SignFileService {
 			return $this->getPdfToSign($fileData, $originalFile);
 		}
 		return $userFolder->get($originalFile);
+	}
+
+	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
+		$token = rand(1000,9999);
+		$fileUser->setCode($this->hasher->hash($token));
+		$this->fileUserMapper->update($fileUser);
+		return $token;
 	}
 
 	/**

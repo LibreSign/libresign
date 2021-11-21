@@ -23,6 +23,8 @@ Types of changes:
 - API: status to LibreSign file
 - Endpoint to list all attached files to LibreSign profile
 - Endpoint to add phone number to account settings
+- Endpoint to request code to sign file
+- Changes on sign endpoint to make possible sign using code
 - Add friendly name on pfx file
 
 # Changed

@@ -9,7 +9,6 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -57,8 +56,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $validateHelper;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
-	/** @var CfsslHandler|MockObject */
-	private $cfsslHandler;
 	/** @var AccountService|MockObject */
 	private $accountService;
 	/** @var IGroupManager|MockObject */
@@ -90,7 +87,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
@@ -112,7 +108,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->validateHelper,
 			$this->urlGenerator,
-			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
@@ -144,7 +139,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->validateHelper,
 			$this->urlGenerator,
-			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
@@ -304,7 +298,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->validateHelper,
 			$this->urlGenerator,
-			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
@@ -418,7 +411,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->validateHelper,
 			$this->urlGenerator,
-			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
@@ -436,89 +428,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testGenerateCertificateWithInvalidData() {
-		$this->cfsslHandler
-			->method('__call')
-			->with(
-				$this->callback(function ($functionName, $value = null) {
-					return $this->cfsslHandlerCallbackToGetSetArguments($functionName, $value);
-				})
-			)
-			->will($this->returnCallback(function ($functionName) {
-				return $this->cfsslHandlerCallbackToGetSetReturn($functionName);
-			}));
-		$this->expectErrorMessage('Failure on generate certificate');
-		$this->accountService->generateCertificate('uid', 'password', 'username');
-	}
-
-	public function testGenerateCertificateAndSuccessfullySavedToAnExistingFile() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$this->cfsslHandler
-			->method('__call')
-			->with(
-				$this->callback(function ($functionName, $value = null) {
-					return $this->cfsslHandlerCallbackToGetSetArguments($functionName, $value);
-				})
-			)
-			->will($this->returnCallback(function ($functionName) {
-				return $this->cfsslHandlerCallbackToGetSetReturn($functionName);
-			}));
-		$this->cfsslHandler
-			->method('generateCertificate')
-			->will($this->returnValue('raw content of pfx file'));
-		$actual = $this->accountService->generateCertificate('uid', 'password', 'username');
-		$this->assertInstanceOf('\OCP\Files\File', $actual);
-	}
-
-	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
-		if (strpos($functionName, 'set') === 0) {
-			$this->cfsslHandlerBuffer[substr($functionName, 3)] = $value;
-		}
-		return true;
-	}
-
-	public function cfsslHandlerCallbackToGetSetReturn($functionName) {
-		if (strpos($functionName, 'set') === 0) {
-			return $this->cfsslHandler;
-		}
-		if (isset($this->cfsslHandlerBuffer[substr($functionName, 3)])) {
-			return $this->cfsslHandlerBuffer[substr($functionName, 3)];
-		}
-		return null;
-	}
-
-	public function testGenerateCertificateAndSuccessfullySavedToANewFile() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$this->cfsslHandler
-			->method('__call')
-			->will($this->returnValue($this->cfsslHandler));
-		$this->cfsslHandler
-			->method('generateCertificate')
-			->will($this->returnValue('raw content of pfx file'));
-		$actual = $this->accountService->generateCertificate('uid', 'password', 'username');
-		$this->assertInstanceOf('\OCP\Files\File', $actual);
-	}
-
 	public function testCreateToSignWithErrorInSendingEmail() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
@@ -532,36 +441,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}));
 		$this->expectErrorMessage('Unable to send the invitation');
 		$this->accountService->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
-	}
-
-	public function testCreateToSignSuccess() {
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
-		$userToSign = $this->createMock(\OCP\IUser::class);
-		$userToSign->method('getUID')->will($this->returnValue('userToSignUid'));
-		$this->userManagerInstance->method('createUser')->will($this->returnValue($userToSign));
-		$this->config->method('getAppValue')->will($this->returnValue('no'));
-
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
-		$this->cfsslHandler
-			->method('__call')
-			->will($this->returnValue($this->cfsslHandler));
-		$this->cfsslHandler
-			->method('generateCertificate')
-			->will($this->returnValue('raw content of pfx file'));
-
-		$actual = $this->accountService->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
-		$this->assertNull($actual);
 	}
 
 	/**
@@ -584,7 +463,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->newUserMail,
 			$this->validateHelper,
 			$this->urlGenerator,
-			$this->cfsslHandler,
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
