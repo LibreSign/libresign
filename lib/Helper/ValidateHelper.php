@@ -252,13 +252,13 @@ class ValidateHelper {
 					]);
 					return true;
 				} catch (\Throwable $th) {
-					throw new LibresignException($this->l10n->t('You need define a visible signature or initial to sign this document.'));
+					throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 				}
 			}
 			return true;
 		});
 		if (count($total) !== count($fileElements)) {
-			throw new LibresignException($this->l10n->t('You need define a visible signature or initial to sign this document.'));
+			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 		}
 	}
 
