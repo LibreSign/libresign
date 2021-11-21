@@ -6,8 +6,7 @@ use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
-use OCP\ISession;
-use OCP\IUserManager;
+use OCP\IUserSession;
 
 /**
  * @group DB
@@ -15,10 +14,8 @@ use OCP\IUserManager;
 final class PageControllerTest extends TestCase {
 	/** @var IRequest|MockObject */
 	private $request;
-	/** @var ISession|MockObject */
-	private $session;
-	/** @var IUserManager|MockObject */
-	private $userManager;
+	/** @var IUserSession|MockObject */
+	private $userSession;
 	/** @var IInitialState|MockObject */
 	private $initialState;
 	/** @var AccountService|MockObject */
@@ -28,14 +25,12 @@ final class PageControllerTest extends TestCase {
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
-		$this->session = $this->createMock(ISession::class);
-		$this->userManager = $this->createMock(IUserManager::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->controller = new PageController(
 			$this->request,
-			$this->session,
-			$this->userManager,
+			$this->userSession,
 			$this->initialState,
 			$this->accountService
 		);
