@@ -127,10 +127,11 @@ import { get } from 'lodash-es'
 import { service as signService, SIGN_STATUS } from '../domains/sign'
 import { getAPPURL } from '../helpers/path'
 import { showResponseError } from '../helpers/errors'
+import store from '../store'
 
 export default {
 	name: 'LibresignTab',
-
+	store,
 	components: {
 		AppSidebar,
 		Actions,
