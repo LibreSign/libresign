@@ -208,7 +208,7 @@ export default {
 			this.sendingToken = true
 
 			try {
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileToBeSigned.nodeId}/token`), null)
+				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileToBeSigned.nodeId}/token`), {})
 
 				console.log(response.data)
 
