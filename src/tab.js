@@ -90,12 +90,15 @@ window.addEventListener('DOMContentLoaded', () => {
 				if (TabInstance) {
 					TabInstance.$destroy()
 				}
+
 				TabInstance = new View({
 					// Better integration with vue parent component
 					parent: context,
 				})
+
 				// Only mount after we hahve all theh info we need
 				await TabInstance.update(fileInfo)
+
 				TabInstance.$mount(el)
 			},
 			update(fileInfo) {

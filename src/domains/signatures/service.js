@@ -1,11 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import { pathJoin } from '../../helpers/path'
-
-const BASE_PATH = '/apps/libresign/api/0.1/'
-
-const getURL = path => generateUrl(pathJoin(BASE_PATH, path))
+import { getURL } from '../../helpers/path'
 
 /**
  * @param   {string}  type
@@ -60,6 +55,11 @@ const buildService = (http) => {
 			}
 
 			const { data } = await http.patch(getURL(`account/signature/elements/${id}`), body)
+
+			return data
+		},
+		async loadMe() {
+			const { data } = await http.get(getURL('account/me'))
 
 			return data
 		},

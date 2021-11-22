@@ -65,7 +65,7 @@ export default {
 		...mapState({
 			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
-			file: state => state.files,
+			// file: state => state.files,
 		}),
 		...mapGetters({
 			pendingFilter: 'files/pendingFilter',

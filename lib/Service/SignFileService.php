@@ -550,7 +550,8 @@ class SignFileService {
 				return $element['documentElementId'] === $fileElement->getId();
 			});
 			if ($element) {
-				$userElement = $this->userElementMapper->findOne(['id' => $element['profileElementId']]);
+				$c = current($element);
+				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
 			} else {
 				$userElement = $this->userElementMapper->findOne([
 					'user_id' => $this->fileUser->getUserId(),

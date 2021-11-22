@@ -33,12 +33,12 @@ const routes = [
 		redirect: { name: selectAction(libresignVar.action) },
 	},
 	{
-		path: '/p/sign/:uuid',
-		component: () => import('../views/SignPDF'),
+		path: '/p/sign/:uuid/pdf',
+		component: () => import('../views/SignPDF/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
-		path: '/p/sign/:uuid',
+		path: '/p/sign/:uuid/sign-in',
 		component: () => import('../views/CreateUser'),
 		name: 'CreateUser',
 		props: (route) => ({
@@ -52,6 +52,14 @@ const routes = [
 		path: '/p/sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess'),
 		name: 'DefaultPageSuccess',
+	},
+	{
+		path: '/p/validation/:uuid',
+		component: () => import('../views/Validation'),
+		name: 'validationFilePublic',
+		props: (route) => ({
+			uuid: route.params.uuid,
+		}),
 	},
 	{
 		path: '/reset-password',
@@ -75,7 +83,13 @@ const routes = [
 		path: '/f/timeline/sign',
 		component: () => import('../views/Timeline/Timeline.vue'),
 		name: 'signFiles',
-	}, {
+	},
+	{
+		path: '/f/sign/:uuid',
+		component: () => import('../views/SignDetail/SignDetail.vue'),
+		name: 'f.sign.detail',
+	},
+	{
 		path: '/f/request',
 		component: () => import('../views/Request'),
 		name: 'requestFiles',

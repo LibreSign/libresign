@@ -41,6 +41,9 @@
 				<button v-if="haveRequest" @click="option('signatures')">
 					{{ t('libresign', 'Status') }}
 				</button>
+				<button v-if="haveRequest" @click="gotoDetails(uuid)">
+					{{ t('libresign', 'Details') }}
+				</button>
 				<button v-if="showValidation" @click="redirectToValidation">
 					{{ t('libresign', 'Validate Document') }}
 				</button>
@@ -120,6 +123,10 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Sign from '../Components/Sign'
 import Request from '../Components/Request'
+import { get } from 'lodash-es'
+import { service as signService, SIGN_STATUS } from '../domains/sign'
+import { getAPPURL } from '../helpers/path'
+import { showResponseError } from '../helpers/errors'
 
 export default {
 	name: 'LibresignTab',
@@ -256,7 +263,8 @@ export default {
 			try {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
-				this.uuid = response.data.file.split('pdf/')[1]
+				this.uuid = response.data.uuid
+
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.canRequestSign = true
@@ -298,7 +306,7 @@ export default {
 				}
 				this.disabledSign = false
 				this.loadingInput = false
-				return showError(err.response.data.errors[0])
+				return showResponseError(err.response)
 			}
 		},
 		async deleteUserRequest(user) {
@@ -331,49 +339,73 @@ export default {
 
 				showSuccess(response.data.message)
 			} catch (err) {
-				if (err.response.data.messages) {
-					err.response.data.messages.forEach(error => {
-						showError(error.message)
-					})
-				} else {
-					showError(t('libresign', 'There was an error completing your request'))
-				}
-
+				return showResponseError(err.response)
 			}
+		},
+
+		async updateRegister(users, fileInfo) {
+			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
+				file: {
+					fileId: this.fileInfo.id,
+				},
+				users,
+			})
+			this.option('request')
+			this.clearRequestList()
+			this.getInfo()
+
+			return showSuccess(response.data.message)
+		},
+
+		async createRegister(users, fileInfo) {
+			const needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
+
+			const status = needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN
+
+			const [name] = this.fileInfo.name.split('.pdf')
+			const params = {
+				name,
+				users,
+				status,
+				fileId: this.fileInfo.id,
+			}
+
+			const { message, data } = await signService.createRegister(params)
+
+			showSuccess(message)
+
+			if (needElements) {
+				this.gotoDetails(data.uuid)
+			}
+
+			await this.$nextTick()
+				.then(() => {
+					this.option('request')
+					this.clearRequestList()
+				})
+				.then(() => {
+					return this.getInfo()
+				})
 		},
 
 		async requestSignatures(users, fileInfo) {
 			try {
 				if (this.haveRequest) {
-					const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-						file: {
-							fileId: this.fileInfo.id,
-						},
-						users,
-					})
-					this.option('request')
-					this.clearRequestList()
-					this.getInfo()
-					return showSuccess(response.data.message)
+					await this.updateRegister(users, fileInfo)
+					return
 				}
 
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-					file: {
-						fileId: this.fileInfo.id,
-					},
-					name: this.fileInfo.name.split('.pdf')[0],
-					users,
-				})
-				this.option('request')
-				this.clearRequestList()
-				this.getInfo()
-				return showSuccess(response.data.message)
+				await this.createRegister(users, fileInfo)
+
 			} catch (err) {
-				if (err.response.data.errors) {
-					return showError(err.response.data.errors[0])
-				}
-				return showError(err.response.data.message)
+				return showResponseError(get(err, ['response'], err))
 			}
+		},
+
+		gotoDetails(uuid) {
+			const href = getAPPURL(`/f/sign/${uuid}`)
+
+			window.location.href = href
 		},
 
 		option(value) {
@@ -395,7 +427,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateUrl(`/apps/libresign/validation/${this.fileInfo.id}`)
+			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
 		},
 	},
 }
