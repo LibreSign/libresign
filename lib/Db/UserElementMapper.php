@@ -34,9 +34,6 @@ class UserElementMapper extends QBMapper {
 			->from($this->getTableName(), 'ue');
 
 		if (isset($data['id'])) {
-			if ($this->cache[$data['id']]) {
-				return $this->cache[$data['id']];
-			}
 			$qb->andWhere(
 				$qb->expr()->eq('ue.id', $qb->createNamedParameter($data['id'], IQueryBuilder::PARAM_INT))
 			);
@@ -70,7 +67,6 @@ class UserElementMapper extends QBMapper {
 			$row = $this->findOneQuery($qb);
 		}
 		$userElement = $this->mapRowToEntity($row);
-		$this->cache[$userElement->getId()] = $userElement;
 		return $userElement;
 	}
 
