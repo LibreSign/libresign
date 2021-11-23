@@ -16,6 +16,8 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\TwoFactorGateway\Service\Gateway\Factory as GatewayFactory;
+use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Http;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -27,6 +29,7 @@ use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use TCPDF_PARSER;
@@ -58,6 +61,12 @@ class SignFileService {
 	private $validateHelper;
 	/** @var IHasher */
 	private $hasher;
+	/** @var ISecureRandom */
+	private $secureRandom;
+	/** @var GatewayFactory */
+	private $gatewayFactory;
+	/** @var IAccountManager */
+	private $accountManager;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
@@ -95,6 +104,9 @@ class SignFileService {
 		IConfig $config,
 		ValidateHelper $validateHelper,
 		IHasher $hasher,
+		ISecureRandom $secureRandom,
+		GatewayFactory $gatewayFactory,
+		IAccountManager $accountManager,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
@@ -115,6 +127,9 @@ class SignFileService {
 		$this->config = $config;
 		$this->validateHelper = $validateHelper;
 		$this->hasher = $hasher;
+		$this->secureRandom = $secureRandom;
+		$this->gatewayFactory = $gatewayFactory;
+		$this->accountManager = $accountManager;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -638,18 +653,20 @@ class SignFileService {
 	}
 
 	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
-		$token = rand(1000,9999);
+		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
 		$fileUser->setCode($this->hasher->hash($token));
 		$this->fileUserMapper->update($fileUser);
-		$this->sendCode($fileUser, $token);
+		$this->sendCode($user, $fileUser, $token);
 		return $token;
 	}
 
-	private function sendCode(FileUserEntity $fileUser, string $code) {
+	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code) {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
 			case 'sms':
-				$this->sendCodeBySms($fileUser, $code);
+			case 'telegram':
+			case 'signal':
+				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
 			case 'email':
 				$this->sendCodeByEmail($fileUser, $code);
@@ -657,7 +674,12 @@ class SignFileService {
 		}
 	}
 
-	private function sendCodeBySms(FileUserEntity $fileUser, string $code) {
+	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName) {
+		$userAccount = $this->accountManager->getAccount($user);
+		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+
+		$gateway = $this->gatewayFactory->getGateway($gatewayName);
+		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
 	}
 
 	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {

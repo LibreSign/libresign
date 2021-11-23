@@ -1,5 +1,6 @@
 <?php
 
+use OC\Accounts\AccountManager;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -12,6 +13,8 @@ use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
+use OCA\TwoFactorGateway\Service\Gateway\Factory as GatewayFactory;
+use OCP\Accounts\IAccountManager;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
@@ -23,6 +26,7 @@ use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
+use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -55,6 +59,12 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $validateHelper;
 	/** @var IHasher|MockObject */
 	private $hasher;
+	/** @var GatewayFactory|MockObject */
+	private $gatewayFactory;
+	/** @var IAccountManager */
+	private $accountManager;
+	/** @var ISecureRandom|MockObject */
+	private $secureRandom;
 	/** @var IRootFolder|MockObject */
 	private $root;
 	/** @var FileElementMapper|MockObject */
@@ -86,6 +96,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->hasher = $this->createMock(IHasher::class);
+		$this->secureRandom = $this->createMock(ISecureRandom::class);
+		$this->gatewayFactory = $this->createMock(GatewayFactory::class);
+		$this->accountManager = $this->createMock(AccountManager::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -106,6 +119,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->validateHelper,
 			$this->hasher,
+			$this->secureRandom,
+			$this->gatewayFactory,
+			$this->accountManager,
 			$this->root,
 			$this->fileElementMapper,
 			$this->userElementMapper,
