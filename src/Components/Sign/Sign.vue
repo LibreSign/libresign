@@ -210,9 +210,7 @@ export default {
 			try {
 				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileToBeSigned.nodeId}/token`), {})
 
-				console.log(response.data)
-
-				showError('Invalid phone number')
+				// showError('Invalid phone number')
 
 				showSuccess(response.data.message)
 			} catch (err) {
