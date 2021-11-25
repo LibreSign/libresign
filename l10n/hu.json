@@ -51,14 +51,13 @@
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Ez egy szabad digitális PDF aláírás alkalmazás a Nextcloud számára \n\n*** ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhoz hozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* ** Követelmények: **\n* CFSSL szerver\n* Java\n* JSignPDF",
     "Files" : "Fájlok",
     "Password" : "Jelszó",
-    "Subscription password." : "Feliratkozási jelszó.",
-    "Sign the document." : "Dokumentum aláírása.",
     "Email" : "E-mail",
     "Create new subscription." : "Új előfizetés létrehozása",
     "Root certificate has not been configured by the Administrator!" : "A rendszergazda nem konfigurálta a gyökértanúsítványt!",
     "Confirm password" : "Jelszó megerősítése",
     "Password for sign document." : "Jelszó a dokumentum aláírásához.",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sajnáljuk, de a keresett oldal nem létezik, eltávolították, áthelyezték vagy ideiglenesen nem érhető el.",
+    "Subscription password." : "Feliratkozási jelszó.",
     "Generate Subscription." : "Előfizetés létrehozása.",
     "Subscription generated and available at {path}!" : "Előfizetés létrehozva és elérhető a(z) {path} címen!",
     "Could not create signature." : "Nem sikerült létrehozni az aláírást.",
@@ -72,6 +71,7 @@
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",
     "Webhook" : "Webhook",
     "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
+    "Sign the document." : "Dokumentum aláírása.",
     "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot.",
     "User created!" : "Felhasználó létrehozva!"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
