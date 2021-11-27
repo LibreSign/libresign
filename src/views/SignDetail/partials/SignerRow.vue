@@ -43,7 +43,11 @@ export default {
 			return signer.signed ? 'signed' : 'pending'
 		},
 		signDate() {
-			return fromUnixTime(this.signer.signed).toLocaleDateString()
+			const { signer } = this
+
+			return signer.signed
+				? fromUnixTime(signer.signed).toLocaleDateString()
+				: ''
 		},
 		element() {
 			return this.signer.element || {}
