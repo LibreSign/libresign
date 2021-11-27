@@ -250,8 +250,13 @@ export default {
 
 <template>
 	<Content class="view-sign-detail" app-name="libresign">
-		<div>
+		<div class="sign-details">
 			<h2>[{{ statusLabel }}] {{ document.name }}</h2>
+			<p>
+				<small>
+					{{ t('libresign', 'Select each signer to define theirs signature positions') }}
+				</small>
+			</p>
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				@select:signer="onSelectSigner">
@@ -310,6 +315,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.sign-details {
+	margin-left: 5px;
+}
 .view-sign-detail {
 	&--sidebar {
 		width: 300px;
