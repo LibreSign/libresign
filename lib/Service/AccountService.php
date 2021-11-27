@@ -74,8 +74,8 @@ class AccountService {
 	/** @var TimeFactory */
 	private $timeFactory;
 
-	const ELEMENT_SIGN_WIDTH = 350;
-	const ELEMENT_SIGN_HEIGHT = 100;
+	public const ELEMENT_SIGN_WIDTH = 350;
+	public const ELEMENT_SIGN_HEIGHT = 100;
 
 	public function __construct(
 		IL10N $l10n,
