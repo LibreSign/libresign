@@ -8,15 +8,16 @@ import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import { SignatureImageDimensions } from '../../Components/Draw'
 
 const emptyElement = () => {
 	return {
 		coordinates: {
 			page: 1,
-			height: 90,
 			left: 100,
 			top: 100,
-			width: 370,
+			height: SignatureImageDimensions.height,
+			width: SignatureImageDimensions.width,
 		},
 		elementId: 0,
 	}
@@ -26,7 +27,7 @@ const emptySignerData = () => ({
 	signed: null,
 	displayName: '',
 	fullName: null,
-	me: true,
+	me: false,
 	fileUserId: 0,
 	email: '',
 	element: emptyElement(),
@@ -285,6 +286,7 @@ export default {
 						v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
+						:is-resizable="true"
 						:w="currentSigner.element.coordinates.width"
 						:h="currentSigner.element.coordinates.height"
 						:x="currentSigner.element.coordinates.left"

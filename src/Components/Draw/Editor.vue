@@ -49,6 +49,7 @@
 
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import { SignatureImageDimensions } from './options'
 
 export default {
 	name: 'Editor',
@@ -58,8 +59,8 @@ export default {
 	},
 
 	data: () => ({
-		canvasWidth: 350,
-		canvasHeight: 100,
+		canvasWidth: SignatureImageDimensions.width,
+		canvasHeight: SignatureImageDimensions.height,
 		canvas: null,
 		isDrawing: false,
 		color: '#000000',
