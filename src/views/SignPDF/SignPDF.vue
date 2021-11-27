@@ -26,8 +26,9 @@
 		<div v-show="viewDoc" id="viewer" class="content">
 			<PDFViewer :url="pdfData.url" />
 		</div>
-		<div v-show="!isMobile" id="description" class="content">
+		<Sidebar v-bind="{ document }">
 			<Description
+				v-if="signEnabled"
 				:enable="enableToSign"
 				:elements="elements"
 				:user="user"
@@ -42,24 +43,28 @@
 					</button>
 				</div>
 			</Description>
-		</div>
+			<div v-else>
+				{{ t('libresign', 'Document not available for signature.') }}
+			</div>
+		</Sidebar>
 	</div>
 </template>
 
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
+import { showSuccess } from '@nextcloud/dialogs'
 import { defaultsDeep, get, isEmpty } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
 import Description from './_partials/Description'
 import PDFViewer from './_partials/PDFViewer'
 import { service as signerService } from '../../domains/signatures'
-import { service as signService } from '../../domains/sign'
+import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
 import { onError } from '../../helpers/errors'
-import { showSuccess } from '@nextcloud/dialogs'
+import Sidebar from './_partials/Sidebar.vue'
 
 export default {
 	name: 'SignPDF',
-	components: { Description, PDFViewer },
+	components: { Description, PDFViewer, Sidebar },
 	mixins: [
 		isMobile,
 	],
@@ -157,6 +162,12 @@ export default {
 			}
 
 			return hasSignatures
+		},
+		signEnabled() {
+			return canSign(this.document.status)
+		},
+		status() {
+			return getStatusLabel(this.document?.status)
 		},
 	},
 	mounted() {

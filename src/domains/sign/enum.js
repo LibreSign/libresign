@@ -1,4 +1,4 @@
-import { findKey, toLower } from 'lodash-es'
+import { findKey, toLower, includes } from 'lodash-es'
 
 const SIGN_STATUS = Object.freeze({
 	DRAFT: 0,
@@ -18,7 +18,12 @@ const getStatusLabel = val => {
 	return toLower(key)
 }
 
+const canSign = status => {
+	return includes([SIGN_STATUS.ABLE_TO_SIGN, SIGN_STATUS.PARTIAL_SIGNED], status)
+}
+
 export {
 	getStatusLabel,
+	canSign,
 	SIGN_STATUS,
 }
