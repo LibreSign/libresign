@@ -43,7 +43,11 @@ export default {
 			return signer.signed ? 'signed' : 'pending'
 		},
 		signDate() {
-			return fromUnixTime(this.signer.signed).toLocaleDateString()
+			const { signer } = this
+
+			return signer.signed
+				? fromUnixTime(signer.signed).toLocaleDateString()
+				: ''
 		},
 		element() {
 			return this.signer.element || {}
@@ -60,6 +64,7 @@ export default {
 		v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
 		:title="displayName"
 		:details="signDate"
+		:class="`signer-row signer-row-${status}`"
 		v-on="$listeners">
 		<template #icon>
 			<Avatar is-no-user
@@ -68,8 +73,18 @@ export default {
 				:display-name="displayName" />
 		</template>
 		<template #subtitle>
-			{{ status }}
+			<span class="signer-status">{{ status }}</span>
 		</template>
 		<slot v-if="$slots.actions" slot="actions" name="actions" />
 	</ListItem>
 </template>
+
+<style>
+	.signer-row-signed .signer-status {
+		font-weight: bold;
+	}
+
+	.signer-row-pending .signer-status {
+		color: var(--color-warning, #eca700)
+	}
+</style>

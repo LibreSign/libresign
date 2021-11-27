@@ -8,15 +8,16 @@ import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import { SignatureImageDimensions } from '../../Components/Draw'
 
 const emptyElement = () => {
 	return {
 		coordinates: {
 			page: 1,
-			height: 90,
 			left: 100,
 			top: 100,
-			width: 370,
+			height: SignatureImageDimensions.height,
+			width: SignatureImageDimensions.width,
 		},
 		elementId: 0,
 	}
@@ -26,7 +27,7 @@ const emptySignerData = () => ({
 	signed: null,
 	displayName: '',
 	fullName: null,
-	me: true,
+	me: false,
 	fileUserId: 0,
 	email: '',
 	element: emptyElement(),
@@ -249,16 +250,21 @@ export default {
 
 <template>
 	<Content class="view-sign-detail" app-name="libresign">
-		<div>
+		<div class="sign-details">
 			<h2>[{{ statusLabel }}] {{ document.name }}</h2>
+			<p>
+				<small>
+					{{ t('libresign', 'Select each signer to define theirs signature positions') }}
+				</small>
+			</p>
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				@select:signer="onSelectSigner">
 				<template #actions="{signer}">
-					<ActionButton icon="icon-comment" @click="sendNotify(signer)">
+					<ActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
 						{{ t('libresign', 'Send reminder') }}
 					</ActionButton>
-					<ActionButton icon="icon-delete" @click="removeSigner(signer)">
+					<ActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
 						{{ t('libresign', 'Remove') }}
 					</ActionButton>
 				</template>
@@ -285,6 +291,7 @@ export default {
 						v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
+						:is-resizable="true"
 						:w="currentSigner.element.coordinates.width"
 						:h="currentSigner.element.coordinates.height"
 						:x="currentSigner.element.coordinates.left"
@@ -308,6 +315,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.sign-details {
+	margin-left: 5px;
+}
+
 .view-sign-detail {
 	&--sidebar {
 		width: 300px;
