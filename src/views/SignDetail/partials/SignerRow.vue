@@ -1,6 +1,7 @@
 <script>
 import ListItem from '@nextcloud/vue/dist/Components/ListItem'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import { fromUnixTime } from 'date-fns'
 
 export default {
 	name: 'SignerRow',
@@ -39,10 +40,10 @@ export default {
 		},
 		status() {
 			const { signer } = this
-			return signer.sign_date ? 'signed' : 'pending'
+			return signer.signed ? 'signed' : 'pending'
 		},
 		signDate() {
-			return this.signer.sign_date
+			return fromUnixTime(this.signer.signed).toLocaleDateString()
 		},
 		element() {
 			return this.signer.element || {}
