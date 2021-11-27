@@ -40,6 +40,7 @@ Types of changes:
 - Account improvements, remove dead code and split components.
 - Revert PDFSign changes
 - Add page prefix to improve frontend UX
+- Improve account signature page
 
 # Fixed
 - Fixed: error on sign specific documents
