@@ -63,7 +63,7 @@ export default {
 	methods: {
 		async getData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {}
 			)
 			this.groupsSelected = JSON.parse(response.data.ocs.data.data)
 		},

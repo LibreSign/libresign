@@ -27,7 +27,7 @@ const mutations = {
 const actions = {
 	GET_CONFIG_FEATURES: async({ commit }) => {
 		const response = await axios.get(
-			generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/features', {}
+			generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/features', {}
 		)
 		const features = response.data.ocs.data.data ? JSON.parse(response.data.ocs.data.data) : response.data.ocs.data.data
 
@@ -35,7 +35,7 @@ const actions = {
 	},
 	GET_CONFIG_ENABLED_FEATURES: async({ commit }) => {
 		const response = await axios.get(
-			generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps/libresign/features_enabled', {}
+			generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/features_enabled', {}
 		)
 		const enabledFeatures = response.data.ocs.data.data ? JSON.parse(response.data.ocs.data.data) : response.data.ocs.data.data
 
