@@ -16,15 +16,17 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\TwoFactorGateway\Service\Gateway\Factory as GatewayFactory;
 use OCP\Accounts\IAccountManager;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IServerContainer;
 use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -63,10 +65,12 @@ class SignFileService {
 	private $hasher;
 	/** @var ISecureRandom */
 	private $secureRandom;
-	/** @var GatewayFactory */
-	private $gatewayFactory;
+	/** @var IAppManager */
+	private $appManager;
 	/** @var IAccountManager */
 	private $accountManager;
+	/** @var IServerContainer */
+	private $serverContainer;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
@@ -105,8 +109,9 @@ class SignFileService {
 		ValidateHelper $validateHelper,
 		IHasher $hasher,
 		ISecureRandom $secureRandom,
-		GatewayFactory $gatewayFactory,
+		IAppManager $appManager,
 		IAccountManager $accountManager,
+		IServerContainer $serverContainer,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
@@ -128,8 +133,9 @@ class SignFileService {
 		$this->validateHelper = $validateHelper;
 		$this->hasher = $hasher;
 		$this->secureRandom = $secureRandom;
-		$this->gatewayFactory = $gatewayFactory;
+		$this->appManager = $appManager;
 		$this->accountManager = $accountManager;
+		$this->serverContainer = $serverContainer;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -654,9 +660,9 @@ class SignFileService {
 
 	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
+		$this->sendCode($user, $fileUser, $token);
 		$fileUser->setCode($this->hasher->hash($token));
 		$this->fileUserMapper->update($fileUser);
-		$this->sendCode($user, $fileUser, $token);
 		return $token;
 	}
 
@@ -678,8 +684,21 @@ class SignFileService {
 		$userAccount = $this->accountManager->getAccount($user);
 		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 
-		$gateway = $this->gatewayFactory->getGateway($gatewayName);
+		$gateway = $this->getGateway($user, $gatewayName);
 		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
+	}
+
+	/**
+	 * @throws OCSForbiddenException
+	 * @return \OCA\TwoFactorGateway\Service\Gateway\IGateway
+	 */
+	private function getGateway(IUser $user, string $gatewayName) {
+		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
+			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Twofactor Gateway is not enabled.', $gatewayName));
+		}
+		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
+		$gateway = $factory->getGateway($gatewayName);
+		return $gateway;
 	}
 
 	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {
