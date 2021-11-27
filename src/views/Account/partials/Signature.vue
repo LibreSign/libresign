@@ -1,6 +1,7 @@
 <script>
 import Draw from '../../../Components/Draw'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import { startsWith } from 'lodash-es'
 
 export default {
 	name: 'Signature',
@@ -25,6 +26,13 @@ export default {
 	computed: {
 		hasSignature() {
 			return !!this.value
+		},
+		imgSrc() {
+			if (startsWith('data:', this.value)) {
+				return this.value
+			}
+
+			return `${this.value}&_t=${Date.now()}`
 		},
 	},
 	methods: {
@@ -57,7 +65,7 @@ export default {
 			<div v-if="hasSignature" class="icon icon-rename" @click="edit" />
 		</header>
 
-		<img v-if="hasSignature" :src="value">
+		<img v-if="hasSignature" :src="imgSrc">
 		<div v-else class="no-signatures" @click="edit">
 			<slot name="no-signatures" />
 		</div>
