@@ -114,20 +114,20 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+import { get } from 'lodash-es'
+import { service as signService, SIGN_STATUS } from '../../domains/sign'
+import { getAPPURL } from '../../helpers/path'
+import { showResponseError } from '../../helpers/errors'
+import store from '../../store'
+import Sign from '../../Components/Sign'
+import Request from '../../Components/Request'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import Sign from '../Components/Sign'
-import Request from '../Components/Request'
-import { get } from 'lodash-es'
-import { service as signService, SIGN_STATUS } from '../domains/sign'
-import { getAPPURL } from '../helpers/path'
-import { showResponseError } from '../helpers/errors'
-import store from '../store'
 
 export default {
 	name: 'LibresignTab',
