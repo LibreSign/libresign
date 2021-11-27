@@ -150,7 +150,7 @@ OC.L10N.register(
     "For security reasons, you must create a password to sign the documents. Enter your new password in the field below." : "Aus Sicherheitsgründen musst Du Passwort zum Signieren der Dokumente erstellen. Bitte gib Dein neues Passwort in das untenstehende Feld ein.",
     "Enter a password" : "Passwort eingeben",
     "New password to sign documents has been created" : "Ein neues Passwort zum Signieren von Dokumenten wurde erstellt",
-    "Error creating new password, please contact the administrator" : "Fehler beim Erstellem des neune Passworts, bitte kontaktiere Deinen Administrator.",
+    "Error creating new password, please contact the administrator" : "Es ist ein Fehler beim Erstellem des neune Passworts aufgetreten, bitte kontaktiere Deinen Administrator.",
     "Create new subscription." : "Erstelle ein neues Abonnement",
     "Root certificate has not been configured by the Administrator!" : "Wurzelzertifikat wurde vom Administrator noch nicht konfiguriert!",
     "You need to create an account with the same email you received the invitation" : "Du musst ein Konto mit derselben E-Mail-Adresse erstellen, über die Du die Einladung erhalten hast",
