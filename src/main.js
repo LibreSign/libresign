@@ -62,7 +62,6 @@ if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewri
 	router.push({ name: 'home' })
 }
 
-store.dispatch('featureController/GET_STATES')
 store.dispatch('user/GET_INITIAL_SETTINGS')
 
 export default new Vue({
