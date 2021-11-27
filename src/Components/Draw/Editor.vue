@@ -14,8 +14,9 @@
 			<canvas id="myCanvas"
 				ref="canvas"
 				class="canvas"
-				width="540"
-				height="260"
+				:width="canvasWidth"
+				:height="canvasHeight"
+				:style="{ '--draw-canvas-width': `${canvasWidth}px`, '--draw-canvas-height': `${canvasHeight}px` }"
 				@mousedown="beginDrawing"
 				@mousemove="keepDrawing"
 				@mouseleave="stopDrawing"
@@ -48,6 +49,7 @@
 
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import { SignatureImageDimensions } from './options'
 
 export default {
 	name: 'Editor',
@@ -57,8 +59,8 @@ export default {
 	},
 
 	data: () => ({
-		canvasWidth: 450,
-		canvasHeight: 400,
+		canvasWidth: SignatureImageDimensions.width,
+		canvasHeight: SignatureImageDimensions.height,
 		canvas: null,
 		isDrawing: false,
 		color: '#000000',
@@ -136,7 +138,7 @@ export default {
 		},
 
 		clearCanvas() {
-			this.canvas.clearRect(0, 0, 560, 360)
+			this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 		},
 
 		createDataImage() {
@@ -239,10 +241,11 @@ export default {
 
 	.canvas{
 		border: 1px solid #dbdbdb;
-		width: 540px;
-		height: 260px;
+		width: var(--draw-canvas-width);
+		height: var(--draw-canvas-height);
 		background-color: #cecece;
 		border-radius: 10px;
+		margin-bottom: 5px;
 
 		@media screen and (max-width: 650px) {
 			width: 100%;

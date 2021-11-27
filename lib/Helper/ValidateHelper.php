@@ -510,7 +510,7 @@ class ValidateHelper {
 	}
 
 	public function valdateCode(FileUser $fileUser, array $params): void {
-		if (!$this->hasher->verify($params['code'], $fileUser->getCode())) {
+		if (empty($params['code']) || !$this->hasher->verify($params['code'], $fileUser->getCode())) {
 			throw new LibresignException($this->l10n->t('Invalid code.'));
 		}
 		$fileUser->setCode('');

@@ -85,6 +85,10 @@ jobs:
             --admin-pass=password
           ./occ app:enable ${{ env.APP_NAME }}
           php -S localhost:8080 &
+      - name: Set up dependencies apps
+        run: |
+          ./occ app:install --force --keep-disabled twofactor_gateway
+          ./occ app:enable --force twofactor_gateway
 
       - name: PHPUnit
         working-directory: apps/${{ env.APP_NAME }}

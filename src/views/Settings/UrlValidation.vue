@@ -36,7 +36,7 @@ export default {
 		},
 		async getData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + 'config/apps' + '/' + 'libresign' + '/' + 'validation_site', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'validation_site', {}
 			)
 			this.placeHolderUrl(response.data.ocs.data.data)
 		},

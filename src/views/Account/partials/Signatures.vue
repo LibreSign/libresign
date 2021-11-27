@@ -1,12 +1,12 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { linkTo } from '@nextcloud/router'
 import { get } from 'lodash-es'
 import Signature from './Signature.vue'
 import { service } from '../../../domains/signatures'
 
 const emptySignature = {
 	id: 0,
+	fileId: 0,
 	value: '',
 }
 
@@ -76,7 +76,8 @@ export default {
 						acc[current.type] = {
 							...emptySignature,
 							id: current.id,
-							value: linkTo('core', `preview?fileId=${current.file.fileId}`),
+							fileId: current.file.fileId,
+							value: current.file.url,
 						}
 						return acc
 					}, { ...this.sings })
