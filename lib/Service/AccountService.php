@@ -74,6 +74,9 @@ class AccountService {
 	/** @var TimeFactory */
 	private $timeFactory;
 
+	const ELEMENT_SIGN_WIDTH = 350;
+	const ELEMENT_SIGN_HEIGHT = 100;
+
 	public function __construct(
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
@@ -536,7 +539,7 @@ class AccountService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => 540, 'y' => 260]),
+					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
 					'fileId' => $element->getFileId()
 				],
 				'uid' => $element->getUserId(),
@@ -553,7 +556,7 @@ class AccountService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => 540, 'y' => 260]),
+				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
 				'fileId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
