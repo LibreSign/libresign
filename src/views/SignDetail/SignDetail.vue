@@ -261,10 +261,10 @@ export default {
 				:signers="signers"
 				@select:signer="onSelectSigner">
 				<template #actions="{signer}">
-					<ActionButton icon="icon-comment" @click="sendNotify(signer)">
+					<ActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
 						{{ t('libresign', 'Send reminder') }}
 					</ActionButton>
-					<ActionButton icon="icon-delete" @click="removeSigner(signer)">
+					<ActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
 						{{ t('libresign', 'Remove') }}
 					</ActionButton>
 				</template>
@@ -318,6 +318,7 @@ export default {
 .sign-details {
 	margin-left: 5px;
 }
+
 .view-sign-detail {
 	&--sidebar {
 		width: 300px;
