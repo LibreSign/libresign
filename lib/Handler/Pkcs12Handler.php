@@ -132,7 +132,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 
 		$pdf = new TCPDILibresign();
-		$pageCount = $pdf->setNextcloudSourceFile($file);
+		$pageCount = $pdf->setSourceData($file->getContent());
 
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 			$templateId = $pdf->importPage($pageNo);

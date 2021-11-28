@@ -300,7 +300,7 @@ class LibreSignFileController extends Controller {
 			$userFolder = $this->rootFolder->getUserFolder($libreSignFile->getUserId());
 			$file = $userFolder->getById($libreSignFile->getNodeId());
 			$pdf = new TCPDILibresign();
-			$pageCount = $pdf->setNextcloudSourceFile($file[0]);
+			$pageCount = $pdf->setSourceData($file[0]->getContent());
 			if ($page > $pageCount || $page < 1) {
 				throw new LibresignException($this->l10n->t('Page not found.'));
 			}
