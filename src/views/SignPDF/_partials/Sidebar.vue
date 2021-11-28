@@ -2,7 +2,10 @@
 	<div class="sign-pdf-sidebar">
 		<header>
 			<img class="pdf-icon" :src="$options._icons.PDFIcon">
-			<h1>{{ document.name }}</h1>
+			<h1>
+				{{ document.name }}
+				<small>{{ status }}</small>
+			</h1>
 		</header>
 
 		<main>
@@ -13,6 +16,7 @@
 
 <script>
 import PDFIcon from '../../../assets/images/application-pdf.png'
+import { getStatusLabel } from '../../../domains/sign'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
@@ -24,6 +28,11 @@ export default {
 		document: {
 			type: Object,
 			required: true,
+		},
+	},
+	computed: {
+		status() {
+			return getStatusLabel(this.document?.status)
 		},
 	},
 }
@@ -52,6 +61,9 @@ export default {
 		img {
 			display: inline-block;
 			margin: 0 auto;
+		}
+		small {
+			display: block;
 		}
 	}
 	main {

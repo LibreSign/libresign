@@ -27,7 +27,7 @@
 			<PDFViewer :url="pdfData.url" />
 		</div>
 		<Sidebar v-bind="{ document }">
-			<Description
+			<!-- <Description
 				v-if="signEnabled"
 				:enable="enableToSign"
 				:elements="elements"
@@ -42,7 +42,8 @@
 						{{ t('libresign', 'Create your signature') }}
 					</button>
 				</div>
-			</Description>
+			</Description> -->
+			<Sign v-if="signEnabled" v-bind="{ document, uuid }" @signed="onSigned" />
 			<div v-else>
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
@@ -61,10 +62,11 @@ import { service as signerService } from '../../domains/signatures'
 import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
 import { onError } from '../../helpers/errors'
 import Sidebar from './_partials/Sidebar.vue'
+import Sign from './_partials/Sign.vue'
 
 export default {
 	name: 'SignPDF',
-	components: { Description, PDFViewer, Sidebar },
+	components: { Description, PDFViewer, Sidebar, Sign },
 	mixins: [
 		isMobile,
 	],
@@ -171,9 +173,9 @@ export default {
 		},
 	},
 	mounted() {
-		this.loadSignatures()
+		// this.loadSignatures()
 		this.loadDocument()
-		this.loadUser()
+		// this.loadUser()
 	},
 	methods: {
 		showDocument(param) {
