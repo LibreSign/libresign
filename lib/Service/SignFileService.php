@@ -677,14 +677,16 @@ class SignFileService {
 			case 'email':
 				$this->sendCodeByEmail($fileUser, $code);
 				break;
+			case 'password':
+				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
 
 	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName) {
+		$gateway = $this->getGateway($user, $gatewayName);
+		
 		$userAccount = $this->accountManager->getAccount($user);
 		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-
-		$gateway = $this->getGateway($user, $gatewayName);
 		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
 	}
 
@@ -698,6 +700,9 @@ class SignFileService {
 		}
 		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
 		$gateway = $factory->getGateway($gatewayName);
+		if (!$gateway->getConfig()->isComplete()) {
+			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two Factor Gateway.', $gatewayName));
+		}
 		return $gateway;
 	}
 
