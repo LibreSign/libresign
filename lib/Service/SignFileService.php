@@ -694,7 +694,7 @@ class SignFileService {
 	 */
 	private function getGateway(IUser $user, string $gatewayName) {
 		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
-			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Twofactor Gateway is not enabled.', $gatewayName));
+			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
 		}
 		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
 		$gateway = $factory->getGateway($gatewayName);
