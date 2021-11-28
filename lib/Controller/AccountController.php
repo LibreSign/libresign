@@ -363,17 +363,18 @@ class AccountController extends ApiController {
 	 * @NoCSRFRequired
 	 */
 	public function accountFileList(array $filter = [], $page = null, $length = null): JSONResponse {
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
-		if (!$authorized) {
+		try {
+			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
+			$return = $this->accountFileService->accountFileList($filter, $page, $length);
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'message' => $this->l10n->t('You are not allowed to approve user profile documents.')
+					'message' => $th->getMessage()
 				],
 				Http::STATUS_NOT_FOUND
 			);
 		}
-		$return = $this->accountFileService->accountFileList($filter, $page, $length);
-		return new JSONResponse($return, Http::STATUS_OK);
 	}
 
 	/**
