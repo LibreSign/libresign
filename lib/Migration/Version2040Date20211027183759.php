@@ -63,7 +63,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
 				$pdf = new TCPDILibresign();
-				$pdf->setNextcloudSourceFile($file[0]);
+				$pdf->setSourceData($file[0]->getContent());
 				$data = $pdf->getPagesMetadata();
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();

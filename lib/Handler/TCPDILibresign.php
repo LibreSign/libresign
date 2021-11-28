@@ -2,29 +2,14 @@
 
 namespace OCA\Libresign\Handler;
 
-use OCP\Files\File;
 use TCPDI;
-use tcpdi_parser;
 
 class TCPDILibresign extends TCPDI {
 	protected $tcpdflink = false;
-	public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false) {
+	public function __construct($orientation = 'P', $unit = 'px', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false) {
 		parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, $pdfa);
 		$this->setPrintHeader(false);
 		$this->setPrintFooter(false);
-	}
-
-	public function setNextcloudSourceFile(File $inputFile): int {
-		$filename = $inputFile->getName();
-		$this->current_filename = $filename;
-
-		if (!isset($this->parsers[$filename])) {
-			$this->parsers[$filename] = new tcpdi_parser($inputFile->getContent(), $filename);
-		}
-		$this->current_parser = & $this->parsers[$filename];
-		$this->setPDFVersion(max($this->getPDFVersion(), $this->current_parser->getPDFVersion()));
-
-		return $this->parsers[$filename]->getPageCount();
 	}
 
 	/**

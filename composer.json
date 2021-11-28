@@ -8,7 +8,7 @@
     "endroid/qr-code": "^4.2",
     "pagerfanta/pagerfanta": "^3.2",
     "tecnickcom/tc-lib-pdf": "^8.0",
-    "iio/libmergepdf": "^4.0"
+    "iio/libmergepdf": "dev-patch-1"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",
@@ -40,6 +40,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/LibreCodeCoop/webrequest"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/LibreCodeCoop/libmergepdf"
     }
   ]
 }

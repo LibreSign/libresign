@@ -212,8 +212,8 @@ class SignFileService {
 	}
 
 	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$pdf = new TCPDILibresign('P', 'px');
-		$pdf->setNextcloudSourceFile($node);
+		$pdf = new TCPDILibresign();
+		$pdf->setSourceData($node->getContent());
 		return $pdf->getPagesMetadata();
 	}
 
@@ -677,14 +677,16 @@ class SignFileService {
 			case 'email':
 				$this->sendCodeByEmail($fileUser, $code);
 				break;
+			case 'password':
+				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
 
 	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName) {
+		$gateway = $this->getGateway($user, $gatewayName);
+		
 		$userAccount = $this->accountManager->getAccount($user);
 		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-
-		$gateway = $this->getGateway($user, $gatewayName);
 		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
 	}
 
@@ -694,10 +696,13 @@ class SignFileService {
 	 */
 	private function getGateway(IUser $user, string $gatewayName) {
 		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
-			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Twofactor Gateway is not enabled.', $gatewayName));
+			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
 		}
 		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
 		$gateway = $factory->getGateway($gatewayName);
+		if (!$gateway->getConfig()->isComplete()) {
+			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two Factor Gateway.', $gatewayName));
+		}
 		return $gateway;
 	}
 
