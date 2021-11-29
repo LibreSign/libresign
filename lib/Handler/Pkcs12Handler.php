@@ -132,11 +132,29 @@ class Pkcs12Handler extends SignEngineHandler {
 		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 
 		$pdf = new TCPDILibresign();
-		$pageCount = $pdf->setNextcloudSourceFile($file);
+		$pageCount = $pdf->setSourceData($file->getContent());
 
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 			$templateId = $pdf->importPage($pageNo);
-			$pdf->AddPage();
+
+			// Define dimensions of page
+			$tpl = $pdf->tpls[$pageNo];
+			$dimensions['or'] = $tpl['w'] > $tpl['h'] ? 'L' : 'P';
+			$pdf->setPageOrientation($dimensions['or']);
+			$dimensions = $pdf->getPageDimensions($pageNo - 1);
+			$dimensions['w'] = $tpl['w'];
+			$dimensions['h'] = $tpl['h'];
+			$dimensions['wk'] = $tpl['h'];
+			$dimensions['hk'] = $tpl['h'];
+			foreach (['MediaBox', 'CropBox', 'BleedBox', 'TrimBox', 'ArtBox'] as $box) {
+				if (!isset($dimensions[$box])) {
+					continue;
+				}
+				$dimensions[$box]['urx'] = $tpl['h'];
+				$dimensions[$box]['ury'] = $tpl['w'];
+			}
+			$pdf->AddPage($dimensions['or'], $dimensions);
+
 			$pdf->useTemplate($templateId);
 
 			$pdf->SetFont('Helvetica');

@@ -16,17 +16,22 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCP\Accounts\IAccountManager;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IServerContainer;
 use OCP\ITempManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
+use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use TCPDF_PARSER;
@@ -58,6 +63,14 @@ class SignFileService {
 	private $validateHelper;
 	/** @var IHasher */
 	private $hasher;
+	/** @var ISecureRandom */
+	private $secureRandom;
+	/** @var IAppManager */
+	private $appManager;
+	/** @var IAccountManager */
+	private $accountManager;
+	/** @var IServerContainer */
+	private $serverContainer;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
@@ -95,6 +108,10 @@ class SignFileService {
 		IConfig $config,
 		ValidateHelper $validateHelper,
 		IHasher $hasher,
+		ISecureRandom $secureRandom,
+		IAppManager $appManager,
+		IAccountManager $accountManager,
+		IServerContainer $serverContainer,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
@@ -115,6 +132,10 @@ class SignFileService {
 		$this->config = $config;
 		$this->validateHelper = $validateHelper;
 		$this->hasher = $hasher;
+		$this->secureRandom = $secureRandom;
+		$this->appManager = $appManager;
+		$this->accountManager = $accountManager;
+		$this->serverContainer = $serverContainer;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -191,8 +212,8 @@ class SignFileService {
 	}
 
 	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$pdf = new TCPDILibresign('P', 'px');
-		$pdf->setNextcloudSourceFile($node);
+		$pdf = new TCPDILibresign();
+		$pdf->setSourceData($node->getContent());
 		return $pdf->getPagesMetadata();
 	}
 
@@ -638,26 +659,51 @@ class SignFileService {
 	}
 
 	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
-		$token = rand(1000,9999);
+		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
+		$this->sendCode($user, $fileUser, $token);
 		$fileUser->setCode($this->hasher->hash($token));
 		$this->fileUserMapper->update($fileUser);
-		$this->sendCode($fileUser, $token);
 		return $token;
 	}
 
-	private function sendCode(FileUserEntity $fileUser, string $code) {
+	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code) {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
 			case 'sms':
-				$this->sendCodeBySms($fileUser, $code);
+			case 'telegram':
+			case 'signal':
+				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
 			case 'email':
 				$this->sendCodeByEmail($fileUser, $code);
 				break;
+			case 'password':
+				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
 
-	private function sendCodeBySms(FileUserEntity $fileUser, string $code) {
+	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName) {
+		$gateway = $this->getGateway($user, $gatewayName);
+		
+		$userAccount = $this->accountManager->getAccount($user);
+		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
+	}
+
+	/**
+	 * @throws OCSForbiddenException
+	 * @return \OCA\TwoFactorGateway\Service\Gateway\IGateway
+	 */
+	private function getGateway(IUser $user, string $gatewayName) {
+		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
+			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
+		}
+		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
+		$gateway = $factory->getGateway($gatewayName);
+		if (!$gateway->getConfig()->isComplete()) {
+			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
+		}
+		return $gateway;
 	}
 
 	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {

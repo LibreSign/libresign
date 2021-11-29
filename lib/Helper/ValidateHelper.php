@@ -506,11 +506,15 @@ class ValidateHelper {
 			case 'email':
 				$this->valdateCode($fileUser, $params);
 				break;
+			case 'password':
+				if (!empty($params['code'])) {
+					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
+				}
 		}
 	}
 
 	public function valdateCode(FileUser $fileUser, array $params): void {
-		if (!$this->hasher->verify($params['code'], $fileUser->getCode())) {
+		if (empty($params['code']) || !$this->hasher->verify($params['code'], $fileUser->getCode())) {
 			throw new LibresignException($this->l10n->t('Invalid code.'));
 		}
 		$fileUser->setCode('');

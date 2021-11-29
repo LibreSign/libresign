@@ -9,6 +9,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\SignFileService;
+use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -378,7 +379,11 @@ class SignFileController extends ApiController {
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode($fileUser, $user);
 			$success = true;
-			$message = $this->l10n->t('Code to sign requested file');
+			$message = $this->l10n->t('Code to sign requested');
+		} catch (SmsTransmissionException $e) {
+			$success = false;
+			$message = $this->l10n->t('Failed to send code.');
+			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		} catch (\Throwable $th) {
 			$success = false;
 			$message = $th->getMessage();
