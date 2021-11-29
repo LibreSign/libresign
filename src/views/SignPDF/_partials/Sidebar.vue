@@ -3,13 +3,18 @@
 		<header>
 			<img class="pdf-icon" :src="$options._icons.PDFIcon">
 			<h1>
-				{{ document.name }}
+				{{ name }}
 				<small>{{ status }}</small>
 			</h1>
 		</header>
 
 		<main>
-			<slot />
+			<slot v-if="!loading" />
+			<div v-else class="sidebar-loading">
+				<p>
+					{{ t('libresign', 'Loading') }}
+				</p>
+			</div>
 		</main>
 	</div>
 </template>
@@ -29,10 +34,18 @@ export default {
 			type: Object,
 			required: true,
 		},
+		loading: {
+			type: Boolean,
+			required: false,
+			default: false,
+		},
 	},
 	computed: {
 		status() {
 			return getStatusLabel(this.document?.status)
+		},
+		name() {
+			return this.document.name || 'unknown'
 		},
 	},
 }
@@ -71,6 +84,10 @@ export default {
 		align-items: center;
 		width: 100%;
 	}
+}
+
+.sidebar-loading {
+	text-align: center;
 }
 
 .pdf-icon {

@@ -1,14 +1,24 @@
 <script>
-import { get, isEmpty } from 'lodash-es'
+import { get, isEmpty, pick } from 'lodash-es'
 import { service as sigantureService } from '../../../domains/signatures'
 import { service as signService } from '../../../domains/sign'
 import { onError } from '../../../helpers/errors'
 import PasswordManager from './ModalPasswordManager.vue'
+import SMSManager from './ModalSMSManager.vue'
+import { showError } from '@nextcloud/dialogs'
+
+const SIGN_METHODS = Object.freeze({
+	PASSWORD: 'PasswordManager',
+	EMAIL: 'EmailManager',
+	SMS: 'SMSManager',
+})
 
 export default {
 	name: 'Sign',
+	SIGN_METHODS,
 	components: {
 		PasswordManager,
+		SMSManager,
 	},
 	props: {
 		uuid: {
@@ -24,6 +34,7 @@ export default {
 		loading: true,
 		modals: {
 			password: false,
+			email: false,
 		},
 		user: {
 			account: { uid: '', displayName: '' },
@@ -87,6 +98,17 @@ export default {
 
 			return payload
 		},
+		settings() {
+			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
+			const user = pick(this.user.settings, ['canRequestSign', 'hasSignatureFile'])
+			return {
+				...base,
+				...user,
+			}
+		},
+		signMethod() {
+			return this.settings.signMethod || 'password'
+		},
 	},
 	mounted() {
 		this.loading = true
@@ -116,8 +138,13 @@ export default {
 				onError(err)
 			}
 		},
-		callPassword() {
-			this.modals.password = true
+		callSignMethod() {
+			if (this.modals[this.signMethod] === undefined) {
+				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
+				return
+			}
+
+			this.modals[this.signMethod] = true
 		},
 		onModalClose(modal) {
 			this.modals[modal] = false
@@ -152,7 +179,7 @@ export default {
 			</figure>
 		</div>
 		<div>
-			<button :disabled="loading" class="button" @click="callPassword">
+			<button :disabled="loading" class="button" @click="callSignMethod">
 				{{ t('libresign', 'Sign the document.') }}
 			</button>
 		</div>
@@ -161,6 +188,13 @@ export default {
 			v-bind="{ hasPassword }"
 			@change="signWithPassword"
 			@close="onModalClose('password')" />
+
+		<SMSManager
+			v-if="modals.email"
+			v-bind="{ settings }"
+			@change="signWithPassword"
+			@update:phone="val => $emit('update:phone', val)"
+			@close="onModalClose('email')" />
 	</div>
 </template>
 

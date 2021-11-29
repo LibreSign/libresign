@@ -26,7 +26,8 @@
 		<div v-show="viewDoc" id="viewer" class="content">
 			<PDFViewer :url="pdfData.url" />
 		</div>
-		<Sidebar v-bind="{ document }">
+
+		<Sidebar v-bind="{ document, loading }">
 			<!-- <Description
 				v-if="signEnabled"
 				:enable="enableToSign"
@@ -43,7 +44,10 @@
 					</button>
 				</div>
 			</Description> -->
-			<Sign v-if="signEnabled" v-bind="{ document, uuid }" @signed="onSigned" />
+			<Sign v-if="signEnabled"
+				v-bind="{ document, uuid }"
+				@signed="onSigned"
+				@update:phone="onPhoneUpdated" />
 			<div v-else>
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
@@ -54,7 +58,7 @@
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 import { showSuccess } from '@nextcloud/dialogs'
-import { defaultsDeep, get, isEmpty } from 'lodash-es'
+import { defaultsDeep, get, isEmpty, set } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
 import Description from './_partials/Description'
 import PDFViewer from './_partials/PDFViewer'
@@ -98,12 +102,14 @@ export default {
 		return {
 			state,
 			viewDoc: true,
+			loading: true,
 			document: {
 				id: '',
 				name: '',
 				signers: [],
 				pages: [],
 				visibleElements: [],
+				settings: { signMethod: 'password', canSign: false },
 			},
 			user: {
 				account: { uid: '', displayName: '' },
@@ -171,11 +177,24 @@ export default {
 		status() {
 			return getStatusLabel(this.document?.status)
 		},
+		// ---
+		signMethod() {
+			return get(this.document, ['settings', 'signMethod'], 'password')
+		},
+		canSign() {
+			return get(this.document, ['settings', 'canSign'], false)
+		},
 	},
 	mounted() {
+		this.loading = true
 		// this.loadSignatures()
-		this.loadDocument()
 		// this.loadUser()
+
+		this.loadDocument()
+			.catch(console.warn)
+			.then(() => {
+				this.loading = false
+			})
 	},
 	methods: {
 		showDocument(param) {
@@ -212,6 +231,15 @@ export default {
 			} catch (err) {
 				onError(err)
 			}
+		},
+		onPhoneUpdated(val) {
+			const doc = {
+				...this.document,
+			}
+
+			set(doc, 'settings.phoneNumber', val)
+
+			this.document = doc
 		},
 	},
 }
