@@ -1,26 +1,3 @@
-
-<!--
-- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
--
-- @author Lyseon Tech <contato@lt.coop.br>
--
-- @license GNU AGPL version 3 or any later version
--
-- This program is free software: you can redistribute it and/or modify
-- it under the terms of the GNU Affero General Public License as
-- published by the Free Software Foundation, either version 3 of the
-- License, or (at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
-- but WITHOUT ANY WARRANTY; without even the implied warranty of
-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- GNU Affero General Public License for more details.
--
-- You should have received a copy of the GNU Affero General Public License
-- along with this program. If not, see <http://www.gnu.org/licenses/>.
--
--->
-
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
@@ -28,22 +5,6 @@
 		</div>
 
 		<Sidebar v-bind="{ document, loading }">
-			<!-- <Description
-				v-if="signEnabled"
-				:enable="enableToSign"
-				:elements="elements"
-				:user="user"
-				:uuid="uuid"
-				:pdf-name="pdfData.filename"
-				:pdf-description="pdfData.description"
-				@signed="onSigned"
-				@onDocument="showDocument">
-				<div v-if="needSignature && !hasSignatures">
-					<button class="primary" @click="gotoAccount">
-						{{ t('libresign', 'Create your signature') }}
-					</button>
-				</div>
-			</Description> -->
 			<Sign v-if="signEnabled"
 				v-bind="{ document, uuid }"
 				@signed="onSigned"
@@ -60,17 +21,16 @@ import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 import { showSuccess } from '@nextcloud/dialogs'
 import { defaultsDeep, get, isEmpty, set } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
-import Description from './_partials/Description'
-import PDFViewer from './_partials/PDFViewer'
 import { service as signerService } from '../../domains/signatures'
 import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
 import { onError } from '../../helpers/errors'
+import PDFViewer from './_partials/PDFViewer'
 import Sidebar from './_partials/Sidebar.vue'
 import Sign from './_partials/Sign.vue'
 
 export default {
 	name: 'SignPDF',
-	components: { Description, PDFViewer, Sidebar, Sign },
+	components: { PDFViewer, Sidebar, Sign },
 	mixins: [
 		isMobile,
 	],
