@@ -50,6 +50,18 @@ class AccountFileMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	public function getByFileId($fileId): AccountFile {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntity($qb);
+	}
+
 	/**
 	 * @return array<\OCA\Libresign\Helper\Pagination|array>
 	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
