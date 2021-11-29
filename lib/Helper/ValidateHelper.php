@@ -507,7 +507,7 @@ class ValidateHelper {
 				$this->valdateCode($fileUser, $params);
 				break;
 			case 'password':
-				if (!empty($params['code'])) {
+				if (isset($params['code'])) {
 					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
 				}
 		}
