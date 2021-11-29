@@ -104,8 +104,8 @@ export default {
 			viewDoc: true,
 			loading: true,
 			document: {
-				id: '',
 				name: '',
+				fileId: 0,
 				signers: [],
 				pages: [],
 				visibleElements: [],

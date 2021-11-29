@@ -35,7 +35,7 @@ export default {
 	padding-top: 20px;
 }
 
-header, main {
+header, main, section {
 	width: 100%;
 }
 

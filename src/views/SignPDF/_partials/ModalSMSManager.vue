@@ -1,11 +1,12 @@
 <script>
 import confirmPassword from '@nextcloud/password-confirmation'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { isEmpty, castArray } from 'lodash-es'
 import Content from '../../../Components/Modals/ModalContent.vue'
-import { isEmpty } from 'lodash-es'
-import { showResponseError } from '../../../helpers/errors'
+import { onError } from '../../../helpers/errors'
 import { settingsService } from '../../../domains/settings'
-import { showError } from '@nextcloud/dialogs'
+import { service as signService } from '../../../domains/sign'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -23,9 +24,15 @@ export default {
 			type: Object,
 			required: true,
 		},
+		fileId: {
+			type: Number,
+			required: true,
+		},
 	},
 	data: () => ({
+		token: '',
 		phoneNumber: '',
+		tokenRequested: false,
 		loading: false,
 	}),
 	computed: {
@@ -42,12 +49,6 @@ export default {
 		this.phoneNumber = this.settings.phoneNumber || ''
 	},
 	methods: {
-		close() {
-			this.$emit('close')
-		},
-		sanitizeNumber() {
-			this.phoneNumber = sanitizeNumber(this.phoneNumber)
-		},
 		async saveNumber() {
 			this.loading = true
 			this.sanitizeNumber()
@@ -65,18 +66,44 @@ export default {
 					showError(t('libresign', 'Review the entered number.'))
 					return
 				}
+				showSuccess(t('libresign', 'Phone stored.'))
 			} catch (err) {
-				showResponseError(err)
+				onError(err)
 			} finally {
 				this.loading = false
 			}
 		},
-		onChange(val) {
-			this.$emit('change', val)
+		async requestCode() {
+			this.loading = true
+			this.tokenRequested = false
+
+			await this.$nextTick()
+
+			try {
+				const { message } = await signService.requestSignCode(this.fileId)
+
+				this.tokenRequested = true
+
+				castArray(message)
+					.forEach(showSuccess)
+			} catch (err) {
+				onError(err)
+			} finally {
+				this.loading = false
+			}
+		},
+		sendCode() {
+			this.$emit('change', this.token)
 
 			this.$nextTick(() => {
 				this.close()
 			})
+		},
+		close() {
+			this.$emit('close')
+		},
+		sanitizeNumber() {
+			this.phoneNumber = sanitizeNumber(this.phoneNumber)
 		},
 	},
 }
@@ -90,35 +117,80 @@ export default {
 				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
 			</template>
 
-			<div v-if="hasNumber">
-				{{ phoneNumber }}
+			<div v-if="hasNumber" class="code-request">
+				<h3 class="phone">
+					{{ phoneNumber }}
+				</h3>
+
+				<div v-if="tokenRequested">
+					<input v-model="token"
+						:disabled="loading"
+						name="code"
+						type="text">
+				</div>
+
+				<div>
+					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
+						{{ t('libresign', 'Request code.') }}
+					</button>
+
+					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
+						{{ t('libresign', 'Send code.') }}
+					</button>
+				</div>
 			</div>
 			<div v-else class="store-number">
-				<input v-model="phoneNumber"
-					:disabled="loading"
-					name="cellphone"
-					placeholder="+55 00 0 0000 0000"
-					type="tel"
-					@change="sanitizeNumber">
-				<button :disabled="loading || phoneNumber.length < 10" @click="saveNumber">
-					{{ t('libresign', 'Save your number.') }}
-				</button>
+				<div>
+					<input v-model="phoneNumber"
+						:disabled="loading"
+						name="cellphone"
+						placeholder="+55 00 0 0000 0000"
+						type="tel"
+						@change="sanitizeNumber">
+				</div>
+
+				<div>
+					<button :disabled="loading || phoneNumber.length < 10" @click="saveNumber">
+						{{ t('libresign', 'Save your number.') }}
+					</button>
+				</div>
 			</div>
 		</Content>
 	</Modal>
 </template>
 
 <style lang="scss" scoped>
-.store-number {
+h3.phone {
+	font-family: monospace;
+	text-align: center;
+}
+
+button {
+	width: 60%;
+	max-width: 200px;
+	margin-top: 5px;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+
+}
+
+.code-request, .store-number {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
 	input {
+		font-family: monospace;
 		font-size: 1.1em;
-		width: 100%;
+		width: 50%;
+		max-width: 250px;
 		height: auto !important;
 		display: block;
+		margin: 0 auto;
 	}
-	button {
-		display: block;
-		margin: 1em auto 0 auto;
-	}
+}
+
+.code-request input {
+	font-size: 1.3em;
 }
 </style>

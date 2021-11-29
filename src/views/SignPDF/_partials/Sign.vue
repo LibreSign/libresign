@@ -1,11 +1,11 @@
 <script>
 import { get, isEmpty, pick } from 'lodash-es'
+import { showError } from '@nextcloud/dialogs'
 import { service as sigantureService } from '../../../domains/signatures'
 import { service as signService } from '../../../domains/sign'
 import { onError } from '../../../helpers/errors'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
-import { showError } from '@nextcloud/dialogs'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -98,6 +98,9 @@ export default {
 
 			return payload
 		},
+		fileId() {
+			return Number(this.document.fileId ?? 0)
+		},
 		settings() {
 			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
 			const user = pick(this.user.settings, ['canRequestSign', 'hasSignatureFile'])
@@ -156,6 +159,13 @@ export default {
 
 			return this.signDocument(payload)
 		},
+		async signWithCode(code) {
+			this.loading = true
+
+			const payload = { ...this.singPayload, code }
+
+			return this.signDocument(payload)
+		},
 		async signDocument(payload) {
 			this.loading = true
 			try {
@@ -191,8 +201,8 @@ export default {
 
 		<SMSManager
 			v-if="modals.email"
-			v-bind="{ settings }"
-			@change="signWithPassword"
+			v-bind="{ settings, fileId }"
+			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('email')" />
 	</div>
