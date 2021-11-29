@@ -6,6 +6,7 @@ import { service as signService } from '../../../domains/sign'
 import { onError } from '../../../helpers/errors'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
+import EmailManager from './ModalEmailManager.vue'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -19,6 +20,7 @@ export default {
 	components: {
 		PasswordManager,
 		SMSManager,
+		EmailManager,
 	},
 	props: {
 		uuid: {
@@ -35,9 +37,10 @@ export default {
 		modals: {
 			password: false,
 			email: false,
+			sms: false,
 		},
 		user: {
-			account: { uid: '', displayName: '' },
+			account: { uid: '', displayName: '', emailAddress: '' },
 			settings: { canRequestSign: false, hasSignatureFile: true },
 		},
 		userSignatures: [],
@@ -107,10 +110,14 @@ export default {
 			return {
 				...base,
 				...user,
+				email: this.email,
 			}
 		},
 		signMethod() {
 			return this.settings.signMethod || 'password'
+		},
+		email() {
+			return this.user?.account?.emailAddress || 'unknown'
 		},
 	},
 	mounted() {
@@ -200,13 +207,27 @@ export default {
 			@close="onModalClose('password')" />
 
 		<SMSManager
-			v-if="modals.email"
+			v-if="modals.sms"
 			v-bind="{ settings, fileId }"
 			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
+			@close="onModalClose('sms')" />
+
+		<EmailManager
+			v-if="modals.email"
+			v-bind="{ settings, fileId }"
+			@change="signWithCode"
 			@close="onModalClose('email')" />
 	</div>
 </template>
+
+<style>
+.modal-wrapper .modal-container{
+	max-width: 900px;
+	width: 75%;
+	height: 80%;
+}
+</style>
 
 <style lang="scss" scoped>
 .document-sign {

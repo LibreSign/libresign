@@ -219,6 +219,7 @@ class AccountController extends ApiController {
 			[
 				'account' => [
 					'uid' => $user->getUID(),
+					'emailAddress' => $user->getEMailAddress(),
 					'displayName' => $user->getDisplayName()
 				],
 				'settings' => $this->accountService->getSettings($this->userSession->getUser())
