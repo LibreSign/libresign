@@ -156,7 +156,6 @@ class LibreSignFileController extends Controller {
 					'displayName' => $signer->getDisplayName(),
 					'fullName' => $signer->getFullName(),
 					'me' => false,
-					'signer_file_uuid' => null,
 					'fileUserId' => $signer->getId()
 				];
 				if (!empty($uid)) {
