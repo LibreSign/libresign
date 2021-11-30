@@ -22,7 +22,6 @@ OC.L10N.register(
     "File already signed by you" : "Súbor je už od vás podpísaný",
     "File signed" : "Podpísaný súbor",
     "Internal error. Contact admin." : "Interná chyba. Kontaktujte administrátora.",
-    "Code to sign requested" : "Vyžaduje sa kód na podpísanie",
     "Password to sign not defined. Create a password to sign." : "Heslo pre podpisovanie nie je definované. Vytvorte si heslo pre podpis.",
     "Invalid Sign engine." : "Neplatný podpisový nástroj.",
     "Digital signed by LibreSign." : "Digitálne podpísané od LibreSign.",

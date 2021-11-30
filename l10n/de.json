@@ -60,6 +60,7 @@
     "Invalid UUID file" : "Ungültige UUID Datei",
     "Signer not associated to this file" : "Unterzeichner nicht dieser Datei zugeordnet",
     "A file of this type has been associated." : "Eine Datei dieses Typs wurde zugeordnet.",
+    "Do not use code when signing method is with password." : "Verwende keinen Code, wenn die Unterzeichnung mit einem Passwort erfolgt",
     "Invalid code." : "Ungültiger Code",
     "Invalid file type." : "Ungültiger Dateityp.",
     "draft" : "Entwurf",

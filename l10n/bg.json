@@ -20,7 +20,6 @@
     "File already signed by you" : "Файлът вече е подписан от вас",
     "File signed" : "Файлът е подписан",
     "Internal error. Contact admin." : "Вътрешна грешка. Свържете се с администратора.",
-    "Code to sign requested" : "Заявен е код за подпис",
     "Password to sign not defined. Create a password to sign." : "Паролата за подпис не е дефинирана. Създайте парола за подпис.",
     "Invalid Sign engine." : "Невалиден двигател на подпис.",
     "Digital signed by LibreSign." : "Цифров подпис от LibreSign.",

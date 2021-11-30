@@ -22,7 +22,6 @@ OC.L10N.register(
     "File already signed by you" : "Dosyayı zaten imzalamışsınız",
     "File signed" : "Dosya imzalanmış",
     "Internal error. Contact admin." : "Bir iç sorun çıktı. BT yöneticiniz ile görüşün.",
-    "Code to sign requested" : "İmzalama kodu zorunlu",
     "Password to sign not defined. Create a password to sign." : "İmzalanama parolası tanımlanmamış. Bir imzalama parolası oluşturun.",
     "Invalid Sign engine." : "İmza işleyici geçersiz.",
     "Digital signed by LibreSign." : "LibreSign tarafından sayısal olarak imzalanmış. ",

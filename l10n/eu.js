@@ -22,7 +22,6 @@ OC.L10N.register(
     "File already signed by you" : "Fitxategia dagoeneko sinatu duzu",
     "File signed" : "Fitxategia sinatuta",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
-    "Code to sign requested" : "Sinatzeko kodea eskatuta",
     "Password to sign not defined. Create a password to sign." : "Sinatzeko pasahitza ez dago definituta. Sortu pasahitz bat sinatzeko.",
     "Invalid Sign engine." : "Sinatzeko motore baliogabea.",
     "Digital signed by LibreSign." : "LibreSign-en sinadura digitala.",
