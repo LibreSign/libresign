@@ -254,7 +254,7 @@ export default {
 			<h2>[{{ statusLabel }}] {{ document.name }}</h2>
 			<p>
 				<small>
-					{{ t('libresign', 'Select each signer to define theirs signature positions') }}
+					{{ t('libresign', 'Select each signer to define their signature positions') }}
 				</small>
 			</p>
 			<Sidebar class="view-sign-detail--sidebar"
