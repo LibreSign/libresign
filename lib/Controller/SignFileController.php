@@ -157,7 +157,7 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingFileId(string $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
+	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, $fileId, null, $elements, $code);
 	}
 
@@ -173,10 +173,10 @@ class SignFileController extends ApiController {
 		return $this->sign($password, null, $uuid, $elements, $code);
 	}
 
-	public function sign(string $password = null, string $fileId = null, string $uuid = null, array $elements = [], string $code = null): JSONResponse {
+	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
-			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $uuid);
+			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
 			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$this->validateHelper->validateCredentials($fileUser, [
