@@ -27,6 +27,7 @@ import { imagePath } from '@nextcloud/router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab'
 
+import './plugins/vuelidate'
 import './directives/VTooltip'
 import '@nextcloud/dialogs/styles/toast.scss'
 
