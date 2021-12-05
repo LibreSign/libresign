@@ -227,7 +227,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",
     "Element created" : "Bileşen eklendi",
-    "Select each signer to define theirs signature positions" : "İmza konumlarını belirlemek için imzalayanları tek tek seçin",
     "Remove" : "Kaldır",
     "Previous" : "Önceki",
     "Create your signature" : "İmzanızı ekleyin",

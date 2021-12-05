@@ -227,7 +227,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów",
     "Request signatures?" : "Prośba o podpisy?",
     "Element created" : "Utworzono element",
-    "Select each signer to define theirs signature positions" : "Wybierz każdego podpisującego, aby zdefiniować jego pozycje podpisu",
     "Remove" : "Usuń",
     "Previous" : "Poprzedni",
     "Create your signature" : "Utwórz swój podpis",

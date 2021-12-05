@@ -221,7 +221,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
     "Request signatures?" : "Sinadurak eskatu?",
     "Element created" : "Elementua sortuta",
-    "Select each signer to define theirs signature positions" : "Hautatu sinatzaile bakoitza haien sinaduren posizioak definitzeko",
     "Remove" : "Kendu",
     "Previous" : "Aurrekoa",
     "Create your signature" : "Sortu zure sinadura",
