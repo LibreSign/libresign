@@ -15,20 +15,16 @@ jobs:
       # do not stop on another job's failure
       fail-fast: false
       matrix:
-        php-versions: ['7.4']
+        php-versions: ['8.0']
         databases: ['sqlite']
         coverage: ['xdebug']
         xdebug_mode: ['debug']
-        server-versions: ['stable21', 'stable22', 'stable23', 'master']
+        server-versions: ['master']
         include:
-          - php-versions: '8.0'
-            databases: 'sqlite'
-            server-versions: 'stable21'
-            xdebug_mode: coverage
-          - php-versions: '8.0'
+          - php-versions: '7.4'
             databases: 'sqlite'
             server-versions: 'master'
-            xdebug_mode: debug
+            xdebug_mode: coverage
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
     steps:
@@ -98,7 +94,7 @@ jobs:
 
       - name: Upload coverage results to Coveralls
         working-directory: apps/${{ env.APP_NAME }}
-        if: matrix.php-versions == '8.0' && matrix.server-versions == 'stable21'
+        if: matrix.xdebug_mode == 'coverage'
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
