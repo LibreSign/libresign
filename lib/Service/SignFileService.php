@@ -245,15 +245,15 @@ class SignFileService {
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
-			$forceNotifyAsNewUser = false;
+			$notifyAsNewUser = false;
 			if (isset($data['status']) && $data['status'] === ValidateHelper::STATUS_ABLE_TO_SIGN) {
-				$forceNotifyAsNewUser = true;
+				$notifyAsNewUser = true;
 			}
 			foreach ($data['users'] as $user) {
 				$user['email'] = $this->getUserEmail($user);
 				$fileUser = $this->getFileUser($user['email'], $fileId);
 				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser, $forceNotifyAsNewUser);
+				$this->saveFileUser($fileUser, $notifyAsNewUser);
 				$return[] = $fileUser;
 			}
 		}
@@ -266,7 +266,7 @@ class SignFileService {
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
 		try {
 			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
-		} catch (\Throwable $th) {
+		} catch (DoesNotExistException $e) {
 			$fileUser = new FileUserEntity();
 		}
 		return $fileUser;
@@ -623,7 +623,11 @@ class SignFileService {
 		}
 
 		$this->fileUser->setSigned(time());
-		$this->fileUserMapper->insertOrUpdate($this->fileUser);
+		if ($this->fileUser->getId()) {
+			$this->fileUserMapper->update($this->fileUser);
+		} else {
+			$this->fileUserMapper->insert($this->fileUser);
+		}
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
 		$this->fileMapper->update($this->libreSignFile);
 
