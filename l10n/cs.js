@@ -227,7 +227,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "Request signatures?" : "Požádat o podpisy?",
     "Element created" : "Prvek vytvořen",
-    "Select each signer to define theirs signature positions" : "Vyberte každého z podepisujících a definujte pozice jejich podpisů.",
     "Remove" : "Odebrat",
     "Previous" : "Předchozí",
     "Create your signature" : "Vytvořte svůj podpis",
