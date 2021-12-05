@@ -86,6 +86,17 @@ export default {
 		hasPassword() {
 			return !!this.user?.settings?.hasSignatureFile
 		},
+		ableToSign() {
+			if (this.hasPassword) {
+				return false
+			}
+
+			if (this.needSignature && !this.hasSignatures) {
+				return false
+			}
+
+			return true
+		},
 		singPayload() {
 			const elements = this.elements
 				.map(row => ({
@@ -148,17 +159,6 @@ export default {
 				onError(err)
 			}
 		},
-		callSignMethod() {
-			if (this.modals[this.signMethod] === undefined) {
-				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
-				return
-			}
-
-			this.modals[this.signMethod] = true
-		},
-		onModalClose(modal) {
-			this.modals[modal] = false
-		},
 		async signWithPassword(password) {
 			this.loading = true
 
@@ -184,6 +184,30 @@ export default {
 				this.loading = false
 			}
 		},
+		onPasswordCreate() {
+			if (this.signMethod !== 'password') {
+				this.loadUser()
+			}
+		},
+		callPassword() {
+			this.modals.password = true
+		},
+		goToSignatures() {
+			const url = this.$router.resolve({ name: 'Account' })
+
+			window.location.href = url.href
+		},
+		callSignMethod() {
+			if (this.modals[this.signMethod] === undefined) {
+				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
+				return
+			}
+
+			this.modals[this.signMethod] = true
+		},
+		onModalClose(modal) {
+			this.modals[modal] = false
+		},
 	},
 }
 </script>
@@ -195,15 +219,36 @@ export default {
 				<img :src="element.url" alt="">
 			</figure>
 		</div>
-		<div>
+		<div v-if="ableToSign">
 			<button :disabled="loading" class="button" @click="callSignMethod">
 				{{ t('libresign', 'Sign the document.') }}
 			</button>
 		</div>
+		<div v-else-if="!loading">
+			<div v-if="!hasPassword">
+				<p>
+					{{ t('libresign', 'Please define your sign password') }}
+				</p>
+
+				<button :disabled="loading" class="button" @click="callPassword">
+					{{ t('libresign', 'Define a password and sign the document.') }}
+				</button>
+			</div>
+			<div v-if="!hasSignatures">
+				<p>
+					{{ t('libresign', 'You do not have any sign defined.') }}
+				</p>
+
+				<button :disabled="loading" class="button" @click="goToSignatures">
+					{{ t('libresign', 'Define your signature.') }}
+				</button>
+			</div>
+		</div>
 		<PasswordManager
 			v-if="modals.password"
-			v-bind="{ hasPassword }"
+			v-bind="{ hasPassword, signMethod }"
 			@change="signWithPassword"
+			@crate="onPasswordCreate"
 			@close="onModalClose('password')" />
 
 		<SMSManager
@@ -234,5 +279,9 @@ export default {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
+	button {
+		display: block;
+		margin: 0 auto;
+	}
 }
 </style>

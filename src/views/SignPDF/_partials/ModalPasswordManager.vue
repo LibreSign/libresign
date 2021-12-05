@@ -15,7 +15,7 @@
 		</ModalContent>
 		<ResetPassword v-if="isReset" class="modal-dialog" @close="onClose" />
 		<CreatePassword v-if="isCreate"
-			@changePfx="onChange"
+			@changePfx="onCreate"
 			@close="onClose" />
 	</Modal>
 </template>
@@ -46,6 +46,10 @@ export default {
 			type: Boolean,
 			required: true,
 		},
+		signMethod: {
+			type: String,
+			required: true,
+		},
 	},
 	data: () => ({
 		view: VIEWS.INPUT_PASSWORD,
@@ -71,11 +75,16 @@ export default {
 		onClose() {
 			this.$emit('close')
 		},
+		onCreate(val) {
+			this.$emit('create')
+
+			if (this.signMethod !== 'password') {
+				this.$nextTick(() => this.onClose())
+			}
+		},
 		onChange(val) {
 			this.$emit('change', val)
-			this.$nextTick(() => {
-				this.onClose()
-			})
+			this.$nextTick(() => this.onClose())
 		},
 	},
 }
