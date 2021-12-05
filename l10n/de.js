@@ -219,7 +219,6 @@ OC.L10N.register(
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
     "Request signatures?" : "Signaturen anfordern?",
     "Element created" : "Element erstellt",
-    "Select each signer to define theirs signature positions" : "Wähle jeden Unterzeichner aus, um die Position der Unterschriften  festzulegen",
     "Remove" : "Entfernen",
     "Previous" : "Vorherige",
     "Create your signature" : "Erstelle Deine Signatur",
