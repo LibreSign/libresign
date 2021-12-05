@@ -4,7 +4,10 @@
 			<img class="pdf-icon" :src="$options._icons.PDFIcon">
 			<h1>
 				{{ name }}
-				<small>{{ status }}</small>
+				<br>
+				<Chip>
+					{{ status }}
+				</Chip>
 			</h1>
 		</header>
 
@@ -21,7 +24,8 @@
 
 <script>
 import PDFIcon from '../../../assets/images/application-pdf.png'
-import { getStatusLabel } from '../../../domains/sign'
+import Chip from '../../../Components/Chip.vue'
+import { get } from 'lodash-es'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
@@ -29,6 +33,7 @@ export default {
 	_icons: {
 		PDFIcon,
 	},
+	components: { Chip },
 	props: {
 		document: {
 			type: Object,
@@ -42,7 +47,7 @@ export default {
 	},
 	computed: {
 		status() {
-			return getStatusLabel(this.document?.status)
+			return get(this.document, 'statusText', '')
 		},
 		name() {
 			return this.document.name || 'unknown'
