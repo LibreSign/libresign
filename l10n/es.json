@@ -20,7 +20,6 @@
     "File already signed by you" : "Ya has firmado este archivo",
     "File signed" : "Archivo firmado",
     "Internal error. Contact admin." : "Error interno. Ponte en contacto con un administrador.",
-    "Code to sign requested" : "Código de firma solicitado",
     "Password to sign not defined. Create a password to sign." : "La contraseña de firma no está definida. Crea una contraseña para firmar.",
     "Invalid Sign engine." : "Motor de Firma inválido.",
     "Digital signed by LibreSign." : "Firmado digitalmente por LibreSign.",

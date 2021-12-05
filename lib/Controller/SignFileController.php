@@ -379,7 +379,7 @@ class SignFileController extends ApiController {
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode($fileUser, $user);
 			$success = true;
-			$message = $this->l10n->t('Code to sign requested');
+			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
 			$success = false;
 			$message = $this->l10n->t('Failed to send code.');

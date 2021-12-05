@@ -701,7 +701,7 @@ class SignFileService {
 		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
 		$gateway = $factory->getGateway($gatewayName);
 		if (!$gateway->getConfig()->isComplete()) {
-			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two Factor Gateway.', $gatewayName));
+			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
 		}
 		return $gateway;
 	}
