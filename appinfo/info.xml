@@ -14,7 +14,7 @@
 
 ]]>
     </description>
-    <version>2.5.0</version>
+    <version>22.5.0</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
     <documentation>
@@ -31,7 +31,7 @@
     <dependencies>
         <php min-version="7.4" />
         <command>java</command>
-        <nextcloud min-version="24" max-version="24"/>
+        <nextcloud min-version="22" max-version="22"/>
     </dependencies>
     <settings>
         <admin>OCA\Libresign\Settings\Admin</admin>
