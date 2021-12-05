@@ -1,4 +1,4 @@
-import store from './store'
+// import store from './store'
 
 // Init LibreSign
 if (window.OCA && !window.OCA.LibreSign) {
@@ -8,15 +8,15 @@ if (window.OCA && !window.OCA.LibreSign) {
 
 // Enable NewFeature
 window.OCA.LibreSign.enableFeature = (feature) => {
-	store.dispatch('featureController/ENABLE_FEATURE', feature)
+	// store.dispatch('featureController/ENABLE_FEATURE', feature)
 }
 window.OCA.LibreSign.disableFeature = (feature) => {
-	store.dispatch('featureController/DISABLE_FEATURE', feature)
+	// store.dispatch('featureController/DISABLE_FEATURE', feature)
 }
 window.OCA.LibreSign.getFeatures = () => {
-	console.debug('Features: ', store.state.featureController.features)
-	console.debug('Enabled Features: ', store.state.featureController.enabledFeatures)
+	// console.debug('Features: ', store.state.featureController.features)
+	// console.debug('Enabled Features: ', store.state.featureController.enabledFeatures)
 }
 window.OCA.LibreSign.setFeature = (feature) => {
-	store.dispatch('featureController/SET_NEW_FEATURE', feature)
+	// store.dispatch('featureController/SET_NEW_FEATURE', feature)
 }
