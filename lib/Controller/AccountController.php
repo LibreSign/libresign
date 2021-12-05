@@ -14,7 +14,6 @@ use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -31,8 +30,6 @@ class AccountController extends ApiController {
 	private $accountFileService;
 	/** @var pkcs12Handler */
 	private $pkcs12Handler;
-	/** @var IConfig */
-	private $config;
 	/** @var Chain */
 	private $loginChain;
 	/** @var IURLGenerator */
@@ -49,7 +46,6 @@ class AccountController extends ApiController {
 		AccountService $accountService,
 		AccountFileService $accountFileService,
 		Pkcs12Handler $pkcs12Handler,
-		IConfig $config,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
 		IUserSession $userSession,
@@ -61,7 +57,6 @@ class AccountController extends ApiController {
 		$this->accountService = $accountService;
 		$this->accountFileService = $accountFileService;
 		$this->pkcs12Handler = $pkcs12Handler;
-		$this->config = $config;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
 		$this->userSession = $userSession;
