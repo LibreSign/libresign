@@ -155,7 +155,7 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'approval_group' => ['testGroup']
+				'approval_group' => '["testGroup"]'
 			]
 		]);
 
