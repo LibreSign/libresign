@@ -19,6 +19,7 @@ use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
@@ -663,16 +664,17 @@ class SignFileService {
 		return $userFolder->get($originalFile);
 	}
 
-	public function getLibresignFile(?int $fileId, ?string $uuid): FileEntity {
+	public function getLibresignFile(?int $fileId, ?string $fileUserUuid): FileEntity {
 		try {
 			if ($fileId) {
 				$libresignFile = $this->fileMapper->getByFileId($fileId);
-			} elseif ($uuid) {
-				$libresignFile = $this->fileMapper->getByUuid($uuid);
+			} elseif ($fileUserUuid) {
+				$fileUser = $this->fileUserMapper->getByUuid($fileUserUuid);
+				$libresignFile = $this->fileMapper->getById($fileUser->getFileId());
 			} else {
 				throw new \Exception('Invalid arguments');
 			}
-		} catch (\Throwable $th) {
+		} catch (DoesNotExistException $th) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
 		return $libresignFile;
@@ -733,11 +735,11 @@ class SignFileService {
 	public function getFileUserToSign(FileEntity $libresignFile, IUser $user): FileUserEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			$fileUser = $this->fileUserMapper->getByFileIdAndUserId($libresignFile->getId(), $user->getUID());
+			$fileUser = $this->fileUserMapper->getByFileIdAndUserId($libresignFile->getNodeId(), $user->getUID());
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
-		} catch (\Throwable $th) {
+		} catch (DoesNotExistException $th) {
 			try {
 				$accountFile = $this->accountFileMapper->getByFileId($libresignFile->getId());
 			} catch (\Throwable $th) {
