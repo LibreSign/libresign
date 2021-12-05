@@ -534,6 +534,7 @@ class AccountService {
 
 	public function getUserElements($userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
+		$return = [];
 		foreach ($elements as $key => $element) {
 			$return[] = [
 				'id' => $element->getId(),
