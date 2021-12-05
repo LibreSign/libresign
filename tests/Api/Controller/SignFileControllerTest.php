@@ -21,7 +21,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/file_id/invalid')
+			->withPath('/sign/file_id/171')
 			->withRequestBody([
 				'password' => 'secretPassword'
 			])
@@ -29,7 +29,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['errors'][0]);
 	}
 
 	/**
@@ -51,7 +51,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to sign file', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['errors'][0]);
 	}
 
 	/**
