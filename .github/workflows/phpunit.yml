@@ -3,7 +3,7 @@ name: PHPUnit
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ stable22 ]
 
 env:
   APP_NAME: libresign
@@ -15,20 +15,11 @@ jobs:
       # do not stop on another job's failure
       fail-fast: false
       matrix:
-        php-versions: ['7.4']
+        php-versions: ['7.4', '8.0']
         databases: ['sqlite']
         coverage: ['xdebug']
         xdebug_mode: ['debug']
-        server-versions: ['stable21', 'stable22', 'stable23', 'master']
-        include:
-          - php-versions: '8.0'
-            databases: 'sqlite'
-            server-versions: 'stable21'
-            xdebug_mode: coverage
-          - php-versions: '8.0'
-            databases: 'sqlite'
-            server-versions: 'master'
-            xdebug_mode: debug
+        server-versions: ['stable22']
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
     steps:
@@ -95,24 +86,3 @@ jobs:
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
-
-      - name: Upload coverage results to Coveralls
-        working-directory: apps/${{ env.APP_NAME }}
-        if: matrix.php-versions == '8.0' && matrix.server-versions == 'stable21'
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: |
-          composer global require php-coveralls/php-coveralls --no-progress --no-interaction
-          php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -vvv
-
-  finish-coverage:
-    needs: phpunit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v1.1.2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
