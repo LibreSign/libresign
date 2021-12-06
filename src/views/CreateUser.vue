@@ -167,6 +167,7 @@ export default {
 			initial: null,
 			controllerView: 0,
 			viewDraw: false,
+			enabledFeatures: [],
 		}
 	},
 
@@ -180,7 +181,7 @@ export default {
 	computed: {
 		...mapGetters({
 			errorCreateUser: 'user/getError',
-			enabledFeatures: 'featureController/getEnabledFeatures',
+			// enabledFeatures: 'featureController/getEnabledFeatures',
 		}),
 		isValidCreateUser() {
 			return this.$v.email.$invalid && !this.$v.password.$invalid
@@ -266,7 +267,9 @@ export default {
 			this.controllerView = 3
 
 			setTimeout(() => {
-				this.$router.push({ name: 'SignPDF' })
+				const url = this.$router.resolve({ name: 'SignPDF' })
+
+				window.location.href = url.href
 			}, 3000)
 		},
 

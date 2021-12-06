@@ -1,26 +1,26 @@
 <template>
-	<div class="container">
-		<div class="content">
-			<div class="text-input">
-				<canvas
-					ref="canvas"
-					v-insert-signature="signaturePath"
-					class="canva"
-					width="540"
-					height="120" />
-				<input ref="input" v-model="signaturePath" type="text">
-				<span> {{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}</span>
-			</div>
-			<div class="actions">
-				<button class="primary" @click="confirmSignature">
-					{{ t('libresign', 'Apply') }}
-				</button>
-				<button class="danger" @click="closeModal">
-					{{ t('libresign', 'Cancel') }}
-				</button>
-			</div>
+	<div class="container-draw">
+		<div class="canva-container">
+			<canvas id="canvas-text"
+				ref="canvas"
+				class="canvas"
+				:width="canvasWidth"
+				:height="canvasHeight"
+				:style="{ '--draw-canvas-width': `${canvasWidth}px`, '--draw-canvas-height': `${canvasHeight}px` }" />
+			<label>
+				{{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}
+				<input ref="input" v-model="value" type="text">
+			</label>
 		</div>
-		<Modal v-if="modal" @close="cancelConfirm">
+		<div class="action-buttons">
+			<button :disabled="!isValid" class="primary" @click="confirmSignature">
+				{{ t('libresign', 'Apply') }}
+			</button>
+			<button class="danger" @click="close">
+				{{ t('libresign', 'Cancel') }}
+			</button>
+		</div>
+		<Modal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -40,6 +40,8 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import '@fontsource/dancing-script'
+import { SignatureImageDimensions } from './options'
+import { isEmpty } from 'lodash-es'
 
 export default {
 	name: 'TextInput',
@@ -47,21 +49,31 @@ export default {
 		Modal,
 	},
 
-	directives: {
-		insertSignature: (canvasElement, binding) => {
-			const ctx = canvasElement.getContext('2d')
-			ctx.clearRect(0, 0, 560, 120)
-			ctx.fillStyle = 'black'
-			ctx.font = "30px 'Dancing Script'"
-			ctx.fillText(binding.value, 10, 50)
-		},
-	},
-
 	data: () => ({
-		signaturePath: '',
+		canvasWidth: SignatureImageDimensions.width,
+		canvasHeight: SignatureImageDimensions.height,
+		value: '',
 		modal: false,
 		imageData: null,
 	}),
+	computed: {
+		isValid() {
+			return !isEmpty(this.value)
+		},
+	},
+	watch: {
+		value(val) {
+			const ctx = this.$canvas
+			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+			ctx.fillStyle = 'black'
+			ctx.font = "30px 'Dancing Script'"
+			ctx.fillText(val, 15, 50)
+		},
+	},
+	mounted() {
+		this.$canvas = this.$refs.canvas.getContext('2d')
+		this.setFocus()
+	},
 
 	methods: {
 		saveSignature() {
@@ -74,13 +86,13 @@ export default {
 			})
 		},
 
-		closeModal() {
+		close() {
 			this.$emit('close')
 		},
 
 		clearCanvas() {
-			const ctx = this.$refs.canvas.getContext('2d')
-			ctx.clearRect(0, 0, 560, 120)
+			const ctx = this.$canvas
+			ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 			this.imageData = null
 		},
 
@@ -106,75 +118,77 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container{
+
+.container-draw {
 	display: flex;
-	width: 100%;
-	max-width: 600px;
-	min-width: 300px;
+	flex-direction: column;
+	justify-content: space-between;
+	width: calc(100% - 20px);
+	height: 100%;
+	margin: 10px;
+	.action-buttons{
+		align-self: flex-end;
 
-	.content{
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		width: 100%;
+		button{
+			margin: 0 20px 10px 0;
 
-		.text-input{
-			width: calc(100% - 20px);
-			height: 100%;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			margin-top: 22px;
-
-			.canva{
-				width: 100%;
-			}
-
-			input{
-				width: calc(100% - 20px);
-			}
-
-			span{
-				font-size: 14px;
-				color: #464242;
-				font-style: italic;
-			}
-		}
-
-		.actions{
-			display: flex;
-			flex-direction: row;
-			align-self: flex-end;
-
-			button{
-				margin: 0 10px 20px 0px;
-
-				&:first-child{
-					margin: 0px 14px 20px 0px;
-				}
+			&:first-child{
+				margin: 0px 10px 10px 0px;
 			}
 		}
 	}
 }
 
+.canvas{
+	border: 1px solid #dbdbdb;
+	width: var(--draw-canvas-width);
+	height: var(--draw-canvas-height);
+	background-color: #cecece;
+	border-radius: 10px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+	@media screen and (max-width: 650px) {
+		width: 100%;
+	}
+}
+
+.canva-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0 0.5em;
+	label input {
+		display: block;
+		width: 100%;
+	}
+}
+
 .modal-confirm{
+	z-index: 100000;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	margin: 15px;
 
+	h1{
+		font-size: 1.4rem;
+		font-weight: bold;
+		margin: 10px;
+	}
+
 	img{
 		padding: 20px;
+
 		@media screen and (max-width: 650px){
 			width: 100%;
 		}
 	}
 
 	.actions-modal{
+		display: flex;
+		flex-direction: row;
 		align-self: flex-end;
 	}
-
 }
 </style>

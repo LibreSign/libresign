@@ -121,6 +121,8 @@ class LibreSignFileController extends Controller {
 
 	private function validate(string $type, $identifier): JSONResponse {
 		$canSign = false;
+		$signerFileUuid = null;
+
 		try {
 			if ($this->userSession->getUser()) {
 				$uid = $this->userSession->getUser()->getUID();
@@ -140,6 +142,7 @@ class LibreSignFileController extends Controller {
 
 			$return['success'] = true;
 			$return['status'] = $file->getStatus();
+			$return['statusText'] = $this->validateHelper->getTextOfStatus($file->getStatus());
 			$return['fileId'] = $file->getNodeId();
 			$return['uuid'] = $file->getUuid();
 			$return['name'] = $file->getName();
@@ -167,6 +170,7 @@ class LibreSignFileController extends Controller {
 					$signatureToShow['me'] = $uid === $signer->getUserId();
 					if ($uid === $signer->getUserId() && !$signer->getSigned()) {
 						$canSign = true;
+						$signerFileUuid = $signer->getUuid();
 					}
 				}
 				$return['signers'][] = $signatureToShow;
@@ -225,6 +229,7 @@ class LibreSignFileController extends Controller {
 		}
 		$return['settings'] = [
 			'canSign' => $canSign,
+			'signerFileUuid' => $signerFileUuid,
 			'canRequestSign' => false,
 			'hasSignatureFile' => false,
 			'phoneNumber' => $this->getPhoneNumber($this->userSession->getUser()),
