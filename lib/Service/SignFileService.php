@@ -5,6 +5,7 @@ namespace OCA\Libresign\Service;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -18,6 +19,7 @@ use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
@@ -43,6 +45,8 @@ class SignFileService {
 	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var AccountFileMapper */
+	private $accountFileMapper;
 	/** @var Pkcs7Handler */
 	private $pkcs7Handler;
 	/** @var Pkcs12Handler */
@@ -98,6 +102,7 @@ class SignFileService {
 		IL10N $l10n,
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
+		AccountFileMapper $accountFileMapper,
 		Pkcs7Handler $pkcs7Handler,
 		Pkcs12Handler $pkcs12Handler,
 		FolderService $folderService,
@@ -122,6 +127,7 @@ class SignFileService {
 		$this->l10n = $l10n;
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->accountFileMapper = $accountFileMapper;
 		$this->pkcs7Handler = $pkcs7Handler;
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->folderService = $folderService;
@@ -239,15 +245,15 @@ class SignFileService {
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
-			$forceNotifyAsNewUser = false;
+			$notifyAsNewUser = false;
 			if (isset($data['status']) && $data['status'] === ValidateHelper::STATUS_ABLE_TO_SIGN) {
-				$forceNotifyAsNewUser = true;
+				$notifyAsNewUser = true;
 			}
 			foreach ($data['users'] as $user) {
 				$user['email'] = $this->getUserEmail($user);
 				$fileUser = $this->getFileUser($user['email'], $fileId);
 				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser, $forceNotifyAsNewUser);
+				$this->saveFileUser($fileUser, $notifyAsNewUser);
 				$return[] = $fileUser;
 			}
 		}
@@ -260,7 +266,7 @@ class SignFileService {
 	private function getFileUser(string $email, int $fileId): FileUserEntity {
 		try {
 			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
-		} catch (\Throwable $th) {
+		} catch (DoesNotExistException $e) {
 			$fileUser = new FileUserEntity();
 		}
 		return $fileUser;
@@ -617,7 +623,11 @@ class SignFileService {
 		}
 
 		$this->fileUser->setSigned(time());
-		$this->fileUserMapper->update($this->fileUser);
+		if ($this->fileUser->getId()) {
+			$this->fileUserMapper->update($this->fileUser);
+		} else {
+			$this->fileUserMapper->insert($this->fileUser);
+		}
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
 		$this->fileMapper->update($this->libreSignFile);
 
@@ -642,20 +652,36 @@ class SignFileService {
 	 * Get file to sign
 	 *
 	 * @throws LibresignException
-	 * @param FileEntity $fileData
+	 * @param FileEntity $libresignFile
 	 * @return \OCP\Files\Node
 	 */
-	public function getFileToSing(FileEntity $fileData): \OCP\Files\Node {
-		$userFolder = $this->root->getUserFolder($fileData->getUserId());
-		$originalFile = $userFolder->getById($fileData->getNodeId());
+	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
+		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
+		$originalFile = $userFolder->getById($libresignFile->getNodeId());
 		if (count($originalFile) < 1) {
 			throw new LibresignException($this->l10n->t('File not found'));
 		}
 		$originalFile = $originalFile[0];
 		if ($originalFile->getExtension() === 'pdf') {
-			return $this->getPdfToSign($fileData, $originalFile);
+			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
 		return $userFolder->get($originalFile);
+	}
+
+	public function getLibresignFile(?int $fileId, ?string $fileUserUuid): FileEntity {
+		try {
+			if ($fileId) {
+				$libresignFile = $this->fileMapper->getByFileId($fileId);
+			} elseif ($fileUserUuid) {
+				$fileUser = $this->fileUserMapper->getByUuid($fileUserUuid);
+				$libresignFile = $this->fileMapper->getById($fileUser->getFileId());
+			} else {
+				throw new \Exception('Invalid arguments');
+			}
+		} catch (DoesNotExistException $th) {
+			throw new LibresignException($this->l10n->t('File not found'), 1);
+		}
+		return $libresignFile;
 	}
 
 	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
@@ -708,6 +734,31 @@ class SignFileService {
 
 	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {
 		$this->mail->sendCodeToSign($fileUser, $code);
+	}
+
+	public function getFileUserToSign(FileEntity $libresignFile, IUser $user): FileUserEntity {
+		$this->validateHelper->fileCanBeSigned($libresignFile);
+		try {
+			$fileUser = $this->fileUserMapper->getByFileIdAndUserId($libresignFile->getNodeId(), $user->getUID());
+			if ($fileUser->getSigned()) {
+				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
+			}
+		} catch (DoesNotExistException $th) {
+			try {
+				$accountFile = $this->accountFileMapper->getByFileId($libresignFile->getId());
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+			}
+			$this->validateHelper->userCanApproveValidationDocuments($user);
+			$fileUser = new FileUserEntity();
+			$fileUser->setFileId($libresignFile->getId());
+			$fileUser->setEmail($user->getEMailAddress());
+			$fileUser->setDisplayName($user->getDisplayName());
+			$fileUser->setUserId($user->getUID());
+			$fileUser->setUuid(UUIDUtil::getUUID());
+			$fileUser->setCreatedAt(time());
+		}
+		return $fileUser;
 	}
 
 	/**
