@@ -15,7 +15,7 @@
 			<slot v-if="!loading" />
 			<div v-else class="sidebar-loading">
 				<p>
-					{{ t('libresign', 'Loading') }}
+					{{ t('libresign', 'Loading …') }}
 				</p>
 			</div>
 		</main>
