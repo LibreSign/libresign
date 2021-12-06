@@ -5,14 +5,14 @@
 				v-if="textEditor"
 				:class="{active: isActive('text')}"
 				@click.prevent="setActive('text')">
-				<img :src="texticon" alt="Text">
+				<img :src="$options.icons.textIcon" alt="Text">
 				Text
 			</li>
 			<li
 				v-if="drawEditor"
 				:class="{active: isActive('draw')}"
 				@click.prevent="setActive('draw')">
-				<img :src="drawnIcon" alt="draw">
+				<img :src="$options.icons.drawnIcon" alt="draw">
 				Draw
 			</li>
 		</ul>
@@ -55,10 +55,13 @@ export default {
 		},
 	},
 
+	icons: {
+		drawnIcon: DrawIcon,
+		textIcon: TextIcon,
+	},
+
 	data: () => ({
 		toolSelected: 'draw',
-		drawnIcon: DrawIcon,
-		texticon: TextIcon,
 	}),
 
 	methods: {
@@ -84,7 +87,8 @@ export default {
 .container{
 	display: flex;
 	flex-direction: column;
-	width: calc(100% - 20px);
+	// width: calc(100% - 20px);
+	width: 380px;
 	height: 100%;
 	margin-top: 10px;
 

@@ -3,12 +3,13 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep } from 'lodash-es'
 import Content from '@nextcloud/vue/dist/Components/Content'
-import { service as signService, getStatusLabel, SIGN_STATUS } from '../../domains/sign'
+import { service as signService, SIGN_STATUS } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import { SignatureImageDimensions } from '../../Components/Draw'
+import Chip from '../../Components/Chip.vue'
 
 const emptyElement = () => {
 	return {
@@ -43,6 +44,7 @@ export default {
 		Sidebar,
 		PageNavigation,
 		ActionButton,
+		Chip,
 	},
 	data() {
 		return {
@@ -72,7 +74,7 @@ export default {
 			return Number(get(this.document, 'status', -1))
 		},
 		statusLabel() {
-			return getStatusLabel(this.status)
+			return get(this.document, 'statusText', '')
 		},
 		isDraft() {
 			return this.status === SIGN_STATUS.DRAFT
@@ -251,7 +253,13 @@ export default {
 <template>
 	<Content class="view-sign-detail" app-name="libresign">
 		<div class="sign-details">
-			<h2>[{{ statusLabel }}] {{ document.name }}</h2>
+			<h2>
+				{{ document.name }}
+				<br>
+				<Chip :state="isDraft ? 'warning' : 'default'">
+					{{ statusLabel }}
+				</Chip>
+			</h2>
 			<p>
 				<small>
 					{{ t('libresign', 'Select each signer to define their signature positions') }}
