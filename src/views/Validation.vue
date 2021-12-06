@@ -167,7 +167,7 @@ export default {
 			return 'None'
 		},
 		linkToDownload(val) {
-			return val
+			return `${val}?_t=${Date.now()}`
 		},
 		changeInfo() {
 			this.hasInfo = !this.hasInfo

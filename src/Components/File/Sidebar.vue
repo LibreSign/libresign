@@ -22,27 +22,15 @@
 			:order="1">
 			<SignaturesTab :items="file.signers" @update="update" @change-sign-tab="changeTab" />
 		</AppSidebarTab>
-		<AppSidebarTab
-			v-if="hasSign"
-			id="sign"
-			:name="t('libresign', 'Sign')"
-			icon="icon-rename"
-			:order="2">
-			<Sign ref="sign"
-				:pfx="getHasPfx"
-				:has-loading="loading"
-				@sign:document="emitSign" />
-		</AppSidebarTab>
 	</AppSidebar>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { mapGetters } from 'vuex'
 import SignaturesTab from './SignaturesTab.vue'
-import Sign from '../Sign'
 import format from 'date-fns/format'
 
 export default {
@@ -51,7 +39,6 @@ export default {
 		AppSidebar,
 		AppSidebarTab,
 		SignaturesTab,
-		Sign,
 	},
 	props: {
 		loading: {
@@ -73,8 +60,6 @@ export default {
 	computed: {
 		...mapGetters({
 			file: 'files/getFile',
-			statusSidebar: 'sidebar/getStatus',
-			getHasPfx: 'getHasPfx',
 		}),
 		titleName() {
 			return this.file.name ? this.file.name : ''
@@ -109,12 +94,6 @@ export default {
 		},
 		update() {
 			this.$emit('update', true)
-		},
-		clearSignInput() {
-			this.$refs.sign.clearInput()
-		},
-		emitSign(password) {
-			this.$emit('sign:document', { password, fileId: this.file.file.nodeId })
 		},
 		updateActive(e) {
 			this.changeTab(e)

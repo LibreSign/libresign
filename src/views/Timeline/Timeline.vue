@@ -34,7 +34,6 @@
 			:loading="loading"
 			:views-in-files="true"
 			@update="getAllFiles"
-			@sign:document="signDocument"
 			@closeSidebar="setSidebarStatus(false)" />
 	</div>
 </template>
@@ -99,7 +98,6 @@ export default {
 			setSidebarStatus: 'sidebar/setStatus',
 			getAllFiles: 'files/GET_ALL_FILES',
 			resetSidebarStatus: 'sidebar/RESET',
-			signDoc: 'sign/SIGN_DOCUMENT',
 		}),
 		changeFilter(filter) {
 			switch (filter) {
@@ -122,11 +120,6 @@ export default {
 		setSidebar(objectFile) {
 			this.$store.dispatch('files/SET_FILE', objectFile)
 			this.setSidebarStatus(true)
-		},
-		async signDocument({ fileId, password }) {
-			this.loading = true
-			this.signDoc({ fileId, password })
-			this.loading = false
 		},
 	},
 }

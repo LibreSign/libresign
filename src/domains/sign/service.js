@@ -22,7 +22,7 @@ const buildService = (http) => {
 
 			return data
 		},
-		async signDocument({ fileId, password, elements }) {
+		async signDocument({ fileId, password, elements, code }) {
 			const url = String(fileId).length >= 10
 				? getAPIURL(`sign/uuid/${fileId}`)
 				: getAPIURL(`sign/id/${fileId}`)
@@ -30,6 +30,7 @@ const buildService = (http) => {
 			const payload = {
 				password,
 				elements,
+				code,
 			}
 
 			const { data } = await http.post(url, payload)
@@ -134,6 +135,18 @@ const buildService = (http) => {
 		 */
 		changeRegisterStatus(fileId, status) {
 			return this.updateRegister(fileId, { status })
+		},
+		/**
+		 * request sign code
+		 *
+		 * @param   {number}  fileId
+		 *
+		 * @return  {Promise<unknown>}
+		 */
+		async requestSignCode(fileId) {
+			const url = getAPIURL(`sign/file_id/${fileId}/code`)
+			const { data } = await http.post(url)
+			return data
 		},
 	})
 }
