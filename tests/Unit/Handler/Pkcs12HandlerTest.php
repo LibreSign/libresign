@@ -66,10 +66,13 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetPfxOk() {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('nodeExists')->will($this->returnValue(true));
-		$node->method('get')->will($this->returnValue($node));
-		$this->folderService->method('getFolder')->will($this->returnValue($node));
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$folder->method('nodeExists')->will($this->returnValue(true));
+		$file = $this->createMock(\OCP\Files\File::class);
+		$file->method('getContent')
+			->willReturn('valid pfx content');
+		$folder->method('get')->will($this->returnValue($file));
+		$this->folderService->method('getFolder')->will($this->returnValue($folder));
 		$actual = $this->pkcs12Handler->getPfx('userId');
 		$this->assertInstanceOf('\OCP\Files\Node', $actual);
 	}

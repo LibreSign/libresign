@@ -87,7 +87,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		return $folder->get($this->pfxFilename);
+		$node = $folder->get($this->pfxFilename);
+		if (!$node->getContent()) {
+			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		return $node;
 	}
 
 	private function getHandler(): SignEngineHandler {

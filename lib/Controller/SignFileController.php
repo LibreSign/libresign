@@ -21,12 +21,12 @@ use Psr\Log\LoggerInterface;
 class SignFileController extends ApiController {
 	/** @var IL10N */
 	protected $l10n;
-	/** @var IUserSession */
-	private $userSession;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var IUserSession */
+	private $userSession;
 	/** @var SignFileService */
 	protected $signFileService;
 	/** @var ValidateHelper */
@@ -157,7 +157,7 @@ class SignFileController extends ApiController {
 	 * @param string $password
 	 * @return JSONResponse
 	 */
-	public function signUsingFileId(string $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
+	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, $fileId, null, $elements, $code);
 	}
 
@@ -173,28 +173,16 @@ class SignFileController extends ApiController {
 		return $this->sign($password, null, $uuid, $elements, $code);
 	}
 
-	public function sign(string $password = null, string $file_id = null, string $uuid = null, array $elements = [], string $code = null): JSONResponse {
+	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
-			try {
-				$user = $this->userSession->getUser();
-				if ($file_id) {
-					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($file_id, $user->getUID());
-				} else {
-					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $user->getUID());
-				}
-			} catch (\Throwable $th) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
-			}
-			if ($fileUser->getSigned()) {
-				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
-			}
+			$user = $this->userSession->getUser();
+			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
+			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
 			$this->validateHelper->validateCredentials($fileUser, [
 				'password' => $password,
 				'code' => $code,
 			]);
-			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
-			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$signedFile = $this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
