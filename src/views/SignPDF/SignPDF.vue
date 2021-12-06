@@ -1,65 +1,36 @@
-
-<!--
-- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
--
-- @author Lyseon Tech <contato@lt.coop.br>
--
-- @license GNU AGPL version 3 or any later version
--
-- This program is free software: you can redistribute it and/or modify
-- it under the terms of the GNU Affero General Public License as
-- published by the Free Software Foundation, either version 3 of the
-- License, or (at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
-- but WITHOUT ANY WARRANTY; without even the implied warranty of
-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- GNU Affero General Public License for more details.
--
-- You should have received a copy of the GNU Affero General Public License
-- along with this program. If not, see <http://www.gnu.org/licenses/>.
--
--->
-
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div v-show="viewDoc" id="viewer" class="content">
 			<PDFViewer :url="pdfData.url" />
 		</div>
-		<div v-show="!isMobile" id="description" class="content">
-			<Description
-				:enable="enableToSign"
-				:elements="elements"
-				:user="user"
-				:uuid="uuid"
-				:pdf-name="pdfData.filename"
-				:pdf-description="pdfData.description"
+
+		<Sidebar v-bind="{ document, loading }">
+			<Sign v-if="signEnabled"
+				v-bind="{ document, uuid }"
 				@signed="onSigned"
-				@onDocument="showDocument">
-				<div v-if="needSignature && !hasSignatures">
-					<button class="primary" @click="gotoAccount">
-						{{ t('libresign', 'Create your signature') }}
-					</button>
-				</div>
-			</Description>
-		</div>
+				@update:phone="onPhoneUpdated" />
+			<div v-else>
+				{{ t('libresign', 'Document not available for signature.') }}
+			</div>
+		</Sidebar>
 	</div>
 </template>
 
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
-import { defaultsDeep, get, isEmpty } from 'lodash-es'
-import { getInitialState } from '../../services/InitialStateService'
-import Description from './_partials/Description'
-import PDFViewer from '../../Components/PDFViewer'
-import { service as signerService } from '../../domains/signatures'
-import { service as signService } from '../../domains/sign'
-import { onError } from '../../helpers/errors'
 import { showSuccess } from '@nextcloud/dialogs'
+import { defaultsDeep, get, isEmpty, set } from 'lodash-es'
+import { getInitialState } from '../../services/InitialStateService'
+import { service as signerService } from '../../domains/signatures'
+import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
+import { onError } from '../../helpers/errors'
+import PDFViewer from './_partials/PDFViewer'
+import Sidebar from './_partials/Sidebar.vue'
+import Sign from './_partials/Sign.vue'
 
 export default {
 	name: 'SignPDF',
-	components: { Description, PDFViewer },
+	components: { PDFViewer, Sidebar, Sign },
 	mixins: [
 		isMobile,
 	],
@@ -91,12 +62,14 @@ export default {
 		return {
 			state,
 			viewDoc: true,
+			loading: true,
 			document: {
-				id: '',
 				name: '',
+				fileId: 0,
 				signers: [],
 				pages: [],
 				visibleElements: [],
+				settings: { signMethod: 'password', canSign: false },
 			},
 			user: {
 				account: { uid: '', displayName: '' },
@@ -158,11 +131,30 @@ export default {
 
 			return hasSignatures
 		},
+		signEnabled() {
+			return canSign(this.document.status)
+		},
+		status() {
+			return getStatusLabel(this.document?.status)
+		},
+		// ---
+		signMethod() {
+			return get(this.document, ['settings', 'signMethod'], 'password')
+		},
+		canSign() {
+			return get(this.document, ['settings', 'canSign'], false)
+		},
 	},
 	mounted() {
-		this.loadSignatures()
+		this.loading = true
+		// this.loadSignatures()
+		// this.loadUser()
+
 		this.loadDocument()
-		this.loadUser()
+			.catch(console.warn)
+			.then(() => {
+				this.loading = false
+			})
 	},
 	methods: {
 		showDocument(param) {
@@ -199,6 +191,15 @@ export default {
 			} catch (err) {
 				onError(err)
 			}
+		},
+		onPhoneUpdated(val) {
+			const doc = {
+				...this.document,
+			}
+
+			set(doc, 'settings.phoneNumber', val)
+
+			this.document = doc
 		},
 	},
 }

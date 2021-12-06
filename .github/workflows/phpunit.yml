@@ -86,3 +86,4 @@ jobs:
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
+

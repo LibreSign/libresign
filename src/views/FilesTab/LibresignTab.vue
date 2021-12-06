@@ -28,7 +28,7 @@
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
-				<button v-if="hasSign" class="primary" @click="option('sign')">
+				<button v-if="hasSign" class="primary" @click="gotoSign">
 					{{ t('libresign', 'Sign') }}
 				</button>
 				<button
@@ -49,7 +49,7 @@
 				</button>
 			</div>
 
-			<Sign v-show="signShow"
+			<!-- <Sign v-show="signShow"
 				ref="sign"
 				:disabled="disabledSign"
 				:pfx="hasPfx"
@@ -60,7 +60,7 @@
 						{{ t('libresign', 'Return') }}
 					</button>
 				</template>
-			</Sign>
+			</Sign> -->
 
 			<Request v-show="requestShow"
 				ref="request"
@@ -91,9 +91,9 @@
 									</span>
 								</div>
 								<div v-if="showDivButtons(signer)" class="container-dot container-btn">
-									<button v-if="showSignButton(signer)" class="primary" @click="changeToSign">
+									<!-- <button v-if="showSignButton(signer)" class="primary" @click="changeToSign">
 										{{ t('libresign', 'Sign') }}
-									</button>
+									</button> -->
 									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
 										{{ t('libresign', 'Send reminder') }}
 									</button>
@@ -114,33 +114,30 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+import { get } from 'lodash-es'
+import { service as signService, SIGN_STATUS } from '../../domains/sign'
+import { getAPPURL } from '../../helpers/path'
+import { showResponseError } from '../../helpers/errors'
+import store from '../../store'
+import Request from '../../Components/Request'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import Sign from '../Components/Sign'
-import Request from '../Components/Request'
-import { get } from 'lodash-es'
-import { service as signService, SIGN_STATUS } from '../domains/sign'
-import { getAPPURL } from '../helpers/path'
-import { showResponseError } from '../helpers/errors'
 
 export default {
 	name: 'LibresignTab',
-
+	store,
 	components: {
 		AppSidebar,
 		Actions,
 		ActionButton,
 		AppSidebarTab,
-		Sign,
 		Request,
 	},
-
-	mixins: [],
 
 	data() {
 		return {
@@ -149,7 +146,7 @@ export default {
 			requestShow: false,
 			signaturesShow: false,
 			disabledSign: false,
-			signers: {},
+			signers: [],
 			loadingInput: false,
 			canRequestSign: false,
 			haveRequest: false,
@@ -159,6 +156,14 @@ export default {
 			hasPfx: false,
 			showValidation: false,
 			uuid: '',
+			settings: {
+				canRequestSign: false,
+				canSign: true,
+				hasSignatureFile: false,
+				phoneNumber: '',
+				signMethod: '',
+				signerFileUuid: null,
+			},
 		}
 	},
 
@@ -171,6 +176,9 @@ export default {
 		},
 		hasSign() {
 			return !!this.canSign
+		},
+		signerFileUuid() {
+			return get(this.se)
 		},
 	},
 
@@ -264,11 +272,14 @@ export default {
 				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
 				this.uuid = response.data.uuid
+				this.settings = { ...response.data.settings }
 
 				if (response.data.signers) {
 					this.haveRequest = true
 					this.canRequestSign = true
 					this.signers = response.data.signers
+					this.signWithSMS = true
+					this.phoneNumberIsRequired = true
 				} else {
 					this.signers = []
 				}
@@ -278,9 +289,17 @@ export default {
 			}
 		},
 
+		gotoSign(e) {
+			// console.log({ x: this })
+			e.preventDefault()
+			const href = getAPPURL(`/p/sign/${this.settings.signerFileUuid}`)
+
+			window.location.href = href
+		},
+
 		changeToSign() {
 			this.option('signatures')
-			this.option('sign')
+			// this.option('sign')
 		},
 
 		async signDocument(param) {
@@ -293,7 +312,6 @@ export default {
 				})
 
 				this.getInfo()
-				this.option('sign')
 				this.option('signatures')
 				this.canSign = false
 				this.loadingInput = false
@@ -352,7 +370,7 @@ export default {
 			})
 			this.option('request')
 			this.clearRequestList()
-			this.getInfo()
+			await this.getInfo()
 
 			return showSuccess(response.data.message)
 		},
@@ -383,9 +401,7 @@ export default {
 					this.option('request')
 					this.clearRequestList()
 				})
-				.then(() => {
-					return this.getInfo()
-				})
+				.then(() => this.getInfo())
 		},
 
 		async requestSignatures(users, fileInfo) {
@@ -410,8 +426,9 @@ export default {
 
 		option(value) {
 			if (value === 'sign') {
-				this.showButtons = !this.showButtons
-				this.signShow = !this.signShow
+				// this.showButtons = !this.showButtons
+				// this.signShow = !this.signShow
+				console.warn('deprecated')
 			} else if (value === 'request') {
 				this.showButtons = !this.showButtons
 				this.requestShow = !this.requestShow
@@ -421,7 +438,7 @@ export default {
 			}
 		},
 		clearSiginPassword() {
-			this.$refs.sign.clearInput()
+			// this.$refs.sign.clearInput()
 		},
 		clearRequestList() {
 			this.$refs.request.clearList()

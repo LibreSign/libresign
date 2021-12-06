@@ -11,7 +11,7 @@
 				</ul>
 				<div class="action-delete icon-delete" @click="clearCanvas" />
 			</div>
-			<canvas id="myCanvas"
+			<canvas id="canvas-editor"
 				ref="canvas"
 				class="canvas"
 				:width="canvasWidth"
@@ -69,7 +69,7 @@ export default {
 	}),
 
 	mounted() {
-		this.canvas = this.$refs.canvas.getContext('2d')
+		this.$canvas = this.$refs.canvas.getContext('2d')
 
 		const canvas = this.$refs.canvas
 
@@ -84,7 +84,7 @@ export default {
 
 	methods: {
 		drawLine(x1, y1, x2, y2) {
-			const ctx = this.canvas
+			const ctx = this.$canvas
 			ctx.beginPath()
 			ctx.strokeStyle = this.color
 			ctx.lineWidth = 1
@@ -102,11 +102,11 @@ export default {
 			e.preventDefault()
 			const mousepos = this.getMousePositionOnCanvas(e)
 
-			this.canvas.beginPath()
-			this.canvas.moveTo(mousepos.x, mousepos.y)
-			this.canvas.lineWidth = 1
-			this.canvas.strokeStyle = this.color
-			this.canvas.fill()
+			this.$canvas.beginPath()
+			this.$canvas.moveTo(mousepos.x, mousepos.y)
+			this.$canvas.lineWidth = 1
+			this.$canvas.strokeStyle = this.color
+			this.$canvas.fill()
 			this.isDrawing = true
 		},
 
@@ -124,21 +124,21 @@ export default {
 
 			if (this.isDrawing) {
 				const mousepos = this.getMousePositionOnCanvas(e)
-				this.canvas.lineTo(mousepos.x, mousepos.y)
-				this.canvas.stroke()
+				this.$canvas.lineTo(mousepos.x, mousepos.y)
+				this.$canvas.stroke()
 			}
 		},
 
 		stopDrawing(e) {
 			e.preventDefault()
 			if (this.isDrawing) {
-				this.canvas.stroke()
+				this.$canvas.stroke()
 			}
 			this.isDrawing = false
 		},
 
 		clearCanvas() {
-			this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+			this.$canvas.clearRect(0, 0, this.$canvasWidth, this.$canvasHeight)
 		},
 
 		createDataImage() {
