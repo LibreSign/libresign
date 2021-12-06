@@ -152,6 +152,13 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testApprovalListWithSuccess() {
 		$this->createUser('username', 'password');
+
+		$this->mockConfig([
+			'libresign' => [
+				'approval_group' => '["testGroup"]'
+			]
+		]);
+
 		$this->request
 			->withPath('/account/files/approval/list')
 			->withRequestHeader([
