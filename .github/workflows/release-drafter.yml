@@ -3,7 +3,10 @@ name: Release Drafter
 on:
   push:
     # branches to consider in the event; optional, defaults to all
-    branches: [main]
+    branches:
+      - stable21
+      - stable22
+      - stable23
 
 jobs:
   update_release_draft:
