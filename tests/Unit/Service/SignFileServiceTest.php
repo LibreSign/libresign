@@ -2,6 +2,7 @@
 
 use OC\Accounts\AccountManager;
 use OC\AppFramework\Utility\TimeFactory;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
@@ -44,6 +45,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileMapper;
 	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
+	/** @var AccountFileMapper|MockObject */
+	private $accountFileMapper;
 	/** @var IUser|MockObject */
 	private $user;
 	/** @var IClientService|MockObject */
@@ -88,6 +91,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
+		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
@@ -113,6 +117,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileMapper,
 			$this->fileUserMapper,
+			$this->accountFileMapper,
 			$this->pkcs7Handler,
 			$this->pkcs12Handler,
 			$this->folderService,

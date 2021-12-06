@@ -507,7 +507,7 @@ class ValidateHelper {
 				$this->valdateCode($fileUser, $params);
 				break;
 			case 'password':
-				if (!empty($params['code'])) {
+				if (isset($params['code'])) {
 					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
 				}
 		}
@@ -525,6 +525,14 @@ class ValidateHelper {
 		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
 		if (!in_array($type, $profileFileTypes)) {
 			throw new LibresignException($this->l10n->t('Invalid file type.'));
+		}
+	}
+
+	public function userCanApproveValidationDocuments(IUser $user): void {
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
+		$userGroups = $this->groupManager->getUserGroupIds($user);
+		if (!$authorized || !array_intersect($userGroups, $authorized)) {
+			throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
 		}
 	}
 
