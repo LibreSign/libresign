@@ -223,6 +223,7 @@ OC.L10N.register(
     "Sign the document." : "Sinatu dokumentua.",
     "Show Document" : "Erakutsi dokumentua",
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
+    "Loading" : "Kargatzen",
     "All Files" : "Fitxategi guztiak",
     "There are no documents" : "Ez dago dokumenturik",
     "View" : "Ikusi",
