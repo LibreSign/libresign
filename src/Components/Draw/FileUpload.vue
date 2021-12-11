@@ -1,14 +1,17 @@
 <script>
+import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { Cropper } from 'vue-advanced-cropper'
 import { SignatureImageDimensions } from './options'
 import { isEmpty } from 'lodash-es'
 export default {
 	name: 'FileUpload',
-	components: { Cropper },
+	components: { Cropper, Modal },
 	data() {
 		return {
+			modal: false,
 			loading: false,
 			image: '',
+			imageData: '',
 		}
 	},
 	computed: {
@@ -45,11 +48,17 @@ export default {
 
 			fr.readAsDataURL(ev.target.files[0])
 		},
-		change({ coordinates, canvas }) {
-			console.log(coordinates, canvas)
+		change({ canvas }) {
+			this.imageData = canvas.toDataURL('image/png')
+		},
+		saveSignature() {
+			this.$emit('save', this.imageData)
 		},
 		confirmSave() {
-
+			this.modal = true
+		},
+		cancel() {
+			this.modal = false
 		},
 		close() {
 			this.$emit('close')
@@ -93,16 +102,37 @@ export default {
 				</button>
 			</div>
 		</div>
+
+		<Modal v-if="modal" @close="cancel">
+			<div class="modal-confirm">
+				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
+				<img :src="imageData">
+				<div class="actions-modal">
+					<button class="primary" @click="saveSignature">
+						{{ t('libresign', 'Save') }}
+					</button>
+					<button @click="cancel">
+						{{ t('libresign', 'Cancel') }}
+					</button>
+				</div>
+			</div>
+		</Modal>
 	</div>
 </template>
 
 <style lang="scss" scoped>
 .draw-file-input {
 	padding: 0.5em;
+
+	> img {
+		max-width: 100%;
+	}
 }
+
 .file-input-container {
 	margin-bottom: 5px;
-	input[type="file"] {
+
+	input[type='file'] {
 		display: none;
 	}
 
@@ -116,10 +146,33 @@ export default {
 	}
 }
 
-.action-buttons {
+.action-buttons, .actions-modal {
 	margin-top: 1em;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
+}
+
+.modal-confirm{
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	margin: 15px;
+
+	h1{
+		font-size: 1.4rem;
+		font-weight: bold;
+		margin: 10px;
+	}
+
+	img{
+		padding: 20px;
+
+		@media screen and (max-width: 650px){
+			width: 100%;
+		}
+	}
 }
 </style>
