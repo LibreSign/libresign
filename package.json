@@ -35,6 +35,7 @@
     "marked": "^2.1.3",
     "style-loader": "^1.2.1",
     "vue": "^2.6.12",
+    "vue-advanced-cropper": "^1.9.0",
     "vue-drag-resize": "^1.5.4",
     "vue-pdf": "^4.3.0",
     "vue-router": "^3.5.3",
