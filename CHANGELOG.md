@@ -27,6 +27,7 @@ Types of changes:
 - Make possible sign using token sent by email
 - Changes on sign endpoint to make possible sign using code
 - Add friendly name on pfx file
+- Add custom user signature files
 
 # Changed
 - PDF preview on mobile when signing
