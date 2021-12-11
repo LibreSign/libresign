@@ -77,7 +77,7 @@ export default {
 				</header>
 
 				<div class="content">
-					<Draw text-editor v-on="{ close, save }" />
+					<Draw text-editor file-editor v-on="{ close, save }" />
 				</div>
 			</div>
 		</Modal>
