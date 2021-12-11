@@ -242,7 +242,6 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s ist kein gültige Signiermethode",
     "Please define your sign password" : "Bitte legen Sie Ihr Signatur-Passwort fest",
     "Define a password and sign the document." : "Legen Sie ein Passwort fest und signieren Sie das Dokument.",
-    "You do not have any sign defined." : "Sie haben keine Signatur definiert.",
     "Define your signature." : "Legen Sie Ihre Signatur fest.",
     "All Files" : "Alle Dateien",
     "There are no documents" : "Es gibt keine Dokumente",
@@ -257,6 +256,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",
     "User created!" : "Benutzer erstellt!",
     "Password created!" : "Passwort erstellt!",
-    "Open in LibreSign" : "In LibreSign öffnen"
+    "Open in LibreSign" : "In LibreSign öffnen",
+    "You do not have any sign defined." : "Sie haben keine Signatur definiert."
 },
 "nplurals=2; plural=(n != 1);");

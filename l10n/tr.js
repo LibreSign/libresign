@@ -242,7 +242,6 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s geçerli bir imzalama yöntemi değil",
     "Please define your sign password" : "Lütfen imzalama parolanızı tanımlayın",
     "Define a password and sign the document." : "Bir parola tanımlayın ve belgeyi imzalayın.",
-    "You do not have any sign defined." : "Henüz tanımlanmış bir imza yok.",
     "Define your signature." : "İmzanızı tanımlayın.",
     "All Files" : "Tüm dosyalar",
     "There are no documents" : "Henüz bir belge yok",
@@ -257,6 +256,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
     "User created!" : "Kullanıcı eklendi!",
     "Password created!" : "Parola oluşturuldu!",
-    "Open in LibreSign" : "LibreSign ile aç"
+    "Open in LibreSign" : "LibreSign ile aç",
+    "You do not have any sign defined." : "Henüz tanımlanmış bir imza yok."
 },
 "nplurals=2; plural=(n > 1);");

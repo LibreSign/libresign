@@ -242,7 +242,6 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s 不是有效的簽章方式",
     "Please define your sign password" : "請定義您的簽署密碼",
     "Define a password and sign the document." : "定義密碼並簽署文件。",
-    "You do not have any sign defined." : "您未定義任何簽署。",
     "Define your signature." : "定義您的簽章。",
     "All Files" : "所有檔案",
     "There are no documents" : "沒有文件",
@@ -257,6 +256,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。",
     "User created!" : "使用者已建立！",
     "Password created!" : "已建立密碼！",
-    "Open in LibreSign" : "在 LibreSign 中開啟"
+    "Open in LibreSign" : "在 LibreSign 中開啟",
+    "You do not have any sign defined." : "您未定義任何簽署。"
 },
 "nplurals=1; plural=0;");

@@ -242,7 +242,6 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%sis geen geldige ondertekeningsmethode",
     "Please define your sign password" : "Definieer a.u.b. uw ondertekeningswachtwoord",
     "Define a password and sign the document." : "Definieer een wachtwoord en onderteken het document.",
-    "You do not have any sign defined." : "U heeft geen handtekening gedefinieerd.",
     "Define your signature." : "Definieer uw handtekening",
     "All Files" : "Alle bestanden",
     "There are no documents" : "Er zijn geen documenten",
@@ -257,6 +256,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
-    "Open in LibreSign" : "Openen in LibreSign"
+    "Open in LibreSign" : "Openen in LibreSign",
+    "You do not have any sign defined." : "U heeft geen handtekening gedefinieerd."
 },
 "nplurals=2; plural=(n != 1);");
