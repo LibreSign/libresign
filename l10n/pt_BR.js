@@ -242,6 +242,7 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s não é um método de assinatura válido",
     "Please define your sign password" : "Por favor, defina sua senha de assinatura",
     "Define a password and sign the document." : "Defina uma senha e assine o documento.",
+    "You do not have any signature defined." : "Você não tem nenhuma assinatura definida.",
     "Define your signature." : "Defina sua assinatura.",
     "All Files" : "Todos os arquivos ",
     "There are no documents" : "Não existem documentos",

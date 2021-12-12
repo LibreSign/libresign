@@ -242,6 +242,7 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s není platná metoda pro podepisování",
     "Please define your sign password" : "Definujte si své heslo pro podepisování",
     "Define a password and sign the document." : "Nastavit heslo a podepsat dokument.",
+    "You do not have any signature defined." : "Nemáte definovaný žádný podpis.",
     "Define your signature." : "Definujte si svůj podpis.",
     "All Files" : "Všechny soubory",
     "There are no documents" : "Nejsou zde žádné dokumenty",

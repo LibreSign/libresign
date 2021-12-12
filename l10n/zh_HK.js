@@ -242,6 +242,7 @@ OC.L10N.register(
     "%s is not a valid sign method" : "%s 非有效簽名方式",
     "Please define your sign password" : "請定義您的簽名密碼",
     "Define a password and sign the document." : "設置密碼以簽署文件。",
+    "You do not have any signature defined." : "您未定義任何簽署。",
     "Define your signature." : "定義您的簽名。",
     "All Files" : "所有檔案",
     "There are no documents" : "沒有文件",
