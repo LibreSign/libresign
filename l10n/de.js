@@ -235,6 +235,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Dieser iframe wird von Deinem Browser nicht unterstützt.",
     "Please define your sign password" : "Bitte lege Dein Signatur-Passwort fest",
     "Define a password and sign the document." : "Lege ein Passwort fest und signiere das Dokument",
+    "You do not have any signature defined." : "Du hast keine Signatur festgelegt",
     "Define your signature." : "Legen Deine Signatur fest",
     "All Files" : "Alle Dateien",
     "There are no documents" : "Es gibt keine Dokumente",
