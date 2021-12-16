@@ -238,7 +238,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Podpisz swój numer telefonu komórkowego.",
     "Save your number." : "Zapisz swój numer.",
     "This iframe is not supported in your browser." : "Ramka iframe nie jest obsługiwana w Twojej przeglądarce.",
-    "Loading" : "Ładowanie",
+    "Loading" : "Wczytywanie",
     "%s is not a valid sign method" : "%s nie jest prawidłową metodą podpisywania",
     "Please define your sign password" : "Zdefiniuj swoje hasło do podpisu",
     "Define a password and sign the document." : "Zdefiniuj hasło i podpisz dokument.",
