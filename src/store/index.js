@@ -29,6 +29,7 @@ import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
 import user from './modules/user'
+import documents from './modules/documents'
 import { getInitialState } from '../services/InitialStateService'
 
 Vue.use(Vuex)
@@ -105,5 +106,6 @@ export default new Store({
 		validate,
 		error,
 		user,
+		documents,
 	},
 })
