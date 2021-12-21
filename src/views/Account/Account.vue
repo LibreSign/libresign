@@ -30,8 +30,10 @@
 					</div>
 				</div>
 			</div>
-
-			<Signatures class="user" />
+			<div class="side-content">
+				<Signatures class="user" />
+				<Documents class="documents" />
+			</div>
 		</div>
 	</Content>
 </template>
@@ -45,6 +47,7 @@ import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
 import Signatures from './partials/Signatures.vue'
+import Documents from './partials/Documents.vue'
 
 export default {
 	name: 'Account',
@@ -53,6 +56,7 @@ export default {
 		Content,
 		Modal,
 		CreatePassword,
+		Documents,
 		ResetPassword,
 		Signatures,
 		UserImage,
@@ -100,6 +104,17 @@ export default {
 		display: flex;
 		height: 100%;
 
+		.side-content {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			width: 40%;
+
+			.user, .documents {
+				width: 100%;
+			}
+		}
+
 		.user{
 			width: 25%;
 			display: flex;
@@ -107,7 +122,7 @@ export default {
 			align-items: center;
 
 			@media screen and (max-width: 768px) {
-				width: 50%
+				width: 50%;
 			}
 
 			.details{
