@@ -209,6 +209,7 @@ OC.L10N.register(
     "Forgot your password?" : "Ali ste pozabili geslo?",
     "Sign the document." : "Podpiši dokument.",
     "Show Document" : "Pokaži dokument",
+    "Sign with your email." : "Podpiši z elektronskim naslovom.",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
     "All Files" : "Vse datoteke",
     "There are no documents" : "Ni razpoložljivih dokumentov",
