@@ -3,13 +3,17 @@
 		<h1>{{ t("libresign", "Your profile documents") }}</h1>
 
 		<div class="contents">
-			<Document v-for="(item, i) in documents" :key="i" :item="item" />
+			<Document v-for="(item, i) in documents"
+				:key="i"
+				:item="item"
+				@save="loadFiles"
+				@delete="loadFiles" />
 		</div>
 	</div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import Document from './Document'
 export default {
 	name: 'Documents',
@@ -18,6 +22,15 @@ export default {
 	},
 	computed: {
 		...mapGetters({ documents: 'documents/documents' }),
+	},
+	mounted() {
+		this.loadFiles()
+	},
+	methods: {
+		...mapActions({ listFiles: 'documents/list' }),
+		loadFiles() {
+			this.listFiles()
+		},
 	},
 }
 </script>
