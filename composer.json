@@ -14,7 +14,7 @@
     "phpunit/phpunit": "^9.5",
     "nextcloud/coding-standard": "^0.4.0",
     "phpspec/prophecy-phpunit": "^2.0",
-    "byjg/swagger-test": "dev-latest",
+    "byjg/swagger-test": "^3.1",
     "symfony/yaml": "^5.2",
     "guzzlehttp/psr7": "^1.8",
     "mikey179/vfsstream": "^1.6",
@@ -33,14 +33,6 @@
     }
   },
   "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/LibreCodeCoop/php-swagger-test"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/LibreCodeCoop/webrequest"
-    },
     {
       "type": "vcs",
       "url": "https://github.com/LibreCodeCoop/libmergepdf"
