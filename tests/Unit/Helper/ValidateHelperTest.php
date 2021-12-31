@@ -6,6 +6,7 @@ use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -25,6 +26,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileUserMapper;
 	/** @var FileMapper|MockObject */
 	private $fileMapper;
+	/** @var FileTypeMapper|MockObject */
+	private $fileTypeMapper;
 	/** @var FileElementMapper|MockObject */
 	private $fileElementMapper;
 	/** @var AccountFileMapper|MockObject */
@@ -49,6 +52,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnArgument(0));
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -64,6 +68,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->fileMapper,
+			$this->fileTypeMapper,
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
@@ -371,18 +376,16 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testInvalidFileType() {
 		$this->expectExceptionMessage('Invalid file type.');
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('["IDENTIFICATION"]');
+		$this->fileTypeMapper
+			->method('getTypes')
+			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
 		$this->getValidateHelper()->validateFileTypeExists(0);
 	}
 
 	public function testValidFileType() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
-			->method('getAppValue')
-			->willReturn('["IDENTIFICATION"]');
+		$this->fileTypeMapper
+			->method('getTypes')
+			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
 		$actual = $this->getValidateHelper()->validateFileTypeExists('IDENTIFICATION');
 		$this->assertNull($actual);
 	}

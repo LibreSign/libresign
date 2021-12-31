@@ -3,8 +3,10 @@
 namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Helper\Pagination;
+use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
 
@@ -24,17 +26,21 @@ class AccountFileMapper extends QBMapper {
 	private $urlGenerator;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
+	/** @var FileTypeMapper */
+	private $fileTypeMapper;
 	/**
 	 * @param IDBConnection $db
 	 */
 	public function __construct(
 		IDBConnection $db,
 		IURLGenerator $urlGenerator,
-		FileUserMapper $fileUserMapper
+		FileUserMapper $fileUserMapper,
+		FileTypeMapper $fileTypeMapper
 	) {
 		parent::__construct($db, 'libresign_account_file');
 		$this->urlGenerator = $urlGenerator;
 		$this->fileUserMapper = $fileUserMapper;
+		$this->fileTypeMapper = $fileTypeMapper;
 	}
 
 	public function getByUserAndType(string $userId, string $type): AccountFile {
@@ -45,6 +51,20 @@ class AccountFileMapper extends QBMapper {
 			->where(
 				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
 				$qb->expr()->eq('file_type', $qb->createNamedParameter($type, IQueryBuilder::PARAM_STR))
+			);
+
+		return $this->findEntity($qb);
+	}
+
+	public function getByUserIdAndNodeId(string $userId, int $nodeId): AccountFile {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('laf.*')
+			->from($this->getTableName(), 'laf')
+			->join('laf', 'libresign_file', 'lf', 'laf.file_id = lf.id')
+			->where(
+				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
+				$qb->expr()->eq('lf.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
 		return $this->findEntity($qb);
@@ -98,10 +118,12 @@ class AccountFileMapper extends QBMapper {
 				'f.uuid',
 				'f.name',
 				'f.callback',
-				'f.node_id'
+				'f.status',
+				'f.node_id',
+				'af.file_type'
 			)
 			->selectAlias('u.uid_lower', 'account_uid')
-			->selectAlias('u.displayname', 'account_dislpayname')
+			->selectAlias('u.displayname', 'account_displayname')
 			->selectAlias('f.created_at', 'request_date')
 			->selectAlias($qb->func()->max('fu.signed'), 'status_date')
 			->from($this->getTableName(), 'af')
@@ -115,6 +137,7 @@ class AccountFileMapper extends QBMapper {
 				'f.callback',
 				'f.node_id',
 				'f.created_at',
+				'af.file_type',
 				'u.uid_lower',
 				'u.displayname'
 			);
@@ -147,10 +170,14 @@ class AccountFileMapper extends QBMapper {
 	 * @psalm-return array{status_date: string, file: array{type: 'pdf', url: string, nodeId: int}}
 	 */
 	private function formatListRow(array $row, string $url): array {
-		$row['id'] = (int) $row['id'];
 		$row['account'] = [
 			'uid' => $row['account_uid'],
-			'displayName' => $row['account_dislpayname']
+			'displayName' => $row['account_displayname']
+		];
+		$row['file_type'] = [
+			'type' => $row['file_type'],
+			'name' => $this->fileTypeMapper->getNameOfType($row['file_type']),
+			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp($row['request_date'])
@@ -161,14 +188,34 @@ class AccountFileMapper extends QBMapper {
 				->format('Y-m-d H:i:s');
 		}
 		$row['file'] = [
-			'type' => 'pdf',
-			'url' => $url . $row['uuid'],
-			'nodeId' => (int) $row['node_id']
+			'name' => $row['name'],
+			'status' => $row['status'],
+			'status_date' => $row['status_date'],
+			'request_date' => $row['request_date'],
+			'requested_by' => [
+				'displayName' => $row['account_displayname'],
+				'uid' => $row['account_uid'],
+			],
+			'file' => [
+				'type' => 'pdf',
+				'nodeId' => (int) $row['node_id'],
+				'url' => $url . $row['uuid'],
+			],
+			'callback' => $row['callback'],
+			'uuid' => $row['uuid'],
 		];
 		unset(
 			$row['node_id'],
+			$row['name'],
+			$row['status'],
+			$row['status_date'],
+			$row['request_date'],
+			$row['account_displayname'],
 			$row['account_uid'],
-			$row['account_dislpayname']
+			$row['callback'],
+			$row['uuid'],
+			$row['account_uid'],
+			$row['account_displayname']
 		);
 		return $row;
 	}
@@ -195,20 +242,38 @@ class AccountFileMapper extends QBMapper {
 							->format('Y-m-d H:i:s');
 						$totalSigned++;
 					}
-					$files[$key]['signers'][] = $data;
+					$files[$key]['file']['signers'][] = $data;
 					unset($signers[$signerKey]);
 				}
 			}
-			if (empty($files[$key]['signers'])) {
-				$files[$key]['signers'] = [];
-				$files[$key]['status'] = 'no signers';
-			} elseif ($totalSigned === count($files[$key]['signers'])) {
-				$files[$key]['status'] = 'signed';
+			if (empty($files[$key]['file']['signers'])) {
+				$files[$key]['file']['signers'] = [];
+				$files[$key]['file']['status'] = 'no signers';
+			} elseif ($totalSigned === count($files[$key]['file']['signers'])) {
+				$files[$key]['file']['status'] = 'signed';
 			} else {
-				$files[$key]['status'] = 'pending';
+				$files[$key]['file']['status'] = 'pending';
 			}
 			unset($files[$key]['id']);
 		}
 		return $files;
+	}
+
+	public function delete(Entity $entity): Entity {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->delete($this->tableName)
+			->where(
+				$qb->expr()->eq('user_id', $qb->createNamedParameter($entity->getUserId(), Types::STRING)),
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
+			);
+		$qb->executeStatement();
+		$qb->resetQueryParts();
+		$qb->delete('libresign_file')
+			->where(
+				$qb->expr()->eq('id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
+			);
+		$qb->executeStatement();
+		return $entity;
 	}
 }
