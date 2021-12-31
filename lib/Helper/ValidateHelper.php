@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -27,6 +28,8 @@ class ValidateHelper {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var FileTypeMapper */
+	private $fileTypeMapper;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
 	/** @var AccountFileMapper */
@@ -60,6 +63,7 @@ class ValidateHelper {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
+		FileTypeMapper $fileTypeMapper,
 		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
 		UserElementMapper $userElementMapper,
@@ -72,6 +76,7 @@ class ValidateHelper {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
+		$this->fileTypeMapper = $fileTypeMapper;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -272,6 +277,14 @@ class ValidateHelper {
 			$this->fileElementMapper->getByDocumentElementIdAndFileUserId($documentElementId, $uid);
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+		}
+	}
+
+	public function validateAccountFileIsOwnedByUser(int $nodeId, string $uid): void {
+		try {
+			$this->accountFileMapper->getByUserIdAndNodeId($uid, $nodeId);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('This file is not yours'));
 		}
 	}
 
@@ -522,8 +535,8 @@ class ValidateHelper {
 	}
 
 	public function validateFileTypeExists(string $type): void {
-		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
-		if (!in_array($type, $profileFileTypes)) {
+		$profileFileTypes = $this->fileTypeMapper->getTypes();
+		if (!array_key_exists($type, $profileFileTypes)) {
 			throw new LibresignException($this->l10n->t('Invalid file type.'));
 		}
 	}
