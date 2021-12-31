@@ -4,7 +4,9 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OC\Http\Client\ClientService;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
@@ -44,6 +46,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $root;
 	/** @var FileMapper|MockObject */
 	private $fileMapper;
+	/** @var FileTypeMapper|MockObject */
+	private $fileTypeMapper;
+	/** @var AccountFileMapper|MockObject */
+	private $accountFileMapper;
 	/** @var ReportDao|MockObject */
 	private $reportDao;
 	/** @var SignFileService|MockObject */
@@ -81,11 +87,13 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountManager = $this->createMock(IAccountManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
+		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
+		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->reportDao = $this->createMock(ReportDao::class);
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
-		$this->validateHelper = \OC::$server->get(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -94,14 +102,18 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->clientService = $this->createMock(ClientService::class);
 		$this->timeFactory = $this->createMock(TimeFactory::class);
+	}
 
-		$this->accountService = new AccountService(
+	private function getService(): AccountService {
+		return new AccountService(
 			$this->l10n,
 			$this->fileUserMapper,
 			$this->userManagerInstance,
 			$this->accountManager,
 			$this->root,
 			$this->fileMapper,
+			$this->fileTypeMapper,
+			$this->accountFileMapper,
 			$this->reportDao,
 			$this->signFile,
 			$this->config,
@@ -126,29 +138,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$arguments = $arguments($this);
 		}
 
-		$this->accountService = new AccountService(
-			$this->l10n,
-			$this->fileUserMapper,
-			$this->userManagerInstance,
-			$this->accountManager,
-			$this->root,
-			$this->fileMapper,
-			$this->reportDao,
-			$this->signFile,
-			$this->config,
-			$this->newUserMail,
-			$this->validateHelper,
-			$this->urlGenerator,
-			$this->pkcs12Handler,
-			$this->groupManager,
-			$this->accountFileService,
-			$this->userElementMapper,
-			$this->folderService,
-			$this->clientService,
-			$this->timeFactory
-		);
 		$this->expectExceptionMessage($expectedErrorMessage);
-		$this->accountService->validateCreateToSign($arguments);
+		$this->getService()->validateCreateToSign($arguments);
 	}
 
 	public function providerTestValidateCreateToSignUsingDataProvider() {
@@ -285,29 +276,8 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$arguments = $arguments($this);
 		}
 
-		$this->accountService = new AccountService(
-			$this->l10n,
-			$this->fileUserMapper,
-			$this->userManagerInstance,
-			$this->accountManager,
-			$this->root,
-			$this->fileMapper,
-			$this->reportDao,
-			$this->signFile,
-			$this->config,
-			$this->newUserMail,
-			$this->validateHelper,
-			$this->urlGenerator,
-			$this->pkcs12Handler,
-			$this->groupManager,
-			$this->accountFileService,
-			$this->userElementMapper,
-			$this->folderService,
-			$this->clientService,
-			$this->timeFactory
-		);
 		$this->expectExceptionMessage($expectedErrorMessage);
-		$this->accountService->validateCertificateData($arguments);
+		$this->getService()->validateCertificateData($arguments);
 	}
 
 	public function providerTestValidateCertificateDataUsingDataProvider() {
@@ -338,7 +308,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper
 			->method('getByUuid')
 			->will($this->returnValue($fileUser));
-		$actual = $this->accountService->validateCertificateData([
+		$actual = $this->getService()->validateCertificateData([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'valid@test.coop',
 			'password' => '123456789',
@@ -398,28 +368,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testValidateCreateToSignSuccess() {
 		$this->mockValidateWithSuccess();
 
-		$this->accountService = new AccountService(
-			$this->l10n,
-			$this->fileUserMapper,
-			$this->userManagerInstance,
-			$this->accountManager,
-			$this->root,
-			$this->fileMapper,
-			$this->reportDao,
-			$this->signFile,
-			$this->config,
-			$this->newUserMail,
-			$this->validateHelper,
-			$this->urlGenerator,
-			$this->pkcs12Handler,
-			$this->groupManager,
-			$this->accountFileService,
-			$this->userElementMapper,
-			$this->folderService,
-			$this->clientService,
-			$this->timeFactory
-		);
-		$actual = $this->accountService->validateCreateToSign([
+		$actual = $this->getService()->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
 			'email' => 'valid@test.coop',
 			'password' => '123456789',
@@ -440,7 +389,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			throw new \Exception("Error Processing Request", 1);
 		}));
 		$this->expectErrorMessage('Unable to send the invitation');
-		$this->accountService->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
+		$this->getService()->createToSign('uuid', 'username', 'passwordOfUser', 'passwordToSign');
 	}
 
 	/**
@@ -450,27 +399,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if (is_callable($setUp)) {
 			$setUp($this);
 		}
-		$this->accountService = new AccountService(
-			$this->l10n,
-			$this->fileUserMapper,
-			$this->userManagerInstance,
-			$this->accountManager,
-			$this->root,
-			$this->fileMapper,
-			$this->reportDao,
-			$this->signFile,
-			$this->config,
-			$this->newUserMail,
-			$this->validateHelper,
-			$this->urlGenerator,
-			$this->pkcs12Handler,
-			$this->groupManager,
-			$this->accountFileService,
-			$this->userElementMapper,
-			$this->folderService,
-			$this->clientService,
-			$this->timeFactory
-		);
 		if ($userId) {
 			/** @var IUser|MockObject */
 			$user = $this->createMock(IUser::class);
@@ -479,7 +407,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		} else {
 			$user = null;
 		}
-		$actual = $this->accountService->getConfig($uuid, $user, $formatOfPdfOnSign);
+		$actual = $this->getService()->getConfig($uuid, $user, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString(
 			$actual,
@@ -1088,7 +1016,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user->method('getUID')
 			->willReturn('username');
 
-		$actual = $this->accountService->getConfig('uuid', $user, 'file');
+		$actual = $this->getService()->getConfig('uuid', $user, 'file');
 		$this->assertJsonStringEqualsJsonString(
 			json_encode($actual),
 			json_encode([
@@ -1152,7 +1080,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($folder);
 
-		$actual = $this->accountService->getPdfByUuid('uuid');
+		$actual = $this->getService()->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 
@@ -1194,12 +1122,12 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserFolder')
 			->willReturn($folder);
 
-		$actual = $this->accountService->getPdfByUuid('uuid');
+		$actual = $this->getService()->getPdfByUuid('uuid');
 		$this->assertInstanceOf(\OCP\Files\File::class, $actual);
 	}
 
 	public function testCanRequestSignWithUnexistentUser() {
-		$actual = $this->accountService->canRequestSign();
+		$actual = $this->getService()->canRequestSign();
 		$this->assertFalse($actual);
 	}
 
@@ -1208,7 +1136,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturn(null);
 		$user = $this->createMock(\OCP\IUser::class);
-		$actual = $this->accountService->canRequestSign($user);
+		$actual = $this->getService()->canRequestSign($user);
 		$this->assertFalse($actual);
 	}
 
@@ -1220,7 +1148,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserGroupIds')
 			->willReturn([]);
 		$user = $this->createMock(\OCP\IUser::class);
-		$actual = $this->accountService->canRequestSign($user);
+		$actual = $this->getService()->canRequestSign($user);
 		$this->assertFalse($actual);
 	}
 
@@ -1232,18 +1160,18 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getUserGroupIds')
 			->willReturn(['admin']);
 		$user = $this->createMock(\OCP\IUser::class);
-		$actual = $this->accountService->canRequestSign($user);
+		$actual = $this->getService()->canRequestSign($user);
 		$this->assertTrue($actual);
 	}
 
 	public function testAccountvalidateWithSuccess() {
-		$this->config
-			->method('getAppValue')
-			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
+		$this->fileTypeMapper
+			->method('getTypes')
+			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')
 			->willReturn('username');
-		$actual = $this->accountService->validateAccountFiles([
+		$actual = $this->getService()->validateAccountFiles([
 			[
 				'type' => 'IDENTIFICATION',
 				'file' => [
@@ -1256,11 +1184,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testAccountvalidateWithInvalidFileType() {
 		$this->expectExceptionMessage('Invalid file type.');
-		$this->config
-			->method('getAppValue')
-			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
+		$this->fileTypeMapper
+			->method('getTypes')
+			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
 		$user = $this->createMock(\OCP\IUser::class);
-		$this->accountService->validateAccountFiles([
+		$this->getService()->validateAccountFiles([
 			[
 				'type' => 'invalid',
 				'file' => [
@@ -1270,26 +1198,10 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		], $user);
 	}
 
-	public function testAccountvalidateWithInvalidBase64() {
-		$this->expectExceptionMessage('Invalid base64 file');
-		$this->config
-			->method('getAppValue')
-			->will($this->returnValue(json_encode(['IDENTIFICATION'])));
-		$user = $this->createMock(\OCP\IUser::class);
-		$this->accountService->validateAccountFiles([
-			[
-				'type' => 'IDENTIFICATION',
-				'file' => [
-					'base64' => 'invalid'
-				]
-			]
-		], $user);
-	}
-
 	public function testAddFilesToAccountWithSuccess() {
-		$this->config
-			->method('getAppValue')
-			->willReturn('["IDENTIFICATION"]');
+		$this->fileTypeMapper
+			->method('getTypes')
+			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
 		$files = [
 			[
 				'type' => 'IDENTIFICATION',
@@ -1301,7 +1213,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getUID')
 			->willReturn('username');
-		$return = $this->accountService->addFilesToAccount($files, $user);
+		$return = $this->getService()->addFilesToAccount($files, $user);
 		$this->assertNull($return);
 	}
 }

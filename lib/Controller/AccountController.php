@@ -190,6 +190,29 @@ class AccountController extends ApiController {
 	}
 
 	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function deleteFile(int $nodeId): JSONResponse {
+		try {
+			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
+			return new JSONResponse([
+				'success' => true
+			], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'messages' => [
+						$exception->getMessage(),
+					],
+				],
+				Http::STATUS_UNAUTHORIZED,
+			);
+		}
+	}
+
+	/**
 	 * Who am I.
 	 *
 	 * Validates API access data and returns the authenticated user's data.
