@@ -30,6 +30,13 @@ class AccountFileService {
 		$this->accountFileMapper->insert($accountFile);
 	}
 
+	public function deleteFile(int $fileId, string $uid): void {
+		$accountFile = new AccountFile();
+		$accountFile->setFileId($fileId);
+		$accountFile->setUserId($uid);
+		$this->accountFileMapper->delete($accountFile);
+	}
+
 	/**
 	 * @return array[]
 	 *
