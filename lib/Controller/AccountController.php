@@ -381,6 +381,25 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
+	public function accountFileListToOwner(array $filter = [], $page = null, $length = null): JSONResponse {
+		try {
+			$filter['userId'] = $this->userSession->getUser()->getUID();
+			$return = $this->accountFileService->accountFileList($filter, $page, $length);
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
 	public function accountFileListToApproval(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
