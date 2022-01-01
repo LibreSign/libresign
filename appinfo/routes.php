@@ -15,6 +15,7 @@ return [
 		['name' => 'account#signatureGenerate',         'url' => '/api/0.1/account/signature', 'verb' => 'POST'],
 		['name' => 'account#addFiles',                  'url' => '/api/0.1/account/files', 'verb' => 'POST'],
 		['name' => 'account#deleteFile',                'url' => '/api/0.1/account/files', 'verb' => 'DELETE'],
+		['name' => 'account#accountFileListToOwner',    'url' => '/api/0.1/account/files', 'verb' => 'GET'],
 		['name' => 'account#accountFileListToApproval', 'url' => '/api/0.1/account/files/approval/list', 'verb' => 'GET'],
 		['name' => 'account#createSignatureElement',    'url' => '/api/0.1/account/signature/elements', 'verb' => 'POST'],
 		['name' => 'account#getSignatureElements',      'url' => '/api/0.1/account/signature/elements', 'verb' => 'GET'],
