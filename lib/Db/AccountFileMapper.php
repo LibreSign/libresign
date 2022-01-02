@@ -24,6 +24,8 @@ use OCP\IURLGenerator;
 class AccountFileMapper extends QBMapper {
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var FileMapper */
+	private $fileMapper;
 	/** @var FileUserMapper */
 	private $fileUserMapper;
 	/** @var FileTypeMapper */
@@ -34,11 +36,13 @@ class AccountFileMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 		IURLGenerator $urlGenerator,
+		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
 		FileTypeMapper $fileTypeMapper
 	) {
 		parent::__construct($db, 'libresign_account_file');
 		$this->urlGenerator = $urlGenerator;
+		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileTypeMapper = $fileTypeMapper;
 	}
@@ -190,6 +194,7 @@ class AccountFileMapper extends QBMapper {
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
+			'status_text' => $this->fileMapper->getTextOfStatus($row['status']),
 			'status_date' => $row['status_date'],
 			'request_date' => $row['request_date'],
 			'requested_by' => [
@@ -223,6 +228,7 @@ class AccountFileMapper extends QBMapper {
 	private function assocFileToFileUserAndFormat(array $files, array $signers): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
+			$files[$key]['file']['signers'] = [];
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
 					$data = [
@@ -245,14 +251,6 @@ class AccountFileMapper extends QBMapper {
 					$files[$key]['file']['signers'][] = $data;
 					unset($signers[$signerKey]);
 				}
-			}
-			if (empty($files[$key]['file']['signers'])) {
-				$files[$key]['file']['signers'] = [];
-				$files[$key]['file']['status'] = 'no signers';
-			} elseif ($totalSigned === count($files[$key]['file']['signers'])) {
-				$files[$key]['file']['status'] = 'signed';
-			} else {
-				$files[$key]['file']['status'] = 'pending';
 			}
 			unset($files[$key]['id']);
 		}

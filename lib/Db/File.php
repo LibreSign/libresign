@@ -59,6 +59,12 @@ class File extends Entity {
 	/** @var string */
 	protected $metadata;
 
+	public const STATUS_DRAFT = 0;
+	public const STATUS_ABLE_TO_SIGN = 1;
+	public const STATUS_PARTIAL_SIGNED = 2;
+	public const STATUS_SIGNED = 3;
+	public const STATUS_DELETED = 4;
+
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('nodeId', 'integer');

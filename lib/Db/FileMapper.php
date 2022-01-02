@@ -5,6 +5,7 @@ namespace OCA\Libresign\Db;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IL10N;
 
 /**
  * Class FileMapper
@@ -18,13 +19,19 @@ use OCP\IDBConnection;
  * @method File delete(File $entity)
  */
 class FileMapper extends QBMapper {
+	/** @var IL10N */
+	private $l;
 	/** @var File[] */
 	private $file;
 
 	/**
 	 * @param IDBConnection $db
 	 */
-	public function __construct(IDBConnection $db) {
+	public function __construct(
+		IDBConnection $db,
+		IL10N $l
+	) {
+		$this->l = $l;
 		parent::__construct($db, 'libresign_file');
 	}
 
@@ -93,5 +100,20 @@ class FileMapper extends QBMapper {
 			$this->file[$fileId] = $this->findEntity($qb);
 		}
 		return $this->file[$fileId];
+	}
+
+	public function getTextOfStatus(int $status) {
+		switch ($status) {
+			case File::STATUS_DRAFT:
+				return $this->l->t('draft');
+			case File::STATUS_ABLE_TO_SIGN:
+				return $this->l->t('able to sign');
+			case File::STATUS_PARTIAL_SIGNED:
+				return $this->l->t('partially signed');
+			case File::STATUS_SIGNED:
+				return $this->l->t('signed');
+			case File::STATUS_DELETED:
+				return $this->l->t('deleted');
+		}
 	}
 }

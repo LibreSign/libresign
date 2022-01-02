@@ -142,7 +142,7 @@ class LibreSignFileController extends Controller {
 
 			$return['success'] = true;
 			$return['status'] = $file->getStatus();
-			$return['statusText'] = $this->validateHelper->getTextOfStatus($file->getStatus());
+			$return['statusText'] = $this->fileMapper->getTextOfStatus($file->getStatus());
 			$return['fileId'] = $file->getNodeId();
 			$return['uuid'] = $file->getUuid();
 			$return['name'] = $file->getName();
