@@ -290,11 +290,11 @@ class ValidateHelper {
 
 	public function fileCanBeSigned(File $file): void {
 		$statusList = [
-			ValidateHelper::STATUS_ABLE_TO_SIGN,
-			ValidateHelper::STATUS_PARTIAL_SIGNED
+			File::STATUS_ABLE_TO_SIGN,
+			File::STATUS_PARTIAL_SIGNED
 		];
 		if (!in_array($file->getStatus(), $statusList)) {
-			$statusText = $this->getTextOfStatus($file->getStatus());
+			$statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
 			throw new LibresignException($this->l10n->t('This file cannot be signed. Invalid status: %s', $statusText));
 		}
 	}
@@ -380,9 +380,9 @@ class ValidateHelper {
 	public function validateFileStatus(array $data): void {
 		if (array_key_exists('status', $data)) {
 			$validStatusList = [
-				ValidateHelper::STATUS_DRAFT,
-				ValidateHelper::STATUS_ABLE_TO_SIGN,
-				ValidateHelper::STATUS_DELETED
+				File::STATUS_DRAFT,
+				File::STATUS_ABLE_TO_SIGN,
+				File::STATUS_DELETED
 			];
 			if (!in_array($data['status'], $validStatusList)) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
@@ -397,13 +397,13 @@ class ValidateHelper {
 			}
 			if (isset($file)) {
 				if ($data['status'] >= $file->getStatus()) {
-					if ($file->getStatus() >= ValidateHelper::STATUS_ABLE_TO_SIGN) {
-						if ($data['status'] !== ValidateHelper::STATUS_DELETED) {
+					if ($file->getStatus() >= File::STATUS_ABLE_TO_SIGN) {
+						if ($data['status'] !== File::STATUS_DELETED) {
 							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
 						}
 					}
 				}
-			} elseif ($data['status'] === ValidateHelper::STATUS_DELETED) {
+			} elseif ($data['status'] === File::STATUS_DELETED) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 		}
@@ -546,21 +546,6 @@ class ValidateHelper {
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!$authorized || !array_intersect($userGroups, $authorized)) {
 			throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
-		}
-	}
-
-	public function getTextOfStatus(int $status) {
-		switch ($status) {
-			case self::STATUS_DRAFT:
-				return $this->l10n->t('draft');
-			case self::STATUS_ABLE_TO_SIGN:
-				return $this->l10n->t('able to sign');
-			case self::STATUS_PARTIAL_SIGNED:
-				return $this->l10n->t('partially signed');
-			case self::STATUS_SIGNED:
-				return $this->l10n->t('signed');
-			case self::STATUS_DELETED:
-				return $this->l10n->t('deleted');
 		}
 	}
 }
