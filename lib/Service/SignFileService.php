@@ -211,7 +211,7 @@ class SignFileService {
 		if (isset($data['status'])) {
 			$file->setStatus($data['status']);
 		} else {
-			$file->setStatus(ValidateHelper::STATUS_ABLE_TO_SIGN);
+			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		}
 		$this->fileMapper->insert($file);
 		return $file;
@@ -246,7 +246,7 @@ class SignFileService {
 		$return = [];
 		if (!empty($data['users'])) {
 			$notifyAsNewUser = false;
-			if (isset($data['status']) && $data['status'] === ValidateHelper::STATUS_ABLE_TO_SIGN) {
+			if (isset($data['status']) && $data['status'] === FileEntity::STATUS_ABLE_TO_SIGN) {
 				$notifyAsNewUser = true;
 			}
 			foreach ($data['users'] as $user) {
