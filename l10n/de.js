@@ -49,6 +49,7 @@ OC.L10N.register(
     "Field %s not found" : "Feld %s nicht gefunden",
     "Field %s does not belong to user" : "Das Feld %s gehört nicht zum Benutzer",
     "You need to define a visible signature or initials to sign this document." : "Du musst eine sichtbare Unterschrift oder Initialen festlegen, um dieses Dokument zu signieren.",
+    "This file is not yours" : "Diese Datei gehört nicht Dir",
     "This file cannot be signed. Invalid status: %s" : "Dies Datei kann nicht signiert werden. Ungültiger Status: %s",
     "Invalid fileID" : "Ungültige Datei-ID",
     "You are not allowed to request signing" : "Du hast nicht die Berechtigung zu signieren",
