@@ -4,7 +4,9 @@ namespace OCA\Libresign\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\ReportDao;
@@ -53,6 +55,10 @@ class AccountService {
 	private $pkcs12Handler;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var FileTypeMapper */
+	private $fileTypeMapper;
+	/** @var AccountFileMapper */
+	private $accountFileMapper;
 	/** @var ReportDao */
 	private $reportDao;
 	/** @var SignFileService */
@@ -84,6 +90,8 @@ class AccountService {
 		IAccountManager $accountManager,
 		IRootFolder $root,
 		FileMapper $fileMapper,
+		FileTypeMapper $fileTypeMapper,
+		AccountFileMapper $accountFileMapper,
 		ReportDao $reportDao,
 		SignFileService $signFile,
 		IConfig $config,
@@ -104,6 +112,8 @@ class AccountService {
 		$this->accountManager = $accountManager;
 		$this->root = $root;
 		$this->fileMapper = $fileMapper;
+		$this->fileTypeMapper = $fileTypeMapper;
+		$this->accountFileMapper = $accountFileMapper;
 		$this->reportDao = $reportDao;
 		$this->signFile = $signFile;
 		$this->config = $config;
@@ -184,8 +194,8 @@ class AccountService {
 	}
 
 	private function validateAccountFile(int $fileIndex, array $file, IUser $user): void {
-		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
-		if (!in_array($file['type'], $profileFileTypes)) {
+		$profileFileTypes = $this->fileTypeMapper->getTypes();
+		if (!array_key_exists($file['type'], $profileFileTypes)) {
 			throw new LibresignException(json_encode([
 				'type' => 'danger',
 				'file' => $fileIndex,
@@ -444,11 +454,17 @@ class AccountService {
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
-			$dataToSave['name'] = $fileData['type'];
+			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
 			$file = $this->signFile->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}
+	}
+
+	public function deleteFileFromAccount(int $nodeId, IUser $user): void {
+		$this->validateHelper->validateAccountFileIsOwnedByUser($nodeId, $user->getUID());
+		$accountFile = $this->accountFileMapper->getByUserIdAndNodeId($user->getUID(), $nodeId);
+		$this->accountFileService->deleteFile($accountFile->getFileId(), $user->getUID());
 	}
 
 	public function saveVisibleElements(array $elements, IUser $user): void {
