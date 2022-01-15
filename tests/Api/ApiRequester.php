@@ -39,7 +39,7 @@ class ApiRequester extends AbstractRequester {
 	private function doRequest() {
 		ob_start();
 		\OC::handleRequest();
-		$handler = fopen('php://memory','r+');
+		$handler = fopen('php://memory', 'r+');
 		fwrite($handler, ob_get_contents());
 		ob_end_clean();
 		rewind($handler);
