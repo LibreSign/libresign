@@ -376,7 +376,7 @@ class LibreSignFileController extends Controller {
 	 * @return JSONResponse|FileDisplayResponse
 	 */
 	public function patchElement(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []) {
-		return $this->postElement($uuid, $fileUserId, $elementId, $type, $metadata , $coordinates);
+		return $this->postElement($uuid, $fileUserId, $elementId, $type, $metadata, $coordinates);
 	}
 
 	/**
