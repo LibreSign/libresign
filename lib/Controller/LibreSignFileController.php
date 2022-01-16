@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\Output;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileElementService;
@@ -24,7 +25,6 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
-use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -54,6 +54,8 @@ class LibreSignFileController extends Controller {
 	private $fileElementMapper;
 	/** @var ValidateHelper */
 	private $validateHelper;
+	/** @var Output */
+	private $output;
 	/** @var FileElementService */
 	private $fileElementService;
 	/** @var IRootFolder */
@@ -74,6 +76,7 @@ class LibreSignFileController extends Controller {
 		FileElementMapper $fileElementMapper,
 		FileElementService $fileElementService,
 		ValidateHelper $validateHelper,
+		Output $output,
 		IRootFolder $rootFolder
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -90,6 +93,7 @@ class LibreSignFileController extends Controller {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->fileElementService = $fileElementService;
 		$this->validateHelper = $validateHelper;
+		$this->output = $output;
 		$this->rootFolder = $rootFolder;
 	}
 
@@ -120,19 +124,14 @@ class LibreSignFileController extends Controller {
 	}
 
 	private function validate(string $type, $identifier): JSONResponse {
-		$canSign = false;
-		$signerFileUuid = null;
-
 		try {
-			if ($this->userSession->getUser()) {
-				$uid = $this->userSession->getUser()->getUID();
-			}
 			try {
 				/** @var File */
 				$file = call_user_func(
 					[$this->fileMapper, 'getBy' . $type],
 					$identifier
 				);
+				$this->output->setFile($file);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
@@ -141,81 +140,7 @@ class LibreSignFileController extends Controller {
 			}
 
 			$return['success'] = true;
-			$return['status'] = $file->getStatus();
-			$return['statusText'] = $this->fileMapper->getTextOfStatus($file->getStatus());
-			$return['fileId'] = $file->getNodeId();
-			$return['uuid'] = $file->getUuid();
-			$return['name'] = $file->getName();
-			$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $file->getUuid()]);
-			$signers = $this->fileUserMapper->getByFileId($file->id);
-			if ($this->userSession->getUser()) {
-				$uid = $this->userSession->getUser()->getUID();
-			}
-			foreach ($signers as $signer) {
-				$signatureToShow = [
-					'signed' => $signer->getSigned(),
-					'displayName' => $signer->getDisplayName(),
-					'fullName' => $signer->getFullName(),
-					'me' => false,
-					'fileUserId' => $signer->getId()
-				];
-				if (!empty($uid)) {
-					if ($uid === $file->getUserId()) {
-						$signatureToShow['email'] = $signer->getEmail();
-						$user = $this->userManager->getByEmail($signer->getEmail());
-						if ($user) {
-							$signatureToShow['uid'] = $user[0]->getUID();
-						}
-					}
-					$signatureToShow['me'] = $uid === $signer->getUserId();
-					if ($uid === $signer->getUserId() && !$signer->getSigned()) {
-						$canSign = true;
-						$signerFileUuid = $signer->getUuid();
-					}
-				}
-				$return['signers'][] = $signatureToShow;
-			}
-			try {
-				$visibleElements = $this->fileElementMapper->getByFileId($file->id);
-				foreach ($visibleElements as $visibleElement) {
-					$element = [
-						'elementId' => $visibleElement->getId(),
-						'fileUserId' => $visibleElement->getFileUserId(),
-						'type' => $visibleElement->getType(),
-						'coordinates' => [
-							'page' => $visibleElement->getPage(),
-							'urx' => $visibleElement->getUrx(),
-							'ury' => $visibleElement->getUry(),
-							'llx' => $visibleElement->getLlx(),
-							'lly' => $visibleElement->getLly()
-						]
-					];
-					if ($uid === $file->getUserId()) {
-						$fileUser = $this->fileUserMapper->getById($visibleElement->getFileUserId());
-						$userAssociatedToVisibleElement = $this->userManager->getByEmail($fileUser->getEmail());
-						if ($userAssociatedToVisibleElement) {
-							$element['uid'] = $userAssociatedToVisibleElement[0]->getUID();
-						}
-						$element['email'] = $fileUser->getEmail();
-					}
-					$element['coordinates'] = array_merge(
-						$element['coordinates'],
-						$this->fileElementService->translateCoordinatesFromInternalNotation($element, $file)
-					);
-					if ($visibleElement->getSignatureFileId()) {
-						$return['file']['url'] = $this->urlGenerator->linkToRoute('files.View.showFile', ['fileid' => $visibleElement->getSignatureFileId()]);
-					}
-					$return['visibleElements'][] = $element;
-				}
-			} catch (\Throwable $th) {
-			}
-			$metadata = json_decode($file->getMetadata());
-			for ($page = 1; $page <= $metadata->p; $page++) {
-				$return['pages'][] = [
-					'url' => $this->urlGenerator->linkToRoute('libresign.libreSignFile.getPage', ['uuid' => $file->getUuid(), 'page' => $page]),
-					'resolution' => $metadata->d[$page - 1]
-				];
-			}
+
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
@@ -227,20 +152,16 @@ class LibreSignFileController extends Controller {
 			];
 			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
-		$return['settings'] = [
-			'canSign' => $canSign,
-			'signerFileUuid' => $signerFileUuid,
-			'canRequestSign' => false,
-			'hasSignatureFile' => false,
-			'phoneNumber' => $this->getPhoneNumber($this->userSession->getUser()),
-			'signMethod' => $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password'),
-		];
-		if (!empty($uid)) {
-			$return['settings'] = array_merge(
-				$return['settings'],
-				$this->accountService->getSettings($this->userSession->getUser())
-			);
-		}
+
+		$return = array_merge($return,
+			$this->output
+				->showSigners()
+				->showSettings()
+				->showVisibleElements()
+				->showPages()
+				->setMe($this->userSession->getUser())
+				->formatFile()
+		);
 		if ($return['settings']['canSign']) {
 			$return['messages'] = [
 				[
@@ -257,15 +178,8 @@ class LibreSignFileController extends Controller {
 				]
 			];
 		}
-		return new JSONResponse($return, $statusCode);
-	}
 
-	private function getPhoneNumber(?IUser $user) {
-		if (!$user) {
-			return '';
-		}
-		$userAccount = $this->accountManager->getAccount($user);
-		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+		return new JSONResponse($return, $statusCode);
 	}
 
 	/**
