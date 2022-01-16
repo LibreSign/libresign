@@ -43,10 +43,6 @@ class Version2040Date20211010194532 extends SimpleMigrationStep {
 				'length' => 64,
 				'unsigned' => true,
 			]);
-			$table->addColumn('signature_file_id', Types::BIGINT, [
-				'notnull' => false,
-				'unsigned' => true,
-			]);
 			$table->addColumn('metadata', Types::TEXT, [
 				'notnull' => false,
 			]);
