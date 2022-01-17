@@ -3143,6 +3143,11 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
+classnames@^2.2.6:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.1.tgz#dfcfa3891e306ec1dad105d0e88f4417b8535e8e"
+  integrity sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==
+
 cli-cursor@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cli-cursor/-/cli-cursor-2.1.0.tgz#b35dac376479facc3e94747d41d0d0f5238ffcb5"
@@ -3610,7 +3615,7 @@ deasync@^0.1.15:
     bindings "^1.5.0"
     node-addon-api "^1.7.1"
 
-debounce@1.2.1:
+debounce@1.2.1, debounce@^1.2.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
   integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
@@ -3849,6 +3854,11 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
+
+easy-bem@^1.0.2:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/easy-bem/-/easy-bem-1.1.1.tgz#1bfcc10425498090bcfddc0f9c000aba91399e03"
+  integrity sha512-GJRqdiy2h+EXy6a8E6R+ubmqUM08BK0FWNq41k24fup6045biQ8NXxoXimiwegMQvFFV3t1emADdGNL1TlS61A==
 
 easy-stack@^1.0.1:
   version "1.0.1"
@@ -10477,6 +10487,15 @@ vm-browserify@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
   integrity sha512-2ham8XPWTONajOR0ohOKOHXkm3+gaBmGut3SRuu75xLd/RRaY6vqgh8NBYYk7+RW3u5AtzPQZG8F10LHkl0lAQ==
+
+vue-advanced-cropper@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/vue-advanced-cropper/-/vue-advanced-cropper-1.9.0.tgz#c15c5c8b320c201005b38024d8ed6bf557878b39"
+  integrity sha512-XBLnURgTkFfdPHAwHAyQ6yhEqHj1jq1XNqpmMhAn4bpZ6fxUXtMppbdRCOweCT9WgHfWkua2EfA6bhlWM9Pgjw==
+  dependencies:
+    classnames "^2.2.6"
+    debounce "^1.2.0"
+    easy-bem "^1.0.2"
 
 vue-color@^2.7.1:
   version "2.8.1"
