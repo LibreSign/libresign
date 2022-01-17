@@ -236,7 +236,7 @@ export default {
 			</div>
 			<div v-if="!hasSignatures">
 				<p>
-					{{ t('libresign', 'You do not have any sign defined.') }}
+					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
 				<button :disabled="loading" class="button" @click="goToSignatures">
