@@ -39,7 +39,7 @@ class ApiRequester extends AbstractRequester {
 	private function doRequest() {
 		ob_start();
 		\OC::handleRequest();
-		$handler = fopen('php://memory','r+');
+		$handler = fopen('php://memory', 'r+');
 		fwrite($handler, ob_get_contents());
 		ob_end_clean();
 		rewind($handler);
@@ -63,7 +63,7 @@ class ApiRequester extends AbstractRequester {
 		}
 		if (isset($server['HTTP_AUTHORIZATION'])) {
 			$auth = base64_decode(explode(' ', $server['HTTP_AUTHORIZATION'])[1]);
-			list($server['PHP_AUTH_USER'], $server['PHP_AUTH_PW']) = explode(':', $auth);
+			[$server['PHP_AUTH_USER'], $server['PHP_AUTH_PW']] = explode(':', $auth);
 		}
 		parse_str($request->getUri()->getQuery(), $get);
 		$vars = [

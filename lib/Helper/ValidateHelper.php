@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -27,6 +28,8 @@ class ValidateHelper {
 	private $fileUserMapper;
 	/** @var FileMapper */
 	private $fileMapper;
+	/** @var FileTypeMapper */
+	private $fileTypeMapper;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
 	/** @var AccountFileMapper */
@@ -60,6 +63,7 @@ class ValidateHelper {
 		IL10N $l10n,
 		FileUserMapper $fileUserMapper,
 		FileMapper $fileMapper,
+		FileTypeMapper $fileTypeMapper,
 		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
 		UserElementMapper $userElementMapper,
@@ -72,6 +76,7 @@ class ValidateHelper {
 		$this->l10n = $l10n;
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileMapper = $fileMapper;
+		$this->fileTypeMapper = $fileTypeMapper;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->userElementMapper = $userElementMapper;
@@ -275,13 +280,21 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateAccountFileIsOwnedByUser(int $nodeId, string $uid): void {
+		try {
+			$this->accountFileMapper->getByUserIdAndNodeId($uid, $nodeId);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('This file is not yours'));
+		}
+	}
+
 	public function fileCanBeSigned(File $file): void {
 		$statusList = [
-			ValidateHelper::STATUS_ABLE_TO_SIGN,
-			ValidateHelper::STATUS_PARTIAL_SIGNED
+			File::STATUS_ABLE_TO_SIGN,
+			File::STATUS_PARTIAL_SIGNED
 		];
 		if (!in_array($file->getStatus(), $statusList)) {
-			$statusText = $this->getTextOfStatus($file->getStatus());
+			$statusText = $this->fileMapper->getTextOfStatus($file->getStatus());
 			throw new LibresignException($this->l10n->t('This file cannot be signed. Invalid status: %s', $statusText));
 		}
 	}
@@ -367,9 +380,9 @@ class ValidateHelper {
 	public function validateFileStatus(array $data): void {
 		if (array_key_exists('status', $data)) {
 			$validStatusList = [
-				ValidateHelper::STATUS_DRAFT,
-				ValidateHelper::STATUS_ABLE_TO_SIGN,
-				ValidateHelper::STATUS_DELETED
+				File::STATUS_DRAFT,
+				File::STATUS_ABLE_TO_SIGN,
+				File::STATUS_DELETED
 			];
 			if (!in_array($data['status'], $validStatusList)) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
@@ -384,13 +397,13 @@ class ValidateHelper {
 			}
 			if (isset($file)) {
 				if ($data['status'] >= $file->getStatus()) {
-					if ($file->getStatus() >= ValidateHelper::STATUS_ABLE_TO_SIGN) {
-						if ($data['status'] !== ValidateHelper::STATUS_DELETED) {
+					if ($file->getStatus() >= File::STATUS_ABLE_TO_SIGN) {
+						if ($data['status'] !== File::STATUS_DELETED) {
 							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
 						}
 					}
 				}
-			} elseif ($data['status'] === ValidateHelper::STATUS_DELETED) {
+			} elseif ($data['status'] === File::STATUS_DELETED) {
 				throw new LibresignException($this->l10n->t('Invalid status code for file.'));
 			}
 		}
@@ -522,8 +535,8 @@ class ValidateHelper {
 	}
 
 	public function validateFileTypeExists(string $type): void {
-		$profileFileTypes = json_decode($this->config->getAppValue(Application::APP_ID, 'profile_file_types', '["IDENTIFICATION"]'), true);
-		if (!in_array($type, $profileFileTypes)) {
+		$profileFileTypes = $this->fileTypeMapper->getTypes();
+		if (!array_key_exists($type, $profileFileTypes)) {
 			throw new LibresignException($this->l10n->t('Invalid file type.'));
 		}
 	}
@@ -533,21 +546,6 @@ class ValidateHelper {
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!$authorized || !array_intersect($userGroups, $authorized)) {
 			throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
-		}
-	}
-
-	public function getTextOfStatus(int $status) {
-		switch ($status) {
-			case self::STATUS_DRAFT:
-				return $this->l10n->t('draft');
-			case self::STATUS_ABLE_TO_SIGN:
-				return $this->l10n->t('able to sign');
-			case self::STATUS_PARTIAL_SIGNED:
-				return $this->l10n->t('partially signed');
-			case self::STATUS_SIGNED:
-				return $this->l10n->t('signed');
-			case self::STATUS_DELETED:
-				return $this->l10n->t('deleted');
 		}
 	}
 }

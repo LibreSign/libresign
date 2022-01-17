@@ -4,22 +4,21 @@
   "type": "project",
   "license": "AGPL",
   "require": {
-    "jsignpdf/jsignpdf-php": "dev-make-compatible-with-jsignpdf2.0.0",
-    "endroid/qr-code": "^4.2",
-    "pagerfanta/pagerfanta": "^3.2",
+    "jsignpdf/jsignpdf-php": "^1.0",
+    "endroid/qr-code": "^4.4",
+    "pagerfanta/pagerfanta": "^3.5",
     "tecnickcom/tc-lib-pdf": "^8.0",
-    "iio/libmergepdf": "dev-patch-1"
+    "iio/libmergepdf": "^4.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",
-    "nextcloud/coding-standard": "^0.4.0",
-    "phpspec/prophecy-phpunit": "^2.0",
-    "byjg/swagger-test": "dev-latest",
-    "symfony/yaml": "^5.2",
-    "guzzlehttp/psr7": "^1.8",
+    "nextcloud/coding-standard": "^1.0",
+    "byjg/swagger-test": "^3.1",
+    "symfony/yaml": "^5.4",
+    "guzzlehttp/psr7": "^2.1",
     "mikey179/vfsstream": "^1.6",
-    "donatj/mock-webserver": "^2.2",
-    "vimeo/psalm": "^4.9"
+    "donatj/mock-webserver": "^2.4",
+    "vimeo/psalm": "^4.18"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
@@ -33,14 +32,6 @@
     }
   },
   "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/LibreCodeCoop/php-swagger-test"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/LibreCodeCoop/webrequest"
-    },
     {
       "type": "vcs",
       "url": "https://github.com/LibreCodeCoop/libmergepdf"

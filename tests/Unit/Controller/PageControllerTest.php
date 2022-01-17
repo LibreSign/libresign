@@ -40,7 +40,7 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->index();
 		$this->assertEquals('main', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
-		$this->assertContains('libresign/js/libresign-main', $scripts['libresign']['first']);
+		$this->assertContains('libresign/js/libresign-main', $scripts['libresign']);
 	}
 
 	public function testIndexReturnStatus() {
@@ -52,7 +52,7 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->sign('uuid');
 		$this->assertEquals('external', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
-		$this->assertContains('libresign/js/libresign-external', $scripts['libresign']['first']);
+		$this->assertContains('libresign/js/libresign-external', $scripts['libresign']);
 	}
 
 	public function testSignPolices() {
@@ -126,7 +126,7 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->validation();
 		$this->assertEquals('validation', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
-		$this->assertContains('libresign/js/libresign-validation', $scripts['libresign']['first']);
+		$this->assertContains('libresign/js/libresign-validation', $scripts['libresign']);
 	}
 
 	public function testValidationReturnStatus() {
@@ -138,14 +138,14 @@ final class PageControllerTest extends TestCase {
 		$response = $this->controller->resetPassword();
 		$this->assertEquals('reset_password', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
-		$this->assertContains('libresign/js/libresign-main', $scripts['libresign']['first']);
+		$this->assertContains('libresign/js/libresign-main', $scripts['libresign']);
 	}
 
 	public function testValidationFileScriptsAndTemplate() {
 		$response = $this->controller->validationFile('uuid');
 		$this->assertEquals('validation', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
-		$this->assertContains('libresign/js/libresign-validation', $scripts['libresign']['first']);
+		$this->assertContains('libresign/js/libresign-validation', $scripts['libresign']);
 	}
 
 	public function testValidationFileReturnStatus() {

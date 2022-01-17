@@ -190,6 +190,29 @@ class AccountController extends ApiController {
 	}
 
 	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function deleteFile(int $nodeId): JSONResponse {
+		try {
+			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
+			return new JSONResponse([
+				'success' => true
+			], Http::STATUS_OK);
+		} catch (\Exception $exception) {
+			return new JSONResponse(
+				[
+					'success' => false,
+					'messages' => [
+						$exception->getMessage(),
+					],
+				],
+				Http::STATUS_UNAUTHORIZED,
+			);
+		}
+	}
+
+	/**
 	 * Who am I.
 	 *
 	 * Validates API access data and returns the authenticated user's data.
@@ -358,7 +381,26 @@ class AccountController extends ApiController {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function accountFileList(array $filter = [], $page = null, $length = null): JSONResponse {
+	public function accountFileListToOwner(array $filter = [], $page = null, $length = null): JSONResponse {
+		try {
+			$filter['userId'] = $this->userSession->getUser()->getUID();
+			$return = $this->accountFileService->accountFileList($filter, $page, $length);
+			return new JSONResponse($return, Http::STATUS_OK);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'message' => $th->getMessage()
+				],
+				Http::STATUS_NOT_FOUND
+			);
+		}
+	}
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 */
+	public function accountFileListToApproval(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
 			$return = $this->accountFileService->accountFileList($filter, $page, $length);
