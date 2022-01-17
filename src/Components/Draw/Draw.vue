@@ -5,21 +5,21 @@
 				v-if="textEditor"
 				:class="{active: isActive('text')}"
 				@click.prevent="setActive('text')">
-				<img :src="$options.icons.textIcon" alt="Text">
+				<img :src="$options.icons.textIcon" :alt="t('libresign', 'Text')">
 				Text
 			</li>
 			<li
 				v-if="drawEditor"
 				:class="{active: isActive('draw')}"
 				@click.prevent="setActive('draw')">
-				<img :src="$options.icons.drawnIcon" alt="Draw">
+				<img :src="$options.icons.drawnIcon" :alt="t('libresign', 'Draw')">
 				Draw
 			</li>
 			<li
 				v-if="fileEditor"
 				:class="{active: isActive('upload')}"
 				@click.prevent="setActive('upload')">
-				<img :src="$options.icons.uploadIcon" alt="Upload">
+				<img :src="$options.icons.uploadIcon" :alt="t('libresign', 'Upload')">
 				Upload
 			</li>
 		</ul>
