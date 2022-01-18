@@ -259,7 +259,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
     "User created!" : "用戶創建了！",
     "Password created!" : "密碼創建了！",
-    "Open in LibreSign" : "在 LibreSign 中打開",
-    "You do not have any sign defined." : "您未定義任何簽署。"
+    "Open in LibreSign" : "在 LibreSign 中打開"
 },
 "nplurals=1; plural=0;");

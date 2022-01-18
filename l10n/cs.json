@@ -257,7 +257,6 @@
     "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
     "User created!" : "Uživatel vytvořen!",
     "Password created!" : "Heslo vytvořeno!",
-    "Open in LibreSign" : "Otevřít v LibreSign",
-    "You do not have any sign defined." : "Nemáte definovány žádné podpisy."
+    "Open in LibreSign" : "Otevřít v LibreSign"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }
