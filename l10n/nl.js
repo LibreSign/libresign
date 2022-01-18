@@ -259,7 +259,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
-    "Open in LibreSign" : "Openen in LibreSign",
-    "You do not have any sign defined." : "U heeft geen handtekening gedefinieerd."
+    "Open in LibreSign" : "Openen in LibreSign"
 },
 "nplurals=2; plural=(n != 1);");

@@ -259,7 +259,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
-    "Open in LibreSign" : "Otvoriť v LibreSign",
-    "You do not have any sign defined." : "Nemáte definovaný žiadny podpis."
+    "Open in LibreSign" : "Otvoriť v LibreSign"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

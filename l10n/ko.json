@@ -255,7 +255,6 @@
     "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User created!" : "사용자가 생성되었습니다!",
     "Password created!" : "암호가 생성되었습니다!",
-    "Open in LibreSign" : "LibreSign으로 열기",
-    "You do not have any sign defined." : "정의된 기호가 없습니다."
+    "Open in LibreSign" : "LibreSign으로 열기"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
