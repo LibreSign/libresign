@@ -20,8 +20,18 @@ export default {
 	components: {
 		Document,
 	},
+	data() {
+		return {
+			documents: [
+				{ name: 'Passaporte' },
+				{ name: 'RG' },
+				{ name: 'CPF' },
+				{ name: 'CNH' },
+			],
+		}
+	},
 	computed: {
-		...mapGetters({ documents: 'documents/documents' }),
+		...mapGetters({ userDocuments: 'documents/documents' }),
 	},
 	mounted() {
 		this.loadFiles()

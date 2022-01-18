@@ -28,8 +28,8 @@
 								hidden>
 								{{ t('libresign', 'File type') }}
 							</option>
-							<option v-for="item in file_types" :key="item.type">
-								{{ item.name }}
+							<option v-for="type_item in file_types" :key="type_item.type">
+								{{ type_item.name }}
 							</option>
 						</select>
 						<button v-if="file_type && origin === 'upload'" class="icon icon-upload" @click="uploadFile" />
@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 export default {
@@ -71,12 +71,23 @@ export default {
 		return {
 			file: {},
 			file_type: '',
+			file_types: [
+				{
+					name: 'JPEG', type: 'jpeg',
+				},
+				{
+					name: 'PNG', type: 'png',
+				},
+				{
+					name: 'PDF', type: 'pdf',
+				},
+			],
 			modal: false,
 			origin: '',
 		}
 	},
 	computed: {
-		...mapGetters({ file_types: 'documents/fileTypes' }),
+		// ...mapGetters({ file_types: 'documents/fileTypes' }),
 		name() {
 			return this.item.name
 		},
@@ -135,7 +146,14 @@ export default {
 						const indice = path.split('/').indexOf(file.name)
 						if (path.startsWith('/')) {
 							if (file.name === path.split('/')[indice]) {
-								const form = { name: file.name, type: file.mimetype, ...file }
+								const form = {
+									name: file.name,
+									// type: file.mimetype,
+									type: this.item.name,
+									file: {
+										...file,
+									},
+								}
 								this.saveDocument({ form }).then(result => {
 									if (result.success) this.$emit('save', { item: this.item })
 								})
@@ -146,7 +164,14 @@ export default {
 		},
 		async saveFile() {
 			if (this.file.name && this.file_type) {
-				const form = { base64: await this.toBase64(this.file), name: this.file.name, type: this.file_type }
+				const form = {
+					file: {
+						url: await this.toBase64(this.file),
+					},
+					name: this.file.name,
+					type: this.item.name,
+					// type: this.file_type,
+				}
 				const result = await this.saveDocument({ form })
 				if (result.success) this.$emit('save', { item: this.item })
 			}
