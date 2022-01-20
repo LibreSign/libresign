@@ -121,6 +121,8 @@ OC.L10N.register(
     "Password" : "Pasahitza",
     "Confirm" : "Berretsi",
     "Incorrect password!" : "Pasahitz okerra!",
+    "Text" : "Testua",
+    "Upload" : "Kargatu",
     "Colors:" : "Koloreak:",
     "Apply" : "Aplikatu",
     "Cancel" : "Ezeztatu",
