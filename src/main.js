@@ -31,6 +31,8 @@ import './plugins/vuelidate'
 import './directives/VTooltip'
 import './init'
 
+import './assets/styles/main.scss'
+
 import 'vue-advanced-cropper/dist/style.css'
 
 import App from './App'
