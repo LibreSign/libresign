@@ -31,7 +31,10 @@
 				</div>
 			</div>
 
-			<Signatures class="user" />
+			<div class="user">
+				<Signatures />
+				<Documents />
+			</div>
 		</div>
 	</Content>
 </template>
@@ -45,6 +48,7 @@ import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
 import Signatures from './partials/Signatures.vue'
+import Documents from './partials/Documents.vue'
 
 export default {
 	name: 'Account',
@@ -56,6 +60,7 @@ export default {
 		ResetPassword,
 		Signatures,
 		UserImage,
+		Documents,
 	},
 
 	data() {
@@ -101,13 +106,20 @@ export default {
 		height: 100%;
 
 		.user{
-			width: 25%;
+			width: 50%;
+			max-width: 350px;
 			display: flex;
 			flex-direction: column;
-			align-items: center;
+			align-items: flex-start;
+
+			&:first-child {
+				width: 25%;
+			}
 
 			@media screen and (max-width: 768px) {
-				width: 50%
+				&, &:first-child {
+					width: 50%;
+				}
 			}
 
 			.details{
