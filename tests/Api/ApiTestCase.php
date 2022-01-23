@@ -52,6 +52,18 @@ class ApiTestCase extends TestCase {
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
+
+		// Optmize loading time
+		$systemConfig = \OC::$server->get(\OC\SystemConfig::class);
+		$systemConfig->setValue('auth.bruteforce.protection.enabled', false);
+
+		// Reset settings
+		$this->mockConfig([
+			'libresign' => [
+				'identification_documents' => '0'
+			]
+		]);
+
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
 	}
 

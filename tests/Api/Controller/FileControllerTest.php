@@ -8,7 +8,7 @@ use OCA\Libresign\Tests\Api\ApiTestCase;
  * @internal
  * @group DB
  */
-final class LibreSignFileControllerTest extends ApiTestCase {
+final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
