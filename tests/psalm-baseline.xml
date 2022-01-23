@@ -21,7 +21,7 @@
       <code>Controller</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Controller/LibreSignFileController.php">
+  <file src="lib/Controller/FileController.php">
     <UndefinedClass occurrences="1">
       <code>Controller</code>
     </UndefinedClass>
