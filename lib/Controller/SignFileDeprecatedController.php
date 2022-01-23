@@ -5,6 +5,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Http;
@@ -28,8 +29,10 @@ class SignFileDeprecatedController extends SignFileController {
 	private $fileMapper;
 	/** @var ValidateHelper */
 	protected $validateHelper;
+	/** @var FileService */
+	protected $FileService;
 	/** @var SignFileService */
-	protected $signFile;
+	protected $signFileService;
 	/** @var MailService */
 	private $mail;
 	/** @var LoggerInterface */
@@ -42,7 +45,8 @@ class SignFileDeprecatedController extends SignFileController {
 		FileMapper $fileMapper,
 		IUserSession $userSession,
 		ValidateHelper $validateHelper,
-		SignFileService $signFile,
+		SignFileService $signFileService,
+		FileService $fileService,
 		MailService $mail,
 		LoggerInterface $logger
 	) {
@@ -51,7 +55,8 @@ class SignFileDeprecatedController extends SignFileController {
 		$this->fileMapper = $fileMapper;
 		$this->userSession = $userSession;
 		$this->validateHelper = $validateHelper;
-		$this->signFile = $signFile;
+		$this->signFileService = $signFileService;
+		$this->fileService = $fileService;
 		$this->mail = $mail;
 		$this->logger = $logger;
 		parent::__construct(
@@ -61,7 +66,8 @@ class SignFileDeprecatedController extends SignFileController {
 			$this->fileMapper,
 			$this->userSession,
 			$this->validateHelper,
-			$this->signFile,
+			$this->signFileService,
+			$this->fileService,
 			$this->logger
 		);
 	}
@@ -112,9 +118,9 @@ class SignFileDeprecatedController extends SignFileController {
 			'userManager' => $user
 		];
 		try {
-			$this->signFile->validateUserManager($data);
+			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
-			$deletedUsers = $this->signFile->deleteSignRequestDeprecated($data);
+			$deletedUsers = $this->signFileService->deleteSignRequestDeprecated($data);
 			foreach ($deletedUsers as $user) {
 				$this->mail->notifyUnsignedUser($user);
 			}
