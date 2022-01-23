@@ -39,13 +39,14 @@ return [
 		['name' => 'signFile#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
 		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
-		['name' => 'libreSignFile#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
-		['name' => 'libreSignFile#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
-		['name' => 'libreSignFile#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
-		['name' => 'libreSignFile#getPage',           'url' => '/api/0.1/file/page/{uuid}/{page}.png', 'verb' => 'GET'],
-		['name' => 'libreSignFile#postElement',       'url' => '/api/0.1/file/{uuid}/elements', 'verb' => 'POST'],
-		['name' => 'libreSignFile#patchElement',      'url' => '/api/0.1/file/{uuid}/elements/{elementId}', 'verb' => 'PATCH'],
-		['name' => 'libreSignFile#deletelement',      'url' => '/api/0.1/file/{uuid}/elements/{elementId}', 'verb' => 'DELETE'],
+		['name' => 'File#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
+		['name' => 'File#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
+		['name' => 'File#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],
+		['name' => 'File#getPage',           'url' => '/api/0.1/file/page/{uuid}/{page}.png', 'verb' => 'GET'],
+
+		['name' => 'FileElement#post',       'url' => '/api/0.1/file-element/{uuid}', 'verb' => 'POST'],
+		['name' => 'FileElement#patch',      'url' => '/api/0.1/file-element/{uuid}/{elementId}', 'verb' => 'PATCH'],
+		['name' => 'FileElement#delete',      'url' => '/api/0.1/file-element/{uuid}/{elementId}', 'verb' => 'DELETE'],
 
 		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
 
