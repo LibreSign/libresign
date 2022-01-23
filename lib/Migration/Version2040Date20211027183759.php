@@ -65,6 +65,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 				$pdf = new TCPDILibresign();
 				$pdf->setSourceData($file[0]->getContent());
 				$data = $pdf->getPagesMetadata();
+				$data['extension'] = 'pdf';
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query

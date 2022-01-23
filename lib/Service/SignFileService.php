@@ -218,9 +218,15 @@ class SignFileService {
 	}
 
 	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$pdf = new TCPDILibresign();
-		$pdf->setSourceData($node->getContent());
-		return $pdf->getPagesMetadata();
+		$metadata = [
+			'extension' => $node->getExtension(),
+		];
+		if ($metadata['extension'] === 'pdf') {
+			$pdf = new TCPDILibresign();
+			$pdf->setSourceData($node->getContent());
+			$metadata = array_merge($metadata, $pdf->getPagesMetadata());
+		}
+		return $metadata;
 	}
 
 	public function saveFileUser(FileUserEntity $fileUser, bool $notifyAsNewUser = false): void {
