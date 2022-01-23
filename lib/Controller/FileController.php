@@ -3,70 +3,45 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class FileController extends Controller {
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileMapper */
-	private $fileMapper;
 	/** @var IL10N */
 	private $l10n;
-	/** @var AccountService */
-	private $accountService;
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var FileService */
 	private $fileService;
-	/** @var IRootFolder */
-	private $rootFolder;
 
 	public function __construct(
 		IRequest $request,
-		FileUserMapper $fileUserMapper,
-		FileMapper $fileMapper,
 		IL10N $l10n,
-		AccountService $accountService,
 		LoggerInterface $logger,
 		IUserSession $userSession,
-		FileService $fileService,
-		IRootFolder $rootFolder
+		FileService $fileService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileMapper = $fileMapper;
 		$this->l10n = $l10n;
-		$this->accountService = $accountService;
 		$this->logger = $logger;
 		$this->userSession = $userSession;
 		$this->fileService = $fileService;
-		$this->rootFolder = $rootFolder;
 	}
 
 	/**
 	 * @NoAdminRequired
-	 *
 	 * @NoCSRFRequired
-	 *
 	 * @PublicPage
 	 *
 	 * @return JSONResponse
@@ -77,9 +52,7 @@ class FileController extends Controller {
 
 	/**
 	 * @NoAdminRequired
-	 *
 	 * @NoCSRFRequired
-	 *
 	 * @PublicPage
 	 *
 	 * @return JSONResponse
@@ -90,22 +63,8 @@ class FileController extends Controller {
 
 	private function validate(string $type, $identifier): JSONResponse {
 		try {
-			try {
-				/** @var File */
-				$file = call_user_func(
-					[$this->fileMapper, 'getBy' . $type],
-					$identifier
-				);
-				$this->fileService->setFile($file);
-			} catch (\Throwable $th) {
-				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
-			}
-			if (!$file) {
-				throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
-			}
-
+			$this->fileService->setFileByType($type, $identifier);
 			$return['success'] = true;
-
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
@@ -120,29 +79,14 @@ class FileController extends Controller {
 
 		$return = array_merge($return,
 			$this->fileService
-				->showSigners()
-				->showSettings()
+				->setMe($this->userSession->getUser())
 				->showVisibleElements()
 				->showPages()
-				->setMe($this->userSession->getUser())
+				->showSigners()
+				->showSettings()
+				->showMessages()
 				->formatFile()
 		);
-		if ($return['settings']['canSign']) {
-			$return['messages'] = [
-				[
-					'type' => 'info',
-					'message' => $this->l10n->t('You need to sign this document')
-				]
-			];
-		}
-		if (!$return['settings']['canRequestSign'] && empty($return['signatures'])) {
-			$return['messages'] = [
-				[
-					'type' => 'info',
-					'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
-				]
-			];
-		}
 
 		return new JSONResponse($return, $statusCode);
 	}
@@ -152,7 +96,7 @@ class FileController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function list($page = null, $length = null): JSONResponse {
-		$return = $this->accountService->listAssociatedFilesOfSignFlow($this->userSession->getUser(), $page, $length);
+		$return = $this->fileService->listAssociatedFilesOfSignFlow($this->userSession->getUser(), $page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
 	}
 
@@ -163,41 +107,9 @@ class FileController extends Controller {
 	 */
 	public function getPage(string $uuid, int $page) {
 		try {
-			$libreSignFile = $this->fileMapper->getByUuid($uuid);
-			$uid = $this->userSession->getUser()->getUID();
-			if ($libreSignFile->getUserId() !== $uid) {
-				$signers = $this->fileUserMapper->getByFileId($libreSignFile->id);
-				if (!$signers) {
-					throw new LibresignException($this->l10n->t('No signers.'));
-				}
-				$iNeedSign = false;
-				foreach ($signers as $signer) {
-					if ($signer->getUserId() === $uid) {
-						$iNeedSign = true;
-						break;
-					}
-				}
-				if (!$iNeedSign) {
-					throw new LibresignException($this->l10n->t('You must not sign this file.'));
-				}
-			}
-			$userFolder = $this->rootFolder->getUserFolder($libreSignFile->getUserId());
-			$file = $userFolder->getById($libreSignFile->getNodeId());
-			$pdf = new TCPDILibresign();
-			$pageCount = $pdf->setSourceData($file[0]->getContent());
-			if ($page > $pageCount || $page < 1) {
-				throw new LibresignException($this->l10n->t('Page not found.'));
-			}
-			$templateId = $pdf->importPage($page);
-			$pdf->AddPage();
-			$pdf->useTemplate($templateId);
-			$blob = $pdf->Output(null, 'S');
-			$imagick = new \Imagick();
-			$imagick->setResolution(100, 100);
-			$imagick->readImageBlob($blob);
-			$imagick->setImageFormat('png');
+			$page = $this->fileService->getPage($uuid, $page, $this->userSession->getUser()->getUID());
 			return new DataDisplayResponse(
-				$imagick->getImageBlob(),
+				$page,
 				Http::STATUS_OK,
 				['Content-Type' => 'image/png']
 			);

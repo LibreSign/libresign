@@ -7,8 +7,12 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\TCPDILibresign;
 use OCP\Accounts\IAccountManager;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -30,8 +34,12 @@ class FileService {
 	private $accountManager;
 	/** @var IConfig */
 	private $config;
+	/** @var IRootFolder */
+	private $rootFolder;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IL10N */
+	private $l10n;
 	/** @var bool */
 	private $showSigners = false;
 	/** @var bool */
@@ -40,10 +48,14 @@ class FileService {
 	private $showPages = false;
 	/** @var bool */
 	private $showVisibleElements = false;
+	/** @var bool */
+	private $showMessages = false;
 	/** @var File|null */
 	private $file;
 	/** @var IUser|null */
 	private $me;
+	/** @var array */
+	private $signers;
 	/** @var array */
 	private $settings = [
 		'canSign' => false,
@@ -62,7 +74,9 @@ class FileService {
 		IUserManager $userManager,
 		IAccountManager $accountManager,
 		IConfig $config,
-		IURLGenerator $urlGenerator
+		IRootFolder $rootFolder,
+		IURLGenerator $urlGenerator,
+		IL10N $l10n
 	) {
 		$this->fileMapper = $fileMapper;
 		$this->fileUserMapper = $fileUserMapper;
@@ -72,7 +86,9 @@ class FileService {
 		$this->userManager = $userManager;
 		$this->accountManager = $accountManager;
 		$this->config = $config;
+		$this->rootFolder = $rootFolder;
 		$this->urlGenerator = $urlGenerator;
+		$this->l10n = $l10n;
 	}
 
 	public function showSigners(bool $show = true): self {
@@ -95,6 +111,11 @@ class FileService {
 		return $this;
 	}
 
+	public function showMessages(bool $show = true): self {
+		$this->showMessages = $show;
+		return $this;
+	}
+
 	public function setMe(?IUser $user): self {
 		$this->me = $user;
 		return $this;
@@ -105,10 +126,26 @@ class FileService {
 		return $this;
 	}
 
+	public function setFileByType(string $type, $identifier): self {
+		try {
+			/** @var File */
+			$file = call_user_func(
+				[$this->fileMapper, 'getBy' . $type],
+				$identifier
+			);
+		} catch (\Throwable $th) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
+		if (!$file) {
+			throw new LibresignException($this->l10n->t('Invalid file identifier'), 404);
+		}
+		$this->setFile($file);
+		return $this;
+	}
+
 	private function getSigners(): array {
-		$return = [];
 		if (!$this->file) {
-			return $return;
+			return $this->signers;
 		}
 		$signers = $this->fileUserMapper->getByFileId($this->file->getId());
 		if ($this->me) {
@@ -136,9 +173,9 @@ class FileService {
 					$this->settings['signerFileUuid'] = $signer->getUuid();
 				}
 			}
-			$return[] = $signatureToShow;
+			$this->signers[] = $signatureToShow;
 		}
-		return $return;
+		return $this->signers;
 	}
 
 	private function getPages(): array {
@@ -233,15 +270,94 @@ class FileService {
 				$return['visibleElements'] = $visibleElements;
 			}
 		}
+		if ($this->showSettings) {
+			$return['settings'] = $this->getSettings();
+		}
+		if ($this->showMessages) {
+			$messages = $this->getMessages();
+			if ($messages) {
+				$return['messages'] = $messages;
+			}
+		}
 		return $return;
+	}
+
+	private function getMessages(): array {
+		$messages = [];
+		if ($this->settings['canSign']) {
+			$messages[] = [
+				'type' => 'info',
+				'message' => $this->l10n->t('You need to sign this document')
+			];
+		}
+		if (!$this->settings['canRequestSign'] && empty($this->signers)) {
+			$messages[] = [
+				'type' => 'info',
+				'message' => $this->l10n->t('You cannot request signature for this document, please contact your administrator')
+			];
+		}
+		return $messages;
 	}
 
 	public function formatFile(): array {
 		$return = $this->getFile();
-
-		if ($this->showSettings) {
-			$return['settings'] = $this->getSettings();
-		}
 		return $return;
+	}
+
+	public function getPage(string $uuid, int $page, string $uid): string {
+		$libreSignFile = $this->fileMapper->getByUuid($uuid);
+		$uid = $this->userSession->getUser()->getUID();
+		if ($libreSignFile->getUserId() !== $uid) {
+			$signers = $this->fileUserMapper->getByFileId($libreSignFile->id);
+			if (!$signers) {
+				throw new LibresignException($this->l10n->t('No signers.'));
+			}
+			$iNeedSign = false;
+			foreach ($signers as $signer) {
+				if ($signer->getUserId() === $uid) {
+					$iNeedSign = true;
+					break;
+				}
+			}
+			if (!$iNeedSign) {
+				throw new LibresignException($this->l10n->t('You must not sign this file.'));
+			}
+		}
+		$userFolder = $this->rootFolder->getUserFolder($libreSignFile->getUserId());
+		$file = $userFolder->getById($libreSignFile->getNodeId());
+		$pdf = new TCPDILibresign();
+		$pageCount = $pdf->setSourceData($file[0]->getContent());
+		if ($page > $pageCount || $page < 1) {
+			throw new LibresignException($this->l10n->t('Page not found.'));
+		}
+		$templateId = $pdf->importPage($page);
+		$pdf->AddPage();
+		$pdf->useTemplate($templateId);
+		$blob = $pdf->Output(null, 'S');
+		$imagick = new \Imagick();
+		$imagick->setResolution(100, 100);
+		$imagick->readImageBlob($blob);
+		$imagick->setImageFormat('png');
+		return $imagick->getImageBlob();
+	}
+
+	/**
+	 * @return array[]
+	 *
+	 * @psalm-return array{data: array, pagination: array}
+	 */
+	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
+		$page = $page ?? 1;
+		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
+
+		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
+		$url = str_replace('_replace_', '', $url);
+
+		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $url, $page, $length);
+		$data['pagination']->setRootPath('/file/list');
+		return [
+			'data' => $data['data'],
+			'pagination' => $data['pagination']->getPagination($page, $length)
+		];
 	}
 }
