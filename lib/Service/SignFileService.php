@@ -81,10 +81,6 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
-	/** @var FileService */
-	private $fileService;
-	/** @var TimeFactory; */
-	private $timeFactory;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -121,7 +117,6 @@ class SignFileService {
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
 		FileElementService $fileElementService,
-		TimeFactory $timeFactory,
 		ITempManager $tempManager
 	) {
 		$this->l10n = $l10n;
@@ -146,7 +141,6 @@ class SignFileService {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
 		$this->fileElementService = $fileElementService;
-		$this->timeFactory = $timeFactory;
 		$this->tempManager = $tempManager;
 	}
 
