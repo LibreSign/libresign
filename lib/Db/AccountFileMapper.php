@@ -53,8 +53,8 @@ class AccountFileMapper extends QBMapper {
 		$qb->select('*')
 			->from($this->getTableName())
 			->where(
-				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
-				$qb->expr()->eq('file_type', $qb->createNamedParameter($type, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId)),
+				$qb->expr()->eq('file_type', $qb->createNamedParameter($type))
 			);
 
 		return $this->findEntity($qb);
@@ -67,7 +67,7 @@ class AccountFileMapper extends QBMapper {
 			->from($this->getTableName(), 'laf')
 			->join('laf', 'libresign_file', 'lf', 'laf.file_id = lf.id')
 			->where(
-				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
+				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId)),
 				$qb->expr()->eq('lf.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
@@ -147,7 +147,7 @@ class AccountFileMapper extends QBMapper {
 			);
 		if (!empty($filter['userId'])) {
 			$qb->where(
-				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'], IQueryBuilder::PARAM_STR)),
+				$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
 			);
 		}
 
@@ -158,7 +158,7 @@ class AccountFileMapper extends QBMapper {
 				->setMaxResults(1);
 			if (!empty($filter['userId'])) {
 				$qb->where(
-					$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'], IQueryBuilder::PARAM_STR)),
+					$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
 				);
 			}
 			$qb = $count;
