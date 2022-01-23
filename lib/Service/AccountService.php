@@ -60,8 +60,6 @@ class AccountService {
 	/** @var AccountFileMapper */
 	private $accountFileMapper;
 	/** @var ReportDao */
-	private $reportDao;
-	/** @var SignFileService */
 	private $signFile;
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
@@ -92,7 +90,6 @@ class AccountService {
 		FileMapper $fileMapper,
 		FileTypeMapper $fileTypeMapper,
 		AccountFileMapper $accountFileMapper,
-		ReportDao $reportDao,
 		SignFileService $signFile,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
@@ -114,7 +111,6 @@ class AccountService {
 		$this->fileMapper = $fileMapper;
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->accountFileMapper = $accountFileMapper;
-		$this->reportDao = $reportDao;
 		$this->signFile = $signFile;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
@@ -431,22 +427,6 @@ class AccountService {
 		$return['canRequestSign'] = $this->canRequestSign($user);
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
 		return $return;
-	}
-
-	/**
-	 * @return array[]
-	 *
-	 * @psalm-return array{data: array, pagination: array}
-	 */
-	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
-		$page = $page ?? 1;
-		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
-		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
-		$data['pagination']->setRootPath('/file/list');
-		return [
-			'data' => $data['data'],
-			'pagination' => $data['pagination']->getPagination($page, $length)
-		];
 	}
 
 	public function addFilesToAccount(array $files, IUser $user): void {
