@@ -262,7 +262,7 @@ class FileService {
 		return $this->settings;
 	}
 
-	private function getIdentificationDocumentsStatus($userId): int {
+	public function getIdentificationDocumentsStatus($userId): int {
 		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', false)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
@@ -271,14 +271,14 @@ class FileService {
 		if (!count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
-		$deleted = array_filter($files, function(File $file) {
+		$deleted = array_filter($files, function (File $file) {
 			return $file->getStatus() === File::STATUS_DELETED;
 		});
 		if (count($deleted) === count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
 
-		$signed = array_filter($files, function(File $file) {
+		$signed = array_filter($files, function (File $file) {
 			return $file->getStatus() === File::STATUS_SIGNED;
 		});
 		if (count($signed) !== count($files)) {
