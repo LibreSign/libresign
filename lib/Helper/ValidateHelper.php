@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\FileService;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -510,6 +511,16 @@ class ValidateHelper {
 	public function canRequestCode(): bool {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		return $signMethod !== 'password';
+	}
+
+	public function canSignWithIdentificationDocumentStatus(int $status): void {
+		$allowedStatus = [
+			FileService::IDENTIFICATION_DOCUMENTS_DISABLED,
+			FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
+		];
+		if (!in_array($status, $allowedStatus)) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		}
 	}
 
 	public function validateCredentials(FileUser $fileUser, array $params): void {

@@ -14,6 +14,8 @@ trait LibresignFileTrait {
 
 	private $libresignFileTraitFiles = [];
 
+	private $disableTearDown = false;
+
 	/** @var SignFileService */
 	private $libresignFileTraitSignFileService;
 
@@ -69,10 +71,17 @@ trait LibresignFileTrait {
 		$this->libresignFileTraitFiles[] = $file;
 	}
 
+	public function disableTearDown(): void {
+		$this->disableTearDown = true;
+	}
+
 	/**
 	 * @after
 	 */
 	public function libresignFileTearDown(): void {
+		if ($this->disableTearDown) {
+			return;
+		}
 		foreach ($this->libresignFileTraitFiles as $file) {
 			$toRemove = [
 				'uuid' => $file['uuid'],

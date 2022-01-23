@@ -38,7 +38,7 @@ class FileElementMapper extends QBMapper {
 		$qb->select('fe.*')
 			->from($this->getTableName(), 'fe')
 			->where(
-				$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
 			);
 
 		return $this->findEntities($qb);
@@ -57,10 +57,10 @@ class FileElementMapper extends QBMapper {
 				->from($this->getTableName(), 'fe')
 				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
 				->where(
-					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
 				);
 
 			$this->cache['fileId'][$fileId][$userId] = $this->findEntities($qb);
@@ -79,7 +79,7 @@ class FileElementMapper extends QBMapper {
 					$qb->expr()->eq('fe.id', $qb->createNamedParameter($documentElementId, IQueryBuilder::PARAM_INT))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
 				);
 
 			$this->cache['documentElementId'][$documentElementId] = $this->findEntity($qb);
