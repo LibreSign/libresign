@@ -270,15 +270,6 @@ class FileService {
 				$return['visibleElements'] = $visibleElements;
 			}
 		}
-		if ($this->showSettings) {
-			$return['settings'] = $this->getSettings();
-		}
-		if ($this->showMessages) {
-			$messages = $this->getMessages();
-			if ($messages) {
-				$return['messages'] = $messages;
-			}
-		}
 		return $return;
 	}
 
@@ -301,6 +292,15 @@ class FileService {
 
 	public function formatFile(): array {
 		$return = $this->getFile();
+		if ($this->showSettings) {
+			$return['settings'] = $this->getSettings();
+		}
+		if ($this->showMessages) {
+			$messages = $this->getMessages();
+			if ($messages) {
+				$return['messages'] = $messages;
+			}
+		}
 		return $return;
 	}
 
