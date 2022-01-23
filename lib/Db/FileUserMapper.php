@@ -61,7 +61,7 @@ class FileUserMapper extends QBMapper {
 			$qb->select('*')
 				->from($this->getTableName())
 				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 				);
 
 			$this->signers['fileUserUuid'][$uuid] = $this->findEntity($qb);
@@ -75,7 +75,7 @@ class FileUserMapper extends QBMapper {
 		$qb->select('*')
 			->from($this->getTableName())
 			->where(
-				$qb->expr()->eq('email', $qb->createNamedParameter($email, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('email', $qb->createNamedParameter($email))
 			)
 			->andWhere(
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
@@ -159,7 +159,7 @@ class FileUserMapper extends QBMapper {
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 				->where(
-					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId))
 				);
 	
 			$this->signers['nodeId'][$nodeId] = $this->findEntities($qb);
@@ -181,7 +181,7 @@ class FileUserMapper extends QBMapper {
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 				->where(
-					$qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid))
 				);
 
 			$this->signers['fileUuid'][$uuid] = $this->findEntities($qb);
@@ -196,10 +196,10 @@ class FileUserMapper extends QBMapper {
 			$qb->select('*')
 				->from($this->getTableName())
 				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 				)
 				->andWhere(
-					$qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('user_id', $qb->createNamedParameter($userId))
 				);
 
 			$this->signers['fileUserUuid'][$uuid] = $this->findEntity($qb);
@@ -214,10 +214,10 @@ class FileUserMapper extends QBMapper {
 			->from($this->getTableName(), 'fu')
 			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id))
 			)
 			->andWhere(
-				$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
 			);
 
 		return $this->findEntity($qb);
@@ -230,10 +230,10 @@ class FileUserMapper extends QBMapper {
 			->from($this->getTableName(), 'fu')
 			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id))
 			)
 			->andWhere(
-				$qb->expr()->eq('fu.email', $qb->createNamedParameter($email, IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('fu.email', $qb->createNamedParameter($email))
 			);
 
 		return $this->findEntity($qb);
@@ -247,10 +247,10 @@ class FileUserMapper extends QBMapper {
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 				->where(
-					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($fileId))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('fu.id', $qb->createNamedParameter($fileUserId))
 				);
 	
 			$this->signers['fileId'][$fileId][$fileUserId] = $this->findEntity($qb);
@@ -302,8 +302,8 @@ class FileUserMapper extends QBMapper {
 			->leftJoin('f', 'users', 'u', 'f.user_id = u.uid')
 			->where(
 				$qb->expr()->orX(
-					$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
+					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
 				)
 			)
 			->groupBy(
@@ -322,7 +322,7 @@ class FileUserMapper extends QBMapper {
 			$count->selectAlias($count->func()->count(), 'total_results')
 				->from('libresign_file', 'f')
 				->where(
-					$count->expr()->eq('f.user_id', $count->createNamedParameter($userId, IQueryBuilder::PARAM_STR)),
+					$count->expr()->eq('f.user_id', $count->createNamedParameter($userId)),
 				)
 				->setMaxResults(1);
 			$qb = $count;
