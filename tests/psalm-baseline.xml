@@ -21,7 +21,7 @@
       <code>Controller</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Controller/LibreSignFileController.php">
+  <file src="lib/Controller/FileController.php">
     <UndefinedClass occurrences="1">
       <code>Controller</code>
     </UndefinedClass>
@@ -115,26 +115,6 @@
     <UndefinedDocblockClass occurrences="2">
       <code>callable(QueryBuilder): void</code>
       <code>callable(QueryBuilder): void</code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Db/ReportDao.php">
-    <MissingDependency occurrences="3">
-      <code>$this-&gt;fileUserMapper</code>
-      <code>FileUserMapper</code>
-      <code>FileUserMapper</code>
-    </MissingDependency>
-    <UndefinedClass occurrences="5">
-      <code>IDBConnection</code>
-      <code>IQueryBuilder</code>
-      <code>IQueryBuilder</code>
-      <code>IQueryBuilder</code>
-      <code>IURLGenerator</code>
-    </UndefinedClass>
-    <UndefinedDocblockClass occurrences="4">
-      <code>$this-&gt;db</code>
-      <code>$this-&gt;urlGenerator</code>
-      <code>IDBConnection</code>
-      <code>IURLGenerator</code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Handler/CfsslHandler.php">

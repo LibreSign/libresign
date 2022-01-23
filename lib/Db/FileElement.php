@@ -84,4 +84,8 @@ class FileElement extends Entity {
 		$this->createdAt = $createdAt;
 		$this->markFieldUpdated('createdAt');
 	}
+
+	public function getCreatedAt(): string {
+		return $this->createdAt->format('Y-m-d H:i:s');
+	}
 }
