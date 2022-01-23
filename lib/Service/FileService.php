@@ -28,6 +28,8 @@ class FileService {
 	private $fileElementService;
 	/** @var AccountService */
 	private $accountService;
+	/** @var AccountFileService */
+	private $accountFileService;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var IAccountManager */
@@ -55,7 +57,7 @@ class FileService {
 	/** @var IUser|null */
 	private $me;
 	/** @var array */
-	private $signers;
+	private $signers = [];
 	/** @var array */
 	private $settings = [
 		'canSign' => false,
@@ -65,12 +67,17 @@ class FileService {
 		'phoneNumber' => '',
 		'signMethod' => 'password'
 	];
+	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
+	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
+	public const IDENTIFICATION_DOCUMENTS_NEED_APPROVAL = 2;
+	public const IDENTIFICATION_DOCUMENTS_APPROVED = 3;
 	public function __construct(
 		FileMapper $fileMapper,
 		FileUserMapper $fileUserMapper,
 		FileElementMapper $fileElementMapper,
 		FileElementService $fileElementService,
 		AccountService $accountService,
+		AccountFileService $accountFileService,
 		IUserManager $userManager,
 		IAccountManager $accountManager,
 		IConfig $config,
@@ -83,6 +90,7 @@ class FileService {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->fileElementService = $fileElementService;
 		$this->accountService = $accountService;
+		$this->accountFileService = $accountFileService;
 		$this->userManager = $userManager;
 		$this->accountManager = $accountManager;
 		$this->config = $config;
@@ -241,9 +249,43 @@ class FileService {
 		if ($this->me) {
 			$this->settings = array_merge($this->settings, $this->accountService->getSettings($this->me));
 			$this->settings['phoneNumber'] = $this->getPhoneNumber($this->me);
+			$status = $this->getIdentificationDocumentsStatus($this->me->getUID());
+			if ($status === self::IDENTIFICATION_DOCUMENTS_NEED_SEND) {
+				$this->settings['needIdentificationDocuments'] = true;
+				$this->settings['identificationDocumentsWaitingApproval'] = false;
+			} elseif ($status === self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL) {
+				$this->settings['needIdentificationDocuments'] = true;
+				$this->settings['identificationDocumentsWaitingApproval'] = true;
+			}
 		}
 		$this->settings['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		return $this->settings;
+	}
+
+	private function getIdentificationDocumentsStatus($userId): int {
+		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', false)) {
+			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
+		}
+
+		$files = $this->fileMapper->getFilesOfAccount($userId);
+		if (!count($files)) {
+			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
+		}
+		$deleted = array_filter($files, function(File $file) {
+			return $file->getStatus() === File::STATUS_DELETED;
+		});
+		if (count($deleted) === count($files)) {
+			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
+		}
+
+		$signed = array_filter($files, function(File $file) {
+			return $file->getStatus() === File::STATUS_SIGNED;
+		});
+		if (count($signed) !== count($files)) {
+			return self::IDENTIFICATION_DOCUMENTS_NEED_APPROVAL;
+		}
+
+		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
 	private function getFile(): array {
