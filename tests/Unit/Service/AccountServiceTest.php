@@ -9,7 +9,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
@@ -50,8 +49,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileTypeMapper;
 	/** @var AccountFileMapper|MockObject */
 	private $accountFileMapper;
-	/** @var ReportDao|MockObject */
-	private $reportDao;
 	/** @var SignFileService|MockObject */
 	private $signFile;
 	/** @var IConfig|MockObject */
@@ -62,8 +59,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $validateHelper;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
-	/** @var AccountService|MockObject */
-	private $accountService;
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
 	/** @var AccountFileService */
@@ -89,7 +84,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileTypeMapper = $this->createMock(FileTypeMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
-		$this->reportDao = $this->createMock(ReportDao::class);
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
@@ -114,7 +108,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileMapper,
 			$this->fileTypeMapper,
 			$this->accountFileMapper,
-			$this->reportDao,
 			$this->signFile,
 			$this->config,
 			$this->newUserMail,
