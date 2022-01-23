@@ -1,21 +1,19 @@
 <?php
 
-namespace OCA\Libresign\Helper;
+namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\FileElementService;
 use OCP\Accounts\IAccountManager;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 
-class Output {
+class FileService {
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var FileUserMapper */
