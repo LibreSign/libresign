@@ -69,7 +69,7 @@ class FileMapper extends QBMapper {
 			$qb->select('*')
 				->from($this->getTableName())
 				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 				);
 
 			$this->file[$uuid] = $this->findEntity($qb);
@@ -100,6 +100,28 @@ class FileMapper extends QBMapper {
 			$this->file[$fileId] = $this->findEntity($qb);
 		}
 		return $this->file[$fileId];
+	}
+
+	/**
+	 * @param string $userId
+	 * @return File[]
+	 */
+	public function getFilesOfAccount(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('lf.*')
+			->from($this->getTableName(), 'lf')
+			->join('lf', 'libresign_account_file', 'laf', 'laf.file_id = lf.id')
+			->where(
+				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId))
+			);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			$return[] = $this->file[$row['id']] = $this->mapRowToEntity($row);
+		}
+		return $return;
 	}
 
 	public function getTextOfStatus(int $status) {
