@@ -190,29 +190,13 @@ class SignFileController extends ApiController {
 				'password' => $password,
 				'code' => $code,
 			]);
-			$signedFile = $this->signFileService
+			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
 				->setVisibleElements($elements)
 				->setSignWithoutPassword(!empty($code))
 				->setPassword($password)
 				->sign();
-
-			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
-			$total = array_reduce($signers, function ($carry, $signer) {
-				$carry += $signer->getSigned() ? 1 : 0;
-				return $carry;
-			});
-			if (count($signers) === $total) {
-				$callbackUrl = $libreSignFile->getCallback();
-				if ($callbackUrl) {
-					$this->signFileService->notifyCallback(
-						$callbackUrl,
-						$libreSignFile->getUuid(),
-						$signedFile
-					);
-				}
-			}
 
 			return new JSONResponse(
 				[
