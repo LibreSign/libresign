@@ -181,8 +181,9 @@ class SignFileController extends ApiController {
 	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
-			$status = $this->fileService->getIdentificationDocumentsStatus($user->getUID());
-			$this->validateHelper->canSignWithIdentificationDocumentStatus($status);
+			$this->validateHelper->canSignWithIdentificationDocumentStatus(
+				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
+			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
 			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
