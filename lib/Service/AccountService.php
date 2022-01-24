@@ -9,7 +9,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -59,8 +58,8 @@ class AccountService {
 	private $fileTypeMapper;
 	/** @var AccountFileMapper */
 	private $accountFileMapper;
-	/** @var ReportDao */
-	private $signFile;
+	/** @var SignFileService */
+	private $signFileService;
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
@@ -90,7 +89,7 @@ class AccountService {
 		FileMapper $fileMapper,
 		FileTypeMapper $fileTypeMapper,
 		AccountFileMapper $accountFileMapper,
-		SignFileService $signFile,
+		SignFileService $signFileService,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		ValidateHelper $validateHelper,
@@ -111,7 +110,7 @@ class AccountService {
 		$this->fileMapper = $fileMapper;
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->accountFileMapper = $accountFileMapper;
-		$this->signFile = $signFile;
+		$this->signFileService = $signFileService;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->validateHelper = $validateHelper;
@@ -435,7 +434,7 @@ class AccountService {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->signFile->saveFile($dataToSave);
+			$file = $this->signFileService->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}
