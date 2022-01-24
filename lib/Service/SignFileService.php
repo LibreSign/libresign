@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -533,12 +532,16 @@ class SignFileService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
+	private function notifyCallback(File $file): void {
+		$uri = $this->libreSignFile->getCallback();
+		if (!$uri) {
+			return;
+		}
 		$options = [
 			'multipart' => [
 				[
 					'name' => 'uuid',
-					'contents' => $uuid
+					'contents' => $this->libreSignFile->getUuid(),
 				],
 				[
 					'name' => 'file',
@@ -547,7 +550,7 @@ class SignFileService {
 				]
 			]
 		];
-		return $this->client->newClient()->post($uri, $options);
+		$this->client->newClient()->post($uri, $options);
 	}
 
 	public function setLibreSignFile(FileEntity $libreSignFile): self {
@@ -628,10 +631,30 @@ class SignFileService {
 		} else {
 			$this->fileUserMapper->insert($this->fileUser);
 		}
+
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
+		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
+		// Trigger callback URL
+		if ($allSigned) {
+			$this->notifyCallback($signedFile);
+		}
+
 		return $signedFile;
+	}
+
+	private function updateStatus(): bool {
+		$signers = $this->fileUserMapper->getByFileId($this->fileUser->getFileId());
+		$total = array_reduce($signers, function ($carry, $signer) {
+			$carry += $signer->getSigned() ? 1 : 0;
+			return $carry;
+		});
+		if (count($signers) === $total && $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
+			return true;
+		}
+		return false;
 	}
 
 	private function getPfxFile(): \OCP\Files\Node {
