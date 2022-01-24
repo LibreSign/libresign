@@ -2,7 +2,6 @@ OC.L10N.register(
     "libresign",
     {
     "Settings saved" : "設定が保存されました",
-    "Page not found." : "ページが見つかりません。",
     "draft" : "下書き",
     "No user data" : "ユーザーデータなし",
     "User not found." : "ユーザーが見つかりません。",
@@ -11,6 +10,7 @@ OC.L10N.register(
     "UUID not found" : "UUIDが見つかりません",
     "File not found" : "ファイルが見つかりません",
     "Invalid user" : "無効なユーザー",
+    "Page not found." : "ページが見つかりません。",
     "Invalid PDF" : "無効なPDF",
     "Files" : "ファイル",
     "Settings" : "設定",
