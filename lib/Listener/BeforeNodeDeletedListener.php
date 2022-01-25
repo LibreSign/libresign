@@ -36,7 +36,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 				$qb = $this->db->getQueryBuilder();
 				$qb->delete('libresign_' . $type)
 					->where($qb->expr()->eq($field, $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)))
-					->executeStatement();
+					->execute();
 			}
 		}
 	}

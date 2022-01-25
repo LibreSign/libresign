@@ -116,7 +116,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId))
 			);
 
-		$cursor = $qb->executeQuery();
+		$cursor = $qb->execute();
 		$return = [];
 		while ($row = $cursor->fetch()) {
 			$return[] = $this->file[$row['id']] = $this->mapRowToEntity($row);
@@ -137,7 +137,7 @@ class FileMapper extends QBMapper {
 			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
 			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
 			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-		$cursor = $qb->executeQuery();
+		$cursor = $qb->execute();
 		$row = $cursor->fetch();
 		if ($row) {
 			foreach ($row as $key => $value) {
