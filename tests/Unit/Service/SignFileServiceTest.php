@@ -1,7 +1,6 @@
 <?php
 
 use OC\Accounts\AccountManager;
-use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -79,8 +78,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $userElementMapper;
 	/** @var FileElementService|MockObject */
 	private $fileElementService;
-	/** @var TimeFactory|MockObject */
-	private $timeFactory;
 	/** @var ITempManager|MockObject */
 	private $tempManager;
 
@@ -111,7 +108,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
-		$this->timeFactory = $this->createMock(TimeFactory::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->service = new SignFileService(
 			$this->l10n,
@@ -136,7 +132,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->fileElementService,
-			$this->timeFactory,
 			$this->tempManager
 		);
 	}
@@ -691,9 +686,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testNotifyCallback() {
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setCallback('https://test.coop');
+		$this->service
+			->setLibreSignFile($libreSignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
-		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
+		$actual = $this->service->notifyCallback($file);
+		$this->assertNull($actual);
 	}
 
 	public function testSignWithFileNotFound() {
