@@ -686,9 +686,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testNotifyCallback() {
+		$libreSignFile = new \OCA\Libresign\Db\File();
+		$libreSignFile->setCallback('https://test.coop');
+		$this->service
+			->setLibreSignFile($libreSignFile);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->service->notifyCallback('https://test.coop', 'uuid', $file);
-		$this->assertInstanceOf('\OCP\Http\Client\IResponse', $actual);
+		$actual = $this->service->notifyCallback($file);
+		$this->assertNull($actual);
 	}
 
 	public function testSignWithFileNotFound() {
