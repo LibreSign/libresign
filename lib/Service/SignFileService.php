@@ -24,7 +24,6 @@ use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IServerContainer;
