@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -25,7 +24,6 @@ use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IServerContainer;
@@ -81,10 +79,6 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
-	/** @var FileService */
-	private $fileService;
-	/** @var TimeFactory; */
-	private $timeFactory;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -121,7 +115,6 @@ class SignFileService {
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
 		FileElementService $fileElementService,
-		TimeFactory $timeFactory,
 		ITempManager $tempManager
 	) {
 		$this->l10n = $l10n;
@@ -146,7 +139,6 @@ class SignFileService {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
 		$this->fileElementService = $fileElementService;
-		$this->timeFactory = $timeFactory;
 		$this->tempManager = $tempManager;
 	}
 
@@ -525,9 +517,9 @@ class SignFileService {
 
 	public function unassociateToUser(int $fileId, int $fileUserId): void {
 		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
-		$this->fileUserMapper->delete($fileUser);
 		try {
-			$visibleElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
+			$this->fileUserMapper->delete($fileUser);
+			$visibleElements = $this->fileElementMapper->getByFileIdAndUserId($fileId, $fileUser->getUserId());
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
@@ -539,12 +531,16 @@ class SignFileService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifyCallback(string $uri, string $uuid, File $file): IResponse {
+	public function notifyCallback(File $file): void {
+		$uri = $this->libreSignFile->getCallback();
+		if (!$uri) {
+			return;
+		}
 		$options = [
 			'multipart' => [
 				[
 					'name' => 'uuid',
-					'contents' => $uuid
+					'contents' => $this->libreSignFile->getUuid(),
 				],
 				[
 					'name' => 'file',
@@ -553,7 +549,7 @@ class SignFileService {
 				]
 			]
 		];
-		return $this->client->newClient()->post($uri, $options);
+		$this->client->newClient()->post($uri, $options);
 	}
 
 	public function setLibreSignFile(FileEntity $libreSignFile): self {
@@ -634,10 +630,30 @@ class SignFileService {
 		} else {
 			$this->fileUserMapper->insert($this->fileUser);
 		}
+
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
+		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
+		// Trigger callback URL
+		if ($allSigned) {
+			$this->notifyCallback($signedFile);
+		}
+
 		return $signedFile;
+	}
+
+	private function updateStatus(): bool {
+		$signers = $this->fileUserMapper->getByFileId($this->fileUser->getFileId());
+		$total = array_reduce($signers, function ($carry, $signer) {
+			$carry += $signer->getSigned() ? 1 : 0;
+			return $carry;
+		});
+		if (count($signers) === $total && $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
+			return true;
+		}
+		return false;
 	}
 
 	private function getPfxFile(): \OCP\Files\Node {
