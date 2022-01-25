@@ -181,8 +181,9 @@ class SignFileController extends ApiController {
 	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
-			$status = $this->fileService->getIdentificationDocumentsStatus($user->getUID());
-			$this->validateHelper->canSignWithIdentificationDocumentStatus($status);
+			$this->validateHelper->canSignWithIdentificationDocumentStatus(
+				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
+			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
 			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
@@ -190,29 +191,13 @@ class SignFileController extends ApiController {
 				'password' => $password,
 				'code' => $code,
 			]);
-			$signedFile = $this->signFileService
+			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
 				->setVisibleElements($elements)
 				->setSignWithoutPassword(!empty($code))
 				->setPassword($password)
 				->sign();
-
-			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
-			$total = array_reduce($signers, function ($carry, $signer) {
-				$carry += $signer->getSigned() ? 1 : 0;
-				return $carry;
-			});
-			if (count($signers) === $total) {
-				$callbackUrl = $libreSignFile->getCallback();
-				if ($callbackUrl) {
-					$this->signFileService->notifyCallback(
-						$callbackUrl,
-						$libreSignFile->getUuid(),
-						$signedFile
-					);
-				}
-			}
 
 			return new JSONResponse(
 				[
