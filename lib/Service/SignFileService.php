@@ -531,7 +531,7 @@ class SignFileService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress MixedMethodCall
 	 */
-	private function notifyCallback(File $file): void {
+	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
 			return;
