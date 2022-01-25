@@ -265,13 +265,13 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('user_id', $qb->createNamedParameter($entity->getUserId(), Types::STRING)),
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
 			);
-		$qb->executeStatement();
+		$qb->execute();
 		$qb->resetQueryParts();
 		$qb->delete('libresign_file')
 			->where(
 				$qb->expr()->eq('id', $qb->createNamedParameter($entity->getFileId(), Types::INTEGER))
 			);
-		$qb->executeStatement();
+		$qb->execute();
 		return $entity;
 	}
 }
