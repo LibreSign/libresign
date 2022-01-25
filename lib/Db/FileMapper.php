@@ -124,6 +124,31 @@ class FileMapper extends QBMapper {
 		return $return;
 	}
 
+	public function getFileType($id): string {
+		$fullOuterJoin = $this->db->getQueryBuilder();
+		$fullOuterJoin->select($fullOuterJoin->expr()->literal(1));
+
+		$qb = $this->db->getQueryBuilder();
+		$qb
+			->selectAlias('f.id', 'file')
+			->selectAlias('ue.id', 'user_element')
+			->selectAlias('fe.id', 'file_element')
+			->from($qb->createFunction('(' . $fullOuterJoin->getSQL() . ')'), 'foj')
+			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		$cursor = $qb->executeQuery();
+		$row = $cursor->fetch();
+		if ($row) {
+			foreach ($row as $key => $value) {
+				if ($value) {
+					return $key;
+				}
+			}
+		}
+		return 'not_libresign_file';
+	}
+
 	public function getTextOfStatus(int $status) {
 		switch ($status) {
 			case File::STATUS_DRAFT:
