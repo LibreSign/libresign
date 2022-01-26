@@ -128,6 +128,8 @@ OC.L10N.register(
     "Cancel" : "Ezeztatu",
     "Confirm your signature" : "Berretsi sinadura",
     "Save" : "Gorde",
+    "Select other file" : "Hautatu beste fitxategi bat",
+    "Select your signature file." : "Hautatu zure sinadura fitxategia.",
     "Enter your Full Name or Initials to create Signature" : "Sartu zure izen osoa edo inizialak sinadura sortzeko",
     "Validate File" : "Balidatu fitxategia",
     "Signatures" : "Sinadurak",
