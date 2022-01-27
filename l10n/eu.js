@@ -122,6 +122,7 @@ OC.L10N.register(
     "Confirm" : "Berretsi",
     "Incorrect password!" : "Pasahitz okerra!",
     "Text" : "Testua",
+    "Draw" : "Margotu",
     "Upload" : "Kargatu",
     "Colors:" : "Koloreak:",
     "Apply" : "Aplikatu",
