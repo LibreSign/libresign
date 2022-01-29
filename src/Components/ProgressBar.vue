@@ -41,8 +41,8 @@ export default {
 }
 
 @keyframes bgchange {
-  0% {background-color: var(--color-loading-light, #ccc);}
-  50% {background-color: var(--color-loading-dark, #444);}
-  100% {background-color: var(--color-loading-light, #ccc);}
+	0% {background-color: var(--color-loading-light, #ccc);}
+	50% {background-color: var(--color-loading-dark, #444);}
+	100% {background-color: var(--color-loading-light, #ccc);}
 }
 </style>
