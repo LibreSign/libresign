@@ -114,6 +114,7 @@ export default {
 
 			&:first-child {
 				width: 25%;
+				min-width: 240px;
 			}
 
 			@media screen and (max-width: 768px) {

@@ -1,6 +1,8 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+import {
+	getAPIURL,
+} from '../../helpers/path'
 
 /**
  * build documents services
@@ -14,9 +16,22 @@ const buildService = (http) => ({
 	 * @return  {Promise<unknown>}
 	 */
 	async loadAccountList() {
-		const url = generateUrl('account/files')
+		const url = getAPIURL('account/files')
 
 		const { data } = await http.get(url)
+
+		return data
+	},
+	/**
+	 * save account document
+	 *
+	 * @param {*} payload
+	 * @return  {Promise<unknown>}
+	 */
+	async addAcountFile(payload) {
+		const url = getAPIURL('account/files')
+
+		const { data } = await http.post(url, payload)
 
 		return data
 	},
