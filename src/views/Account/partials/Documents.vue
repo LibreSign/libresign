@@ -1,6 +1,8 @@
 <script>
-// import { documentsService } from '../../../domains/documents'
+import { documentsService } from '../../../domains/documents'
+import { getFilePickerBuilder, showWarning } from '@nextcloud/dialogs'
 import { find } from 'lodash-es'
+import { pathJoin } from '../../../helpers/path'
 
 const findDocumentByType = (list, type) => { // TODO: fix contract
 	return find(list, row => row.type === type) || {
@@ -33,6 +35,43 @@ export default {
 	mounted() {
 		// documentsService.loadAccountList()
 	},
+	methods: {
+		async pickFile(fileType) {
+			try {
+				const fileFullName = await getFilePickerBuilder(t('libresign', 'Select a file'))
+					.setMultiSelect(false)
+					.allowDirectories(false)
+					.setModal(true)
+					.setType(1) // FilePickerType.Choose
+					.setMimeTypeFilter(['application/pdf'])
+					.build()
+					.pick()
+
+				const file = OC.dialogs.filelist.find(entry => {
+					const fullName = pathJoin(entry.path, entry.name)
+					return fullName === fileFullName
+				})
+
+				if (!file) {
+					showWarning(t('libresign', 'Impossible to get file entry'))
+					return
+				}
+
+				const res = await documentsService.addAcountFile({
+					name: file.name,
+					type: fileType,
+					file: {
+						fileId: file.id,
+					},
+				})
+
+				console.log({ res })
+
+			} catch (err) {
+				console.error(err)
+			}
+		},
+	},
 }
 </script>
 
@@ -62,9 +101,12 @@ export default {
 					<td>
 						{{ doc.name }}
 					</td>
-					<td>
-						<button>
-							<div class="icon-sign icon-user" />
+					<td class="actions">
+						<button @click="pickFile(doc.type)">
+							<div class="icon-file" />
+						</button>
+						<button @click="pickFile">
+							<div class="icon-upload" />
 						</button>
 					</td>
 				</tr>
@@ -78,6 +120,10 @@ export default {
 	align-items: flex-start;
 	width: 100%;
 
+	table td {
+		vertical-align: middle;
+	}
+
 	h1{
 		font-size: 1.3rem;
 		font-weight: bold;
@@ -85,6 +131,12 @@ export default {
 		padding-left: 5px;
 		width: 100%;
 		display: block;
+	}
+
+	td.actions button {
+		padding: 3px 8px;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 }
 </style>
