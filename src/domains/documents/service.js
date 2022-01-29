@@ -31,7 +31,20 @@ const buildService = (http) => ({
 	async addAcountFile(payload) {
 		const url = getAPIURL('account/files')
 
-		const { data } = await http.post(url, payload)
+		const { data } = await http.post(url, { files: [payload] })
+
+		return data
+	},
+	/**
+	 * delete account document
+	 *
+	 * @param {Number} id
+	 * @return  {Promise<unknown>}
+	 */
+	async deleteAcountFile(id) {
+		const url = getAPIURL('account/files')
+
+		const { data } = await http.delete(url, { data: { nodeId: id } })
 
 		return data
 	},
