@@ -6,6 +6,8 @@ import { documentsService } from '../../../domains/documents'
 import { pathJoin } from '../../../helpers/path'
 import { onError } from '../../../helpers/errors'
 
+const PDF_MIME_TYPE = 'application/pdf'
+
 const FILE_TYPE_INFO = {
 	IDENTIFICATION: {
 		key: 'IDENTIFICATION',
@@ -23,6 +25,15 @@ const findDocumentByType = (list, type) => { // TODO: fix contract
 		name: t('libresign', 'Not defined yet'),
 		file_type: FILE_TYPE_INFO[type] || { type },
 	}
+}
+
+const loadFileToBase64 = file => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.readAsDataURL(file)
+		reader.onload = () => resolve(reader.result)
+		reader.onerror = (error) => reject(error)
+	})
 }
 
 export default {
@@ -79,7 +90,7 @@ export default {
 					.allowDirectories(false)
 					.setModal(true)
 					.setType(1) // FilePickerType.Choose
-					.setMimeTypeFilter(['application/pdf'])
+					.setMimeTypeFilter([PDF_MIME_TYPE])
 					.build()
 					.pick()
 
@@ -112,6 +123,29 @@ export default {
 				this.loading = false
 			}
 		},
+		async uploadFile(type, inputFile) {
+			this.loading = true
+			try {
+				const raw = await loadFileToBase64(inputFile)
+
+				await documentsService.addAcountFile({
+					type,
+					name: inputFile.name,
+					file: {
+						base64: raw,
+					},
+				})
+
+				showSuccess(t('libresign', 'File was sent.'))
+
+				await this.loadDocuments()
+			} catch (err) {
+				onError(err)
+			} finally {
+				this.loading = false
+			}
+
+		},
 		async deleteFile({ nodeId }) {
 			try {
 				await documentsService.deleteAcountFile(nodeId)
@@ -122,6 +156,22 @@ export default {
 			} finally {
 				this.loading = false
 			}
+		},
+		inputFile(type) {
+			const input = document.createElement('input')
+			input.accept = PDF_MIME_TYPE
+			input.type = 'file'
+
+			input.onchange = (ev) => {
+				const file = ev.target.files[0]
+				if (file) {
+					this.uploadFile(type, file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
 		},
 	},
 }
@@ -160,9 +210,9 @@ export default {
 							<button @click="pickFile(doc.file_type.key)">
 								<div class="icon-folder" />
 							</button>
-							<!-- <button @click="pickFile">
+							<button @click="inputFile(doc.file_type.key)">
 								<div class="icon-upload" />
-							</button> -->
+							</button>
 						</template>
 						<template v-else>
 							<button @click="deleteFile(doc)">
