@@ -44,7 +44,7 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async addElement(fileUUID, body) {
-			const { data } = await http.post(getAPIURL(`file/${fileUUID}/elements`), body)
+			const { data } = await http.post(getAPIURL(`file-element/${fileUUID}`), body)
 
 			return data
 		},
@@ -56,7 +56,7 @@ const buildService = (http) => {
 		 * @return  {*}
 		 */
 		async updateElement(fileUUID, elementID, body) {
-			const { data } = await http.patch(getAPIURL(`file/${fileUUID}/elements/${elementID}`), body)
+			const { data } = await http.patch(getAPIURL(`file-element/${fileUUID}/${elementID}`), body)
 
 			return data
 		},

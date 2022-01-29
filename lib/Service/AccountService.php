@@ -9,7 +9,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Db\ReportDao;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -59,10 +58,8 @@ class AccountService {
 	private $fileTypeMapper;
 	/** @var AccountFileMapper */
 	private $accountFileMapper;
-	/** @var ReportDao */
-	private $reportDao;
 	/** @var SignFileService */
-	private $signFile;
+	private $signFileService;
 	/** @var \OCA\Libresign\DbFile */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
@@ -92,8 +89,7 @@ class AccountService {
 		FileMapper $fileMapper,
 		FileTypeMapper $fileTypeMapper,
 		AccountFileMapper $accountFileMapper,
-		ReportDao $reportDao,
-		SignFileService $signFile,
+		SignFileService $signFileService,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		ValidateHelper $validateHelper,
@@ -114,8 +110,7 @@ class AccountService {
 		$this->fileMapper = $fileMapper;
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->accountFileMapper = $accountFileMapper;
-		$this->reportDao = $reportDao;
-		$this->signFile = $signFile;
+		$this->signFileService = $signFileService;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->validateHelper = $validateHelper;
@@ -433,29 +428,13 @@ class AccountService {
 		return $return;
 	}
 
-	/**
-	 * @return array[]
-	 *
-	 * @psalm-return array{data: array, pagination: array}
-	 */
-	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
-		$page = $page ?? 1;
-		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
-		$data = $this->reportDao->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $page, $length);
-		$data['pagination']->setRootPath('/file/list');
-		return [
-			'data' => $data['data'],
-			'pagination' => $data['pagination']->getPagination($page, $length)
-		];
-	}
-
 	public function addFilesToAccount(array $files, IUser $user): void {
 		$this->validateAccountFiles($files, $user);
 		foreach ($files as $fileData) {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->signFile->saveFile($dataToSave);
+			$file = $this->signFileService->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}

@@ -8,6 +8,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\ApiController;
@@ -29,6 +30,8 @@ class SignFileController extends ApiController {
 	private $userSession;
 	/** @var SignFileService */
 	protected $signFileService;
+	/** @var FileService */
+	private $fileService;
 	/** @var ValidateHelper */
 	protected $validateHelper;
 	/** @var LoggerInterface */
@@ -42,6 +45,7 @@ class SignFileController extends ApiController {
 		IUserSession $userSession,
 		ValidateHelper $validateHelper,
 		SignFileService $signFileService,
+		FileService $fileService,
 		LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -51,6 +55,7 @@ class SignFileController extends ApiController {
 		$this->userSession = $userSession;
 		$this->validateHelper = $validateHelper;
 		$this->signFileService = $signFileService;
+		$this->fileService = $fileService;
 		$this->logger = $logger;
 	}
 
@@ -176,6 +181,9 @@ class SignFileController extends ApiController {
 	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
+			$this->validateHelper->canSignWithIdentificationDocumentStatus(
+				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
+			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
 			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser);
@@ -183,29 +191,13 @@ class SignFileController extends ApiController {
 				'password' => $password,
 				'code' => $code,
 			]);
-			$signedFile = $this->signFileService
+			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
 				->setVisibleElements($elements)
 				->setSignWithoutPassword(!empty($code))
 				->setPassword($password)
 				->sign();
-
-			$signers = $this->fileUserMapper->getByFileId($fileUser->getFileId());
-			$total = array_reduce($signers, function ($carry, $signer) {
-				$carry += $signer->getSigned() ? 1 : 0;
-				return $carry;
-			});
-			if (count($signers) === $total) {
-				$callbackUrl = $libreSignFile->getCallback();
-				if ($callbackUrl) {
-					$this->signFileService->notifyCallback(
-						$callbackUrl,
-						$libreSignFile->getUuid(),
-						$signedFile
-					);
-				}
-			}
 
 			return new JSONResponse(
 				[

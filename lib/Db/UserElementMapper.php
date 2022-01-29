@@ -45,12 +45,12 @@ class UserElementMapper extends QBMapper {
 		}
 		if (isset($data['type'])) {
 			$qb->andWhere(
-				$qb->expr()->eq('ue.type', $qb->createNamedParameter($data['type'], IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('ue.type', $qb->createNamedParameter($data['type']))
 			);
 		}
 		if (isset($data['user_id'])) {
 			$qb->andWhere(
-				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($data['user_id'], IQueryBuilder::PARAM_STR))
+				$qb->expr()->eq('ue.user_id', $qb->createNamedParameter($data['user_id']))
 			);
 		}
 		return $qb;

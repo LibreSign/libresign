@@ -69,7 +69,7 @@ class FileMapper extends QBMapper {
 			$qb->select('*')
 				->from($this->getTableName())
 				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid, IQueryBuilder::PARAM_STR))
+					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 				);
 
 			$this->file[$uuid] = $this->findEntity($qb);
@@ -100,6 +100,53 @@ class FileMapper extends QBMapper {
 			$this->file[$fileId] = $this->findEntity($qb);
 		}
 		return $this->file[$fileId];
+	}
+
+	/**
+	 * @param string $userId
+	 * @return File[]
+	 */
+	public function getFilesOfAccount(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('lf.*')
+			->from($this->getTableName(), 'lf')
+			->join('lf', 'libresign_account_file', 'laf', 'laf.file_id = lf.id')
+			->where(
+				$qb->expr()->eq('laf.user_id', $qb->createNamedParameter($userId))
+			);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			$return[] = $this->file[$row['id']] = $this->mapRowToEntity($row);
+		}
+		return $return;
+	}
+
+	public function getFileType($id): string {
+		$fullOuterJoin = $this->db->getQueryBuilder();
+		$fullOuterJoin->select($fullOuterJoin->expr()->literal(1));
+
+		$qb = $this->db->getQueryBuilder();
+		$qb
+			->selectAlias('f.id', 'file')
+			->selectAlias('ue.id', 'user_element')
+			->selectAlias('fe.id', 'file_element')
+			->from($qb->createFunction('(' . $fullOuterJoin->getSQL() . ')'), 'foj')
+			->leftJoin('foj', 'libresign_file', 'f', $qb->expr()->eq('f.node_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_user_element', 'ue', $qb->expr()->eq('ue.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->leftJoin('foj', 'libresign_file_element', 'fe', $qb->expr()->eq('fe.file_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		$cursor = $qb->executeQuery();
+		$row = $cursor->fetch();
+		if ($row) {
+			foreach ($row as $key => $value) {
+				if ($value) {
+					return $key;
+				}
+			}
+		}
+		return 'not_libresign_file';
 	}
 
 	public function getTextOfStatus(int $status) {
