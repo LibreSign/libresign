@@ -1,31 +1,45 @@
 <script>
+import { find, get } from 'lodash-es'
+import { getFilePickerBuilder, showWarning, showSuccess } from '@nextcloud/dialogs'
+import ProgressBar from '../../../Components/ProgressBar'
 import { documentsService } from '../../../domains/documents'
-import { getFilePickerBuilder, showWarning } from '@nextcloud/dialogs'
-import { find } from 'lodash-es'
 import { pathJoin } from '../../../helpers/path'
+import { onError } from '../../../helpers/errors'
+
+const FILE_TYPE_INFO = {
+	IDENTIFICATION: {
+		key: 'IDENTIFICATION',
+		name: t('libresign', 'Identification Document'),
+		description: t('libresign', 'Identification Document'),
+	},
+}
 
 const findDocumentByType = (list, type) => { // TODO: fix contract
-	return find(list, row => row.type === type) || {
-		id: 0,
-		name: 'missing',
-		type,
+	return find(list, row => get(row, ['file_type', 'type']) === type) || {
+		nodeId: 0,
+		uuid: '',
+		status: -1,
+		status_text: t('libresign', 'Not sent yet'),
+		name: t('libresign', 'Not defined yet'),
+		file_type: FILE_TYPE_INFO[type] || { type },
 	}
 }
 
 export default {
 	name: 'Documents',
 	components: {
-		// Btn,
+		ProgressBar,
 	},
 	data() {
 		return {
 			documentList: [],
+			loading: true,
 		}
 	},
 	computed: {
 		documents() {
 			return {
-				default: findDocumentByType(this.documentList, 'default'),
+				default: findDocumentByType(this.documentList, 'IDENTIFICATION'),
 			}
 		},
 		list() {
@@ -33,10 +47,32 @@ export default {
 		},
 	},
 	mounted() {
-		// documentsService.loadAccountList()
+		this.loadDocuments()
 	},
 	methods: {
-		async pickFile(fileType) {
+		async loadDocuments() {
+			this.loading = true
+			try {
+				const { data } = await documentsService.loadAccountList()
+
+				this.documentList = data.map(row => {
+					const { file } = row
+					return {
+						uuid: file.uuid,
+						nodeId: file.file.nodeId,
+						file_type: row.file_type,
+						name: file.name,
+						status: file.status,
+						status_text: file.status_text,
+					}
+				})
+			} catch (err) {
+				onError(err)
+			} finally {
+				this.loading = false
+			}
+		},
+		async pickFile(type) {
 			try {
 				const fileFullName = await getFilePickerBuilder(t('libresign', 'Select a file'))
 					.setMultiSelect(false)
@@ -57,18 +93,34 @@ export default {
 					return
 				}
 
-				const res = await documentsService.addAcountFile({
+				this.loading = true
+
+				await documentsService.addAcountFile({
+					type,
 					name: file.name,
-					type: fileType,
 					file: {
 						fileId: file.id,
 					},
 				})
 
-				console.log({ res })
+				showSuccess(t('libresign', 'File was sent.'))
 
+				await this.loadDocuments()
 			} catch (err) {
-				console.error(err)
+				onError(err)
+			} finally {
+				this.loading = false
+			}
+		},
+		async deleteFile({ nodeId }) {
+			try {
+				await documentsService.deleteAcountFile(nodeId)
+				showSuccess(t('libresign', 'File was deleted.'))
+				await this.loadDocuments()
+			} catch (err) {
+				onError(err)
+			} finally {
+				this.loading = false
 			}
 		},
 	},
@@ -79,7 +131,9 @@ export default {
 	<div class="documents">
 		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
 
-		<table class="libre-table is-fullwidth">
+		<ProgressBar v-if="loading" infinity />
+
+		<table v-else class="libre-table is-fullwidth">
 			<thead>
 				<tr>
 					<td>
@@ -94,20 +148,27 @@ export default {
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="doc in list" :key="`doc-${doc.type}`">
+				<tr v-for="(doc, index) in list" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
 					<td>
-						{{ doc.type }}
+						{{ doc.file_type.name }}
 					</td>
 					<td>
-						{{ doc.name }}
+						{{ doc.status_text }}
 					</td>
 					<td class="actions">
-						<button @click="pickFile(doc.type)">
-							<div class="icon-file" />
-						</button>
-						<button @click="pickFile">
-							<div class="icon-upload" />
-						</button>
+						<template v-if="doc.status === -1">
+							<button @click="pickFile(doc.file_type.key)">
+								<div class="icon-folder" />
+							</button>
+							<!-- <button @click="pickFile">
+								<div class="icon-upload" />
+							</button> -->
+						</template>
+						<template v-else>
+							<button @click="deleteFile(doc)">
+								<div class="icon-delete" />
+							</button>
+						</template>
 					</td>
 				</tr>
 			</tbody>
