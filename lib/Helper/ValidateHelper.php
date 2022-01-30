@@ -139,6 +139,17 @@ class ValidateHelper {
 	}
 
 	public function validateBase64(string $base64, int $type = self::TYPE_TO_SIGN): void {
+		$withMime = explode(',', $base64);
+		if (count($withMime) === 2) {
+			$withMime[0] = explode(';', $withMime[0]);
+			if (count($withMime[0]) !== 2) {
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+			}
+			if ($withMime[0][0] !== 'data:application/pdf' || $withMime[0][1] !== 'base64') {
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+			}
+			$base64 = $withMime[1];
+		}
 		$string = base64_decode($base64);
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
