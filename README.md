@@ -2,18 +2,37 @@
 [![Coverage Status](https://coveralls.io/repos/github/LibreSign/libresign/badge.svg?branch=main)](https://coveralls.io/github/LibreSign/libresign?branch=main)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
-# LibreSign
-
 Nextcloud app to sign PDF documents.
 
 At the moment file signature requests must be requested via webhook. Read the documentation for more information.
 
 <img src="img/LibreSign.png" />
 
+**Table of contents**
+- [Setup](#setup)
+  - [Java and JSignPDF](#java-and-jsignpdf)
+    - [Standalone](#standalone)
+    - [Using Docker](#using-docker)
+  - [CFSSL](#cfssl)
+    - [CFSS server handmade install](#cfss-server-handmade-install)
+    - [With docker-compose](#with-docker-compose)
+  - [Admin settings](#admin-settings)
+  - [Validation page](#validation-page)
+- [Integrations](#integrations)
+- [Full documentation](#full-documentation)
+- [Contributing](#contributing)
+
 ## Setup
 
 ### Java and JSignPDF
 
+#### Standalone
+Run commands:
+```bash
+occ libresign:install:java
+occ libresign:install:jsignpdf
+```
+#### Using Docker
 Add the follow to Nextcloud PHP container Dockerfile
 
 ```Dockerfile
@@ -21,12 +40,13 @@ Add the follow to Nextcloud PHP container Dockerfile
 RUN apt-get update # Only include this line if necessary
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get install -y default-jre unzip
-RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%202.0.0/jsignpdf-2.0.0.zip \
-    && unzip jsignpdf-2.0.0.zip -d /opt \
-    && rm jsignpdf-2.0.0.zip
+RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%201.6.5/JSignPdf-1.6.5.zip \
+    && unzip JSignPdf-1.6.5.zip -d /opt \
+    && rm JSignPdf-1.6.5.zip
 ```
 
-### With CFSS server
+### CFSSL
+#### CFSS server handmade install
 
 Don't is necessary if you use a docker setup
 
@@ -36,7 +56,9 @@ https://github.com/cloudflare/cfssl
 
 The URL of server you will use in [Admin settings](#admin-settings)
 
-### With docker-compose
+> **PS**: Use latest version, on many cases the version of package manage of linux distro is outdated and incompatible with LibreSign
+
+#### With docker-compose
 * Create a folder named cfssl in the same folder as your `docker-compose.yml` file. This folder will be used on one volume of the cfssl service.
 * put the file [`/cfssl/entrypoint.sh`](https://github.com/LibreSign/libresign/blob/main/cfssl/entrypoint.sh) in `cfssl` folder
 * Add the volume `./cfssl:/cfssl` in Nextcloud php service
