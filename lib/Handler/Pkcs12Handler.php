@@ -10,6 +10,7 @@ use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
 use Endroid\QrCode\Matrix\Matrix;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FolderService;
@@ -28,6 +29,8 @@ class Pkcs12Handler extends SignEngineHandler {
 	private $JSignPdfHandler;
 	/** @var IConfig */
 	private $config;
+	/** @var SystemConfig */
+	private $systemConfig;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
 	/** @var IL10N */
@@ -39,11 +42,13 @@ class Pkcs12Handler extends SignEngineHandler {
 	public function __construct(
 		FolderService $folderService,
 		IConfig $config,
+		SystemConfig $systemConfig,
 		CfsslHandler $cfsslHandler,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
 		$this->config = $config;
+		$this->systemConfig = $systemConfig;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->l10n = $l10n;
 	}
@@ -268,6 +273,13 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		if (!$this->cfsslHandler->getCfsslUri()) {
 			$this->cfsslHandler->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'));
+		}
+		if (!$this->cfsslHandler->getBinary()) {
+			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+			$instanceId = $this->systemConfig->getValue('instanceid', null);
+			$this->cfsslHandler->setBinary(
+				'appdata_' . $instanceId . '/' . Application::APP_ID . '/' . $binary
+			);
 		}
 		return $this->cfsslHandler;
 	}
