@@ -124,7 +124,7 @@ class Base extends CommandBase {
 	}
 
 	protected function installJSignPdf(): void {
-		if (!extension_loaded('zip')){
+		if (!extension_loaded('zip')) {
 			throw new RuntimeException('Zip extension is not available');
 		}
 		$extractDir = $this->getFullPath();
