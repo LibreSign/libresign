@@ -33,6 +33,12 @@
         <command>java</command>
         <nextcloud min-version="23" max-version="23"/>
     </dependencies>
+    <commands>
+        <command>OCA\Libresign\Command\Configure\Cfssl</command>
+        <command>OCA\Libresign\Command\Install\Cfssl</command>
+        <command>OCA\Libresign\Command\Install\Java</command>
+        <command>OCA\Libresign\Command\Install\JSignPdf</command>
+    </commands>
     <settings>
         <admin>OCA\Libresign\Settings\Admin</admin>
         <admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
