@@ -183,7 +183,7 @@ class CfsslHandler {
 		$pids = shell_exec('ps -eo pid,command|grep "cfssl serve"|grep -v grep|sed -e "s/^[[:space:]]*//"|cut -d" " -f1');
 		$pids = trim($pids);
 		$pids = explode("\n", $pids);
-		$pids = array_filter($pids, function($pid): bool {
+		$pids = array_filter($pids, function ($pid): bool {
 			return !empty($pid);
 		});
 		return $pids;
