@@ -234,6 +234,28 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
+	/**
+	 * @dataProvider dataValidateBase64
+	 */
+	public function testValidateBase64($base64, $type, $valid) {
+		if (!$valid) {
+			$this->expectExceptionMessage('Invalid base64 file');
+		}
+		$return = $this->getValidateHelper()->validateBase64($base64, $type);
+		$this->assertNull($return);
+	}
+
+	public function dataValidateBase64(): array {
+		return [
+			['invalid', ValidateHelper::TYPE_TO_SIGN, false],
+			['dGVzdA==', ValidateHelper::TYPE_TO_SIGN, true],
+			['data:application/pdf;base63,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, false],
+			['data:application/bla;base64,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, false],
+			['data:application/pdf;base64,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, true],
+			['data:application/pdf;base64,invalid', ValidateHelper::TYPE_TO_SIGN, false],
+		];
+	}
+
 	public function testIRequestedSignThisFileWithInvalidRequester() {
 		$this->expectExceptionMessage('You do not have permission for this action.');
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);

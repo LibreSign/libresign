@@ -521,6 +521,7 @@ class AccountService {
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
+			$this->validateHelper->validateBase64($content);
 		} else {
 			$content = base64_decode($data['file']['base64']);
 		}
