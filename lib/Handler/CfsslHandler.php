@@ -40,6 +40,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
+	private $binary;
 	/** @var ClientInterface */
 	private $client;
 	public function __call($name, $arguments) {
@@ -61,6 +62,7 @@ class CfsslHandler {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
+		$this->wakeUp();
 		return $this->client;
 	}
 
@@ -163,5 +165,47 @@ class CfsslHandler {
 		}
 
 		return $responseDecoded['result'];
+	}
+
+	private function wakeUp(): void {
+		$binary = $this->getBinary();
+		if (!$binary) {
+			return;
+		}
+		if ($this->pidGet()) {
+			return;
+		}
+		$cmd = $binary . ' serve -address=127.0.0.1 -ca-key ca-key.pem -ca ca.pem -config config_server.json > /dev/null 2> &1';
+		shell_exec($cmd);
+	}
+
+	private function pidGet(): ?array {
+		$pids = shell_exec('ps -eo pid,command|grep "cfssl serve"|grep -v grep|sed -e "s/^[[:space:]]*//"|cut -d" " -f1');
+		$pids = trim($pids);
+		$pids = explode("\n", $pids);
+		$pids = array_filter($pids, function($pid): bool {
+			return !empty($pid);
+		});
+		return $pids;
+	}
+
+	public function getBinary(): string {
+		if (!$this->binary) {
+			return '';
+		}
+		if (PHP_OS_FAMILY === 'Windows') {
+			return $this->binary . '.exe';
+		}
+		return $this->binary;
+	}
+
+	public function setBinary(string $binary): self {
+		if ($binary) {
+			$this->binary = $binary;
+			if (PHP_OS_FAMILY === 'Windows') {
+				$this->binary .= '.exe';
+			}
+		}
+		return $this;
 	}
 }
