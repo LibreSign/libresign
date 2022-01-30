@@ -7,8 +7,8 @@
     "jsignpdf/jsignpdf-php": "^1.0",
     "endroid/qr-code": "^4.4",
     "pagerfanta/pagerfanta": "^3.5",
-    "tecnickcom/tc-lib-pdf": "^8.0",
-    "iio/libmergepdf": "^4.0"
+    "tecnickcom/tcpdf": "^6.4",
+    "iio/libmergepdf": "dev-move-tcpdi-parser-to-package"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",
