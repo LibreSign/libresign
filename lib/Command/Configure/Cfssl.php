@@ -94,6 +94,9 @@ class Cfssl extends Base {
 			throw new InvalidArgumentException('Invalid Country');
 		}
 		if ($binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
+			if (PHP_OS_FAMILY === 'Windows') {
+				throw new InvalidArgumentException('Incompatible with Windows');
+			}
 			if ($input->getOption('config-path')) {
 				throw new InvalidArgumentException('Config path is not necessary');
 			}
