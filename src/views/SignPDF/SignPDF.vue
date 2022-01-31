@@ -1,6 +1,6 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
-		<div v-show="viewDoc" id="viewer" class="content">
+		<div id="viewer" class="content">
 			<PDFViewer :url="pdfData.url" />
 		</div>
 
@@ -19,9 +19,8 @@
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 import { showSuccess } from '@nextcloud/dialogs'
-import { defaultsDeep, get, isEmpty, set } from 'lodash-es'
+import { defaultsDeep, set } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
-import { service as signerService } from '../../domains/signatures'
 import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
 import { onError } from '../../helpers/errors'
 import PDFViewer from './_partials/PDFViewer'
@@ -61,7 +60,6 @@ export default {
 
 		return {
 			state,
-			viewDoc: true,
 			loading: true,
 			document: {
 				name: '',
@@ -71,23 +69,11 @@ export default {
 				visibleElements: [],
 				settings: { signMethod: 'password', canSign: false },
 			},
-			user: {
-				account: { uid: '', displayName: '' },
-				settings: { canRequestSign: false, hasSignatureFile: true },
-			},
-			userSignatures: [],
 		}
 	},
 	computed: {
 		documentUUID() {
 			return this.state?.sign?.uuid
-		},
-		signer() {
-			return this.document.signers.find(row => row.me)
-		},
-		visibleElements() {
-			return (this.document.visibleElements || [])
-				.filter(row => row.fileUserId === this.signer.fileUserId)
 		},
 		pdfData() {
 			const { sign } = this.state
@@ -99,56 +85,15 @@ export default {
 				description: sign?.filename,
 			}
 		},
-		signature() {
-			return this.userSignatures.find(row => {
-				return row.type === 'signature'
-			}) ?? {}
-		},
-		elements() {
-			const { signature, visibleElements } = this
-
-			const url = get(signature, ['file', 'url'])
-			const id = get(signature, ['id'])
-
-			return visibleElements.map(el => ({
-				documentElementId: el.elementId,
-				profileElementId: id,
-				url,
-			}))
-		},
-		hasSignatures() {
-			return !isEmpty(this.userSignatures)
-		},
-		needSignature() {
-			return !isEmpty(this.document.visibleElements)
-		},
-		enableToSign() {
-			const { needSignature, hasSignatures } = this
-
-			if (!needSignature) {
-				return true
-			}
-
-			return hasSignatures
-		},
 		signEnabled() {
-			return canSign(this.document.status)
+			return canSign(this.document?.status)
 		},
 		status() {
 			return getStatusLabel(this.document?.status)
 		},
-		// ---
-		signMethod() {
-			return get(this.document, ['settings', 'signMethod'], 'password')
-		},
-		canSign() {
-			return get(this.document, ['settings', 'canSign'], false)
-		},
 	},
 	mounted() {
 		this.loading = true
-		// this.loadSignatures()
-		// this.loadUser()
 
 		this.loadDocument()
 			.catch(console.warn)
@@ -157,9 +102,6 @@ export default {
 			})
 	},
 	methods: {
-		showDocument(param) {
-			this.viewDoc = param
-		},
 		gotoAccount() {
 			const url = this.$router.resolve({ name: 'Account' })
 
@@ -173,21 +115,6 @@ export default {
 		async loadDocument() {
 			try {
 				this.document = await signService.validateByUUID(this.documentUUID)
-			} catch (err) {
-				onError(err)
-			}
-		},
-		async loadUser() {
-			try {
-				this.user = await signerService.loadMe()
-			} catch (err) {
-				onError(err)
-			}
-		},
-		async loadSignatures() {
-			try {
-				const { elements } = await signerService.loadSignatures()
-				this.userSignatures = elements
 			} catch (err) {
 				onError(err)
 			}
