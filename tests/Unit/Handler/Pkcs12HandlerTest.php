@@ -1,5 +1,6 @@
 <?php
 
+use OC\SystemConfig;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
@@ -14,6 +15,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected $folderService;
 	/** @var IConfig|MockObject */
 	private $config;
+	/** @var SystemConfig */
+	private $systemConfig;
 	/** @var CfsslHandler|MockObject */
 	private $cfsslHandler;
 	/** @var IL10N|MockObject */
@@ -22,6 +25,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->config = $this->createMock(IConfig::class);
+		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
@@ -30,6 +34,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
 		);
@@ -85,6 +90,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
 		);
@@ -107,6 +113,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
 		);
