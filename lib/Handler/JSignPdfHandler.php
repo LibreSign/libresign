@@ -15,6 +15,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignParam;
 	/** @var IConfig */
 	private $config;
+	public const VERSION = '2.0.0';
 
 	public function __construct(
 		IConfig $config
@@ -41,14 +42,18 @@ class JSignPdfHandler extends SignEngineHandler {
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
+			$javaPath = $this->config->getAppValue(Application::APP_ID, 'java_path');
 			$this->jSignParam = (new JSignParam())
 				->setTempPath(
 					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_temp_path', '/tmp/')
 				)
-				->setIsUseJavaInstalled(true)
+				->setIsUseJavaInstalled(empty($javaPath))
 				->setjSignPdfJarPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-2.0.0/JSignPdf.jar')
+					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
+			if (!empty($javaPath)) {
+				$this->jSignParam->setJavaPath($javaPath);
+			}
 		}
 		return $this->jSignParam;
 	}
