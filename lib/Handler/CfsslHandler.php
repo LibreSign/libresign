@@ -40,6 +40,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
+	private $binary;
 	/** @var ClientInterface */
 	private $client;
 	public function __call($name, $arguments) {
@@ -61,6 +62,7 @@ class CfsslHandler {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
+		$this->wakeUp();
 		return $this->client;
 	}
 
@@ -163,5 +165,69 @@ class CfsslHandler {
 		}
 
 		return $responseDecoded['result'];
+	}
+
+	private function wakeUp(): void {
+		if ($this->portOpen()) {
+			return;
+		}
+		$binary = $this->getBinary();
+		if (!$binary) {
+			return;
+		}
+		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
+			'-ca-key ' . $configPath . 'ca-key.pem ' .
+			'-ca ' . $configPath . 'ca.pem '.
+			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
+		shell_exec($cmd);
+		$loops = 0;
+		while (!$this->portOpen()) {
+			sleep(1);
+			if ($loops === 4) {
+				break;
+			}
+		}
+	}
+
+	private function portOpen(): bool {
+		$socket = @fsockopen('127.0.0.1', '8888', $errno, $errstr, 0.1);
+		if ($socket) {
+			fclose($socket);
+			return true;
+		}
+		return false;
+	}
+
+	public function getBinary(): string {
+		if (!$this->binary) {
+			return '';
+		}
+		if (PHP_OS_FAMILY === 'Windows') {
+			return $this->binary . '.exe';
+		}
+		return $this->binary;
+	}
+
+	public function setBinary(string $binary): self {
+		if ($binary) {
+			$this->binary = $binary;
+			if (PHP_OS_FAMILY === 'Windows') {
+				$this->binary .= '.exe';
+			}
+		}
+		return $this;
+	}
+
+	public function genkey() {
+		$binary = $this->getBinary();
+		if (!$binary) {
+			return;
+		}
+		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$cmd = $binary . ' genkey ' .
+			'-initca=true ' . $configPath . 'csr_server.json | ' .
+			$binary . 'json -bare ' . $configPath . 'ca;';
+		shell_exec($cmd);
 	}
 }
