@@ -42,9 +42,9 @@ Add the follow to Nextcloud PHP container Dockerfile
 RUN apt-get update # Only include this line if necessary
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get install -y default-jre unzip
-RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%201.6.5/JSignPdf-1.6.5.zip \
-    && unzip JSignPdf-1.6.5.zip -d /opt \
-    && rm JSignPdf-1.6.5.zip
+RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%202.0.0/jsignpdf-2.0.0.zip \
+    && unzip jsignpdf-2.0.0.zip -d /opt \
+    && rm jsignpdf-2.0.0.zip
 ```
 
 ### CFSSL
