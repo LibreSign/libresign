@@ -31,6 +31,8 @@ Run commands:
 ```bash
 occ libresign:install:java
 occ libresign:install:jsignpdf
+occ libresign:install:cfssl
+occ libresign:configure:cfssl --cn=<yourCN> --ou=<yourOU> --o=<yourO> --c=<yourCountry>
 ```
 #### Using Docker
 Add the follow to Nextcloud PHP container Dockerfile
