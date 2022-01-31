@@ -87,7 +87,7 @@ export default {
 			return !!this.user?.settings?.hasSignatureFile
 		},
 		ableToSign() {
-			if (this.hasPassword) {
+			if (!this.hasPassword) {
 				return false
 			}
 
@@ -118,6 +118,7 @@ export default {
 		settings() {
 			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
 			const user = pick(this.user.settings, ['canRequestSign', 'hasSignatureFile'])
+
 			return {
 				...base,
 				...user,
