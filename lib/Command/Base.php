@@ -71,7 +71,12 @@ class Base extends CommandBase {
 
 	private function getAppRootFolder(): Folder {
 		$path = $this->getAppDataFolderName();
-		return $this->rootFolder->get($path);
+		try {
+			$folder = $this->rootFolder->get($path);
+		} catch (\Throwable $th) {
+			$folder = $this->rootFolder->newFolder($path);
+		}
+		return $folder;
 	}
 
 	protected function getFullPath(): string {

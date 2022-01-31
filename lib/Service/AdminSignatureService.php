@@ -58,6 +58,7 @@ class AdminSignatureService {
 					Application::APP_ID . DIRECTORY_SEPARATOR .
 					'cfssl'
 				);
+			$this->cfsslHandler->genkey();
 		}
 		$this->cfsslHandler
 			->setCfsslUri($cfsslUri);
@@ -66,7 +67,7 @@ class AdminSignatureService {
 				break;
 			}
 			// @codeCoverageIgnoreStart
-			sleep($i);
+			sleep('2');
 			// @codeCoverageIgnoreEnd
 		}
 

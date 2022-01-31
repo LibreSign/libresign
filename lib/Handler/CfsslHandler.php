@@ -168,25 +168,35 @@ class CfsslHandler {
 	}
 
 	private function wakeUp(): void {
+		if ($this->portOpen()) {
+			return;
+		}
 		$binary = $this->getBinary();
 		if (!$binary) {
 			return;
 		}
-		if ($this->pidGet()) {
-			return;
-		}
-		$cmd = $binary . ' serve -address=127.0.0.1 -ca-key ca-key.pem -ca ca.pem -config config_server.json > /dev/null 2> &1';
+		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
+			'-ca-key ' . $configPath . 'ca-key.pem ' .
+			'-ca ' . $configPath . 'ca.pem '.
+			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
+		$loops = 0;
+		while (!$this->portOpen()) {
+			sleep(1);
+			if ($loops === 4) {
+				break;
+			}
+		}
 	}
 
-	private function pidGet(): ?array {
-		$pids = shell_exec('ps -eo pid,command|grep "cfssl serve"|grep -v grep|sed -e "s/^[[:space:]]*//"|cut -d" " -f1');
-		$pids = trim($pids);
-		$pids = explode("\n", $pids);
-		$pids = array_filter($pids, function ($pid): bool {
-			return !empty($pid);
-		});
-		return $pids;
+	private function portOpen(): bool {
+		$socket = @fsockopen('127.0.0.1', '8888', $errno, $errstr, 0.1);
+		if ($socket) {
+			fclose($socket);
+			return true;
+		}
+		return false;
 	}
 
 	public function getBinary(): string {
@@ -207,5 +217,17 @@ class CfsslHandler {
 			}
 		}
 		return $this;
+	}
+
+	public function genkey() {
+		$binary = $this->getBinary();
+		if (!$binary) {
+			return;
+		}
+		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$cmd = $binary . ' genkey ' .
+			'-initca=true ' . $configPath . 'csr_server.json | ' .
+			$binary . 'json -bare ' . $configPath . 'ca;';
+		shell_exec($cmd);
 	}
 }
