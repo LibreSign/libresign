@@ -276,10 +276,15 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		if (!$this->cfsslHandler->getBinary()) {
 			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-			$instanceId = $this->systemConfig->getValue('instanceid', null);
-			$this->cfsslHandler->setBinary(
-				'appdata_' . $instanceId . '/' . Application::APP_ID . '/' . $binary
-			);
+			if ($binary) {
+				$instanceId = $this->systemConfig->getValue('instanceid', null);
+				$this->cfsslHandler->setBinary(
+					$this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/') . DIRECTORY_SEPARATOR .
+					'appdata_' . $instanceId . DIRECTORY_SEPARATOR .
+					Application::APP_ID . DIRECTORY_SEPARATOR .
+					'cfssl'
+				);
+			}
 		}
 		return $this->cfsslHandler;
 	}
