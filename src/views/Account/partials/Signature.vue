@@ -70,7 +70,7 @@ export default {
 			<slot name="no-signatures" />
 		</div>
 
-		<Modal v-if="isEditing" size="large" v-on="{ close }">
+		<Modal v-if="isEditing" size="large --scroll" v-on="{ close }">
 			<div class="container-modal-customize-signatures">
 				<header>
 					<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
@@ -85,6 +85,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.signature-modal {
+	background-color: red;
+}
+
 .signature-fav{
 	width: 90%;
 	margin: 10px;
