@@ -28,7 +28,7 @@
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import marked from 'marked'
+import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
 export default {
