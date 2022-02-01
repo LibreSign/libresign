@@ -187,12 +187,16 @@ class CfsslHandler {
 			if ($loops === 4) {
 				break;
 			}
+			$loops++;
 		}
 	}
 
 	private function portOpen(): bool {
-		$socket = @fsockopen('127.0.0.1', '8888', $errno, $errstr, 0.1);
-		if ($socket) {
+		try {
+			$socket = fsockopen('127.0.0.1', '8888', $errno, $errstr, 0.1);
+		} catch (\Throwable $th) {
+		}
+		if (isset($socket) && is_resource($socket)) {
 			fclose($socket);
 			return true;
 		}
