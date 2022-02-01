@@ -17,6 +17,8 @@ use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\ITempManager;
 use RuntimeException;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Base extends CommandBase {
 	/** @var ITempManager */
@@ -84,7 +86,7 @@ class Base extends CommandBase {
 		return $this->getDataDir() . '/' . $folder->getInternalPath();
 	}
 
-	protected function installJava(): void {
+	protected function installJava(OutputInterface $output): void {
 		$extractDir = $this->getFullPath();
 
 		if (PHP_OS_FAMILY === 'Windows') {
@@ -99,9 +101,7 @@ class Base extends CommandBase {
 			$class = TAR::class;
 		}
 
-
-		$client = $this->clientService->newClient();
-		$client->get($url, ['sink' => $tempFile, 'timeout' => 0]);
+		$this->download($output, $url, 'java', $tempFile);
 
 		$extractor = new $class($tempFile);
 		$extractor->extract($extractDir);
@@ -128,7 +128,7 @@ class Base extends CommandBase {
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
 
-	protected function installJSignPdf(): void {
+	protected function installJSignPdf($output): void {
 		if (!extension_loaded('zip')) {
 			throw new RuntimeException('Zip extension is not available');
 		}
@@ -137,8 +137,7 @@ class Base extends CommandBase {
 		$tempFile = $this->tempManager->getTemporaryFile('.zip');
 		$url = 'https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%20' . JSignPdfHandler::VERSION . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 
-		$client = $this->clientService->newClient();
-		$client->get($url, ['sink' => $tempFile, 'timeout' => 0]);
+		$this->download($output, $url, 'JSignPdf', $tempFile);
 
 		$zip = new ZIP($tempFile);
 		$zip->extract($extractDir);
@@ -166,30 +165,73 @@ class Base extends CommandBase {
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
-	protected function installCfssl(): void {
+	protected function installCfssl(OutputInterface $output): void {
 		$folder = $this->getFolder();
 
-		$binName = 'cfssl';
 		if (PHP_OS_FAMILY === 'Windows') {
-			$url = 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_windows_amd64.exe';
-			$binName = 'cfssl.exe';
+			$downloads = [
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_windows_amd64.exe',
+					'destination' => 'cfssl.exe',
+				],
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_windows_amd64.exe',
+					'destination' => 'cfssljson.exe',
+				],
+			];
 		} elseif (PHP_OS_FAMILY === 'Darwin') {
-			$url = 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/multirootca_1.6.1_darwin_amd64';
+			$downloads = [
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_darwin_amd64',
+					'destination' => 'cfssl',
+				],
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_darwin_amd64',
+					'destination' => 'cfssljson',
+				],
+			];
 		} else {
-			$url = 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_linux_amd64';
+			$downloads = [
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_linux_amd64',
+					'destination' => 'cfssl',
+				],
+				[
+					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_linux_amd64',
+					'destination' => 'cfssljson',
+				],
+			];
 		}
-		$file = $folder->newFile($binName);
+		foreach ($downloads as $download) {
+			$file = $folder->newFile($download['destination']);
+			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
 
-		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
+			$this->download($output, $download['url'], $download['destination'], $fullPath);
 
-		$client = $this->clientService->newClient();
-		$client->get($url, ['sink' => $fullPath, 'timeout' => 0]);
-
-		if (PHP_OS_FAMILY !== 'Windows') {
-			chmod($fullPath, 0700);
+			if (PHP_OS_FAMILY !== 'Windows') {
+				chmod($fullPath, 0700);
+			}
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', 1);
+	}
+
+	protected function download(OutputInterface $output, string $url, string $filename, string $path) {
+		$client = $this->clientService->newClient();
+		$progressBar = new ProgressBar($output);
+		$output->writeln('Downloading ' . $filename . '...');
+		$progressBar->start();
+		$client->get($url, [
+			'sink' => $path,
+			'timeout' => 0,
+			'progress' => function ($downloadSize, $downloaded) use ($progressBar) {
+				$progressBar->setMaxSteps($downloadSize);
+				$progressBar->setProgress($downloaded);
+			},
+		]);
+		$progressBar->finish();
+		$output->writeln('');
+		$progressBar->finish();
 	}
 
 	protected function uninstallCfssl(): void {
