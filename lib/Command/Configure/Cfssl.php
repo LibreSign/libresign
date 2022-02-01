@@ -125,6 +125,6 @@ class Cfssl extends Base {
 			$configPath,
 			$binary
 		);
-		return static::SUCCESS;
+		return 0;
 	}
 }
