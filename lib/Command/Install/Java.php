@@ -46,8 +46,8 @@ class Java extends Base {
 		if ($input->getOption('uninstall')) {
 			$this->uninstallJava();
 		} else {
-			$this->installJava();
+			$this->installJava($output);
 		}
-		return static::SUCCESS;
+		return 0;
 	}
 }
