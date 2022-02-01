@@ -6,6 +6,7 @@ use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -118,7 +119,7 @@ class PageController extends Controller {
 	public function getPdf($uuid) {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
-		} catch (\Throwable $th) {
+		} catch (DoesNotExistException $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
