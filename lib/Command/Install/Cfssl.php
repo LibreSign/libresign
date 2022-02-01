@@ -46,8 +46,8 @@ class Cfssl extends Base {
 		if ($input->getOption('uninstall')) {
 			$this->uninstallCfssl();
 		} else {
-			$this->installCfssl();
+			$this->installCfssl($output);
 		}
-		return static::SUCCESS;
+		return 0;
 	}
 }
