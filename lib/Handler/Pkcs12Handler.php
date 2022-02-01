@@ -175,16 +175,26 @@ class Pkcs12Handler extends SignEngineHandler {
 				$this->writeQrCode($validation_site, $pdf);
 				$x += $this->qrCode->getSize();
 			}
+
 			$pdf->SetXY($x, -15);
 			$pdf->Write(
 				8,
-				iconv('UTF-8', 'windows-1252', $this->l10n->t('Digital signed by LibreSign.')),
-				'https://libresign.coop'
+				iconv(
+					'UTF-8',
+					'windows-1252',
+					$this->config->getAppValue(Application::APP_ID, 'footer_first_row', $this->l10n->t('Digital signed by LibreSign.'))
+				),
+				$this->config->getAppValue(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop')
 			);
+
+			$footerSecondRow = $this->config->getAppValue(Application::APP_ID, 'footer_second_row', 'Validate in %s.');
+			if ($footerSecondRow === 'Validate in %s.') {
+				$footerSecondRow = $this->l10n->t('Validate in %s.', $validation_site);
+			}
 			$pdf->SetXY($x, -10);
 			$pdf->Write(
 				8,
-				iconv('UTF-8', 'windows-1252', $this->l10n->t('Validate in %s.', $validation_site)),
+				iconv('UTF-8', 'windows-1252', $footerSecondRow),
 				$validation_site
 			);
 		}
