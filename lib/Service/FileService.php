@@ -16,6 +16,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\IUserSession;
 
 class FileService {
 	/** @var FileMapper */
@@ -30,6 +31,8 @@ class FileService {
 	private $accountService;
 	/** @var AccountFileService */
 	private $accountFileService;
+	/** @var IUserSession */
+	private $userSession;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var IAccountManager */
@@ -78,6 +81,7 @@ class FileService {
 		FileElementService $fileElementService,
 		AccountService $accountService,
 		AccountFileService $accountFileService,
+		IUserSession $userSession,
 		IUserManager $userManager,
 		IAccountManager $accountManager,
 		IConfig $config,
@@ -91,6 +95,7 @@ class FileService {
 		$this->fileElementService = $fileElementService;
 		$this->accountService = $accountService;
 		$this->accountFileService = $accountFileService;
+		$this->userSession = $userSession;
 		$this->userManager = $userManager;
 		$this->accountManager = $accountManager;
 		$this->config = $config;
@@ -191,7 +196,7 @@ class FileService {
 		$metadata = json_decode($this->file->getMetadata());
 		for ($page = 1; $page <= $metadata->p; $page++) {
 			$return[] = [
-				'url' => $this->urlGenerator->linkToRoute('libresign.libreSignFile.getPage', ['uuid' => $this->file->getUuid(), 'page' => $page]),
+				'url' => $this->urlGenerator->linkToRoute('libresign.File.getPage', ['uuid' => $this->file->getUuid(), 'page' => $page]),
 				'resolution' => $metadata->d[$page - 1]
 			];
 		}
