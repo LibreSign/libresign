@@ -187,13 +187,13 @@ export default {
 			<thead>
 				<tr>
 					<td>
-						{{ t('libresign', 'type') }}
+						{{ t('libresign', 'Type') }}
 					</td>
 					<td>
-						{{ t('libresign', 'status') }}
+						{{ t('libresign', 'Status') }}
 					</td>
 					<td>
-						{{ t('libresign', 'actions') }}
+						{{ t('libresign', 'Actions') }}
 					</td>
 				</tr>
 			</thead>
