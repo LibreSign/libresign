@@ -41,7 +41,6 @@ OC.L10N.register(
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Could not create signature." : "Nepavyko sukurti parašo.",
     "Add users" : "Pridėti naudotojus",
-    "Show Document" : "Rodyti dokumentą",
     "All Files" : "Visi failai",
     "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą.",
     "User created!" : "Naudotojas sukurtas!",
