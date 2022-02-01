@@ -94,6 +94,9 @@ class PageController extends Controller {
 		} catch (\Throwable $th) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
+		if (empty($file)) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
 
 		$resp = new FileDisplayResponse($file);
 		$resp->addHeader('Content-Type', 'application/pdf');
