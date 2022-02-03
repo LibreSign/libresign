@@ -46,8 +46,8 @@ class JSignPdf extends Base {
 		if ($input->getOption('uninstall')) {
 			$this->uninstallJSignPdf();
 		} else {
-			$this->installJSignPdf();
+			$this->installJSignPdf($output);
 		}
-		return static::SUCCESS;
+		return 0;
 	}
 }

@@ -115,7 +115,7 @@ class SignFileController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
-	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements, ?array $file = [], ?int $status = null) {
+	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null) {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,

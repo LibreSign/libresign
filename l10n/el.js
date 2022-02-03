@@ -47,7 +47,6 @@ OC.L10N.register(
     "Repeat password" : "Επανάληψη συνθηματικού",
     "Country (C)" : "Χώρα (Χ)",
     "Validation URL" : "URL επικύρωσης",
-    "Forgot your password?" : "Ξεχάσατε το συνθηματικό;",
     "Sign the document." : "Υπογραφή του εγγράφου.",
     "All Files" : "Όλα τα αρχεία",
     "View" : "Προβολή",
