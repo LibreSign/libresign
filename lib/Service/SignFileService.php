@@ -535,13 +535,20 @@ class SignFileService {
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
-			return;
+			$uri = $this->config->getAppValue(Application::APP_ID, 'webhook_sign_url');
+			if (!$uri) {
+				return;
+			}
 		}
 		$options = [
 			'multipart' => [
 				[
 					'name' => 'uuid',
 					'contents' => $this->libreSignFile->getUuid(),
+				],
+				[
+					'name' => 'status',
+					'contents' => $this->libreSignFile->getStatus(),
 				],
 				[
 					'name' => 'file',
