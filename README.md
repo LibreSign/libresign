@@ -29,9 +29,7 @@ At the moment file signature requests must be requested via webhook. Read the do
 #### Standalone
 Run commands:
 ```bash
-occ libresign:install:java
-occ libresign:install:jsignpdf
-occ libresign:install:cfssl
+occ libresign:install --all
 occ libresign:configure:cfssl --cn=<yourCN> --ou=<yourOU> --o=<yourO> --c=<yourCountry>
 ```
 #### Using Docker
