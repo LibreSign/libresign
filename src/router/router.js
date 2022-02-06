@@ -98,6 +98,10 @@ const routes = [
 		component: () => import('../views/Account/Account'),
 		name: 'Account',
 	}, {
+		path: '/f/docs/accounts/validation',
+		component: () => import('../views/Documents/AccountValidation'),
+		name: 'DocsAccountValidation',
+	}, {
 		path: '/f/create-password',
 		component: () => import('../views/CreatePassword'),
 		name: 'CreatePassword',
