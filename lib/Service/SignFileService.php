@@ -11,6 +11,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Event\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -21,6 +22,7 @@ use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -79,6 +81,8 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var IEventDispatcher */
+	private $eventDispatcher;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -115,6 +119,7 @@ class SignFileService {
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
 		FileElementService $fileElementService,
+		IEventDispatcher $eventDispatcher,
 		ITempManager $tempManager
 	) {
 		$this->l10n = $l10n;
@@ -139,6 +144,7 @@ class SignFileService {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
 		$this->fileElementService = $fileElementService;
+		$this->eventDispatcher = $eventDispatcher;
 		$this->tempManager = $tempManager;
 	}
 
@@ -535,13 +541,20 @@ class SignFileService {
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
-			return;
+			$uri = $this->config->getAppValue(Application::APP_ID, 'webhook_sign_url');
+			if (!$uri) {
+				return;
+			}
 		}
 		$options = [
 			'multipart' => [
 				[
 					'name' => 'uuid',
 					'contents' => $this->libreSignFile->getUuid(),
+				],
+				[
+					'name' => 'status',
+					'contents' => $this->libreSignFile->getStatus(),
 				],
 				[
 					'name' => 'file',
@@ -636,10 +649,7 @@ class SignFileService {
 		$allSigned = $this->updateStatus();
 		$this->fileMapper->update($this->libreSignFile);
 
-		// Trigger callback URL
-		if ($allSigned) {
-			$this->notifyCallback($signedFile);
-		}
+		$this->eventDispatcher->dispatchTyped(new SignedEvent($this, $signedFile, $allSigned));
 
 		return $signedFile;
 	}
