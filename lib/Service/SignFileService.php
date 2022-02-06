@@ -602,7 +602,11 @@ class SignFileService {
 				]);
 			}
 			try {
-				$node = $this->root->getById($userElement->getFileId())[0];
+				$node = $this->root->getById($userElement->getFileId());
+				if (!$node) {
+					throw new \Exception('empty');
+				}
+				$node = $node[0];
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}
