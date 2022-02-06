@@ -15,6 +15,7 @@ use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
@@ -78,6 +79,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $userElementMapper;
 	/** @var FileElementService|MockObject */
 	private $fileElementService;
+	/** @var IEventDispatcher */
+	private $eventDispatcher;
 	/** @var ITempManager|MockObject */
 	private $tempManager;
 
@@ -108,6 +111,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
+		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->service = new SignFileService(
 			$this->l10n,
@@ -132,6 +136,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->fileElementService,
+			$this->eventDispatcher,
 			$this->tempManager
 		);
 	}
