@@ -89,19 +89,27 @@ class Base extends CommandBase {
 	protected function installJava(OutputInterface $output): void {
 		$extractDir = $this->getFullPath();
 
+		/**
+		 * To update:
+		 * Check the compatible version of Java to use JSignPdf and update all the follow data
+		 * URL used to get the MD5 and URL to download:
+		 * https://jdk.java.net/java-se-ri/8-MR3
+		 */
 		if (PHP_OS_FAMILY === 'Windows') {
 			$url = 'https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-windows-i586-14_jan_2020.zip';
 			$tempFile = $this->tempManager->getTemporaryFile('.zip');
 			$executableExtension = '.exe';
 			$class = ZIP::class;
+			$md5 = '48ac2152d1fb0ad1d343104be210d532';
 		} else {
 			$url = 'https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz';
 			$tempFile = $this->tempManager->getTemporaryFile('.tar.gz');
 			$executableExtension = '';
 			$class = TAR::class;
+			$md5 = '35f515e9436f4fefad091db2c1450c5f';
 		}
 
-		$this->download($output, $url, 'java', $tempFile);
+		$this->download($output, $url, 'java', $tempFile, $md5);
 
 		$extractor = new $class($tempFile);
 		$extractor->extract($extractDir);
@@ -216,7 +224,7 @@ class Base extends CommandBase {
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', 1);
 	}
 
-	protected function download(OutputInterface $output, string $url, string $filename, string $path) {
+	protected function download(OutputInterface $output, string $url, string $filename, string $path, ?string $md5 = '') {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($output);
 		$output->writeln('Downloading ' . $filename . '...');
@@ -232,6 +240,9 @@ class Base extends CommandBase {
 		$progressBar->finish();
 		$output->writeln('');
 		$progressBar->finish();
+		if ($md5 && file_exists($path) && md5_file($path) !== $md5) {
+			$output->writeln('Failure on download ' . $filename . ' try again');
+		}
 	}
 
 	protected function uninstallCfssl(): void {
