@@ -182,11 +182,8 @@ class CfsslHandler {
 			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
-		while (!$this->portOpen()) {
+		while (!$this->portOpen() && $loops <= 4) {
 			sleep(1);
-			if ($loops === 4) {
-				break;
-			}
 			$loops++;
 		}
 	}
