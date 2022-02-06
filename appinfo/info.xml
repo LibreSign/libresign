@@ -30,7 +30,6 @@
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
         <php min-version="7.4" />
-        <command>java</command>
         <nextcloud min-version="23" max-version="23"/>
     </dependencies>
     <commands>
