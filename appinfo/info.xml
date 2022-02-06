@@ -34,9 +34,8 @@
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Cfssl</command>
-        <command>OCA\Libresign\Command\Install\Cfssl</command>
-        <command>OCA\Libresign\Command\Install\Java</command>
-        <command>OCA\Libresign\Command\Install\JSignPdf</command>
+        <command>OCA\Libresign\Command\Install</command>
+        <command>OCA\Libresign\Command\Uninstall</command>
     </commands>
     <settings>
         <admin>OCA\Libresign\Settings\Admin</admin>
