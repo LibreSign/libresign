@@ -319,10 +319,19 @@ class SignFileService {
 			}
 			$this->validateHelper->validateBase64($content);
 		} else {
-			$content = base64_decode($data['file']['base64']);
+			$content = $this->getFileFromBase64($data['file']['base64']);
 		}
 		$this->validatePdfStringWithFpdi($content);
 		return $content;
+	}
+
+	private function getFileFromBase64(string $base64): string {
+		$withMime = explode(',', $base64);
+		if (count($withMime) === 2) {
+			$withMime[0] = explode(';', $withMime[0]);
+			$base64 = $withMime[1];
+		}
+		return base64_decode($base64);
 	}
 
 	/**
