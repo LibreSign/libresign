@@ -48,6 +48,13 @@ const buildService = (http) => ({
 
 		return data
 	},
+	async loadApprovalList(id) {
+		const url = getAPIURL('/account/files/approval/list')
+
+		const { data } = await http.get(url)
+
+		return data
+	},
 })
 
 export { buildService }
