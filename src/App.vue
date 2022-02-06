@@ -41,7 +41,6 @@
 					icon="icon-file" />
 
 				<AppNavigationItem
-					v-if="settings.isApprover"
 					:to="{name: 'DocsAccountValidation'}"
 					:title="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
