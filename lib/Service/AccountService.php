@@ -532,6 +532,10 @@ class AccountService {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
 		foreach ($elements as $key => $element) {
+			$exists = $this->signatureFileExists($element);
+			if (!$exists) {
+				continue;
+			}
 			$return[] = [
 				'id' => $element->getId(),
 				'type' => $element->getType(),
@@ -547,8 +551,22 @@ class AccountService {
 		return $return;
 	}
 
+	private function signatureFileExists(UserElement $userElement): bool {
+		try {
+			$this->folderService->getFolder($userElement->getFileId());
+		} catch (\Exception $e) {
+			$this->userElementMapper->delete($userElement);
+			return false;
+		}
+		return true;
+	}
+
 	public function getUserElementByElementId($userId, $elementId): array {
 		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
+		$exists = $this->signatureFileExists($element);
+		if (!$exists) {
+			return [];
+		}
 		return [
 			'id' => $element->getId(),
 			'type' => $element->getType(),
