@@ -29,6 +29,16 @@ const libresignVar = getInitialState()
 const routes = [
 	// public
 	{
+		path: '/p/accout/files/approve/:uuid',
+		redirect: { name: selectAction(libresignVar.action) },
+	},
+	{
+		path: '/p/accout/files/approve/:uuid/pdf',
+		component: () => import('../views/SignPDF/SignPDF'),
+		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
+		name: 'AccountFileApprove',
+	},
+	{
 		path: '/p/sign/:uuid',
 		redirect: { name: selectAction(libresignVar.action) },
 	},
