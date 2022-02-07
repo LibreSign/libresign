@@ -5,6 +5,7 @@ namespace OCA\Libresign\Service;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
@@ -13,7 +14,6 @@ use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -256,11 +256,15 @@ class AccountService {
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
-	public function getConfig(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		try {
-			$info = $this->signFileService->getInfoOfFileToSign($uuid, $user, $formatOfPdfOnSign);
+			if ($typeOfUuid === 'file_user_uuid') {
+				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
+			} else {
+				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
+			}
 		} catch (LibresignException $e) {
-			$info = json_decode($e->getMessage());
+			$info = json_decode($e->getMessage(), true);
 		}
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
@@ -300,12 +304,7 @@ class AccountService {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
-		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
-		$signedUsers = array_filter($fileUser, function ($row) {
-			return !is_null($row->getSigned());
-		});
-
-		if (count($fileUser) === count($signedUsers)) {
+		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
 			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
 		} else {
 			$file = $userFolder->getById($fileData->getNodeId())[0];
