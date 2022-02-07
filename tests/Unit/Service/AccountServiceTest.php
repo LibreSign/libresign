@@ -11,7 +11,6 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
@@ -24,7 +23,6 @@ use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IURLGenerator;
-use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -388,33 +386,27 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetPdfByUuidWithSuccessAndSignedFile() {
 		$this->createUser('username', 'password');
 
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->will($this->returnValue(171));
+
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file
 			->expects($this->exactly(3))
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId')],
-				[$this->equalTo('getId')]
+				[$this->equalTo('getStatus')],
+				[$this->equalTo('getSignedNodeId')]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], 'username'],
-				['getId', [], 171]
+				['getStatus', [], \OCA\Libresign\Db\File::STATUS_SIGNED],
+				['getSignedNodeId', [], [$node]]
 			]));
 		$this->fileMapper
 			->method('getByUuid')
 			->will($this->returnValue($file));
 
-		$node = $this->createMock(\OCP\Files\File::class);
-		$node->method('getId')->will($this->returnValue(171));
-
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
-			->method('__call')
-			->with($this->equalTo('getSigned'))
-			->willReturn(true);
-		$this->fileUserMapper
-			->method('getByFileId')
-			->willReturn([$fileUser]);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder
 			->method('getById')
@@ -430,17 +422,22 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetPdfByUuidWithSuccessAndUnignedFile() {
 		$this->createUser('username', 'password');
 
+		$node = $this->createMock(\OCP\Files\File::class);
+		$node->method('getId')->will($this->returnValue(171));
+
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file
 			->expects($this->exactly(3))
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUserId')],
-				[$this->equalTo('getId')]
+				[$this->equalTo('getStatus')],
+				[$this->equalTo('getNodeId')]
 			)
 			->will($this->returnValueMap([
 				['getUserId', [], 'username'],
-				['getId', [], 171]
+				['getStatus', [], \OCA\Libresign\Db\File::STATUS_PARTIAL_SIGNED],
+				['getNodeId', [], [$node]]
 			]));
 		$this->fileMapper
 			->method('getByUuid')

@@ -838,7 +838,7 @@ class SignFileService {
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
 	 */
-	public function getInfoOfFileToSign(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+	public function getInfoOfFileToSignUsingFileUserUuid(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		$return = [];
 		if (!$uuid) {
 			return $return;
@@ -855,7 +855,7 @@ class SignFileService {
 		$this->trhowIfFileUserNotExists($uuid, $user, $fileUser);
 		$this->throwIfUserIsNotSigner($user, $fileUser);
 		$this->throwIfAlreadySigned($fileEntity, $fileUser);
-		$this->throwIfInvalidUser($fileUser, $uuid, $user);
+		$this->throwIfInvalidUser($uuid, $user);
 		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
 		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
 		if (count($fileToSign) < 1) {
@@ -867,11 +867,49 @@ class SignFileService {
 		/** @var File */
 		$fileToSign = $fileToSign[0];
 		$return = $this->getFileData($fileEntity, $user, $fileUser);
-		$return['sign']['pdf'] = $this->getFileUrl($formatOfPdfOnSign, $fileToSign, $uuid);
+		$return['sign']['pdf'] = $this->getFileUrl($formatOfPdfOnSign, $fileEntity, $fileToSign, $uuid);
 		return $return;
 	}
 
-	private function throwIfInvalidUser(FileUserEntity $fileUser, string $uuid, ?IUser $user) {
+	public function getInfoOfFileToSignUsingFileUuid(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+		$return = [];
+		if (!$uuid) {
+			return $return;
+		}
+		try {
+			$fileEntity = $this->fileMapper->getByUuid($uuid);
+			$this->accountFileMapper->getByFileId($fileEntity->getId());
+		} catch (DoesNotExistException $e) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]));
+		}
+		$this->throwIfAlreadySigned($fileEntity);
+		try {
+			$this->validateHelper->userCanApproveValidationDocuments($user);
+		} catch (LibresignException $e) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$e->getMessage()],
+			]));
+		}
+		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
+		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
+		if (count($fileToSign) < 1) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('File not found')],
+			]));
+		}
+		/** @var File */
+		$fileToSign = $fileToSign[0];
+		$return = $this->getFileData($fileEntity, $user);
+		$return['sign']['pdf'] = $this->getFileUrl($formatOfPdfOnSign, $fileEntity, $fileToSign, $uuid);
+		return $return;
+	}
+
+	private function throwIfInvalidUser(string $uuid, ?IUser $user) {
 		if (!$user) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
@@ -886,7 +924,7 @@ class SignFileService {
 		}
 	}
 
-	private function throwIfAlreadySigned(FileEntity $fileEntity, ?FileUserEntity $fileUser): void {
+	private function throwIfAlreadySigned(FileEntity $fileEntity, ?FileUserEntity $fileUser = null): void {
 		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
 			|| (!is_null($fileUser) && $fileUser->getSigned())
 		) {
@@ -936,7 +974,7 @@ class SignFileService {
 		}
 	}
 
-	private function getFileData(FileEntity $fileData, IUser $user, ?FileUserEntity $fileUser): array {
+	private function getFileData(FileEntity $fileData, IUser $user, ?FileUserEntity $fileUser = null): array {
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['sign'] = [
 			'uuid' => $fileData->getUuid(),
@@ -951,14 +989,19 @@ class SignFileService {
 		return $return;
 	}
 
-	private function getFileUrl($format, $fileToSign, $uuid): array {
+	private function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
 		$url = [];
 		switch ($format) {
 			case 'base64':
 				$url = ['base64' => base64_encode($fileToSign->getContent())];
 				break;
 			case 'url':
-				$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
+				try {
+					$this->accountFileMapper->getByFileId($fileEntity->getId());
+					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
+				} catch (DoesNotExistException $e) {
+					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
+				}
 				break;
 			case 'nodeId':
 				$url = ['nodeId' => $fileToSign->getId()];

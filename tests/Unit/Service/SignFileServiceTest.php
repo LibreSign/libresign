@@ -778,7 +778,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		} else {
 			$user = null;
 		}
-		$actual = $this->getService()->getInfoOfFileToSign($uuid, $user, $formatOfPdfOnSign);
+		$actual = $this->getService()->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
 		$actual = json_encode($actual);
 		$this->assertJsonStringEqualsJsonString(
 			$actual,
@@ -1342,7 +1342,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user->method('getUID')
 			->willReturn('username');
 
-		$actual = $this->getService()->getInfoOfFileToSign('uuid', $user, 'file');
+		$actual = $this->getService()->getInfoOfFileToSignUsingFileUserUuid('uuid', $user, 'file');
 		$this->assertJsonStringEqualsJsonString(
 			json_encode($actual),
 			json_encode([
