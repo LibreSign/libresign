@@ -5,6 +5,7 @@ namespace OCA\Libresign\Service;
 use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
@@ -13,7 +14,6 @@ use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -256,8 +256,16 @@ class AccountService {
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
-	public function getConfig(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
-		$info = $this->getInfoOfFileToSign($uuid, $user, $formatOfPdfOnSign);
+	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+		try {
+			if ($typeOfUuid === 'file_user_uuid') {
+				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
+			} else {
+				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
+			}
+		} catch (LibresignException $e) {
+			$info = json_decode($e->getMessage(), true);
+		}
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
@@ -270,104 +278,6 @@ class AccountService {
 		}
 		$userAccount = $this->accountManager->getAccount($user);
 		return $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-	}
-
-	/**
-	 * @return (array|int|mixed)[]
-	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
-	 */
-	private function getInfoOfFileToSign(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
-		$return = [];
-		try {
-			if (!$uuid) {
-				return $return;
-			}
-			$fileUser = $this->fileUserMapper->getByUuid($uuid);
-			$fileData = $this->fileMapper->getById($fileUser->getFileId());
-		} catch (\Throwable $th) {
-			$return['action'] = JSActions::ACTION_DO_NOTHING;
-			$return['errors'][] = $this->l10n->t('Invalid UUID');
-			return $return;
-		}
-		$fileUserId = $fileUser->getUserId();
-		if (!$fileUserId) {
-			if ($user) {
-				$return['action'] = JSActions::ACTION_DO_NOTHING;
-				$return['errors'][] = $this->l10n->t('This is not your file');
-				return $return;
-			}
-			$email = $fileUser->getEmail();
-			if ($this->userManager->userExists($email)) {
-				$return['action'] = JSActions::ACTION_REDIRECT;
-				$return['errors'][] = $this->l10n->t('User already exists. Please login.');
-				$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.page.sign',
-						['uuid' => $uuid]
-					),
-				]);
-				return $return;
-			}
-			$return['settings']['accountHash'] = md5($email);
-			$return['action'] = JSActions::ACTION_CREATE_USER;
-			return $return;
-		}
-		if ($fileUser->getSigned()) {
-			$return['action'] = JSActions::ACTION_SHOW_ERROR;
-			$return['uuid'] = $fileData->getUuid();
-			$return['errors'][] = $this->l10n->t('File already signed.');
-			return $return;
-		}
-		if (!$user) {
-			$return['action'] = JSActions::ACTION_REDIRECT;
-
-			$return['redirect'] = $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-				'redirect_url' => $this->urlGenerator->linkToRoute(
-					'libresign.page.sign',
-					['uuid' => $uuid]
-				),
-			]);
-			$return['errors'][] = $this->l10n->t('You are not logged in. Please log in.');
-			return $return;
-		}
-		if ($fileUserId !== $user->getUID()) {
-			$return['action'] = JSActions::ACTION_DO_NOTHING;
-			$return['errors'][] = $this->l10n->t('Invalid user');
-			return $return;
-		}
-		$userFolder = $this->root->getUserFolder($fileData->getUserId());
-		$fileToSign = $userFolder->getById($fileData->getNodeId());
-		if (count($fileToSign) < 1) {
-			$return['action'] = JSActions::ACTION_DO_NOTHING;
-			$return['errors'][] = $this->l10n->t('File not found');
-			return $return;
-		}
-		/** @var File */
-		$fileToSign = $fileToSign[0];
-		$return['action'] = JSActions::ACTION_SIGN;
-		$return['user']['name'] = $fileUser->getDisplayName();
-		$pdf = null;
-		switch ($formatOfPdfOnSign) {
-			case 'base64':
-				$pdf = ['base64' => base64_encode($fileToSign->getContent())];
-				break;
-			case 'url':
-				$pdf = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
-				break;
-			case 'nodeId':
-				$pdf = ['nodeId' => $fileToSign->getId()];
-				break;
-			case 'file':
-				$pdf = ['file' => $fileToSign];
-				break;
-		}
-		$return['sign'] = [
-			'pdf' => $pdf,
-			'uuid' => $fileData->getUuid(),
-			'filename' => $fileData->getName(),
-			'description' => $fileUser->getDescription()
-		];
-		return $return;
 	}
 
 	public function hasSignatureFile(?IUser $user = null): bool {
@@ -394,12 +304,7 @@ class AccountService {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
-		$fileUser = $this->fileUserMapper->getByFileId($fileData->getId());
-		$signedUsers = array_filter($fileUser, function ($row) {
-			return !is_null($row->getSigned());
-		});
-
-		if (count($fileUser) === count($signedUsers)) {
+		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
 			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
 		} else {
 			$file = $userFolder->getById($fileData->getNodeId())[0];

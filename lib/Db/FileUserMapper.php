@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Helper\Pagination;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -53,6 +54,7 @@ class FileUserMapper extends QBMapper {
 	 *
 	 * @param string $uuid
 	 * @return FileUser
+	 * @throws DoesNotExistException
 	 */
 	public function getByUuid(string $uuid): FileUser {
 		if (!isset($this->signers['fileUserUuid'][$uuid])) {

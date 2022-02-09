@@ -39,7 +39,7 @@
 		</ul>
 
 		<router-link tag="button" :to="{name: 'f.sign.detail', params: { uuid }}" class="primary">
-			{{ t('libresign', 'Details') }}
+			{{ t('libresign', 'Add visible signatures') }}
 		</router-link>
 	</div>
 </template>
