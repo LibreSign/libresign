@@ -43,6 +43,7 @@ class PageController extends Controller {
 	 */
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
@@ -65,6 +66,32 @@ class PageController extends Controller {
 	 */
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_user_uuid',
+			$uuid,
+			$this->userSession->getUser(),
+			'url'
+		)));
+
+		Util::addScript(Application::APP_ID, 'libresign-external');
+		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
+
+		$policy = new ContentSecurityPolicy();
+		$policy->addAllowedFrameDomain('\'self\'');
+		$response->setContentSecurityPolicy($policy);
+
+		return $response;
+	}
+
+	/**
+	 * Show signature page
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return TemplateResponse
+	 */
+	public function signAccountFile($uuid): TemplateResponse {
+		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
@@ -114,6 +141,7 @@ class PageController extends Controller {
 	 */
 	public function getPdfUser($uuid) {
 		$config = $this->accountService->getConfig(
+			'file_user_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'file'
@@ -141,6 +169,7 @@ class PageController extends Controller {
 	 */
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
@@ -162,6 +191,7 @@ class PageController extends Controller {
 	 */
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
@@ -182,6 +212,7 @@ class PageController extends Controller {
 	 */
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+			'file_user_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
