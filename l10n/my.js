@@ -26,7 +26,6 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "Select authorized groups." : "ခွင့်ပြုချက်ရှိ အဖွဲ့များရွေးပါ။",
     "View" : "ကြည့်ရန်",
-    "Subscriptions:" : "ပုံမှန်ကြေးများ - ",
     "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
     "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။",
     "Enter the ID or UUID of the document to validate." : "စာရွက်စာတမ်းကို ခိုင်လုံမှုစစ်ဆေးရန် ID သို့မဟုတ် UUID ဖြည့်သွင်းပါ။",
