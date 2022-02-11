@@ -17,7 +17,7 @@
     "test:coverage": "jest --collect-coverage"
   },
   "dependencies": {
-    "@fontsource/dancing-script": "^4.5.1",
+    "@fontsource/dancing-script": "^4.5.4",
     "@nextcloud/axios": "^1.9.0",
     "@nextcloud/dialogs": "^3.1.2",
     "@nextcloud/initial-state": "^1.2.1",

@@ -971,10 +971,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@fontsource/dancing-script@^4.5.1":
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/@fontsource/dancing-script/-/dancing-script-4.5.2.tgz#1d2fd702b888c35d6c21614997fa1e6130c04f77"
-  integrity sha512-LkTU/+4ksFMoCGq45UaGI9sqnKneeoVD23qFux1sbDkADMq43iqcnzg62yf7dBYwc6wBUAXULljaW9ZpPc/8aA==
+"@fontsource/dancing-script@^4.5.4":
+  version "4.5.4"
+  resolved "https://registry.yarnpkg.com/@fontsource/dancing-script/-/dancing-script-4.5.4.tgz#15f21a64ac9e32c57b5baa23c290188b939230bf"
+  integrity sha512-7TfUvCYVCGbVhNzpYS1fJzuQPR0HmgRvE4ZWLxji94P078Sp4wGfQ/w1DpSruWw0Zdt75VvAXHfcxM+P1x3nhw==
 
 "@hapi/address@2.x.x":
   version "2.1.4"
