@@ -36,7 +36,7 @@
 					<div class="infor-bg signed">
 						<div class="header">
 							<img class="icon" :src="signatureIcon">
-							<h1>{{ t('libresign', 'Subscriptions:') }}</h1>
+							<h1>{{ t('libresign', 'Signatories:') }}</h1>
 						</div>
 						<div class="infor-content">
 							<div v-for="item in document.signers"
