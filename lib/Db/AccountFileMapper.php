@@ -156,8 +156,19 @@ class AccountFileMapper extends QBMapper {
 			$count->selectAlias($count->func()->count(), 'total_results')
 				->from($this->getTableName(), 'af')
 				->setMaxResults(1);
+			if (!empty($filter['approved'])) {
+				if ($filter['approved'] === 'yes') {
+					$qb->andWhere(
+						$qb->expr()->eq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
+					);
+				} elseif ($filter['approved'] === 'yes') {
+					$qb->andWhere(
+						$qb->expr()->neq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
+					);
+				}
+			}
 			if (!empty($filter['userId'])) {
-				$qb->where(
+				$qb->andWhere(
 					$qb->expr()->eq('af.user_id', $qb->createNamedParameter($filter['userId'])),
 				);
 			}
