@@ -269,6 +269,7 @@ class AccountService {
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+		$info['settings']['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		return $info;
 	}
 
