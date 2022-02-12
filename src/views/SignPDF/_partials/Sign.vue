@@ -31,6 +31,11 @@ export default {
 			type: Object,
 			required: true,
 		},
+		docType: {
+			type: String,
+			required: false,
+			default: 'default',
+		},
 	},
 	data: () => ({
 		loading: true,
@@ -104,7 +109,11 @@ export default {
 					profileElementId: row.profileElementId,
 				}))
 
-			const payload = { fileId: this.uuid }
+			const fileId = this.docType === 'document-validate'
+				? this.fileId
+				: this.uuid
+
+			const payload = { fileId }
 
 			if (!isEmpty(elements)) {
 				payload.elements = elements

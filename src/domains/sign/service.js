@@ -25,7 +25,7 @@ const buildService = (http) => {
 		async signDocument({ fileId, password, elements, code }) {
 			const url = String(fileId).length >= 10
 				? getAPIURL(`sign/uuid/${fileId}`)
-				: getAPIURL(`sign/id/${fileId}`)
+				: getAPIURL(`sign/file_id/${fileId}`)
 
 			const payload = {
 				password,
