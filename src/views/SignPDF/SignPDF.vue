@@ -6,7 +6,7 @@
 
 		<Sidebar v-bind="{ document, loading }">
 			<Sign v-if="signEnabled"
-				v-bind="{ document, uuid }"
+				v-bind="{ document, uuid, docType }"
 				@signed="onSigned"
 				@update:phone="onPhoneUpdated" />
 			<div v-else>
@@ -22,7 +22,7 @@ import { showSuccess } from '@nextcloud/dialogs'
 import { defaultsDeep, set } from 'lodash-es'
 import { getInitialState } from '../../services/InitialStateService'
 import { canSign, getStatusLabel, service as signService } from '../../domains/sign'
-import { onError } from '../../helpers/errors'
+import { onError, showErrors } from '../../helpers/errors'
 import PDFViewer from './_partials/PDFViewer'
 import Sidebar from './_partials/Sidebar.vue'
 import Sign from './_partials/Sign.vue'
@@ -42,6 +42,7 @@ export default {
 	data() {
 		const state = defaultsDeep(getInitialState() || {}, {
 			action: 0,
+			errors: [],
 			user: {
 				name: '',
 			},
@@ -72,6 +73,11 @@ export default {
 		}
 	},
 	computed: {
+		docType() {
+			return this.$route.name === 'AccountFileApprove'
+				? 'document-validate'
+				: 'default'
+		},
 		documentUUID() {
 			return this.state?.sign?.uuid
 		},
@@ -93,6 +99,8 @@ export default {
 		},
 	},
 	mounted() {
+		showErrors(this.state.errors)
+
 		this.loading = true
 
 		this.loadDocument()
