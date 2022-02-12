@@ -28,40 +28,55 @@ export default {
 				this.loading = false
 			}
 		},
+
+		openApprove(doc) {
+			const route = this.$router.resolve({ name: 'AccountFileApprove', params: { uuid: doc.uuid } })
+			const url = new URL(window.location.toString())
+
+			url.pathname = route.href
+
+			window.open(url.toString())
+		},
 	},
 }
 </script>
 
 <template>
-	<Content class="container-account" app-name="libresign">
+	<Content class="container-account-docs-to-validate" app-name="libresign">
 		<!-- <pre>{{ documentList }}</pre> -->
 		<ProgressBar v-if="loading" infinity />
 
-		<table v-else class="libre-table is-fullwidth">
-			<thead>
-				<tr>
-					<td>
-						{{ t('libresign', 'Type') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Status') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Actions') }}
-					</td>
-				</tr>
-			</thead>
-			<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
-				<td>
-					{{ doc.file_type.name }}
-				</td>
-				<td>
-					{{ doc.status_text }}
-				</td>
-				<td class="actions">
-					--
-				</td>
-			</tr>
-		</table>
+		<div v-else class="is-fullwidth">
+			<table class="libre-table is-fullwidth">
+				<thead>
+					<tr>
+						<td>
+							{{ t('libresign', 'Type') }}
+						</td>
+						<td>
+							{{ t('libresign', 'Status') }}
+						</td>
+						<td>
+							{{ t('libresign', 'Actions') }}
+						</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+						<td>
+							{{ doc.file_type.name }}
+						</td>
+						<td>
+							{{ doc.status_text }}
+						</td>
+						<td class="actions">
+							<button @click="openApprove(doc)">
+								{{ t('libresign', 'Validate') }}
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</Content>
 </template>
