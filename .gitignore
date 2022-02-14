@@ -2,6 +2,8 @@
 .vscode
 *.iml
 /vendor/
+/tests/integration/vendor
+/tests/integration/output
 /js/
 /build/
 node_modules/
