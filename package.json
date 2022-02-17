@@ -80,7 +80,7 @@
     "jest-localstorage-mock": "^2.4.19",
     "jest-mock-axios": "^4.5.0",
     "jest-transform-stub": "^2.0.0",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "sass-loader": "^8.0.2",
     "stylelint": "^13.7.1",
     "stylelint-config-recommended-scss": "^4.2.0",
