@@ -39,6 +39,12 @@
 					:to="{name: 'validation'}"
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
+
+				<AppNavigationItem
+					v-if="settings.isApprover"
+					:to="{name: 'DocsAccountValidation'}"
+					:title="t('libresign', 'Documents Validation')"
+					icon="icon-user" />
 			</template>
 			<template #footer>
 				<AppNavigationSettings :title="t('libresign', 'Settings')">
@@ -71,6 +77,10 @@ import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
+import { getInitialState } from './services/InitialStateService'
+import { defaults } from 'lodash-es'
+
+const libresignState = getInitialState()
 
 export default {
 	name: 'App',
@@ -85,6 +95,12 @@ export default {
 	},
 	data() {
 		return {
+			settings: defaults({}, libresignState?.settings || {}, {
+				hasSignatureFile: false,
+				isApprover: false,
+				phoneNumber: '',
+				signMethod: 'password',
+			}),
 			loading: false,
 			icon: Icon,
 		}
