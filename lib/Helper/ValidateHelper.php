@@ -563,11 +563,15 @@ class ValidateHelper {
 		}
 	}
 
-	public function userCanApproveValidationDocuments(IUser $user): void {
+	public function userCanApproveValidationDocuments(IUser $user, bool $throw = true): bool {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!$authorized || !array_intersect($userGroups, $authorized)) {
-			throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
+			if ($throw) {
+				throw new LibresignException($this->l10n->t('You are not allowed to approve user profile documents.'));
+			}
+			return false;
 		}
+		return true;
 	}
 }

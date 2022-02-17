@@ -1,0 +1,8 @@
+{
+    "require": {
+        "behat/behat": "^3.10",
+        "phpunit/phpunit": "^9.5",
+        "guzzlehttp/guzzle": "^7.4",
+        "jarnaiz/behat-junit-formatter": "^1.3"
+    }
+}
