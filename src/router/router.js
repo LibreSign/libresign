@@ -29,7 +29,7 @@ const libresignVar = getInitialState()
 const routes = [
 	// public
 	{
-		path: '/p/accout/files/approve/:uuid',
+		path: '/p/account/files/approve/:uuid',
 		component: () => import('../views/SignPDF/SignPDF'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'AccountFileApprove',
@@ -103,6 +103,10 @@ const routes = [
 		path: '/f/account',
 		component: () => import('../views/Account/Account'),
 		name: 'Account',
+	}, {
+		path: '/f/docs/accounts/validation',
+		component: () => import('../views/Documents/AccountValidation'),
+		name: 'DocsAccountValidation',
 	}, {
 		path: '/f/create-password',
 		component: () => import('../views/CreatePassword'),
