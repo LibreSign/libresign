@@ -2,7 +2,7 @@
 import { find, get } from 'lodash-es'
 import { getFilePickerBuilder, showWarning, showSuccess } from '@nextcloud/dialogs'
 import ProgressBar from '../../../Components/ProgressBar'
-import { documentsService } from '../../../domains/documents'
+import { documentsService, parseDocument } from '../../../domains/documents'
 import { pathJoin } from '../../../helpers/path'
 import { onError } from '../../../helpers/errors'
 
@@ -16,7 +16,7 @@ const FILE_TYPE_INFO = {
 	},
 }
 
-const findDocumentByType = (list, type) => { // TODO: fix contract
+const findDocumentByType = (list, type) => {
 	return find(list, row => get(row, ['file_type', 'type']) === type) || {
 		nodeId: 0,
 		uuid: '',
@@ -66,17 +66,7 @@ export default {
 			try {
 				const { data } = await documentsService.loadAccountList()
 
-				this.documentList = data.map(row => {
-					const { file } = row
-					return {
-						uuid: file.uuid,
-						nodeId: file.file.nodeId,
-						file_type: row.file_type,
-						name: file.name,
-						status: file.status,
-						status_text: file.status_text,
-					}
-				})
+				this.documentList = data.map(parseDocument)
 			} catch (err) {
 				onError(err)
 			} finally {
