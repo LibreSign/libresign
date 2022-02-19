@@ -34,6 +34,7 @@ import './directives/VTooltip'
 import './plugins/vuelidate'
 import './init'
 
+import './assets/styles/main.scss'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 // CSP config for webpack dynamic chunk loading
