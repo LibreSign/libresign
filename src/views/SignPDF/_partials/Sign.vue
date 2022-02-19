@@ -91,8 +91,11 @@ export default {
 		hasPassword() {
 			return !!this.user?.settings?.hasSignatureFile
 		},
+		needPassword() {
+			return this.signMethod === 'password'
+		},
 		ableToSign() {
-			if (!this.hasPassword) {
+			if (this.needPassword && !this.hasPassword) {
 				return false
 			}
 
@@ -244,12 +247,12 @@ export default {
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</button>
 			</div>
-			<div v-if="!hasSignatures">
+			<div v-if="needSignature && !hasSignatures" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button" @click="goToSignatures">
+				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
 					{{ t('libresign', 'Define your signature.') }}
 				</button>
 			</div>
@@ -293,5 +296,9 @@ export default {
 		display: block;
 		margin: 0 auto;
 	}
+}
+
+.no-signature-warning {
+	margin-top: 1em;
 }
 </style>
