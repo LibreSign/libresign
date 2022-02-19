@@ -563,7 +563,11 @@ class ValidateHelper {
 		}
 	}
 
-	public function userCanApproveValidationDocuments(IUser $user, bool $throw = true): bool {
+	public function userCanApproveValidationDocuments(?IUser $user, bool $throw = true): bool {
+		if ($user == null) {
+			return false;
+		}
+
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!$authorized || !array_intersect($userGroups, $authorized)) {
