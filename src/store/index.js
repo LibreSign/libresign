@@ -58,7 +58,7 @@ export default new Store({
 			Vue.set(state.pdfData, 'filename', pdfData.filename)
 		},
 		setHasPfx(state, haspfx) {
-			Vue.set(state.settings.data.settings, 'hasSignatureFile', haspfx)
+			Vue.set(state.settings, 'hasSignatureFile', haspfx)
 		},
 		setUuidToValidate(state, uuid) {
 			state.uuidToValidate = uuid
@@ -82,7 +82,7 @@ export default new Store({
 			return libresignVar.errors
 		},
 		getHasPfx(state) {
-			return state.settings.data.settings.hasSignatureFile
+			return state.settings.hasSignatureFile
 		},
 		getPdfData(state) {
 			return state.pdfData
