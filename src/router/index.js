@@ -29,8 +29,7 @@ import store from '../store'
 
 Vue.use(Router)
 
-store.dispatch('user/GET_INITIAL_SETTINGS')
-const libresignVar = store.getters.getSettings
+const libresignVar = store.state.settings
 
 const base = generateUrl('/apps/libresign')
 
