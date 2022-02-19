@@ -38,7 +38,10 @@
 			</li>
 		</ul>
 
-		<router-link tag="button" :to="{name: 'f.sign.detail', params: { uuid }}" class="primary">
+		<router-link v-if="isRequester"
+			tag="button"
+			:to="{name: 'f.sign.detail', params: { uuid }}"
+			class="primary">
 			{{ t('libresign', 'Add visible signatures') }}
 		</router-link>
 	</div>
@@ -52,7 +55,7 @@ import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import { get } from 'lodash-es'
+import { get, find } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
@@ -69,6 +72,11 @@ export default {
 		...mapGetters('files', {
 			currentFile: 'getFile',
 		}),
+		isRequester() {
+			const uid = get(this.currentFile, ['requested_by', 'uid'])
+			const signer = find(this.currentFile?.signers, row => row.me)
+			return signer?.uid === uid
+		},
 		signers() {
 			return get(this.currentFile, 'signers', [])
 		},
