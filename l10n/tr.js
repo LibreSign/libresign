@@ -120,6 +120,7 @@ OC.L10N.register(
     "Files" : "Dosyalar",
     "Request" : "İste",
     "Validate" : "Doğrula",
+    "Documents Validation" : "Belge doğrulaması",
     "Settings" : "Ayarlar",
     "LibreSign, digital signature app for Nextcloud." : "Nextcloud için LibreSign sayısal imzalama uygulaması.",
     "Authentication required" : "Kimlik doğrulaması gerekli",
