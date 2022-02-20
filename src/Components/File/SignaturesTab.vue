@@ -19,7 +19,7 @@
 					</div>
 					<div v-if="showDivButtons(sign)" class="container-actions">
 						<div v-if="showSignButton(sign)" class="container-dot container-btn">
-							<button class="primary" @click="changeToSignTab">
+							<button class="primary" @click="goToSign(sign)">
 								{{ t('libresign', 'Sign') }}
 							</button>
 						</div>
@@ -148,8 +148,13 @@ export default {
 		showButton(signPerson) {
 			return !!(signPerson.me && !signPerson.sign_date)
 		},
-		changeToSignTab() {
-			this.$emit('change-sign-tab', 'sign')
+		goToSign(sign) {
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: sign.sign_uuid } })
+			const url = new URL(window.location.toString())
+
+			url.pathname = route.href
+
+			window.open(url.toString())
 		},
 		showSignButton(user) {
 			if (user.me) {
