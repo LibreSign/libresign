@@ -17,6 +17,7 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -309,6 +310,9 @@ class AccountService {
 			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
 		} else {
 			$file = $userFolder->getById($fileData->getNodeId())[0];
+		}
+		if (empty($file)) {
+			throw new DoesNotExistException('Not found');
 		}
 		return $file;
 	}
