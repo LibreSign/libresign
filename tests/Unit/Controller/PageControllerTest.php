@@ -4,6 +4,7 @@ namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Service\AccountService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -71,7 +72,7 @@ final class PageControllerTest extends TestCase {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$this->accountService
 			->method('getPdfByUuid')
-			->willThrowException($this->createMock(\Exception::class));
+			->willThrowException($this->createMock(DoesNotExistException::class));
 
 		$response = $this->controller->getPdf('uuid');
 		$this->assertInstanceOf(\OCP\AppFramework\Http\DataResponse::class, $response);
