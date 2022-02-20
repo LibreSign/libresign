@@ -91,8 +91,11 @@ export default {
 		hasPassword() {
 			return !!this.user?.settings?.hasSignatureFile
 		},
+		needPassword() {
+			return this.signMethod === 'password'
+		},
 		ableToSign() {
-			if (!this.hasPassword) {
+			if (this.needPassword && !this.hasPassword) {
 				return false
 			}
 
@@ -235,7 +238,7 @@ export default {
 			</button>
 		</div>
 		<div v-else-if="!loading">
-			<div v-if="!hasPassword">
+			<div v-if="needPassword && !hasPassword">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
@@ -244,14 +247,19 @@ export default {
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</button>
 			</div>
-			<div v-if="!hasSignatures">
+			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button" @click="goToSignatures">
+				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
 					{{ t('libresign', 'Define your signature.') }}
 				</button>
+			</div>
+			<div v-else>
+				<p>
+					{{ t('libresign', 'Unable to sign.') }}
+				</p>
 			</div>
 		</div>
 		<PasswordManager
@@ -292,6 +300,16 @@ export default {
 	button {
 		display: block;
 		margin: 0 auto;
+	}
+}
+
+.no-signature-warning {
+	margin-top: 1em;
+}
+
+.sign-elements {
+	img {
+		max-width: 100%;
 	}
 }
 </style>
