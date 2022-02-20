@@ -9,6 +9,9 @@ default:
         - FeatureContext
 
   extensions:
+      LibreCode\Server\ServiceContainer\CallExtension:
+        verbose: true
+        rootDir: /var/www/html
       jarnaiz\JUnitFormatter\JUnitFormatterExtension:
-          filename: report.xml
-          outputDir: '%paths.base%/../output/'
+        filename: report.xml
+        outputDir: '%paths.base%/../output/'

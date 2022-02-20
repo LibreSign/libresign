@@ -2,15 +2,18 @@
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
+use Features\ServerTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\ClientException;
+use LibreCode\Server\RunServerListener;
 use PHPUnit\Framework\Assert;
 
 /**
  * Defines application features from the specific context.
  */
 class FeatureContext implements Context {
+	// use ServerTrait;
 	public const TEST_PASSWORD = '123456';
 
 	/** @var string */
@@ -30,7 +33,7 @@ class FeatureContext implements Context {
 	 */
 	public function __construct() {
 		$this->cookieJars = [];
-		$this->baseUrl = getenv('TEST_SERVER_URL');
+		$this->baseUrl = RunServerListener::getServerRoot();
 	}
 
 	public function sendOCSRequest($verb, $url, $body = null, array $headers = []) {
