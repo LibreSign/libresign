@@ -34,6 +34,7 @@ import './directives/VTooltip'
 import './plugins/vuelidate'
 import './init'
 
+import './assets/styles/main.scss'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 // CSP config for webpack dynamic chunk loading
@@ -58,8 +59,6 @@ Vue.prototype.OCA = OCA
 if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
 	router.push({ name: 'ExternalRoot' })
 }
-
-store.dispatch('user/GET_INITIAL_SETTINGS')
 
 export default new Vue({
 	el: '#content',
