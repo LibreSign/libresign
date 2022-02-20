@@ -120,6 +120,7 @@ OC.L10N.register(
     "Files" : "Dateien",
     "Request" : "Anfrage",
     "Validate" : "Überprüfen",
+    "Documents Validation" : "Dokumentenvalidierung",
     "Settings" : "Einstellungen",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digitale Signatur-App für Nextcloud",
     "Authentication required" : "Authentifizierung benötigt",
