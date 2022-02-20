@@ -1,7 +1,7 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
-import { get, pick, find, map, cloneDeep } from 'lodash-es'
+import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import { service as signService, SIGN_STATUS } from '../../domains/sign'
 import Sidebar from './partials/Sidebar.vue'
@@ -69,7 +69,13 @@ export default {
 		pages() {
 			return get(this.document, 'pages', [])
 		},
+		canSign() {
+			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
+				return false
+			}
 
+			return !isEmpty(this.signerFileUuid)
+		},
 		status() {
 			return Number(get(this.document, 'status', -1))
 		},
@@ -104,6 +110,9 @@ export default {
 		},
 		editingElement() {
 			return this.currentSigner.element.elementId > 0
+		},
+		signerFileUuid() {
+			return get(this.document, ['settings', 'signerFileUuid'])
 		},
 	},
 	async mounted() {
@@ -176,6 +185,11 @@ export default {
 					this.currentSigner.element.coordinates.page = page
 				}
 			})
+		},
+		goToSign() {
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
+
+			window.location.href = route.href
 		},
 		async publish() {
 			const allow = confirm(t('libresign', 'Request signatures?'))
@@ -279,6 +293,10 @@ export default {
 
 				<button v-if="isDraft" class="primary publish-btn" @click="publish">
 					{{ t('libresign', 'Request') }}
+				</button>
+
+				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
+					{{ t('libresign', 'Sign') }}
 				</button>
 			</Sidebar>
 		</div>

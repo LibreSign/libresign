@@ -28,6 +28,7 @@ import files from './modules/files'
 import sign from './modules/sign'
 import validate from './modules/validate'
 import error from './modules/errors'
+import settings from './modules/settings'
 import user from './modules/user'
 import { getInitialState } from '../services/InitialStateService'
 
@@ -40,7 +41,6 @@ export default new Store({
 	state: {
 		errors: [],
 		pdfData: {},
-		settings: {},
 		uuidToValidate: '',
 	},
 
@@ -57,11 +57,8 @@ export default new Store({
 			Vue.set(state.pdfData, 'description', pdfData.description)
 			Vue.set(state.pdfData, 'filename', pdfData.filename)
 		},
-		setSettings(state, settings) {
-			Vue.set(state.settings, 'data', settings)
-		},
 		setHasPfx(state, haspfx) {
-			Vue.set(state.settings.data.settings, 'hasSignatureFile', haspfx)
+			Vue.set(state.settings, 'hasSignatureFile', haspfx)
 		},
 		setUuidToValidate(state, uuid) {
 			state.uuidToValidate = uuid
@@ -84,11 +81,8 @@ export default new Store({
 		getError(state) {
 			return libresignVar.errors
 		},
-		getSettings(state) {
-			return state.settings
-		},
 		getHasPfx(state) {
-			return state.settings.data.settings.hasSignatureFile
+			return state.settings.hasSignatureFile
 		},
 		getPdfData(state) {
 			return state.pdfData
@@ -99,6 +93,7 @@ export default new Store({
 	},
 
 	modules: {
+		settings,
 		sidebar,
 		files,
 		sign,

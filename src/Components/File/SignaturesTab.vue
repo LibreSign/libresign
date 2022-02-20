@@ -19,7 +19,7 @@
 					</div>
 					<div v-if="showDivButtons(sign)" class="container-actions">
 						<div v-if="showSignButton(sign)" class="container-dot container-btn">
-							<button class="primary" @click="changeToSignTab">
+							<button class="primary" @click="goToSign(sign)">
 								{{ t('libresign', 'Sign') }}
 							</button>
 						</div>
@@ -38,7 +38,10 @@
 			</li>
 		</ul>
 
-		<router-link tag="button" :to="{name: 'f.sign.detail', params: { uuid }}" class="primary">
+		<router-link v-if="isRequester"
+			tag="button"
+			:to="{name: 'f.sign.detail', params: { uuid }}"
+			class="primary">
 			{{ t('libresign', 'Add visible signatures') }}
 		</router-link>
 	</div>
@@ -52,7 +55,7 @@ import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import { get } from 'lodash-es'
+import { get, find } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
@@ -69,6 +72,11 @@ export default {
 		...mapGetters('files', {
 			currentFile: 'getFile',
 		}),
+		isRequester() {
+			const uid = get(this.currentFile, ['requested_by', 'uid'])
+			const signer = find(this.currentFile?.signers, row => row.me)
+			return signer?.uid === uid
+		},
 		signers() {
 			return get(this.currentFile, 'signers', [])
 		},
@@ -140,8 +148,13 @@ export default {
 		showButton(signPerson) {
 			return !!(signPerson.me && !signPerson.sign_date)
 		},
-		changeToSignTab() {
-			this.$emit('change-sign-tab', 'sign')
+		goToSign(sign) {
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: sign.sign_uuid } })
+			const url = new URL(window.location.toString())
+
+			url.pathname = route.href
+
+			window.open(url.toString())
 		},
 		showSignButton(user) {
 			if (user.me) {

@@ -1,7 +1,7 @@
 <template>
 	<div class="container-timeline">
 		<div class="content-timeline">
-			<div class="filtered" vif>
+			<div class="filtered">
 				<a :class="filterActive === 3 ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
 					{{ t('libresign', 'All Files') }}
 				</a>
