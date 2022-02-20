@@ -26,6 +26,13 @@
 		<AppNavigation>
 			<template #list>
 				<AppNavigationItem
+					v-if="back_to_signature"
+					class="back_to_signature"
+					icon="icon-history"
+					:title="t('libresign', 'Back to sign.')"
+					exact
+					@click="goToSign" />
+				<AppNavigationItem
 					:to="{ name: 'signFiles' }"
 					:title="t('libresign', 'Files')"
 					icon="icon-files-dark"
@@ -106,8 +113,18 @@ export default {
 		}
 	},
 	computed: {
+		back_to_signature() {
+			return this.$route.query._back_to_signature
+		},
 		isRoot() {
 			return this.$route.path === '/'
+		},
+	},
+	methods: {
+		goToSign() {
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.back_to_signature } })
+
+			window.location = route.href
 		},
 	},
 }
@@ -129,5 +146,11 @@ export default {
 	img{
 		width: 400px;
 	}
+}
+</style>
+
+<style>
+.back_to_signature .app-navigation-entry__title {
+	color: var(--color-warning, #eca700);
 }
 </style>
