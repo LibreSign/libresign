@@ -156,14 +156,14 @@ class FileUserMapper extends QBMapper {
 	public function getByNodeId(int $nodeId) {
 		if (!isset($this->signers['nodeId'][$nodeId])) {
 			$qb = $this->db->getQueryBuilder();
-	
+
 			$qb->select('fu.*')
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 				->where(
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId))
 				);
-	
+
 			$this->signers['nodeId'][$nodeId] = $this->findEntities($qb);
 		}
 		return $this->signers['nodeId'][$nodeId];
@@ -244,7 +244,7 @@ class FileUserMapper extends QBMapper {
 	public function getByFileIdAndFileUserId(int $fileId, int $fileUserId): FileUser {
 		if (!isset($this->signers['fileId'][$fileId][$fileUserId])) {
 			$qb = $this->db->getQueryBuilder();
-	
+
 			$qb->select('fu.*')
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
@@ -254,7 +254,7 @@ class FileUserMapper extends QBMapper {
 				->andWhere(
 					$qb->expr()->eq('fu.id', $qb->createNamedParameter($fileUserId))
 				);
-	
+
 			$this->signers['fileId'][$fileId][$fileUserId] = $this->findEntity($qb);
 		}
 		return $this->signers['fileId'][$fileId][$fileUserId];
@@ -351,6 +351,11 @@ class FileUserMapper extends QBMapper {
 						'fileUserId' => $signer->getId(),
 						'me' => $userId === $signer->getUserId()
 					];
+
+					if ($data['me']) {
+						$data['sign_uuid'] = $signer->getUuid();
+					}
+
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())
 							->setTimestamp($signer->getSigned())
