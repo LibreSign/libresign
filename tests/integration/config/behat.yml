@@ -9,9 +9,7 @@ default:
         - FeatureContext
 
   extensions:
-      LibreCode\Server\ServiceContainer\CallExtension:
-        rootDir: /var/www/html
-        verbose: false
+      PhpBuiltin\Server: ~
       jarnaiz\JUnitFormatter\JUnitFormatterExtension:
         filename: report.xml
         outputDir: '%paths.base%/../output/'
