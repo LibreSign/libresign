@@ -10,7 +10,6 @@ default:
 
   extensions:
       LibreCode\Server\ServiceContainer\CallExtension:
-        verbose: true
         rootDir: /var/www/html
       jarnaiz\JUnitFormatter\JUnitFormatterExtension:
         filename: report.xml

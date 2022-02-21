@@ -45,7 +45,7 @@ final class CallExtension implements Extension {
 			->children()
 				->booleanNode('verbose')
 					->info('Enables/disables verbose mode')
-					->defaultTrue()
+					->defaultFalse()
 				->end()
 				->scalarNode('rootDir')
 					->info('Specifies http root dir')
@@ -67,10 +67,23 @@ final class CallExtension implements Extension {
 	{
 		$definition = (new Definition('LibreCode\Server\RunServerListener'))
 			->addTag('event_dispatcher.subscriber')
-			->setArguments([$config['verbose'], $config['rootDir']])
+			->setArguments([$this->getVerboseLevel($container), $config['rootDir']])
 		;
 
 		$container->setDefinition('php_server.listener', $definition);
+	}
+
+	private function getVerboseLevel(ContainerBuilder $container): ?int {
+		$input = $container->get('cli.input');
+		if ($input->hasParameterOption('--verbose')) {
+			$verbose = $input->getParameterOption('--verbose');
+			return (int)($verbose ?? 0);
+		}
+		if ($input->hasParameterOption('-v')) {
+			$verbose = $input->getParameterOption('-v');
+			return strlen($verbose);
+		}
+		return null;
 	}
 
 	/**

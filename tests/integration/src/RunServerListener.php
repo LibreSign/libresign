@@ -15,7 +15,8 @@ class RunServerListener implements EventSubscriberInterface {
 	private static $host = '127.0.0.1';
 	/** @var int */
 	private static $port = 0;
-	private $verbose = false;
+	/** @var ?int */
+	private $verbose = null;
 	/** @var string */
 	private $rootDir;
 
@@ -47,7 +48,7 @@ class RunServerListener implements EventSubscriberInterface {
 
 		$cmd = 'php -S ' . self::$host .':' . self::$port . ' -t ' . $script;
 
-		if ($this->verbose) {
+		if (is_numeric($this->verbose)) {
 			$verbose = '';
 		} else {
 			$verbose = '2>&1';
