@@ -1419,10 +1419,10 @@
   dependencies:
     core-js "3.6.1"
 
-"@nextcloud/browserslist-config@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@nextcloud/browserslist-config/-/browserslist-config-1.0.0.tgz#e25f492f66ca5870621f10c21ebb7c47ae91c023"
-  integrity sha512-f+sKpdLZXkODV+OY39K1M+Spmd4RgxmtEXmNn4Bviv4R7uBFHXuw+JX9ZdfDeOryfHjJ/TRQxQEp0GMpBwZFUw==
+"@nextcloud/browserslist-config@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@nextcloud/browserslist-config/-/browserslist-config-2.2.0.tgz#85c2b9363b4aa98ea534576b9f9094cc0afa8f78"
+  integrity sha512-kC42RQW5rZjZZsRaEjVlIQpp6aW/yxm+zZdETnrRQnUzcPwBgF4wO4makfGT63Ckd+LkgUW+geesPiPRqxFVew==
 
 "@nextcloud/calendar-js@^3.0.0":
   version "3.0.0"
