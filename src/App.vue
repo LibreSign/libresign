@@ -29,7 +29,7 @@
 					v-if="back_to_signature"
 					class="back_to_signature"
 					icon="icon-history"
-					:title="t('libresign', 'Back to sign.')"
+					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
 				<AppNavigationItem
