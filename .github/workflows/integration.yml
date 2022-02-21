@@ -94,5 +94,7 @@ jobs:
 
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
+        env:
+          ROOT_DIR: ../../../../
         run: |
           vendor/bin/behat -f junit -f pretty
