@@ -9,28 +9,17 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
 final class CallExtension implements Extension {
+	public const ID = 'php_builtin_server';
 	/**
 	 * Returns the extension config key.
 	 *
 	 * @return string
 	 */
-	public function getConfigKey()
-	{
-		return 'php_server';
+	public function getConfigKey() {
+		return self::ID;
 	}
 
-	/**
-	 * Initializes other extensions.
-	 *
-	 * This method is called immediately after all extensions are activated but
-	 * before any extension `configure()` method is called. This allows extensions
-	 * to hook into the configuration of other extensions providing such an
-	 * extension point.
-	 *
-	 * @param ExtensionManager $extensionManager
-	 */
-	public function initialize(ExtensionManager $extensionManager)
-	{
+	public function initialize(ExtensionManager $extensionManager) {
 
 	}
 
@@ -39,8 +28,7 @@ final class CallExtension implements Extension {
 	 *
 	 * @param ArrayNodeDefinition $builder
 	 */
-	public function configure(ArrayNodeDefinition $builder)
-	{
+	public function configure(ArrayNodeDefinition $builder) {
 		$builder
 			->children()
 				->booleanNode('verbose')
@@ -53,8 +41,6 @@ final class CallExtension implements Extension {
 				->end()
 			->end()
 		;
-
-
 	}
 
 	/**
@@ -63,14 +49,13 @@ final class CallExtension implements Extension {
 	 * @param ContainerBuilder $container
 	 * @param array $config
 	 */
-	public function load(ContainerBuilder $container, array $config)
-	{
+	public function load(ContainerBuilder $container, array $config): void {
 		$definition = (new Definition('LibreCode\Server\RunServerListener'))
 			->addTag('event_dispatcher.subscriber')
 			->setArguments([$this->getVerboseLevel($container), $config['rootDir']])
 		;
 
-		$container->setDefinition('php_server.listener', $definition);
+		$container->setDefinition(self::ID . '.listener', $definition);
 	}
 
 	private function getVerboseLevel(ContainerBuilder $container): ?int {
@@ -86,15 +71,6 @@ final class CallExtension implements Extension {
 		return null;
 	}
 
-	/**
-	 * You can modify the container here before it is dumped to PHP code.
-	 *
-	 * @param ContainerBuilder $container
-	 *
-	 * @api
-	 */
-	public function process(ContainerBuilder $container)
-	{
-
+	public function process(ContainerBuilder $container) {
 	}
 }

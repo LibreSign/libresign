@@ -166,7 +166,7 @@ class RunServerListener implements EventSubscriberInterface {
 		throw new RuntimeException('Failed to find open port');
 	}
 
-	public static function afterSuite(AfterSuiteTested $event) {
-		$oi = 1;
+	public function afterSuite(AfterSuiteTested $event) {
+		$this->stop();
 	}
 }
