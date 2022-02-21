@@ -206,7 +206,7 @@ export default {
 			this.modals.password = true
 		},
 		goToSignatures() {
-			const url = this.$router.resolve({ name: 'Account' })
+			const url = this.$router.resolve({ name: 'Account', query: { _back_to_signature: this.uuid } })
 
 			window.location.href = url.href
 		},
