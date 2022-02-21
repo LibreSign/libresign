@@ -115,7 +115,11 @@ class RunServerListener implements EventSubscriberInterface {
 	}
 
 	public function killZombies() {
-		$pids = trim(shell_exec('ps -eo pid,command|grep "php -S ' . self::$host . '"|grep -v grep|sed -e "s/^[[:space:]]*//"|cut -d" " -f1'));
+		$cmd = 'ps -eo pid,command|' .
+			'grep "php -S ' . self::$host . '"|' .
+			'grep -v grep|' .
+			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$pids = trim(shell_exec($cmd));
 		$pids = explode("\n", $pids);
 		foreach ($pids as $pid) {
 			if ($pid) {
