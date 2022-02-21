@@ -20,14 +20,12 @@ class RunServerListener implements EventSubscriberInterface {
 	/** @var string */
 	private $rootDir;
 
-	public function __construct($verbose, $rootDir)
-	{
+	public function __construct($verbose, $rootDir) {
 		$this->verbose = $verbose;
 		$this->rootDir = $rootDir;
 	}
 
-	public static function getSubscribedEvents()
-	{
+	public static function getSubscribedEvents() {
 		return array(
 			BeforeSuiteTested::BEFORE   => 'beforeSuite',
 			BeforeSuiteTeardown::AFTER  => 'afterSuite'
@@ -36,11 +34,11 @@ class RunServerListener implements EventSubscriberInterface {
 
 	public function beforeSuite(BeforeSuiteTested $event) {
 		$this->killZombies();
-		if( $this->isRunning() ) {
+		if ($this->isRunning()) {
 			return;
 		}
 
-		if( self::$port == 0 ) {
+		if (self::$port == 0) {
 			self::$port = $this->findOpenPort();
 		}
 
@@ -61,11 +59,11 @@ class RunServerListener implements EventSubscriberInterface {
 
 		$this->pid = exec($fullCmd);
 
-		if( !ctype_digit($this->pid) ) {
+		if (!ctype_digit($this->pid)) {
 			throw new ServerException('Error starting server, received ' . $this->pid . ', expected int PID');
 		}
 
-		for( $i = 0; $i <= 20; $i++ ) {
+		for ($i = 0; $i <= 20; $i++) {
 			usleep(100000);
 
 			$open = @fsockopen(self::$host, self::$port);
@@ -75,12 +73,12 @@ class RunServerListener implements EventSubscriberInterface {
 			}
 		}
 
-		if( !$this->isRunning() ) {
+		if (!$this->isRunning()) {
 			throw new ServerException('Failed to start server. Is something already running on port ' . self::$port . '?');
 		}
 
 		register_shutdown_function(function () {
-			if( $this->isRunning() ) {
+			if ($this->isRunning()) {
 				$this->stop();
 			}
 		});
@@ -92,7 +90,7 @@ class RunServerListener implements EventSubscriberInterface {
 	 * @return bool
 	 */
 	public function isRunning() {
-		if( !$this->pid ) {
+		if (!$this->pid) {
 			return false;
 		}
 
@@ -105,7 +103,7 @@ class RunServerListener implements EventSubscriberInterface {
 	 * Stop the Web Server
 	 */
 	public function stop() {
-		if( $this->pid ) {
+		if ($this->pid) {
 			exec(sprintf('kill %d',
 				$this->pid));
 		}
@@ -156,14 +154,14 @@ class RunServerListener implements EventSubscriberInterface {
 		$sock = socket_create(AF_INET, SOCK_STREAM, 0);
 
 		// Bind the socket to an address/port
-		if( !socket_bind($sock, self::$host, 0) ) {
+		if (!socket_bind($sock, self::$host, 0)) {
 			throw new RuntimeException('Could not bind to address');
 		}
 
 		socket_getsockname($sock, $checkAddress, $checkPort);
 		socket_close($sock);
 
-		if( $checkPort > 0 ) {
+		if ($checkPort > 0) {
 			return $checkPort;
 		}
 
