@@ -2,7 +2,6 @@
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
-use Features\ServerTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\ClientException;
@@ -13,7 +12,6 @@ use PHPUnit\Framework\Assert;
  * Defines application features from the specific context.
  */
 class FeatureContext implements Context {
-	// use ServerTrait;
 	public const TEST_PASSWORD = '123456';
 
 	/** @var string */

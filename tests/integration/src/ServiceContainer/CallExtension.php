@@ -20,7 +20,6 @@ final class CallExtension implements Extension {
 	}
 
 	public function initialize(ExtensionManager $extensionManager) {
-
 	}
 
 	/**
@@ -51,9 +50,10 @@ final class CallExtension implements Extension {
 	 */
 	public function load(ContainerBuilder $container, array $config): void {
 		$verbose = $config['verbose'] ? 1 : $this->getVerboseLevel($container);
+		$rootDir = realpath(getenv('ROOT_DIR') ?? $config['rootDir']);
 		$definition = (new Definition('LibreCode\Server\RunServerListener'))
 			->addTag('event_dispatcher.subscriber')
-			->setArguments([$verbose, $config['rootDir']])
+			->setArguments([$verbose, $rootDir])
 		;
 
 		$container->setDefinition(self::ID . '.listener', $definition);

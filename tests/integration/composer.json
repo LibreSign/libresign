@@ -7,7 +7,6 @@
     },
     "autoload": {
         "psr-4": {
-            "Features\\": "features\\bootstrap",
             "LibreCode\\Server\\": "src"
         }
     }
