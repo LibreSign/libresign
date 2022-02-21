@@ -97,4 +97,4 @@ jobs:
         env:
           ROOT_DIR: ../../../../
         run: |
-          vendor/bin/behat -f junit -f pretty
+          vendor/bin/behat -f junit -f pretty -v
