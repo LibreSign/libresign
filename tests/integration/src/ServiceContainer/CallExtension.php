@@ -50,9 +50,10 @@ final class CallExtension implements Extension {
 	 * @param array $config
 	 */
 	public function load(ContainerBuilder $container, array $config): void {
+		$verbose = $config['verbose'] ? 1 : $this->getVerboseLevel($container);
 		$definition = (new Definition('LibreCode\Server\RunServerListener'))
 			->addTag('event_dispatcher.subscriber')
-			->setArguments([$this->getVerboseLevel($container), $config['rootDir']])
+			->setArguments([$verbose, $config['rootDir']])
 		;
 
 		$container->setDefinition(self::ID . '.listener', $definition);
