@@ -5,6 +5,7 @@ use Behat\Gherkin\Node\TableNode;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\ClientException;
+use PhpBuiltin\RunServerListener;
 use PHPUnit\Framework\Assert;
 
 /**
@@ -30,7 +31,7 @@ class FeatureContext implements Context {
 	 */
 	public function __construct() {
 		$this->cookieJars = [];
-		$this->baseUrl = getenv('TEST_SERVER_URL');
+		$this->baseUrl = RunServerListener::getServerRoot();
 	}
 
 	public function sendOCSRequest($verb, $url, $body = null, array $headers = []) {
