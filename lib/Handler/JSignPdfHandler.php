@@ -15,7 +15,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignParam;
 	/** @var IConfig */
 	private $config;
-	public const VERSION = '2.0.0';
+	public const VERSION = '2.1.0';
 
 	public function __construct(
 		IConfig $config
