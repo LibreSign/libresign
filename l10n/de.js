@@ -260,6 +260,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "Lege ein Passwort fest und signiere das Dokument",
     "You do not have any signature defined." : "Du hast keine Signatur festgelegt",
     "Define your signature." : "Legen Deine Signatur fest",
+    "Unable to sign." : "Kann nicht unterschreiben.",
     "All Files" : "Alle Dateien",
     "There are no documents" : "Es gibt keine Dokumente",
     "View" : "Ansehen",

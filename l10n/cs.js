@@ -260,6 +260,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "Nastavit heslo a podepsat dokument.",
     "You do not have any signature defined." : "Nemáte definovaný žádný podpis.",
     "Define your signature." : "Definujte si svůj podpis.",
+    "Unable to sign." : "Není možné podepsat.",
     "All Files" : "Všechny soubory",
     "There are no documents" : "Nejsou zde žádné dokumenty",
     "View" : "Zobrazit",
