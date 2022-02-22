@@ -88,13 +88,14 @@ class JSignPdfHandler extends SignEngineHandler {
 			foreach ($visibleElements as $element) {
 				$param
 					->setJSignParameters(
+						$param->getJSignParameters() .
 						' -pg ' . $element->getFileElement()->getPage() .
 						' -llx ' . $element->getFileElement()->getLlx() .
 						' -lly ' . $element->getFileElement()->getLly() .
 						' -urx ' . $element->getFileElement()->getUrx() .
 						' -ury ' . $element->getFileElement()->getUry() .
 						' --l2-text ""' .
-						' -V ' .
+						' -V' .
 						' --bg-path ' . $element->getTempFile()
 					);
 				$jSignPdf->setParam($param);
