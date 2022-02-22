@@ -260,6 +260,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "定義密碼並簽署文件。",
     "You do not have any signature defined." : "您尚未定義任何簽章。",
     "Define your signature." : "定義您的簽章。",
+    "Unable to sign." : "無法登入。",
     "All Files" : "所有檔案",
     "There are no documents" : "沒有文件",
     "View" : "檢視",

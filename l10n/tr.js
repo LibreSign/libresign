@@ -260,6 +260,7 @@ OC.L10N.register(
     "Define a password and sign the document." : "Bir parola tanımlayın ve belgeyi imzalayın.",
     "You do not have any signature defined." : "Henüz tanımlanmış bir imza yok.",
     "Define your signature." : "İmzanızı tanımlayın.",
+    "Unable to sign." : "İmzalanamaz.",
     "All Files" : "Tüm dosyalar",
     "There are no documents" : "Henüz bir belge yok",
     "View" : "Görüntüle",
