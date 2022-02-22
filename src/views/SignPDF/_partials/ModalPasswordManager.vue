@@ -21,8 +21,8 @@
 </template>
 
 <script>
-import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
+import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
 

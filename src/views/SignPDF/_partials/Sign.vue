@@ -198,9 +198,7 @@ export default {
 			}
 		},
 		onPasswordCreate() {
-			if (this.signMethod !== 'password') {
-				this.loadUser()
-			}
+			this.loadUser()
 		},
 		callPassword() {
 			this.modals.password = true
@@ -266,7 +264,7 @@ export default {
 			v-if="modals.password"
 			v-bind="{ hasPassword, signMethod }"
 			@change="signWithPassword"
-			@crate="onPasswordCreate"
+			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
 
 		<SMSManager
