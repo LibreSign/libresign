@@ -189,8 +189,11 @@ class CfsslHandler {
 	}
 
 	private function portOpen(): bool {
+		$uri = $this->getCfsslUri();
+		$host = parse_url($uri, PHP_URL_HOST);
+		$port = parse_url($uri, PHP_URL_PORT);
 		try {
-			$socket = fsockopen('127.0.0.1', '8888', $errno, $errstr, 0.1);
+			$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
 		} catch (\Throwable $th) {
 		}
 		if (isset($socket) && is_resource($socket)) {
