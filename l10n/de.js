@@ -117,6 +117,7 @@ OC.L10N.register(
     "Invalid user" : "Ungültiger Benutzer",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Freie digitale Signatur-App für Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Dies ist eine freie digitale PDF-Signatur-App für Nextcloud**.\n\n* ✍️ Signiere PDF-Dokumente mit digitaler Unterschrift.\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf ein Terminal und sogar die Installation zusätzlicher Software. Siehe [Setup-Anleitung] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) für Details.\n* **Voraussetzungen:**\n* CFSSL-Server\n* Java\n* JSignPDF",
+    "Back to sign" : "Zurück zum Unterschreiben",
     "Files" : "Dateien",
     "Request" : "Anfrage",
     "Validate" : "Überprüfen",
