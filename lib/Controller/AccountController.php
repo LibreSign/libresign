@@ -18,6 +18,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class AccountController extends ApiController {
 	/** @var IL10N */
@@ -34,6 +35,8 @@ class AccountController extends ApiController {
 	private $loginChain;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var LoggerInterface */
+	private $logger;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var ValidateHelper */
@@ -48,6 +51,7 @@ class AccountController extends ApiController {
 		Pkcs12Handler $pkcs12Handler,
 		Chain $loginChain,
 		IURLGenerator $urlGenerator,
+		LoggerInterface $logger,
 		IUserSession $userSession,
 		ValidateHelper $validateHelper
 	) {
@@ -59,6 +63,7 @@ class AccountController extends ApiController {
 		$this->pkcs12Handler = $pkcs12Handler;
 		$this->loginChain = $loginChain;
 		$this->urlGenerator = $urlGenerator;
+		$this->logger = $logger;
 		$this->userSession = $userSession;
 		$this->validateHelper = $validateHelper;
 	}
@@ -142,6 +147,7 @@ class AccountController extends ApiController {
 				'signature' => $signaturePath->getPath()
 			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
+			$this->logger->error($exception->getMessage());
 			return new JSONResponse(
 				[
 					'success' => false,
