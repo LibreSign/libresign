@@ -175,6 +175,9 @@ class CfsslHandler {
 		if (!$binary) {
 			return;
 		}
+		if (!file_exists($binary)) {
+			throw new LibresignException('Binary of CFSSL not found');
+		}
 		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
 			'-ca-key ' . $configPath . 'ca-key.pem ' .
@@ -215,6 +218,9 @@ class CfsslHandler {
 
 	public function setBinary(string $binary): self {
 		if ($binary) {
+			if (!file_exists($binary)) {
+				throw new LibresignException('Binary of CFSSL not found. Install binaries.');
+			}
 			$this->binary = $binary;
 			if (PHP_OS_FAMILY === 'Windows') {
 				$this->binary .= '.exe';
