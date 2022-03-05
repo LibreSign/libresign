@@ -114,9 +114,12 @@ appstore: clean
 	fi
 
 	mkdir -p $(cert_dir)
+	@if [ ! -f $(cert_dir)/$(app_name).crt ]; then \
+		curl -o $(cert_dir)/$(app_name).crt \
+			"https://github.com/nextcloud/app-certificate-requests/raw/master/$(app_name)/$(app_name).crt"; \
+	fi
 	@if [ -n "$$APP_PRIVATE_KEY" ]; then \
 		echo "$$APP_PRIVATE_KEY" > $(cert_dir)/$(app_name).key; \
-		echo "$$APP_PUBLIC_CRT" > $(cert_dir)/$(app_name).crt; \
 		echo "Signing app files…"; \
 		runuser -u www-data -- \
 		php ../../occ integrity:sign-app \
