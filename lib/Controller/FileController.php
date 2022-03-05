@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\FileService;
 use OCP\AppFramework\Controller;
@@ -66,6 +67,14 @@ class FileController extends Controller {
 			$this->fileService->setFileByType($type, $identifier);
 			$return['success'] = true;
 			$statusCode = Http::STATUS_OK;
+		} catch (LibresignException $e) {
+			$message = $this->l10n->t($e->getMessage());
+			$return = [
+				'success' => false,
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$message]
+			];
+			$statusCode = $e->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
 		} catch (\Throwable $th) {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
