@@ -6,6 +6,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
+use setasign\Fpdi\PdfParser\Type\PdfTypeException;
 use TCPDF_PARSER;
 
 trait TFile {
@@ -38,7 +39,7 @@ trait TFile {
 	}
 
 	/**
-	 * @return false|resource|string
+	 * @return resource|string
 	 */
 	private function getFileRaw(array $data) {
 		if (!empty($data['file']['url'])) {
@@ -76,7 +77,7 @@ trait TFile {
 	 *
 	 * @param string $string
 	 *
-	 * @throws Type\PdfTypeException
+	 * @throws PdfTypeException
 	 */
 	private function validatePdfStringWithFpdi($string): void {
 		try {
