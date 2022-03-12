@@ -9,8 +9,10 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -19,6 +21,8 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 
 class FileService {
+	use TFile;
+
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var FileUserMapper */
@@ -27,16 +31,20 @@ class FileService {
 	private $fileElementMapper;
 	/** @var FileElementService */
 	private $fileElementService;
+	/** @var FolderService */
+	private $folderService;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var AccountService */
 	private $accountService;
-	/** @var AccountFileService */
-	private $accountFileService;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var IAccountManager */
 	private $accountManager;
+	/** @var IClientService */
+	private $client;
 	/** @var IConfig */
 	private $config;
 	/** @var IRootFolder */
@@ -79,11 +87,13 @@ class FileService {
 		FileUserMapper $fileUserMapper,
 		FileElementMapper $fileElementMapper,
 		FileElementService $fileElementService,
+		FolderService $folderService,
+		ValidateHelper $validateHelper,
 		AccountService $accountService,
-		AccountFileService $accountFileService,
 		IUserSession $userSession,
 		IUserManager $userManager,
 		IAccountManager $accountManager,
+		IClientService $client,
 		IConfig $config,
 		IRootFolder $rootFolder,
 		IURLGenerator $urlGenerator,
@@ -93,11 +103,13 @@ class FileService {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->fileElementService = $fileElementService;
+		$this->folderService = $folderService;
+		$this->validateHelper = $validateHelper;
 		$this->accountService = $accountService;
-		$this->accountFileService = $accountFileService;
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
 		$this->accountManager = $accountManager;
+		$this->client = $client;
 		$this->config = $config;
 		$this->rootFolder = $rootFolder;
 		$this->urlGenerator = $urlGenerator;

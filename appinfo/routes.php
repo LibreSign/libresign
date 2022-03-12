@@ -39,6 +39,7 @@ return [
 		['name' => 'signFile#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
 		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
+		['name' => 'File#Save',              'url' => '/api/0.1/file', 'verb' => 'POST'],
 		['name' => 'File#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
 		['name' => 'File#validateUuid',      'url' => '/api/0.1/file/validate/uuid/{uuid}', 'verb' => 'GET'],
 		['name' => 'File#validateFileId',    'url' => '/api/0.1/file/validate/file_id/{fileId}', 'verb' => 'GET'],

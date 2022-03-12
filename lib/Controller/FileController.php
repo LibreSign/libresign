@@ -5,6 +5,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -25,19 +26,23 @@ class FileController extends Controller {
 	private $userSession;
 	/** @var FileService */
 	private $fileService;
+	/** @var ValidateHelper */
+	private $validateHelper;
 
 	public function __construct(
 		IRequest $request,
 		IL10N $l10n,
 		LoggerInterface $logger,
 		IUserSession $userSession,
-		FileService $fileService
+		FileService $fileService,
+		ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->l10n = $l10n;
 		$this->logger = $logger;
 		$this->userSession = $userSession;
 		$this->fileService = $fileService;
+		$this->validateHelper = $validateHelper;
 	}
 
 	/**
@@ -130,6 +135,43 @@ class FileController extends Controller {
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 			return new JSONResponse($return, $statusCode);
+		}
+	}
+
+
+	/**
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @return JSONResponse
+	 */
+	public function save(string $name, array $file): JSONResponse {
+		try {
+			if (empty($name)) {
+				throw new \Exception($this->l10n->t('Name is mandatory'));
+			}
+			$this->validateHelper->validateNewFile(['file' => $file]);
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+
+			$node = $this->fileService->getNodeFromData([
+				'userManager' => $this->userSession->getUser(),
+				'name' => $name,
+				'file' => $file
+			]);
+			return new JSONResponse(
+				[
+					'message' => $this->l10n->t('Success'),
+					'name' => $name,
+					'fileId' => $node->getId(),
+				],
+				Http::STATUS_OK
+			);
+		} catch (\Exception $e) {
+			return new JSONResponse(
+				[
+					'message' => $e->getMessage(),
+				],
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
 		}
 	}
 }
