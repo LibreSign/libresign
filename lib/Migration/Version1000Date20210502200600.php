@@ -24,10 +24,7 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 		$this->connection = $connection;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'file_id')
 			->from('libresign_file_user', 'fu');
@@ -38,9 +35,10 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 	 * @param IOutput $output
 	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
 	 * @param array $options
-	 * @return null|ISchemaWrapper
+	 *
+	 * @return ISchemaWrapper
 	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$table = $schema->getTable('libresign_file_user');
@@ -56,10 +54,7 @@ class Version1000Date20210502200600 extends SimpleMigrationStep {
 		return $schema;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		foreach ($this->rows as $row) {
 			$query = $this->connection->getQueryBuilder();
 			$query

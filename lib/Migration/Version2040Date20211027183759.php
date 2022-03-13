@@ -24,10 +24,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 		$this->root = $root;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'node_id', 'user_id')
 			->from('libresign_file', 'f');
@@ -38,9 +35,10 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	 * @param IOutput $output
 	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
 	 * @param array $options
-	 * @return null|ISchemaWrapper
+	 *
+	 * @return ISchemaWrapper
 	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
+	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$table = $schema->getTable('libresign_file');
@@ -54,10 +52,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 		return $schema;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		foreach ($this->rows as $row) {
 			$userFolder = $this->root->getUserFolder($row['user_id']);
 			$file = $userFolder->getById($row['node_id']);
