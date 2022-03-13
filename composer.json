@@ -18,12 +18,14 @@
     "guzzlehttp/psr7": "^2.1",
     "mikey179/vfsstream": "^1.6",
     "donatj/mock-webserver": "^2.4",
-    "vimeo/psalm": "^4.18"
+    "vimeo/psalm": "^4.18",
+    "christophwurst/nextcloud": "dev-master"
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
     "cs:check": "php-cs-fixer fix --dry-run --diff",
-    "cs:fix": "php-cs-fixer fix"
+    "cs:fix": "php-cs-fixer fix",
+		"psalm": "psalm --threads=1"
   },
   "autoload": {
     "psr-4": {
