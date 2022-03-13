@@ -88,7 +88,7 @@ class FileElementMapper extends QBMapper {
 	}
 
 	public function getById(int $id): FileElement {
-		if (!isset($this->cache[$id])) {
+		if (!isset($this->cache['documentElementId'][$id])) {
 			$qb = $this->db->getQueryBuilder();
 
 			$qb->select('fe.*')

@@ -13,6 +13,11 @@ trait HandleParamsTrait {
 		}
 	}
 
+	/**
+	 * @return string[]
+	 *
+	 * @psalm-return array<string>
+	 */
 	protected function trimParams(array $params): array {
 		return array_map('trim', $params);
 	}
