@@ -216,6 +216,9 @@ class CfsslHandler {
 		return $this->binary;
 	}
 
+	/**
+	 * @return self
+	 */
 	public function setBinary(string $binary): self {
 		if ($binary) {
 			if (!file_exists($binary)) {
@@ -229,7 +232,7 @@ class CfsslHandler {
 		return $this;
 	}
 
-	public function genkey() {
+	public function genkey(): void {
 		$binary = $this->getBinary();
 		if (!$binary) {
 			return;

@@ -19,6 +19,10 @@ use OCP\Migration\SimpleMigrationStep;
 class Version2040Date20211027183759 extends SimpleMigrationStep {
 	/** @var IRootFolder*/
 	private $root;
+	/** @var IDBConnection */
+	private $connection;
+	/** @var array */
+	private $rows;
 	public function __construct(IRootFolder $root, IDBConnection $connection) {
 		$this->connection = $connection;
 		$this->root = $root;

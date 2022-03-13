@@ -124,7 +124,7 @@ class FileMapper extends QBMapper {
 		return $return;
 	}
 
-	public function getFileType($id): string {
+	public function getFileType(int $id): string {
 		$fullOuterJoin = $this->db->getQueryBuilder();
 		$fullOuterJoin->select($fullOuterJoin->expr()->literal(1));
 

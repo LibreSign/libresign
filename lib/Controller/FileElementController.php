@@ -38,8 +38,8 @@ class FileElementController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
-	 * @return JSONResponse|FileDisplayResponse
 	 */
 	public function post(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
@@ -84,8 +84,8 @@ class FileElementController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
-	 * @return JSONResponse|FileDisplayResponse
 	 */
 	public function delete(string $uuid, int $elementId): JSONResponse {
 		try {
