@@ -156,10 +156,12 @@ class SignFileController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 *
-	 * @param string $fileId
+	 * @param int $fileId
 	 * @param string $password
+	 *
 	 * @return JSONResponse
 	 */
 	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
