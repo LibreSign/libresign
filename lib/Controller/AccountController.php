@@ -254,9 +254,10 @@ class AccountController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 */
-	public function createSignatureElement(array $elements) {
+	public function createSignatureElement(array $elements): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements($elements, $this->userSession->getUser());
@@ -284,9 +285,10 @@ class AccountController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 */
-	public function getSignatureElements() {
+	public function getSignatureElements(): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
@@ -307,9 +309,10 @@ class AccountController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 */
-	public function getSignatureElement($elementId) {
+	public function getSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
@@ -328,9 +331,10 @@ class AccountController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 */
-	public function patchSignatureElement($elementId, string $type = '', array $file = []) {
+	public function patchSignatureElement($elementId, string $type = '', array $file = []): JSONResponse {
 		try {
 			$element['elementId'] = $elementId;
 			if ($type) {
@@ -361,9 +365,10 @@ class AccountController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
 	 */
-	public function deleteSignatureElement($elementId) {
+	public function deleteSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			$this->accountService->deleteSignatureElement($userId, $elementId);

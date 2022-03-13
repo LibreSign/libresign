@@ -84,6 +84,8 @@ class SignFileService {
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var FileElementService */
+	private $fileElementService;
 	/** @var IEventDispatcher */
 	private $eventDispatcher;
 	/** @var IURLGenerator */
@@ -192,7 +194,7 @@ class SignFileService {
 		if (!empty($data['file']['fileId'])) {
 			try {
 				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
-				if ($data['status'] && $data['status'] > $file->getStatus()) {
+				if (!empty($data['status']) && $data['status'] > $file->getStatus()) {
 					$file->setStatus($data['status']);
 					return $this->fileMapper->update($file);
 				}

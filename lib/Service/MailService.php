@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 class MailService {
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var Mailer */
+	/** @var IMailer */
 	private $mailer;
 	/** @var FileMapper */
 	private $fileMapper;

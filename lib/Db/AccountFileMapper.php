@@ -74,7 +74,7 @@ class AccountFileMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function getByFileId($fileId): AccountFile {
+	public function getByFileId(int $fileId): AccountFile {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
