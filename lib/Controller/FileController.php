@@ -116,8 +116,10 @@ class FileController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
-	 * @return JSONResponse|FileDisplayResponse
+	 *
+	 * @return DataDisplayResponse|JSONResponse
 	 */
 	public function getPage(string $uuid, int $page) {
 		try {
@@ -161,7 +163,6 @@ class FileController extends Controller {
 				[
 					'message' => $this->l10n->t('Success'),
 					'name' => $name,
-					'fileId' => $node->getId(),
 					'id' => $node->getId(),
 					'etag' => $node->getEtag(),
 					'path' => $node->getPath(),
