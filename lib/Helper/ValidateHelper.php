@@ -127,11 +127,11 @@ class ValidateHelper {
 		}
 	}
 
-	private function elementNeedFile(array $data) {
+	private function elementNeedFile(array $data): bool {
 		return in_array($data['type'], ['signature', 'initial']);
 	}
 
-	private function getTypeOfFile(int $type) {
+	private function getTypeOfFile(int $type): string {
 		if ($type === self::TYPE_TO_SIGN) {
 			return $this->l10n->t('document to sign');
 		}
@@ -167,7 +167,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElements($visibleElements, int $type): void {
+	public function validateVisibleElements(?array $visibleElements, int $type): void {
 		if (!is_array($visibleElements)) {
 			throw new LibresignException($this->l10n->t('Visible elements need to be an array'));
 		}
@@ -205,7 +205,10 @@ class ValidateHelper {
 		$this->validateElementCoordinate($element);
 	}
 
-	private function validateElementCoordinate($element): void {
+	/**
+	 * @psalm-param array{coordinates: mixed} $element
+	 */
+	private function validateElementCoordinate(array $element): void {
 		foreach ($element['coordinates'] as $type => $value) {
 			if (in_array($type, ['llx', 'lly', 'urx', 'ury', 'width', 'height', 'left', 'top'])) {
 				if (!is_int($value)) {
@@ -354,9 +357,9 @@ class ValidateHelper {
 	 *
 	 * @param integer $nodeId
 	 *
-	 * @return \OCP\Files\Node|\OCP\Files\Node[]
+	 * @return \OCP\Files\Node|array
 	 *
-	 * @psalm-return \OCP\Files\Node|array<\OCP\Files\Node>
+	 * @psalm-return \OCP\Files\Node|array<empty, empty>
 	 */
 	private function getLibreSignFileByNodeId(int $nodeId) {
 		if (empty($this->file[$nodeId])) {
