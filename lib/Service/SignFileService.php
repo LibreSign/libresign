@@ -38,9 +38,10 @@ use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
-use TCPDF_PARSER;
 
 class SignFileService {
+	use TFile;
+
 	/** @var IL10N */
 	private $l10n;
 	/** @var FileMapper */
@@ -283,80 +284,6 @@ class SignFileService {
 	}
 
 	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
-	private function getNodeFromData(array $data): \OCP\Files\Node {
-		if (!$this->folderService->getUserId()) {
-			$this->folderService->setUserId($data['userManager']->getUID());
-		}
-		if (isset($data['file']['fileId'])) {
-			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
-			return $userFolder->getById($data['file']['fileId'])[0];
-		}
-		$userFolder = $this->folderService->getFolder();
-		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
-		if ($userFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
-		}
-		$folderToFile = $userFolder->newFolder($folderName);
-		return $folderToFile->newFile($data['name'] . '.pdf', $this->getFileRaw($data));
-	}
-
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 *
-	 * @return false|resource|string
-	 */
-	private function getFileRaw(array $data) {
-		if (!empty($data['file']['url'])) {
-			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				throw new \Exception($this->l10n->t('Invalid URL file'));
-			}
-			$response = $this->client->newClient()->get($data['file']['url']);
-			$contentType = $response->getHeader('Content-Type');
-			if ($contentType !== 'application/pdf') {
-				throw new \Exception($this->l10n->t('The URL should be a PDF.'));
-			}
-			$content = $response->getBody();
-			if (!$content) {
-				throw new \Exception($this->l10n->t('Empty file'));
-			}
-			$this->validateHelper->validateBase64($content);
-		} else {
-			$content = $this->getFileFromBase64($data['file']['base64']);
-		}
-		$this->validatePdfStringWithFpdi($content);
-		return $content;
-	}
-
-	private function getFileFromBase64(string $base64): string {
-		$withMime = explode(',', $base64);
-		if (count($withMime) === 2) {
-			$withMime[0] = explode(';', $withMime[0]);
-			$base64 = $withMime[1];
-		}
-		return base64_decode($base64);
-	}
-
-	/**
-	 * Validates a PDF. Triggers error if invalid.
-	 *
-	 * @param string $string
-	 *
-	 * @throws Type\PdfTypeException
-	 */
-	private function validatePdfStringWithFpdi($string): void {
-		try {
-			new TCPDF_PARSER($string);
-		} catch (\Throwable $th) {
-			$this->logger->error($th->getMessage());
-			throw new \Exception($this->l10n->t('Invalid PDF'));
-		}
-	}
-
-	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
 	private function setDataToUser(FileUserEntity $fileUser, array $user, int $fileId): void {
@@ -479,8 +406,12 @@ class SignFileService {
 
 	/**
 	 * @deprecated 2.4.0
+	 *
 	 * @param array $data
-	 * @return array
+	 *
+	 * @return \OCP\AppFramework\Db\Entity[]
+	 *
+	 * @psalm-return list<\OCP\AppFramework\Db\Entity>
 	 */
 	public function deleteSignRequestDeprecated(array $data): array {
 		$this->validateHelper->validateFileUuid($data);
@@ -581,26 +512,41 @@ class SignFileService {
 		$this->client->newClient()->post($uri, $options);
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setLibreSignFile(FileEntity $libreSignFile): self {
 		$this->libreSignFile = $libreSignFile;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setFileUser(FileUserEntity $fileUser): self {
 		$this->fileUser = $fileUser;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setSignWithoutPassword(bool $signWithoutPassword): self {
 		$this->signWithoutPassword = $signWithoutPassword;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setPassword(?string $password = null): self {
 		$this->password = $password;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setVisibleElements(array $list): self {
 		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($this->fileUser->getFileId(), $this->fileUser->getUserId());
 		foreach ($fileElements as $fileElement) {
@@ -736,7 +682,7 @@ class SignFileService {
 		return $libresignFile;
 	}
 
-	public function requestCode(FileUserEntity $fileUser, IUser $user): int {
+	public function requestCode(FileUserEntity $fileUser, IUser $user): string {
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
 		$this->sendCode($user, $fileUser, $token);
 		$fileUser->setCode($this->hasher->hash($token));
@@ -744,7 +690,7 @@ class SignFileService {
 		return $token;
 	}
 
-	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code) {
+	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code): void {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
 			case 'sms':
@@ -760,7 +706,7 @@ class SignFileService {
 		}
 	}
 
-	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName) {
+	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName): void {
 		$gateway = $this->getGateway($user, $gatewayName);
 		
 		$userAccount = $this->accountManager->getAccount($user);
@@ -770,9 +716,8 @@ class SignFileService {
 
 	/**
 	 * @throws OCSForbiddenException
-	 * @return \OCA\TwoFactorGateway\Service\Gateway\IGateway
 	 */
-	private function getGateway(IUser $user, string $gatewayName) {
+	private function getGateway(IUser $user, string $gatewayName): \OCA\TwoFactorGateway\Service\Gateway\IGateway {
 		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
 			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
 		}
@@ -784,7 +729,7 @@ class SignFileService {
 		return $gateway;
 	}
 
-	private function sendCodeByEmail(FileUserEntity $fileUser, string $code) {
+	private function sendCodeByEmail(FileUserEntity $fileUser, string $code): void {
 		$this->mail->sendCodeToSign($fileUser, $code);
 	}
 
@@ -918,7 +863,7 @@ class SignFileService {
 		return $return;
 	}
 
-	private function throwIfInvalidUser(string $uuid, ?IUser $user) {
+	private function throwIfInvalidUser(string $uuid, ?IUser $user): void {
 		if (!$user) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
@@ -998,6 +943,11 @@ class SignFileService {
 		return $return;
 	}
 
+	/**
+	 * @return array
+	 *
+	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
+	 */
 	private function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
 		$url = [];
 		switch ($format) {

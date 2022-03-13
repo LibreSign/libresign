@@ -181,6 +181,13 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithEmptyCertificatePassword() {
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+				'cfssl_bin' => '',
+			],
+		]);
+
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -196,12 +203,6 @@ final class SignFileControllerTest extends ApiTestCase {
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$pkcs12Handler->generateCertificate('person@test.coop', 'secretPassword', 'username');
-
-		$this->mockConfig([
-			'libresign' => [
-				'sign_method' => 'password',
-			],
-		]);
 
 		$this->request
 			->withMethod('POST')
@@ -224,6 +225,13 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithSuccess() {
+		$this->mockConfig([
+			'libresign' => [
+				'sign_method' => 'password',
+				'cfssl_bin' => '',
+			],
+		]);
+
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -247,12 +255,6 @@ final class SignFileControllerTest extends ApiTestCase {
 		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler) {
 			return $jsignHandler;
 		});
-
-		$this->mockConfig([
-			'libresign' => [
-				'sign_method' => 'password',
-			],
-		]);
 
 		$this->request
 			->withMethod('POST')
@@ -419,6 +421,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'organizationUnit' => 'organizationUnit',
 				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 				'sign_method' => 'password',
+				'cfssl_bin' => '',
 			]
 		]);
 
