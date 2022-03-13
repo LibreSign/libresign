@@ -18,7 +18,6 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -42,8 +41,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $pkcs7Handler;
 	/** @var Pkcs12Handler|MockObject */
 	private $pkcs12Handler;
-	/** @var SignFileService|MockObject */
-	private $service;
 	/** @var FileMapper|MockObject */
 	private $fileMapper;
 	/** @var FileUserMapper|MockObject */
@@ -149,36 +146,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->tempManager
 		);
-	}
-
-	public function testSaveFileWithInvalidUrl() {
-		$this->expectExceptionMessage('Invalid URL file');
-		$folder = $this->createMock(Folder::class);
-		$folder
-			->expects($this->once())
-			->method('nodeExists')
-			->willReturn(false);
-		$folder
-			->expects($this->once())
-			->method('newFolder')
-			->willReturn($folder);
-		$this->folderService
-			->expects($this->once())
-			->method('getFolder')
-			->willReturn($folder);
-		$this->user
-			->method('getUID')
-			->willReturn('test');
-		$this->getService()->saveFile([
-			'file' => ['url' => 'qwert'],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'valid@test.coop'
-				]
-			],
-			'userManager' => $this->user
-		]);
 	}
 
 	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
@@ -316,130 +283,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertCount(1, $actual);
 	}
 
-	public function testSaveFileUsingFileIdSuccess() {
-		$file = $this->createMock(OCP\Files\File::class);
-		$file->method('getContent')
-			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('getById')->willReturn([$file]);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user
-			->method('getUID')
-			->willReturn('user');
-		$actual = $this->getService()->saveFile([
-			'file' => ['fileId' => 123],
-			'userManager' => $this->user,
-			'name' => 'nameOfFile'
-		]);
-		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
-
-		$actual = $this->getService()->saveFile([
-			'file' => ['fileId' => 123],
-			'userManager' => $this->user,
-			'name' => 'nameOfFile',
-			'callback' => 'http://callback.coop'
-		]);
-		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
-	}
-
-	public function testSaveFileWhenFileAlreadyExists() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('nodeExists')->willReturn(true);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user->method('getUID')->willReturn('uuid');
-		$this->expectErrorMessage('File already exists');
-		$this->getService()->saveFile([
-			'file' => [],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testSaveFileWhenNotIsAUrlOfPdf() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('nodeExists')->willReturn(false);
-		$folder->method('newFolder')->willReturn($folder);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user->method('getUID')->willReturn('uuid');
-		$this->expectErrorMessage('The URL should be a PDF.');
-		$this->getService()->saveFile([
-			'name' => 'Name',
-			'file' => [
-				'url' => 'https://invalid.coop'
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testSaveFileWhenUrlReturnEmptyBody() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('nodeExists')->willReturn(false);
-		$folder->method('newFolder')->willReturn($folder);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user->method('getUID')->willReturn('uuid');
-
-		$response = $this->createMock(IResponse::class);
-		$response->expects($this->once())
-			->method('getHeader')
-			->with('Content-Type')
-			->willReturn('application/pdf');
-		$client = $this->createMock(IClient::class);
-		$client->expects($this->once())
-			->method('get')
-			->willReturn($response);
-		$this->clientService->expects($this->once())
-			->method('newClient')
-			->with()
-			->willReturn($client);
-
-		$this->expectErrorMessage('Empty file');
-		$this->getService()->saveFile([
-			'name' => 'Name',
-			'file' => [
-				'url' => 'https://vaild.coop/file.pdf'
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testSaveFileWithBase64ContainingInvalidPdf() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('nodeExists')->willReturn(false);
-		$folder->method('newFolder')->willReturn($folder);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user->method('getUID')->willReturn('uuid');
-
-		$this->expectErrorMessage('Invalid PDF');
-		$this->getService()->saveFile([
-			'name' => 'Name',
-			'file' => [
-				'base64' => 'dGVzdA=='
-			],
-			'userManager' => $this->user
-		]);
-	}
-
-	public function testSaveFileWithValidPdf() {
-		$folder = $this->createMock(\OCP\Files\IRootFolder::class);
-		$folder->method('nodeExists')->willReturn(false);
-		$folder->method('newFolder')->willReturn($folder);
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getContent')
-			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
-		$folder->method('newFile')->willReturn($file);
-		$this->folderService->method('getFolder')->will($this->returnValue($folder));
-		$this->user->method('getUID')->willReturn('uuid');
-
-		$actual = $this->getService()->saveFile([
-			'name' => 'Name',
-			'file' => [
-				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
-			],
-			'userManager' => $this->user
-		]);
-		$this->assertInstanceOf('\OCA\Libresign\Db\File', $actual);
-	}
-
 	public function testSaveUsingUuid() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file
@@ -507,79 +350,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 		$this->assertArrayHasKey('uuid', $actual);
 		$this->assertEquals('uuid-here', $actual['uuid']);
-		$this->assertArrayHasKey('users', $actual);
-		$this->assertCount(1, $actual['users']);
-		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
-	}
-
-	public function testSaveUsingFileId() {
-		$this->fileMapper->method('getByFileId')->willThrowException($this->createMock(\Exception::class));
-
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('setFileId')],
-				[$this->equalTo('getUuid')],
-				[$this->equalTo('setUuid'), $this->callback(function ($subject) {
-					$this->assertIsString($subject[0]);
-					$this->assertEquals(36, strlen($subject[0]));
-					return true;
-				})],
-				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
-				[$this->equalTo('getDescription')],
-				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])]
-			)
-			->will($this->returnValueMap([
-				['setFileId', [], null],
-				['getUuid', [], null],
-				['setUuid', [], null],
-				['setEmail', [], null],
-				['getDescription', [], null],
-				['setDescription', [], null]
-			]));
-		$this->fileUserMapper
-			->method('getByEmailAndFileId')
-			->with('user@test.coop')
-			->will($this->returnValue($fileUser));
-		$user = $this->createMock(\OCP\IUser::class);
-		$user->method('getDisplayName')->willReturn('John Doe');
-		$this->userManager->method('getByEmail')->willReturn([$user]);
-		$this->fileMapper
-			->method('insert')
-			->willReturnCallback(function (\OCA\Libresign\Db\File $c) {
-				$c->setId(123);
-				return $c;
-			});
-
-		$file = $this->createMock(\OCP\Files\File::class);
-		$file
-			->method('getContent')
-			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
-		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder
-			->method('getById')
-			->willReturn([$file]);
-		$this->folderService
-			->method('getFolder')
-			->willReturn($folder);
-		$this->folderService
-			->method('getUserId')
-			->willReturn('user');
-		$actual = $this->getService()->save([
-			'file' => [
-				'fileId' => 123
-			],
-			'users' => [
-				[
-					'email' => 'USER@TEST.COOP',
-					'description' => 'Please, sign'
-				]
-			],
-			'name' => 'Filename',
-			'userManager' => $this->user
-		]);
-		$this->assertArrayHasKey('uuid', $actual);
 		$this->assertArrayHasKey('users', $actual);
 		$this->assertCount(1, $actual['users']);
 		$this->assertInstanceOf('\OCA\Libresign\Db\FileUser', $actual['users'][0]);
@@ -1131,8 +901,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'url' => ''
 						],
-						'uuid' => null,
-						'filename' => null,
+						'uuid' => 'uuid',
+						'filename' => 'name',
 						'description' => ''
 					],
 					'user' => [
@@ -1163,6 +933,24 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
 					$file = $self->createMock(\OCA\Libresign\Db\File::class);
+					$file
+						->method('__call')
+						->withConsecutive(
+							[$self->equalTo('getStatus')],
+							[$self->equalTo('getUserId')],
+							[$self->equalTo('getNodeId')],
+							[$self->equalTo('getUuid')],
+							[$self->equalTo('getName')],
+							[$self->equalTo('getId')]
+						)
+						->will($self->returnValueMap([
+							['getStatus', [], OCA\LibreSign\DB\File::STATUS_ABLE_TO_SIGN],
+							['getUserId', [], 'username'],
+							['getNodeId', [], 1],
+							['getUuid', [], 'uuid'],
+							['getName', [], 'name'],
+							['getId', [], 1],
+						]));
 					$self->fileMapper
 						->method('getById')
 						->willReturn($file);

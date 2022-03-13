@@ -9,8 +9,10 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IRootFolder;
+use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -19,6 +21,8 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 
 class FileService {
+	use TFile;
+
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var FileUserMapper */
@@ -27,16 +31,20 @@ class FileService {
 	private $fileElementMapper;
 	/** @var FileElementService */
 	private $fileElementService;
+	/** @var FolderService */
+	private $folderService;
+	/** @var ValidateHelper */
+	private $validateHelper;
 	/** @var AccountService */
 	private $accountService;
-	/** @var AccountFileService */
-	private $accountFileService;
 	/** @var IUserSession */
 	private $userSession;
 	/** @var IUserManager */
 	private $userManager;
 	/** @var IAccountManager */
 	private $accountManager;
+	/** @var IClientService */
+	private $client;
 	/** @var IConfig */
 	private $config;
 	/** @var IRootFolder */
@@ -79,11 +87,13 @@ class FileService {
 		FileUserMapper $fileUserMapper,
 		FileElementMapper $fileElementMapper,
 		FileElementService $fileElementService,
+		FolderService $folderService,
+		ValidateHelper $validateHelper,
 		AccountService $accountService,
-		AccountFileService $accountFileService,
 		IUserSession $userSession,
 		IUserManager $userManager,
 		IAccountManager $accountManager,
+		IClientService $client,
 		IConfig $config,
 		IRootFolder $rootFolder,
 		IURLGenerator $urlGenerator,
@@ -93,52 +103,78 @@ class FileService {
 		$this->fileUserMapper = $fileUserMapper;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->fileElementService = $fileElementService;
+		$this->folderService = $folderService;
+		$this->validateHelper = $validateHelper;
 		$this->accountService = $accountService;
-		$this->accountFileService = $accountFileService;
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
 		$this->accountManager = $accountManager;
+		$this->client = $client;
 		$this->config = $config;
 		$this->rootFolder = $rootFolder;
 		$this->urlGenerator = $urlGenerator;
 		$this->l10n = $l10n;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function showSigners(bool $show = true): self {
 		$this->showSigners = $show;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function showSettings(bool $show = true): self {
 		$this->showSettings = $show;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function showPages(bool $show = true): self {
 		$this->showPages = $show;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function showVisibleElements(bool $show = true): self {
 		$this->showVisibleElements = $show;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function showMessages(bool $show = true): self {
 		$this->showMessages = $show;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setMe(?IUser $user): self {
 		$this->me = $user;
 		return $this;
 	}
 
-	public function setFile($file): self {
+	/**
+	 * @return static
+	 */
+	public function setFile(File $file): self {
 		$this->file = $file;
 		return $this;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setFileByType(string $type, $identifier): self {
 		try {
 			/** @var File */
@@ -191,6 +227,11 @@ class FileService {
 		return $this->signers;
 	}
 
+	/**
+	 * @return (mixed|string)[][]
+	 *
+	 * @psalm-return list<array{url: string, resolution: mixed}>
+	 */
 	private function getPages(): array {
 		$return = [];
 		$metadata = json_decode($this->file->getMetadata());
@@ -203,6 +244,11 @@ class FileService {
 		return $return;
 	}
 
+	/**
+	 * @return array
+	 *
+	 * @psalm-return list<array{elementId: int, fileUserId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
+	 */
 	private function getVisibleElements(): array {
 		$return = [];
 		try {
@@ -242,7 +288,7 @@ class FileService {
 		return $return;
 	}
 
-	private function getPhoneNumber() {
+	private function getPhoneNumber(): string {
 		if (!$this->me) {
 			return '';
 		}
@@ -267,7 +313,7 @@ class FileService {
 		return $this->settings;
 	}
 
-	public function getIdentificationDocumentsStatus($userId): int {
+	public function getIdentificationDocumentsStatus(string $userId): int {
 		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', false)) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
@@ -293,6 +339,11 @@ class FileService {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
+	/**
+	 * @return array
+	 *
+	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array}
+	 */
 	private function getFile(): array {
 		$return = [];
 		if (!$this->file) {
@@ -320,6 +371,11 @@ class FileService {
 		return $return;
 	}
 
+	/**
+	 * @return string[][]
+	 *
+	 * @psalm-return list<array{type: 'info', message: string}>
+	 */
 	private function getMessages(): array {
 		$messages = [];
 		if ($this->settings['canSign']) {
