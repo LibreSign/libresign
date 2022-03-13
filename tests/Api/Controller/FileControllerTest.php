@@ -111,4 +111,29 @@ final class FileControllerTest extends ApiTestCase {
 		$body = json_decode($response->getBody()->getContents(), true);
 		$this->assertCount(0, $body['data']);
 	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function testSendNewFile() {
+		$this->createUser('testControllerListWithEmptyData', 'password');
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+			]
+		]);
+		$this->request
+			->withRequestHeader([
+				'Authorization' => 'Basic ' . base64_encode('testControllerListWithEmptyData:password'),
+				'Content-Type' => 'application/json',
+			])
+			->withPath('/file')
+			->withMethod('POST')
+			->withRequestBody([
+				'name' => 'test',
+				'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
+			]);
+
+		$this->assertRequest();
+	}
 }

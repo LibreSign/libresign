@@ -11,8 +11,11 @@
 					:file="file"
 					status="none"
 					@sidebar="setSidebarStatus(true)" />
-				<button class="icon icon-folder" @click="getFile()">
+				<button class="icon icon-folder" @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
+				</button>
+				<button class="icon icon-upload" @click="uploadFile">
+					{{ t('libresign', 'Upload') }}
 				</button>
 			</div>
 		</div>
@@ -51,7 +54,19 @@ import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import Users from '../Components/Request'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
+import { filesService } from '../domains/files'
+import { onError } from '../helpers/errors'
 
+const PDF_MIME_TYPE = 'application/pdf'
+
+const loadFileToBase64 = file => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.readAsDataURL(file)
+		reader.onload = () => resolve(reader.result)
+		reader.onerror = (error) => reject(error)
+	})
+}
 export default {
 	name: 'Request',
 	components: {
@@ -64,7 +79,9 @@ export default {
 	data() {
 		return {
 			loading: false,
-			file: {},
+			file: {
+				id: 0,
+			},
 			signers: [],
 		}
 	},
@@ -103,6 +120,39 @@ export default {
 			this.setSidebarStatus(false)
 			this.$refs.request.clearList()
 		},
+		async upload(file) {
+			try {
+				const { name } = file
+
+				const data = await loadFileToBase64(file)
+
+				const res = await filesService.uploadFile({ name, file: data })
+
+				this.file = res
+
+				this.setSidebarStatus(true)
+				await this.validateFile(res.id)
+			} catch (err) {
+				onError(err)
+			}
+		},
+		uploadFile() {
+			const input = document.createElement('input')
+			input.accept = PDF_MIME_TYPE
+			input.type = 'file'
+
+			input.onchange = async(ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					this.upload(file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
+		},
 		getFile() {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
@@ -115,13 +165,20 @@ export default {
 			return picker.pick()
 				.then(path => {
 					OC.dialogs.filelist.forEach(async file => {
-						const indice = path.split('/').indexOf(file.name)
-						if (path.startsWith('/')) {
+						try {
+							const indice = path.split('/').indexOf(file.name)
+
+							if (!path.startsWith('/')) {
+								return
+							}
+
 							if (file.name === path.split('/')[indice]) {
 								this.file = file
-								this.setSidebarStatus(true)
 								await this.validateFile(file.id)
+								this.setSidebarStatus(true)
 							}
+						} catch (err) {
+							onError(err)
 						}
 					})
 				})

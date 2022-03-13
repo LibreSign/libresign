@@ -37,6 +37,12 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testAccountCreateWithSuccess() {
+		$this->mockConfig([
+			'libresign' => [
+				'cfssl_bin' => '',
+			],
+		]);
+
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
