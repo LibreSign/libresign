@@ -901,8 +901,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						'pdf' => [
 							'url' => ''
 						],
-						'uuid' => null,
-						'filename' => null,
+						'uuid' => 'uuid',
+						'filename' => 'name',
 						'description' => ''
 					],
 					'user' => [
@@ -933,6 +933,24 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->method('getByUuid')
 						->will($self->returnValue($fileUser));
 					$file = $self->createMock(\OCA\Libresign\Db\File::class);
+					$file
+						->method('__call')
+						->withConsecutive(
+							[$self->equalTo('getStatus')],
+							[$self->equalTo('getUserId')],
+							[$self->equalTo('getNodeId')],
+							[$self->equalTo('getUuid')],
+							[$self->equalTo('getName')],
+							[$self->equalTo('getId')]
+						)
+						->will($self->returnValueMap([
+							['getStatus', [], OCA\LibreSign\DB\File::STATUS_ABLE_TO_SIGN],
+							['getUserId', [], 'username'],
+							['getNodeId', [], 1],
+							['getUuid', [], 'uuid'],
+							['getName', [], 'name'],
+							['getId', [], 1],
+						]));
 					$self->fileMapper
 						->method('getById')
 						->willReturn($file);
