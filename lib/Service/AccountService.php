@@ -150,9 +150,9 @@ class AccountService {
 	}
 
 	/**
-	 * @return (\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCA\Libresign\Db\File|mixed)[]
+	 * @return (FileEntity|\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCP\Files\Node)[]
 	 *
-	 * @psalm-return array{fileData: \OCA\Libresign\DbFile|\OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|mixed}
+	 * @psalm-return array{fileData: FileEntity|\OCA\Libresign\DbFile, fileToSign: \OCA\Files\Node\File|\OCP\Files\Node}
 	 */
 	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
@@ -274,7 +274,7 @@ class AccountService {
 		return $info;
 	}
 
-	private function getPhoneNumber(?IUser $user) {
+	private function getPhoneNumber(?IUser $user): string {
 		if (!$user) {
 			return '';
 		}
@@ -401,7 +401,7 @@ class AccountService {
 		return $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($data));
 	}
 
-	private function insertVisibleElement(array $data, IUser $user, File $file) {
+	private function insertVisibleElement(array $data, IUser $user, File $file): void {
 		$userElement = new UserElement();
 		$userElement->setType($data['type']);
 		$userElement->setFileId($file->getId());
@@ -438,7 +438,12 @@ class AccountService {
 		return $content;
 	}
 
-	public function getUserElements($userId): array {
+	/**
+	 * @return ((int|string)[]|\DateTime|int|string)[][]
+	 *
+	 * @psalm-return list<array{id: int, type: string, file: array{url: string, fileId: int}, uid: string, starred: 0|1, createdAt: \DateTime}>
+	 */
+	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
 		foreach ($elements as $key => $element) {
@@ -471,7 +476,12 @@ class AccountService {
 		return true;
 	}
 
-	public function getUserElementByElementId($userId, $elementId): array {
+	/**
+	 * @return ((int|string)[]|\DateTime|int|string)[]
+	 *
+	 * @psalm-return array{id?: int, type?: string, file?: array{url: string, fileId: int}, uid?: string, starred?: 0|1, createdAt?: \DateTime}
+	 */
+	public function getUserElementByElementId(string $userId, $elementId): array {
 		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
@@ -490,7 +500,7 @@ class AccountService {
 		];
 	}
 
-	public function deleteSignatureElement(string $userId, int $elementId) {
+	public function deleteSignatureElement(string $userId, int $elementId): void {
 		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
 	}

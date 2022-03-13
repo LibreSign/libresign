@@ -121,13 +121,13 @@ class FileElementService {
 		return $translated;
 	}
 
-	public function deleteVisibleElement($elementId) {
+	public function deleteVisibleElement(int $elementId): void {
 		$fileElement = new FileElement();
 		$fileElement->fromRow(['id' => $elementId]);
 		$this->fileElementMapper->delete($fileElement);
 	}
 
-	public function deleteVisibleElements($fileId) {
+	public function deleteVisibleElements($fileId): void {
 		$visibleElements = $this->fileElementMapper->getByFileId($fileId);
 		foreach ($visibleElements as $visibleElement) {
 			$this->fileElementMapper->delete($visibleElement);

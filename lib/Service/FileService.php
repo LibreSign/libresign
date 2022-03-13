@@ -314,7 +314,7 @@ class FileService {
 	}
 
 	public function getIdentificationDocumentsStatus(string $userId): int {
-		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', false)) {
+		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', '')) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
@@ -436,7 +436,7 @@ class FileService {
 		$templateId = $pdf->importPage($page);
 		$pdf->AddPage();
 		$pdf->useTemplate($templateId);
-		$blob = $pdf->Output(null, 'S');
+		$blob = $pdf->Output('', 'S');
 		$imagick = new \Imagick();
 		$imagick->setResolution(100, 100);
 		$imagick->readImageBlob($blob);
