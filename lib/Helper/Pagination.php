@@ -17,6 +17,9 @@ class Pagination extends Pagerfanta {
 		parent::__construct($adapter);
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setRootPath(string $rootPath = ''): self {
 		$this->rootPath = $rootPath;
 		return $this;

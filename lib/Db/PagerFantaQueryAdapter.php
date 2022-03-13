@@ -45,6 +45,8 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
+	 *
+	 * @return array
 	 */
 	public function getSlice(int $offset, int $length): iterable {
 		$qb = clone $this->queryBuilder;

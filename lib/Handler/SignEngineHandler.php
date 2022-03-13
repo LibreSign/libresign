@@ -13,8 +13,11 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	/** @var string */
 	private $password;
 	/** @var VisibleElementAssoc[] */
-	private $visibleElements;
+	private $visibleElements = [];
 
+	/**
+	 * @return static
+	 */
 	public function setInputFile(File $inputFile): self {
 		$this->inputFile = $inputFile;
 		return $this;
@@ -24,6 +27,9 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->inputFile;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setCertificate(File $certificate): self {
 		$this->certificate = $certificate;
 		return $this;
@@ -33,6 +39,9 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 		return $this->certificate;
 	}
 
+	/**
+	 * @return static
+	 */
 	public function setPassword(string $password): self {
 		$this->password = $password;
 		return $this;
@@ -44,7 +53,8 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 
 	/**
 	 * @param VisibleElementAssoc[] $visibleElements
-	 * @return self
+	 *
+	 * @return static
 	 */
 	public function setVisibleElements(array $visibleElements): self {
 		$this->visibleElements = $visibleElements;
@@ -52,9 +62,11 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	}
 
 	/**
-	 * @return VisibleElementAssoc[]|null
+	 * @return VisibleElementAssoc[]
+	 *
+	 * @psalm-return array<VisibleElementAssoc>
 	 */
-	public function getvisibleElements(): ?array {
+	public function getvisibleElements(): array {
 		return $this->visibleElements;
 	}
 }

@@ -11,10 +11,12 @@ use OCP\Files\Node;
 class Pkcs7Handler extends SignEngineHandler {
 	/**
 	 * @psalm-suppress MixedReturnStatement
+	 *
 	 * @param Node $fileToSign
 	 * @param Node $certificate
 	 * @param string $passphrase
-	 * @return Node
+	 *
+	 * @return File
 	 */
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();

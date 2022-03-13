@@ -22,7 +22,7 @@ class TCPDILibresign extends TCPDI {
 		return parent::_textstring($s, $n);
 	}
 
-	public function getPageTplDimension($pageNum): array {
+	public function getPageTplDimension(int $pageNum): array {
 		if (!$this->tpls) {
 			return [];
 		}
@@ -32,7 +32,7 @@ class TCPDILibresign extends TCPDI {
 		];
 	}
 
-	public function getPagesMetadata() {
+	public function getPagesMetadata(): array {
 		$pageCount = current($this->parsers)->getPageCount();
 		$data = [
 			'p' => $pageCount

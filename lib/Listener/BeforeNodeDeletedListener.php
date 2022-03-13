@@ -56,7 +56,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 		}
 	}
 
-	private function deleteByType($nodeId, $type) {
+	private function deleteByType(int $nodeId, string $type): void {
 		$field = $type === 'file' ? 'node_id' : 'file_id';
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete('libresign_' . $type)

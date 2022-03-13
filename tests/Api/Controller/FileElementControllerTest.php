@@ -92,6 +92,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 * @depends testPostSuccess
+	 * @depends testPatchSuccess
 	 */
 	public function testDeleteSuccess($params) {
 		$this->createUser('username', 'password');
