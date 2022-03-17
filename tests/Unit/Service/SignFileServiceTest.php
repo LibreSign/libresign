@@ -18,6 +18,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -83,6 +84,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $eventDispatcher;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
+	/** @var IMimeTypeDetector|MockObject */
+	private $mimeTypeDetector;
 	/** @var ITempManager|MockObject */
 	private $tempManager;
 
@@ -115,6 +118,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
 
@@ -144,6 +148,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementService,
 			$this->eventDispatcher,
 			$this->urlGenerator,
+			$this->mimeTypeDetector,
 			$this->tempManager
 		);
 	}
