@@ -120,7 +120,7 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $type);
-			$this->validateMimeTypeAccepted((int)$data['file']['fileId'], $type);
+			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $type);
 		}
 		if (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
@@ -326,18 +326,22 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateMimeTypeAccepted(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
+	public function validateMimeTypeAcceptedByNodeId(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
+		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
+	}
+
+	public function validateMimeTypeAcceptedByMime(string $mimetype, int $type = self::TYPE_TO_SIGN): void {
 		switch ($type) {
 			case self::TYPE_TO_SIGN:
-				if ($file->getMimeType() !== 'application/pdf') {
+				if ($mimetype !== 'application/pdf') {
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 				}
 				break;
 			case self::TYPE_VISIBLE_ELEMENT_PDF:
 			case self::TYPE_VISIBLE_ELEMENT_USER:
-				if ($file->getMimeType() !== 'image/png') {
+				if ($mimetype !== 'image/png') {
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 				}
 				break;
