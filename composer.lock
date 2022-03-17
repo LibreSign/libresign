@@ -332,16 +332,16 @@
         },
         {
             "name": "pagerfanta/pagerfanta",
-            "version": "v3.6.0",
+            "version": "v3.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BabDev/Pagerfanta.git",
-                "reference": "0bc7335c5be27e8a38f7724b14d871bc915d8bea"
+                "reference": "845c7e820c057b24abd0f17822d4c78ed06261f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/0bc7335c5be27e8a38f7724b14d871bc915d8bea",
-                "reference": "0bc7335c5be27e8a38f7724b14d871bc915d8bea",
+                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/845c7e820c057b24abd0f17822d4c78ed06261f1",
+                "reference": "845c7e820c057b24abd0f17822d4c78ed06261f1",
                 "shasum": ""
             },
             "require": {
@@ -382,7 +382,7 @@
                 "friendsofphp/php-cs-fixer": "3.4.0",
                 "jackalope/jackalope-doctrine-dbal": "^1.6",
                 "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.4.8",
+                "phpstan/phpstan": "1.4.10",
                 "phpstan/phpstan-phpunit": "1.0.0",
                 "phpunit/phpunit": "^9.5",
                 "ruflin/elastica": "^6.0 || ^7.0",
@@ -424,7 +424,7 @@
             ],
             "support": {
                 "issues": "https://github.com/BabDev/Pagerfanta/issues",
-                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.6.0"
+                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.6.1"
             },
             "funding": [
                 {
@@ -432,7 +432,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-03-09T00:04:34+00:00"
+            "time": "2022-03-16T22:28:15+00:00"
         },
         {
             "name": "setasign/fpdi",
@@ -6013,5 +6013,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.2.0"
 }
