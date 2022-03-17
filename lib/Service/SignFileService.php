@@ -25,6 +25,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -128,6 +129,7 @@ class SignFileService {
 		FileElementService $fileElementService,
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
+		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
 	) {
 		$this->l10n = $l10n;
@@ -154,6 +156,7 @@ class SignFileService {
 		$this->fileElementService = $fileElementService;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
+		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
 	}
 

@@ -11,6 +11,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -19,6 +20,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class FileService {
 	use TFile;
@@ -51,6 +53,10 @@ class FileService {
 	private $rootFolder;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IMimeTypeDetector */
+	private $mimeTypeDetector;
+	/** @var LoggerInterface */
+	private $logger;
 	/** @var IL10N */
 	private $l10n;
 	/** @var bool */
@@ -97,6 +103,8 @@ class FileService {
 		IConfig $config,
 		IRootFolder $rootFolder,
 		IURLGenerator $urlGenerator,
+		IMimeTypeDetector $mimeTypeDetector,
+		LoggerInterface $logger,
 		IL10N $l10n
 	) {
 		$this->fileMapper = $fileMapper;
@@ -113,6 +121,8 @@ class FileService {
 		$this->config = $config;
 		$this->rootFolder = $rootFolder;
 		$this->urlGenerator = $urlGenerator;
+		$this->mimeTypeDetector = $mimeTypeDetector;
+		$this->logger = $logger;
 		$this->l10n = $l10n;
 	}
 
