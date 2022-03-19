@@ -29,7 +29,7 @@ OC.L10N.register(
     "Add" : "Προσθήκη",
     "Users" : "Χρήστες",
     "Account" : "Λογαριασμός",
-    "Details" : "Λεπτομέριες",
+    "Details" : "Λεπτομέρειες",
     "Reset password" : "Επαναφορά συνθηματικού",
     "Profile picture" : "Φωτογραφία προφίλ",
     "Password Creation" : "Δημιουργία συνθηματικού",
