@@ -101,6 +101,10 @@ class FolderService {
 	 * @param IUser $owner
 	 */
 	public function getFolderName(array $data, IUser $owner): string {
+		if(isset($data['settings']['folderName'])) {
+			return $data['settings']['folderName'];
+		}
+
 		if (!isset($data['settings']['folderPatterns'])) {
 			$data['settings']['separator'] = '_';
 			$data['settings']['folderPatterns'][] = [
