@@ -33,14 +33,14 @@
 					exact
 					@click="goToSign" />
 				<AppNavigationItem
-					:to="{ name: 'signFiles' }"
-					:title="t('libresign', 'Files')"
-					icon="icon-files-dark"
-					exact />
-				<AppNavigationItem
 					:to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
+					exact />
+				<AppNavigationItem
+					:to="{ name: 'signFiles' }"
+					:title="t('libresign', 'Files')"
+					icon="icon-files-dark"
 					exact />
 				<AppNavigationItem
 					:to="{name: 'validation'}"
@@ -119,6 +119,9 @@ export default {
 		isRoot() {
 			return this.$route.path === '/'
 		},
+	},
+	mounted() {
+		this.$router.replace({ name: 'requestFiles' })
 	},
 	methods: {
 		goToSign() {
