@@ -146,9 +146,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @dataProvider dataValidateMimeTypeAccepted
+	 * @dataProvider dataValidateMimeTypeAcceptedByNodeId
 	 */
-	public function testValidateMimeTypeAccepted(string $mimetype, int $destination, string $exception) {
+	public function testValidateMimeTypeAcceptedByNodeId(string $mimetype, int $destination, string $exception) {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
 			->method('getMimeType')
@@ -159,13 +159,13 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
-		$actual = $this->getValidateHelper()->validateMimeTypeAccepted(171, $destination);
+		$actual = $this->getValidateHelper()->validateMimeTypeAcceptedByNodeId(171, $destination);
 		if (!$exception) {
 			$this->assertNull($actual);
 		}
 	}
 
-	public function dataValidateMimeTypeAccepted() {
+	public function dataValidateMimeTypeAcceptedByNodeId() {
 		return [
 			['invalid',         ValidateHelper::TYPE_TO_SIGN,             'Must be a fileID of %s format'],
 			['application/pdf', ValidateHelper::TYPE_TO_SIGN,             ''],
