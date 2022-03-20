@@ -65,10 +65,9 @@ OC.L10N.register(
     "File already signed." : "Tiedosto on jo allekirjoitettu.",
     "User already exists. Please login." : "Käyttäjä on jo olemassa. Kirjaudu sisään.",
     "Invalid user" : "Virheellinen käyttäjä",
-    "The URL should be a PDF." : "URL-osoitteen tulisi olla PDF.",
     "Invalid PDF" : "Virheellinen PDF",
-    "Files" : "Tiedostot",
     "Request" : "Pyyntö",
+    "Files" : "Tiedostot",
     "Validate" : "Validoi",
     "Settings" : "Asetukset",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digitaalisen allekirjoituksen sovellus Nextcloudille.",
@@ -163,6 +162,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
-    "Open in LibreSign" : "Avaa LibreSignissa"
+    "Open in LibreSign" : "Avaa LibreSignissa",
+    "The URL should be a PDF." : "URL-osoitteen tulisi olla PDF."
 },
 "nplurals=2; plural=(n != 1);");

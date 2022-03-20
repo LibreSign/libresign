@@ -113,13 +113,12 @@ OC.L10N.register(
     "File already signed." : "檔案已被簽署。",
     "User already exists. Please login." : "用戶已存在。請登入。",
     "Invalid user" : "無效的用戶",
-    "The URL should be a PDF." : "URL 應為 PDF。",
     "Invalid PDF" : "無效的PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre - Nextcloud 的數位簽署應用程式 ",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**這是適用於 Nextcloud 的 Libre 數位PDF簽名應用程式**\n\n*✍️使用數位簽名來簽署PDF文件\n*⚠️此應用程式的安裝需要存取終端，甚至需要安裝其他軟件。有關細節，請參見［設置說明］（https://github.com/LibreSign/libresign/blob/main/README.md#setup）。\n* **要求 ：**\n* CFSSL伺服器\n* Java\n* JSignPDF",
     "Back to sign" : "回到簽署頁面",
-    "Files" : "檔案",
     "Request" : "請求",
+    "Files" : "檔案",
     "Validate" : "驗證",
     "Documents Validation" : "文件驗證",
     "Settings" : "設定",
@@ -275,6 +274,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
     "User created!" : "用戶創建了！",
     "Password created!" : "密碼創建了！",
-    "Open in LibreSign" : "在 LibreSign 中打開"
+    "Open in LibreSign" : "在 LibreSign 中打開",
+    "The URL should be a PDF." : "URL 應為 PDF。"
 },
 "nplurals=1; plural=0;");
