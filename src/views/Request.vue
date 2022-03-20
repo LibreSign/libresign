@@ -122,7 +122,9 @@ export default {
 		},
 		async upload(file) {
 			try {
-				const { name } = file
+				const { name: original } = file
+
+				const name = original.split('.').slice(0, -1).join('.')
 
 				const data = await loadFileToBase64(file)
 
