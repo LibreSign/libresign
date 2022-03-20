@@ -145,7 +145,7 @@ class FileController extends Controller {
 	 * @NoCSRFRequired
 	 * @return JSONResponse
 	 */
-	public function save(string $name, array $file): JSONResponse {
+	public function save(string $name, array $file, array $settings = []): JSONResponse {
 		try {
 			if (empty($name)) {
 				throw new \Exception($this->l10n->t('Name is mandatory'));
@@ -156,8 +156,10 @@ class FileController extends Controller {
 			$node = $this->fileService->getNodeFromData([
 				'userManager' => $this->userSession->getUser(),
 				'name' => $name,
-				'file' => $file
+				'file' => $file,
+				'settings' => $settings
 			]);
+
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Success'),
