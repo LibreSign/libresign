@@ -111,11 +111,10 @@
     "File already signed." : "文件已被签署。",
     "User already exists. Please login." : "用户已存在。请登录。 ",
     "Invalid user" : "无效用户",
-    "The URL should be a PDF." : "此 URL 应为一份 PDF 文件",
     "Invalid PDF" : "无效的 PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️Nextcloud 的自由数字签名应用",
-    "Files" : "文件",
     "Request" : "请求",
+    "Files" : "文件",
     "Validate" : "验证",
     "Settings" : "设置",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign，Nextcloud 的数字签名应用",
@@ -252,6 +251,7 @@
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
-    "Open in LibreSign" : "在 LibreSign 中打开"
+    "Open in LibreSign" : "在 LibreSign 中打开",
+    "The URL should be a PDF." : "此 URL 应为一份 PDF 文件"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

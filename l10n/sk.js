@@ -113,13 +113,12 @@ OC.L10N.register(
     "File already signed." : "Súbor už je podpísaný.",
     "User already exists. Please login." : "Uživateľ už existuje. Prosím prihláste sa.",
     "Invalid user" : "Neplatný užívateľ",
-    "The URL should be a PDF." : "URL by malo byť PDF.",
     "Invalid PDF" : "Neplatné PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre aplikácia pre digitálny podpis pre Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Toto je digitálna aplikácia pre podpis PDF v Nextcloud **\n\n* ✍️ Podpíšte dokumenty PDF pomocou digitálneho podpisu\n* ⚠️ Inštalácia tejto aplikácie vyžaduje prístup k terminálu a dokonca aj znečistenie rúk inštaláciou dodatočného softvéru. Podrobnosti nájdete v [pokynoch na nastavenie] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n*** Požiadavky: **\n* Server CFSSL\n* Java\n* JSignPDF",
     "Back to sign" : "Späť k podpisu",
-    "Files" : "Súbory",
     "Request" : "Požiadavka",
+    "Files" : "Súbory",
     "Validate" : "Potvrdiť",
     "Documents Validation" : "Overenie Dokumentov",
     "Settings" : "Nastavenia",
@@ -275,6 +274,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
-    "Open in LibreSign" : "Otvoriť v LibreSign"
+    "Open in LibreSign" : "Otvoriť v LibreSign",
+    "The URL should be a PDF." : "URL by malo byť PDF."
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

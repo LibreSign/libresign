@@ -113,12 +113,11 @@ OC.L10N.register(
     "File already signed." : "Arquivo já assinado.",
     "User already exists. Please login." : "Usuário já existe. Por favor, autentique-se.",
     "Invalid user" : "Usuário inválido",
-    "The URL should be a PDF." : "A URL deve ser um PDF.",
     "Invalid PDF" : "PDF inválido",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ App livre para assinatura digital de documentos no Nextcloud",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Este é um app Nextcloud livre para assinar PDF digitalmente**\n\n* ✍️ Assine documentos PDF usando uma assinatura digital\n* ⚠️ A instalação deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Veja [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para mais detalhes.\n* **Requisitos:**\n    * Servidor CFSSL\n    * Java\n    * JSignPDF",
-    "Files" : "Arquivos ",
     "Request" : "Solicitação",
+    "Files" : "Arquivos ",
     "Validate" : "Validar",
     "Documents Validation" : "Validação de documentos",
     "Settings" : "Configurações",
@@ -269,6 +268,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
     "User created!" : "Usuário criado!",
     "Password created!" : "Senha criada! ",
-    "Open in LibreSign" : "Abra no LibreSign "
+    "Open in LibreSign" : "Abra no LibreSign ",
+    "The URL should be a PDF." : "A URL deve ser um PDF."
 },
 "nplurals=2; plural=(n > 1);");
