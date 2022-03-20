@@ -49,7 +49,6 @@ OC.L10N.register(
     "File already signed." : "Fichièr ja signat.",
     "User already exists. Please login." : "L’utilizaire existís ja. Volgatz vos autentificar.",
     "Invalid user" : "Utilizaire invalid",
-    "The URL should be a PDF." : "L’URL deu èsser un PDF.",
     "Invalid PDF" : "PDF invalid",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplicacion de signatura numerica liura per Nextcloud",
     "Settings" : "Paramètres",
@@ -78,6 +77,7 @@ OC.L10N.register(
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
-    "User created!" : "Utilizaire creat !"
+    "User created!" : "Utilizaire creat !",
+    "The URL should be a PDF." : "L’URL deu èsser un PDF."
 },
 "nplurals=2; plural=(n > 1);");
