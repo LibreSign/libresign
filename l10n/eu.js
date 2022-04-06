@@ -149,6 +149,7 @@ OC.L10N.register(
     "Password & Security" : "Pasahitza eta segurtasuna",
     "Create password key" : "Pasahitz gakoa sortu",
     "Reset password" : "Berrezarri pasahitza",
+    "Not sent yet" : "Oraindik bidali gabe",
     "Select a file" : "Hautatu fitxategi bat",
     "Type" : "Mota",
     "Status" : "Egoera",
