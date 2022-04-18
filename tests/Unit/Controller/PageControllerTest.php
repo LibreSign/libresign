@@ -7,6 +7,7 @@ use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 
 /**
@@ -21,6 +22,8 @@ final class PageControllerTest extends TestCase {
 	private $initialState;
 	/** @var AccountService|MockObject */
 	private $accountService;
+	/** @var IURLGenerator|MockObject */
+	private $url;
 	/** @var PageController */
 	private $controller;
 
@@ -29,11 +32,13 @@ final class PageControllerTest extends TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
+		$this->url = $this->createMock(IURLGenerator::class);
 		$this->controller = new PageController(
 			$this->request,
 			$this->userSession,
 			$this->initialState,
-			$this->accountService
+			$this->accountService,
+			$this->url
 		);
 	}
 
