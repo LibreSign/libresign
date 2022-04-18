@@ -13,40 +13,18 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 2.5.0 - Draft
+## 5.0.0 - 2022-04-18
 
-# Added
-- Added clickable link in the PDF footer
-- Manager signatures in profile
-- Feature Display Controller
-- API: endpoints to add visible elements on PDF file
-- API: status to LibreSign file
-- Endpoint to list all attached files to LibreSign profile
-- Endpoint to add phone number to account settings
-- Endpoint to request code to sign file
-- Make possible sign using token sent by email
-- Changes on sign endpoint to make possible sign using code
-- Add friendly name on pfx file
-- Add custom user signature files
-
-# Changed
-- PDF preview on mobile when signing
-- Only show request signing button if file not signed
-- Associate signed file to LibreSign file
-- API: return LibreSign UUID on sign methods
-- Endpoint: /account/create/{uuid}, remove required of field signPassword
-- FPDI replaced by TCPDF
-- Bump jsignpdf from 1.6.5 to 2.0.0
-- Add more specific log message when jar of jsignpdf not found
-- Account improvements, remove dead code and split components.
-- Revert PDFSign changes
-- Add page prefix to improve frontend UX
-- Improve account signature page
-
-# Fixed
-- Fixed: error on sign specific documents
-- Add line break on footer to prevent hide signature url
-- Password is not a requirement
+# Added and updated
+- Support to visual signatures
+  - upload signature image
+  - handmade signature
+  - text signature
+- Sign usign SMS, email, Telegram or Signal token
+- Add files to profile to only enable signature if profile files was signed by an approver
+- Simplified setup using commands
+- Update JSignPDF version
+- more other changes and bugfixes: https://github.com/LibreSign/libresign/compare/v2.4.5...v5.0.0
 
 ## 2.4.3 - 2021-07-14
 
