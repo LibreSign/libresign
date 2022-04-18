@@ -4,9 +4,7 @@ on:
   push:
     # branches to consider in the event; optional, defaults to all
     branches:
-      - stable21
-      - stable22
-      - stable23
+      - stable*
 
 jobs:
   update_release_draft:
