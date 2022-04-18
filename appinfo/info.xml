@@ -7,10 +7,6 @@
 
 * ✍️ Sign PDF documents using digital signature
 * ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.
-* **Requirements :**
-    * CFSSL server
-    * Java
-    * JSignPDF
 
 ]]>
     </description>

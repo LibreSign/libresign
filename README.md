@@ -4,11 +4,10 @@
 
 Nextcloud app to sign PDF documents.
 
-At the moment file signature requests must be requested via webhook. Read the documentation for more information.
-
 <img src="img/LibreSign.png" />
 
 **Table of contents**
+- [Releases compatibility](#releases-compatibility)
 - [Setup](#setup)
   - [Java and JSignPDF](#java-and-jsignpdf)
     - [Standalone](#standalone)
@@ -21,6 +20,15 @@ At the moment file signature requests must be requested via webhook. Read the do
 - [Integrations](#integrations)
 - [Full documentation](#full-documentation)
 - [Contributing](#contributing)
+
+## Releases compatibility
+
+| LibreSign | Nextcloud | JSignPDF |
+| --------- | --------- | -------- |
+| 5.x       | 24        | 2.1.0    |
+| 4.x       | 23        | 2.1.0    |
+| 3.x       | 22        | 2.1.0    |
+| 2         | 22        | 1.6.5    |
 
 ## Setup
 
@@ -40,15 +48,15 @@ Add the follow to Nextcloud PHP container Dockerfile
 RUN apt-get update # Only include this line if necessary
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get install -y default-jre unzip
-RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%202.0.0/jsignpdf-2.0.0.zip \
-    && unzip jsignpdf-2.0.0.zip -d /opt \
-    && rm jsignpdf-2.0.0.zip
+RUN curl -OL https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%202.1.0/jsignpdf-2.1.0.zip \
+    && unzip jsignpdf-2.1.0.zip -d /opt \
+    && rm jsignpdf-2.1.0.zip
 ```
 
 ### CFSSL
 #### CFSS server handmade install
 
-Don't is necessary if you use a docker setup
+Don't is necessary if you use a docker setup or if you did the standalone setup
 
 Up a cfssl server using this code:
 
@@ -75,6 +83,8 @@ The URL of server you will use in [Admin settings](#admin-settings)
 ```
 
 ### Admin settings
+
+Don't is necessary if you did the standalone setup
 
 Go to `Settings > LibreSign` and fill the necessary values for root certificate:
 
