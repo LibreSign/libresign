@@ -3,7 +3,9 @@ name: Integration tests
 on:
   pull_request:
   push:
-    branches: [ stable23 ]
+    branches:
+      - main
+      - stable*
 
 env:
   APP_NAME: libresign

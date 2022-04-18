@@ -10,7 +10,7 @@ jobs:
       matrix:
         php-versions: ['7.4', '8.0']
         databases: ['sqlite']
-        server-versions: ['stable20']
+        server-versions: ['stable23']
 
     name: php-cs check php${{ matrix.php-versions }}
 
