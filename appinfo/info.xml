@@ -14,7 +14,7 @@
 
 ]]>
     </description>
-    <version>2.5.0</version>
+    <version>6.0.0</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
     <documentation>
@@ -30,7 +30,7 @@
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
         <php min-version="7.4" />
-        <nextcloud min-version="24" max-version="24"/>
+        <nextcloud min-version="25" max-version="25"/>
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Cfssl</command>
