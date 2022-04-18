@@ -3,7 +3,9 @@ name: PHPUnit
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - stable*
 
 env:
   APP_NAME: libresign
@@ -19,11 +21,11 @@ jobs:
         databases: ['sqlite']
         coverage: ['xdebug']
         xdebug_mode: ['debug']
-        server-versions: ['master']
+        server-versions: ['stable24']
         include:
           - php-versions: '7.4'
             databases: 'sqlite'
-            server-versions: 'master'
+            server-versions: 'stable24'
             xdebug_mode: coverage
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 

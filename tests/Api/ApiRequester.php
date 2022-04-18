@@ -7,6 +7,7 @@ use ByJG\Util\Psr7\Response;
 use GuzzleHttp\Psr7\Stream;
 use OC\AppFramework\Http\Request;
 use OCP\IRequest;
+use OCP\IRequestId;
 use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -87,7 +88,7 @@ class ApiRequester extends AbstractRequester {
 		}
 		$mockRequest = new Request(
 			$vars,
-			\OC::$server->get(\OCP\Security\ISecureRandom::class),
+			\OC::$server->get(IRequestId::class),
 			\OC::$server->get(\OCP\IConfig::class),
 			\OC::$server->get(\OC\Security\CSRF\CsrfTokenManager::class),
 			$stream
