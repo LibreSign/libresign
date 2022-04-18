@@ -10,9 +10,11 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
 
@@ -23,16 +25,20 @@ class PageController extends Controller {
 	private $initialState;
 	/** @var AccountService */
 	private $accountService;
+	/** @var IURLGenerator */
+	protected $url;
 	public function __construct(
 		IRequest $request,
 		IUserSession $userSession,
 		IInitialState $initialState,
-		AccountService $accountService
+		AccountService $accountService,
+		IURLGenerator $url
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->initialState = $initialState;
 		$this->userSession = $userSession;
 		$this->accountService = $accountService;
+		$this->url = $url;
 	}
 
 	/**
@@ -180,6 +186,18 @@ class PageController extends Controller {
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
+	}
+
+	/**
+	 * Show validation page
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 * @return RedirectResponse
+	 */
+	public function validationFileWithShortUrl(): RedirectResponse {
+		return new RedirectResponse($this->url->linkToRoute('libresign.page.validation', ['uuid' => $this->request->getParam('uuid')]));
 	}
 
 	/**
