@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Utente non valido",
     "Invalid PDF" : "PDF non valido",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Applicazione libera per firme digitali per Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Questa è un'applicazione libera per firme PDF digitali per Nextcloud**\n\n* ✍️ Firma i documenti PDF usando una firma digitale\n* ⚠️ La configurazione dell'applicazione richiede l'accesso al terminale e anche di sporcarti le mani con l'installazione di software aggiuntivo. Vedi le [istruzioni di configurazione](https://github.com/LibreSign/libresign/blob/main/README.md#setup) per i dettagli.\n* **Requisiti :**\n    * Server CFSSL\n    * Java\n    * JSignPDF",
     "Back to sign" : "Torna alla firma",
     "Request" : "Richiesta",
     "Files" : "File",
@@ -275,6 +274,7 @@ OC.L10N.register(
     "User created!" : "Utente creato!",
     "Password created!" : "Password creato!",
     "Open in LibreSign" : "Apri in LibreSign",
-    "The URL should be a PDF." : "L'URL dovrebbe essere un PDF."
+    "The URL should be a PDF." : "L'URL dovrebbe essere un PDF.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Questa è un'applicazione libera per firme PDF digitali per Nextcloud**\n\n* ✍️ Firma i documenti PDF usando una firma digitale\n* ⚠️ La configurazione dell'applicazione richiede l'accesso al terminale e anche di sporcarti le mani con l'installazione di software aggiuntivo. Vedi le [istruzioni di configurazione](https://github.com/LibreSign/libresign/blob/main/README.md#setup) per i dettagli.\n* **Requisiti :**\n    * Server CFSSL\n    * Java\n    * JSignPDF"
 },
 "nplurals=2; plural=(n != 1);");
