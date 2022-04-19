@@ -113,7 +113,6 @@
     "Invalid user" : "Ungültiger Benutzer",
     "Invalid PDF" : "Ungültiges PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre Digital-Signatur-App für Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signieren Sie PDF-Dokumente mit digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen finden Sie unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Anforderungen:**\n * CFSSL-Server\n * Java\n * JSignPDF ",
     "Back to sign" : "Zurück zum Signieren",
     "Request" : "Anfrage",
     "Files" : "Dateien",
@@ -273,6 +272,7 @@
     "User created!" : "Benutzer erstellt!",
     "Password created!" : "Passwort erstellt!",
     "Open in LibreSign" : "In LibreSign öffnen",
-    "The URL should be a PDF." : "Die URL sollte eine PDF-Datei sein."
+    "The URL should be a PDF." : "Die URL sollte eine PDF-Datei sein.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signieren Sie PDF-Dokumente mit digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen finden Sie unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Anforderungen:**\n * CFSSL-Server\n * Java\n * JSignPDF "
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

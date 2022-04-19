@@ -103,7 +103,6 @@ OC.L10N.register(
     "Invalid user" : "Neveljaven uporabnik",
     "Invalid PDF" : "Neveljavna datoteka PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre – program za digitalno podpisovanje datotek v okolju Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**LibreSign je program za digitalno podpisovanje dokumentov PDF za Nextcloud **\n\n* ✍️ Omogoča podpisovanje dokumentov PDF z digitalnim podpisom.\n * ⚠️ Namestitev programa zahteva dostop do terminala in zahtevnejši pristop k namestitvi dodatne programske opreme. Več podrobnosti je zbrani v [navodilih za namestitev] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n\n * ** Zahteva: **\n* omogočen strežnik CFSSL\n* nameščeno okolje Java\n* knjižnice JSignPDF",
     "Request" : "Zahteva",
     "Files" : "Datoteke",
     "Validate" : "Overi",
@@ -219,6 +218,7 @@ OC.L10N.register(
     "User created!" : "Uporabnik je ustvarjen!",
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "The URL should be a PDF." : "Naslov URL mora voditi do datoteke PDF."
+    "The URL should be a PDF." : "Naslov URL mora voditi do datoteke PDF.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**LibreSign je program za digitalno podpisovanje dokumentov PDF za Nextcloud **\n\n* ✍️ Omogoča podpisovanje dokumentov PDF z digitalnim podpisom.\n * ⚠️ Namestitev programa zahteva dostop do terminala in zahtevnejši pristop k namestitvi dodatne programske opreme. Več podrobnosti je zbrani v [navodilih za namestitev] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n\n * ** Zahteva: **\n* omogočen strežnik CFSSL\n* nameščeno okolje Java\n* knjižnice JSignPDF"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");
