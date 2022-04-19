@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Ongeldige gebruiker",
     "Invalid PDF" : "Ongeldige PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre digitale handtekeningen app voor Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.\n* **Voorwaarden :**\n* CFSSL-server\n* Java\n* JSignPDF",
     "Request" : "Aanvraag",
     "Files" : "Bestanden",
     "Validate" : "Goedkeuren",
@@ -255,6 +254,7 @@ OC.L10N.register(
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
     "Open in LibreSign" : "Openen in LibreSign",
-    "The URL should be a PDF." : "De URL zou een PDF moeten zijn."
+    "The URL should be a PDF." : "De URL zou een PDF moeten zijn.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.\n* **Voorwaarden :**\n* CFSSL-server\n* Java\n* JSignPDF"
 },
 "nplurals=2; plural=(n != 1);");

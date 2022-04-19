@@ -55,7 +55,6 @@ OC.L10N.register(
     "Invalid user" : "Utente non bàlidu",
     "Invalid PDF" : "PDF non bàlidu",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplicatzione lìbera pro firmas digitales pro Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Custa est un'aplicatzione lìbera pro firmas PDF digitales pro Nextcloud**\n\n* ✍️ Firma is documentos PDF impreende una firma digitale\n* ⚠️ Pro sa cunfiguratzione de s'aplicatzione bi cheret s'atzessu a su terminale e fintzas de ti brutare is manos cun s'installatzione de su programma in agiunta. Càstia is [istrutziones de cunfiguratzione](https://github.com/LibreSign/libresign/blob/main/README.md#setup) pro is detàllios.\n* **Rechisitos :**\n    * Server CFSSL\n    * Java\n    * JSignPDF",
     "Request" : "Rechesta",
     "Files" : "Archìvios",
     "Validate" : "Cunvàlida",
@@ -153,6 +152,7 @@ OC.L10N.register(
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "The URL should be a PDF." : "Sa URL diat dèpere èssere unu PDF."
+    "The URL should be a PDF." : "Sa URL diat dèpere èssere unu PDF.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Custa est un'aplicatzione lìbera pro firmas PDF digitales pro Nextcloud**\n\n* ✍️ Firma is documentos PDF impreende una firma digitale\n* ⚠️ Pro sa cunfiguratzione de s'aplicatzione bi cheret s'atzessu a su terminale e fintzas de ti brutare is manos cun s'installatzione de su programma in agiunta. Càstia is [istrutziones de cunfiguratzione](https://github.com/LibreSign/libresign/blob/main/README.md#setup) pro is detàllios.\n* **Rechisitos :**\n    * Server CFSSL\n    * Java\n    * JSignPDF"
 },
 "nplurals=2; plural=(n != 1);");
