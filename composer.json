@@ -6,7 +6,7 @@
   "require": {
     "jsignpdf/jsignpdf-php": "^1.1",
     "endroid/qr-code": "^4.4",
-    "pagerfanta/pagerfanta": "^3.5",
+    "pagerfanta/pagerfanta": "^3.6",
     "tecnickcom/tcpdf": "^6.4",
     "iio/libmergepdf": "dev-move-tcpdi-parser-to-package"
   },
@@ -15,7 +15,7 @@
     "nextcloud/coding-standard": "^1.0",
     "byjg/swagger-test": "^3.1",
     "symfony/yaml": "^5.4",
-    "guzzlehttp/psr7": "^2.1",
+    "guzzlehttp/psr7": "^2.2",
     "mikey179/vfsstream": "^1.6",
     "donatj/mock-webserver": "^2.4",
     "vimeo/psalm": "^4.18",
