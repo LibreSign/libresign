@@ -109,7 +109,6 @@ OC.L10N.register(
     "Invalid user" : "Erabiltzaile baliogabea",
     "Invalid PDF" : "Baliogabeko PDFa",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Sinadura digitaleko aplikazio librea Nextcloud-erako",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n* ✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n* ⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikusi [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Baldintzak :**\n     * CFSSL zerbitzaria\n     * Java\n     * JSignPDF",
     "Request" : "Eskatu",
     "Files" : "Fitxategiak",
     "Validate" : "Balidatu",
@@ -253,6 +252,7 @@ OC.L10N.register(
     "User created!" : "Erabiltzailea sortuta!",
     "Password created!" : "Pasahitza sortu da!",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "The URL should be a PDF." : "URLa PDF bat izan beharko litzake."
+    "The URL should be a PDF." : "URLa PDF bat izan beharko litzake.",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n* ✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n* ⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikusi [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Baldintzak :**\n     * CFSSL zerbitzaria\n     * Java\n     * JSignPDF"
 },
 "nplurals=2; plural=(n != 1);");
