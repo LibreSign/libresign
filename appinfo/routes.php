@@ -72,6 +72,7 @@ return [
 		['name' => 'page#signAccountFile',            'url' => '/p/account/files/approve/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#signAccountFile',            'url' => '/p/account/files/approve/{uuid}/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'extra'],
 		['name' => 'page#validation',                 'url' => '/p/validation', 'verb' => 'GET'],
+		['name' => 'page#validationFileWithShortUrl', 'url' => '/validation/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#validationFile',             'url' => '/p/validation/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#getPdf',                     'url' => '/p/pdf/{uuid}', 'verb' => 'GET']
 	],
