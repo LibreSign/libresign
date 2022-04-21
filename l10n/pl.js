@@ -115,6 +115,7 @@ OC.L10N.register(
     "Invalid user" : "Nieprawidłowy użytkownik",
     "Invalid PDF" : "Nieprawidłowy PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplikacja do podpisu cyfrowego dla Nextcloud",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.",
     "Back to sign" : "Powrót do podpisu",
     "Request" : "Poproś",
     "Files" : "Pliki",
