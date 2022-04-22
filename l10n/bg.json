@@ -113,6 +113,7 @@
     "Invalid user" : "Невалиден потребител",
     "Invalid PDF" : "Невалиден PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Приложение за цифров подпис Libre за Nextcloud",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Това е Libre приложение за цифров PDF подпис за Nextcloud**\n\n* ✍️ Подписвайте PDF документи с помощта на цифров подпис\n* ⚠️ Настройката на това приложение изисква достъп до терминал и дори да си изцапате ръцете с инсталиране на допълнителен софтуер. Вижте [инструкции за настройка](https://github.com/LibreSign/libresign/blob/main/README.md#setup) за подробности.",
     "Back to sign" : "Обратно към подпис",
     "Request" : "Заявка",
     "Files" : "Файлове",
