@@ -1,0 +1,24 @@
+{ "translations": {
+    "File not found" : "Ֆայլը չգտնվեց",
+    "Files" : "Ֆայլեր",
+    "Settings" : "կարգավորումներ",
+    "Password" : "Գաղտնաբառ",
+    "Upload" : "Բեռնել",
+    "Cancel" : "ընդհատել",
+    "Save" : "Պահպանել",
+    "Email" : "Էլ․փոստ",
+    "Description" : "Նկարագրություն",
+    "Add" : "Ավելացնել",
+    "Details" : "Մանրամասներ",
+    "Select a file" : "Select a file",
+    "Type" : "Տիպ",
+    "Enter a password" : "Enter a password",
+    "Next" : "Հաջորդ",
+    "Yes" : "Yes",
+    "No" : "No",
+    "New password" : "Նոր գաղտնաբառ",
+    "Previous" : "Նախորդ",
+    "Loading" : "Loading",
+    "No date" : "No date"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
