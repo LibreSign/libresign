@@ -1,0 +1,28 @@
+OC.L10N.register(
+    "libresign",
+    {
+    "Files" : "ھۆججەتلەر",
+    "Settings" : "تەڭشەكلەر",
+    "Password" : "ئىم",
+    "Upload" : "يۈكلە",
+    "Cancel" : "ۋاز كەچ",
+    "Save" : "ساقلا",
+    "Email" : "تورخەت",
+    "Description" : "چۈشەندۈرۈش",
+    "Add" : "قوش",
+    "Users" : "ئىشلەتكۈچىلەر",
+    "Select a file" : "Select a file",
+    "Type" : "Type",
+    "Actions" : "مەشغۇلاتلار",
+    "Enter a password" : "Enter a password",
+    "Next" : "كېيىنكى",
+    "Yes" : "Yes",
+    "No" : "No",
+    "Pending" : "كۈتۈۋاتىدۇ",
+    "New password" : "يېڭى ئىم",
+    "Remove" : "چىقىرىۋەت",
+    "Previous" : "ئالدىنقى",
+    "Loading" : "Loading",
+    "No date" : "No date"
+},
+"nplurals=2; plural=(n != 1);");
