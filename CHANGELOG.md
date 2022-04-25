@@ -24,7 +24,7 @@ Types of changes:
 - Add files to profile to only enable signature if profile files was signed by an approver
 - Simplified setup using commands
 - Update JSignPDF version
-- more other changes and bugfixes: https://github.com/LibreSign/libresign/compare/v2.4.5...v5.0.0
+- more other changes and bugfixes: https://github.com/LibreSign/libresign/compare/v2.4.5...v3.0.0-rc.1
 
 ## 2.4.3 - 2021-07-14
 
