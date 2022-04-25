@@ -232,6 +232,7 @@ OC.L10N.register(
     "Request code." : "Eskatu kodea.",
     "Send code." : "Bidali kodea.",
     "Sign the document." : "Sinatu dokumentua.",
+    "Review the entered number." : "Egiaztatu sartutako zenbakia.",
     "Phone stored." : "Telefonoa gordeta.",
     "Sign with your cellphone number." : "Sinatu zure mugikorraren zenbakiarekin.",
     "Save your number." : "Gorde zure zenbakia.",
