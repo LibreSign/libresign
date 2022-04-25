@@ -13,7 +13,7 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 5.0.0 - 2022-04-18
+## 5.0.0 - 2022-04-25
 
 # Added and updated
 - Support to visual signatures
