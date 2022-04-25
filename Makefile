@@ -107,7 +107,8 @@ appstore: clean
 		vendor \
 		CHANGELOG.md \
 		LICENSE \
-		$(appstore_sign_dir)/$(app_name) \
+		$(appstore_sign_dir)/$(app_name)
+	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/* \
 
 	@if [ -z "$$GITHUB_ACTION" ]; then \
 		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \
