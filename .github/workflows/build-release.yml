@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-          cache: 'npm'
           cache-dependency-path: ${{ env.APP_NAME }}/yarn.lock
       - name: Run build
         run: cd ${{ env.APP_NAME }} && make appstore
