@@ -94,7 +94,7 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	yarn
+	yarn install
 	yarn build
 	cp -r \
 		appinfo \
