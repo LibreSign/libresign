@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 4.1.0 - 2022-04-26
+
+# Added
+- Command to install LibreSign cli
+
 ## 4.0.0 - 2022-04-25
 
 # Added and updated
