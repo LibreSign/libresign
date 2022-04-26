@@ -173,6 +173,49 @@ class Base extends CommandBase {
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
+	protected function installCli(OutputInterface $output): void {
+		$folder = $this->getFolder();
+
+		if (PHP_OS_FAMILY === 'Windows') {
+			throw new \RuntimeException('LibreSign CLI do not work in Windows!');
+		} elseif (PHP_OS_FAMILY === 'Darwin') {
+			$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_arm64';
+		} elseif (PHP_OS_FAMILY === 'Linux') {
+			if (PHP_INT_SIZE === 4) {
+				$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_i386';
+			} else {
+				$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_x86_64';
+			}
+		}
+		$file = $folder->newFile('libresign-cli');
+		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
+
+		$this->download($output, $url, 'libresign-cli', $fullPath);
+
+		if (PHP_OS_FAMILY !== 'Windows') {
+			chmod($fullPath, 0700);
+		}
+
+		$this->config->setAppValue(Application::APP_ID, 'libresign_cli_path', $fullPath);
+	}
+
+	protected function uninstallCli(): void {
+		$libresignCliPath = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
+		if (!$libresignCliPath) {
+			return;
+		}
+		$appFolder = $this->getAppRootFolder();
+		$name = $appFolder->getName();
+		// Remove prefix
+		$path = explode($name, $libresignCliPath)[1];
+		try {
+			$folder = $appFolder->get($path);
+			$folder->delete();
+		} catch (NotFoundException $e) {
+		}
+		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
+	}
+
 	protected function installCfssl(OutputInterface $output): void {
 		$folder = $this->getFolder();
 
