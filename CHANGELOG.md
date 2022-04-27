@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.1.1 - 2022-04-27
+
+# Changed
+- Use LibreSign cli to get pages metadata
+
 ## 6.1.0 - 2022-04-26
 
 # Added
