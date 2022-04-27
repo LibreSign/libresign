@@ -6,44 +6,30 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use Doctrine\DBAL\Types\Types;
-use OC\SystemConfig;
-use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Command\Install;
+use OCA\Libresign\Handler\ToolCliHandler;
 use OCP\DB\ISchemaWrapper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\NullOutput;
 
 class Version2040Date20211027183759 extends SimpleMigrationStep {
-	/** @var IRootFolder*/
-	private $root;
 	/** @var IDBConnection */
 	private $connection;
-	/** @var Install */
-	private $install;
-	/** @var IConfig */
-	private $config;
-	/** @var SystemConfig */
-	private $systemConfig;
+	/** @var IRootFolder*/
+	private $rootFolder;
+	/** @var ToolCliHandler */
+	private $toolCliHandler;
 	/** @var array */
 	private $rows;
-	public function __construct(IRootFolder $root,
-								IDBConnection $connection,
-								IRootFolder $rootfolder,
-								Install $install,
-								IConfig $config,
-								SystemConfig $systemConfig) {
+
+	public function __construct(IDBConnection $connection,
+								IRootFolder $rootFolder,
+								ToolCliHandler $toolCliHandler) {
 		$this->connection = $connection;
-		$this->install = $install;
-		$this->config = $config;
-		$this->systemConfig = $systemConfig;
-		$this->rootFolder = $rootfolder;
-		$this->root = $root;
+		$this->rootFolder = $rootFolder;
+		$this->toolCliHandler = $toolCliHandler;
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
@@ -75,13 +61,12 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	}
 
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$cli = $this->getLibesignCli();
 		foreach ($this->rows as $row) {
-			$userFolder = $this->root->getUserFolder($row['user_id']);
+			$userFolder = $this->rootFolder->getUserFolder($row['user_id']);
 			/** @var File[] */
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
-				$data = $this->getMetadataFromCli($cli, $file[0]->getPath());
+				$data = $this->toolCliHandler->getMetadata($file[0]->getPath());
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query
@@ -92,35 +77,5 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 				$query->execute();
 			}
 		}
-	}
-
-	private function getMetadataFromCli(string $cli, string $filePath): array {
-		$fullPath = $this->getDataDir() . $filePath;
-		$json = shell_exec($cli . ' info ' . $fullPath);
-		$array = json_decode($json, true);
-		$output = [
-			'p' => count($array['pages']),
-			'extension' => 'pdf',
-		];
-		foreach ($array['pages'] as $page) {
-			$output['d'][] = [
-				'w' => $page['width'],
-				'h' => $page['height'],
-			];
-		}
-		return $output;
-	}
-
-	private function getDataDir(): string {
-		return $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
-	}
-
-	private function getLibesignCli(): string {
-		$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		if (!file_exists($path)) {
-			$this->install->run(new StringInput('--cli'), new NullOutput());
-			$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		}
-		return $path;
 	}
 }

@@ -16,6 +16,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\TCPDILibresign;
+use OCA\Libresign\Handler\ToolCliHandler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
@@ -111,6 +112,7 @@ class SignFileService {
 		AccountFileMapper $accountFileMapper,
 		Pkcs7Handler $pkcs7Handler,
 		Pkcs12Handler $pkcs12Handler,
+		ToolCliHandler $toolCliHandler,
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
@@ -138,6 +140,7 @@ class SignFileService {
 		$this->accountFileMapper = $accountFileMapper;
 		$this->pkcs7Handler = $pkcs7Handler;
 		$this->pkcs12Handler = $pkcs12Handler;
+		$this->toolCliHandler = $toolCliHandler;
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
@@ -232,9 +235,10 @@ class SignFileService {
 			'extension' => $node->getExtension(),
 		];
 		if ($metadata['extension'] === 'pdf') {
-			$pdf = new TCPDILibresign();
-			$pdf->setSourceData($node->getContent());
-			$metadata = array_merge($metadata, $pdf->getPagesMetadata());
+			$metadata = array_merge(
+				$metadata,
+				$this->toolCliHandler->getMetadata($node->getPath())
+			);
 		}
 		return $metadata;
 	}
