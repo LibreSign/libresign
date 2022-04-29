@@ -178,6 +178,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot.",
     "User created!" : "Felhasználó létrehozva.",
     "Password created!" : "Jelszó létrehozva.",
+    "Open in LibreSign" : "Megnyitás a LibreSignban",
     "The URL should be a PDF." : "Az URL-nek PDF-nek kell lennie.",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Követelmények:**\n    * CFSSL kiszolgáló\n    * Java\n    * JSignPDF"
 },
