@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Ongeldige gebruiker",
     "Invalid PDF" : "Ongeldige PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre digitale handtekeningen app voor Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.\n* **Voorwaarden :**\n* CFSSL-server\n* Java\n* JSignPDF",
     "Request" : "Aanvraag",
     "Files" : "Bestanden",
     "Validate" : "Goedkeuren",
@@ -126,6 +125,8 @@ OC.L10N.register(
     "Password" : "Wachtwoord",
     "Confirm" : "Bevestigen",
     "Incorrect password!" : "Onjuiste wachtwoord!",
+    "Text" : "Tekst",
+    "Upload" : "Uploaden",
     "Colors:" : "Kleuren:",
     "Apply" : "Pas toe",
     "Cancel" : "Annuleren",
@@ -150,7 +151,10 @@ OC.L10N.register(
     "Password & Security" : "Wachtwoord & Beveiliging",
     "Create password key" : "Creëer een wachtwoordsleutel",
     "Reset password" : "Reset wachtwoord",
+    "Select a file" : "Selecteer een bestand",
+    "Type" : "Type",
     "Status" : "Status",
+    "Actions" : "Acties",
     "Customize your signatures" : "Pas je handtekeningen aan",
     "Your signatures" : "Jouw handtekeningen",
     "Signature" : "Handtekening",
@@ -254,7 +258,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
-    "Open in LibreSign" : "Openen in LibreSign",
-    "The URL should be a PDF." : "De URL zou een PDF moeten zijn."
+    "Open in LibreSign" : "Openen in LibreSign"
 },
 "nplurals=2; plural=(n != 1);");

@@ -125,6 +125,8 @@ OC.L10N.register(
     "Password" : "密码",
     "Confirm" : "确认",
     "Incorrect password!" : "密码不正确！",
+    "Text" : "文本 ",
+    "Upload" : "上传",
     "Colors:" : "颜色：",
     "Apply" : "应用",
     "Cancel" : "取消",
@@ -149,7 +151,10 @@ OC.L10N.register(
     "Password & Security" : "密码 & 安全性",
     "Create password key" : "创建密码钥匙 ",
     "Reset password" : "重置密码",
+    "Select a file" : "Select a file",
+    "Type" : "类型",
     "Status" : "状态",
+    "Actions" : "操作",
     "Customize your signatures" : "定制你的签名",
     "Your signatures" : "你的签名",
     "Signature" : "签名",
@@ -253,7 +258,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
-    "Open in LibreSign" : "在 LibreSign 中打开",
-    "The URL should be a PDF." : "此 URL 应为一份 PDF 文件"
+    "Open in LibreSign" : "在 LibreSign 中打开"
 },
 "nplurals=1; plural=0;");

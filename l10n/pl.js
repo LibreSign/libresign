@@ -115,7 +115,7 @@ OC.L10N.register(
     "Invalid user" : "Nieprawidłowy użytkownik",
     "Invalid PDF" : "Nieprawidłowy PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplikacja do podpisu cyfrowego dla Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.\n* **Wymagania:**\n    * Serwer CFSSL\n    * Java\n    * JSignPDF",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.",
     "Back to sign" : "Powrót do podpisu",
     "Request" : "Poproś",
     "Files" : "Pliki",
@@ -274,7 +274,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
     "User created!" : "Utworzono użytkownika!",
     "Password created!" : "Utworzono hasło!",
-    "Open in LibreSign" : "Otwórz w LibreSign",
-    "The URL should be a PDF." : "Adres URL powinien być plikiem PDF."
+    "Open in LibreSign" : "Otwórz w LibreSign"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");
