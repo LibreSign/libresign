@@ -228,8 +228,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku.",
     "User created!" : "Korisnik je stvoren!",
     "Password created!" : "Zaporka je stvorena!",
-    "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "The URL should be a PDF." : "URL treba biti PDF.",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Ovo je aplikacija Libre za digitalno potpisivanje PDF datoteka u Nextcloudu**\n\n* ✍️ Potpisujte PDF dokumente digitalnim potpisom\n* ⚠️ Ova aplikacija zahtijeva pristup terminalu pa čak i da malo zaprljate ruke instaliranjem dodatnog softvera. Pogledajte [upute za postavljanje](https://github.com/LibreSign/libresign/blob/main/README.md#setup) za više informacija.\n* **Zahtjevi:**\n    * Poslužitelj CFSSL\n    * Java\n    * JSignPDF"
+    "Open in LibreSign" : "Otvori u sustavu LibreSign"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

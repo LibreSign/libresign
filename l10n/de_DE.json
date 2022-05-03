@@ -272,8 +272,6 @@
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",
     "User created!" : "Benutzer erstellt!",
     "Password created!" : "Passwort erstellt!",
-    "Open in LibreSign" : "In LibreSign öffnen",
-    "The URL should be a PDF." : "Die URL sollte eine PDF-Datei sein.",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signieren Sie PDF-Dokumente mit digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen finden Sie unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Anforderungen:**\n * CFSSL-Server\n * Java\n * JSignPDF "
+    "Open in LibreSign" : "In LibreSign öffnen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
