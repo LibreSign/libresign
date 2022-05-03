@@ -256,8 +256,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User created!" : "사용자가 생성되었습니다!",
     "Password created!" : "암호가 생성되었습니다!",
-    "Open in LibreSign" : "LibreSign으로 열기",
-    "The URL should be a PDF." : "URL은 PDF여야 합니다.",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Nextcloud용 libre 디지털 PDF 시그니처 앱입니다**\n\n* ✍digital signature를 사용하여 PDF 문서 서명\n*  ⚠️ 이 앱을 설치하려면 터미널에 액세스해야 하며 추가 소프트웨어 설치로 인해 손이 더럽혀지기도 합니다. 자세한 내용은 [설명서 지침](https://github.com/LibreSign/libresign/blob/main/README.md#setup)을 참조하십시오.\n* **요구사항 :**\n* CFSSL 서버\n* 자바\n* JSignPDF"
+    "Open in LibreSign" : "LibreSign으로 열기"
 },
 "nplurals=1; plural=0;");

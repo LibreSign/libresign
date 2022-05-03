@@ -274,8 +274,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
     "User created!" : "Uživatel vytvořen!",
     "Password created!" : "Heslo vytvořeno!",
-    "Open in LibreSign" : "Otevřít v LibreSign",
-    "The URL should be a PDF." : "URL by mělo vést na PDF.",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details.\n* **Requirements :**\n    * CFSSL server\n    * Java\n    * JSignPDF" : "**Toto je svobodná aplikace pro digitální podepisování PDF, určená pro Nextcloud**\n\n* ✍️ Podepisujte PDF dokumenty digitálním podpisem\n* ⚠️ Nastavení této aplikace vyžaduje přístup k terminálu a dokonce vaší práci s instalací dalšího software. Podrobnosti viz [pokyny pro nastavení](https://github.com/LibreSign/libresign/blob/main/README.md#setup).\n* **Požadavky :**\n    * CFSSL server\n    * Java\n    * JSignPDF"
+    "Open in LibreSign" : "Otevřít v LibreSign"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

@@ -172,7 +172,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
-    "Open in LibreSign" : "Avaa LibreSignissa",
-    "The URL should be a PDF." : "URL-osoitteen tulisi olla PDF."
+    "Open in LibreSign" : "Avaa LibreSignissa"
 },
 "nplurals=2; plural=(n != 1);");
