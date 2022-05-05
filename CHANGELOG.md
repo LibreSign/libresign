@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.1.2 - development
+
+# Added
+- Added issue template to request feature and report a bug
+
 ## 6.1.1 - 2022-05-05
 
 # Fixed
