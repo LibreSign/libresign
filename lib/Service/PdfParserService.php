@@ -4,6 +4,7 @@ namespace OCA\Libresign\Service;
 
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
 
 class PdfParserService {
@@ -31,10 +32,18 @@ class PdfParserService {
 		return $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
 	}
 
+	/**
+	 * @param string $filePath
+	 * @return array
+	 * @throws LibresignException
+	 */
 	public function getMetadata(string $filePath): array {
 		$fullPath = $this->getDataDir() . $filePath;
 		$json = shell_exec($this->cliPath . ' info ' . $fullPath);
 		$array = json_decode($json, true);
+		if (!is_array($array)) {
+			throw new LibresignException('Impossible get metadata from this file. Check if you installed correctly the libresign-cli.');
+		}
 		$output = [
 			'p' => count($array['pages']),
 		];
