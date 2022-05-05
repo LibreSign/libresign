@@ -6,13 +6,10 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use Doctrine\DBAL\Types\Types;
-use OC\SystemConfig;
-use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Command\Install;
+use OCA\Libresign\Service\PdfParserService;
 use OCP\DB\ISchemaWrapper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -22,28 +19,20 @@ use Symfony\Component\Console\Output\NullOutput;
 class Version2040Date20211027183759 extends SimpleMigrationStep {
 	/** @var IRootFolder*/
 	private $root;
-	/** @var IDBConnection */
-	private $connection;
-	/** @var Install */
-	private $install;
-	/** @var IConfig */
-	private $config;
-	/** @var SystemConfig */
-	private $systemConfig;
+	/** @var PdfParserService */
+	private $PdfParserService;
 	/** @var array */
 	private $rows;
-	public function __construct(IRootFolder $root,
-								IDBConnection $connection,
-								IRootFolder $rootfolder,
-								Install $install,
-								IConfig $config,
-								SystemConfig $systemConfig) {
+	public function __construct(IDBConnection $connection,
+								IRootFolder $root,
+								PdfParserService $PdfParserService) {
 		$this->connection = $connection;
 		$this->install = $install;
 		$this->config = $config;
 		$this->systemConfig = $systemConfig;
 		$this->rootFolder = $rootfolder;
 		$this->root = $root;
+		$this->PdfParserService = $PdfParserService;
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
@@ -81,7 +70,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			/** @var File[] */
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
-				$data = $this->getMetadataFromCli($cli, $file[0]->getPath());
+				$data = $this->PdfParserService->getMetadata($file[0]->getPath());
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query
@@ -89,7 +78,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 					->set('metadata', $query->createNamedParameter($json))
 					->where($query->expr()->eq('id', $query->createNamedParameter($row['id'])));
 		
-				$query->execute();
+				$query->executeStatement();
 			}
 		}
 	}
