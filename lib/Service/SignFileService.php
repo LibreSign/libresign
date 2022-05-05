@@ -15,7 +15,6 @@ use OCA\Libresign\Event\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
