@@ -17,6 +17,7 @@ Types of changes:
 
 # Fixed
 - Replaced more usages of TCPDI by LibreSignCLI
+- Fix app version
 
 ## 5.1.0 - 2022-04-26
 
