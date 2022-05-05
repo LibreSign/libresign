@@ -4,29 +4,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
-use OC\SystemConfig;
-use OCP\Files\IRootFolder;
-use OCP\Http\Client\IClientService;
-use OCP\IConfig;
-use OCP\ITempManager;
+use OCA\Libresign\Service\InstallService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Uninstall extends Base {
 	public function __construct(
-		ITempManager $tempManager,
-		IClientService $clientService,
-		IConfig $config,
-		SystemConfig $systemConfig,
-		IRootFolder $rootFolder
+		InstallService $installService
 	) {
 		parent::__construct(
-			$tempManager,
-			$clientService,
-			$config,
-			$systemConfig,
-			$rootFolder
+			$installService
 		);
 	}
 
@@ -65,19 +53,19 @@ class Uninstall extends Base {
 		$all = $input->getOption('all');
 		$ok = false;
 		if ($input->getOption('java') || $all) {
-			$this->uninstallJava();
+			$this->installService->uninstallJava();
 			$ok = true;
 		}
 		if ($input->getOption('jsignpdf') || $all) {
-			$this->uninstallJSignPdf();
+			$this->installService->uninstallJSignPdf();
 			$ok = true;
 		}
 		if ($input->getOption('cfssl') || $all) {
-			$this->uninstallCfssl();
+			$this->installService->uninstallCfssl();
 			$ok = true;
 		}
 		if ($input->getOption('cli') || $all) {
-			$this->uninstallCli($output);
+			$this->installService->uninstallCli($output);
 			$ok = true;
 		}
 		if (!$ok) {
