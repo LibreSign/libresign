@@ -76,7 +76,7 @@ class Cfssl extends Base {
 		if (!$country = $input->getOption('c')) {
 			throw new InvalidArgumentException('Invalid Country');
 		}
-		if ($binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
+		if ($binary = $this->installService->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
 			if (PHP_OS_FAMILY === 'Windows') {
 				throw new InvalidArgumentException('Incompatible with Windows');
 			}
@@ -89,7 +89,7 @@ class Cfssl extends Base {
 			$configPath = $this->installService->getConfigPath();
 			$cfsslUri = null;
 		} else {
-			$output->writeln('CFSSL binary not found!');
+			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
 				throw new InvalidArgumentException('Invalid config path');
 			}

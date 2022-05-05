@@ -13,10 +13,10 @@ use OCP\Files\IRootFolder;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\NullOutput;
 
 class Version2040Date20211027183759 extends SimpleMigrationStep {
+	/** @var IDBConnection */
+	private $connection;
 	/** @var IRootFolder*/
 	private $root;
 	/** @var PdfParserService */
@@ -27,10 +27,6 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 		IRootFolder $root,
 		PdfParserService $PdfParserService) {
 		$this->connection = $connection;
-		$this->install = $install;
-		$this->config = $config;
-		$this->systemConfig = $systemConfig;
-		$this->rootFolder = $rootfolder;
 		$this->root = $root;
 		$this->PdfParserService = $PdfParserService;
 	}
@@ -39,7 +35,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'node_id', 'user_id')
 			->from('libresign_file', 'f');
-		$this->rows = $query->execute()->fetchAll();
+		$this->rows = $query->executeQuery()->fetchAll();
 	}
 
 	/**
@@ -64,7 +60,6 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	}
 
 	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$cli = $this->getLibesignCli();
 		foreach ($this->rows as $row) {
 			$userFolder = $this->root->getUserFolder($row['user_id']);
 			/** @var File[] */
@@ -81,35 +76,5 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 				$query->executeStatement();
 			}
 		}
-	}
-
-	private function getMetadataFromCli(string $cli, string $filePath): array {
-		$fullPath = $this->getDataDir() . $filePath;
-		$json = shell_exec($cli . ' info ' . $fullPath);
-		$array = json_decode($json, true);
-		$output = [
-			'p' => count($array['pages']),
-			'extension' => 'pdf',
-		];
-		foreach ($array['pages'] as $page) {
-			$output['d'][] = [
-				'w' => $page['width'],
-				'h' => $page['height'],
-			];
-		}
-		return $output;
-	}
-
-	private function getDataDir(): string {
-		return $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
-	}
-
-	private function getLibesignCli(): string {
-		$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		if (!file_exists($path)) {
-			$this->install->run(new StringInput('--cli'), new NullOutput());
-			$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		}
-		return $path;
 	}
 }
