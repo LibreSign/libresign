@@ -31,7 +31,7 @@ class InstallService {
 	private $systemConfig;
 	/** @var IRootFolder */
 	private $rootFolder;
-	/** @var OutputInterface*/
+	/** @var OutputInterface */
 	private $output;
 
 	public function __construct(
@@ -290,17 +290,21 @@ class InstallService {
 	}
 
 	protected function download(string $url, string $filename, string $path, ?string $md5 = '') {
-		if (php_sapi_name() === 'cli') {
+		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
 			$this->downloadCli($url, $filename, $path, $md5);
 			return;
 		}
 		$client = $this->clientService->newClient();
-		$client->get($url, [
-			'sink' => $path,
-			'timeout' => 0
-		]);
+		try {
+			$client->get($url, [
+				'sink' => $path,
+				'timeout' => 0
+			]);
+		} catch (\Exception $e) {
+			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
+		}
 		if ($md5 && file_exists($path) && md5_file($path) !== $md5) {
-			throw new LibresignException('Failure on download ' . $filename . ' try again');
+			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid md5.');
 		}
 	}
 
@@ -309,19 +313,25 @@ class InstallService {
 		$progressBar = new ProgressBar($this->output);
 		$this->output->writeln('Downloading ' . $filename . '...');
 		$progressBar->start();
-		$client->get($url, [
-			'sink' => $path,
-			'timeout' => 0,
-			'progress' => function ($downloadSize, $downloaded) use ($progressBar) {
-				$progressBar->setMaxSteps($downloadSize);
-				$progressBar->setProgress($downloaded);
-			},
-		]);
+		try {
+			$client->get($url, [
+				'sink' => $path,
+				'timeout' => 0,
+				'progress' => function ($downloadSize, $downloaded) use ($progressBar) {
+					$progressBar->setMaxSteps($downloadSize);
+					$progressBar->setProgress($downloaded);
+				},
+			]);
+		} catch (\Exception $e) {
+			$this->output->writeln('<error>Failure on download ' . $filename . ' try again.</error>');
+			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
+		}
 		$progressBar->finish();
 		$this->output->writeln('');
 		$progressBar->finish();
 		if ($md5 && file_exists($path) && md5_file($path) !== $md5) {
-			$this->output->writeln('Failure on download ' . $filename . ' try again');
+			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
+			$this->output->writeln('<error>Invalid MD5</error>');
 		}
 	}
 }

@@ -92,8 +92,8 @@ class SignFileService {
 	private $urlGenerator;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
-	/** @var PdfParser */
-	private $pdfParser;
+	/** @var PdfParserService */
+	private $pdfParserService;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -132,7 +132,7 @@ class SignFileService {
 		FileElementService $fileElementService,
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
-		PdfParser $pdfParser,
+		PdfParserService $pdfParserService,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
 	) {
@@ -160,7 +160,7 @@ class SignFileService {
 		$this->fileElementService = $fileElementService;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
-		$this->pdfParser = $pdfParser;
+		$this->pdfParserService = $pdfParserService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
 	}
@@ -237,7 +237,7 @@ class SignFileService {
 			'extension' => $node->getExtension(),
 		];
 		if ($metadata['extension'] === 'pdf') {
-			$metadata = $this->pdfParser->getMetadata($node->getPath());
+			$metadata = $this->pdfParserService->getMetadata($node->getPath());
 		}
 		return $metadata;
 	}

@@ -4,28 +4,26 @@ namespace OCA\Libresign\Service;
 
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Command\Install;
 use OCP\IConfig;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\NullOutput;
 
-class PdfParser {
+class PdfParserService {
 	/** @var SystemConfig */
 	private $systemConfig;
 	/** @var IConfig */
 	private $config;
-	private $install;
+	/** @var InstallService */
+	private $installService;
 	/** @var string */
 	private $cliPath;
 
 	public function __construct(
 		IConfig $config,
 		SystemConfig $systemConfig,
-		Install $install
+		InstallService $installService
 	) {
 		$this->systemConfig = $systemConfig;
 		$this->config = $config;
-		$this->install = $install;
+		$this->installService = $installService;
 		$this->cliPath = $this->getLibesignCli();
 	}
 
@@ -52,7 +50,7 @@ class PdfParser {
 	private function getLibesignCli(): string {
 		$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
 		if (!file_exists($path)) {
-			$this->install->run(new StringInput('--cli'), new NullOutput());
+			$this->installService->installCli();
 			$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
 		}
 		return $path;

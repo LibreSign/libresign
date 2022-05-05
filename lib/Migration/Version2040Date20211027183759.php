@@ -6,7 +6,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use Doctrine\DBAL\Types\Types;
-use OCA\Libresign\Service\PdfParser;
+use OCA\Libresign\Service\PdfParserService;
 use OCP\DB\ISchemaWrapper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -19,16 +19,16 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	private $connection;
 	/** @var IRootFolder*/
 	private $root;
-	/** @var PdfParser */
-	private $pdfParser;
+	/** @var PdfParserService */
+	private $PdfParserService;
 	/** @var array */
 	private $rows;
 	public function __construct(IDBConnection $connection,
 								IRootFolder $root,
-								PdfParser $pdfParser) {
+								PdfParserService $PdfParserService) {
 		$this->connection = $connection;
 		$this->root = $root;
-		$this->pdfParser = $pdfParser;
+		$this->PdfParserService = $PdfParserService;
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
@@ -65,7 +65,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			/** @var File[] */
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
-				$data = $this->pdfParser->getMetadata($file[0]->getPath());
+				$data = $this->PdfParserService->getMetadata($file[0]->getPath());
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query

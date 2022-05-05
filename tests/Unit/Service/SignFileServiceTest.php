@@ -14,7 +14,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\PdfParser;
+use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
@@ -85,8 +85,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $eventDispatcher;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
-	/** @var PdfParser */
-	private $pdfParser;
+	/** @var PdfParserService */
+	private $pdfParserService;
 	/** @var IMimeTypeDetector|MockObject */
 	private $mimeTypeDetector;
 	/** @var ITempManager|MockObject */
@@ -121,7 +121,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->pdfParser = $this->createMock(PdfParser::class);
+		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
@@ -152,7 +152,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementService,
 			$this->eventDispatcher,
 			$this->urlGenerator,
-			$this->pdfParser,
+			$this->pdfParserService,
 			$this->mimeTypeDetector,
 			$this->tempManager
 		);
