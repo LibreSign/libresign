@@ -15,7 +15,6 @@ use OCA\Libresign\Event\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Accounts\IAccountManager;
@@ -91,6 +90,10 @@ class SignFileService {
 	private $eventDispatcher;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var IMimeTypeDetector */
+	private $mimeTypeDetector;
+	/** @var PdfParserService */
+	private $pdfParserService;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -129,6 +132,7 @@ class SignFileService {
 		FileElementService $fileElementService,
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
+		PdfParserService $pdfParserService,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
 	) {
@@ -156,6 +160,7 @@ class SignFileService {
 		$this->fileElementService = $fileElementService;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
+		$this->pdfParserService = $pdfParserService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
 	}
@@ -232,9 +237,7 @@ class SignFileService {
 			'extension' => $node->getExtension(),
 		];
 		if ($metadata['extension'] === 'pdf') {
-			$pdf = new TCPDILibresign();
-			$pdf->setSourceData($node->getContent());
-			$metadata = array_merge($metadata, $pdf->getPagesMetadata());
+			$metadata = $this->pdfParserService->getMetadata($node->getPath());
 		}
 		return $metadata;
 	}
