@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 3.1.1 - 2022-05-05
+
+# Fixed
+- Replaced more usages of TCPDI by LibreSignCLI
+
 ## 3.1.0 - 2022-04-26
 
 # Added
