@@ -8,7 +8,7 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use Psr\Log\LoggerInterface;
-use setasign\Fpdi\PdfParser\Type\PdfTypeException;
+use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use TCPDF_PARSER;
 
 trait TFile {
