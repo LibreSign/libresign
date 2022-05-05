@@ -81,7 +81,11 @@ jobs:
             --database-pass=rootpassword \
             --admin-user=admin \
             --admin-pass=password
+      - name: Enable app
+        run: |
           ./occ app:enable ${{ env.APP_NAME }}
+      - name: Start built in server
+        run: |
           php -S localhost:8080 &
       - name: Set up dependencies apps
         run: |
