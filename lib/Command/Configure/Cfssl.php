@@ -108,7 +108,7 @@ class Cfssl extends Base {
 			$configPath = $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
 			$cfsslUri = 'http://127.0.0.1:8888/api/v1/cfssl/';
 		} else {
-			$output->writeln('CFSSL binary not found!');
+			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
 				throw new InvalidArgumentException('Invalid config path');
 			}
