@@ -16,6 +16,7 @@ Types of changes:
 ## 6.1.2 - development
 
 # Added
+- Added issue template to request feature and report a bug
 - Improve test coverate to PdfParser
 
 ## 6.1.1 - 2022-05-05
