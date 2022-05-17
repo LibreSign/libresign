@@ -33,6 +33,7 @@ OC.L10N.register(
     "Signature" : "Signatur",
     "Profile picture" : "Profilbild",
     "Enter a password" : "Ange ett lösenord",
+    "Your password must be greater than 4 digits" : "Ditt lösenord måste bestå av minst 4 tecken",
     "Confirm password" : "Bekräfta lösenord",
     "Next" : "Nästa",
     "Yes" : "Ja",
