@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Éxito",
     "Invalid user or password" : "Usuario o contraseña no válidos",
-    "_Element created with success_::_Elements created with success_" : ["Elemento creado con éxito","Elementos creados con éxito"],
+    "_Element created with success_::_Elements created with success_" : ["Elemento creado con éxito","Elementos creados con éxito","Elementos creados con éxito"],
     "Elements not found" : "Elementos no encontrados",
     "Element not found" : "Elemento no encontrado",
     "Element updated with success" : "Elemento actualizado con éxito",
@@ -262,4 +262,4 @@ OC.L10N.register(
     "Password created!" : "¡Contraseña creada!",
     "Open in LibreSign" : "Abrir en LibreSign"
 },
-"nplurals=2; plural=(n != 1);");
+"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
