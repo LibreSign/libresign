@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c0a147a15bab38c2d4acaaa704f3658",
+    "content-hash": "12e8d4c0e63b2cf13b67a0255c603503",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -109,16 +109,16 @@
         },
         {
             "name": "endroid/qr-code",
-            "version": "4.4.8",
+            "version": "4.4.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/endroid/qr-code.git",
-                "reference": "9109eb7790ece1d46b1ab40eb7f375bbd6e7cb5d"
+                "reference": "bf087fa1e93a1b7310e2d94d187e26ae51db199d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/endroid/qr-code/zipball/9109eb7790ece1d46b1ab40eb7f375bbd6e7cb5d",
-                "reference": "9109eb7790ece1d46b1ab40eb7f375bbd6e7cb5d",
+                "url": "https://api.github.com/repos/endroid/qr-code/zipball/bf087fa1e93a1b7310e2d94d187e26ae51db199d",
+                "reference": "bf087fa1e93a1b7310e2d94d187e26ae51db199d",
                 "shasum": ""
             },
             "require": {
@@ -169,7 +169,7 @@
             ],
             "support": {
                 "issues": "https://github.com/endroid/qr-code/issues",
-                "source": "https://github.com/endroid/qr-code/tree/4.4.8"
+                "source": "https://github.com/endroid/qr-code/tree/4.4.9"
             },
             "funding": [
                 {
@@ -177,7 +177,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-04-06T09:39:20+00:00"
+            "time": "2022-05-10T07:25:08+00:00"
         },
         {
             "name": "iio/libmergepdf",
@@ -1035,21 +1035,21 @@
         },
         {
             "name": "christophwurst/nextcloud",
-            "version": "dev-stable23",
+            "version": "v23.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ChristophWurst/nextcloud_composer.git",
-                "reference": "35a9fd3850885765a670b95f9bfa18c55245e7ac"
+                "reference": "2090802b05c9f8bffb2a7c02d6172571d4f90b90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/35a9fd3850885765a670b95f9bfa18c55245e7ac",
-                "reference": "35a9fd3850885765a670b95f9bfa18c55245e7ac",
+                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/2090802b05c9f8bffb2a7c02d6172571d4f90b90",
+                "reference": "2090802b05c9f8bffb2a7c02d6172571d4f90b90",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.3 || ~8.0.0",
-                "psr/container": "^1.0",
+                "psr/container": "^1.1.1",
                 "psr/event-dispatcher": "^1.0",
                 "psr/log": "^1.1"
             },
@@ -1072,9 +1072,9 @@
             "description": "Composer package containing Nextcloud's public API (classes, interfaces)",
             "support": {
                 "issues": "https://github.com/ChristophWurst/nextcloud_composer/issues",
-                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/stable23"
+                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/v23.0.5"
             },
-            "time": "2022-02-22T09:38:33+00:00"
+            "time": "2022-06-02T14:19:33+00:00"
         },
         {
             "name": "composer/package-versions-deprecated",
@@ -6006,8 +6006,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "iio/libmergepdf": 20,
-        "christophwurst/nextcloud": 20
+        "iio/libmergepdf": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
