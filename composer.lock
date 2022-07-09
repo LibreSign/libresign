@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b92c74aa7212eebe20dc165870b0b016",
+    "content-hash": "d02dcb26deddc2459e12bc42db06ece7",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1035,16 +1035,16 @@
         },
         {
             "name": "christophwurst/nextcloud",
-            "version": "dev-stable22",
+            "version": "v22.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ChristophWurst/nextcloud_composer.git",
-                "reference": "bb417df98b148e26119e1814da14114575bb0521"
+                "reference": "8bb086cd016128b5ef8353662fd1852db3248d1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/bb417df98b148e26119e1814da14114575bb0521",
-                "reference": "bb417df98b148e26119e1814da14114575bb0521",
+                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/8bb086cd016128b5ef8353662fd1852db3248d1e",
+                "reference": "8bb086cd016128b5ef8353662fd1852db3248d1e",
                 "shasum": ""
             },
             "require": {
@@ -1072,9 +1072,9 @@
             "description": "Composer package containing Nextcloud's public API (classes, interfaces)",
             "support": {
                 "issues": "https://github.com/ChristophWurst/nextcloud_composer/issues",
-                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/stable22"
+                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/v22.1.1"
             },
-            "time": "2022-02-22T09:43:07+00:00"
+            "time": "2021-11-11T14:01:42+00:00"
         },
         {
             "name": "composer/package-versions-deprecated",
@@ -6006,12 +6006,11 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "iio/libmergepdf": 20,
-        "christophwurst/nextcloud": 20
+        "iio/libmergepdf": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.3.0"
 }
