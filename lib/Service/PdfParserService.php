@@ -43,7 +43,7 @@ class PdfParserService {
 		if ($fullPath === false) {
 			throw new LibresignException('Impossible get metadata from this file. Check if you installed correctly the libresign-cli.');
 		}
-		$json = shell_exec($this->cliPath . ' info "' . escapeshellcmd($fullPath) . '"');
+		$json = shell_exec($this->cliPath . ' info ' . escapeshellarg($fullPath));
 		$array = json_decode($json, true);
 		if (!is_array($array)) {
 			throw new LibresignException('Impossible get metadata from this file. Check if you installed correctly the libresign-cli.');
