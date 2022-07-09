@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "11f426a4c218c314983bfa473cd72f38",
+    "content-hash": "29c49eb52b7ef817859877b3933d397b",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1035,29 +1035,28 @@
         },
         {
             "name": "christophwurst/nextcloud",
-            "version": "dev-master",
+            "version": "v24.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ChristophWurst/nextcloud_composer.git",
-                "reference": "1a1fee726782ce1dc3db59f0d262c0679488f95b"
+                "reference": "f032acdff1502a7323f95a6524d163290f43b446"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/1a1fee726782ce1dc3db59f0d262c0679488f95b",
-                "reference": "1a1fee726782ce1dc3db59f0d262c0679488f95b",
+                "url": "https://api.github.com/repos/ChristophWurst/nextcloud_composer/zipball/f032acdff1502a7323f95a6524d163290f43b446",
+                "reference": "f032acdff1502a7323f95a6524d163290f43b446",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.4 || ~8.0 || ~8.1",
-                "psr/container": "^1.0",
+                "psr/container": "^1.1.1",
                 "psr/event-dispatcher": "^1.0",
                 "psr/log": "^1.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "25.0.0-dev"
+                    "dev-master": "24.0.0-dev"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -1073,9 +1072,9 @@
             "description": "Composer package containing Nextcloud's public API (classes, interfaces)",
             "support": {
                 "issues": "https://github.com/ChristophWurst/nextcloud_composer/issues",
-                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/master"
+                "source": "https://github.com/ChristophWurst/nextcloud_composer/tree/v24.0.1"
             },
-            "time": "2022-05-05T01:56:01+00:00"
+            "time": "2022-06-02T14:16:47+00:00"
         },
         {
             "name": "composer/package-versions-deprecated",
@@ -6007,12 +6006,11 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "iio/libmergepdf": 20,
-        "christophwurst/nextcloud": 20
+        "iio/libmergepdf": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "plugin-api-version": "2.3.0"
 }
