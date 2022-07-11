@@ -24,8 +24,8 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 	/** @var array */
 	private $rows;
 	public function __construct(IDBConnection $connection,
-								IRootFolder $root,
-								PdfParserService $PdfParserService) {
+		IRootFolder $root,
+		PdfParserService $PdfParserService) {
 		$this->connection = $connection;
 		$this->root = $root;
 		$this->PdfParserService = $PdfParserService;
