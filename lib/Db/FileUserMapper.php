@@ -289,12 +289,12 @@ class FileUserMapper extends QBMapper {
 	private function getFilesAssociatedFilesWithMeStmt(string $userId, bool $count = false): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
-				'f.id',
-				'f.uuid',
-				'f.name',
-				'f.callback',
-				'f.node_id'
-			)
+			'f.id',
+			'f.uuid',
+			'f.name',
+			'f.callback',
+			'f.node_id'
+		)
 			->selectAlias('u.uid_lower', 'requested_by_uid')
 			->selectAlias('u.displayname', 'requested_by_dislpayname')
 			->selectAlias('f.created_at', 'request_date')
