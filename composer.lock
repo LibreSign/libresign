@@ -1625,16 +1625,16 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.4.1",
+            "version": "v2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "bcec733923068135bd4a2da359aa038a93697c5b"
+                "reference": "2850c4647e14335cf3e728cad525b701e3a2aecc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/bcec733923068135bd4a2da359aa038a93697c5b",
-                "reference": "bcec733923068135bd4a2da359aa038a93697c5b",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/2850c4647e14335cf3e728cad525b701e3a2aecc",
+                "reference": "2850c4647e14335cf3e728cad525b701e3a2aecc",
                 "shasum": ""
             },
             "require": {
@@ -1645,6 +1645,7 @@
             },
             "require-dev": {
                 "donatj/drop": "^1.0",
+                "ext-curl": "*",
                 "phpunit/phpunit": "~4|~9"
             },
             "type": "library",
@@ -1668,11 +1669,11 @@
             "description": "Simple mock web server for unit testing",
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.4.1"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.5.0"
             },
             "funding": [
                 {
-                    "url": "https://www.paypal.me/donatj/5",
+                    "url": "https://www.paypal.me/donatj/15",
                     "type": "custom"
                 },
                 {
@@ -1680,7 +1681,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-19T16:59:52+00:00"
+            "time": "2022-07-17T04:27:21+00:00"
         },
         {
             "name": "felixfbecker/advanced-json-rpc",
