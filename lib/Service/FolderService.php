@@ -128,7 +128,7 @@ class FolderService {
 					if (!empty($data['name'])) {
 						$folderName[] = $data['name'];
 					}
-					break;
+				break;
 				case 'userId':
 					$folderName[] = $owner->getUID();
 					break;

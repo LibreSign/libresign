@@ -2,8 +2,9 @@ Feature: account/me
   Background: Create users
     Given user "signer1" exists
 
-  Scenario: who a me with fail
-    Given sending "get" to "/apps/libresign/api/0.1/account/me"
+  Scenario: who a me with fail because need an authenticated user
+    Given as user "guest"
+    And sending "get" to "/apps/libresign/api/0.1/account/me"
     Then the response should have a status code 404
 
   Scenario: who a me with success
