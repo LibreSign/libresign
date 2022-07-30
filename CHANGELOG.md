@@ -13,6 +13,12 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 4.1.2 - 2022-07-30
+
+# Fixed
+- Use escapeshellarg to fix path of file
+- bump PHP dependencies
+
 ## 4.1.1 - 2022-05-05
 
 # Fixed
