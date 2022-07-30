@@ -155,7 +155,7 @@ class CfsslHandler {
 					if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
 						throw new \Exception($th->getHandlerContext()['error'], 1);
 					}
-				throw new LibresignException($th->getMessage(), 500);
+					throw new LibresignException($th->getMessage(), 500);
 			}
 		}
 
