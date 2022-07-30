@@ -118,14 +118,14 @@ class AccountFileMapper extends QBMapper {
 	private function getUserAccountFile(array $filter = [], bool $count = false): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
-				'f.id',
-				'f.uuid',
-				'f.name',
-				'f.callback',
-				'f.status',
-				'f.node_id',
-				'af.file_type'
-			)
+			'f.id',
+			'f.uuid',
+			'f.name',
+			'f.callback',
+			'f.status',
+			'f.node_id',
+			'af.file_type'
+		)
 			->selectAlias('u.uid_lower', 'account_uid')
 			->selectAlias('u.displayname', 'account_displayname')
 			->selectAlias('f.created_at', 'request_date')

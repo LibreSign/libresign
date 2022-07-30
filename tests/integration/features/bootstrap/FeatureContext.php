@@ -23,6 +23,9 @@ class FeatureContext implements Context {
 	/** @var string */
 	protected $currentUser;
 
+	/** @var array */
+	protected $createdUsers = [];
+
 	/** @var ResponseInterface */
 	private $response;
 
@@ -32,6 +35,26 @@ class FeatureContext implements Context {
 	public function __construct() {
 		$this->cookieJars = [];
 		$this->baseUrl = RunServerListener::getServerRoot();
+	}
+
+	/**
+	 * @AfterScenario
+	 */
+	public function tearDown() {
+		foreach ($this->createdUsers as $user) {
+			$this->deleteUser($user);
+		}
+	}
+
+	private function deleteUser($user) {
+		$currentUser = $this->currentUser;
+		$this->setCurrentUser('admin');
+		$this->sendRequest('DELETE', '/cloud/users/' . $user);
+		$this->setCurrentUser($currentUser);
+
+		unset($this->createdUsers[array_search($user, $this->createdUsers, true)]);
+
+		return $this->response;
 	}
 
 	public function sendOCSRequest($verb, $url, $body = null, array $headers = []) {
