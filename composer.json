@@ -17,8 +17,8 @@
     "symfony/yaml": "^5.4",
     "guzzlehttp/psr7": "^2.4",
     "mikey179/vfsstream": "^1.6",
-    "donatj/mock-webserver": "^2.4",
-    "vimeo/psalm": "^4.24",
+    "donatj/mock-webserver": "^2.5",
+    "vimeo/psalm": "^4.25",
     "christophwurst/nextcloud": "dev-master"
   },
   "scripts": {
