@@ -338,13 +338,13 @@ class ValidateHelper {
 				if ($mimetype !== 'application/pdf') {
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'PDF']));
 				}
-			break;
+				break;
 			case self::TYPE_VISIBLE_ELEMENT_PDF:
 			case self::TYPE_VISIBLE_ELEMENT_USER:
 				if ($mimetype !== 'image/png') {
 					throw new LibresignException($this->l10n->t('File type: %s. Must be a fileID of %s format.', [$this->getTypeOfFile($type), 'png']));
 				}
-			break;
+				break;
 		}
 	}
 
