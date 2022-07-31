@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Sucesso",
     "Invalid user or password" : "Usuário ou senha inválidos",
-    "_Element created with success_::_Elements created with success_" : ["Elemento criado com sucesso","Elementos criados com sucesso"],
+    "_Element created with success_::_Elements created with success_" : ["Elemento criado com sucesso","Elementos criados com sucesso","Elementos criados com sucesso"],
     "Elements not found" : "Elementos não encontrados ",
     "Element not found" : "Elemento não encontrado ",
     "Element updated with success" : "Elemento atualizado com sucesso",
@@ -115,6 +115,7 @@ OC.L10N.register(
     "Invalid user" : "Usuário inválido",
     "Invalid PDF" : "PDF inválido",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ App livre para assinatura digital de documentos no Nextcloud",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Este é um aplicativo de assinatura digital PDF gratuito para Nextcloud**\n\n* ✍️ Assine documentos PDF usando assinatura digital\n* ⚠️ A configuração deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Consulte [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para obter detalhes.",
     "Back to sign" : "Voltar para assinar",
     "Request" : "Solicitação",
     "Files" : "Arquivos ",
@@ -275,4 +276,4 @@ OC.L10N.register(
     "Password created!" : "Senha criada! ",
     "Open in LibreSign" : "Abra no LibreSign "
 },
-"nplurals=2; plural=(n > 1);");
+"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

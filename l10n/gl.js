@@ -44,10 +44,14 @@ OC.L10N.register(
     "Password reset" : "Restabelecer o contrasinal",
     "New password" : "Novo contrasinal",
     "Repeat password" : "Repita o contrasinal",
+    "Legal information" : "Información legal",
     "Remove" : "Retirar",
     "Previous" : "Anterior",
     "Loading" : "Cargando",
+    "All Files" : "Todos os ficheiros",
+    "There are no documents" : "Non hai documentos",
     "View" : "Ver",
+    "Document Informations" : "Información do documento",
     "No date" : "Sen data"
 },
 "nplurals=2; plural=(n != 1);");
