@@ -26,11 +26,11 @@ import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import Vue from 'vue'
 
-import Validation from './views/Validation'
-import router from './router'
-import store from './store'
+import Validation from './views/Validation.vue'
+import router from './router/index.js'
+import store from './store/index.js'
 
-import './directives/VTooltip'
+import './directives/VTooltip.js'
 
 import '@nextcloud/dialogs/styles/toast.scss'
 

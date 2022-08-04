@@ -23,14 +23,14 @@
 
 import Vue from 'vue'
 import Vuex, { Store } from 'vuex'
-import sidebar from './modules/sidebar'
-import files from './modules/files'
-import sign from './modules/sign'
-import validate from './modules/validate'
-import error from './modules/errors'
-import settings from './modules/settings'
-import user from './modules/user'
-import { getInitialState } from '../services/InitialStateService'
+import sidebar from './modules/sidebar.js'
+import files from './modules/files.js'
+import sign from './modules/sign.js'
+import validate from './modules/validate.js'
+import error from './modules/errors.js'
+import settings from './modules/settings.js'
+import user from './modules/user.js'
+import { getInitialState } from '../services/InitialStateService.js'
 
 Vue.use(Vuex)
 

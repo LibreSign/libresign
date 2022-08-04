@@ -31,7 +31,7 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Input from '../Components/Input/Input'
+import Input from '../Components/Input/Input.vue'
 
 export default {
 	name: 'ResetPassword',

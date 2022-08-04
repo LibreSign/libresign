@@ -33,9 +33,10 @@
 </template>
 
 <script>
-import ListItem from '../ListItem'
+import ListItem from '../ListItem/index.js'
 import { required, email } from 'vuelidate/lib/validators'
-import { validateEmail } from '../../utils/validators'
+import { validateEmail } from '../../utils/validators.js'
+
 export default {
 	name: 'Request',
 	components: {

@@ -40,7 +40,7 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import '@fontsource/dancing-script'
-import { SignatureImageDimensions } from './options'
+import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
 
 export default {

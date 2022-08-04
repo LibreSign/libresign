@@ -1,2 +1,2 @@
-import File from './File'
+import File from './File.vue'
 export default File

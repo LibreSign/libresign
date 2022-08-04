@@ -1,4 +1,4 @@
-import { getInitialState } from './InitialStateService'
+import { getInitialState } from './InitialStateService.js'
 import { loadState } from '@nextcloud/initial-state'
 
 describe('InitialStateService', () => {

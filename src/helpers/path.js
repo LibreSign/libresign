@@ -2,8 +2,8 @@
 
 import { generateUrl } from '@nextcloud/router'
 
-const rgxBegin = new RegExp('^/')
-const rgxEnd = new RegExp('/$')
+const rgxBegin = /^\//
+const rgxEnd = /\/$/
 
 const API_PATH = '/apps/libresign/api/0.1/'
 const APP_PATH = '/apps/libresign/'

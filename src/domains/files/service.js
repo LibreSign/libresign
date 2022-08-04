@@ -15,7 +15,7 @@ const slugfy = val =>
 		.replace(/-+$/, '')
 
 /**
- * @param {import('@nextcloud/axios').default} http
+ * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => ({
 	/**

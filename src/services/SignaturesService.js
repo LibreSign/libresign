@@ -1,6 +1,6 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import store from '../store'
+import store from '../store/index.js'
 
 export const loadSignatures = async () => {
 	const response = await axios.get(

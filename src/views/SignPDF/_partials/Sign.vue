@@ -1,9 +1,9 @@
 <script>
 import { get, isEmpty, pick } from 'lodash-es'
 import { showError } from '@nextcloud/dialogs'
-import { service as sigantureService } from '../../../domains/signatures'
-import { service as signService } from '../../../domains/sign'
-import { onError } from '../../../helpers/errors'
+import { service as sigantureService } from '../../../domains/signatures/index.js'
+import { service as signService } from '../../../domains/sign/index.js'
+import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'

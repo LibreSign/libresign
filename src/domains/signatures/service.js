@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import { getURL } from '../../helpers/path'
+import { getURL } from '../../helpers/path.js'
 
 /**
  * @param   {string}  type
