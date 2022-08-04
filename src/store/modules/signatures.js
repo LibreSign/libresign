@@ -1,5 +1,5 @@
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { loadSignatures, newSignature, newElement } from '../../services/SignaturesService'
+import { loadSignatures, newSignature, newElement } from '../../services/SignaturesService.js'
 
 const state = {
 	signatures: {

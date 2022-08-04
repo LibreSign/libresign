@@ -1,7 +1,7 @@
 <script>
 import Content from '@nextcloud/vue/dist/Components/Content'
-import { documentsService, parseDocument } from '../../domains/documents'
-import { onError } from '../../helpers/errors'
+import { documentsService, parseDocument } from '../../domains/documents/index.js'
+import { onError } from '../../helpers/errors.js'
 import ProgressBar from '../../Components/ProgressBar.vue'
 import { map } from 'lodash-es'
 

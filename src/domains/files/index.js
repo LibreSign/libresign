@@ -1,1 +1,1 @@
-export { default as filesService } from './service'
+export { default as filesService } from './service.js'

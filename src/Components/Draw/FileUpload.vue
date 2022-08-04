@@ -1,7 +1,7 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { Cropper } from 'vue-advanced-cropper'
-import { SignatureImageDimensions } from './options'
+import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
 export default {
 	name: 'FileUpload',

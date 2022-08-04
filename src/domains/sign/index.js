@@ -1,2 +1,2 @@
-export * from './enum'
-export { default as service } from './service'
+export * from './enum.js'
+export { default as service } from './service.js'

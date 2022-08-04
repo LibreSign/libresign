@@ -24,8 +24,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { generateUrl } from '@nextcloud/router'
-import routes from './router'
-import store from '../store'
+import routes from './router.js'
+import store from '../store/index.js'
 
 Vue.use(Router)
 
