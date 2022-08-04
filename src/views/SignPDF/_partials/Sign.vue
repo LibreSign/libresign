@@ -260,22 +260,19 @@ export default {
 				</p>
 			</div>
 		</div>
-		<PasswordManager
-			v-if="modals.password"
+		<PasswordManager v-if="modals.password"
 			v-bind="{ hasPassword, signMethod }"
 			@change="signWithPassword"
 			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
 
-		<SMSManager
-			v-if="modals.sms"
+		<SMSManager v-if="modals.sms"
 			v-bind="{ settings, fileId }"
 			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
-		<EmailManager
-			v-if="modals.email"
+		<EmailManager v-if="modals.email"
 			v-bind="{ settings, fileId }"
 			@change="signWithCode"
 			@close="onModalClose('email')" />

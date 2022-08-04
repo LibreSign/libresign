@@ -15,8 +15,7 @@
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
 					<Input v-model="rPassword" :has-error="!hasEqualPassword" type="password" />
 				</div>
-				<button
-					:disabled="!hableButton"
+				<button :disabled="!hableButton"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 					@click="checkPasswordForConfirm">
 					{{ t('libresign', 'Confirm') }}

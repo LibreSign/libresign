@@ -23,8 +23,7 @@
 
 <template>
 	<ul>
-		<AppNavigationItem
-			icon="icon-user"
+		<AppNavigationItem icon="icon-user"
 			:title="t('libresign', 'Account')"
 			:to=" {name: 'Account'} " />
 	</ul>

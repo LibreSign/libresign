@@ -25,25 +25,21 @@
 	<Content app-name="libresign">
 		<AppNavigation>
 			<template #list>
-				<AppNavigationItem
-					v-if="back_to_signature"
+				<AppNavigationItem v-if="back_to_signature"
 					class="back_to_signature"
 					icon="icon-history"
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<AppNavigationItem
-					:to="{name: 'requestFiles'}"
+				<AppNavigationItem :to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
-				<AppNavigationItem
-					:to="{ name: 'signFiles' }"
+				<AppNavigationItem :to="{ name: 'signFiles' }"
 					:title="t('libresign', 'Files')"
 					icon="icon-files-dark"
 					exact />
-				<AppNavigationItem
-					:to="{name: 'validation'}"
+				<AppNavigationItem :to="{name: 'validation'}"
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
 

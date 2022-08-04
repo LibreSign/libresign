@@ -85,8 +85,7 @@ export default {
 		</div>
 
 		<div v-if="hasImage" class="cropper-container">
-			<Cropper
-				:src="image"
+			<Cropper :src="image"
 				v-bind="{ stencilSize }"
 				@change="change" />
 			<p>
