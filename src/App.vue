@@ -120,9 +120,6 @@ export default {
 			return this.$route.path === '/'
 		},
 	},
-	mounted() {
-		this.$router.replace({ name: 'requestFiles' })
-	},
 	methods: {
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.back_to_signature } })

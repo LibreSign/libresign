@@ -27,6 +27,12 @@ import { getInitialState } from '../services/InitialStateService'
 const libresignVar = getInitialState()
 
 const routes = [
+	{
+		path: '/reset-password',
+		component: () => import('../views/ResetPassword'),
+		name: 'ResetPassword',
+	},
+
 	// public
 	{
 		path: '/p/account/files/approve/:uuid',
@@ -67,10 +73,15 @@ const routes = [
 			uuid: route.params.uuid,
 		}),
 	},
+
+	// internal pages
 	{
-		path: '/reset-password',
-		component: () => import('../views/ResetPassword'),
-		name: 'ResetPassword',
+		path: '/f/',
+		redirect: { name: 'requestFiles' },
+	},
+	{
+		path: '/',
+		redirect: { name: 'requestFiles' },
 	},
 	{
 		path: '/f/validation',
