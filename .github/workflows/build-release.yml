@@ -17,8 +17,8 @@ jobs:
           path: ${{ env.APP_NAME }}
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
-          cache-dependency-path: ${{ env.APP_NAME }}/yarn.lock
+          node-version: 16
+          cache-dependency-path: ${{ env.APP_NAME }}/package-lock.json
       - name: Run build
         run: cd ${{ env.APP_NAME }} && make appstore
       - name: Upload app tarball to release
