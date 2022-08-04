@@ -21,7 +21,7 @@
  *
  */
 
-import { getInitialState } from '../services/InitialStateService'
+import { getInitialState } from '../services/InitialStateService.js'
 
 const libresignVar = getInitialState()
 

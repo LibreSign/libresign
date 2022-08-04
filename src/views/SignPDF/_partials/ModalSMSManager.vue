@@ -4,9 +4,9 @@ import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { isEmpty, castArray } from 'lodash-es'
 import Content from '../../../Components/Modals/ModalContent.vue'
-import { onError } from '../../../helpers/errors'
-import { settingsService } from '../../../domains/settings'
-import { service as signService } from '../../../domains/sign'
+import { onError } from '../../../helpers/errors.js'
+import { settingsService } from '../../../domains/settings/index.js'
+import { service as signService } from '../../../domains/sign/index.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')

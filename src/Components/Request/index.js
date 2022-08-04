@@ -1,2 +1,2 @@
-import Request from './Request'
+import Request from './Request.vue'
 export default Request

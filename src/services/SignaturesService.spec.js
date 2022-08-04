@@ -1,6 +1,6 @@
 import { generateUrl } from '@nextcloud/router'
-import mockAxios from '../__test__/__mocks__/axios'
-import { deleteElement, getElement, loadSignatures, newSignature, updateElement } from './SignaturesService'
+import mockAxios from '../__test__/__mocks__/axios.js'
+import { deleteElement, getElement, loadSignatures, newSignature, updateElement } from './SignaturesService.js'
 
 describe('SignaturesService', () => {
 	afterEach(() => {

@@ -39,10 +39,10 @@
 </template>
 
 <script>
-import AdminFormLibresign from './AdminFormLibresign'
-import AllowedGroups from './AllowedGroups'
-import UrlValidation from './UrlValidation'
-import Textarea from '../../Components/Textarea/Textarea'
+import AdminFormLibresign from './AdminFormLibresign.vue'
+import AllowedGroups from './AllowedGroups.vue'
+import UrlValidation from './UrlValidation.vue'
+import Textarea from '../../Components/Textarea/Textarea.vue'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'

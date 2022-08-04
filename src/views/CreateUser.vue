@@ -130,8 +130,8 @@ import { required, email, minLength } from 'vuelidate/lib/validators'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
-import Draw from '../Components/Draw'
-import { getInitialState } from '../services/InitialStateService'
+import Draw from '../Components/Draw/index.js'
+import { getInitialState } from '../services/InitialStateService.js'
 
 export default {
 	name: 'CreateUser',

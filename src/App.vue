@@ -79,7 +79,7 @@ import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
-import { getInitialState } from './services/InitialStateService'
+import { getInitialState } from './services/InitialStateService.js'
 import { defaults } from 'lodash-es'
 
 const libresignState = getInitialState()

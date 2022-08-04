@@ -1,4 +1,4 @@
-import { getInitialState } from '../../services/InitialStateService'
+import { getInitialState } from '../../services/InitialStateService.js'
 import { defaults } from 'lodash-es'
 
 const libresignState = getInitialState()

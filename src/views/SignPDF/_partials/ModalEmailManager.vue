@@ -3,8 +3,8 @@ import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { showSuccess } from '@nextcloud/dialogs'
 import { castArray } from 'lodash-es'
 import Content from '../../../Components/Modals/ModalContent.vue'
-import { onError } from '../../../helpers/errors'
-import { service as signService } from '../../../domains/sign'
+import { onError } from '../../../helpers/errors.js'
+import { service as signService } from '../../../domains/sign/index.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')

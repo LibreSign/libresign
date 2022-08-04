@@ -25,10 +25,10 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { imagePath } from '@nextcloud/router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import LibresignTab from './views/FilesTab/LibresignTab'
+import LibresignTab from './views/FilesTab/LibresignTab.vue'
 
-import './plugins/vuelidate'
-import './directives/VTooltip'
+import './plugins/vuelidate.js'
+import './directives/VTooltip.js'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.prototype.t = t

@@ -38,7 +38,7 @@
 import icon from '../assets/images/logo-white.png'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { getInitialState } from '../services/InitialStateService'
+import { getInitialState } from '../services/InitialStateService.js'
 export default {
 	name: 'DefaultPageSuccess',
 	data() {

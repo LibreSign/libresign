@@ -2,7 +2,7 @@
 import axios from '@nextcloud/axios'
 import {
 	getAPIURL,
-} from '../../helpers/path'
+} from '../../helpers/path.js'
 
 /**
  * build documents services
