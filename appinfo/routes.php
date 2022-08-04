@@ -63,6 +63,7 @@ return [
 
 		// Pages - restricted
 		['name' => 'page#index',                      'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#index',                      'url' => '/f/', 'verb' => 'GET'],
 		['name' => 'page#index',                      'url' => '/f/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'front'],
 		['name' => 'page#getPdfUser',                 'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#resetPassword',              'url' => '/reset-password', 'verb' => 'GET'],
