@@ -37,8 +37,7 @@
 						<h2>{{ t('libresign', 'You need to create an account with the same email you received the invitation') }}</h2>
 
 						<div class="group">
-							<input
-								v-model.trim="$v.email.$model"
+							<input v-model.trim="$v.email.$model"
 								type="email"
 								:placeholder="t('libresign', 'Email')">
 							<span v-show="showErrorEmail" class="error">
@@ -47,8 +46,7 @@
 						</div>
 
 						<div v-show="!passwordSign" class="group">
-							<input
-								v-model.trim="$v.password.$model"
+							<input v-model.trim="$v.password.$model"
 								type="password"
 								:placeholder="t('libresign', 'Password')">
 							<span v-show="$v.password.$error">
@@ -57,8 +55,7 @@
 						</div>
 
 						<div v-show="!passwordSign" class="group">
-							<input
-								v-model.trim="$v.passwordConfirm.$model"
+							<input v-model.trim="$v.passwordConfirm.$model"
 								type="password"
 								:placeholder="t('libresign', 'Confirm password')">
 							<span v-show="!isEqualPassword">
@@ -78,17 +75,14 @@
 
 					<div v-show="controllerView === 1" class="form-password">
 						<h2>{{ t('libresign', 'Set a password to sign the document') }}</h2>
-						<div
-							class="group">
-							<input
-								v-model="$v.pfx.$model"
+						<div class="group">
+							<input v-model="$v.pfx.$model"
 								type="password"
 								:placeholder="t('libresign', 'Password for sign document.')">
 							<span v-show="showPfxError">{{ t('libresign', 'Your password must be greater than 4 digits') }} </span>
 						</div>
 						<div class="buttons">
-							<button
-								ref="btn"
+							<button ref="btn"
 								:class="hasLoading ? 'btn-load primary loading':'btn'"
 								:disabled="hableCreatePfx"
 								@click.prevent="createPfx">

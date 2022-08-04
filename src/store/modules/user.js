@@ -29,7 +29,7 @@ const mutations = {
 }
 
 const actions = {
-	CREATE: async({ commit, dispatch }, { email, password, uuid }) => {
+	CREATE: async ({ commit, dispatch }, { email, password, uuid }) => {
 		try {
 			dispatch('CLEAR_ERROR')
 			const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/account/create/${uuid}`), {
@@ -49,7 +49,7 @@ const actions = {
 			commit('setError', err.response.data.message)
 		}
 	},
-	CREATE_PFX: async({ commit, dispatch }, { signPassword }) => {
+	CREATE_PFX: async ({ commit, dispatch }, { signPassword }) => {
 		try {
 			dispatch('CLEAR_ERROR')
 

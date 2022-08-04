@@ -7,7 +7,7 @@ const state = {
 }
 
 const actions = {
-	SIGN_DOCUMENT: async({ dispatch, rootGetters }, { fileId, password, elements }) => {
+	SIGN_DOCUMENT: async ({ dispatch, rootGetters }, { fileId, password, elements }) => {
 		try {
 			let response
 			if (fileId.length >= 10) {
@@ -33,7 +33,7 @@ const actions = {
 			})
 		}
 	},
-	REQUEST: async({ dispatch }, { fileId, name, users }) => {
+	REQUEST: async ({ dispatch }, { fileId, name, users }) => {
 		try {
 			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/register'), {
 				file: {

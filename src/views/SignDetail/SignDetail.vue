@@ -305,16 +305,13 @@ export default {
 			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
 				<img :src="page.url">
 			</div> -->
-			<PageNavigation
-				v-model="currentSigner.element.coordinates.page"
+			<PageNavigation v-model="currentSigner.element.coordinates.page"
 				v-bind="{ pages }"
 				:width="pageDimensions.css.width" />
 			<div class="image-page--main">
-				<div
-					class="image-page--container"
+				<div class="image-page--container"
 					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
-					<DragResize
-						v-if="hasSignerSelected"
+					<DragResize v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
 						:is-resizable="true"

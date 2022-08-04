@@ -24,7 +24,7 @@ const mutations = {
 }
 
 const actions = {
-	FETCH_FILE_TO_SIGN: async() => {
+	FETCH_FILE_TO_SIGN: async () => {
 	},
 	SET_FILE: ({ commit }, file) => {
 		commit('setFile', file)
@@ -35,7 +35,7 @@ const actions = {
 	SET_FILE_TO_SIGN: ({ commit }, data) => {
 		commit('setFileToSign', data)
 	},
-	GET_ALL_FILES: async({ dispatch }) => {
+	GET_ALL_FILES: async ({ dispatch }) => {
 		try {
 			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
 			dispatch('SET_FILES', response.data.data)

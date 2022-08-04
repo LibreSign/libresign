@@ -13,8 +13,7 @@
 				</a>
 			</div>
 			<ul v-if="emptyContentFile ===false">
-				<File
-					v-for="file in filterFile"
+				<File v-for="file in filterFile"
 					:key="file.uuid"
 					class="file-details"
 					:status="file.status"

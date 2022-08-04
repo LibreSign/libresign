@@ -26,8 +26,7 @@
 		<div id="formLibresign" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName">{{ t('libresign', 'Name (CN)') }}</label>
-				<input
-					id="commonName"
+				<input id="commonName"
 					ref="commonName"
 					v-model="certificate.commonName"
 					type="text"
@@ -35,8 +34,7 @@
 			</div>
 			<div class="form-group">
 				<label for="country">{{ t('libresign', 'Country (C)') }}</label>
-				<input
-					id="country"
+				<input id="country"
 					ref="country"
 					v-model="certificate.country"
 					type="text"
@@ -44,8 +42,7 @@
 			</div>
 			<div class="form-group">
 				<label for="organization">{{ t('libresign', 'Organization (O)') }}</label>
-				<input
-					id="organization"
+				<input id="organization"
 					ref="organization"
 					v-model="certificate.organization"
 					type="text"
@@ -53,8 +50,7 @@
 			</div>
 			<div class="form-group">
 				<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
-				<input
-					id="organizationUnit"
+				<input id="organizationUnit"
 					ref="organizationUnit"
 					v-model="certificate.organizationUnit"
 					type="text"
@@ -62,8 +58,7 @@
 			</div>
 			<div class="form-group">
 				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
-				<input
-					id="cfsslUri"
+				<input id="cfsslUri"
 					ref="cfsslUri"
 					v-model="certificate.cfsslUri"
 					type="text"
@@ -71,15 +66,13 @@
 			</div>
 			<div class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
-				<input
-					id="configPath"
+				<input id="configPath"
 					ref="configPath"
 					v-model="certificate.configPath"
 					type="text"
 					:disabled="formDisabled">
 			</div>
-			<input
-				type="button"
+			<input type="button"
 				class="primary"
 				:value="submitLabel"
 				:disabled="formDisabled || !savePossible"

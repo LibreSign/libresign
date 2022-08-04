@@ -1,6 +1,5 @@
 <template>
-	<AppSidebar
-		v-if="file"
+	<AppSidebar v-if="file"
 		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
 		:title="titleName"
@@ -15,8 +14,7 @@
 				{{ t('libresign', 'Validate File') }}
 			</button>
 		</div>
-		<AppSidebarTab
-			id="signantures"
+		<AppSidebarTab id="signantures"
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">

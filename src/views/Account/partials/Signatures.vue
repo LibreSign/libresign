@@ -38,7 +38,7 @@ export default {
 				value: base64,
 			}
 
-			this.$nextTick(async() => {
+			this.$nextTick(async () => {
 				const entry = {
 					...this.sings[type],
 				}

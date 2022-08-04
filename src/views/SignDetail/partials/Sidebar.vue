@@ -24,13 +24,11 @@ export default {
 <template>
 	<div>
 		<ul>
-			<Signer
-				v-for="user in signers"
+			<Signer v-for="user in signers"
 				:key="`signature-${user.fileUserId}`"
 				:signer="user"
 				@click="selectSigner(user)">
-				<slot
-					slot="actions"
+				<slot slot="actions"
 					v-bind="{signer: user}"
 					name="actions" />
 			</Signer>
