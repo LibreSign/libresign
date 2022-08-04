@@ -23,16 +23,14 @@
 
 <template>
 	<AppSidebar class="app-sidebar--without-background lb-ls-root" title="LibreSign" :header="false">
-		<AppSidebarTab
-			id="libresign-tab"
+		<AppSidebarTab id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button v-if="hasSign" class="primary" @click="gotoSign">
 					{{ t('libresign', 'Sign') }}
 				</button>
-				<button
-					v-if="canRequestSign"
+				<button v-if="canRequestSign"
 					v-show="showRequest"
 					class="primary"
 					@click="option('request')">
@@ -209,7 +207,8 @@ export default {
 	methods: {
 		/**
 		 * Update current fileInfo and fetch new data
-		 * @param {Object} fileInfo the current file FileInfo
+		 *
+		 * @param {object} fileInfo the current file FileInfo
 		 */
 		async update(fileInfo) {
 			this.fileInfo = fileInfo

@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 	/**
 	 * Register a new tab in the sidebar
-	*/
+	 */
 	if (OCA.Files && OCA.Files.Sidebar) {
 		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab({
 			id: 'libresign',

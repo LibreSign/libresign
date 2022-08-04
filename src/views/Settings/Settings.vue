@@ -22,8 +22,7 @@
 -->
 
 <template>
-	<SettingsSection
-		:title="title">
+	<SettingsSection :title="title">
 		<AdminFormLibresign />
 		<UrlValidation />
 		<AllowedGroups />
@@ -31,8 +30,7 @@
 			<h2>{{ t('libresign', 'Legal information') }}</h2>
 			<div class="legal-information-content">
 				<span>{{ t('libresign', 'This information will appear on the validation page') }}</span>
-				<Textarea
-					v-model="legalInformation"
+				<Textarea v-model="legalInformation"
 					:placeholder="t('libresign', 'Legal Information')"
 					@input="saveLegalInformation" />
 			</div>

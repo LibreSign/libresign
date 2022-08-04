@@ -1,1 +1,1 @@
-export const fetchDocuments = async() => {}
+export const fetchDocuments = async () => {}

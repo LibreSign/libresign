@@ -38,7 +38,7 @@ const buildService = (http) => ({
 	/**
 	 * delete account document
 	 *
-	 * @param {Number} id
+	 * @param {number} id
 	 * @return  {Promise<unknown>}
 	 */
 	async deleteAcountFile(id) {

@@ -1,22 +1,19 @@
 <template>
 	<div class="container">
 		<ul class="editor-select">
-			<li
-				v-if="textEditor"
+			<li v-if="textEditor"
 				:class="{active: isActive('text')}"
 				@click.prevent="setActive('text')">
 				<img :src="$options.icons.textIcon" :alt="t('libresign', 'Text')">
 				Text
 			</li>
-			<li
-				v-if="drawEditor"
+			<li v-if="drawEditor"
 				:class="{active: isActive('draw')}"
 				@click.prevent="setActive('draw')">
 				<img :src="$options.icons.drawnIcon" :alt="t('libresign', 'Draw')">
 				Draw
 			</li>
-			<li
-				v-if="fileEditor"
+			<li v-if="fileEditor"
 				:class="{active: isActive('upload')}"
 				@click.prevent="setActive('upload')">
 				<img :src="$options.icons.uploadIcon" :alt="t('libresign', 'Upload')">
@@ -25,19 +22,16 @@
 		</ul>
 
 		<div class="content">
-			<Editor
-				v-if="isActive('draw')"
+			<Editor v-if="isActive('draw')"
 				:class="{'active show': isActive('draw')}"
 				@close="close"
 				@save="save" />
-			<TextInput
-				v-if="isActive('text')"
+			<TextInput v-if="isActive('text')"
 				ref="text"
 				:class="{'active show': isActive('text')}"
 				@save="save"
 				@close="close" />
-			<FileUpload
-				v-if="isActive('upload')"
+			<FileUpload v-if="isActive('upload')"
 				:class="{'active show': isActive('upload')}"
 				@save="save"
 				@close="close" />

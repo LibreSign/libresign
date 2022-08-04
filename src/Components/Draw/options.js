@@ -3,6 +3,11 @@ export const SignatureImageDimensions = Object.freeze({
 	width: 350,
 })
 
+/**
+ *
+ * @param a
+ * @param b
+ */
 function gcd(a, b) {
 	return (b === 0) ? a : gcd(b, a % b)
 }

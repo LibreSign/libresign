@@ -6,8 +6,7 @@
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
-				<File
-					v-show="!isEmptyFile"
+				<File v-show="!isEmptyFile"
 					:file="file"
 					status="none"
 					@sidebar="setSidebarStatus(true)" />
@@ -36,8 +35,7 @@
 					</p>
 				</template>
 			</EmptyContent>
-			<AppSidebarTab
-				v-show="!canRequest"
+			<AppSidebarTab v-show="!canRequest"
 				id="request"
 				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
@@ -143,7 +141,7 @@ export default {
 			input.accept = PDF_MIME_TYPE
 			input.type = 'file'
 
-			input.onchange = async(ev) => {
+			input.onchange = async (ev) => {
 				const file = ev.target.files[0]
 
 				if (file) {

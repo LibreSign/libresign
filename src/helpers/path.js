@@ -13,7 +13,7 @@ const APP_PATH = '/apps/libresign/'
  *
  * @param {string} path
  *
- * @returns {string}
+ * @return {string}
  */
 const getAPIURL = path => generateUrl(pathJoin(API_PATH, path))
 const getAPPURL = path => generateUrl(pathJoin(APP_PATH, path))
