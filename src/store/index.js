@@ -21,7 +21,7 @@
  *
  */
 
-import Vue from 'vue'
+import Vue, { set } from 'vue'
 import Vuex, { Store } from 'vuex'
 import sidebar from './modules/sidebar.js'
 import files from './modules/files.js'
@@ -50,15 +50,15 @@ export default new Store({
 		},
 		setPdfData(state, pdfData) {
 			if (pdfData.pdf.url) {
-				Vue.set(state.pdfData, 'url', pdfData.pdf.url)
+				set(state.pdfData, 'url', pdfData.pdf.url)
 			} else {
-				Vue.set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
+				set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
 			}
-			Vue.set(state.pdfData, 'description', pdfData.description)
-			Vue.set(state.pdfData, 'filename', pdfData.filename)
+			set(state.pdfData, 'description', pdfData.description)
+			set(state.pdfData, 'filename', pdfData.filename)
 		},
 		setHasPfx(state, haspfx) {
-			Vue.set(state.settings, 'hasSignatureFile', haspfx)
+			set(state.settings, 'hasSignatureFile', haspfx)
 		},
 		setUuidToValidate(state, uuid) {
 			state.uuidToValidate = uuid
