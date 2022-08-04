@@ -24,7 +24,7 @@ import confirmPassword from '@nextcloud/password-confirmation'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import Input from '../Components/Input/Input'
+import Input from '../Components/Input/Input.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
@@ -60,11 +60,11 @@ export default {
 				}
 				this.clear()
 				this.$emit('close', true)
-				this.$emit('changePfx', true)
+				this.$emit('change-pfx', true)
 			} catch (err) {
 				showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				this.hasLoading = false
-				this.$emit('changePfx', false)
+				this.$emit('change-pfx', false)
 			}
 		},
 		clear() {
