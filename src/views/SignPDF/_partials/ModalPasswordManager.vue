@@ -15,7 +15,7 @@
 		</ModalContent>
 		<ResetPassword v-if="isReset" class="modal-dialog" @close="onClose" />
 		<CreatePassword v-if="isCreate"
-			@changePfx="onCreate"
+			@change-pfx="onCreate"
 			@close="onClose" />
 	</Modal>
 </template>
