@@ -11,26 +11,40 @@
     "iio/libmergepdf": "dev-move-tcpdi-parser-to-package"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9.5",
-    "nextcloud/coding-standard": "^1.0",
     "byjg/swagger-test": "^3.1",
-    "symfony/yaml": "^5.4",
-    "guzzlehttp/psr7": "^2.2",
+    "christophwurst/nextcloud": "dev-stable24",
+    "donatj/mock-webserver": "^2.5",
+    "guzzlehttp/psr7": "^2.4",
     "mikey179/vfsstream": "^1.6",
-    "donatj/mock-webserver": "^2.4",
-    "vimeo/psalm": "^4.18",
-    "christophwurst/nextcloud": "dev-master"
+    "nextcloud/coding-standard": "^1.0",
+    "phpunit/phpunit": "^9.5",
+    "roave/security-advisories": "dev-latest",
+    "symfony/yaml": "^5.4",
+    "vimeo/psalm": "^4.25"
+  },
+  "config": {
+    "autoloader-suffix": "Libresign",
+    "optimize-autoloader": true,
+    "classmap-authoritative": true,
+    "sort-packages": true,
+    "platform": {
+      "php": "7.4"
+    }
   },
   "scripts": {
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
     "cs:check": "php-cs-fixer fix --dry-run --diff",
     "cs:fix": "php-cs-fixer fix",
-		"psalm": "psalm --threads=1"
+    "psalm": "psalm --threads=1"
   },
   "autoload": {
     "psr-4": {
-      "OCP\\": "vendor/christophwurst/nextcloud/OCP",
       "OCA\\Libresign\\": "lib/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OCP\\": "vendor/christophwurst/nextcloud/OCP"
     }
   },
   "repositories": [
