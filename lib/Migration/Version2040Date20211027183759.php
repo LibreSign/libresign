@@ -10,7 +10,6 @@ use OCA\Libresign\Service\PdfParserService;
 use OCP\DB\ISchemaWrapper;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
