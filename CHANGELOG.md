@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 5.1.4 - 2022-08-04
+### Fixed
+- Update file from master
+  [#879](https://github.com/LibreSign/libresign/pull/879)
+
 ## 5.1.3 - 2022-08-04
 ### Fixed
 - General adjusts and updates
