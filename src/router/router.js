@@ -3,7 +3,7 @@
  *
  * @author Lyseon Tech <contato@lt.coop.br>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,16 +21,22 @@
  */
 
 import { translate as t } from '@nextcloud/l10n'
-import { selectAction } from '../helpers/SelectAction'
-import { getInitialState } from '../services/InitialStateService'
+import { selectAction } from '../helpers/SelectAction.js'
+import { getInitialState } from '../services/InitialStateService.js'
 
 const libresignVar = getInitialState()
 
 const routes = [
+	{
+		path: '/reset-password',
+		component: () => import('../views/ResetPassword.vue'),
+		name: 'ResetPassword',
+	},
+
 	// public
 	{
 		path: '/p/account/files/approve/:uuid',
-		component: () => import('../views/SignPDF/SignPDF'),
+		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'AccountFileApprove',
 	},
@@ -40,46 +46,51 @@ const routes = [
 	},
 	{
 		path: '/p/sign/:uuid/pdf',
-		component: () => import('../views/SignPDF/SignPDF'),
+		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
 	}, {
 		path: '/p/sign/:uuid/sign-in',
-		component: () => import('../views/CreateUser'),
+		component: () => import('../views/CreateUser.vue'),
 		name: 'CreateUser',
 		props: (route) => ({
 			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
 	}, {
 		path: '/p/sign/:uuid/error',
-		component: () => import('../views/DefaultPageError'),
+		component: () => import('../views/DefaultPageError.vue'),
 		name: 'DefaultPageError',
 	}, {
 		path: '/p/sign/:uuid/success',
-		component: () => import('../views/DefaultPageSuccess'),
+		component: () => import('../views/DefaultPageSuccess.vue'),
 		name: 'DefaultPageSuccess',
 	},
 	{
 		path: '/p/validation/:uuid',
-		component: () => import('../views/Validation'),
+		component: () => import('../views/Validation.vue'),
 		name: 'validationFilePublic',
 		props: (route) => ({
 			uuid: route.params.uuid,
 		}),
 	},
+
+	// internal pages
 	{
-		path: '/reset-password',
-		component: () => import('../views/ResetPassword'),
-		name: 'ResetPassword',
+		path: '/f/',
+		redirect: { name: 'requestFiles' },
+	},
+	{
+		path: '/',
+		redirect: { name: 'requestFiles' },
 	},
 	{
 		path: '/f/validation',
-		component: () => import('../views/Validation'),
+		component: () => import('../views/Validation.vue'),
 		name: 'validation',
 	},
 	{
 		path: '/f/validation/:uuid',
-		component: () => import('../views/Validation'),
+		component: () => import('../views/Validation.vue'),
 		name: 'validationFile',
 		props: (route) => ({
 			uuid: route.params.uuid,
@@ -97,19 +108,19 @@ const routes = [
 	},
 	{
 		path: '/f/request',
-		component: () => import('../views/Request'),
+		component: () => import('../views/Request.vue'),
 		name: 'requestFiles',
 	}, {
 		path: '/f/account',
-		component: () => import('../views/Account/Account'),
+		component: () => import('../views/Account/Account.vue'),
 		name: 'Account',
 	}, {
 		path: '/f/docs/accounts/validation',
-		component: () => import('../views/Documents/AccountValidation'),
+		component: () => import('../views/Documents/AccountValidation.vue'),
 		name: 'DocsAccountValidation',
 	}, {
 		path: '/f/create-password',
-		component: () => import('../views/CreatePassword'),
+		component: () => import('../views/CreatePassword.vue'),
 		name: 'CreatePassword',
 	},
 ]

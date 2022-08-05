@@ -3,8 +3,7 @@
 <template>
 	<div class="container">
 		<div id="image">
-			<Avatar
-				id="avatar"
+			<Avatar id="avatar"
 				:is-guest="true"
 				:show-user-status="false"
 				:display-name="user.displayName"

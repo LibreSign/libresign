@@ -15,8 +15,7 @@
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
 					<Input v-model="rPassword" :has-error="!hasEqualPassword" type="password" />
 				</div>
-				<button
-					:disabled="!hableButton"
+				<button :disabled="!hableButton"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 					@click="checkPasswordForConfirm">
 					{{ t('libresign', 'Confirm') }}
@@ -32,7 +31,7 @@ import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Input from '../Components/Input/Input'
+import Input from '../Components/Input/Input.vue'
 
 export default {
 	name: 'ResetPassword',

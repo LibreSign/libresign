@@ -1,7 +1,6 @@
 <template>
 	<form @submit="e => e.preventDefault()">
-		<input
-			v-model="value"
+		<input v-model="value"
 			class="input__input"
 			:placeholder="placeholder"
 			:type="type"

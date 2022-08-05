@@ -2,7 +2,7 @@
 import axios from '@nextcloud/axios'
 import {
 	getAPIURL,
-} from '../../helpers/path'
+} from '../../helpers/path.js'
 
 /**
  * build sign service
@@ -39,7 +39,7 @@ const buildService = (http) => {
 		},
 		/**
 		 * @param   {string}  fileUUID
-		 * @param   {Object}  body
+		 * @param   {object}  body
 		 *
 		 * @return  {*}
 		 */
@@ -51,7 +51,7 @@ const buildService = (http) => {
 		/**
 		 * @param   {string}  fileUUID
 		 * @param   {string}  elementID
-		 * @param   {Object}  body
+		 * @param   {object}  body
 		 *
 		 * @return  {*}
 		 */

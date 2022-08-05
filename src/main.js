@@ -4,7 +4,7 @@
  * @author Lyseon Tech <contato@lt.coop.br>
  * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,17 +27,17 @@ import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
 
-import './plugins/vuelidate'
-import './directives/VTooltip'
-import './init'
+import './plugins/vuelidate.js'
+import './directives/VTooltip.js'
+import './init.js'
 
 import './assets/styles/main.scss'
 
 import 'vue-advanced-cropper/dist/style.css'
 
-import App from './App'
-import router from './router'
-import store from './store'
+import App from './App.vue'
+import router from './router/index.js'
+import store from './store/index.js'
 
 Vue.mixin({ methods: { t, n } })
 Vue.prototype.t = translate

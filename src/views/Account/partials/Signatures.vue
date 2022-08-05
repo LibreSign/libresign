@@ -2,7 +2,7 @@
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { get } from 'lodash-es'
 import Signature from './Signature.vue'
-import { service } from '../../../domains/signatures'
+import { service } from '../../../domains/signatures/index.js'
 
 const emptySignature = {
 	id: 0,
@@ -38,7 +38,7 @@ export default {
 				value: base64,
 			}
 
-			this.$nextTick(async() => {
+			this.$nextTick(async () => {
 				const entry = {
 					...this.sings[type],
 				}

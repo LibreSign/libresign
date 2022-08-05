@@ -22,8 +22,7 @@
 -->
 
 <template>
-	<SettingsSection
-		:title="title">
+	<SettingsSection :title="title">
 		<AdminFormLibresign />
 		<UrlValidation />
 		<AllowedGroups />
@@ -31,8 +30,7 @@
 			<h2>{{ t('libresign', 'Legal information') }}</h2>
 			<div class="legal-information-content">
 				<span>{{ t('libresign', 'This information will appear on the validation page') }}</span>
-				<Textarea
-					v-model="legalInformation"
+				<Textarea v-model="legalInformation"
 					:placeholder="t('libresign', 'Legal Information')"
 					@input="saveLegalInformation" />
 			</div>
@@ -41,10 +39,10 @@
 </template>
 
 <script>
-import AdminFormLibresign from './AdminFormLibresign'
-import AllowedGroups from './AllowedGroups'
-import UrlValidation from './UrlValidation'
-import Textarea from '../../Components/Textarea/Textarea'
+import AdminFormLibresign from './AdminFormLibresign.vue'
+import AllowedGroups from './AllowedGroups.vue'
+import UrlValidation from './UrlValidation.vue'
+import Textarea from '../../Components/Textarea/Textarea.vue'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
