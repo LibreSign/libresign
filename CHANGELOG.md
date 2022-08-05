@@ -21,17 +21,19 @@ Types of changes:
 
 ## 5.1.1 - 2022-05-05
 
-# Fixed
+## 5.1.1 - 2022-05-05
+
+### Fixed
 - Replaced more usages of TCPDI by LibreSignCLI
 
 ## 5.1.0 - 2022-04-26
 
-# Added
+### Added
 - Command to install LibreSign cli
 
 ## 5.0.0 - 2022-04-25
 
-# Added and updated
+### Added and updated
 - Support to visual signatures
   - upload signature image
   - handmade signature
@@ -44,13 +46,13 @@ Types of changes:
 
 ## 2.4.3 - 2021-07-14
 
-# Changed
+### Changed
 - Update translations
 - API message changes, thanks to, thanks to @rakekniven and @Valdnet
 
 ## 2.4.2 - 2021-07-08
 
-# Added
+### Added
 - List of documents
 - User profile
 - Filter files
@@ -75,7 +77,7 @@ Types of changes:
 - Button that takes you to the validation page on all `.signed` and `.signed` files
 - Button to validate document in Sidebar into App on menu files.
 
-# Changed
+### Changed
 - Bump max Nextcloud version to 23
 - Increment of coverage on backend code
 - Bug fixes and refactorings resulting from increased coverage
@@ -86,11 +88,11 @@ Types of changes:
 - After signing the document, it will update the app files
 - Changed wizard to split user creation and pfx creation
 
-# Removed
+### Removed
 - Removed dsv folder
 - Removed docs folder
 
-# Fixed
+### Fixed
 - Rendering files tab in Nextcloud 20 and 21
 - Invalid method name when validating if a file signature has already been requested
 - Tests autoload
