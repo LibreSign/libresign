@@ -36,42 +36,39 @@ else
 endif
 
 # Dev env management
-dev-setup: clean clean-dev composer yarn-init
+dev-setup: clean clean-dev composer npm-install
 
-yarn-init:
-	yarn
-
-yarn-update:
-	yarn upgrade
+npm-install:
+	npm install
 
 # Building
 build-js:
-	yarn dev
+	npm run dev
 
 build-js-production:
-	yarn build
+	npm run build
 
 watch-js:
-	yarn watch
+	npm run watch
 
 # Linting
 lint:
-	yarn lint
+	npm run lint
 
 lint-fix:
-	yarn lint:fix
-	yarn stylelint:fix
+	npm run lint:fix
+	npm run stylelint:fix
 
 # Style linting
 stylelint:
-	yarn stylelint
+	npm run stylelint
 
 site:
 	@if [ ! -d $(site_build_directory) ]; then \
 		mkdir -p $(site_build_directory) ; \
 		git clone https://github.com/LibreSign/site $(site_build_directory) ; \
 	fi
-	$(MAKE) yarn-init -C $(site_build_directory)
+	$(MAKE) npm-install -C $(site_build_directory)
 	$(MAKE) watch-js -C $(site_build_directory)
 
 # Cleaning
@@ -94,8 +91,8 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	yarn install
-	yarn build
+	npm install
+	npm run build
 	cp -r \
 		appinfo \
 		cfssl \

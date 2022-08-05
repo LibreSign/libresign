@@ -49,7 +49,7 @@
 
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
-import { SignatureImageDimensions } from './options'
+import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'Editor',

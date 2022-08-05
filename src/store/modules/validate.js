@@ -22,7 +22,7 @@ const getters = {
 }
 
 const actions = {
-	VALIDATE_BY_ID: async({ commit, dispatch }, id) => {
+	VALIDATE_BY_ID: async ({ commit, dispatch }, id) => {
 		try {
 			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${id}`))
 			await commit('setFile', response.data)

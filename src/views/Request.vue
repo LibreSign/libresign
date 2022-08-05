@@ -6,8 +6,7 @@
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
-				<File
-					v-show="!isEmptyFile"
+				<File v-show="!isEmptyFile"
 					:file="file"
 					status="none"
 					@sidebar="setSidebarStatus(true)" />
@@ -36,8 +35,7 @@
 					</p>
 				</template>
 			</EmptyContent>
-			<AppSidebarTab
-				v-show="!canRequest"
+			<AppSidebarTab v-show="!canRequest"
 				id="request"
 				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
@@ -51,11 +49,11 @@ import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
-import Users from '../Components/Request'
+import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
-import { filesService } from '../domains/files'
-import { onError } from '../helpers/errors'
+import { filesService } from '../domains/files/index.js'
+import { onError } from '../helpers/errors.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -143,7 +141,7 @@ export default {
 			input.accept = PDF_MIME_TYPE
 			input.type = 'file'
 
-			input.onchange = async(ev) => {
+			input.onchange = async (ev) => {
 				const file = ev.target.files[0]
 
 				if (file) {

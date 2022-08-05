@@ -1,9 +1,9 @@
 <script>
 import { get, isEmpty, pick } from 'lodash-es'
 import { showError } from '@nextcloud/dialogs'
-import { service as sigantureService } from '../../../domains/signatures'
-import { service as signService } from '../../../domains/sign'
-import { onError } from '../../../helpers/errors'
+import { service as sigantureService } from '../../../domains/signatures/index.js'
+import { service as signService } from '../../../domains/sign/index.js'
+import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
@@ -260,22 +260,19 @@ export default {
 				</p>
 			</div>
 		</div>
-		<PasswordManager
-			v-if="modals.password"
+		<PasswordManager v-if="modals.password"
 			v-bind="{ hasPassword, signMethod }"
 			@change="signWithPassword"
 			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
 
-		<SMSManager
-			v-if="modals.sms"
+		<SMSManager v-if="modals.sms"
 			v-bind="{ settings, fileId }"
 			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
-		<EmailManager
-			v-if="modals.email"
+		<EmailManager v-if="modals.email"
 			v-bind="{ settings, fileId }"
 			@change="signWithCode"
 			@close="onModalClose('email')" />

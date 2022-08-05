@@ -1,5 +1,5 @@
 <script>
-import Draw from '../../../Components/Draw'
+import Draw from '../../../Components/Draw/index.js'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { startsWith } from 'lodash-es'
 

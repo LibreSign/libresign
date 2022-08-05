@@ -1,8 +1,7 @@
 <template>
 	<div class="form-rs-container">
 		<form @submit="e => e.preventDefault()">
-			<input
-				v-model.trim="$v.email.$model"
+			<input v-model.trim="$v.email.$model"
 				type="email"
 				:placeholder="t('libresign', 'Email')">
 			<input v-model="description" type="text" :placeholder=" t('libresign', 'Description')">
@@ -34,9 +33,10 @@
 </template>
 
 <script>
-import ListItem from '../ListItem'
+import ListItem from '../ListItem/index.js'
 import { required, email } from 'vuelidate/lib/validators'
-import { validateEmail } from '../../utils/validators'
+import { validateEmail } from '../../utils/validators.js'
+
 export default {
 	name: 'Request',
 	components: {

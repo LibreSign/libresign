@@ -1,10 +1,10 @@
 <script>
 import { find, get } from 'lodash-es'
 import { getFilePickerBuilder, showWarning, showSuccess } from '@nextcloud/dialogs'
-import ProgressBar from '../../../Components/ProgressBar'
-import { documentsService, parseDocument } from '../../../domains/documents'
-import { pathJoin } from '../../../helpers/path'
-import { onError } from '../../../helpers/errors'
+import ProgressBar from '../../../Components/ProgressBar.vue'
+import { documentsService, parseDocument } from '../../../domains/documents/index.js'
+import { pathJoin } from '../../../helpers/path.js'
+import { onError } from '../../../helpers/errors.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 

@@ -1,7 +1,7 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import VueRouter from 'vue-router'
 import Timeline from './Timeline.vue'
-import store from '../../store'
+import store from '../../store/index.js'
 import Vuex from 'vuex'
 
 let wrapper
@@ -88,7 +88,7 @@ describe('Timeline', () => {
 		expect(wrapper.vm.sidebar).toBe(false)
 	})
 
-	it('Click to see File info', async() => {
+	it('Click to see File info', async () => {
 		const file = {
 			uuid: '83adaa74-d110-4503-a067-dc7481f062d1',
 			name: 'sample',

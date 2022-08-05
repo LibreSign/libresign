@@ -13,8 +13,7 @@
 				</a>
 			</div>
 			<ul v-if="emptyContentFile ===false">
-				<File
-					v-for="file in filterFile"
+				<File v-for="file in filterFile"
 					:key="file.uuid"
 					class="file-details"
 					:status="file.status"
@@ -40,7 +39,7 @@
 
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
-import File from '../../Components/File'
+import File from '../../Components/File/index.js'
 import Sidebar from '../../Components/File/Sidebar.vue'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 

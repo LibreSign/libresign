@@ -60,8 +60,7 @@ export default {
 </script>
 
 <template>
-	<ListItem
-		v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
+	<ListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
 		:title="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"

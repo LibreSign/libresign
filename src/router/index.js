@@ -4,7 +4,7 @@
  * @author Lyseon Tech <contato@lt.coop.br>
  * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,8 +24,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { generateUrl } from '@nextcloud/router'
-import routes from './router'
-import store from '../store'
+import routes from './router.js'
+import store from '../store/index.js'
 
 Vue.use(Router)
 
