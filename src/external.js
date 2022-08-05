@@ -4,7 +4,7 @@
  * @author Lyseon Tech <contato@lt.coop.br>
  * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,13 +26,13 @@ import { getRequestToken } from '@nextcloud/auth'
 import { sync } from 'vuex-router-sync'
 import Vue from 'vue'
 
-import External from './External'
-import router from './router'
-import store from './store'
+import External from './External.vue'
+import router from './router/index.js'
+import store from './store/index.js'
 
-import './directives/VTooltip'
-import './plugins/vuelidate'
-import './init'
+import './directives/VTooltip.js'
+import './plugins/vuelidate.js'
+import './init.js'
 
 import './assets/styles/main.scss'
 import '@nextcloud/dialogs/styles/toast.scss'

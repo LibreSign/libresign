@@ -23,8 +23,7 @@
 
 <template>
 	<SettingsSection :title="title" :description="description">
-		<MulutiSelect
-			:key="idKey"
+		<MulutiSelect :key="idKey"
 			v-model="groupsSelected"
 			:options="groups"
 			:close-on-select="false"

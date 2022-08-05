@@ -4,7 +4,7 @@
  * @author Lyseon Tech <contato@lt.coop.br>
  * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,16 +21,16 @@
  *
  */
 
-import Vue from 'vue'
+import Vue, { set } from 'vue'
 import Vuex, { Store } from 'vuex'
-import sidebar from './modules/sidebar'
-import files from './modules/files'
-import sign from './modules/sign'
-import validate from './modules/validate'
-import error from './modules/errors'
-import settings from './modules/settings'
-import user from './modules/user'
-import { getInitialState } from '../services/InitialStateService'
+import sidebar from './modules/sidebar.js'
+import files from './modules/files.js'
+import sign from './modules/sign.js'
+import validate from './modules/validate.js'
+import error from './modules/errors.js'
+import settings from './modules/settings.js'
+import user from './modules/user.js'
+import { getInitialState } from '../services/InitialStateService.js'
 
 Vue.use(Vuex)
 
@@ -50,15 +50,15 @@ export default new Store({
 		},
 		setPdfData(state, pdfData) {
 			if (pdfData.pdf.url) {
-				Vue.set(state.pdfData, 'url', pdfData.pdf.url)
+				set(state.pdfData, 'url', pdfData.pdf.url)
 			} else {
-				Vue.set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
+				set(state.pdfData, 'base64', `data:application/pdf;base64,${pdfData.pdf.base64}`)
 			}
-			Vue.set(state.pdfData, 'description', pdfData.description)
-			Vue.set(state.pdfData, 'filename', pdfData.filename)
+			set(state.pdfData, 'description', pdfData.description)
+			set(state.pdfData, 'filename', pdfData.filename)
 		},
 		setHasPfx(state, haspfx) {
-			Vue.set(state.settings, 'hasSignatureFile', haspfx)
+			set(state.settings, 'hasSignatureFile', haspfx)
 		},
 		setUuidToValidate(state, uuid) {
 			state.uuidToValidate = uuid

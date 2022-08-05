@@ -15,10 +15,13 @@ const slugfy = val =>
 		.replace(/-+$/, '')
 
 /**
- * @param {import('@nextcloud/axios').default} http
+ * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => ({
 	/**
+	 * @param root0
+	 * @param root0.file
+	 * @param root0.name
 	 * @return  {Promise<{ id: number, fileId: number, message: string, name: string, type: string, etag: string, path: string }>}
 	 */
 	async uploadFile({ file, name }) {

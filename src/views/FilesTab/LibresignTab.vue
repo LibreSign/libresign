@@ -23,16 +23,14 @@
 
 <template>
 	<AppSidebar class="app-sidebar--without-background lb-ls-root" title="LibreSign" :header="false">
-		<AppSidebarTab
-			id="libresign-tab"
+		<AppSidebarTab id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<button v-if="hasSign" class="primary" @click="gotoSign">
 					{{ t('libresign', 'Sign') }}
 				</button>
-				<button
-					v-if="canRequestSign"
+				<button v-if="canRequestSign"
 					v-show="showRequest"
 					class="primary"
 					@click="option('request')">
@@ -118,11 +116,11 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
-import { service as signService, SIGN_STATUS } from '../../domains/sign'
-import { getAPPURL } from '../../helpers/path'
-import { showResponseError } from '../../helpers/errors'
-import store from '../../store'
-import Request from '../../Components/Request'
+import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
+import { getAPPURL } from '../../helpers/path.js'
+import { showResponseError } from '../../helpers/errors.js'
+import store from '../../store/index.js'
+import Request from '../../Components/Request/index.js'
 import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
@@ -209,7 +207,8 @@ export default {
 	methods: {
 		/**
 		 * Update current fileInfo and fetch new data
-		 * @param {Object} fileInfo the current file FileInfo
+		 *
+		 * @param {object} fileInfo the current file FileInfo
 		 */
 		async update(fileInfo) {
 			this.fileInfo = fileInfo

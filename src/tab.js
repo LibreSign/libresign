@@ -4,7 +4,7 @@
  * @author Lyseon Tech <contato@lt.coop.br>
  * @author Vinicios Gomes <viniciosgomesviana@gmail.com>
  *
- * @license GNU AGPL version 3 or any later version
+ * @license AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,10 +25,10 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { imagePath } from '@nextcloud/router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import LibresignTab from './views/FilesTab/LibresignTab'
+import LibresignTab from './views/FilesTab/LibresignTab.vue'
 
-import './plugins/vuelidate'
-import './directives/VTooltip'
+import './plugins/vuelidate.js'
+import './directives/VTooltip.js'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.prototype.t = t
@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 	/**
 	 * Register a new tab in the sidebar
-	*/
+	 */
 	if (OCA.Files && OCA.Files.Sidebar) {
 		OCA.Files.Sidebar.registerTab(new OCA.Files.Sidebar.Tab({
 			id: 'libresign',

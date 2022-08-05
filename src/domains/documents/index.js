@@ -1,4 +1,4 @@
-export { default as documentsService } from './service'
+export { default as documentsService } from './service.js'
 
 export const parseDocument = (entry) => {
 	const { file } = entry

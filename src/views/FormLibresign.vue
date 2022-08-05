@@ -25,20 +25,17 @@
 	<div id="formLibresign" class="form-libresign">
 		<div class="form-group">
 			<label for="password">{{ t('libresign', 'Subscription password.') }}</label>
-			<input
-				id="signPassword"
+			<input id="signPassword"
 				v-model="signature.signPassword"
 				type="text"
 				:disabled="updating">
 		</div>
-		<input
-			type="button"
+		<input type="button"
 			class="primary"
 			:value="t('libresign', 'Generate Subscription.')"
 			:disabled="updating || !savePossible"
 			@click="saveSignature">
-		<Modal
-			v-if="modal"
+		<Modal v-if="modal"
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">

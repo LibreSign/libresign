@@ -2,7 +2,7 @@
 import axios from '@nextcloud/axios'
 import {
 	getAPIURL,
-} from '../../helpers/path'
+} from '../../helpers/path.js'
 
 /**
  * build documents services
@@ -38,7 +38,7 @@ const buildService = (http) => ({
 	/**
 	 * delete account document
 	 *
-	 * @param {Number} id
+	 * @param {number} id
 	 * @return  {Promise<unknown>}
 	 */
 	async deleteAcountFile(id) {

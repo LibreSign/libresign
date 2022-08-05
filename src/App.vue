@@ -25,25 +25,21 @@
 	<Content app-name="libresign">
 		<AppNavigation>
 			<template #list>
-				<AppNavigationItem
-					v-if="back_to_signature"
+				<AppNavigationItem v-if="back_to_signature"
 					class="back_to_signature"
 					icon="icon-history"
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<AppNavigationItem
-					:to="{name: 'requestFiles'}"
+				<AppNavigationItem :to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
-				<AppNavigationItem
-					:to="{ name: 'signFiles' }"
+				<AppNavigationItem :to="{ name: 'signFiles' }"
 					:title="t('libresign', 'Files')"
 					icon="icon-files-dark"
 					exact />
-				<AppNavigationItem
-					:to="{name: 'validation'}"
+				<AppNavigationItem :to="{name: 'validation'}"
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
 
@@ -83,7 +79,7 @@ import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
-import { getInitialState } from './services/InitialStateService'
+import { getInitialState } from './services/InitialStateService.js'
 import { defaults } from 'lodash-es'
 
 const libresignState = getInitialState()
@@ -118,9 +114,6 @@ export default {
 		isRoot() {
 			return this.$route.path === '/'
 		},
-	},
-	mounted() {
-		this.$router.replace({ name: 'requestFiles' })
 	},
 	methods: {
 		goToSign() {

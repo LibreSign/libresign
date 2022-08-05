@@ -3,12 +3,12 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import Content from '@nextcloud/vue/dist/Components/Content'
-import { service as signService, SIGN_STATUS } from '../../domains/sign'
+import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
-import { showResponseError } from '../../helpers/errors'
+import { showResponseError } from '../../helpers/errors.js'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import { SignatureImageDimensions } from '../../Components/Draw'
+import { SignatureImageDimensions } from '../../Components/Draw/index.js'
 import Chip from '../../Components/Chip.vue'
 
 const emptyElement = () => {
@@ -305,16 +305,13 @@ export default {
 			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
 				<img :src="page.url">
 			</div> -->
-			<PageNavigation
-				v-model="currentSigner.element.coordinates.page"
+			<PageNavigation v-model="currentSigner.element.coordinates.page"
 				v-bind="{ pages }"
 				:width="pageDimensions.css.width" />
 			<div class="image-page--main">
-				<div
-					class="image-page--container"
+				<div class="image-page--container"
 					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
-					<DragResize
-						v-if="hasSignerSelected"
+					<DragResize v-if="hasSignerSelected"
 						parent-limitation
 						:is-active="true"
 						:is-resizable="true"
