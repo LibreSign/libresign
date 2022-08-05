@@ -11,8 +11,6 @@
     "iio/libmergepdf": "dev-move-tcpdi-parser-to-package"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9.5",
-    "nextcloud/coding-standard": "^1.0",
     "byjg/swagger-test": "^3.1",
     "symfony/yaml": "^5.4",
     "guzzlehttp/psr7": "^2.2",
@@ -25,12 +23,16 @@
     "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
     "cs:check": "php-cs-fixer fix --dry-run --diff",
     "cs:fix": "php-cs-fixer fix",
-		"psalm": "psalm --threads=1"
+    "psalm": "psalm --threads=1"
   },
   "autoload": {
     "psr-4": {
-      "OCP\\": "vendor/christophwurst/nextcloud/OCP",
       "OCA\\Libresign\\": "lib/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OCP\\": "vendor/christophwurst/nextcloud/OCP"
     }
   },
   "repositories": [
