@@ -22,6 +22,7 @@ OC.L10N.register(
     "Apply" : "Примени",
     "Cancel" : "Откажи",
     "Save" : "Зачувај",
+    "Sign" : "Знак",
     "Email" : "Е-пошта",
     "Description" : "Опис",
     "Add" : "Додади",
