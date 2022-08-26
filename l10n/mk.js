@@ -18,6 +18,7 @@ OC.L10N.register(
     "Password" : "Лозинка",
     "Confirm" : "Потврди",
     "Text" : "Текст",
+    "Draw" : "Нацрт",
     "Upload" : "Прикачи",
     "Apply" : "Примени",
     "Cancel" : "Откажи",
