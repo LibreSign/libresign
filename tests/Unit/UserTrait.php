@@ -78,7 +78,7 @@ trait UserTrait {
 			}
 			$this->userTraitDeleteAllAccountFiles($userList);
 			$this->userTraitDeleteAllGroups();
-			$this->uesrTraitDeleteAllFiles($userList);
+			$this->userTraitDeleteAllFiles($userList);
 		} catch (\Throwable $th) {
 		}
 	}
@@ -110,7 +110,7 @@ trait UserTrait {
 		}
 	}
 
-	protected function uesrTraitDeleteAllFiles(array $userList) {
+	protected function userTraitDeleteAllFiles(array $userList) {
 		$db = \OC::$server->get(\OCP\IDBConnection::class);
 		if (!$db) {
 			return;
