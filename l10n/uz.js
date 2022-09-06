@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Success" : "Muvaffaqiyat",
+    "Settings saved" : "sozlamalar saqlandi",
     "File not found" : "Fayl topilmadi",
     "Files" : "Fayllar",
     "Settings" : "Sozlamalar",
@@ -14,10 +15,12 @@ OC.L10N.register(
     "Save" : "Saqlash",
     "Add" : "Qo'shish",
     "Users" : "Foydalanuvchilar",
+    "Details" : "Tafsilotlar",
     "Yes" : "Ha",
     "No" : "Yo'q",
     "Pending" : "Kutilmoqda",
     "Password reset" : "Parolni tiklash",
+    "New password" : "Yangi parol",
     "Remove" : "O'chiring",
     "Loading" : "Yuklanmoqda"
 },
