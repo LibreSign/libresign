@@ -54,12 +54,12 @@ const getters = {
 	},
 	pendingFilter: state => {
 		return state.files.slice().filter(
-			(a) => (a.status === 'pending')).sort(
+			(a) => (a.status === 2)).sort(
 			(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 	},
 	signedFilter: state => {
 		return state.files.slice().filter(
-			(a) => (a.status === 'signed')).sort(
+			(a) => (a.status === 1)).sort(
 			(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 	},
 	orderFiles: state => {

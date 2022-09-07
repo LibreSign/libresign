@@ -368,11 +368,14 @@ class FileUserMapper extends QBMapper {
 			}
 			if (empty($files[$key]['signers'])) {
 				$files[$key]['signers'] = [];
-				$files[$key]['status'] = 'no signers';
+				$files[$key]['status'] = 0;
+				$files[$key]['status_text'] = 'no signers';
 			} elseif ($totalSigned === count($files[$key]['signers'])) {
-				$files[$key]['status'] = 'signed';
+				$files[$key]['status'] = 1;
+				$files[$key]['status_text'] = 'signed';
 			} else {
-				$files[$key]['status'] = 'pending';
+				$files[$key]['status'] = 2;
+				$files[$key]['status_text'] = 'pending';
 			}
 			unset($files[$key]['id']);
 		}
