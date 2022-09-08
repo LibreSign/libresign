@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Success" : "Успіх",
     "Settings saved" : "Налаштування збережено",
     "deleted" : "вилучено",
     "File not found" : "Файл не знайдено",

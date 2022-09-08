@@ -19,6 +19,7 @@ OC.L10N.register(
     "Reset password" : "Reset password",
     "Status" : "Status",
     "Actions" : "Actions",
+    "Profile picture" : "Profil rasmi",
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "Pending",
