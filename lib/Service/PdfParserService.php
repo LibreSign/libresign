@@ -62,7 +62,7 @@ class PdfParserService {
 
 	private function getLibesignCli(): string {
 		$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		if (!file_exists($path)) {
+		if (!file_exists($path) || !is_executable($path)) {
 			$this->installService->installCli();
 			$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
 		}
