@@ -51,11 +51,12 @@ final class AccountControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
+					'email' => 'guest-user@test.coop'
 				]
 			],
 			'userManager' => $user
 		]);
+		$this->deleteUserIfExists('guest-user@test.coop');
 
 		$this->request
 			->withMethod('POST')
@@ -64,11 +65,12 @@ final class AccountControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'email' => 'person@test.coop',
+				'email' => 'guest-user@test.coop',
 				'password' => 'secret',
 				'signPassword' => 'secretToSign'
 			])
 			->withPath('/account/create/' . $file['users'][0]->getUuid());
+		$this->markUserExists('guest-user@test.coop');
 
 		$this->assertRequest();
 	}
