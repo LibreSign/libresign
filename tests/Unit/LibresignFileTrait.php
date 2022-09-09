@@ -12,10 +12,6 @@ trait LibresignFileTrait {
 	 */
 	protected static $libresignTraitServer;
 
-	private $libresignFileTraitFiles = [];
-
-	private $disableTearDown = false;
-
 	/** @var SignFileService */
 	private $libresignFileTraitSignFileService;
 
@@ -53,7 +49,6 @@ trait LibresignFileTrait {
 			];
 		}
 		$file = $this->getSignFileService()->save($data);
-		$this->addFile($file);
 		return $file;
 	}
 
@@ -65,43 +60,5 @@ trait LibresignFileTrait {
 			$this->libresignFileTraitSignFileService = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
 		}
 		return $this->libresignFileTraitSignFileService;
-	}
-
-	public function addFile($file) {
-		$this->libresignFileTraitFiles[] = $file;
-	}
-
-	public function disableTearDown(): void {
-		$this->disableTearDown = true;
-	}
-
-	/**
-	 * @after
-	 */
-	public function libresignFileTearDown(): void {
-		if ($this->disableTearDown) {
-			return;
-		}
-		foreach ($this->libresignFileTraitFiles as $file) {
-			$toRemove = [
-				'uuid' => $file['uuid'],
-				'users' => []
-			];
-			foreach ($file['users'] as $user) {
-				if (is_array($user)) {
-					$toRemove['users'][] = [
-						'email' => $user['email']
-					];
-				} else {
-					$toRemove['users'][] = [
-						'email' => $user->getEmail()
-					];
-				}
-			}
-			try {
-				$this->getSignFileService()->deleteSignRequest($toRemove);
-			} catch (\Throwable $th) {
-			}
-		}
 	}
 }

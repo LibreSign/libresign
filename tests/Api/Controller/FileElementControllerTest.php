@@ -13,7 +13,6 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostSuccess() {
-		$this->disableTearDown();
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -60,7 +59,6 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @depends testPostSuccess
 	 */
 	public function testPatchSuccess($params) {
-		$this->disableTearDown();
 		$this->createUser('username', 'password');
 		extract($params);
 		$this->request
