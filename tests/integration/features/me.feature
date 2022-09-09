@@ -11,6 +11,6 @@ Feature: account/me
     And sending "get" to "/apps/libresign/api/0.1/account/me"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key      | value                                                                     |
-      | account  | {"uid":"signer1","emailAddress":null,"displayName":"signer1-displayname"} |
-      | settings | {"canRequestSign":false,"hasSignatureFile":false}                         |
+      | key      | value                                                                   |
+      | account  | {"uid":"signer1","emailAddress":"","displayName":"signer1-displayname"} |
+      | settings | {"canRequestSign":false,"hasSignatureFile":false}                       |
