@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite20;
 
 class TestCase extends \Test\TestCase {
 	use LibresignFileTrait;
@@ -21,11 +20,7 @@ class TestCase extends \Test\TestCase {
 			return;
 		}
 		\OC::$server->registerService(\OC\AppConfig::class, function () use ($config) {
-			if (\OCP\Util::getVersion()[0] <= '20') {
-				return new AppConfigOverwrite20(\OC::$server->get(\OCP\IDBConnection::class), $config);
-			} else {
-				return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), $config);
-			}
+			return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), $config);
 		});
 	}
 
