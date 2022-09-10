@@ -105,16 +105,16 @@ class InstallService {
 			$tempFile = $this->tempManager->getTemporaryFile('.zip');
 			$executableExtension = '.exe';
 			$class = ZIP::class;
-			$md5 = '48ac2152d1fb0ad1d343104be210d532';
+			$hash = '48ac2152d1fb0ad1d343104be210d532';
 		} else {
 			$url = 'https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz';
 			$tempFile = $this->tempManager->getTemporaryFile('.tar.gz');
 			$executableExtension = '';
 			$class = TAR::class;
-			$md5 = '35f515e9436f4fefad091db2c1450c5f';
+			$hash = '35f515e9436f4fefad091db2c1450c5f';
 		}
 
-		$this->download($url, 'java', $tempFile, $md5);
+		$this->download($url, 'java', $tempFile, $hash);
 
 		$extractor = new $class($tempFile);
 		$extractor->extract($extractDir);
@@ -179,23 +179,33 @@ class InstallService {
 	}
 
 	public function installCli(): void {
-		$folder = $this->getFolder();
-
 		if (PHP_OS_FAMILY === 'Windows') {
 			throw new \RuntimeException('LibreSign CLI do not work in Windows!');
-		} elseif (PHP_OS_FAMILY === 'Darwin') {
-			$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_arm64';
+		}
+		$folder = $this->getFolder();
+		$version = '0.0.4';
+		if (!$folder->nodeExists('checksums_' . $version . '.txt')) {
+			$hashes = file_get_contents('https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/checksums.txt');
+			$folder->newFile('checksums_' . $version . '.txt', $hashes);
+		}
+		$hashes = $folder->get('checksums_' . $version . '.txt')->getContent();
+		if (PHP_OS_FAMILY === 'Darwin') {
+			$file = 'libresign_' . $version . '_Linux_arm64';
 		} elseif (PHP_OS_FAMILY === 'Linux') {
 			if (PHP_INT_SIZE === 4) {
-				$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_i386';
+				$file = 'libresign_' . $version . '_Linux_i386';
 			} else {
-				$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v0.0.4/libresign_0.0.4_Linux_x86_64';
+				$file = 'libresign_' . $version . '_Linux_x86_64';
 			}
 		}
+		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
+		$hash = $matches['hash'];
+		$hash_algo = 'sha256';
+		$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/' . $file;
 		$file = $folder->newFile('libresign-cli');
 		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
 
-		$this->download($url, 'libresign-cli', $fullPath);
+		$this->download($url, 'libresign-cli', $fullPath, $hash, $hash_algo);
 
 		if (PHP_OS_FAMILY !== 'Windows') {
 			chmod($fullPath, 0700);
@@ -289,9 +299,12 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
 	}
 
-	protected function download(string $url, string $filename, string $path, ?string $md5 = '') {
+	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
+		if (file_exists($path) && hash_file($hash_algo, $path) === $hash) {
+			return;
+		}
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
-			$this->downloadCli($url, $filename, $path, $md5);
+			$this->downloadCli($url, $filename, $path, $hash);
 			return;
 		}
 		$client = $this->clientService->newClient();
@@ -303,12 +316,12 @@ class InstallService {
 		} catch (\Exception $e) {
 			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
 		}
-		if ($md5 && file_exists($path) && md5_file($path) !== $md5) {
+		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid md5.');
 		}
 	}
 
-	protected function downloadCli(string $url, string $filename, string $path, ?string $md5 = '') {
+	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($this->output);
 		$this->output->writeln('Downloading ' . $filename . '...');
@@ -329,7 +342,7 @@ class InstallService {
 		$progressBar->finish();
 		$this->output->writeln('');
 		$progressBar->finish();
-		if ($md5 && file_exists($path) && md5_file($path) !== $md5) {
+		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid MD5</error>');
 		}
