@@ -299,7 +299,7 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
 	}
 
-	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
+	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path) && hash_file($hash_algo, $path) === $hash) {
 			return;
 		}
@@ -321,7 +321,7 @@ class InstallService {
 		}
 	}
 
-	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
+	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($this->output);
 		$this->output->writeln('Downloading ' . $filename . '...');

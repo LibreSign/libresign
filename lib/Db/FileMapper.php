@@ -151,7 +151,7 @@ class FileMapper extends QBMapper {
 		return 'not_libresign_file';
 	}
 
-	public function getTextOfStatus(int $status) {
+	public function getTextOfStatus(int $status): ?string {
 		switch ($status) {
 			case File::STATUS_DRAFT:
 				return $this->l->t('draft');
