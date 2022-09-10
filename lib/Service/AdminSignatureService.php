@@ -82,9 +82,9 @@ class AdminSignatureService {
 	}
 
 	/**
-	 * @return array
+	 * @return string[]
 	 *
-	 * @psalm-return array{commonName: mixed, country: mixed, organization: mixed, organizationUnit: mixed, cfsslUri: mixed, configPath: mixed}
+	 * @psalm-return array{commonName: string, country: string, organization: string, organizationUnit: string, cfsslUri: string, configPath: string}
 	 */
 	public function loadKeys(): array {
 		return [

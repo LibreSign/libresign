@@ -8,7 +8,6 @@ use OCP\IURLGenerator;
 use OCP\Settings\IIconSection;
 
 class AdminSettings implements IIconSection {
-
 	/** @var IL10N */
 	private $l;
 	/** @var IURLGenerator */

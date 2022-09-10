@@ -58,7 +58,7 @@ trait TFile {
 		$this->mimetype = $mimetype;
 	}
 
-	private function getMimeType(string $content): string {
+	private function getMimeType(string $content): ?string {
 		if (!$this->mimetype) {
 			$this->setMimeType($this->mimeTypeDetector->detectString($content));
 		}

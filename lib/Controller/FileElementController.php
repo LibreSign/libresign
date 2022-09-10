@@ -75,10 +75,10 @@ class FileElementController extends Controller {
 
 	/**
 	 * @NoAdminRequired
+	 *
 	 * @NoCSRFRequired
-	 * @return JSONResponse|FileDisplayResponse
 	 */
-	public function patch(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []) {
+	public function patch(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		return $this->post($uuid, $fileUserId, $elementId, $type, $metadata, $coordinates);
 	}
 
