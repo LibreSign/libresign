@@ -36,6 +36,9 @@ use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @group DB
+ */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IL10N|MockObject */
 	private $l10n;
@@ -93,6 +96,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $tempManager;
 
 	public function setUp(): void {
+		parent::setUp();
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
 			->method('t')

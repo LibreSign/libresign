@@ -329,7 +329,6 @@ final class SignFileControllerTest extends ApiTestCase {
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
 		$body['data']['users'][] = ['email' => 'user@test.coop'];
-		$this->addFile($body['data']);
 	}
 
 	/**

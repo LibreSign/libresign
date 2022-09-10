@@ -41,6 +41,7 @@ class ApiTestCase extends TestCase {
 	protected static $server;
 
 	public static function setUpBeforeClass(): void {
+		parent::setUpBeforeClass();
 		self::$server = new MockWebServer();
 		self::$server->start();
 	}
