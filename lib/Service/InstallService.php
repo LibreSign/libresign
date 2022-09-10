@@ -189,6 +189,7 @@ class InstallService {
 			$folder->newFile('checksums_' . $version . '.txt', $hashes);
 		}
 		$hashes = $folder->get('checksums_' . $version . '.txt')->getContent();
+		$file = null;
 		if (PHP_OS_FAMILY === 'Darwin') {
 			$file = 'libresign_' . $version . '_Linux_arm64';
 		} elseif (PHP_OS_FAMILY === 'Linux') {

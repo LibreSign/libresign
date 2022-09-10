@@ -4,7 +4,6 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-
 	/**
 	 * @param array $methods
 	 * @return MockObject|Pkcs7Handler

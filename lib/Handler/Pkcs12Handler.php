@@ -20,7 +20,6 @@ use OCP\IL10N;
 use TCPDI;
 
 class Pkcs12Handler extends SignEngineHandler {
-
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
 	/** @var FolderService */
@@ -143,6 +142,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		$pdf = new TCPDILibresign();
 		$pageCount = $pdf->setSourceData($file->getContent());
 
+		$dimensions = null;
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
 			$templateId = $pdf->importPage($pageNo);
 

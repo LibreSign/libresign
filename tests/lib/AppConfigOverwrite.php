@@ -27,7 +27,6 @@ use OC\AppConfig;
 use OC\DB\Connection;
 
 class AppConfigOverwrite extends AppConfig {
-
 	/** @var string[][] */
 	private $overWrite;
 

@@ -45,6 +45,7 @@ class FileElementService {
 			$fileElement = new FileElement();
 			$fileElement->setCreatedAt($this->timeFactory->getDateTime());
 		}
+		$file = null;
 		if ($uuid) {
 			$file = $this->fileMapper->getByUuid($uuid);
 			$fileElement->setFileId($file->getId());

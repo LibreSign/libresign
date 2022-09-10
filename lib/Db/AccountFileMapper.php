@@ -180,9 +180,9 @@ class AccountFileMapper extends QBMapper {
 	}
 
 	/**
-	 * @return (((int|mixed|string)[]|false|mixed|string)[]|mixed)[]
+	 * @return (((int|mixed|string)[]|false|mixed|null|string)[]|mixed)[]
 	 *
-	 * @psalm-return array{file: array{name: mixed, status: mixed, status_text: mixed, status_date: false|mixed|string, request_date: false|string, requested_by: array{displayName: mixed, uid: mixed}, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
+	 * @psalm-return array{file: array{name: mixed, status: mixed, status_text: null|string, status_date: false|mixed|string, request_date: false|string, requested_by: array{displayName: mixed, uid: mixed}, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
 	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['account'] = [
