@@ -9,7 +9,6 @@ use OCP\AppFramework\Http\JSONResponse;
  * @codeCoverageIgnore
  */
 class AccountDeprecatedController extends AccountController {
-
 	/**
 	 * Who am I.
 	 *
