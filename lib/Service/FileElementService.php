@@ -127,7 +127,7 @@ class FileElementService {
 		$this->fileElementMapper->delete($fileElement);
 	}
 
-	public function deleteVisibleElements($fileId): void {
+	public function deleteVisibleElements(int $fileId): void {
 		$visibleElements = $this->fileElementMapper->getByFileId($fileId);
 		foreach ($visibleElements as $visibleElement) {
 			$this->fileElementMapper->delete($visibleElement);
