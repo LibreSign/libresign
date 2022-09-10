@@ -11,10 +11,20 @@ class Admin implements ISettings {
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 
+	/**
+	 * @return string
+	 *
+	 * @psalm-return 'libresign'
+	 */
 	public function getSection(): string {
 		return Application::APP_ID;
 	}
 
+	/**
+	 * @return int
+	 *
+	 * @psalm-return 100
+	 */
 	public function getPriority(): int {
 		return 100;
 	}

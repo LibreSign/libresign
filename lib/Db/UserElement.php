@@ -19,7 +19,6 @@ use OCP\AppFramework\Db\Entity;
  * @method \DateTime getCreatedAt()
  */
 class UserElement extends Entity {
-
 	/** @var integer */
 	public $id;
 	/** @var string */

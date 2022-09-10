@@ -189,6 +189,7 @@ class InstallService {
 			$folder->newFile('checksums_' . $version . '.txt', $hashes);
 		}
 		$hashes = $folder->get('checksums_' . $version . '.txt')->getContent();
+		$file = null;
 		if (PHP_OS_FAMILY === 'Darwin') {
 			$file = 'libresign_' . $version . '_Linux_arm64';
 		} elseif (PHP_OS_FAMILY === 'Linux') {
@@ -299,7 +300,7 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
 	}
 
-	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
+	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path) && hash_file($hash_algo, $path) === $hash) {
 			return;
 		}
@@ -321,7 +322,7 @@ class InstallService {
 		}
 	}
 
-	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5') {
+	protected function downloadCli(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		$client = $this->clientService->newClient();
 		$progressBar = new ProgressBar($this->output);
 		$this->output->writeln('Downloading ' . $filename . '...');

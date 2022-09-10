@@ -34,8 +34,12 @@ class PdfParserService {
 
 	/**
 	 * @param string $filePath
-	 * @return array
+	 *
+	 * @return (array[]|int)[]
+	 *
 	 * @throws LibresignException
+	 *
+	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
 	public function getMetadata(string $filePath): array {
 		$fullPath = $this->getDataDir() . $filePath;
