@@ -12,7 +12,6 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version1000Date20210502200600 extends SimpleMigrationStep {
-
 	/** @var IDBConnection */
 	protected $connection;
 	private $rows = [];

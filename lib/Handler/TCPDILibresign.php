@@ -5,6 +5,9 @@ namespace OCA\Libresign\Handler;
 use TCPDI;
 
 class TCPDILibresign extends TCPDI {
+	/**
+	 * @var bool
+	 */
 	protected $tcpdflink = false;
 	public function __construct($orientation = 'P', $unit = 'px', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false, $pdfa = false) {
 		parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, $pdfa);
@@ -22,6 +25,9 @@ class TCPDILibresign extends TCPDI {
 		return parent::_textstring($s, $n);
 	}
 
+	/**
+	 * @psalm-return array{w?: mixed, h?: mixed}
+	 */
 	public function getPageTplDimension(int $pageNum): array {
 		if (!$this->tpls) {
 			return [];

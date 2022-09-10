@@ -377,6 +377,9 @@ class SignFileService {
 		}
 	}
 
+	/**
+	 * @return string|null
+	 */
 	private function getUserEmail(array $user): ?string {
 		if (!empty($user['email'])) {
 			return strtolower($user['email']);
@@ -591,7 +594,7 @@ class SignFileService {
 		return $this;
 	}
 
-	public function sign(): \OCP\Files\Node {
+	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
 		$pfxFile = $this->getPfxFile();
 		switch ($fileToSign->getExtension()) {

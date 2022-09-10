@@ -6,7 +6,6 @@ use OCA\Libresign\Db\FileElement;
 use OCA\Libresign\Db\UserElement;
 
 class VisibleElementAssoc {
-
 	/** @var FileElement */
 	private $fileElement;
 	/** @var UserElement */

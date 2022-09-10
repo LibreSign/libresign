@@ -345,6 +345,7 @@ class SignFileController extends ApiController {
 	}
 
 	private function getCode(string $uuid = null, int $fileId = null): JSONResponse {
+		$statusCode = null;
 		try {
 			try {
 				$user = $this->userSession->getUser();

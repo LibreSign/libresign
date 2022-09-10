@@ -403,6 +403,11 @@ class FileService {
 		return $messages;
 	}
 
+	/**
+	 * @return ((mixed|string[])[]|int|mixed|string)[]
+	 *
+	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array, settings?: array, messages?: non-empty-list<array{type: 'info', message: string}>}
+	 */
 	public function formatFile(): array {
 		$return = $this->getFile();
 		if ($this->showSettings) {
