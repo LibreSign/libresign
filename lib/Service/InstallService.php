@@ -184,11 +184,6 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$version = '0.0.4';
-		if (!$folder->nodeExists('checksums_' . $version . '.txt')) {
-			$hashes = file_get_contents('https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/checksums.txt');
-			$folder->newFile('checksums_' . $version . '.txt', $hashes);
-		}
-		$hashes = $folder->get('checksums_' . $version . '.txt')->getContent();
 		$file = null;
 		if (PHP_OS_FAMILY === 'Darwin') {
 			$file = 'libresign_' . $version . '_Linux_arm64';
@@ -199,20 +194,35 @@ class InstallService {
 				$file = 'libresign_' . $version . '_Linux_x86_64';
 			}
 		}
-		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
-		$hash = $matches['hash'];
-		$hash_algo = 'sha256';
+
+		$checksumUrl = 'https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/checksums.txt';
+		$hash = $this->getHash($folder, 'libresign-cli', $file, $version, $checksumUrl);
+
 		$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/' . $file;
 		$file = $folder->newFile('libresign-cli');
 		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
 
-		$this->download($url, 'libresign-cli', $fullPath, $hash, $hash_algo);
+		$this->download($url, 'libresign-cli', $fullPath, $hash, 'sha256');
 
 		if (PHP_OS_FAMILY !== 'Windows') {
 			chmod($fullPath, 0700);
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'libresign_cli_path', $fullPath);
+	}
+
+	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
+		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
+		if (!$folder->nodeExists($hashFileName)) {
+			$hashes = file_get_contents($checksumUrl);
+			if (!$hashes) {
+				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
+			}
+			$folder->newFile($hashFileName, $hashes);
+		}
+		$hashes = $folder->get($hashFileName)->getContent();
+		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
+		return $matches['hash'];
 	}
 
 	public function uninstallCli(): void {
@@ -234,46 +244,51 @@ class InstallService {
 
 	public function installCfssl(): void {
 		$folder = $this->getFolder();
+		$version = '1.6.1';
 
 		if (PHP_OS_FAMILY === 'Windows') {
 			$downloads = [
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_windows_amd64.exe',
+					'file' => 'cfssl_' . $version . '_windows_amd64.exe',
 					'destination' => 'cfssl.exe',
 				],
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_windows_amd64.exe',
+					'file' => 'cfssljson_' . $version . '_windows_amd64.exe',
 					'destination' => 'cfssljson.exe',
 				],
 			];
 		} elseif (PHP_OS_FAMILY === 'Darwin') {
 			$downloads = [
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_darwin_amd64',
+					'file' => 'cfssl_' . $version . '_darwin_amd64',
 					'destination' => 'cfssl',
 				],
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_darwin_amd64',
+					'file' => 'cfssljson_' . $version . '_darwin_amd64',
 					'destination' => 'cfssljson',
 				],
 			];
 		} else {
 			$downloads = [
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssl_1.6.1_linux_amd64',
+					'file' => 'cfssl_' . $version . '_linux_amd64',
 					'destination' => 'cfssl',
 				],
 				[
-					'url' => 'https://github.com/cloudflare/cfssl/releases/download/v1.6.1/cfssljson_1.6.1_linux_amd64',
+					'file' => 'cfssljson_' . $version . '_linux_amd64',
 					'destination' => 'cfssljson',
 				],
 			];
 		}
+		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/';
+		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/cfssl_' . $version . '_checksums.txt';
 		foreach ($downloads as $download) {
+			$hash = $this->getHash($folder, 'libresign-cli', $download['file'], $version, $checksumUrl);
+
 			$file = $folder->newFile($download['destination']);
 			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
 
-			$this->download($download['url'], $download['destination'], $fullPath);
+			$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
 
 			if (PHP_OS_FAMILY !== 'Windows') {
 				chmod($fullPath, 0700);
@@ -305,7 +320,7 @@ class InstallService {
 			return;
 		}
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
-			$this->downloadCli($url, $filename, $path, $hash);
+			$this->downloadCli($url, $filename, $path, $hash, $hash_algo);
 			return;
 		}
 		$client = $this->clientService->newClient();
@@ -318,7 +333,7 @@ class InstallService {
 			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
 		}
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
-			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid md5.');
+			throw new LibresignException('Failure on download ' . $filename . ' try again. Invalid ' . $hash_algo . '.');
 		}
 	}
 
@@ -345,7 +360,7 @@ class InstallService {
 		$progressBar->finish();
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
-			$this->output->writeln('<error>Invalid MD5</error>');
+			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
 		}
 	}
 }
