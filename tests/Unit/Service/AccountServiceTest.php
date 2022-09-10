@@ -309,17 +309,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	private function mockValidateWithSuccess() {
-		$backend = $this->createMock(\OC\User\Database::class);
-		$backend->method('implementsActions')
-			->willReturn(true);
-		$backend->method('userExists')
-			->willReturn(true);
-		$backend->method('getRealUID')
-			->willReturn('userId');
-		$userManager = \OC::$server->getUserManager();
-		$userManager->clearBackends();
-		$userManager->registerBackend($backend);
-
 		$fileUser = $this->createMock(FileUser::class);
 		$fileUser
 			->method('__call')
