@@ -10,7 +10,7 @@ OC.L10N.register(
     "Visible element deleted" : "Angezeigtes Element gelöscht",
     "Settings saved" : "Einstellungen gespeichert",
     "Name is mandatory" : "Name ist erforderlich",
-    "Notification sent with success." : "Benachrichtigung erfolgreich versandt.",
+    "Notification sent with success." : "Benachrichtigung erfolgreich gesendet.",
     "File signed" : "Datei unterschrieben",
     "Internal error. Contact admin." : "Interner Fehler. Kontaktiere einen Administrator.",
     "Invalid data to sign file" : "Ungültige Daten zum Unterschreiben der Datei",
