@@ -58,6 +58,7 @@ class AdminSignatureService {
 					Application::APP_ID . DIRECTORY_SEPARATOR .
 					'cfssl'
 				);
+			$this->cfsslHandler->setConfigPath($configPath);
 			$this->cfsslHandler->genkey();
 		}
 		$this->cfsslHandler
