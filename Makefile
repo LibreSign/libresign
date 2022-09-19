@@ -105,7 +105,9 @@ appstore: clean
 		CHANGELOG.md \
 		LICENSE \
 		$(appstore_sign_dir)/$(app_name)
-	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/* \
+	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
+	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
+	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures \
 
 	@if [ -z "$$GITHUB_ACTION" ]; then \
 		chown -R www-data:www-data $(appstore_sign_dir)/$(app_name) ; \

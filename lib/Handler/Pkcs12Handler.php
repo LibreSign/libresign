@@ -284,6 +284,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$this->cfsslHandler->getCfsslUri()) {
 			$this->cfsslHandler->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'));
 		}
+		if (!$this->cfsslHandler->getConfigPath()) {
+			$this->cfsslHandler->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
+		}
 		if (!$this->cfsslHandler->getBinary()) {
 			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
 			if ($binary) {
