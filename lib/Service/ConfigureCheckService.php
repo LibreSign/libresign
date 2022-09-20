@@ -35,12 +35,12 @@ class ConfigureCheckService {
 		} catch (ImagickException $ie) {
 			if ($ie->getCode() === 499) {
 				return [
-					'errors' => ['Necessary configure the security policy of ImageMagick to work with PDF. More informations: https://github.com/LibreSign/libresign/issues/829'],
+					'errors' => ['Is necessary to configure the ImageMagick security policy to work with PDF. More information on: https://github.com/LibreSign/libresign/issues/829'],
 				];
 			}
 		}
 		return [
-			'success' => ['Can generate preview'],
+			'success' => ['Can generate the preview'],
 		];
 	}
 
