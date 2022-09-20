@@ -42,6 +42,7 @@ OC.L10N.register(
     "Add users" : "Додати користувачів",
     "Password reset" : "Перевстановлення пароля",
     "New password" : "Новий пароль",
+    "Repeat password" : "Повторіть пароль",
     "Remove" : "Вилучити",
     "Previous" : "Назад",
     "Loading" : "Завантаження",

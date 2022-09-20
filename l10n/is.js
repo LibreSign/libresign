@@ -3,7 +3,9 @@ OC.L10N.register(
     {
     "Success" : "Tókst",
     "Settings saved" : "Stillingar vistaðar",
+    "Name is mandatory" : "Nafn er nauðsynlegt",
     "deleted" : "eytt",
+    "Invalid email" : "Ógilt tölvupóstfang",
     "File not found" : "Skrá finnst ekki",
     "File already exists" : "Skrá er þegar til",
     "Invalid user" : "Ógildur notandi",
@@ -13,6 +15,7 @@ OC.L10N.register(
     "This action requires you to confirm your password" : "Þessi aðgerð krefst þess að þú staðfestir lykilorðið þitt",
     "Password" : "Lykilorð",
     "Confirm" : "Staðfesta",
+    "Incorrect password!" : "Rangt lykilorð!",
     "Text" : "Texti",
     "Upload" : "Senda inn",
     "Apply" : "Virkja",
