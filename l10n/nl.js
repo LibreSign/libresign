@@ -153,6 +153,7 @@ OC.L10N.register(
     "Password & Security" : "Wachtwoord & Beveiliging",
     "Create password key" : "Creëer een wachtwoordsleutel",
     "Reset password" : "Reset wachtwoord",
+    "Not defined yet" : "Niet niet bepaald",
     "Select a file" : "Selecteer een bestand",
     "File was deleted." : "Bestand was verwijderd",
     "Type" : "Type",
