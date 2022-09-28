@@ -15,6 +15,7 @@ OC.L10N.register(
     "Password" : "PassordP",
     "Confirm" : "Bekreft",
     "Text" : "Tekst",
+    "Draw" : "Tegn",
     "Upload" : "Last opp",
     "Apply" : "Bruk",
     "Cancel" : "Avbryt",
