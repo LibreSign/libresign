@@ -220,6 +220,7 @@ OC.L10N.register(
     "Legal Information" : "Informations légales",
     "Validation URL" : "URL de validation",
     "To validate signature of the documents" : "Pour valider la signature des documents",
+    "Request signatures?" : "Demander une signature ?",
     "Element created" : "Élément créé",
     "Remove" : "Retirer",
     "Previous" : "Précédente",
