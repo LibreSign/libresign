@@ -44,7 +44,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OCP\\": "vendor/christophwurst/nextcloud/OCP"
+      "OCP\\": "vendor/nextcloud/ocp/OCP"
     }
   },
   "repositories": [
