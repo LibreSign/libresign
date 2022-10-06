@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Base;
-use OCA\Libresign\Service\AdminSignatureService;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -23,8 +22,7 @@ class Cfssl extends Base {
 		IClientService $clientService,
 		IConfig $config,
 		SystemConfig $systemConfig,
-		IRootFolder $rootFolder,
-		AdminSignatureService $adminSignatureService
+		IRootFolder $rootFolder
 	) {
 		parent::__construct(
 			$tempManager,
@@ -100,10 +98,8 @@ class Cfssl extends Base {
 			if ($input->getOption('cfssl-uri')) {
 				throw new InvalidArgumentException('CFSSL URI is not necessary');
 			}
-			// create if not exist
-			$this->getFolder('cfssl_config');
-			$configPath = $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
-			$cfsslUri = 'http://127.0.0.1:8888/api/v1/cfssl/';
+			$configPath = $this->installService->getConfigPath();
+			$cfsslUri = null;
 		} else {
 			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
