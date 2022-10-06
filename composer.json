@@ -12,11 +12,11 @@
   },
   "require-dev": {
     "byjg/swagger-test": "^3.1",
-    "christophwurst/nextcloud": "dev-master",
     "donatj/mock-webserver": "^2.5",
     "guzzlehttp/psr7": "^2.4",
     "mikey179/vfsstream": "^1.6",
     "nextcloud/coding-standard": "^1.0",
+    "nextcloud/ocp": "dev-stable25",
     "phpunit/phpunit": "^9.5",
     "roave/security-advisories": "dev-latest",
     "symfony/yaml": "^5.4",
