@@ -28,6 +28,7 @@
         <nextcloud min-version="26" max-version="26"/>
     </dependencies>
     <commands>
+        <command>OCA\Libresign\Command\Configure\Check</command>
         <command>OCA\Libresign\Command\Configure\Cfssl</command>
         <command>OCA\Libresign\Command\Install</command>
         <command>OCA\Libresign\Command\Uninstall</command>

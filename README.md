@@ -17,19 +17,16 @@ Nextcloud app to sign PDF documents.
 ## Setup
 
 ### Standalone
-Help to usage in configure cfssl command:
-```
-yourCN: CommonName
-yourOU: OrganizationalUnit
-yourO: Organization
-yourCountry: CountryName
-```
-After install LibreSign, will be necessary to run these follows commands
+After installing LibreSign, is necessary to run the following commands
 
-Install commands:
+Install commands, replace all between < and > by your data. For more information you could run the commands with `--help`:
 ```bash
 occ libresign:install --all
 occ libresign:configure:cfssl --cn=<yourCN> --ou=<yourOU> --o=<yourO> --c=<yourCountry>
+```
+Check install:
+```bash
+occ libresign:configure:check
 ```
 
 ### Admin settings
