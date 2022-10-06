@@ -21,6 +21,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $installService;
 
 	public function setUp(): void {
+		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->installService = $this->createMock(InstallService::class);

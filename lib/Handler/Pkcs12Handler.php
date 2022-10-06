@@ -268,7 +268,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $blockValues;
 	}
 
-	private function getCertificateHandler(): CfsslHandler {
+	public function getCertificateHandler(): CfsslHandler {
 		if (!$this->cfsslHandler->getCommonName()) {
 			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
 		}
@@ -282,7 +282,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			$this->cfsslHandler->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'));
 		}
 		if (!$this->cfsslHandler->getCfsslUri()) {
-			$this->cfsslHandler->setCfsslUri($this->config->getAppValue(Application::APP_ID, 'cfsslUri'));
+			$cfsslUri = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
+			if (!$cfsslUri) {
+				$cfsslUri = CfsslHandler::CFSSL_URI;
+			}
+			$this->cfsslHandler->setCfsslUri($cfsslUri);
 		}
 		if (!$this->cfsslHandler->getConfigPath()) {
 			$this->cfsslHandler->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
@@ -290,13 +294,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$this->cfsslHandler->getBinary()) {
 			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
 			if ($binary) {
-				$instanceId = $this->systemConfig->getValue('instanceid', null);
-				$this->cfsslHandler->setBinary(
-					$this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/') . DIRECTORY_SEPARATOR .
-					'appdata_' . $instanceId . DIRECTORY_SEPARATOR .
-					Application::APP_ID . DIRECTORY_SEPARATOR .
-					'cfssl'
-				);
+				$this->cfsslHandler->setBinary($binary);
 			}
 		}
 		return $this->cfsslHandler;
