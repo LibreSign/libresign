@@ -4,11 +4,11 @@
   "type": "project",
   "license": "AGPL",
   "require": {
+    "endroid/qr-code": "^4.6",
+    "iio/libmergepdf": "dev-move-tcpdi-parser-to-package",
     "jsignpdf/jsignpdf-php": "^1.1",
-    "endroid/qr-code": "^4.4",
     "pagerfanta/pagerfanta": "^3.6",
-    "tecnickcom/tcpdf": "^6.4",
-    "iio/libmergepdf": "dev-move-tcpdi-parser-to-package"
+    "tecnickcom/tcpdf": "^6.4"
   },
   "require-dev": {
     "byjg/swagger-test": "^3.1",
