@@ -31,6 +31,10 @@ Install commands:
 occ libresign:install --all
 occ libresign:configure:cfssl --cn=<yourCN> --ou=<yourOU> --o=<yourO> --c=<yourCountry>
 ```
+Check install:
+```bash
+occ libresign:configure:check
+```
 
 ### Admin settings
 
