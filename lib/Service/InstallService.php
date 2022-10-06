@@ -423,6 +423,7 @@ class InstallService {
 		if ($cfsslUri) {
 			$this->cfsslHandler->setCfsslUri($cfsslUri);
 		} else {
+			$this->cfsslHandler->setCfsslUri(CfsslHandler::CFSSL_URI);
 			if (!$binary) {
 				$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
 				if ($binary && !file_exists($binary)) {
