@@ -18,8 +18,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
-	/** @var AdminSignatureService */
-	private $adminSignatureService;
 	public function __construct(
 		ITempManager $tempManager,
 		IClientService $clientService,
@@ -35,7 +33,6 @@ class Cfssl extends Base {
 			$systemConfig,
 			$rootFolder
 		);
-		$this->adminSignatureService = $adminSignatureService;
 	}
 
 	protected function configure(): void {
@@ -116,13 +113,13 @@ class Cfssl extends Base {
 				throw new InvalidArgumentException('Invalid CFSSL API URI');
 			}
 		}
-		$this->adminSignatureService->generate(
+		$this->installService->generate(
 			$commonName,
 			$country,
 			$organization,
 			$organizationUnit,
-			$cfsslUri,
 			$configPath,
+			$cfsslUri,
 			$binary
 		);
 		return 0;
