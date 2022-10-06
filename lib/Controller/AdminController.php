@@ -3,24 +3,28 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\AdminSignatureService;
+use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class AdminController extends Controller {
-	use HandleParamsTrait;
-
 	/** @var AdminSignatureService */
 	private $adminSignatureservice;
+	/** @var InstallService */
+	private $installService;
 
 	public function __construct(
 		IRequest $request,
-		AdminSignatureService $adminSignatureService
+		AdminSignatureService $adminSignatureService,
+		InstallService $installService
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->adminSignatureService = $adminSignatureService;
+		$this->installService = $installService;
 	}
 
 	/**
@@ -32,22 +36,18 @@ class AdminController extends Controller {
 		string $country = null,
 		string $organization = null,
 		string $organizationUnit = null,
-		string $cfsslUri = null,
-		string $configPath = null
+		string $cfsslUri = '',
+		string $configPath = ''
 	): DataResponse {
 		try {
-			$params = $this->trimParams([
-				'commonName' => $commonName,
-				'country' => $country,
-				'organization' => $organization,
-				'organizationUnit' => $organizationUnit,
-				'cfsslUri' => $cfsslUri,
-				'configPath' => $configPath
-			]);
-
-			$this->checkParams($params);
-
-			$this->adminSignatureService->generate(...array_values($params));
+			$this->installService->generate(
+				$this->trimAndThrowIfEmpty('commonName', $commonName),
+				$this->trimAndThrowIfEmpty('country', $country),
+				$this->trimAndThrowIfEmpty('organization', $organization),
+				$this->trimAndThrowIfEmpty('organizationUnit', $organizationUnit),
+				trim($configPath),
+				trim($cfsslUri)
+			);
 
 			return new DataResponse([
 				'success' => true
@@ -71,5 +71,12 @@ class AdminController extends Controller {
 		$certificate = $this->adminSignatureService->loadKeys();
 
 		return new DataResponse($certificate);
+	}
+
+	private function trimAndThrowIfEmpty($key, $value): string {
+		if (empty($value)) {
+			throw new LibresignException("parameter '{$key}' is required!", 400);
+		}
+		return trim($value);
 	}
 }

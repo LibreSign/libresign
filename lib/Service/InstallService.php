@@ -9,6 +9,8 @@ use OC\Archive\ZIP;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -31,18 +33,26 @@ class InstallService {
 	private $systemConfig;
 	/** @var IRootFolder */
 	private $rootFolder;
+	/** @var CfsslServerHandler */
+	private $cfsslServerHandler;
+	/** @var CfsslHandler */
+	private $cfsslHandler;
 	/** @var OutputInterface */
 	private $output;
 
 	public function __construct(
 		ITempManager $tempManager,
 		IClientService $clientService,
+		CfsslServerHandler $cfsslServerHandler,
+		CfsslHandler $cfsslHandler,
 		IConfig $config,
 		SystemConfig $systemConfig,
 		IRootFolder $rootFolder
 	) {
 		$this->tempManager = $tempManager;
 		$this->clientService = $clientService;
+		$this->cfsslServerHandler = $cfsslServerHandler;
+		$this->cfsslHandler = $cfsslHandler;
 		$this->config = $config;
 		$this->systemConfig = $systemConfig;
 		$this->rootFolder = $rootFolder;
@@ -89,6 +99,16 @@ class InstallService {
 	public function getFullPath(): string {
 		$folder = $this->getFolder();
 		return $this->getDataDir() . '/' . $folder->getInternalPath();
+	}
+
+	/**
+	 * Return the config path, create if not exist.
+	 *
+	 * @return string Full config path
+	 */
+	public function getConfigPath(): string {
+		$this->getFolder('cfssl_config');
+		return $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
 	}
 
 	public function installJava(): void {
@@ -295,7 +315,10 @@ class InstallService {
 			}
 		}
 
-		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', 1);
+		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
+			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
+			$downloads[0]['destination'];
+		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 	}
 
 	public function uninstallCfssl(): void {
@@ -313,6 +336,13 @@ class InstallService {
 		} catch (NotFoundException $e) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
+	}
+
+	public function isCfsslBinInstalled(): bool {
+		if ($this->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
+			return true;
+		}
+		return false;
 	}
 
 	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
@@ -362,5 +392,75 @@ class InstallService {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
 		}
+	}
+
+	public function generate(
+		string $commonName,
+		string $country,
+		string $organization,
+		string $organizationUnit,
+		string $configPath = '',
+		string $cfsslUri = '',
+		string $binary = ''
+	): void {
+		$key = bin2hex(random_bytes(16));
+
+		if (!$configPath) {
+			$configPath = $this->getConfigPath();
+		}
+		$this->cfsslServerHandler->createConfigServer(
+			$commonName,
+			$country,
+			$organization,
+			$organizationUnit,
+			$key,
+			$configPath
+		);
+		$this->cfsslHandler->setCommonName($commonName);
+		$this->cfsslHandler->setCountry($country);
+		$this->cfsslHandler->setOrganization($organization);
+		$this->cfsslHandler->setOrganizationUnit($organizationUnit);
+		if ($cfsslUri) {
+			$this->cfsslHandler->setCfsslUri($cfsslUri);
+		} else {
+			if (!$binary) {
+				$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+				if ($binary && !file_exists($binary)) {
+					$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
+					$binary = '';
+				}
+				if (!$binary) {
+					/**
+					 * @todo Suggestion: run this in a background proccess
+					 * to make more fast the setup and, maybe, implement a new endpoint
+					 * to start downloading of all binaries files in a background process
+					 * and return the status progress of download.
+					 */
+					$this->installCfssl();
+					$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+				}
+			}
+		}
+		if ($binary) {
+			$this->cfsslHandler->setBinary($binary);
+			$this->cfsslHandler->genkey();
+		}
+		for ($i = 1;$i <= 4;$i++) {
+			if ($this->cfsslHandler->health($this->cfsslHandler->getCfsslUri())) {
+				break;
+			}
+			// @codeCoverageIgnoreStart
+			sleep(2);
+			// @codeCoverageIgnoreEnd
+		}
+
+		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
+		$this->config->setAppValue(Application::APP_ID, 'commonName', $commonName);
+		$this->config->setAppValue(Application::APP_ID, 'country', $country);
+		$this->config->setAppValue(Application::APP_ID, 'organization', $organization);
+		$this->config->setAppValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
+		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $this->cfsslHandler->getCfsslUri());
+		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
+		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
 }
