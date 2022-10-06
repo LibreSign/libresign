@@ -11,12 +11,6 @@ use Psr\Http\Message\ResponseInterface;
  * @internal
  */
 final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	public function testGenerateCertificateWithInvalidHost() {
-		$class = new CfsslHandler();
-		$this->expectErrorMessageMatches('/Could not resolve host/');
-		$class->generateCertificate();
-	}
-
 	public function testSetNonExististingProperty() {
 		$class = new CfsslHandler();
 		$this->expectErrorMessageMatches('/Cannot set non existing property/');
@@ -42,12 +36,6 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('request')
 			->willReturn($response);
 		$class->setClient($client);
-		$class->generateCertificate();
-	}
-
-	public function testGenerateCertificateWithError() {
-		$class = new CfsslHandler();
-		$this->expectErrorMessageMatches('/Could not resolve host/');
 		$class->generateCertificate();
 	}
 
@@ -103,59 +91,11 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertArrayHasKey('pkey', $actual);
 	}
 
-	public function testHealthWithError() {
-		$class = new CfsslHandler();
-		$this->expectErrorMessage('invalid url');
-		$exception = $this->createMock(ConnectException::class);
-		$exception->method('getHandlerContext')->willReturn(['error' => 'invalid url']);
-		$client = $this->createMock(ClientInterface::class);
-		$client->expects($this->once())
-			->method('request')
-			->willThrowException($exception);
-		$class->setClient($client);
-		$class->health('invalid_url');
-	}
-
-	public function testHealthWithUnexpectedError() {
-		$class = new CfsslHandler();
-		$this->expectExceptionCode(500);
-		$client = $this->createMock(ClientInterface::class);
-		$client->expects($this->once())
-			->method('request')
-			->willThrowException($this->createMock(ConnectException::class));
-		$class->setClient($client);
-		$class->health('invalid_url');
-	}
-
 	public function testHealthWithoutSuccess() {
 		$class = new CfsslHandler();
-		$this->expectExceptionMessage('Error while check cfssl API health!');
-		$response = $this->createMock(ResponseInterface::class);
-		$response->method('getBody')->willReturn(json_encode([
-			'success' => false,
-			'result' => true
-		]));
+		$this->expectExceptionMessage('CFSSL server is down');
 		$client = $this->createMock(ClientInterface::class);
-		$client->expects($this->once())
-			->method('request')
-			->willReturn($response);
 		$class->setClient($client);
 		$class->health('http://cfssl.coop');
-	}
-
-	public function testHealthWithSuccess() {
-		$class = new CfsslHandler();
-		$response = $this->createMock(ResponseInterface::class);
-		$response->method('getBody')->willReturn(json_encode([
-			'success' => 'success',
-			'result' => ['healthy' => true]
-		]));
-		$client = $this->createMock(ClientInterface::class);
-		$client->expects($this->once())
-			->method('request')
-			->willReturn($response);
-		$class->setClient($client);
-		$actual = $class->health('http://cfssl.coop');
-		$this->assertNotEmpty($actual);
 	}
 }

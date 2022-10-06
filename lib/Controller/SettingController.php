@@ -9,8 +9,6 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class SettingController extends Controller {
-	use HandleParamsTrait;
-
 	/** @var SignatureService */
 	private $signatureService;
 
