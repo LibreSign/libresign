@@ -34,6 +34,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method CfsslHandler setConfigPath()
  */
 class CfsslHandler {
+	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 	private $commonName;
 	private $hosts = [];
 	private $friendlyName;
@@ -140,9 +141,16 @@ class CfsslHandler {
 	 * @param string $cfsslUri
 	 * @return array
 	 */
-	public function health(string $cfsslUri): array {
+	public function health(?string $cfsslUri): array {
 		try {
-			$response = $this->getClient()
+			if (!$cfsslUri) {
+				$cfsslUri = self::CFSSL_URI;
+			}
+			$client = $this->getClient();
+			if (!$this->portOpen($cfsslUri)) {
+				throw new LibresignException('CFSSL server is down', 500);
+			}
+			$response = $client
 				->request('get',
 					'health',
 					[
@@ -170,8 +178,8 @@ class CfsslHandler {
 		return $responseDecoded['result'];
 	}
 
-	private function wakeUp(): void {
-		if ($this->portOpen()) {
+	public function wakeUp(): void {
+		if ($this->portOpen($this->getCfsslUri())) {
 			return;
 		}
 		$binary = $this->getBinary();
@@ -188,14 +196,13 @@ class CfsslHandler {
 			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
-		while (!$this->portOpen() && $loops <= 4) {
+		while (!$this->portOpen($this->getCfsslUri()) && $loops <= 4) {
 			sleep(1);
 			$loops++;
 		}
 	}
 
-	private function portOpen(): bool {
-		$uri = $this->getCfsslUri();
+	private function portOpen($uri): bool {
 		$host = parse_url($uri, PHP_URL_HOST);
 		$port = parse_url($uri, PHP_URL_PORT);
 		try {
@@ -226,10 +233,6 @@ class CfsslHandler {
 		if ($binary) {
 			if (!file_exists($binary)) {
 				throw new LibresignException('Binary of CFSSL not found. Install binaries.');
-			}
-			$this->binary = $binary;
-			if (PHP_OS_FAMILY === 'Windows') {
-				$this->binary .= '.exe';
 			}
 		}
 		return $this;
