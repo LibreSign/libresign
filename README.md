@@ -8,30 +8,25 @@ Nextcloud app to sign PDF documents.
 
 **Table of contents**
 - [Setup](#setup)
-  - [Standalone](#standalone)
-  - [Admin settings](#admin-settings)
+  - [Check setup](#check-setup)
 - [Integrations](#integrations)
 - [Full documentation](#full-documentation)
 - [Contributing](#contributing)
 
 ## Setup
 
-### Standalone
-After installing LibreSign, is necessary to run the following commands
+After installing LibreSign, is necessary go to `Administration Settings > LibreSign` and:
+* Download binareis
+* Configure root certificate
 
-Install commands, replace all between < and > by your data. For more information you could run the commands with `--help`:
-```bash
-occ libresign:install --all
-occ libresign:configure:cfssl --cn=<yourCN> --ou=<yourOU> --o=<yourO> --c=<yourCountry>
-```
+Go to `Administration Settings > Basic Settings` and configure email settings. Is mandatory.
+
+### Check setup
+
 Check install:
 ```bash
 occ libresign:configure:check
 ```
-
-### Admin settings
-
-Go to `Settings > Basic Settings` and configure email settings. Is mandatory.
 
 ## Integrations
 
