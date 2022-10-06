@@ -30,6 +30,8 @@ use OCA\Libresign\Exception\LibresignException;
  * @method string getCfsslUri()
  * @method CfsslHandler setClient(ClientInterface $client)
  * @method Client getClient()
+ * @method string getConfigPath()
+ * @method CfsslHandler setConfigPath()
  */
 class CfsslHandler {
 	private $commonName;
@@ -40,6 +42,7 @@ class CfsslHandler {
 	private $organizationUnit;
 	private $cfsslUri;
 	private $password;
+	private $configPath;
 	private $binary;
 	/** @var ClientInterface */
 	private $client;
@@ -178,7 +181,7 @@ class CfsslHandler {
 		if (!file_exists($binary)) {
 			throw new LibresignException('Binary of CFSSL not found');
 		}
-		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$configPath = $this->getConfigPath();
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
 			'-ca-key ' . $configPath . 'ca-key.pem ' .
 			'-ca ' . $configPath . 'ca.pem '.
@@ -237,7 +240,7 @@ class CfsslHandler {
 		if (!$binary) {
 			return;
 		}
-		$configPath = trim($binary, '.exe') . '_config' . DIRECTORY_SEPARATOR;
+		$configPath = $this->getConfigPath();
 		$cmd = $binary . ' genkey ' .
 			'-initca=true ' . $configPath . 'csr_server.json | ' .
 			$binary . 'json -bare ' . $configPath . 'ca;';
