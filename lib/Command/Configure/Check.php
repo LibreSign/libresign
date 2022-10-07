@@ -48,14 +48,18 @@ class Check extends Base {
 		$all = (!$preview && !$sign && !$cfssl);
 
 		$result = [];
-		if ($all || $preview) {
-			$result = array_merge_recursive($result, $this->configureCheckService->canPreview());
-		}
-		if ($all || $sign) {
-			$result = array_merge_recursive($result, $this->configureCheckService->checkSign());
-		}
-		if ($all || $cfssl) {
-			$result = array_merge_recursive($result, $this->configureCheckService->checkCfssl());
+		if ($all) {
+			$result = $this->configureCheckService->checkAll();
+		} else {
+			if ($preview) {
+				$result = array_merge_recursive($result, $this->configureCheckService->canPreview());
+			}
+			if ($sign) {
+				$result = array_merge_recursive($result, $this->configureCheckService->checkSign());
+			}
+			if ($cfssl) {
+				$result = array_merge_recursive($result, $this->configureCheckService->checkCfssl());
+			}
 		}
 
 		$table = new Table($output);
