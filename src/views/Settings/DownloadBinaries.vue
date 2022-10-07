@@ -24,7 +24,7 @@ export default {
 	},
 	data: () => ({
 		title: t('libresign', 'Download binaries'),
-		description: t('libresign', 'Binaries required to work.'),
+		description: t('libresign', 'Binaries required to work. Could be near by 340Mb to download, wait a moment.'),
 		submitLabel: t('libresign', 'Download binaries'),
 	}),
 	created() {
