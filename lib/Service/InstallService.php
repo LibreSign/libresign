@@ -112,7 +112,14 @@ class InstallService {
 	}
 
 	public function installJava(): void {
-		$extractDir = $this->getFullPath();
+		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'java';
+		$appFolder = $this->getFolder();
+		if ($appFolder->nodeExists('java')) {
+			/** @var Folder */
+			$javaFolder = $appFolder->get('java');
+		} else {
+			$javaFolder = $appFolder->newFolder('java');
+		}
 
 		/**
 		 * To update:
@@ -121,22 +128,28 @@ class InstallService {
 		 * https://jdk.java.net/java-se-ri/8-MR3
 		 */
 		if (PHP_OS_FAMILY === 'Windows') {
-			$url = 'https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-windows-i586-14_jan_2020.zip';
-			$tempFile = $this->tempManager->getTemporaryFile('.zip');
+			$compressedFileName = 'openjdk-8u41-b04-windows-i586-14_jan_2020.zip';
+			$url = 'https://download.java.net/openjdk/jdk8u41/ri/' . $compressedFileName;
 			$executableExtension = '.exe';
 			$class = ZIP::class;
 			$hash = '48ac2152d1fb0ad1d343104be210d532';
 		} else {
-			$url = 'https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz';
-			$tempFile = $this->tempManager->getTemporaryFile('.tar.gz');
+			$compressedFileName = 'openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz';
+			$url = 'https://download.java.net/openjdk/jdk8u41/ri/' . $compressedFileName;
 			$executableExtension = '';
 			$class = TAR::class;
 			$hash = '35f515e9436f4fefad091db2c1450c5f';
 		}
+		if (!$javaFolder->nodeExists($compressedFileName)) {
+			$compressedFile = $javaFolder->newFile($compressedFileName);
+		} else {
+			$compressedFile = $javaFolder->get($compressedFileName);
+		}
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
 
-		$this->download($url, 'java', $tempFile, $hash);
+		$this->download($url, 'java', $comporessedInternalFileName, $hash);
 
-		$extractor = new $class($tempFile);
+		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
 		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/java-se-8u41-ri/bin/java' . $executableExtension);
@@ -149,12 +162,11 @@ class InstallService {
 		}
 		$appFolder = $this->getAppRootFolder();
 		$name = $appFolder->getName();
-		// Remove prefix
-		$path = explode($name, $javaPath)[1];
-		// Remove binary path
-		$path = explode(DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR, $path)[0];
+		if (!strpos($javaPath, $name)) {
+			return;
+		}
 		try {
-			$folder = $appFolder->get($path);
+			$folder = $appFolder->get('/libresign/java');
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
