@@ -20,6 +20,14 @@ class ConfigureCheckService {
 		$this->systemConfig = $systemConfig;
 	}
 
+	public function checkAll(): array {
+		$result = [];
+		$result = array_merge_recursive($result, $this->canPreview());
+		$result = array_merge_recursive($result, $this->checkSign());
+		$result = array_merge_recursive($result, $this->checkCfssl());
+		return $result;
+	}
+
 	public function canPreview(): array {
 		if (!extension_loaded('imagick')) {
 			return [
