@@ -23,6 +23,7 @@
 
 <template>
 	<SettingsSection :title="title">
+		<DownloadBinaries />
 		<AdminFormLibresign />
 		<UrlValidation />
 		<AllowedGroups />
@@ -40,6 +41,7 @@
 
 <script>
 import AdminFormLibresign from './AdminFormLibresign.vue'
+import DownloadBinaries from './DownloadBinaries.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import UrlValidation from './UrlValidation.vue'
 import Textarea from '../../Components/Textarea/Textarea.vue'
@@ -51,6 +53,7 @@ export default {
 	name: 'Settings',
 	components: {
 		AdminFormLibresign,
+		DownloadBinaries,
 		SettingsSection,
 		UrlValidation,
 		AllowedGroups,

@@ -2,8 +2,8 @@
 	<div class="content-file" @click="openSidebar">
 		<img :src="srcImg">
 		<div class="enDot">
-			<div :class="status!== 'none' ? 'dot ' + status : '' " />
-			<span>{{ status !== 'none' ? statusToUppercase(status) : '' }}</span>
+			<div :class="status_text!== 'none' ? 'dot ' + statusToClass(status) : '' " />
+			<span>{{ status_text !== 'none' ? statusToUppercase(status_text) : '' }}</span>
 		</div>
 		<h1>{{ file.name }}</h1>
 	</div>
@@ -20,10 +20,15 @@ export default {
 			required: true,
 		},
 		status: {
+			type: [Number, String],
+			required: true,
+			default: 0,
+		},
+		status_text: {
 			type: String,
 			required: true,
-			default: 'done',
-			validator: () => ['signed', 'canceled', 'pending', 'none'],
+			default: 'none',
+			validator: () => ['signed', 'no signers', 'pending', 'none'],
 		},
 	},
 	data() {
@@ -35,9 +40,21 @@ export default {
 		openSidebar() {
 			this.$emit('sidebar', this.file)
 		},
-		statusToUppercase(status) {
-			return status[0].toUpperCase() + status.substr(1)
+		statusToUppercase(status_text) {
+			return status_text[0].toUpperCase() + status_text.substr(1)
 		},
+		statusToClass(status) {
+			switch (Number(status)) {
+				case 0:
+					return 'no-signers'
+				case 1:
+					return 'signed'
+				case 2:
+					return 'pending'
+				default:
+					return ''
+			}
+		}
 	},
 }
 </script>
@@ -83,7 +100,7 @@ export default {
 			background: #008000;
 		}
 
-		.canceled{
+		.no-signers{
 			background: #ff0000;
 		}
 

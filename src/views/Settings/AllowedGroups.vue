@@ -23,7 +23,7 @@
 
 <template>
 	<SettingsSection :title="title" :description="description">
-		<MulutiSelect :key="idKey"
+		<Multiselect :key="idKey"
 			v-model="groupsSelected"
 			:options="groups"
 			:close-on-select="false"
@@ -35,7 +35,7 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
-import MulutiSelect from '@nextcloud/vue/dist/Components/Multiselect'
+import Multiselect from '@nextcloud/vue/dist/Components/Multiselect'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -43,7 +43,7 @@ export default {
 	name: 'AllowedGroups',
 	components: {
 		SettingsSection,
-		MulutiSelect,
+		Multiselect,
 	},
 
 	data: () => ({
@@ -64,7 +64,9 @@ export default {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {}
 			)
-			this.groupsSelected = JSON.parse(response.data.ocs.data.data)
+			if (response.data.ocs.data.data !== '') {
+				this.groupsSelected = JSON.parse(response.data.ocs.data.data)
+			}
 		},
 
 		saveGroups() {
