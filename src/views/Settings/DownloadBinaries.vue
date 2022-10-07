@@ -38,9 +38,9 @@ export default {
 	},
 	methods: {
 		async isBinariesInstalled() {
-			this.isJavaInstalled()
-			this.isJsignpdfInstalled()
-			this.isLibresignInstalled()
+			await this.isJavaInstalled()
+			await this.isJsignpdfInstalled()
+			await this.isLibresignInstalled()
 			if (this.checklist.java
 				&& this.checklist.jsignpdf
 				&& this.checklist.libresign_cli
