@@ -30,7 +30,7 @@ export default {
 		checklist: {
 			java: false,
 			jsignpdf: false,
-			libresign_cli: falsem
+			libresign_cli: false
 		}
 	}),
 	created() {
