@@ -93,7 +93,7 @@ final class AdminControllerTest extends ApiTestCase {
 				'country' => 'Brazil',
 				'organization' => 'Organization',
 				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => '',
+				'cfsslUri' => 'invalidUri',
 				'configPath' => ''
 			])
 			->assertResponseCode(401);

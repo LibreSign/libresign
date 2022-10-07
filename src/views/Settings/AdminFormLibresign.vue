@@ -25,7 +25,7 @@
 	<SettingsSection :title="title" :description="description">
 		<div id="formLibresign" class="form-libresign">
 			<div class="form-group">
-				<label for="commonName">{{ t('libresign', 'Name (CN)') }}</label>
+				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
 					ref="commonName"
 					v-model="certificate.commonName"
@@ -33,7 +33,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="country">{{ t('libresign', 'Country (C)') }}</label>
+				<label for="country" class="form-heading--required">{{ t('libresign', 'Country (C)') }}</label>
 				<input id="country"
 					ref="country"
 					v-model="certificate.country"
@@ -41,7 +41,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="organization">{{ t('libresign', 'Organization (O)') }}</label>
+				<label for="organization" class="form-heading--required">{{ t('libresign', 'Organization (O)') }}</label>
 				<input id="organization"
 					ref="organization"
 					v-model="certificate.organization"
@@ -49,7 +49,7 @@
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="organizationUnit">{{ t('libresign', 'Organization Unit (OU)') }}</label>
+				<label for="organizationUnit" class="form-heading--required">{{ t('libresign', 'Organization Unit (OU)') }}</label>
 				<input id="organizationUnit"
 					ref="organizationUnit"
 					v-model="certificate.organizationUnit"
@@ -101,8 +101,6 @@ export default {
 				country: '',
 				organization: '',
 				organizationUnit: '',
-				cfsslUri: '',
-				configPath: '',
 			},
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
@@ -119,8 +117,6 @@ export default {
                 && this.certificate.country !== ''
                 && this.certificate.organization !== ''
                 && this.certificate.organizationUnit !== ''
-                && this.certificate.cfsslUri !== ''
-                && this.certificate.configPath !== ''
 			)
 		},
 	},
@@ -172,8 +168,6 @@ export default {
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
-				&& response.data.cfsslUri
-				&& response.data.configPath
 				) {
 					this.certificate = response.data
 					this.submitLabel = t('libresign', 'Generated certificate!')
@@ -197,6 +191,10 @@ export default {
 
 .form-group > input[type='text'] {
 	width: 100%;
+}
+
+.form-heading--required:after {
+	content:" *";
 }
 
 </style>

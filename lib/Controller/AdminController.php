@@ -79,4 +79,27 @@ class AdminController extends Controller {
 		}
 		return trim($value);
 	}
+
+	/**
+	 * @NoCSRFRequired
+	 */
+	public function downloadBinaries(): DataResponse {
+		try {
+			$this->installService->installJava();
+			$this->installService->installJSignPdf();
+			$this->installService->installCfssl();
+			$this->installService->installCli();
+			return new DataResponse([
+				'success' => true
+			]);
+		} catch (\Exception $exception) {
+			return new DataResponse(
+				[
+					'success' => false,
+					'message' => $exception->getMessage()
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+	}
 }
