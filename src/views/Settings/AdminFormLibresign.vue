@@ -184,7 +184,6 @@ export default {
 </script>
 <style scoped>
 #formLibresign{
-	width: 60%;
 	text-align: left;
 	margin: 20px;
 }
@@ -195,6 +194,12 @@ export default {
 
 .form-heading--required:after {
 	content:" *";
+}
+
+@media screen and (max-width: 500px){
+	#formLibresign{
+		width: 100%;
+	}
 }
 
 </style>
