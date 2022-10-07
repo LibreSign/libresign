@@ -44,7 +44,7 @@ class PdfParserService {
 		$fullPath = $this->getDataDir() . $filePath;
 		$fullPath = realpath($fullPath);
 		if ($fullPath === false) {
-			throw new LibresignException('Impossible get metadata from this file. Check if you installed correctly the libresign-cli.');
+			throw new LibresignException('File not found on specified place.');
 		}
 		$cliPath = $this->getLibesignCli();
 		$json = shell_exec($cliPath . ' info ' . escapeshellarg($fullPath));

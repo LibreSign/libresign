@@ -79,7 +79,8 @@ describe('Timeline', () => {
 						me: false,
 					},
 				],
-				status: 'pending',
+				status: 2,
+				status_text: 'pending',
 			},
 		]
 
@@ -125,7 +126,8 @@ describe('Timeline', () => {
 					me: false,
 				},
 			],
-			status: 'pending',
+			status: 2,
+			status_text: 'pending',
 		}
 
 		wrapper.vm.$emit('sidebar', file)
