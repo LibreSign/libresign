@@ -8,7 +8,8 @@
 			<div class="content-request">
 				<File v-show="!isEmptyFile"
 					:file="file"
-					status="none"
+					status=0
+					status_text="none"
 					@sidebar="setSidebarStatus(true)" />
 				<button class="icon icon-folder" @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
