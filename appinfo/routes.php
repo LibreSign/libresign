@@ -61,6 +61,7 @@ return [
 		['name' => 'admin#generateCertificate',       'url' => '/api/0.1/admin/certificate', 'verb' => 'POST'],
 		['name' => 'admin#loadCertificate',           'url' => '/api/0.1/admin/certificate', 'verb' => 'GET'],
 		['name' => 'admin#downloadBinaries',          'url' => '/api/0.1/admin/download-binaries', 'verb' => 'GET'],
+		['name' => 'admin#configureCheck',            'url' => '/api/0.1/admin/configure-check', 'verb' => 'GET'],
 
 		// Pages - restricted
 		['name' => 'page#index',                      'url' => '/', 'verb' => 'GET'],
