@@ -3,9 +3,9 @@
 		<div class="settings-section">
 		<input type="button"
 			class="primary"
-			:value="submitLabel"
+			:value="labelDownloadAllBinaries"
 			:disabled="formDisabled"
-			@click="downloadBinaries">
+			@click="downloadAllBinaries">
 		</div>
 	</SettingsSection>
 </template>
@@ -23,31 +23,48 @@ export default {
 		SettingsSection,
 	},
 	data: () => ({
-		title: t('libresign', 'Download binaries'),
+		title: t('libresign', 'Dependencies'),
 		description: t('libresign', 'Binaries required to work. Could be near by 340Mb to download, wait a moment.'),
-		submitLabel: t('libresign', 'Download binaries'),
+		labelDownloadAllBinaries: t('libresign', 'Download binaries'),
 		formDisabled: true,
+		checklist: {
+			java: false,
+			jsignpdf: false,
+			libresign_cli: falsem
+		}
 	}),
 	created() {
 		this.isBinariesInstalled();
 	},
 	methods: {
 		async isBinariesInstalled() {
-			const java = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/java_path', {})
-			const jsignpdf = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/jsignpdf_jar_path', {})
-			const libresign_cli = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/libresign_cli_path', {})
-			if (java.data.ocs.data.data !== ''
-				&& jsignpdf.data.ocs.data.data !== ''
-				&& libresign_cli.data.ocs.data.data !== ''
+			this.isJavaInstalled()
+			this.isJsignpdfInstalled()
+			this.isLibresignInstalled()
+			if (this.checklist.java
+				&& this.checklist.jsignpdf
+				&& this.checklist.libresign_cli
 			) {
-				this.submitLabel = t('libresign', 'Binaries downloaded')
+				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
 				return
 			}
 			this.formDisabled = false
 		},
-		async downloadBinaries() {
+		async isJavaInstalled() {
+			const java = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/java_path', {})
+			this.checklist.java = java.data.ocs.data.data !== ''
+		},
+		async isJsignpdfInstalled() {
+			const jsignpdf = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/jsignpdf_jar_path', {})
+			this.checklist.jsignpdf = jsignpdf.data.ocs.data.data !== ''
+		},
+		async isLibresignInstalled() {
+			const libresign_cli = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/libresign_cli_path', {})
+			this.checklist.libresign_cli = libresign_cli.data.ocs.data.data !== ''
+		},
+		async downloadAllBinaries() {
 			this.formDisabled = true
-			this.submitLabel = t('libresign', 'Downloading binaries')
+			this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
 			try {
 				const response = await axios.get(
 					generateUrl('/apps/libresign/api/0.1/admin/download-binaries')
@@ -56,7 +73,7 @@ export default {
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
 				}
-				this.submitLabel = t('libresign', 'Binaries downloaded')
+				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
 
 				return
 			} catch (e) {
@@ -66,7 +83,7 @@ export default {
 				} else {
 					showError(t('libresign', 'Could not download binaries.'))
 				}
-				this.submitLabel = t('libresign', 'Download binaries')
+				this.labelDownloadAllBinaries = t('libresign', 'Download binaries')
 
 			}
 			this.formDisabled = false
