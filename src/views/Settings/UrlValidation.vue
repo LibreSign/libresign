@@ -1,30 +1,30 @@
 <template>
-	<div class="settings-section">
-		<div class="form-group">
-			<label class="title"> {{ labelTitle }} </label>
-			<label> {{ labelDesciption }}</label>
-			<input id="validation_site"
-				ref="urlInput"
-				:placeholder="url"
-				type="text"
-				@input="saveUrl()"
-				@click="fillUrlInput()"
-				@keypress.enter="validationUrlEnter()">
-		</div>
-	</div>
+	<SettingsSection :title="title" :description="description">
+		<input id="validation_site"
+			ref="urlInput"
+			:placeholder="url"
+			type="text"
+			@input="saveUrl()"
+			@click="fillUrlInput()"
+			@keypress.enter="validationUrlEnter()">
+	</SettingsSection>
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
+import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
 	name: 'UrlValidation',
+	components: {
+		SettingsSection,
+	},
 	data() {
 		return {
 			url: null,
 			paternValidadeUrl: 'https://validador.librecode.coop/',
-			labelTitle: t('libresign', 'Validation URL'),
-			labelDesciption: t('libresign', 'To validate signature of the documents'),
+			title: t('libresign', 'Validation URL'),
+			description: t('libresign', 'To validate signature of the documents'),
 		}
 	},
 	created() {
@@ -61,22 +61,9 @@ export default {
 }
 </script>
 <style scoped>
-.form-group{
-	display: flex;
-	flex-direction: column;
-}
-
-.title{
-	font-weight: bold;
-	width: auto;
-}
-
-label{
-	cursor: default;
-}
 
 input{
-	width: 400px;
+	width: 60%;
 }
 
 @media screen and (max-width: 500px){
