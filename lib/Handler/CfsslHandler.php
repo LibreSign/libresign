@@ -234,6 +234,7 @@ class CfsslHandler {
 			if (!file_exists($binary)) {
 				throw new LibresignException('Binary of CFSSL not found. Install binaries.');
 			}
+			$this->binary = $binary;
 		}
 		return $this;
 	}
