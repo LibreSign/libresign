@@ -420,6 +420,7 @@ class InstallService {
 		if (!$configPath) {
 			$configPath = $this->getConfigPath();
 		}
+		$this->cfsslHandler->setConfigPath($configPath);
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$country,
