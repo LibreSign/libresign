@@ -44,6 +44,7 @@ OC.L10N.register(
     "Password reset" : "Restabelecer o contrasinal",
     "New password" : "Novo contrasinal",
     "Repeat password" : "Repita o contrasinal",
+    "Dependencies" : "Dependencias",
     "Legal information" : "Información legal",
     "Remove" : "Retirar",
     "Previous" : "Anterior",

@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Érvénytelen felhasználó",
     "Invalid PDF" : "Érvénytelen PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Szabad digitális aláírási alkalmazás a Nextcloudhoz",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Back to sign" : "Vissza az aláíráshoz",
     "Request" : "Kérés",
     "Files" : "Fájlok",
@@ -232,8 +231,8 @@ OC.L10N.register(
     "Generating certificate." : "Tanúsítvány előállítása.",
     "Generated certificate!" : "Tanúsítvány előállítva.",
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
+    "Dependencies" : "Függőségek",
     "Legal information" : "Jogi információk",
     "This information will appear on the validation page" : "Ez az információ csak az ellenőrzési oldalon jelenik meg",
     "Legal Information" : "Jogi információk",
@@ -274,6 +273,8 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot.",
     "User created!" : "Felhasználó létrehozva.",
     "Password created!" : "Jelszó létrehozva.",
-    "Open in LibreSign" : "Megnyitás a LibreSignban"
+    "Open in LibreSign" : "Megnyitás a LibreSignban",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Webhook" : "Webhook"
 },
 "nplurals=2; plural=(n != 1);");

@@ -119,13 +119,14 @@ OC.L10N.register(
     "Organization Unit (OU)" : "Подразделение (OU)",
     "Config path" : "Путь конфигурации",
     "Could not generate certificate." : "Не удалось создать сертификат",
-    "Webhook" : "Веб-хук",
+    "Dependencies" : "Зависимости",
     "Remove" : "Удалить",
     "Previous" : "Назад",
     "Sign the document." : "Подписать документ",
     "Loading" : "Загрузка",
     "View" : "Просмотр",
     "No date" : "Нет даты",
-    "User created!" : "Пользователь создан"
+    "User created!" : "Пользователь создан",
+    "Webhook" : "Веб-хук"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

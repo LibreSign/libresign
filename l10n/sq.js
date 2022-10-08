@@ -41,6 +41,7 @@ OC.L10N.register(
     "Password reset" : "Fjalkalimi u rivendos",
     "New password" : "Fjalëkalim i ri",
     "Repeat password" : "Përsërit Fjalëkalimin",
+    "Dependencies" : "Varësitë",
     "Remove" : "Hiq",
     "Previous" : "I mëparshëm",
     "Loading" : "Duke ngarkuar",

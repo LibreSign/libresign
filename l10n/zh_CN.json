@@ -216,8 +216,8 @@
     "Generating certificate." : "生成证书中",
     "Generated certificate!" : "已生成证书！",
     "Could not generate certificate." : "无法生成证书",
-    "Webhook" : "Webhook ",
     "Select authorized groups." : "选择授权组",
+    "Dependencies" : "附属",
     "Legal information" : "法律信息",
     "This information will appear on the validation page" : "该信息将出现在验证页面上",
     "Legal Information" : "法律信息",
@@ -256,6 +256,7 @@
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
-    "Open in LibreSign" : "在 LibreSign 中打开"
+    "Open in LibreSign" : "在 LibreSign 中打开",
+    "Webhook" : "Webhook "
 },"pluralForm" :"nplurals=1; plural=0;"
 }
