@@ -1,23 +1,25 @@
 <template>
 	<SettingsSection :title="title" :description="description">
-		<div class="settings-section">
-			<ul>
-				<li v-if="items.success">
-					<ul class="items">
-						<li v-for="(item, index) in items.success" :key="index" class="success">
-							{{ item }}
-						</li>
-					</ul>
-				</li>
-				<li v-if="items.errors">
-					<ul class="items">
-						<li v-for="(item, index) in items.errors" :key="index" class="error">
-							{{ item }}
-						</li>
-					</ul>
-				</li>
-			</ul>
-		</div>
+		<table class="grid">
+			<tbody>
+				<tr class="group-header">
+					<th>{{ t('libresign', 'Status') }}</th>
+					<th>{{ t('libresign', 'Resource') }}</th>
+					<th>{{ t('libresign', 'Message') }}</th>
+					<th>{{ t('libresign', 'Tip') }}</th>
+				</tr>
+				<tr v-for="(row, index) in items" :key="index">
+					<td
+						:class=row.status
+						>
+						{{row.status}}
+					</td>
+					<td>{{row.message}}</td>
+					<td>{{row.resource}}</td>
+					<td>{{row.tip}}</td>
+				</tr>
+			</tbody>
+		</table>
 	</SettingsSection>
 </template>
 <script>
@@ -51,17 +53,13 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.items {
-	li {
-		list-style: initial;
-		list-style-type: initial;
-		list-style-position: inside;
-	}
-	.success {
-		color: green;
-	}
-	.error {
-		color: red;
-	}
+table {
+	white-space: inherit;
+}
+.success {
+	color: green;
+}
+.error {
+	color: red;
 }
 </style>

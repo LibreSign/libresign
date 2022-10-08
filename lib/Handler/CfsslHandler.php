@@ -4,8 +4,10 @@ namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\MagicGetterSetterTrait;
 
 /**
  * Class FileMapper
@@ -34,6 +36,7 @@ use OCA\Libresign\Exception\LibresignException;
  * @method CfsslHandler setConfigPath()
  */
 class CfsslHandler {
+	use MagicGetterSetterTrait;
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 	private $commonName;
 	private $hosts = [];
@@ -47,20 +50,6 @@ class CfsslHandler {
 	private $binary;
 	/** @var ClientInterface */
 	private $client;
-	public function __call($name, $arguments) {
-		if (!preg_match('/^(?<type>get|set)(?<property>.+)/', $name, $matches)) {
-			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
-		}
-		$property = lcfirst($matches['property']);
-		if (!property_exists($this, $property)) {
-			throw new \LogicException(sprintf('Cannot set non existing property %s->%s = %s.', \get_class($this), $name, var_export($arguments, true)));
-		}
-		if ($matches['type'] === 'get') {
-			return $this->$property;
-		}
-		$this->$property = $arguments[0] ?? null;
-		return $this;
-	}
 
 	public function getClient(): ClientInterface {
 		if (!$this->client) {
@@ -121,7 +110,7 @@ class CfsslHandler {
 					$json
 				)
 			;
-		} catch (TransferException $th) {
+		} catch (RequestException | ConnectException $th) {
 			if ($th->getHandlerContext() && $th->getHandlerContext()['error']) {
 				throw new \Exception($th->getHandlerContext()['error'], 1);
 			}
@@ -158,7 +147,7 @@ class CfsslHandler {
 					]
 				)
 			;
-		} catch (TransferException $th) {
+		} catch (RequestException | ConnectException $th) {
 			switch ($th->getCode()) {
 				case 404:
 					throw new \Exception('Endpoint /health of CFSSL server not found. Maybe you are using incompatible version of CFSSL server. Use latests version.', 1);
