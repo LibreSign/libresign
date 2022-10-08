@@ -22,7 +22,8 @@
 -->
 
 <template>
-	<SettingsSection :title="title" :description="description">
+	<SettingsSection :title="title" :description="description"
+		v-if=cfsslOk>
 		<div id="formLibresign" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
@@ -96,6 +97,7 @@ export default {
 	},
 	data() {
 		return {
+			cfsslOk: false,
 			certificate: {
 				commonName: '',
 				country: '',
@@ -123,6 +125,9 @@ export default {
 	async mounted() {
 		this.loading = false
 		this.loadRootCertificate()
+		this.$root.$on('afterConfigCheck', data => {
+			this.cfsslOk = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
+		})
 	},
 
 	methods: {

@@ -14,7 +14,6 @@ import { translate as t } from '@nextcloud/l10n'
 import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
-import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
 export default {
@@ -30,38 +29,31 @@ export default {
 		checklist: {
 			java: false,
 			jsignpdf: false,
-			libresign_cli: false
+			libresign_cli: false,
+			cfssl: false
 		}
 	}),
-	created() {
-		this.isBinariesInstalled();
+	mounted() {
+		this.$root.$on('afterConfigCheck', data => {
+			this.items = data
+			const java = data.filter((o) => o.resource == 'java' && o.status == 'error').length == 0
+			const jsignpdf = data.filter((o) => o.resource == 'jsignpdf' && o.status == 'error').length == 0
+			const libresign_cli = data.filter((o) => o.resource == 'libresign-cli' && o.status == 'error').length == 0
+			const cfssl = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
+			if (!java
+				|| !jsignpdf
+				|| !libresign_cli
+				|| !cfssl
+			) {
+				this.labelDownloadAllBinaries = t('libresign', 'Download binaries')
+				this.formDisabled = false
+			} else {
+				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
+				this.formDisabled = true
+			}
+		});
 	},
 	methods: {
-		async isBinariesInstalled() {
-			await this.isJavaInstalled()
-			await this.isJsignpdfInstalled()
-			await this.isLibresignInstalled()
-			if (this.checklist.java
-				&& this.checklist.jsignpdf
-				&& this.checklist.libresign_cli
-			) {
-				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
-				return
-			}
-			this.formDisabled = false
-		},
-		async isJavaInstalled() {
-			const java = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/java_path', {})
-			this.checklist.java = java.data.ocs.data.data !== ''
-		},
-		async isJsignpdfInstalled() {
-			const jsignpdf = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/jsignpdf_jar_path', {})
-			this.checklist.jsignpdf = jsignpdf.data.ocs.data.data !== ''
-		},
-		async isLibresignInstalled() {
-			const libresign_cli = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/libresign_cli_path', {})
-			this.checklist.libresign_cli = libresign_cli.data.ocs.data.data !== ''
-		},
 		async downloadAllBinaries() {
 			this.formDisabled = true
 			this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
@@ -73,9 +65,6 @@ export default {
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
 				}
-				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
-
-				return
 			} catch (e) {
 				console.error(e)
 				if (e.response.data.message) {
@@ -83,10 +72,10 @@ export default {
 				} else {
 					showError(t('libresign', 'Could not download binaries.'))
 				}
-				this.labelDownloadAllBinaries = t('libresign', 'Download binaries')
+				
 
 			}
-			this.formDisabled = false
+			this.$root.$emit('configCheck');
 		},
 	},
 }

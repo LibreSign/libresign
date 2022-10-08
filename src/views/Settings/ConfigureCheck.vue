@@ -4,8 +4,8 @@
 			<tbody>
 				<tr class="group-header">
 					<th>{{ t('libresign', 'Status') }}</th>
-					<th>{{ t('libresign', 'Resource') }}</th>
 					<th>{{ t('libresign', 'Message') }}</th>
+					<th>{{ t('libresign', 'Resource') }}</th>
 					<th>{{ t('libresign', 'Tip') }}</th>
 				</tr>
 				<tr v-for="(row, index) in items" :key="index">
@@ -41,6 +41,9 @@ export default {
 	}),
 	mounted() {
 		this.checkSetup()
+		this.$root.$on('configCheck', data => {
+			this.checkSetup()
+		})
 	},
 	methods: {
 		async checkSetup() {
@@ -48,6 +51,7 @@ export default {
 				generateUrl('/apps/libresign/api/0.1/admin/configure-check')
 			)
 			this.items = response.data
+			this.$root.$emit('afterConfigCheck', response.data);
 		},
 	},
 }
