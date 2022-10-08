@@ -209,8 +209,8 @@
     "Generating certificate." : "Ustvarjanje potrdila",
     "Generated certificate!" : "Korensko potrdilo je ustvarjeno!",
     "Could not generate certificate." : "Potrdila ni mogoče ustvariti.",
-    "Webhook" : "Spletni povezovalnik",
     "Select authorized groups." : "Izbor overjenih skupin.",
+    "Dependencies" : "Odvisnosti",
     "Legal information" : "Pravne podrobnosti",
     "This information will appear on the validation page" : "Ti podatki bodo prikazani na strani overitve",
     "Legal Information" : "Pravne podrobnosti",
@@ -242,6 +242,7 @@
     "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun.",
     "User created!" : "Uporabnik je ustvarjen!",
     "Password created!" : "Geslo je uspešno ustvarjeno!",
-    "Open in LibreSign" : "Odpri v LibreSign"
+    "Open in LibreSign" : "Odpri v LibreSign",
+    "Webhook" : "Spletni povezovalnik"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

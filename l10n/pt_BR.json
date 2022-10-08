@@ -113,7 +113,6 @@
     "Invalid user" : "Usuário inválido",
     "Invalid PDF" : "PDF inválido",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ App livre para assinatura digital de documentos no Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Este é um aplicativo de assinatura digital PDF gratuito para Nextcloud**\n\n* ✍️ Assine documentos PDF usando assinatura digital\n* ⚠️ A configuração deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Consulte [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para obter detalhes.",
     "Back to sign" : "Voltar para assinar",
     "Request" : "Solicitação",
     "Files" : "Arquivos ",
@@ -230,8 +229,8 @@
     "Generating certificate." : "Gerando certificado.",
     "Generated certificate!" : "Certificado gerado!",
     "Could not generate certificate." : "Impossível gerar certificado.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Selecione os grupos autorizados.",
+    "Dependencies" : "Dependências",
     "Legal information" : "Informação legal",
     "This information will appear on the validation page" : "Esta informação aparecerá na página de validação ",
     "Legal Information" : "Informação legal",
@@ -272,6 +271,8 @@
     "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
     "User created!" : "Usuário criado!",
     "Password created!" : "Senha criada! ",
-    "Open in LibreSign" : "Abra no LibreSign "
+    "Open in LibreSign" : "Abra no LibreSign ",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Este é um aplicativo de assinatura digital PDF gratuito para Nextcloud**\n\n* ✍️ Assine documentos PDF usando assinatura digital\n* ⚠️ A configuração deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Consulte [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para obter detalhes.",
+    "Webhook" : "Webhook"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

@@ -168,6 +168,7 @@ OC.L10N.register(
     "Generated certificate!" : "Varmenne luotu!",
     "Could not generate certificate." : "Varmennetta ei voitu luoda.",
     "Select authorized groups." : "Valitse valtuutetut ryhmät.",
+    "Dependencies" : "Riippuvuudet",
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Legal Information" : "Lainopilliset tiedot",
     "Validation URL" : "Validoinnin URL",
