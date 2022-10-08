@@ -28,79 +28,35 @@
 		<AdminFormLibresign />
 		<UrlValidation />
 		<AllowedGroups />
-		<div class="settings-section">
-			<h2>{{ t('libresign', 'Legal information') }}</h2>
-			<div class="legal-information-content">
-				<span>{{ t('libresign', 'This information will appear on the validation page') }}</span>
-				<Textarea v-model="legalInformation"
-					:placeholder="t('libresign', 'Legal Information')"
-					@input="saveLegalInformation" />
-			</div>
-		</div>
+		<LegalInformation />
 	</SettingsSection>
 </template>
 
 <script>
-import AdminFormLibresign from './AdminFormLibresign.vue'
+import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
-import AllowedGroups from './AllowedGroups.vue'
+import AdminFormLibresign from './AdminFormLibresign.vue'
 import UrlValidation from './UrlValidation.vue'
-import Textarea from '../../Components/Textarea/Textarea.vue'
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
-import { generateOcsUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
+import AllowedGroups from './AllowedGroups.vue'
+import LegalInformation from './LegalInformation.vue'
 
 export default {
 	name: 'Settings',
 	components: {
-		AdminFormLibresign,
+		SettingsSection,
 		ConfigureCheck,
 		DownloadBinaries,
-		SettingsSection,
+		AdminFormLibresign,
 		UrlValidation,
 		AllowedGroups,
-		Textarea,
+		LegalInformation,
 	},
 	data() {
 		return {
 			title: t('libresign', 'LibreSign'),
-			legalInformation: '',
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		async getData() {
-			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/legal_information', {})
-			this.legalInformation = response.data.ocs.data.data
-		},
-		saveLegalInformation() {
-			OCP.AppConfig.setValue('libresign', 'legal_information', this.legalInformation)
-		},
-	},
+	}
 }
 
 </script>
-<style scoped>
-#libresign-admin-settings {
-	width: 100vw;
-	padding: 20px;
-	padding-top: 70px;
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-	align-items: center;
-}
-
-.legal-information-content{
-	display: flex;
-	flex-direction: column;
-}
-
-textarea {
-	width: 50%;
-	height: 150px;
-}
-</style>
