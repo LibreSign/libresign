@@ -45,6 +45,7 @@ OC.L10N.register(
     "Password reset" : "Lösenordsåterställning",
     "New password" : "Nytt lösenord",
     "Repeat password" : "Repetera lösenord",
+    "Dependencies" : "Beroenden",
     "Remove" : "Ta bort",
     "Previous" : "Föregående",
     "Loading" : "Läser in",

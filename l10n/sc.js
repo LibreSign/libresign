@@ -144,8 +144,8 @@ OC.L10N.register(
     "Generating certificate." : "Generatzione tzertificadu.",
     "Generated certificate!" : "Tzertificadu generadu!",
     "Could not generate certificate." : "Generatzione tzertificadu faddida.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Seletziona grupos autorizados.",
+    "Dependencies" : "Dipendèntzias",
     "Legal information" : "Informatziones legales",
     "This information will appear on the validation page" : "Custas informatziones s'ant a mustrare in sa pàgina de cumbàlida",
     "Legal Information" : "Informatziones legales",
@@ -167,6 +167,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
-    "Open in LibreSign" : "Aberi in LibreSign"
+    "Open in LibreSign" : "Aberi in LibreSign",
+    "Webhook" : "Webhook"
 },
 "nplurals=2; plural=(n != 1);");

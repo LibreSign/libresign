@@ -42,6 +42,7 @@ OC.L10N.register(
     "Password reset" : "Ресетовање лозинке",
     "New password" : "Нова лозинка",
     "Repeat password" : "Поновите лозинку",
+    "Dependencies" : "Зависности",
     "Remove" : "Уклони",
     "Previous" : "Претходно",
     "Loading" : "Учитавам",

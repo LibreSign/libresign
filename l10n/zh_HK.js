@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "無效的用戶",
     "Invalid PDF" : "無效的PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre - Nextcloud 的數位簽署應用程式 ",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是適用於 Nextcloud 的 Libre 數位PDF簽名應用程式**\n\n*✍️使用數位簽名來簽署PDF文件\n*⚠️此應用程式的安裝需要存取終端，甚至需要安裝其他軟件。有關細節，請參見［設置說明］（https://github.com/LibreSign/libresign/blob/main/README.md#setup）。",
     "Back to sign" : "回到簽署頁面",
     "Request" : "請求",
     "Files" : "檔案",
@@ -232,8 +231,8 @@ OC.L10N.register(
     "Generating certificate." : "正在生成證書。",
     "Generated certificate!" : "生成證書！",
     "Could not generate certificate." : "無法生成根證書。",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "選擇已授權的群組。",
+    "Dependencies" : "相關性",
     "Legal information" : "法律資訊",
     "This information will appear on the validation page" : "此資訊將顯示在驗證頁面上",
     "Legal Information" : "法律資訊",
@@ -274,6 +273,8 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
     "User created!" : "用戶創建了！",
     "Password created!" : "密碼創建了！",
-    "Open in LibreSign" : "在 LibreSign 中打開"
+    "Open in LibreSign" : "在 LibreSign 中打開",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是適用於 Nextcloud 的 Libre 數位PDF簽名應用程式**\n\n*✍️使用數位簽名來簽署PDF文件\n*⚠️此應用程式的安裝需要存取終端，甚至需要安裝其他軟件。有關細節，請參見［設置說明］（https://github.com/LibreSign/libresign/blob/main/README.md#setup）。",
+    "Webhook" : "Webhook"
 },
 "nplurals=1; plural=0;");

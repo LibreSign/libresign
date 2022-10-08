@@ -22,7 +22,6 @@
     "Generating certificate." : "Certificate ဖန်တီးနေသည်။",
     "Generated certificate!" : "Certificate ဖန်တီးပြီး!",
     "Could not generate certificate." : "Certificate ဖန်တီးမှု မပြုလုပ်နိုင်ပါ။",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "ခွင့်ပြုချက်ရှိ အဖွဲ့များရွေးပါ။",
     "View" : "ကြည့်ရန်",
     "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
@@ -32,6 +31,7 @@
     "No date" : "ရက်စွဲမပါ",
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
     "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
-    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ"
+    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
+    "Webhook" : "Webhook"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Erabiltzaile baliogabea",
     "Invalid PDF" : "Baliogabeko PDFa",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Sinadura digitaleko aplikazio librea Nextcloud-erako",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n*✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n*⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikus [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Back to sign" : "Bueltatu sinatzera",
     "Request" : "Eskatu",
     "Files" : "Fitxategiak",
@@ -232,8 +231,8 @@ OC.L10N.register(
     "Generating certificate." : "Ziurtagiria sortzen.",
     "Generated certificate!" : "Sortutako ziurtagiria!",
     "Could not generate certificate." : "Ezin izan da ziurtagiria sortu.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Hautatu baimendutako taldeak.",
+    "Dependencies" : "Dependentziak",
     "Legal information" : "Informazio legala",
     "This information will appear on the validation page" : "Informazio hau balidazio orrian agertuko da",
     "Legal Information" : "Informazio legala",
@@ -274,6 +273,8 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
     "User created!" : "Erabiltzailea sortuta!",
     "Password created!" : "Pasahitza sortu da!",
-    "Open in LibreSign" : "Ireki LibreSign-en"
+    "Open in LibreSign" : "Ireki LibreSign-en",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n*✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n*⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikus [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Webhook" : "Webhook"
 },
 "nplurals=2; plural=(n != 1);");

@@ -204,8 +204,8 @@ OC.L10N.register(
     "Generating certificate." : "Generiranje vjerodajnice.",
     "Generated certificate!" : "Vjerodajnica generirana!",
     "Could not generate certificate." : "Generiranje vjerodajnice nije uspjelo.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Odaberite ovlaštenu grupu.",
+    "Dependencies" : "Ovisnosti",
     "Legal information" : "Pravne informacije",
     "This information will appear on the validation page" : "Ove će se informacije prikazati na stranici za potvrdu valjanosti",
     "Legal Information" : "Pravne informacije",
@@ -228,6 +228,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku.",
     "User created!" : "Korisnik je stvoren!",
     "Password created!" : "Zaporka je stvorena!",
-    "Open in LibreSign" : "Otvori u sustavu LibreSign"
+    "Open in LibreSign" : "Otvori u sustavu LibreSign",
+    "Webhook" : "Webhook"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");
