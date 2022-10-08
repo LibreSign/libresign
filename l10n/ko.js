@@ -216,8 +216,8 @@ OC.L10N.register(
     "Generating certificate." : "인증서를 생성하는 중입니다.",
     "Generated certificate!" : "인증서를 생성했습니다!",
     "Could not generate certificate." : "인증서를 생성할 수 없습니다.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
+    "Dependencies" : "의존성",
     "Legal information" : "법률 정보",
     "This information will appear on the validation page" : "이 정보는 유효성 확인 페이지에 나타납니다.",
     "Legal Information" : "법률 정보",
@@ -256,6 +256,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User created!" : "사용자가 생성되었습니다!",
     "Password created!" : "암호가 생성되었습니다!",
-    "Open in LibreSign" : "LibreSign으로 열기"
+    "Open in LibreSign" : "LibreSign으로 열기",
+    "Webhook" : "Webhook"
 },
 "nplurals=1; plural=0;");

@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "Ongeldige gebruiker",
     "Invalid PDF" : "Ongeldige PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre digitale handtekeningen app voor Nextcloud",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.",
     "Back to sign" : "Terug naar signeren",
     "Request" : "Aanvraag",
     "Files" : "Bestanden",
@@ -227,8 +226,8 @@ OC.L10N.register(
     "Generating certificate." : "Genereren certificaat.",
     "Generated certificate!" : "Gegenereerd certificaat!",
     "Could not generate certificate." : "Kon het certificaat niet genereren.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Selecteer geautoriseerde groepen.",
+    "Dependencies" : "Afhankelijkheden",
     "Legal information" : "Juridische informatie",
     "This information will appear on the validation page" : "Deze informatie zal op de validatiepagina zichtbaar zijn",
     "Legal Information" : "Juridische Informatie",
@@ -268,6 +267,8 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
-    "Open in LibreSign" : "Openen in LibreSign"
+    "Open in LibreSign" : "Openen in LibreSign",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dit is een libre digitale PDF-handtekening-app voor Nextcloud **\n\n* ✍️ Onderteken PDF-documenten met een digitale handtekening\n* ⚠️ Voor het instellen van deze app is toegang tot de terminal vereist en moet je zelfs je handen vuil maken met de installatie van aanvullende software. Zie [installatie-instructies] (https://github.com/LibreSign/libresign/blob/main/README.md#setup) voor details.",
+    "Webhook" : "Webhook"
 },
 "nplurals=2; plural=(n != 1);");

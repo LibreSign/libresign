@@ -37,6 +37,7 @@ OC.L10N.register(
     "Pending" : "Ootel",
     "Password reset" : "Parooli taastamine ",
     "New password" : "Uus parool",
+    "Dependencies" : "Sõltuvused",
     "Remove" : "Eemalda",
     "Previous" : "Eelmine",
     "Loading" : "Laadimine",

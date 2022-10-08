@@ -115,7 +115,6 @@ OC.L10N.register(
     "Invalid user" : "無效的使用者",
     "Invalid PDF" : "無效的 PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Nextcloud 的自由數位簽署應用程式",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是 Nextcloud 的自由數位 PDF 簽署應用程式**\n\n* ✍️ 使用數位簽章簽署 PDF 文件\n* ⚠️ 安裝此應用程式需要存取終端機，安裝額外的軟體。請見[安裝說明](https://github.com/LibreSign/libresign/blob/main/README.md#setup)以取得詳細資訊。",
     "Back to sign" : "回到登入畫面",
     "Request" : "請求",
     "Files" : "檔案",
@@ -232,8 +231,8 @@ OC.L10N.register(
     "Generating certificate." : "正在產生憑證。",
     "Generated certificate!" : "已產生憑證！",
     "Could not generate certificate." : "無法產生憑證。",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "選取已授權的群組。",
+    "Dependencies" : "依賴關係",
     "Legal information" : "法律資訊",
     "This information will appear on the validation page" : "此資訊將會顯示在驗證頁面上",
     "Legal Information" : "法律資訊",
@@ -274,6 +273,8 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。",
     "User created!" : "使用者已建立！",
     "Password created!" : "已建立密碼！",
-    "Open in LibreSign" : "在 LibreSign 中開啟"
+    "Open in LibreSign" : "在 LibreSign 中開啟",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是 Nextcloud 的自由數位 PDF 簽署應用程式**\n\n* ✍️ 使用數位簽章簽署 PDF 文件\n* ⚠️ 安裝此應用程式需要存取終端機，安裝額外的軟體。請見[安裝說明](https://github.com/LibreSign/libresign/blob/main/README.md#setup)以取得詳細資訊。",
+    "Webhook" : "Webhook"
 },
 "nplurals=1; plural=0;");

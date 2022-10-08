@@ -41,6 +41,7 @@ OC.L10N.register(
     "Password reset" : "პაროლის აღდგენა",
     "New password" : "ახალი პაროლი",
     "Repeat password" : "პაროლის გამეორება",
+    "Dependencies" : "დამოკიდებულებები",
     "Remove" : "წაშლა",
     "Previous" : "წინა",
     "Loading" : "იტვირთება",

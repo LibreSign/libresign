@@ -231,8 +231,8 @@ OC.L10N.register(
     "Generating certificate." : "Vygenerovať certifikát.",
     "Generated certificate!" : "Vygenerovaný certifikát!",
     "Could not generate certificate." : "Nepodarilo sa vygenerovať certifikát.",
-    "Webhook" : "Webhook",
     "Select authorized groups." : "Vyberte povolené skupiny.",
+    "Dependencies" : "Závislosti",
     "Legal information" : "Právne informácie",
     "This information will appear on the validation page" : "Tieto informácie sa zobrazia na overovacej stránke",
     "Legal Information" : "Právne informácie",
@@ -273,6 +273,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
-    "Open in LibreSign" : "Otvoriť v LibreSign"
+    "Open in LibreSign" : "Otvoriť v LibreSign",
+    "Webhook" : "Webhook"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
