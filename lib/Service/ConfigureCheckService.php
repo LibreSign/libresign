@@ -231,7 +231,7 @@ class ConfigureCheckService {
 		if (!is_dir($configPath)) {
 			$return[] = (new ConfigureCheckHelper())
 				->setErrorMessage('CFSSL not configured.')
-				->setResource('cfssl')
+				->setResource('cfssl-configure')
 				->setTip('Run occ libresign:configure --cfssl');
 		}
 		return $return;
