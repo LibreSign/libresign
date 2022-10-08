@@ -7,6 +7,8 @@ namespace OCA\Libresign\Command\Configure;
 use OC\Core\Command\Base;
 use OCA\Libresign\Service\ConfigureCheckService;
 use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Helper\TableCell;
+use Symfony\Component\Console\Helper\TableCellStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -52,31 +54,37 @@ class Check extends Base {
 			$result = $this->configureCheckService->checkAll();
 		} else {
 			if ($preview) {
-				$result = array_merge_recursive($result, $this->configureCheckService->canPreview());
+				$result = array_merge($result, $this->configureCheckService->canPreview());
 			}
 			if ($sign) {
-				$result = array_merge_recursive($result, $this->configureCheckService->checkSign());
+				$result = array_merge($result, $this->configureCheckService->checkSign());
 			}
 			if ($cfssl) {
-				$result = array_merge_recursive($result, $this->configureCheckService->checkCfssl());
+				$result = array_merge($result, $this->configureCheckService->checkCfssl());
 			}
 		}
 
-		$table = new Table($output);
 		if (count($result)) {
-			if (array_key_exists('errors', $result)) {
-				foreach ($result['errors'] as $error) {
-					$table->addRow(['🔴', $error]);
-				}
-			}
-			if (array_key_exists('success', $result)) {
-				foreach ($result['success'] as $success) {
-					$table->addRow(['🟢', $success]);
-				}
+			$table = new Table($output);
+			foreach ($result as $row) {
+				$table->addRow([
+					new TableCell($row->getStatus(), ['style' => new TableCellStyle([
+						'bg' => $row->getStatus() === 'success' ? 'green' : 'red',
+						'align' => 'center',
+					])]),
+					$row->getResource(),
+					$row->getMessage(),
+					$row->getTip(),
+				]);
 			}
 			$table
-				->setHeaders(['Status', 'Description'])
-				->setStyle('compact')
+				->setHeaders([
+					'Status',
+					'Resource',
+					'Message',
+					'Tip',
+				])
+				->setStyle('symfony-style-guide')
 				->render();
 		}
 		return 0;
