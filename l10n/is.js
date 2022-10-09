@@ -44,6 +44,8 @@ OC.L10N.register(
     "Password reset" : "Endurstilling lykilorðs",
     "New password" : "Nýtt lykilorð",
     "Repeat password" : "Endurtaktu lykilorð",
+    "Message" : "Skilaboð",
+    "Resource" : "Tilfang",
     "Dependencies" : "Kerfiskröfur",
     "Remove" : "Fjarlægja",
     "Previous" : "Fyrra",

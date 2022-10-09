@@ -38,6 +38,7 @@ OC.L10N.register(
     "Password reset" : "Reaniciu de contrseña",
     "New password" : "Contraseña nueva",
     "Repeat password" : "Repitir contraseña",
+    "Dependencies" : "Dependencies",
     "Remove" : "Desaniciar",
     "Previous" : "Anterior",
     "Loading" : "Cargando",
