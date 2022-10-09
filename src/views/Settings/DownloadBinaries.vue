@@ -23,7 +23,7 @@ export default {
 	},
 	data: () => ({
 		title: t('libresign', 'Dependencies'),
-		description: t('libresign', 'Binaries required to work. Could be near by 340MB to download, wait a moment.'),
+		description: t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.'),
 		labelDownloadAllBinaries: t('libresign', 'Download binaries'),
 		formDisabled: true,
 		checklist: {
