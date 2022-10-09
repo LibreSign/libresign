@@ -30,8 +30,6 @@ import Validation from './views/Validation.vue'
 import router from './router/index.js'
 import store from './store/index.js'
 
-import './directives/VTooltip.js'
-
 import '@nextcloud/dialogs/styles/toast.scss'
 
 // CSP config for webpack dynamic chunk loading
