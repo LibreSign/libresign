@@ -33,6 +33,7 @@ OC.L10N.register(
     "Choose from Files" : "Файлаас сонгох",
     "Password reset" : "Нууц үг солих",
     "New password" : "шинэ нууц үг",
+    "Resource" : "Нөөц",
     "Remove" : "Устгах",
     "Previous" : "өмнөх",
     "Loading" : "Loading",

@@ -24,6 +24,7 @@ OC.L10N.register(
     "No" : "No",
     "Pending" : "Ausstoend",
     "New password" : "Neit Passwuert",
+    "Resource" : "Ressource",
     "Remove" : "Läschen",
     "Previous" : "Zeréck",
     "Loading" : "Loading",

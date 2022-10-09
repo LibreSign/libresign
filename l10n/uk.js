@@ -45,6 +45,8 @@ OC.L10N.register(
     "Password reset" : "Перевстановлення пароля",
     "New password" : "Новий пароль",
     "Repeat password" : "Повторіть пароль",
+    "Message" : "Повідомлення",
+    "Resource" : "Ресурс",
     "Dependencies" : "Залежності",
     "Remove" : "Вилучити",
     "Previous" : "Назад",

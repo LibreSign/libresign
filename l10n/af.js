@@ -37,6 +37,7 @@ OC.L10N.register(
     "Pending" : "Hangend",
     "Password reset" : "Wagwoord herstel",
     "New password" : "Nuwe wagwoord",
+    "Dependencies" : "Afhanklikhede",
     "Remove" : "Verwyder",
     "Previous" : "Vorige",
     "Loading" : "Laai tans..",

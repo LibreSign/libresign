@@ -56,6 +56,8 @@ OC.L10N.register(
     "Password reset" : "パスワードのリセット",
     "New password" : "新たなパスワード",
     "Repeat password" : "パスワードをもう一度入力",
+    "Message" : "メッセージ",
+    "Resource" : "リソース",
     "Dependencies" : "依存関係",
     "Remove" : "削除",
     "Previous" : "前へ",

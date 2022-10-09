@@ -90,6 +90,7 @@ OC.L10N.register(
     "Add users" : "Apondre utilizaires",
     "Password reset" : "Reïnicializacion de senhal",
     "New password" : "Senhal novèl",
+    "Resource" : "Ressorsa",
     "Name (CN)" : "Nom (CN)",
     "Country (C)" : "País (C)",
     "Organization (O)" : "Organizacion (O)",

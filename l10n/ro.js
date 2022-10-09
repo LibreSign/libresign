@@ -39,6 +39,7 @@ OC.L10N.register(
     "Pending" : "În așteptare",
     "Password reset" : "Resetare parolă",
     "New password" : "Noua parolă",
+    "Resource" : "Resursă",
     "Remove" : "Elimină",
     "Previous" : "Precedentul",
     "Loading" : "Loading",
