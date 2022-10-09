@@ -43,6 +43,8 @@ OC.L10N.register(
     "Password reset" : "Tilbakestilling av passord",
     "New password" : "Nytt passord",
     "Repeat password" : "Gjenta passord",
+    "Message" : "Melding",
+    "Resource" : "Ressurs",
     "Dependencies" : "Avhengigheter",
     "Remove" : "Fjern",
     "Previous" : "Forrige",

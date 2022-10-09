@@ -24,6 +24,7 @@ OC.L10N.register(
     "Yes" : "ඔව්",
     "No" : "නැහැ",
     "New password" : "නව මුරපදය",
+    "Message" : "පණිවිඩය",
     "Remove" : "ඉවත් කරන්න",
     "Previous" : "පෙර",
     "Loading" : "පූරණය වෙමින්"

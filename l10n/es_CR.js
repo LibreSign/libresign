@@ -40,6 +40,8 @@ OC.L10N.register(
     "Password reset" : "Restablecer contraseña",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
+    "Message" : "Mensaje",
+    "Resource" : "Recurso",
     "Dependencies" : "Dependencias",
     "Remove" : "Eliminar",
     "Previous" : "Previo",

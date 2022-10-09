@@ -67,6 +67,8 @@ OC.L10N.register(
     "Password reset" : "Slaptažodžio atstatymas",
     "New password" : "Naujas slaptažodis",
     "Repeat password" : "Pakartoti slaptažodį",
+    "Message" : "Žinutė",
+    "Resource" : "Išteklius",
     "Dependencies" : "Priklausomybės",
     "Remove" : "Šalinti",
     "Previous" : "Ankstesnis",
