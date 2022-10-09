@@ -26,7 +26,7 @@
 		<div id="container">
 			<div class="bg">
 				<form>
-					<Avatar v-show="controllerView !==3"
+					<NcAvatar v-show="controllerView !==3"
 						id="avatar"
 						:is-guest="true"
 						:disable-menu="true"
@@ -96,9 +96,9 @@
 							<h2 v-show="!viewDraw">
 								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
 							</h2>
-							<Modal v-show="viewDraw" @close="createSuccess">
+							<NcModal v-show="viewDraw" @close="createSuccess">
 								<Draw @close="createSuccess" @save="saveSignatureAndInitials" />
-							</Modal>
+							</NcModal>
 						</div>
 
 						<div v-show="!viewDraw" class="actions-buttons">
@@ -128,8 +128,8 @@ import { mapActions, mapGetters } from 'vuex'
 import { required, email, minLength } from 'vuelidate/lib/validators'
 
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import Draw from '../Components/Draw/index.js'
 import { getInitialState } from '../services/InitialStateService.js'
 
@@ -137,9 +137,9 @@ export default {
 	name: 'CreateUser',
 	components: {
 		NcContent,
-		Avatar,
+		NcAvatar,
 		Draw,
-		Modal,
+		NcModal,
 	},
 
 	props: {

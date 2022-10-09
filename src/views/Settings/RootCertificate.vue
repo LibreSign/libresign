@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<SettingsSection :title="title" :description="description"
+	<NcSettingsSection :title="title" :description="description"
 		v-if=cfsslOk>
 		<div id="formLibresign" class="form-libresign">
 			<div class="form-group">
@@ -79,11 +79,11 @@
 				:disabled="formDisabled || !savePossible"
 				@click="generateCertificate">
 		</div>
-	</SettingsSection>
+	</NcSettingsSection>
 </template>
 
 <script>
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -93,7 +93,7 @@ import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'AdminFormLibresign',
 	components: {
-		SettingsSection,
+		NcSettingsSection,
 	},
 	data() {
 		return {

@@ -21,13 +21,13 @@
 					:file="file"
 					@sidebar="setSidebar" />
 			</ul>
-			<EmptyContent v-else>
+			<NcEmptyContent v-else>
 				<template #desc>
 					<h1 class="empty-h1">
 						{{ t('libresign', 'There are no documents') }}
 					</h1>
 				</template>
-			</EmptyContent>
+			</NcEmptyContent>
 		</div>
 		<Sidebar v-if="statusSidebar"
 			ref="sidebar"
@@ -42,14 +42,14 @@
 import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../../Components/File/index.js'
 import Sidebar from '../../Components/File/Sidebar.vue'
-import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
 		Sidebar,
-		EmptyContent,
+		NcEmptyContent,
 	},
 	data() {
 		return {

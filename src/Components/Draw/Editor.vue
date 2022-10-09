@@ -30,7 +30,7 @@
 				{{ t('libresign', 'Cancel') }}
 			</button>
 		</div>
-		<Modal v-if="modal" @close="handleModal(false)">
+		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -43,19 +43,19 @@
 					</button>
 				</div>
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'Editor',
 
 	components: {
-		Modal,
+		NcModal,
 	},
 
 	data: () => ({

@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<AppContent>
+	<NcAppContent>
 		<div v-if="error" class="emptycontent">
 			<div class="icon icon-error" />
 			<h2>{{ error }}</h2>
@@ -31,12 +31,12 @@
 			<h2>{{ t('libresign', 'Create new subscription.') }}</h2>
 			<FormLibresign />
 		</div>
-	</AppContent>
+	</NcAppContent>
 </template>
 
 <script>
 import FormLibresign from './FormLibresign.vue'
-import AppContent from '@nextcloud/vue/dist/Components/AppContent'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -48,7 +48,7 @@ export default {
 	name: 'CreateSubscription',
 	components: {
 		FormLibresign,
-		AppContent,
+		NcAppContent,
 	},
 	data() {
 		return {

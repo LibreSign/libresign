@@ -1,5 +1,5 @@
 <template>
-	<AppSidebar v-if="file"
+	<NcAppSidebar v-if="file"
 		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
 		:title="titleName"
@@ -14,28 +14,28 @@
 				{{ t('libresign', 'Validate File') }}
 			</button>
 		</div>
-		<AppSidebarTab id="signantures"
+		<NcAppSidebarTab id="signantures"
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">
 			<SignaturesTab :items="file.signers" @update="update" @change-sign-tab="changeTab" />
-		</AppSidebarTab>
-	</AppSidebar>
+		</NcAppSidebarTab>
+	</NcAppSidebar>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
-import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
 import SignaturesTab from './SignaturesTab.vue'
 import format from 'date-fns/format'
 
 export default {
 	name: 'Sidebar',
 	components: {
-		AppSidebar,
-		AppSidebarTab,
+		NcAppSidebar,
+		NcAppSidebarTab,
 		SignaturesTab,
 	},
 	props: {

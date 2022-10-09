@@ -7,7 +7,7 @@ import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import { SignatureImageDimensions } from '../../Components/Draw/index.js'
 import Chip from '../../Components/Chip.vue'
 
@@ -43,7 +43,7 @@ export default {
 		DragResize,
 		Sidebar,
 		PageNavigation,
-		ActionButton,
+		NcActionButton,
 		Chip,
 	},
 	data() {
@@ -283,12 +283,12 @@ export default {
 				:signers="signers"
 				@select:signer="onSelectSigner">
 				<template #actions="{signer}">
-					<ActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
+					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
 						{{ t('libresign', 'Send reminder') }}
-					</ActionButton>
-					<ActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
+					</NcActionButton>
+					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
 						{{ t('libresign', 'Remove') }}
-					</ActionButton>
+					</NcActionButton>
 				</template>
 
 				<button v-if="isDraft" class="primary publish-btn" @click="publish">

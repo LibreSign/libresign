@@ -35,13 +35,13 @@
 			:value="t('libresign', 'Generate Subscription.')"
 			:disabled="updating || !savePossible"
 			@click="saveSignature">
-		<Modal v-if="modal"
+		<NcModal v-if="modal"
 			dark=""
 			@close="closeModal">
 			<div class="modal_content">
 				{{ t('libresign','Subscription generated and available at {path}!', { path: signature.path }) }}
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 
@@ -50,12 +50,12 @@ import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'FormLibresign',
 	components: {
-		Modal,
+		NcModal,
 	},
 	data() {
 		return {
