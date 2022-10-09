@@ -18,6 +18,7 @@ OC.L10N.register(
     "No" : "Uhu",
     "Pending" : "Yegguni",
     "New password" : "Awal uffir amaynut",
+    "Message" : "Izen",
     "Remove" : "Kkes"
 },
 "nplurals=2; plural=(n != 1);");

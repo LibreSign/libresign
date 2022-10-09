@@ -42,6 +42,7 @@ OC.L10N.register(
     "Password reset" : "Nulstil adgangskode",
     "New password" : "Ny adgangskode",
     "Repeat password" : "Gentag adgangskode",
+    "Dependencies" : "Afhængigheder",
     "Remove" : "Fjern",
     "Previous" : "Tidligere",
     "Loading" : "Indlæser",

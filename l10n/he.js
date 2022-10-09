@@ -42,6 +42,8 @@ OC.L10N.register(
     "Password reset" : "איפוס ססמה",
     "New password" : "ססמה חדשה",
     "Repeat password" : "חזרה על הססמה",
+    "Message" : "הודעה",
+    "Resource" : "משאב",
     "Dependencies" : "תלויות",
     "Remove" : "הסרה",
     "Previous" : "הקודם",

@@ -42,6 +42,8 @@ OC.L10N.register(
     "Password reset" : "تنظیم مجدد رمز عبور",
     "New password" : "گذرواژه جدید",
     "Repeat password" : "تکرار رمز عبور",
+    "Message" : "پیام",
+    "Resource" : "منابع",
     "Dependencies" : "وابستگی ها",
     "Remove" : "حذف",
     "Previous" : "قبلی",
