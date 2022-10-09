@@ -40,6 +40,7 @@ OC.L10N.register(
     "Add users" : "Thêm người dùng",
     "Password reset" : "Đặt lại mật khẩu",
     "New password" : "Mật khẩu mới",
+    "Resource" : "Tài nguyên",
     "Dependencies" : "Các phụ thuộc",
     "Remove" : "Xoá",
     "Previous" : "Trước",

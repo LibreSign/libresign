@@ -19,6 +19,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "New password" : "Նոր գաղտնաբառ",
+    "Resource" : "Ռեսուրս",
     "Previous" : "Նախորդ",
     "Loading" : "Loading",
     "No date" : "No date"
