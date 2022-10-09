@@ -1,5 +1,5 @@
 <template>
-	<Content app-name="libresign">
+	<NcContent app-name="libresign">
 		<form @submit="e => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password Creation') }}</h1>
@@ -16,13 +16,13 @@
 				</button>
 			</div>
 		</form>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import Input from '../Components/Input/Input.vue'
@@ -31,7 +31,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 export default {
 	name: 'CreatePassword',
 	components: {
-		Content,
+		NcContent,
 		Input,
 	},
 	data() {

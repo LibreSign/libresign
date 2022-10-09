@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<Content app-name="libresign">
+	<NcContent app-name="libresign">
 		<AppNavigation>
 			<template #list>
 				<AppNavigationItem v-if="back_to_signature"
@@ -67,11 +67,11 @@
 				</template>
 			</EmptyContent>
 		</AppContent>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationSettings'
@@ -87,7 +87,7 @@ const libresignState = getInitialState()
 export default {
 	name: 'App',
 	components: {
-		Content,
+		NcContent,
 		AppNavigation,
 		AppNavigationItem,
 		AppNavigationSettings,
