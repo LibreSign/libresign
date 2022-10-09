@@ -1,5 +1,5 @@
 <template>
-	<Modal @close="closeModal">
+	<NcModal @close="closeModal">
 		<div class="container">
 			<h1>{{ t('libresign', 'Authentication required') }}</h1>
 			<h2>{{ t('libresign', 'This action requires you to confirm your password') }}</h2>
@@ -15,18 +15,18 @@
 				</button>
 			</form>
 		</div>
-	</Modal>
+	</NcModal>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import Input from '../Input/Input.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'Confirm',
 	components: {
-		Modal,
+		NcModal,
 		Input,
 	},
 	data() {

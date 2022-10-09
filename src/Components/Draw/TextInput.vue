@@ -20,7 +20,7 @@
 				{{ t('libresign', 'Cancel') }}
 			</button>
 		</div>
-		<Modal v-if="modal" @close="handleModal(false)">
+		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -33,12 +33,12 @@
 					</button>
 				</div>
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import '@fontsource/dancing-script'
 import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
@@ -46,7 +46,7 @@ import { isEmpty } from 'lodash-es'
 export default {
 	name: 'TextInput',
 	components: {
-		Modal,
+		NcModal,
 	},
 
 	data: () => ({

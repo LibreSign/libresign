@@ -1,5 +1,5 @@
 <template>
-	<Modal size="normal" @close="onClose">
+	<NcModal size="normal" @close="onClose">
 		<ModalContent v-if="isInput" class="modal-view-input">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Subscription password.') }}</h2>
@@ -17,11 +17,11 @@
 		<CreatePassword v-if="isCreate"
 			@change-pfx="onCreate"
 			@close="onClose" />
-	</Modal>
+	</NcModal>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
@@ -36,7 +36,7 @@ export default {
 	name: 'ModalPasswordManager',
 	VIEWS,
 	components: {
-		Modal,
+		NcModal,
 		ModalContent,
 		ResetPassword,
 		CreatePassword,

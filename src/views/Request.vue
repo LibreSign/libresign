@@ -19,7 +19,7 @@
 				</button>
 			</div>
 		</div>
-		<AppSidebar v-if="getSidebarStatus"
+		<NcAppSidebar v-if="getSidebarStatus"
 			ref="sidebar"
 			:class="{'app-sidebar--without-background lb-ls-root': 'lb-ls-root'}"
 			:title="file.name"
@@ -29,26 +29,26 @@
 			name="sidebar"
 			icon="icon-rename"
 			@close="setSidebarStatus(false)">
-			<EmptyContent v-show="canRequest" class="empty-content">
+			<NcEmptyContent v-show="canRequest" class="empty-content">
 				<template #desc>
 					<p>
 						{{ t('libresign', 'Signatures for this document have already been requested') }}
 					</p>
 				</template>
-			</EmptyContent>
-			<AppSidebarTab v-show="!canRequest"
+			</NcEmptyContent>
+			<NcAppSidebarTab v-show="!canRequest"
 				id="request"
 				:name="t('libresign', 'Add users')"
 				icon="icon-rename">
 				<Users ref="request" :fileinfo="file" @request:signatures="send" />
-			</AppSidebarTab>
-		</AppSidebar>
+			</NcAppSidebarTab>
+		</NcAppSidebar>
 	</div>
 </template>
 <script>
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
-import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
-import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'
@@ -69,10 +69,10 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
-		AppSidebar,
-		AppSidebarTab,
+		NcAppSidebar,
+		NcAppSidebarTab,
+		NcEmptyContent,
 		Users,
-		EmptyContent,
 		File,
 	},
 	data() {

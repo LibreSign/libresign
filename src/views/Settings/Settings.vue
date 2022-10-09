@@ -22,18 +22,18 @@
 -->
 
 <template>
-	<SettingsSection :title="title">
+	<NcSettingsSection :title="title">
 		<ConfigureCheck />
 		<DownloadBinaries />
 		<RootCertificate />
 		<UrlValidation />
 		<AllowedGroups />
 		<LegalInformation />
-	</SettingsSection>
+	</NcSettingsSection>
 </template>
 
 <script>
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import ConfigureCheck from './ConfigureCheck.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import RootCertificate from './RootCertificate.vue'
@@ -44,7 +44,7 @@ import LegalInformation from './LegalInformation.vue'
 export default {
 	name: 'Settings',
 	components: {
-		SettingsSection,
+		NcSettingsSection,
 		ConfigureCheck,
 		DownloadBinaries,
 		RootCertificate,

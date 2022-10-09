@@ -20,13 +20,13 @@
 								{{ t('librsign', 'Reset password') }}
 							</button>
 						</div>
-						<Modal v-if="modal"
+						<NcModal v-if="modal"
 							class="password-modal"
 							size="large"
 							@close="handleModal(false)">
 							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
 							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
-						</Modal>
+						</NcModal>
 					</div>
 				</div>
 			</div>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapGetters } from 'vuex'
@@ -55,7 +55,7 @@ export default {
 
 	components: {
 		NcContent,
-		Modal,
+		NcModal,
 		CreatePassword,
 		ResetPassword,
 		Signatures,

@@ -1,13 +1,13 @@
 <script>
 import Draw from '../../../Components/Draw/index.js'
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { startsWith } from 'lodash-es'
 
 export default {
 	name: 'Signature',
 	components: {
 		Draw,
-		Modal,
+		NcModal,
 	},
 	props: {
 		type: {
@@ -70,7 +70,7 @@ export default {
 			<slot name="no-signatures" />
 		</div>
 
-		<Modal v-if="isEditing" v-on="{ close }">
+		<NcModal v-if="isEditing" v-on="{ close }">
 			<div class="container-modal-customize-signatures">
 				<header>
 					<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
@@ -80,7 +80,7 @@ export default {
 					<Draw text-editor file-editor v-on="{ close, save }" />
 				</div>
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 
