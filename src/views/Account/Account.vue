@@ -87,7 +87,6 @@ export default {
 .password-modal .modal-container{
 	width: 100%;
 	max-width: 600px;
-	height: 100%;
 	max-height: 560px;
 
 	@media screen and (min-width:600px) {

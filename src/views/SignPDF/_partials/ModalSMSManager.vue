@@ -1,5 +1,6 @@
 <script>
-import confirmPassword from '@nextcloud/password-confirmation'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { isEmpty, castArray } from 'lodash-es'

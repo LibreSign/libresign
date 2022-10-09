@@ -20,7 +20,8 @@
 </template>
 
 <script>
-import confirmPassword from '@nextcloud/password-confirmation'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import Content from '@nextcloud/vue/dist/Components/Content'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
