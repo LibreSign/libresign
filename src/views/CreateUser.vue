@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<Content app-name="libresign" class="jumbotron">
+	<NcContent app-name="libresign" class="jumbotron">
 		<div id="container">
 			<div class="bg">
 				<form>
@@ -116,7 +116,7 @@
 				</form>
 			</div>
 		</div>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
@@ -127,7 +127,7 @@ import { mapActions, mapGetters } from 'vuex'
 
 import { required, email, minLength } from 'vuelidate/lib/validators'
 
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import Draw from '../Components/Draw/index.js'
@@ -136,7 +136,7 @@ import { getInitialState } from '../services/InitialStateService.js'
 export default {
 	name: 'CreateUser',
 	components: {
-		Content,
+		NcContent,
 		Avatar,
 		Draw,
 		Modal,

@@ -1,5 +1,5 @@
 <template>
-	<Content class="container-account" app-name="libresign">
+	<NcContent class="container-account" app-name="libresign">
 		<div class="content-account">
 			<div class="user">
 				<UserImage v-bind="{ user }" />
@@ -36,12 +36,12 @@
 				<Documents />
 			</div>
 		</div>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
@@ -54,7 +54,7 @@ export default {
 	name: 'Account',
 
 	components: {
-		Content,
+		NcContent,
 		Modal,
 		CreatePassword,
 		ResetPassword,

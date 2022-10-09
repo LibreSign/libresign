@@ -1,5 +1,5 @@
 <script>
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { documentsService, parseDocument } from '../../domains/documents/index.js'
 import { onError } from '../../helpers/errors.js'
 import ProgressBar from '../../Components/ProgressBar.vue'
@@ -7,7 +7,10 @@ import { map } from 'lodash-es'
 
 export default {
 	name: 'AccountValidation',
-	components: { Content, ProgressBar },
+	components: {
+		NcContent,
+		ProgressBar,
+	},
 	data: () => ({
 		documentList: [],
 		loading: true,
@@ -42,7 +45,7 @@ export default {
 </script>
 
 <template>
-	<Content class="container-account-docs-to-validate" app-name="libresign">
+	<NcContent class="container-account-docs-to-validate" app-name="libresign">
 		<!-- <pre>{{ documentList }}</pre> -->
 		<ProgressBar v-if="loading" infinity />
 
@@ -78,5 +81,5 @@ export default {
 				</tbody>
 			</table>
 		</div>
-	</Content>
+	</NcContent>
 </template>

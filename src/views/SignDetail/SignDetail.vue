@@ -2,7 +2,7 @@
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import Sidebar from './partials/Sidebar.vue'
 import PageNavigation from './partials/PageNavigation.vue'
@@ -39,7 +39,7 @@ const deepCopy = val => JSON.parse(JSON.stringify(val))
 export default {
 	name: 'SignDetail',
 	components: {
-		Content,
+		NcContent,
 		DragResize,
 		Sidebar,
 		PageNavigation,
@@ -265,7 +265,7 @@ export default {
 </script>
 
 <template>
-	<Content class="view-sign-detail" app-name="libresign">
+	<NcContent class="view-sign-detail" app-name="libresign">
 		<div class="sign-details">
 			<h2>
 				{{ document.name }}
@@ -334,7 +334,7 @@ export default {
 				</div>
 			</div>
 		</div>
-	</Content>
+	</NcContent>
 </template>
 
 <style lang="scss" scoped>

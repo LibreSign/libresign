@@ -112,7 +112,7 @@ export default {
 
 <template>
 	<Modal size="normal" @close="close">
-		<Content class="modal-view">
+		<NcContent class="modal-view">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Sign with your cellphone number.') }}</h2>
 				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
@@ -156,7 +156,7 @@ export default {
 					</button>
 				</div>
 			</div>
-		</Content>
+		</NcContent>
 	</Modal>
 </template>
 
