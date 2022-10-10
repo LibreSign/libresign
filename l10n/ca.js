@@ -220,6 +220,8 @@ OC.L10N.register(
     "New password" : "Nova contrasenya",
     "Repeat password" : "Repetiu la contrasenya",
     "Select authorized groups." : "Seleccioneu grups autoritzats.",
+    "Message" : "Missatge",
+    "Resource" : "Recurs",
     "Dependencies" : "Dependències",
     "Legal Information" : "Informació legal",
     "Legal information" : "Informació legal",
