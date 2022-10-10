@@ -1,5 +1,5 @@
 <template>
-	<Content class="container-account" app-name="libresign">
+	<NcContent class="container-account" app-name="libresign">
 		<div class="content-account">
 			<div class="user">
 				<UserImage v-bind="{ user }" />
@@ -20,13 +20,13 @@
 								{{ t('librsign', 'Reset password') }}
 							</button>
 						</div>
-						<Modal v-if="modal"
+						<NcModal v-if="modal"
 							class="password-modal"
 							size="large"
 							@close="handleModal(false)">
 							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
 							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
-						</Modal>
+						</NcModal>
 					</div>
 				</div>
 			</div>
@@ -36,12 +36,12 @@
 				<Documents />
 			</div>
 		</div>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
@@ -54,8 +54,8 @@ export default {
 	name: 'Account',
 
 	components: {
-		Content,
-		Modal,
+		NcContent,
+		NcModal,
 		CreatePassword,
 		ResetPassword,
 		Signatures,
@@ -87,7 +87,6 @@ export default {
 .password-modal .modal-container{
 	width: 100%;
 	max-width: 600px;
-	height: 100%;
 	max-height: 560px;
 
 	@media screen and (min-width:600px) {

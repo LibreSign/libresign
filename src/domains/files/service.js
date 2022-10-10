@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
-import confirmPassword from '@nextcloud/password-confirmation'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import axios from '@nextcloud/axios'
 import { deburr } from 'lodash-es'
 import { getAPIURL } from '../../helpers/path'

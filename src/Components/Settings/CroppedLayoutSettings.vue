@@ -23,19 +23,19 @@
 
 <template>
 	<ul>
-		<AppNavigationItem icon="icon-user"
+		<NcAppNavigationItem icon="icon-user"
 			:title="t('libresign', 'Account')"
 			:to=" {name: 'Account'} " />
 	</ul>
 </template>
 
 <script>
-import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
+import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
 
 export default {
 	name: 'CroppedLayoutSettings',
 	components: {
-		AppNavigationItem,
+		NcAppNavigationItem,
 	},
 }
 </script>

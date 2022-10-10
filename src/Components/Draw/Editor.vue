@@ -30,7 +30,7 @@
 				{{ t('libresign', 'Cancel') }}
 			</button>
 		</div>
-		<Modal v-if="modal" @close="handleModal(false)">
+		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -43,19 +43,19 @@
 					</button>
 				</div>
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { SignatureImageDimensions } from './options.js'
 
 export default {
 	name: 'Editor',
 
 	components: {
-		Modal,
+		NcModal,
 	},
 
 	data: () => ({
@@ -113,7 +113,8 @@ export default {
 		getMousePositionOnCanvas(e) {
 			const clientX = e.clientX || e.touches[0].clientX
 			const clientY = e.clientY || e.touches[0].clientY
-			const { offsetLeft, offsetTop } = e.target
+			const offsetLeft = e.target.getBoundingClientRect().left;
+			const offsetTop = e.target.getBoundingClientRect().top;
 			const canvasX = clientX - offsetLeft
 			const canvasY = clientY - offsetTop
 			return { x: canvasX, y: canvasY }
@@ -138,7 +139,7 @@ export default {
 		},
 
 		clearCanvas() {
-			this.$canvas.clearRect(0, 0, this.$canvasWidth, this.$canvasHeight)
+			this.$canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 		},
 
 		createDataImage() {

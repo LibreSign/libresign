@@ -30,7 +30,6 @@ import External from './External.vue'
 import router from './router/index.js'
 import store from './store/index.js'
 
-import './directives/VTooltip.js'
 import './plugins/vuelidate.js'
 import './init.js'
 

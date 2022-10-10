@@ -3,7 +3,7 @@
 <template>
 	<div class="container">
 		<div id="image">
-			<Avatar id="avatar"
+			<NcAvatar id="avatar"
 				:is-guest="true"
 				:show-user-status="false"
 				:display-name="user.displayName"
@@ -16,26 +16,26 @@
 			<span class="description" v-html="markedDescription" />
 		</div>
 		<div v-if="hasOptions" id="options">
-			<Actions>
-				<ActionButton icon="icon-delete" @click="removeUser(user)" />
-			</Actions>
+			<NcActions>
+				<NcActionButton icon="icon-delete" @click="removeUser(user)" />
+			</NcActions>
 		</div>
 	</div>
 </template>
 
 <script>
-import Avatar from '@nextcloud/vue/dist/Components/Avatar'
-import Actions from '@nextcloud/vue/dist/Components/Actions'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
 export default {
 	name: 'ListItem',
 	components: {
-		Avatar,
-		Actions,
-		ActionButton,
+		NcAvatar,
+		NcActions,
+		NcActionButton,
 	},
 	props: {
 		user: {

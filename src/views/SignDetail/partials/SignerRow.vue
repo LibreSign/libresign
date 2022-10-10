@@ -1,13 +1,13 @@
 <script>
-import ListItem from '@nextcloud/vue/dist/Components/ListItem'
-import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
 import { fromUnixTime } from 'date-fns'
 
 export default {
 	name: 'SignerRow',
 	components: {
-		ListItem,
-		Avatar,
+		NcListItem,
+		NcAvatar,
 	},
 	props: {
 		signer: {
@@ -60,13 +60,13 @@ export default {
 </script>
 
 <template>
-	<ListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
+	<NcListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
 		:title="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"
 		v-on="$listeners">
 		<template #icon>
-			<Avatar is-no-user
+			<NcAvatar is-no-user
 				:size="44"
 				:user="signer.email"
 				:display-name="displayName" />
@@ -75,7 +75,7 @@ export default {
 			<span class="signer-status">{{ status }}</span>
 		</template>
 		<slot v-if="$slots.actions" slot="actions" name="actions" />
-	</ListItem>
+	</NcListItem>
 </template>
 
 <style>

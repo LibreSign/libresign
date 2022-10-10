@@ -22,28 +22,28 @@
 -->
 
 <template>
-	<SettingsSection :title="title" :description="description">
-		<Multiselect :key="idKey"
+	<NcSettingsSection :title="title" :description="description">
+		<NcMultiselect :key="idKey"
 			v-model="groupsSelected"
 			:options="groups"
 			:close-on-select="false"
 			:multiple="true"
 			@input="saveGroups" />
-	</SettingsSection>
+	</NcSettingsSection>
 </template>
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
-import Multiselect from '@nextcloud/vue/dist/Components/Multiselect'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
 export default {
 	name: 'AllowedGroups',
 	components: {
-		SettingsSection,
-		Multiselect,
+		NcSettingsSection,
+		NcMultiselect,
 	},
 
 	data: () => ({

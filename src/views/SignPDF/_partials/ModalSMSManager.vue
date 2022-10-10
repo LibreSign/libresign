@@ -1,6 +1,7 @@
 <script>
-import confirmPassword from '@nextcloud/password-confirmation'
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { isEmpty, castArray } from 'lodash-es'
 import Content from '../../../Components/Modals/ModalContent.vue'
@@ -17,7 +18,7 @@ export default {
 	name: 'ModalSMSManager',
 	components: {
 		Content,
-		Modal,
+		NcModal,
 	},
 	props: {
 		settings: {
@@ -110,8 +111,8 @@ export default {
 </script>
 
 <template>
-	<Modal size="normal" @close="close">
-		<Content class="modal-view">
+	<NcModal size="normal" @close="close">
+		<NcContent class="modal-view">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Sign with your cellphone number.') }}</h2>
 				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
@@ -155,8 +156,8 @@ export default {
 					</button>
 				</div>
 			</div>
-		</Content>
-	</Modal>
+		</NcContent>
+	</NcModal>
 </template>
 
 <style lang="scss" scoped>

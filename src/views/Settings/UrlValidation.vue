@@ -1,5 +1,5 @@
 <template>
-	<SettingsSection :title="title" :description="description">
+	<NcSettingsSection :title="title" :description="description">
 		<input id="validation_site"
 			ref="urlInput"
 			:placeholder="url"
@@ -7,17 +7,17 @@
 			@input="saveUrl()"
 			@click="fillUrlInput()"
 			@keypress.enter="validationUrlEnter()">
-	</SettingsSection>
+	</NcSettingsSection>
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
 	name: 'UrlValidation',
 	components: {
-		SettingsSection,
+		NcSettingsSection,
 	},
 	data() {
 		return {

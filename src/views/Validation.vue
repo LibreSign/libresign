@@ -1,5 +1,5 @@
 <template>
-	<Content app-name="libresign" class="jumbotron">
+	<NcContent app-name="libresign" class="jumbotron with-sidebar--full">
 		<div class="container">
 			<div class="image">
 				<img :src="image" draggable="false">
@@ -57,12 +57,12 @@
 				</div>
 			</div>
 		</div>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
@@ -76,7 +76,7 @@ export default {
 	name: 'ViewValidation',
 
 	components: {
-		Content,
+		NcContent,
 	},
 
 	props: {

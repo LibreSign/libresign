@@ -1,6 +1,6 @@
 /* eslint-disable no-new */
 <template>
-	<Content app-name="libresign">
+	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="(e) => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password reset') }}</h1>
@@ -9,11 +9,11 @@
 			<div class="container">
 				<div class="input-group">
 					<label for="new-password">{{ t('libresign', 'New password') }}</label>
-					<Input v-model="password" type="password" />
+					<NcPasswordField :value.sync="password" type="password" />
 				</div>
 				<div class="input-group">
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-					<Input v-model="rPassword" :has-error="!hasEqualPassword" type="password" />
+					<NcPasswordField :value.sync="rPassword" :has-error="!hasEqualPassword" type="password" />
 				</div>
 				<button :disabled="!hableButton"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
@@ -22,22 +22,23 @@
 				</button>
 			</div>
 		</form>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
-import confirmPassword from '@nextcloud/password-confirmation'
-import Content from '@nextcloud/vue/dist/Components/Content'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Input from '../Components/Input/Input.vue'
 
 export default {
 	name: 'ResetPassword',
 	components: {
-		Content,
-		Input,
+		NcContent,
+		NcPasswordField,
 	},
 	data() {
 		return {
@@ -86,6 +87,7 @@ export default {
 		justify-content: center;
 		align-items: center;
 		text-align: center;
+		padding: 1rem;
 		header{
 			margin-bottom: 2.5rem;
 		}
@@ -123,27 +125,6 @@ export default {
 		margin-top: 10px;
 		border: none;
 
-	}
-
-	.input-item{
-		display: flex;
-		flex-direction: row;
-		border: 1px solid #cecece;
-		border-radius: 10px;
-		width: 100%;
-		max-width: 380px;
-		label{
-			padding: 0 20px;
-			border-radius: 10px 0 0 10px;
-			background-color: #cecece;
-		}
-		input{
-			border: none;
-		}
-		&:focus-within{
-			border: thin solid #0082c9;
-			box-shadow: inset 0 0 1em rgba(0, 130, 201, .5);
-		}
 	}
 
 	.input-group{
