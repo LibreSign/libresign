@@ -7,7 +7,7 @@
 			</template>
 
 			<div>
-				<input v-model="value" type="password">
+				<NcPasswordField :value.sync="value" type="password" />
 				<button :disabled="value.length < 3" @click="onChange(value)">
 					{{ t('libresign', 'Sign the document.') }}
 				</button>
@@ -22,6 +22,7 @@
 
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField'
 import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
@@ -37,6 +38,7 @@ export default {
 	VIEWS,
 	components: {
 		NcModal,
+		NcPasswordField,
 		ModalContent,
 		ResetPassword,
 		CreatePassword,
