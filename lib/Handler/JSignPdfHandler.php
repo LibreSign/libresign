@@ -52,6 +52,9 @@ class JSignPdfHandler extends SignEngineHandler {
 					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
 			if (!empty($javaPath)) {
+				if (!file_exists($javaPath)) {
+					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
+				}
 				$this->jSignParam->setJavaPath($javaPath);
 			}
 		}
