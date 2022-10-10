@@ -1,6 +1,6 @@
 <template>
 	<NcModal size="normal" @close="onClose">
-		<ModalContent v-if="isInput" class="modal-view-input">
+		<ModalContent v-if="isInput" class="with-sidebar--full">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Subscription password.') }}</h2>
 			</template>
