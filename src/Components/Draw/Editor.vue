@@ -113,7 +113,8 @@ export default {
 		getMousePositionOnCanvas(e) {
 			const clientX = e.clientX || e.touches[0].clientX
 			const clientY = e.clientY || e.touches[0].clientY
-			const { offsetLeft, offsetTop } = e.target
+			const offsetLeft = e.target.getBoundingClientRect().left;
+			const offsetTop = e.target.getBoundingClientRect().top;
 			const canvasX = clientX - offsetLeft
 			const canvasY = clientY - offsetTop
 			return { x: canvasX, y: canvasY }
@@ -138,7 +139,7 @@ export default {
 		},
 
 		clearCanvas() {
-			this.$canvas.clearRect(0, 0, this.$canvasWidth, this.$canvasHeight)
+			this.$canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 		},
 
 		createDataImage() {

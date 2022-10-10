@@ -28,7 +28,6 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab.vue'
 
 import './plugins/vuelidate.js'
-import './directives/VTooltip.js'
 import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.prototype.t = t
