@@ -1,5 +1,5 @@
 <template>
-	<NcContent app-name="libresign" class="jumbotron">
+	<NcContent app-name="libresign" class="jumbotron with-sidebar--full">
 		<div class="container">
 			<div class="image">
 				<img :src="image" draggable="false">
