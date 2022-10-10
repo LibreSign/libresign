@@ -4,19 +4,29 @@
 			<NcCheckboxRadioSwitch
 				type="switch"
 				:checked.sync="addFooter"
-				@update:checked="saveAddFooter">
+				@update:checked="toogleSetting('add_footer', addFooter)">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
-			{{validationUrlDescription}}
-			<input id="validation_site"
-				ref="urlInput"
-				:placeholder="url"
-				type="text"
-				@input="saveValidationiUrl()"
-				@click="fillValidationUrl()"
-				@keypress.enter="validationUrlEnter()">
+			<NcCheckboxRadioSwitch
+				type="switch"
+				:checked.sync="writeQrcodeOnFooter"
+				@update:checked="toogleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
+				{{ t('libresign', 'Write qrcode on footer with validation URL') }}
+			</NcCheckboxRadioSwitch>
+		</p>
+		<p v-if="addFooter">
+			{{ t('libresign', 'To validate signature of the documents. Only change this value if you want to replace the default valitation URL by other.') }}
+			<p>
+				<input id="validation_site"
+					ref="urlInput"
+					:placeholder="url"
+					type="text"
+					@input="saveValidationiUrl()"
+					@click="fillValidationUrl()"
+					@keypress.enter="validationUrlEnter()">
+			</p>
 		</p>
 	</NcSettingsSection>
 </template>
@@ -37,8 +47,8 @@ export default {
 			title: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			url: null,
-			validationUrlDescription: t('libresign', 'To validate signature of the documents'),
 			addFooter: false,
+			writeQrcodeOnFooter: false,
 		}
 	},
 	created() {
@@ -50,25 +60,32 @@ export default {
 		},
 		async getData() {
 			this.getAddFooterData()
+			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'add_footer', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/add_footer', {}
 			)
 			this.addFooter = response.data.ocs.data.data ? true : false
 		},
+		async getWriteQrcodeOnFooter() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/write_qrcode_on_footer', {}
+			)
+			this.writeQrcodeOnFooter = response.data.ocs.data.data ? true : false
+		},
 		async getValidationUrlData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'validation_site', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/validation_site', {}
 			)
 			this.placeHolderValidationUrl(response.data.ocs.data.data)
 		},
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
-		async saveAddFooter() {
-			OCP.AppConfig.setValue('libresign', 'add_footer', this.addFooter ? 1 : 0)
+		async toogleSetting(setting, value) {
+			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		placeHolderValidationUrl(data) {
 			if (data !== '') {
