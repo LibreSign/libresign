@@ -222,6 +222,8 @@ OC.L10N.register(
     "Repeat password" : "Повторете паролата",
     "Allowed to sign document" : "Подписването на документа е разрешено",
     "Select authorized groups." : "Избор на оторизирани групи.",
+    "Message" : "Съобщение",
+    "Resource" : "Ресурс",
     "Check configure" : "Проверка на конфигурацията",
     "Status of setup" : "Състояние на настройката",
     "Dependencies" : "Зависимости",
