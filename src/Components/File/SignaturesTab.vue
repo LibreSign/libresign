@@ -29,9 +29,9 @@
 							</button>
 						</div>
 						<div>
-							<Actions v-if="showDelete(sign)">
-								<ActionButton icon="icon-delete" @click="deleteUserRequest(sign)" />
-							</Actions>
+							<NcActions v-if="showDelete(sign)">
+								<NcActionButton icon="icon-delete" @click="deleteUserRequest(sign)" />
+							</NcActions>
 						</div>
 					</div>
 				</div>
@@ -53,15 +53,15 @@ import { format } from 'date-fns'
 import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import Actions from '@nextcloud/vue/dist/Components/Actions'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import { get, find } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
 	components: {
-		Actions,
-		ActionButton,
+		NcActions,
+		NcActionButton,
 	},
 	data() {
 		return {

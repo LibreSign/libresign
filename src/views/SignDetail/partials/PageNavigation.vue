@@ -1,10 +1,10 @@
 <script>
-import CounterBubble from '@nextcloud/vue/dist/Components/CounterBubble'
+import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble'
 import { size } from 'lodash-es'
 
 export default {
 	name: 'PageNavigation',
-	components: { CounterBubble },
+	components: { NcCounterBubble },
 	props: {
 		value: {
 			type: Number,
@@ -52,9 +52,9 @@ export default {
 		<button :disabled="!allowPrevious" class="primary" @click="previous">
 			{{ t('libresign', 'Previous') }}
 		</button>
-		<CounterBubble type="outlined">
+		<NcCounterBubble type="outlined">
 			{{ actual }}/{{ size }}
-		</CounterBubble>
+		</NcCounterBubble>
 		<button :disabled="!allowNext" class="primary" @click="next">
 			{{ t('libresign', 'Next') }}
 		</button>

@@ -1,5 +1,5 @@
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { showSuccess } from '@nextcloud/dialogs'
 import { castArray } from 'lodash-es'
 import Content from '../../../Components/Modals/ModalContent.vue'
@@ -15,7 +15,7 @@ export default {
 	name: 'ModalEmailManager',
 	components: {
 		Content,
-		Modal,
+		NcModal,
 	},
 	props: {
 		settings: {
@@ -70,8 +70,8 @@ export default {
 </script>
 
 <template>
-	<Modal size="normal" @close="close">
-		<Content class="modal-view">
+	<NcModal size="normal" @close="close">
+		<NcContent class="modal-view">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Sign with your email.') }}</h2>
 			</template>
@@ -98,8 +98,8 @@ export default {
 					</button>
 				</div>
 			</div>
-		</Content>
-	</Modal>
+		</NcContent>
+	</NcModal>
 </template>
 
 <style lang="scss" scoped>

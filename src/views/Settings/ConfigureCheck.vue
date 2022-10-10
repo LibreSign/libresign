@@ -1,5 +1,5 @@
 <template>
-	<SettingsSection :title="title" :description="description">
+	<NcSettingsSection :title="title" :description="description">
 		<table class="grid">
 			<tbody>
 				<tr class="group-header">
@@ -20,11 +20,11 @@
 				</tr>
 			</tbody>
 		</table>
-	</SettingsSection>
+	</NcSettingsSection>
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import SettingsSection from '@nextcloud/vue/dist/Components/SettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -32,7 +32,7 @@ import axios from '@nextcloud/axios'
 export default {
 	name: 'ConfigureCheck',
 	components: {
-		SettingsSection,
+		NcSettingsSection,
 	},
 	data: () => ({
 		title: t('libresign', 'Check configure'),

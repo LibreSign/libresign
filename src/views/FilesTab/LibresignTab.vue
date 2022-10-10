@@ -22,8 +22,8 @@
 -->
 
 <template>
-	<AppSidebar class="app-sidebar--without-background lb-ls-root" title="LibreSign" :header="false">
-		<AppSidebarTab id="libresign-tab"
+	<NcAppSidebar class="app-sidebar--without-background lb-ls-root" title="LibreSign" :header="false">
+		<NcAppSidebarTab id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
@@ -95,9 +95,9 @@
 									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
 										{{ t('libresign', 'Send reminder') }}
 									</button>
-									<Actions v-if="showDelete(signer)">
-										<ActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
-									</Actions>
+									<NcActions v-if="showDelete(signer)">
+										<NcActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
+									</NcActions>
 								</div>
 							</div>
 						</li>
@@ -107,8 +107,8 @@
 					</button>
 				</div>
 			</div>
-		</AppSidebarTab>
-	</AppSidebar>
+		</NcAppSidebarTab>
+	</NcAppSidebar>
 </template>
 
 <script>
@@ -121,19 +121,19 @@ import { getAPPURL } from '../../helpers/path.js'
 import { showResponseError } from '../../helpers/errors.js'
 import store from '../../store/index.js'
 import Request from '../../Components/Request/index.js'
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
-import Actions from '@nextcloud/vue/dist/Components/Actions'
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
-import AppSidebarTab from '@nextcloud/vue/dist/Components/AppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
 
 export default {
 	name: 'LibresignTab',
 	store,
 	components: {
-		AppSidebar,
-		Actions,
-		ActionButton,
-		AppSidebarTab,
+		NcAppSidebar,
+		NcActions,
+		NcActionButton,
+		NcAppSidebarTab,
 		Request,
 	},
 

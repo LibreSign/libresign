@@ -1,11 +1,14 @@
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { Cropper } from 'vue-advanced-cropper'
 import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
 export default {
 	name: 'FileUpload',
-	components: { Cropper, Modal },
+	components: {
+		Cropper,
+		NcModal,
+	},
 	data() {
 		return {
 			modal: false,
@@ -102,7 +105,7 @@ export default {
 			</div>
 		</div>
 
-		<Modal v-if="modal" @close="cancel">
+		<NcModal v-if="modal" @close="cancel">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
@@ -115,7 +118,7 @@ export default {
 					</button>
 				</div>
 			</div>
-		</Modal>
+		</NcModal>
 	</div>
 </template>
 

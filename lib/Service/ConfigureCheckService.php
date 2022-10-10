@@ -106,14 +106,14 @@ class ConfigureCheckService {
 				(new ConfigureCheckHelper())
 					->setErrorMessage('JSignPdf binary not found: ' . $jsignpdJarPath)
 					->setResource('jsignpdf')
-					->setTip('run occ libresign:install --jsignpdf'),
+					->setTip('Run occ libresign:install --jsignpdf'),
 			];
 		}
 		return [
 			(new ConfigureCheckHelper())
 				->setErrorMessage('JSignPdf not found')
 				->setResource('jsignpdf')
-				->setTip('run occ libresign:install --jsignpdf'),
+				->setTip('Run occ libresign:install --jsignpdf'),
 		];
 	}
 
@@ -140,7 +140,7 @@ class ConfigureCheckService {
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Java binary not found: ' . $javaPath)
 					->setResource('java')
-					->setTip('run occ libresign:install --java'),
+					->setTip('Run occ libresign:install --java'),
 			];
 		}
 		$javaVersion = exec("java -version 2>&1");
@@ -150,14 +150,14 @@ class ConfigureCheckService {
 				(new ConfigureCheckHelper())
 					->setSuccessMessage('Using java from operational system. Version: ' . $javaVersion)
 					->setResource('java')
-					->setTip('run occ libresign:install --java'),
+					->setTip('Run occ libresign:install --java'),
 			];
 		}
 		return [
 			(new ConfigureCheckHelper())
 				->setErrorMessage('Java not installed')
 				->setResource('java')
-				->setTip('run occ libresign:install --java'),
+				->setTip('Run occ libresign:install --java'),
 		];
 	}
 

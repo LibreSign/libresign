@@ -22,41 +22,41 @@
 -->
 
 <template>
-	<Content app-name="libresign">
-		<AppNavigation>
+	<NcContent app-name="libresign">
+		<NcAppNavigation>
 			<template #list>
-				<AppNavigationItem v-if="back_to_signature"
+				<NcAppNavigationItem v-if="back_to_signature"
 					class="back_to_signature"
 					icon="icon-history"
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<AppNavigationItem :to="{name: 'requestFiles'}"
+				<NcAppNavigationItem :to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
-				<AppNavigationItem :to="{ name: 'signFiles' }"
+				<NcAppNavigationItem :to="{ name: 'signFiles' }"
 					:title="t('libresign', 'Files')"
 					icon="icon-files-dark"
 					exact />
-				<AppNavigationItem :to="{name: 'validation'}"
+				<NcAppNavigationItem :to="{name: 'validation'}"
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
 
-				<AppNavigationItem v-if="settings.isApprover"
+				<NcAppNavigationItem v-if="settings.isApprover"
 					:to="{name: 'DocsAccountValidation'}"
 					:title="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
 			</template>
 			<template #footer>
-				<AppNavigationSettings :title="t('libresign', 'Settings')">
+				<NcAppNavigationSettings :title="t('libresign', 'Settings')">
 					<CroppedLayoutSettings />
-				</AppNavigationSettings>
+				</NcAppNavigationSettings>
 			</template>
-		</AppNavigation>
-		<AppContent :class="{'icon-loading' : loading }">
+		</NcAppNavigation>
+		<NcAppContent :class="{'icon-loading' : loading }">
 			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
-			<EmptyContent v-if="isRoot" class="emp-content">
+			<NcEmptyContent v-if="isRoot" class="emp-content">
 				<template #icon>
 					<img :src="icon">
 				</template>
@@ -65,18 +65,18 @@
 						{{ t('libresign', 'LibreSign, digital signature app for Nextcloud.') }}
 					</p>
 				</template>
-			</EmptyContent>
-		</AppContent>
-	</Content>
+			</NcEmptyContent>
+		</NcAppContent>
+	</NcContent>
 </template>
 
 <script>
-import Content from '@nextcloud/vue/dist/Components/Content'
-import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
-import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
-import AppNavigationSettings from '@nextcloud/vue/dist/Components/AppNavigationSettings'
-import AppContent from '@nextcloud/vue/dist/Components/AppContent'
-import EmptyContent from '@nextcloud/vue/dist/Components/EmptyContent'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
+import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
+import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { getInitialState } from './services/InitialStateService.js'
@@ -87,12 +87,12 @@ const libresignState = getInitialState()
 export default {
 	name: 'App',
 	components: {
-		Content,
-		AppNavigation,
-		AppNavigationItem,
-		AppNavigationSettings,
-		AppContent,
-		EmptyContent,
+		NcContent,
+		NcAppNavigation,
+		NcAppNavigationItem,
+		NcAppNavigationSettings,
+		NcAppContent,
+		NcEmptyContent,
 		CroppedLayoutSettings,
 	},
 	data() {

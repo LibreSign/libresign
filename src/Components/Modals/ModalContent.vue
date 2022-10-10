@@ -1,5 +1,5 @@
 <template>
-	<Content class="modal-content" app-name="libresign">
+	<NcContent class="modal-content" app-name="libresign">
 		<main>
 			<header>
 				<slot name="header">
@@ -10,15 +10,15 @@
 				<slot />
 			</section>
 		</main>
-	</Content>
+	</NcContent>
 </template>
 
 <script>
-import Content from '@nextcloud/vue/dist/Components/Content'
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 export default {
 	name: 'ModalContent',
 	components: {
-		Content,
+		NcContent,
 	},
 	props: {
 		title: {

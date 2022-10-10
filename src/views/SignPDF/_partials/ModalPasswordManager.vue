@@ -1,13 +1,12 @@
 <template>
-	<Modal size="normal" @close="onClose">
-		<ModalContent v-if="isInput" class="modal-view-input">
+	<NcModal size="normal" @close="onClose">
+		<ModalContent v-if="isInput" class="with-sidebar--full">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Subscription password.') }}</h2>
-				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
 			</template>
 
 			<div>
-				<input v-model="value" type="password">
+				<NcPasswordField :value.sync="value" type="password" />
 				<button :disabled="value.length < 3" @click="onChange(value)">
 					{{ t('libresign', 'Sign the document.') }}
 				</button>
@@ -17,11 +16,12 @@
 		<CreatePassword v-if="isCreate"
 			@change-pfx="onCreate"
 			@close="onClose" />
-	</Modal>
+	</NcModal>
 </template>
 
 <script>
-import Modal from '@nextcloud/vue/dist/Components/Modal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField'
 import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
@@ -36,7 +36,8 @@ export default {
 	name: 'ModalPasswordManager',
 	VIEWS,
 	components: {
-		Modal,
+		NcModal,
+		NcPasswordField,
 		ModalContent,
 		ResetPassword,
 		CreatePassword,

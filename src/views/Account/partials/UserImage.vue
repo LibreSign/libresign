@@ -1,10 +1,10 @@
 <script>
-import Avatar from '@nextcloud/vue/dist/Components/Avatar'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
 
 export default {
 	name: 'UserImage',
 	components: {
-		Avatar,
+		NcAvatar,
 	},
 	props: {
 		user: {
@@ -21,7 +21,7 @@ export default {
 			<div class="icons icon-contacts-dark" />
 		</div>
 
-		<Avatar :show-user-status="false"
+		<NcAvatar :show-user-status="false"
 			:size="145"
 			class="user-avatar"
 			:user="user.uid"
