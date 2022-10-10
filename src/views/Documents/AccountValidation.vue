@@ -45,7 +45,7 @@ export default {
 </script>
 
 <template>
-	<NcContent class="container-account-docs-to-validate" app-name="libresign">
+	<NcContent class="container-account-docs-to-validate with-sidebar--full" app-name="libresign">
 		<!-- <pre>{{ documentList }}</pre> -->
 		<ProgressBar v-if="loading" infinity />
 
