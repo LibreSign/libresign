@@ -4,7 +4,7 @@
 			<PDFViewer :url="pdfData.url" />
 		</div>
 
-		<Sidebar v-bind="{ document, loading }">
+		<Sidebar v-bind="{ document, loading }" id="app-navigation">
 			<Sign v-if="signEnabled"
 				v-bind="{ document, uuid, docType }"
 				@signed="onSigned"
