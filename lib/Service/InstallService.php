@@ -149,6 +149,13 @@ class InstallService {
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash);
 
+		if ($javaFolder->nodeExists('java-se-8u41-ri')) {
+			$javaFolder->get('java-se-8u41-ri')->delete();
+			/**
+			 * @todo Extrange behaviour, the directory won't full deleted, need run the methow 2 times
+			 */
+			$javaFolder->get('java-se-8u41-ri')->delete();
+		}
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
