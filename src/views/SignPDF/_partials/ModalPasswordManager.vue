@@ -3,7 +3,6 @@
 		<ModalContent v-if="isInput" class="modal-view-input">
 			<template slot="header">
 				<h2>{{ t('libresign', 'Subscription password.') }}</h2>
-				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
 			</template>
 
 			<div>
