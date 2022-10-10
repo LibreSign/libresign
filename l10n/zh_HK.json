@@ -113,6 +113,7 @@
     "Invalid user" : "無效的用戶",
     "Invalid PDF" : "無效的PDF",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre - Nextcloud 的數位簽署應用程式 ",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature" : "**這是一個用於 NextCloud 的 Libre Digital PDF簽名應用應用程式**\n\n*✍️使用數字簽名簽署 PDF 文件",
     "Back to sign" : "回到簽署頁面",
     "Request" : "請求",
     "Files" : "檔案",
@@ -217,10 +218,17 @@
     "Enter new password and then repeat it" : "輸入新密碼，然後重複輸入",
     "New password" : "新密碼",
     "Repeat password" : "重複密碼",
+    "Allowed to sign document" : "允許簽署文件",
     "Select authorized groups." : "選擇已授權的群組。",
     "Message" : "訊息",
     "Resource" : "資源",
+    "Check configure" : "檢查配置",
+    "Status of setup" : "配置狀態",
     "Dependencies" : "相關性",
+    "Download binaries" : "下載二進製檔案",
+    "Binaries downloaded" : "二進製檔案已下載",
+    "Downloading binaries" : "下載二進製檔案中",
+    "Could not download binaries." : "無法下載二進製檔案",
     "Legal Information" : "法律資訊",
     "Legal information" : "法律資訊",
     "This information will appear on the validation page" : "此資訊將顯示在驗證頁面上",
@@ -275,6 +283,7 @@
     "Password created!" : "密碼創建了！",
     "Open in LibreSign" : "在 LibreSign 中打開",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是適用於 Nextcloud 的 Libre 數位PDF簽名應用程式**\n\n*✍️使用數位簽名來簽署PDF文件\n*⚠️此應用程式的安裝需要存取終端，甚至需要安裝其他軟件。有關細節，請參見［設置說明］（https://github.com/LibreSign/libresign/blob/main/README.md#setup）。",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
