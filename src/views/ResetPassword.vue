@@ -1,6 +1,6 @@
 /* eslint-disable no-new */
 <template>
-	<NcContent app-name="libresign">
+	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="(e) => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password reset') }}</h1>
@@ -87,6 +87,7 @@ export default {
 		justify-content: center;
 		align-items: center;
 		text-align: center;
+		padding: 1rem;
 		header{
 			margin-bottom: 2.5rem;
 		}
