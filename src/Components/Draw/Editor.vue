@@ -138,7 +138,7 @@ export default {
 		},
 
 		clearCanvas() {
-			this.$canvas.clearRect(0, 0, this.$canvasWidth, this.$canvasHeight)
+			this.$canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 		},
 
 		createDataImage() {
