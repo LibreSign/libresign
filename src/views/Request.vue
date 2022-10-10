@@ -90,7 +90,7 @@ export default {
 			return Object.keys(this.file).length === 0
 		},
 		canRequest() {
-			return this.fileSigners.length > 0
+			return this.signers.length > 0
 		},
 	},
 	beforeDestroy() {

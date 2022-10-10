@@ -179,6 +179,9 @@ class CfsslHandler {
 			throw new LibresignException('Binary of CFSSL not found');
 		}
 		$configPath = $this->getConfigPath();
+		if (!$configPath) {
+			throw new LibresignException('CFSSL not configured.');
+		}
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
 			'-ca-key ' . $configPath . 'ca-key.pem ' .
 			'-ca ' . $configPath . 'ca.pem '.
