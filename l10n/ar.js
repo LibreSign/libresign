@@ -42,6 +42,8 @@ OC.L10N.register(
     "Password reset" : "إعادة تعيين كلمة مرور",
     "New password" : "الكلمة السرية الجديدة",
     "Repeat password" : "أعد كتابة الكلمة السرية",
+    "Message" : "الرسالة",
+    "Resource" : "مصدر",
     "Remove" : "حذف",
     "Previous" : "السابق",
     "Loading" : "جاري التحميل",
