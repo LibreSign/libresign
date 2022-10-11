@@ -18,15 +18,13 @@
 		</p>
 		<p v-if="addFooter">
 			{{ t('libresign', 'To validate signature of the documents. Only change this value if you want to replace the default validation URL by other.') }}
-			<p>
-				<input id="validation_site"
-					ref="urlInput"
-					:placeholder="url"
-					type="text"
-					@input="saveValidationiUrl()"
-					@click="fillValidationUrl()"
-					@keypress.enter="validationUrlEnter()">
-			</p>
+			<input id="validation_site"
+				ref="urlInput"
+				:placeholder="url"
+				type="text"
+				@input="saveValidationiUrl()"
+				@click="fillValidationUrl()"
+				@keypress.enter="validationUrlEnter()"/>
 		</p>
 	</NcSettingsSection>
 </template>
@@ -107,12 +105,7 @@ export default {
 <style scoped>
 
 input{
-	width: 60%;
+	width: 100%;
 }
 
-@media screen and (max-width: 500px){
-	input{
-		width: 100%;
-	}
-}
 </style>
