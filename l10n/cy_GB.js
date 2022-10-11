@@ -26,6 +26,7 @@ OC.L10N.register(
     "No" : "No",
     "Pending" : "I ddod",
     "New password" : "Cyfrinair newydd",
+    "Resource" : "Adnodd",
     "Remove" : "Gwaredu",
     "Previous" : "Blaenorol",
     "Loading" : "Llwytho",

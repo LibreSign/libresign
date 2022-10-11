@@ -219,7 +219,6 @@ OC.L10N.register(
     "Generated certificate!" : "Korensko potrdilo je ustvarjeno!",
     "Could not generate certificate." : "Potrdila ni mogoče ustvariti.",
     "Validation URL" : "Naslov URL overjanja",
-    "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
     "Element created" : "Predmet je ustvarjen.",
     "Select each signer to define their signature positions" : "Izbor podpisnikov za določanje položaja podpisa.",
     "Remove" : "Odstrani",
@@ -247,6 +246,7 @@ OC.L10N.register(
     "User created!" : "Uporabnik je ustvarjen!",
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
-    "Webhook" : "Spletni povezovalnik"
+    "Webhook" : "Spletni povezovalnik",
+    "To validate signature of the documents" : "Za overjanje podpisov dokumenta"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

@@ -220,6 +220,8 @@ OC.L10N.register(
     "New password" : "Neues Passwort",
     "Repeat password" : "Wiederhole Passwort",
     "Select authorized groups." : "Autorisierte Gruppen wählen",
+    "Message" : "Nachricht",
+    "Resource" : "Ressource",
     "Dependencies" : "Abhängigkeiten",
     "Legal Information" : "Rechtliche Informationen",
     "Legal information" : "Rechtliche Informationen",
@@ -237,7 +239,6 @@ OC.L10N.register(
     "Generated certificate!" : "Zertifikat erstellt!",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
     "Validation URL" : "Überprüfungs-URL",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
     "Request signatures?" : "Signaturen anfordern?",
     "Element created" : "Element erstellt",
     "Select each signer to define their signature positions" : "Wähle jeden Unterzeichner aus, um die Position der Unterschriften  festzulegen",
@@ -275,6 +276,7 @@ OC.L10N.register(
     "Password created!" : "Passwort erstellt",
     "Open in LibreSign" : "In LibreSign öffnen",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signiere PDF-Dokumente mit einer digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen findest du unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, "
 },
 "nplurals=2; plural=(n != 1);");

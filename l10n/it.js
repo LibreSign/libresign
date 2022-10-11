@@ -239,7 +239,6 @@ OC.L10N.register(
     "Generated certificate!" : "Certificato generato!",
     "Could not generate certificate." : "Generazione certificato non riuscita.",
     "Validation URL" : "URL di convalida",
-    "To validate signature of the documents" : "Per convalidare la firma dei documenti",
     "Request signatures?" : "Richiedi firme?",
     "Element created" : "Elemento creato",
     "Select each signer to define their signature positions" : "Seleziona ogni firmatario per definire le posizioni della firma",
@@ -276,6 +275,7 @@ OC.L10N.register(
     "User created!" : "Utente creato!",
     "Password created!" : "Password creato!",
     "Open in LibreSign" : "Apri in LibreSign",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Per convalidare la firma dei documenti"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
