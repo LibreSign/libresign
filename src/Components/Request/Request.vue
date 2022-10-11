@@ -24,15 +24,16 @@
 				</li>
 			</ul>
 
-			<button class="primary btn" @click.prevent="send">
+			<NcButton class="primary btn" @click.prevent="send">
 				{{ t('libresign', 'Submit Request') }}
-			</button>
+			</NcButton>
 		</div>
 		<slot name="actions" />
 	</div>
 </template>
 
 <script>
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import ListItem from '../ListItem/index.js'
 import { required, email } from 'vuelidate/lib/validators'
 import { validateEmail } from '../../utils/validators.js'
@@ -41,6 +42,7 @@ export default {
 	name: 'Request',
 	components: {
 		ListItem,
+		NcButton,
 	},
 	validations: {
 		email: { required, email },
