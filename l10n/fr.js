@@ -222,7 +222,6 @@ OC.L10N.register(
     "Generated certificate!" : "Certificat généré ! ",
     "Could not generate certificate." : "Impossible de générer le certificat.",
     "Validation URL" : "URL de validation",
-    "To validate signature of the documents" : "Pour valider la signature des documents",
     "Request signatures?" : "Demander une signature ?",
     "Element created" : "Élément créé",
     "Remove" : "Retirer",
@@ -252,6 +251,7 @@ OC.L10N.register(
     "User created!" : "Utilisateur créé !",
     "Password created!" : "Mot de passe créé !",
     "Open in LibreSign" : "Ouvrir dans LibreSign",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Pour valider la signature des documents"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

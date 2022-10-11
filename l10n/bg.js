@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "Избор на оторизирани групи.",
     "Message" : "Съобщение",
     "Resource" : "Ресурс",
-    "Check configure" : "Проверка на конфигурацията",
     "Status of setup" : "Състояние на настройката",
     "Dependencies" : "Зависимости",
     "Download binaries" : "Изтегляне на двоични файлове",
@@ -247,7 +246,6 @@ OC.L10N.register(
     "Generated certificate!" : "Генериран сертификат!",
     "Could not generate certificate." : "Неуспешно генериране на сертификат.",
     "Validation URL" : "Проверка на URL",
-    "To validate signature of the documents" : "За проверка на подписа на документите",
     "Request signatures?" : "Ще заявите ли подписи?",
     "Element created" : "Създаден е елемент",
     "Select each signer to define their signature positions" : "Изберете всеки подписващ, за да дефинирате позициите на подписа им",
@@ -286,6 +284,8 @@ OC.L10N.register(
     "Open in LibreSign" : "Отваряне в LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Това е Libre приложение за цифров PDF подпис за Nextcloud**\n\n* ✍️ Подписвайте PDF документи с помощта на цифров подпис\n* ⚠️ Настройката на това приложение изисква достъп до терминал и дори да си изцапате ръцете с инсталиране на допълнителен софтуер. Вижте [инструкции за настройка](https://github.com/LibreSign/libresign/blob/main/README.md#setup) за подробности.",
     "Webhook" : " Уеб обратно повикване",
+    "To validate signature of the documents" : "За проверка на подписа на документите",
+    "Check configure" : "Проверка на конфигурацията",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко."
 },
 "nplurals=2; plural=(n != 1);");
