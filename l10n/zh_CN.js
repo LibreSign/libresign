@@ -226,7 +226,6 @@ OC.L10N.register(
     "Generated certificate!" : "已生成证书！",
     "Could not generate certificate." : "无法生成证书",
     "Validation URL" : "验证用 URL",
-    "To validate signature of the documents" : "用于验证文档的签名",
     "Request signatures?" : "请求签名？",
     "Element created" : "已创建元素",
     "Select each signer to define their signature positions" : "选择每个签名者来定义签名位置",
@@ -261,6 +260,7 @@ OC.L10N.register(
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
     "Open in LibreSign" : "在 LibreSign 中打开",
-    "Webhook" : "Webhook "
+    "Webhook" : "Webhook ",
+    "To validate signature of the documents" : "用于验证文档的签名"
 },
 "nplurals=1; plural=0;");

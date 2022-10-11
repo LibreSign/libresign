@@ -239,7 +239,6 @@ OC.L10N.register(
     "Generated certificate!" : "¡Certificado creado!",
     "Could not generate certificate." : "No se pudo crear el certificado.",
     "Validation URL" : "URL de validación",
-    "To validate signature of the documents" : "Para validad las firmas de los documentos",
     "Request signatures?" : "¿Solicitar firmas?",
     "Element created" : "Elemento creado",
     "Select each signer to define their signature positions" : "Selecciona cada firmante para definir la posición de su firma",
@@ -277,6 +276,7 @@ OC.L10N.register(
     "Password created!" : "¡Contraseña creada!",
     "Open in LibreSign" : "Abrir en LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Esta es una aplicación libre para la firma digital de PDFs para Nextcloud**.\n\n* ✍️ Firma documentos PDF utilizando la firma digital\n* ⚠️ La configuración de esta app requiere acceso a un terminal e incluso ensuciarse las manos con la instalación de software adicional. Consulta las [instrucciones de configuración](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para más detalles.",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Para validad las firmas de los documentos"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

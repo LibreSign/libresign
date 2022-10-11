@@ -237,7 +237,6 @@
     "Generated certificate!" : "Tanúsítvány előállítva.",
     "Could not generate certificate." : "Nem sikerült létrehozni a tanúsítványt.",
     "Validation URL" : "Ellenőrzési URL",
-    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez",
     "Request signatures?" : "Kéri az aláírásokat?",
     "Element created" : "Az elem létrehozva",
     "Select each signer to define their signature positions" : "Válassza ki az összes aláírót, hogy meghatározza az aláírásuk helyzetét",
@@ -275,6 +274,7 @@
     "Password created!" : "Jelszó létrehozva.",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

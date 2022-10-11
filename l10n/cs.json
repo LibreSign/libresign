@@ -223,10 +223,8 @@
     "Message" : "Zpráva",
     "Resource" : "Zdroj",
     "Tip" : "Tip",
-    "Check configure" : "Zkontrolovat nastavení",
     "Status of setup" : "Stav nastavení",
     "Dependencies" : "Závislosti",
-    "Binaries required to work. Could be near by 340MB to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli.",
     "Download binaries" : "Stáhnout programy",
     "Binaries downloaded" : "Stahování programů",
     "Downloading binaries" : "Stahují se programy",
@@ -247,7 +245,6 @@
     "Generated certificate!" : "Certifikát vytvořen!",
     "Could not generate certificate." : "Certifikát se nedaří vytvořit.",
     "Validation URL" : "Ověřovací URL",
-    "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "Request signatures?" : "Požádat o podpisy?",
     "Element created" : "Prvek vytvořen",
     "Select each signer to define their signature positions" : "Vyberte každého z podepisujících a definujte pozice jejich podpisů.",
@@ -286,6 +283,8 @@
     "Open in LibreSign" : "Otevřít v LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Toto je svobodná aplikace pro digitální podepisování PDF, určená pro Nextcloud**\n\n* ✍️ Podepisujte PDF dokumenty digitálním podpisem\n* ⚠️ Nastavení této aplikace vyžaduje přístup k terminálu a dokonce vaší práci s instalací dalšího software. Podrobnosti viz [pokyny pro nastavení](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webový háček",
+    "To validate signature of the documents" : "K ověření podpisu dokumentů",
+    "Check configure" : "Zkontrolovat nastavení",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli."
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }

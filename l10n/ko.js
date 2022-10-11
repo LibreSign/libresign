@@ -224,7 +224,6 @@ OC.L10N.register(
     "Generated certificate!" : "인증서를 생성했습니다!",
     "Could not generate certificate." : "인증서를 생성할 수 없습니다.",
     "Validation URL" : "검증 URL",
-    "To validate signature of the documents" : "문서의 서명을 확인하기 위해",
     "Request signatures?" : "서명 요청?",
     "Element created" : "작성된 요소",
     "Select each signer to define their signature positions" : "서명 위치를 정의할 각 서명인을 선택하십시오.",
@@ -259,6 +258,7 @@ OC.L10N.register(
     "User created!" : "사용자가 생성되었습니다!",
     "Password created!" : "암호가 생성되었습니다!",
     "Open in LibreSign" : "LibreSign으로 열기",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "문서의 서명을 확인하기 위해"
 },
 "nplurals=1; plural=0;");

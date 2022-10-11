@@ -212,7 +212,6 @@ OC.L10N.register(
     "Generated certificate!" : "Vjerodajnica generirana!",
     "Could not generate certificate." : "Generiranje vjerodajnice nije uspjelo.",
     "Validation URL" : "URL za potvrdu",
-    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta",
     "Remove" : "Ukloni",
     "Previous" : "Natrag",
     "Sign the document." : "Potpišite dokument.",
@@ -231,6 +230,7 @@ OC.L10N.register(
     "User created!" : "Korisnik je stvoren!",
     "Password created!" : "Zaporka je stvorena!",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");
