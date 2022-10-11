@@ -35,7 +35,7 @@ export default {
 		NcSettingsSection,
 	},
 	data: () => ({
-		title: t('libresign', 'Check configure'),
+		title: t('libresign', 'Configuration check'),
 		description: t('libresign', 'Status of setup'),
 		items: [],
 	}),
