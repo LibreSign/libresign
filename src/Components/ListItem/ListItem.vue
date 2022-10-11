@@ -9,7 +9,7 @@
 				:display-name="user.displayName"
 				:user="user.email" />
 		</div>
-		<div id="content">
+		<div id="list-content" class="with-sidebar--full">
 			<p class="title">
 				{{ user.displayName ? user.displayName : user.email }}
 			</p>

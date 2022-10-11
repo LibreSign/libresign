@@ -6,25 +6,9 @@
 	align-items: center;
 	flex-direction: row;
 
-	#content{
-		display: flex;
-		flex-direction: column;
-		max-width: 240px;
-		align-items: flex-start;
-		max-height: 70px;
-		padding-top: 0;
-		padding-left: 10px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		text-align: start;
-		color: #000;
-
+	#list-content{
 		.title{
 			font-weight: bold;
-		}
-		.description{
-			height: 10vh;
-			color: lighten(#000000, 10%)
 		}
 	}
 
