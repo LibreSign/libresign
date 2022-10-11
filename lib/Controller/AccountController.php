@@ -234,6 +234,7 @@ class AccountController extends ApiController {
 		if (!$user) {
 			return new JSONResponse(
 				[
+					// TRANSLATORS error message when user that wants to access the API does not exists or used an invalid password
 					'message' => $this->l10n->t('Invalid user or password')
 				],
 				Http::STATUS_NOT_FOUND
