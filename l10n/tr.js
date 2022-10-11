@@ -225,10 +225,8 @@ OC.L10N.register(
     "Message" : "İleti",
     "Resource" : "Kaynak",
     "Tip" : "İpucu",
-    "Check configure" : "Yapılandırmayı denetle",
     "Status of setup" : "Kurulum durumu",
     "Dependencies" : "Bağımlılıklar",
-    "Binaries required to work. Could be near by 340MB to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340MB indirilecek, lütfen bekleyin.",
     "Download binaries" : "Binary dosyalarını indir",
     "Binaries downloaded" : "Binary dosyaları indirildi",
     "Downloading binaries" : "Binary dosyaları indiriliyor",
@@ -249,7 +247,6 @@ OC.L10N.register(
     "Generated certificate!" : "Sertifika üretildi!",
     "Could not generate certificate." : "Sertifika üretilemedi.",
     "Validation URL" : "Doğrulama adresi",
-    "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",
     "Element created" : "Bileşen eklendi",
     "Select each signer to define their signature positions" : "İmza konumlarını belirlemek için imzalayanları tek tek seçin",
@@ -288,6 +285,8 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSign ile aç",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Nextcloud için Libre PDF imzalama uygulaması**\n\n* ✍️ Sayısal imzalar kullanarak PDF belgelerini imzalayın\n* ⚠️ Bu uygulamanın kurulması için uç birim erişilmesi gerekir. Ayrıca ek yazılımların yüklenmesi gibi işlemlerle de uğraşmanız gerekir. Ayrıntılı bilgi almak için [kurulum yönergeleri](https://github.com/LibreSign/libresign/blob/main/README.md#setup) bölümüne bakın.",
     "Webhook" : "Web bağlantısı",
+    "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
+    "Check configure" : "Yapılandırmayı denetle",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin."
 },
 "nplurals=2; plural=(n > 1);");

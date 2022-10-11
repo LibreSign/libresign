@@ -217,10 +217,15 @@
     "Enter new password and then repeat it" : "Idatzi pasahitz berria eta errepikatu",
     "New password" : "Pasahitz berria",
     "Repeat password" : "Errepikatu pasahitza",
+    "Allowed to sign document" : "Dokumentua sinatzeko baimenduta",
     "Select authorized groups." : "Hautatu baimendutako taldeak.",
     "Message" : "Mezua",
     "Resource" : "Edukia",
     "Dependencies" : "Dependentziak",
+    "Download binaries" : "Deskargatu binarioak",
+    "Binaries downloaded" : "Binarioak deskargatuta",
+    "Downloading binaries" : "Binarioak deskargatzen",
+    "Could not download binaries." : "Ezin izan dira binarioak deskargatu",
     "Legal Information" : "Informazio legala",
     "Legal information" : "Informazio legala",
     "This information will appear on the validation page" : "Informazio hau balidazio orrian agertuko da",
@@ -237,7 +242,6 @@
     "Generated certificate!" : "Sortutako ziurtagiria!",
     "Could not generate certificate." : "Ezin izan da ziurtagiria sortu.",
     "Validation URL" : "Egiaztapen URLa",
-    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
     "Request signatures?" : "Sinadurak eskatu?",
     "Element created" : "Elementua sortuta",
     "Select each signer to define their signature positions" : "Hautatu sinatzaile bakoitza bere sinadura-posizioak definitzeko",
@@ -275,6 +279,8 @@
     "Password created!" : "Pasahitza sortu da!",
     "Open in LibreSign" : "Ireki LibreSign-en",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n*✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n*⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikus [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
+    "Check configure" : "Egiaztatu konfigurazioa"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

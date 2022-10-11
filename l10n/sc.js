@@ -151,7 +151,6 @@ OC.L10N.register(
     "Generated certificate!" : "Tzertificadu generadu!",
     "Could not generate certificate." : "Generatzione tzertificadu faddida.",
     "Validation URL" : "URL de cunvàlida",
-    "To validate signature of the documents" : "Para convalidar la firma de is documentos",
     "Remove" : "Boga",
     "Previous" : "Pretzedente",
     "Sign the document." : "Firma su documentu.",
@@ -169,6 +168,7 @@ OC.L10N.register(
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
     "Open in LibreSign" : "Aberi in LibreSign",
-    "Webhook" : "Webhook"
+    "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Para convalidar la firma de is documentos"
 },
 "nplurals=2; plural=(n != 1);");

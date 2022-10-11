@@ -222,7 +222,6 @@
     "Select authorized groups." : "選擇已授權的群組。",
     "Message" : "訊息",
     "Resource" : "資源",
-    "Check configure" : "檢查配置",
     "Status of setup" : "配置狀態",
     "Dependencies" : "相關性",
     "Download binaries" : "下載二進製檔案",
@@ -245,7 +244,6 @@
     "Generated certificate!" : "生成證書！",
     "Could not generate certificate." : "無法生成根證書。",
     "Validation URL" : "驗證URL",
-    "To validate signature of the documents" : "驗證文件簽名",
     "Request signatures?" : "請求簽名？",
     "Element created" : "元素已創建",
     "Select each signer to define their signature positions" : "選擇每個簽名者來定義他們的簽名位置",
@@ -284,6 +282,8 @@
     "Open in LibreSign" : "在 LibreSign 中打開",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是適用於 Nextcloud 的 Libre 數位PDF簽名應用程式**\n\n*✍️使用數位簽名來簽署PDF文件\n*⚠️此應用程式的安裝需要存取終端，甚至需要安裝其他軟件。有關細節，請參見［設置說明］（https://github.com/LibreSign/libresign/blob/main/README.md#setup）。",
     "Webhook" : "Webhook",
+    "To validate signature of the documents" : "驗證文件簽名",
+    "Check configure" : "檢查配置",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

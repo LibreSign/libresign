@@ -225,10 +225,8 @@ OC.L10N.register(
     "Message" : "Nachricht",
     "Resource" : "Ressource",
     "Tip" : "Tipp",
-    "Check configure" : "Konfiguration überprüfen",
     "Status of setup" : "Status der Einrichtung",
     "Dependencies" : "Abhängigkeiten",
-    "Binaries required to work. Could be near by 340MB to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte einen Moment warten.",
     "Download binaries" : "Binärdateien herunterladen",
     "Binaries downloaded" : "Binärdateien heruntergeladen",
     "Downloading binaries" : "Lade Binärdateien herunter",
@@ -249,7 +247,6 @@ OC.L10N.register(
     "Generated certificate!" : "Zertifikat wurde erstellt",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
     "Validation URL" : "Überprüfungs-URL",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
     "Request signatures?" : "Signaturen anfordern?",
     "Element created" : "Element erstellt",
     "Select each signer to define their signature positions" : "Wählen Sie jeden Unterzeichner aus, um dessen Unterschriftenpositionen zu definieren",
@@ -288,6 +285,8 @@ OC.L10N.register(
     "Open in LibreSign" : "In LibreSign öffnen",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signieren Sie PDF-Dokumente mit einer digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen finden Sie unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webhook",
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
+    "Check configure" : "Konfiguration überprüfen",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte warten Sie einen Moment."
 },
 "nplurals=2; plural=(n != 1);");
