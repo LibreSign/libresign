@@ -13,11 +13,11 @@
 				type="switch"
 				:checked.sync="writeQrcodeOnFooter"
 				@update:checked="toogleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
-				{{ t('libresign', 'Write qrcode on footer with validation URL') }}
+				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
-			{{ t('libresign', 'To validate signature of the documents. Only change this value if you want to replace the default valitation URL by other.') }}
+			{{ t('libresign', 'To validate signature of the documents. Only change this value if you want to replace the default validation URL by other.') }}
 			<p>
 				<input id="validation_site"
 					ref="urlInput"
