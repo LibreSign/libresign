@@ -180,7 +180,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Allekirjoitus matkapuhelinnumerollasi.",
     "Save your number." : "Tallenna numerosi.",
     "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea.",
-    "Loading" : "Ladataan",
+    "Loading …" : "Ladataan…",
     "All Files" : "Kaikki tiedostot",
     "There are no documents" : "Ei asiakirjoja",
     "View" : "Näytä",
@@ -190,6 +190,7 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
-    "Open in LibreSign" : "Avaa LibreSignissa"
+    "Open in LibreSign" : "Avaa LibreSignissa",
+    "Loading" : "Ladataan"
 },
 "nplurals=2; plural=(n != 1);");

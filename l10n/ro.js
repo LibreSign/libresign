@@ -42,8 +42,9 @@ OC.L10N.register(
     "Resource" : "Resursă",
     "Remove" : "Elimină",
     "Previous" : "Precedentul",
-    "Loading" : "Loading",
+    "Loading …" : "Se încarcă…",
     "View" : "Vizualizare",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

@@ -155,7 +155,7 @@ OC.L10N.register(
     "Previous" : "Pretzedente",
     "Sign the document." : "Firma su documentu.",
     "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo.",
-    "Loading" : "Carrighende",
+    "Loading …" : "Carrigamentu …",
     "All Files" : "Totu is archìvios",
     "View" : "Visualiza",
     "Document Informations" : "Informatziones de su documentu",
@@ -169,6 +169,7 @@ OC.L10N.register(
     "Password created!" : "Crae creada!",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "Para convalidar la firma de is documentos"
+    "To validate signature of the documents" : "Para convalidar la firma de is documentos",
+    "Loading" : "Carrighende"
 },
 "nplurals=2; plural=(n != 1);");

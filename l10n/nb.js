@@ -48,8 +48,9 @@ OC.L10N.register(
     "Dependencies" : "Avhengigheter",
     "Remove" : "Fjern",
     "Previous" : "Forrige",
-    "Loading" : "Laster",
+    "Loading …" : "Laster ...",
     "View" : "Vis",
-    "No date" : "Ingen dato"
+    "No date" : "Ingen dato",
+    "Loading" : "Laster"
 },
 "nplurals=2; plural=(n != 1);");

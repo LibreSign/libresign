@@ -261,7 +261,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Подпишете се с номера на мобилния си телефон.",
     "Save your number." : "Запишете номера си.",
     "This iframe is not supported in your browser." : "Тази iframe не се поддържа във вашия браузър.",
-    "Loading" : "Зареждане",
+    "Loading …" : "Зареждане …",
     "%s is not a valid sign method" : "%s не е валиден метод за подпис",
     "Please define your sign password" : "Моля, определете вашата парола за подпис",
     "Define a password and sign the document." : "Определете парола и подпишете документа.",
@@ -285,6 +285,7 @@ OC.L10N.register(
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Това е Libre приложение за цифров PDF подпис за Nextcloud**\n\n* ✍️ Подписвайте PDF документи с помощта на цифров подпис\n* ⚠️ Настройката на това приложение изисква достъп до терминал и дори да си изцапате ръцете с инсталиране на допълнителен софтуер. Вижте [инструкции за настройка](https://github.com/LibreSign/libresign/blob/main/README.md#setup) за подробности.",
     "Webhook" : " Уеб обратно повикване",
     "To validate signature of the documents" : "За проверка на подписа на документите",
+    "Loading" : "Зареждане",
     "Check configure" : "Проверка на конфигурацията",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко."
 },

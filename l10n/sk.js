@@ -262,7 +262,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Podpis vaším mobilným číslom.",
     "Save your number." : "Uložiť vaše číslo.",
     "This iframe is not supported in your browser." : "Váš prehliadač nepodporuje tento iframe.",
-    "Loading" : "Načítava sa",
+    "Loading …" : "Načítavam …",
     "%s is not a valid sign method" : "%s nie je platná podpisová metóda",
     "Please define your sign password" : "Definujte svoje prihlasovacie heslo",
     "Define a password and sign the document." : "Definujte heslo a podpíšte dokument.",
@@ -286,6 +286,7 @@ OC.L10N.register(
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Toto je digitálna aplikácia pre podpisovanie PDF v Nextcloud **\n\n* ✍️ Podpíšte dokumenty PDF pomocou digitálneho podpisu\n* ⚠️ Inštalácia tejto aplikácie vyžaduje prístup k terminálu a dokonca aj inštaláciu dodatočného softvéru. Podrobnosti nájdete v [pokynoch na nastavenie] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "Pre overenie podpisu dokumentov",
+    "Loading" : "Načítava sa",
     "Check configure" : "Skontrolujte konfiguráciu",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu."
 },

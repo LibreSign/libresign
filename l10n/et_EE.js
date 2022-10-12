@@ -42,7 +42,7 @@ OC.L10N.register(
     "Dependencies" : "Sõltuvused",
     "Remove" : "Eemalda",
     "Previous" : "Eelmine",
-    "Loading" : "Laadimine",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Laadimine"
 },
 "nplurals=2; plural=(n != 1);");

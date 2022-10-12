@@ -47,7 +47,8 @@ OC.L10N.register(
     "Dependencies" : "وابستگی ها",
     "Remove" : "حذف",
     "Previous" : "قبلی",
-    "Loading" : "در حال بار گزاری",
-    "No date" : "No date"
+    "Loading …" : "بارگذاری …",
+    "No date" : "No date",
+    "Loading" : "در حال بار گزاری"
 },
 "nplurals=2; plural=(n > 1);");

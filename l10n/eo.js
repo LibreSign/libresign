@@ -46,8 +46,9 @@ OC.L10N.register(
     "Dependencies" : "Dependecoj",
     "Remove" : "Forigi",
     "Previous" : "Antaŭa",
-    "Loading" : "Ŝargado",
+    "Loading …" : "Ŝargas …",
     "View" : "Vidi",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Ŝargado"
 },
 "nplurals=2; plural=(n != 1);");

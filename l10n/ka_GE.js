@@ -46,7 +46,7 @@ OC.L10N.register(
     "Dependencies" : "დამოკიდებულებები",
     "Remove" : "წაშლა",
     "Previous" : "წინა",
-    "Loading" : "იტვირთება",
-    "No date" : "თარიღი არაა"
+    "No date" : "თარიღი არაა",
+    "Loading" : "იტვირთება"
 },
 "nplurals=2; plural=(n!=1);");
