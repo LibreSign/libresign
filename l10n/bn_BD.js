@@ -25,7 +25,7 @@ OC.L10N.register(
     "New password" : "নতুন কূটশব্দ",
     "Remove" : "অপসারণ",
     "Previous" : "পূর্ববর্তী",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

@@ -36,7 +36,8 @@ OC.L10N.register(
     "Resource" : "Нөөц",
     "Remove" : "Устгах",
     "Previous" : "өмнөх",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "Loading …" : "Уншиж байна...",
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

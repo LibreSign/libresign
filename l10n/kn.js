@@ -23,7 +23,7 @@ OC.L10N.register(
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Remove" : "ತೆಗೆದುಹಾಕಿ",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n > 1);");

@@ -44,8 +44,9 @@ OC.L10N.register(
     "Dependencies" : "Các phụ thuộc",
     "Remove" : "Xoá",
     "Previous" : "Trước",
-    "Loading" : "Đang tải",
+    "Loading …" : "Đang tải …",
     "View" : "Xem",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Đang tải"
 },
 "nplurals=1; plural=0;");

@@ -41,8 +41,8 @@ OC.L10N.register(
     "Dependencies" : "Afhanklikhede",
     "Remove" : "Verwyder",
     "Previous" : "Vorige",
-    "Loading" : "Laai tans..",
     "View" : "Bekyk",
-    "No date" : "Geen datum"
+    "No date" : "Geen datum",
+    "Loading" : "Laai tans.."
 },
 "nplurals=2; plural=(n != 1);");

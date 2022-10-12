@@ -47,8 +47,9 @@ OC.L10N.register(
     "Dependencies" : "Afhængigheder",
     "Remove" : "Fjern",
     "Previous" : "Tidligere",
-    "Loading" : "Indlæser",
+    "Loading …" : "Loading …",
     "View" : "Vis",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Indlæser"
 },
 "nplurals=2; plural=(n != 1);");

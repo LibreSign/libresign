@@ -52,8 +52,9 @@ OC.L10N.register(
     "Resource" : "Ресурси",
     "Remove" : "Отстрани ",
     "Previous" : "Предходна",
-    "Loading" : "Се вчитува",
+    "Loading …" : "Се вчитува…",
     "View" : "Погледни",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Се вчитува"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

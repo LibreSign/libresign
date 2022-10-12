@@ -254,7 +254,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Mit deiner Mobilfunknummer signieren",
     "Save your number." : "Speichere deine Nummer",
     "This iframe is not supported in your browser." : "Dieser iframe wird von deinem Browser nicht unterstützt.",
-    "Loading" : "Lade",
+    "Loading …" : "Lade …",
     "%s is not a valid sign method" : "%s ist kein gültige Signiermethode",
     "Please define your sign password" : "Bitte lege dein Signatur-Passwort fest",
     "Define a password and sign the document." : "Lege ein Passwort fest und signiere das Dokument",
@@ -277,6 +277,7 @@ OC.L10N.register(
     "Open in LibreSign" : "In LibreSign öffnen",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signiere PDF-Dokumente mit einer digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen findest du unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, "
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
+    "Loading" : "Lade"
 },
 "nplurals=2; plural=(n != 1);");

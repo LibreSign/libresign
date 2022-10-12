@@ -46,8 +46,8 @@ OC.L10N.register(
     "Dependencies" : "Varësitë",
     "Remove" : "Hiq",
     "Previous" : "I mëparshëm",
-    "Loading" : "Duke ngarkuar",
     "View" : "Shiko",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Duke ngarkuar"
 },
 "nplurals=2; plural=(n != 1);");

@@ -233,7 +233,7 @@ OC.L10N.register(
     "Phone stored." : "Téléphone enregistré.",
     "Sign with your cellphone number." : "Connectez-vous avec votre numéro de téléphone.",
     "This iframe is not supported in your browser." : "Cette iframe n'est pas supportée par votre navigateur.",
-    "Loading" : "Chargement",
+    "Loading …" : "Chargement …",
     "Define a password and sign the document." : "Définissez un mot de passe et signez le document.",
     "You do not have any signature defined." : "Vous n'avez renseigné aucune signature.",
     "Define your signature." : "Définissez votre signature.",
@@ -252,6 +252,7 @@ OC.L10N.register(
     "Password created!" : "Mot de passe créé !",
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "Pour valider la signature des documents"
+    "To validate signature of the documents" : "Pour valider la signature des documents",
+    "Loading" : "Chargement"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

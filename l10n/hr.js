@@ -216,7 +216,7 @@ OC.L10N.register(
     "Previous" : "Natrag",
     "Sign the document." : "Potpišite dokument.",
     "This iframe is not supported in your browser." : "Vaš preglednik ne podržava ovaj iframe.",
-    "Loading" : "Učitavanje",
+    "Loading …" : "Učitavanje…",
     "All Files" : "Sve datoteke",
     "There are no documents" : "Nema dokumenata",
     "View" : "Pregledaj",
@@ -231,6 +231,7 @@ OC.L10N.register(
     "Password created!" : "Zaporka je stvorena!",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta"
+    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta",
+    "Loading" : "Učitavanje"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

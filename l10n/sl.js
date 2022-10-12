@@ -232,7 +232,7 @@ OC.L10N.register(
     "Phone stored." : "Telefonska številka je shranjena.",
     "Sign with your cellphone number." : "Podpiši s telefonsko številko.",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
-    "Loading" : "Poteka nalaganje",
+    "Loading …" : "Poteka nalaganje …",
     "Unable to sign." : "Dokumenta ni mogoče podpisati.",
     "All Files" : "Vse datoteke",
     "There are no documents" : "Ni razpoložljivih dokumentov",
@@ -247,6 +247,7 @@ OC.L10N.register(
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Webhook" : "Spletni povezovalnik",
-    "To validate signature of the documents" : "Za overjanje podpisov dokumenta"
+    "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
+    "Loading" : "Poteka nalaganje"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

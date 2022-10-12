@@ -252,7 +252,7 @@
     "Sign with your cellphone number." : "Firma con il tuo numero di cellulare.",
     "Save your number." : "Salva il tuo numero.",
     "This iframe is not supported in your browser." : "Questo iframe non è supportato nel tuo browser.",
-    "Loading" : "Caricamento",
+    "Loading …" : "Caricamento …",
     "%s is not a valid sign method" : "%s non è un metodo di firma valido",
     "Please define your sign password" : "Si prega di definire la password di firma",
     "Define a password and sign the document." : "Definisci una password e firma il documento.",
@@ -274,6 +274,7 @@
     "Password created!" : "Password creato!",
     "Open in LibreSign" : "Apri in LibreSign",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "Per convalidare la firma dei documenti"
+    "To validate signature of the documents" : "Per convalidare la firma dei documenti",
+    "Loading" : "Caricamento"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
