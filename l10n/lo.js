@@ -28,7 +28,8 @@ OC.L10N.register(
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Remove" : "ຍ້າຍອອກ",
     "Previous" : "ກ່ອນໜ້າ",
-    "Loading" : "ການໂຫຼດ",
-    "No date" : "ບໍ່ມີວັນທີ"
+    "Loading …" : "ກຳລັງໂຫຼດ",
+    "No date" : "ບໍ່ມີວັນທີ",
+    "Loading" : "ການໂຫຼດ"
 },
 "nplurals=1; plural=0;");

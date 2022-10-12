@@ -29,8 +29,8 @@ OC.L10N.register(
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Previous" : "Previe",
-    "Loading" : "Loading",
     "View" : "Vider",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

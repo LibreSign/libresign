@@ -73,12 +73,13 @@ OC.L10N.register(
     "Remove" : "Αφαίρεση",
     "Previous" : "Προηγούμενο",
     "Sign the document." : "Υπογραφή του εγγράφου.",
-    "Loading" : "Γίνεται φόρτωση",
+    "Loading …" : "Φόρτωση …",
     "All Files" : "Όλα τα αρχεία",
     "View" : "Προβολή",
     "Validate Subscription." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!"
+    "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Loading" : "Γίνεται φόρτωση"
 },
 "nplurals=2; plural=(n != 1);");

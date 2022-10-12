@@ -39,8 +39,8 @@ OC.L10N.register(
     "Resource" : "ทรัพยากร",
     "Remove" : "ลบออก",
     "Previous" : "ก่อนหน้า",
-    "Loading" : "กำลังโหลด",
     "View" : "มุมมอง",
-    "No date" : "ไม่มีวันที่"
+    "No date" : "ไม่มีวันที่",
+    "Loading" : "กำลังโหลด"
 },
 "nplurals=1; plural=0;");

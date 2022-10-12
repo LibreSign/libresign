@@ -262,7 +262,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Cep telefonu numarasıyla imzalayın.",
     "Save your number." : "Numaranızı kaydedin.",
     "This iframe is not supported in your browser." : "Bu iFrame web tarayıcınız tarafından desteklenmiyor.",
-    "Loading" : "Yükleniyor",
+    "Loading …" : "Yükleniyor…",
     "%s is not a valid sign method" : "%s geçerli bir imzalama yöntemi değil",
     "Please define your sign password" : "Lütfen imzalama parolanızı tanımlayın",
     "Define a password and sign the document." : "Bir parola tanımlayın ve belgeyi imzalayın.",
@@ -286,6 +286,7 @@ OC.L10N.register(
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Nextcloud için Libre PDF imzalama uygulaması**\n\n* ✍️ Sayısal imzalar kullanarak PDF belgelerini imzalayın\n* ⚠️ Bu uygulamanın kurulması için uç birim erişilmesi gerekir. Ayrıca ek yazılımların yüklenmesi gibi işlemlerle de uğraşmanız gerekir. Ayrıntılı bilgi almak için [kurulum yönergeleri](https://github.com/LibreSign/libresign/blob/main/README.md#setup) bölümüne bakın.",
     "Webhook" : "Web bağlantısı",
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
+    "Loading" : "Yükleniyor",
     "Check configure" : "Yapılandırmayı denetle",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin."
 },

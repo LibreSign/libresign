@@ -241,7 +241,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "用手机号签名",
     "Save your number." : "保存你的号码",
     "This iframe is not supported in your browser." : "你的浏览器不支持这个 iframe",
-    "Loading" : "加载中",
+    "Loading …" : "正在加载 …",
     "%s is not a valid sign method" : "%s 非有效签名方式",
     "Please define your sign password" : "请定义你的签名密码",
     "Define a password and sign the document." : "定义密码并签署文档",
@@ -261,6 +261,7 @@ OC.L10N.register(
     "Password created!" : "已创建密码！",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Webhook" : "Webhook ",
-    "To validate signature of the documents" : "用于验证文档的签名"
+    "To validate signature of the documents" : "用于验证文档的签名",
+    "Loading" : "加载中"
 },
 "nplurals=1; plural=0;");

@@ -113,6 +113,7 @@
     "Invalid user" : "Erabiltzaile baliogabea",
     "Invalid PDF" : "Baliogabeko PDFa",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Sinadura digitaleko aplikazio librea Nextcloud-erako",
+    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature" : "** Nextclouderako PDF digitalen sinadura aplikazio librea da**\n\n* ✍️ Sinatu PDF dokumentuak sinadura digitala erabiliz",
     "Back to sign" : "Bueltatu sinatzera",
     "Request" : "Eskatu",
     "Files" : "Fitxategiak",
@@ -221,7 +222,11 @@
     "Select authorized groups." : "Hautatu baimendutako taldeak.",
     "Message" : "Mezua",
     "Resource" : "Edukia",
+    "Tip" : "Argibidea",
+    "Configuration check" : "Konfigurazioaren egiaztapena",
+    "Status of setup" : "Konfigurazioaren egoera",
     "Dependencies" : "Dependentziak",
+    "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340MB-ekoa izan daiteke, itxaron une batez.",
     "Download binaries" : "Deskargatu binarioak",
     "Binaries downloaded" : "Binarioak deskargatuta",
     "Downloading binaries" : "Binarioak deskargatzen",
@@ -241,6 +246,7 @@
     "Generating certificate." : "Ziurtagiria sortzen.",
     "Generated certificate!" : "Sortutako ziurtagiria!",
     "Could not generate certificate." : "Ezin izan da ziurtagiria sortu.",
+    "Add visible footer with signature details" : "Gehitu ikus daitekeen orri-oina sinaduraren xehetasunekin",
     "Validation URL" : "Egiaztapen URLa",
     "Request signatures?" : "Sinadurak eskatu?",
     "Element created" : "Elementua sortuta",
@@ -257,7 +263,7 @@
     "Sign with your cellphone number." : "Sinatu zure mugikorraren zenbakiarekin.",
     "Save your number." : "Gorde zure zenbakia.",
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
-    "Loading" : "Kargatzen",
+    "Loading …" : "Kargatzen …",
     "%s is not a valid sign method" : "%s ez da baliozko sinatze metodo bat",
     "Please define your sign password" : "Ezarri zure saio pasahitza mesedez.",
     "Define a password and sign the document." : "Definitu pasahitz bat eta sinatu dokumentua.",
@@ -281,6 +287,8 @@
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n*✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n*⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikus [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
-    "Check configure" : "Egiaztatu konfigurazioa"
+    "Loading" : "Kargatzen",
+    "Check configure" : "Egiaztatu konfigurazioa",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

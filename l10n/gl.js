@@ -50,11 +50,12 @@ OC.L10N.register(
     "Legal information" : "Información legal",
     "Remove" : "Retirar",
     "Previous" : "Anterior",
-    "Loading" : "Cargando",
+    "Loading …" : "Cargando…",
     "All Files" : "Todos os ficheiros",
     "There are no documents" : "Non hai documentos",
     "View" : "Ver",
     "Document Informations" : "Información do documento",
-    "No date" : "Sen data"
+    "No date" : "Sen data",
+    "Loading" : "Cargando"
 },
 "nplurals=2; plural=(n != 1);");

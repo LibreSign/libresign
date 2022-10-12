@@ -49,8 +49,9 @@ OC.L10N.register(
     "Dependencies" : "Kerfiskröfur",
     "Remove" : "Fjarlægja",
     "Previous" : "Fyrra",
-    "Loading" : "Hleð inn",
+    "Loading …" : "Hleð inn …",
     "View" : "Skoða",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Loading" : "Hleð inn"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");
