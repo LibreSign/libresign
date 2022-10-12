@@ -100,11 +100,12 @@ OC.L10N.register(
     "Previous" : "Precedent",
     "Sign the document." : "Signar aqueste document.",
     "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
-    "Loading" : "Cargament",
+    "Loading …" : "Cargament…",
     "View" : "Veire",
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
-    "User created!" : "Utilizaire creat !"
+    "User created!" : "Utilizaire creat !",
+    "Loading" : "Cargament"
 },
 "nplurals=2; plural=(n > 1);");

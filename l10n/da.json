@@ -45,8 +45,9 @@
     "Dependencies" : "Afhængigheder",
     "Remove" : "Fjern",
     "Previous" : "Tidligere",
-    "Loading" : "Indlæser",
+    "Loading …" : "Loading …",
     "View" : "Vis",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Indlæser"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -254,7 +254,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Aláírás az Ön telefonszámával.",
     "Save your number." : "Mentse el a számát.",
     "This iframe is not supported in your browser." : "Ez az iframe nem támogatott az Ön böngészőjében.",
-    "Loading" : "Betöltés",
+    "Loading …" : "Betöltés…",
     "%s is not a valid sign method" : "A(z) %s nem egy érvényes aláírási mód",
     "Please define your sign password" : "Határozza meg az aláírási jelszavát",
     "Define a password and sign the document." : "Határozzon meg egy jelszót, és írja alá a dokumentumot.",
@@ -277,6 +277,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez"
+    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez",
+    "Loading" : "Betöltés"
 },
 "nplurals=2; plural=(n != 1);");

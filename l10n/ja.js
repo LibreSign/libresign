@@ -61,12 +61,13 @@ OC.L10N.register(
     "Dependencies" : "依存関係",
     "Remove" : "削除",
     "Previous" : "前へ",
-    "Loading" : "読み込み中",
+    "Loading …" : "読み込み中…",
     "All Files" : "すべてのファイル",
     "View" : "表示",
     "No date" : "日付なし",
     "User created!" : "ユーザーが作成しました！",
     "Password created!" : "パスワードが作成しました！",
-    "Open in LibreSign" : "LibreSignで開く"
+    "Open in LibreSign" : "LibreSignで開く",
+    "Loading" : "読み込み中"
 },
 "nplurals=1; plural=0;");

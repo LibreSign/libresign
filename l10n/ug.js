@@ -22,7 +22,7 @@ OC.L10N.register(
     "New password" : "يېڭى ئىم",
     "Remove" : "چىقىرىۋەت",
     "Previous" : "ئالدىنقى",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

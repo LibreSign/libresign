@@ -27,7 +27,7 @@ OC.L10N.register(
     "Resource" : "Ressource",
     "Remove" : "Läschen",
     "Previous" : "Zeréck",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

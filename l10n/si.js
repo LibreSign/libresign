@@ -27,6 +27,7 @@ OC.L10N.register(
     "Message" : "පණිවිඩය",
     "Remove" : "ඉවත් කරන්න",
     "Previous" : "පෙර",
+    "Loading …" : "පූරණය වෙමින් …",
     "Loading" : "පූරණය වෙමින්"
 },
 "nplurals=2; plural=(n != 1);");

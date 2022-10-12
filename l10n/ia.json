@@ -27,8 +27,8 @@
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Previous" : "Previe",
-    "Loading" : "Loading",
     "View" : "Vider",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -29,7 +29,8 @@ OC.L10N.register(
     "Resource" : "Adnodd",
     "Remove" : "Gwaredu",
     "Previous" : "Blaenorol",
-    "Loading" : "Llwytho",
-    "No date" : "No date"
+    "Loading …" : "Yn llwytho …",
+    "No date" : "No date",
+    "Loading" : "Llwytho"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

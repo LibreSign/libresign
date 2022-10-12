@@ -50,8 +50,9 @@ OC.L10N.register(
     "Dependencies" : "Beroenden",
     "Remove" : "Ta bort",
     "Previous" : "Föregående",
-    "Loading" : "Läser in",
+    "Loading …" : "Läser in …",
     "View" : "Visa",
-    "No date" : "Inget datum"
+    "No date" : "Inget datum",
+    "Loading" : "Läser in"
 },
 "nplurals=2; plural=(n != 1);");

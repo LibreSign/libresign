@@ -26,7 +26,7 @@ OC.L10N.register(
     "New password" : "Yeni şifrə",
     "Remove" : "Sil",
     "Previous" : "Əvvələ",
-    "Loading" : "Loading",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Loading" : "Loading"
 },
 "nplurals=2; plural=(n != 1);");

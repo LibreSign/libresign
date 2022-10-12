@@ -239,7 +239,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "핸드폰 번호로 서명하세요.",
     "Save your number." : "번호를 저장하세요.",
     "This iframe is not supported in your browser." : "브라우저에서는 이 iframe이 지원되지 않습니다.",
-    "Loading" : "불러오는 중",
+    "Loading …" : "불러오는 중 …",
     "%s is not a valid sign method" : "%s은 올바른 사인 방법이 아닙니다.",
     "Please define your sign password" : "서명 암호를 정의하십시오.",
     "Define a password and sign the document." : "암호를 정의하고 문서에 서명합니다.",
@@ -259,6 +259,7 @@ OC.L10N.register(
     "Password created!" : "암호가 생성되었습니다!",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "문서의 서명을 확인하기 위해"
+    "To validate signature of the documents" : "문서의 서명을 확인하기 위해",
+    "Loading" : "불러오는 중"
 },
 "nplurals=1; plural=0;");

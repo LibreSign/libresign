@@ -254,7 +254,7 @@ OC.L10N.register(
     "Sign with your cellphone number." : "Podpisz swój numer telefonu komórkowego.",
     "Save your number." : "Zapisz swój numer.",
     "This iframe is not supported in your browser." : "Wbudowana ramka (iframe) nie jest obsługiwana w Twojej przeglądarce.",
-    "Loading" : "Wczytywanie",
+    "Loading …" : "Wczytywanie…",
     "%s is not a valid sign method" : "%s nie jest prawidłową metodą podpisywania",
     "Please define your sign password" : "Zdefiniuj swoje hasło do podpisu",
     "Define a password and sign the document." : "Zdefiniuj hasło i podpisz dokument.",
@@ -277,6 +277,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Otwórz w LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.",
     "Webhook" : "Webhook",
-    "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów"
+    "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów",
+    "Loading" : "Wczytywanie"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");
