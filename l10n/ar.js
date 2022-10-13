@@ -46,6 +46,7 @@ OC.L10N.register(
     "Resource" : "مصدر",
     "Remove" : "حذف",
     "Previous" : "السابق",
+    "Loading …" : "جاري التحميل …",
     "View" : "عرض",
     "No date" : "لا يوجد تاريخ",
     "Loading" : "جاري التحميل"

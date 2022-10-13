@@ -43,6 +43,7 @@ OC.L10N.register(
     "Dependencies" : "Dependencies",
     "Remove" : "Desaniciar",
     "Previous" : "Anterior",
+    "Loading …" : "Cargando...",
     "No date" : "No date",
     "Loading" : "Cargando"
 },

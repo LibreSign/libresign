@@ -249,6 +249,8 @@ OC.L10N.register(
     "Generated certificate!" : "Certifikát vytvořen!",
     "Could not generate certificate." : "Certifikát se nedaří vytvořit.",
     "Add visible footer with signature details" : "Přidat viditelné zápatí s podrobnostmi o podpisu",
+    "Write QR code on footer with validation URL" : "Do zápatí umístit QR kód s URL pro ověření platnosti",
+    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Pro ověření podpisu dokumentů. Tuto hodnotu měňte pouze tehdy, pokud chcete nahradit výchozí URL ověřování jinou.",
     "Validation URL" : "Ověřovací URL",
     "Request signatures?" : "Požádat o podpisy?",
     "Element created" : "Prvek vytvořen",

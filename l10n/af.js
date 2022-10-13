@@ -41,6 +41,7 @@ OC.L10N.register(
     "Dependencies" : "Afhanklikhede",
     "Remove" : "Verwyder",
     "Previous" : "Vorige",
+    "Loading …" : "Laai …",
     "View" : "Bekyk",
     "No date" : "Geen datum",
     "Loading" : "Laai tans.."
