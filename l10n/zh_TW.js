@@ -249,6 +249,8 @@ OC.L10N.register(
     "Generated certificate!" : "已產生憑證！",
     "Could not generate certificate." : "無法產生憑證。",
     "Add visible footer with signature details" : "新增包含簽章詳細資訊的可見頁尾",
+    "Write QR code on footer with validation URL" : "使用驗證 URL 在頁尾編寫 QR code",
+    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "用來驗證文件的簽章。僅當您想用其他的取代預設驗證 URL 時才變更此值。",
     "Validation URL" : "驗證 URL",
     "Request signatures?" : "請求簽署？",
     "Element created" : "已建立元素",
