@@ -247,6 +247,8 @@
     "Generated certificate!" : "Zertifikat wurde erstellt",
     "Could not generate certificate." : "Zertifikat konnte nicht erstellt werden.",
     "Add visible footer with signature details" : "Sichtbare Fußzeile mit Unterschriftsdetails hinzufügen",
+    "Write QR code on footer with validation URL" : "QR-Code mit Validierungs-URL in die Fußzeile schreiben",
+    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Zur Validierung der Signatur der Dokumente. Ändern Sie diesen Wert nur, wenn Sie die Standard-URL für die Validierung durch eine andere ersetzen möchten.",
     "Validation URL" : "Überprüfungs-URL",
     "Request signatures?" : "Signaturen anfordern?",
     "Element created" : "Element erstellt",
