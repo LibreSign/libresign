@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "Berechtigte Gruppen wählen.",
     "Message" : "Nachricht",
     "Resource" : "Ressource",
-    "Tip" : "Tipp",
     "Configuration check" : "Prüfung der Konfiguration",
     "Status of setup" : "Status der Einrichtung",
     "Dependencies" : "Abhängigkeiten",
@@ -292,6 +291,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
     "Loading" : "Lade",
+    "Tip" : "Tipp",
     "Check configure" : "Konfiguration überprüfen",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte warten Sie einen Moment."
 },
