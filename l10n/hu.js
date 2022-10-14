@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
     "Message" : "Üzenet",
     "Resource" : "Forrás",
-    "Tip" : "Tip",
     "Configuration check" : "Beállítás-ellenőrzés",
     "Status of setup" : "Beállítás állapota",
     "Dependencies" : "Függőségek",
@@ -292,6 +291,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez",
     "Loading" : "Betöltés",
+    "Tip" : "Tip",
     "Check configure" : "Beállítás ellenőrzése",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit."
 },

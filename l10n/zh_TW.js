@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "選取已授權的群組。",
     "Message" : "訊息",
     "Resource" : "資源",
-    "Tip" : "訣竅",
     "Configuration check" : "設定檢查",
     "Status of setup" : "設定狀態",
     "Dependencies" : "依賴關係",
@@ -292,6 +291,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "驗證文件簽章",
     "Loading" : "正在載入",
+    "Tip" : "訣竅",
     "Check configure" : "檢查設定",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。"
 },

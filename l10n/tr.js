@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "İzin verilen grupları seçin.",
     "Message" : "İleti",
     "Resource" : "Kaynak",
-    "Tip" : "İpucu",
     "Status of setup" : "Kurulum durumu",
     "Dependencies" : "Bağımlılıklar",
     "Download binaries" : "Binary dosyalarını indir",
@@ -287,6 +286,7 @@ OC.L10N.register(
     "Webhook" : "Web bağlantısı",
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
     "Loading" : "Yükleniyor",
+    "Tip" : "İpucu",
     "Check configure" : "Yapılandırmayı denetle",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin."
 },
