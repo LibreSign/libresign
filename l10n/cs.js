@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "Vybrat oprávněné skupiny.",
     "Message" : "Zpráva",
     "Resource" : "Zdroj",
-    "Tip" : "Tip",
     "Configuration check" : "Kontrola nastavení",
     "Status of setup" : "Stav nastavení",
     "Dependencies" : "Závislosti",
@@ -292,6 +291,7 @@ OC.L10N.register(
     "Webhook" : "Webový háček",
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "Loading" : "Načítání",
+    "Tip" : "Tip",
     "Check configure" : "Zkontrolovat nastavení",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli."
 },
