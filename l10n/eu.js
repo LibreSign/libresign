@@ -224,7 +224,6 @@ OC.L10N.register(
     "Select authorized groups." : "Hautatu baimendutako taldeak.",
     "Message" : "Mezua",
     "Resource" : "Edukia",
-    "Tip" : "Argibidea",
     "Configuration check" : "Konfigurazioaren egiaztapena",
     "Status of setup" : "Konfigurazioaren egoera",
     "Dependencies" : "Dependentziak",
@@ -290,6 +289,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
     "Loading" : "Kargatzen",
+    "Tip" : "Argibidea",
     "Check configure" : "Egiaztatu konfigurazioa",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez."
 },
