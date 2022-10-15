@@ -167,11 +167,8 @@ class TestCase extends \Test\TestCase {
 		) {
 			$newDest = $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathname();
 			if (!file_exists($newDest)) {
-				if (!is_dir(dirname($newDest))) {
-					mkdir(dirname($newDest), 0777, true);
-				}
 				if ($item->isDir()) {
-					mkdir($newDest, 0777, true);
+					mkdir($newDest);
 				} else {
 					copy($item, $newDest);
 				}
