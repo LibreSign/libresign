@@ -47,8 +47,8 @@ export default {
 	},
 
 	data: () => ({
-		title: t('libresign', 'Allowed to sign document'),
-		description: t('libresign', 'Select authorized groups.'),
+		title: t('libresign', 'Allow request to sign'),
+		description: t('libresign', 'Select authorized groups that can request to sign documents. Admin group is the default group and don\'t need to be defined.'),
 		groupsSelected: [],
 		groups: [],
 		idKey: 0,
