@@ -340,20 +340,6 @@ class InstallService {
 		$this->removeDownloadCache();
 	}
 
-	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
-		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
-		if (!$folder->nodeExists($hashFileName)) {
-			$hashes = file_get_contents($checksumUrl);
-			if (!$hashes) {
-				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
-			}
-			$folder->newFile($hashFileName, $hashes);
-		}
-		$hashes = $folder->get($hashFileName)->getContent();
-		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
-		return $matches['hash'];
-	}
-
 	public function uninstallCli(): void {
 		$libresignCliPath = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
 		if (!$libresignCliPath) {
@@ -514,6 +500,20 @@ class InstallService {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
 		}
+	}
+
+	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
+		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
+		if (!$folder->nodeExists($hashFileName)) {
+			$hashes = file_get_contents($checksumUrl);
+			if (!$hashes) {
+				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
+			}
+			$folder->newFile($hashFileName, $hashes);
+		}
+		$hashes = $folder->get($hashFileName)->getContent();
+		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
+		return $matches['hash'];
 	}
 
 	public function generate(
