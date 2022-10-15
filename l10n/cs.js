@@ -224,6 +224,7 @@ OC.L10N.register(
     "Select authorized groups." : "Vybrat oprávněné skupiny.",
     "Message" : "Zpráva",
     "Resource" : "Zdroj",
+    "Advice" : "Rada",
     "Configuration check" : "Kontrola nastavení",
     "Status of setup" : "Stav nastavení",
     "Dependencies" : "Závislosti",
