@@ -224,6 +224,7 @@ OC.L10N.register(
     "Select authorized groups." : "選擇已授權的群組。",
     "Message" : "訊息",
     "Resource" : "資源",
+    "Advice" : "建議",
     "Configuration check" : "配置檢查",
     "Status of setup" : "配置狀態",
     "Dependencies" : "相關性",
@@ -291,6 +292,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "To validate signature of the documents" : "驗證文件簽名",
     "Loading" : "加載中",
+    "Tip" : "提議",
     "Check configure" : "檢查配置",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。"
 },
