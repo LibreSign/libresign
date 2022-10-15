@@ -86,7 +86,7 @@ export default {
 	methods: {
 		async downloadAllBinaries() {
 			this.downloadInProgress = true
-			this.labelDownloadAllBinaries = t('libresign', 'Download in progress')
+			this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
 			try {
 				axios.get(
 					generateUrl('/apps/libresign/api/0.1/admin/download-binaries')
