@@ -80,6 +80,14 @@ class AdminController extends Controller {
 	 */
 	public function loadCertificate(): DataResponse {
 		$certificate = $this->adminSignatureService->loadKeys();
+		$cfssl = $this->configureCheckService->checkCfssl();
+		$totalSuccess = count(array_filter(
+			$cfssl,
+			function ($config) {
+				return $config->getStatus() === 'success';
+			}
+		));
+		$certificate['generated'] = $totalSuccess === count($cfssl);
 
 		return new DataResponse($certificate);
 	}

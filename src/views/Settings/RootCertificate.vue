@@ -57,20 +57,30 @@
 					type="text"
 					:disabled="formDisabled">
 			</div>
-			<div class="form-group">
+			<div>
+				<NcCheckboxRadioSwitch
+					type="switch"
+					v-if="!customCfsslData || !formDisabled"
+					:checked.sync="customCfsslData">
+					{{ t('libresign', 'Define custom values to use CFSSL') }}
+				</NcCheckboxRadioSwitch>
+			</div>
+			<div class="form-group" v-if="customCfsslData">
 				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
 				<input id="cfsslUri"
 					ref="cfsslUri"
 					v-model="certificate.cfsslUri"
 					type="text"
+					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled">
 			</div>
-			<div class="form-group">
+			<div class="form-group" v-if="customCfsslData">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
 				<input id="configPath"
 					ref="configPath"
 					v-model="certificate.configPath"
 					type="text"
+					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled">
 			</div>
 			<input type="button"
@@ -84,6 +94,7 @@
 
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -94,6 +105,7 @@ export default {
 	name: 'AdminFormLibresign',
 	components: {
 		NcSettingsSection,
+		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
@@ -103,7 +115,10 @@ export default {
 				country: '',
 				organization: '',
 				organizationUnit: '',
+				cfsslUri: '',
+				configPath: '',
 			},
+			customCfsslData: false,
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate.'),
@@ -145,6 +160,7 @@ export default {
 				}
 				this.submitLabel = t('libresign', 'Generated certificate!')
 
+				this.$root.$emit('configCheck');
 				return
 			} catch (e) {
 				console.error(e)
@@ -168,13 +184,15 @@ export default {
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
 				}
-
+				this.certificate = response.data
+				this.cfsslOk = this.certificate.generated
+				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
 				if (response.data.commonName
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
+				&& this.cfsslOk
 				) {
-					this.certificate = response.data
 					this.submitLabel = t('libresign', 'Generated certificate!')
 
 					return
