@@ -185,6 +185,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'libresign' => [
 				'sign_method' => 'password',
 				'cfssl_bin' => '',
+				'java_path' => __FILE__,
 			],
 		]);
 
@@ -229,6 +230,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'libresign' => [
 				'sign_method' => 'password',
 				'cfssl_bin' => '',
+				'java_path' => __FILE__,
 			],
 		]);
 
