@@ -18,7 +18,6 @@ use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\ICacheFactory;
 use OCP\IConfig;
-use OCP\ITempManager;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,8 +28,6 @@ class InstallService {
 	private $cache;
 	/** @var IConfig */
 	public $config;
-	/** @var ITempManager */
-	private $tempManager;
 	/** @var IClientService */
 	private $clientService;
 	/** @var SystemConfig */
@@ -49,7 +46,6 @@ class InstallService {
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
-		ITempManager $tempManager,
 		IClientService $clientService,
 		CfsslServerHandler $cfsslServerHandler,
 		CfsslHandler $cfsslHandler,
@@ -58,7 +54,6 @@ class InstallService {
 		IRootFolder $rootFolder
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
-		$this->tempManager = $tempManager;
 		$this->clientService = $clientService;
 		$this->cfsslServerHandler = $cfsslServerHandler;
 		$this->cfsslHandler = $cfsslHandler;
