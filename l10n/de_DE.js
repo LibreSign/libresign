@@ -224,6 +224,7 @@ OC.L10N.register(
     "Select authorized groups." : "Berechtigte Gruppen wählen.",
     "Message" : "Nachricht",
     "Resource" : "Ressource",
+    "Advice" : "Ratschlag",
     "Configuration check" : "Prüfung der Konfiguration",
     "Status of setup" : "Status der Einrichtung",
     "Dependencies" : "Abhängigkeiten",
