@@ -52,7 +52,11 @@ class CfsslServerHandler {
 		
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {
-			throw new LibresignException("Error while writing CSR server file!", 500);
+			throw new LibresignException(
+				"Error while writing CSR server file.\n" .
+				"Remove the CFSSL API URI and Config path to use the default values.",
+				500
+			);
 		}
 	}
 
