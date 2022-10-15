@@ -24,7 +24,37 @@
 <template>
 	<NcSettingsSection :title="title" :description="description"
 		v-if=cfsslOk>
-		<div id="formLibresign" class="form-libresign">
+		<div id="tableRootCertificate" class="form-libresign" v-if="generated">
+			<table class="grid">
+				<tbody>
+					<tr>
+						<td>{{ t('libresign', 'Name (CN)') }}</td>
+						<td>{{ certificate.commonName }}</td>
+					</tr>
+					<tr>
+						<td>{{ t('libresign', 'Country (C)') }}</td>
+						<td>{{ certificate.country }}</td>
+					</tr>
+					<tr>
+						<td>{{ t('libresign', 'Organization (O)') }}</td>
+						<td>{{ certificate.organization }}</td>
+					</tr>
+					<tr>
+						<td>{{ t('libresign', 'Organization Unit (OU)') }}</td>
+						<td>{{ certificate.organizationUnit }}</td>
+					</tr>
+					<tr>
+						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
+						<td>{{ certificate.cfsslUri }}</td>
+					</tr>
+					<tr>
+						<td>{{ t('libresign', 'Config path') }}</td>
+						<td>{{ certificate.configPath }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div v-else id="formrootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
@@ -124,6 +154,7 @@ export default {
 			submitLabel: t('libresign', 'Generate root certificate.'),
 			formDisabled: false,
 			loading: true,
+			generated: false,
 		}
 	},
 	computed: {
@@ -158,8 +189,8 @@ export default {
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)
 				}
-				this.submitLabel = t('libresign', 'Generated certificate!')
-
+				this.certificate = response.data.data
+				this.afterCertificateGenerated()
 				this.$root.$emit('configCheck');
 				return
 			} catch (e) {
@@ -193,8 +224,7 @@ export default {
 				&& response.data.organizationUnit
 				&& this.cfsslOk
 				) {
-					this.submitLabel = t('libresign', 'Generated certificate!')
-
+					this.afterCertificateGenerated()
 					return
 				}
 			} catch (e) {
@@ -202,11 +232,17 @@ export default {
 			}
 			this.formDisabled = false
 		},
+
+		afterCertificateGenerated() {
+			this.submitLabel = t('libresign', 'Generated certificate!')
+			this.description = ''
+			this.generated = true;
+		},
 	},
 }
 </script>
 <style scoped>
-#formLibresign{
+#formrootCertificate{
 	text-align: left;
 	margin: 20px;
 }
@@ -220,7 +256,7 @@ export default {
 }
 
 @media screen and (max-width: 500px){
-	#formLibresign{
+	#formrootCertificate{
 		width: 100%;
 	}
 }
