@@ -71,7 +71,7 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	public function getFolder($path = ''): Folder {
+	private function getFolder($path = ''): Folder {
 		$rootFolder = $this->getAppRootFolder();
 		if ($rootFolder->nodeExists(Application::APP_ID . DIRECTORY_SEPARATOR . $path)) {
 			$folder = $rootFolder->get(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
