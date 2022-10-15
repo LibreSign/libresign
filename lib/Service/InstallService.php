@@ -6,6 +6,7 @@ namespace OCA\Libresign\Service;
 
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
+use OC\Files\Filesystem;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
@@ -92,9 +93,12 @@ class InstallService {
 
 	private function getAppRootFolder(): Folder {
 		$path = $this->getAppDataFolderName();
-		try {
+		$mount = Filesystem::getMountManager()->find($path);
+		$storage = $mount->getStorage();
+		$internalPath = $mount->getInternalPath($path);
+		if ($storage->file_exists($internalPath)) {
 			$folder = $this->rootFolder->get($path);
-		} catch (\Throwable $th) {
+		} else {
 			$folder = $this->rootFolder->newFolder($path);
 		}
 		return $folder;
