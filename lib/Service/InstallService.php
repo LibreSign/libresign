@@ -6,6 +6,7 @@ namespace OCA\Libresign\Service;
 
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
+use OC\Files\Filesystem;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
@@ -16,17 +17,18 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
+use OCP\ICacheFactory;
 use OCP\IConfig;
-use OCP\ITempManager;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 class InstallService {
+	/** @var ICache */
+	private $cache;
 	/** @var IConfig */
 	public $config;
-	/** @var ITempManager */
-	private $tempManager;
 	/** @var IClientService */
 	private $clientService;
 	/** @var SystemConfig */
@@ -39,9 +41,12 @@ class InstallService {
 	private $cfsslHandler;
 	/** @var OutputInterface */
 	private $output;
+	/** @var bool */
+	/** @var string */
+	private $resource = '';
 
 	public function __construct(
-		ITempManager $tempManager,
+		ICacheFactory $cacheFactory,
 		IClientService $clientService,
 		CfsslServerHandler $cfsslServerHandler,
 		CfsslHandler $cfsslHandler,
@@ -49,7 +54,7 @@ class InstallService {
 		SystemConfig $systemConfig,
 		IRootFolder $rootFolder
 	) {
-		$this->tempManager = $tempManager;
+		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->clientService = $clientService;
 		$this->cfsslServerHandler = $cfsslServerHandler;
 		$this->cfsslHandler = $cfsslHandler;
@@ -62,12 +67,12 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	public function getFolder($path = ''): Folder {
+	private function getFolder($path = ''): Folder {
 		$rootFolder = $this->getAppRootFolder();
-		try {
-			$folder = $rootFolder->newFolder(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
-		} catch (\Throwable $th) {
+		if ($rootFolder->nodeExists(Application::APP_ID . DIRECTORY_SEPARATOR . $path)) {
 			$folder = $rootFolder->get(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
+		} else {
+			$folder = $rootFolder->newFolder(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
 		}
 		return $folder;
 	}
@@ -88,9 +93,12 @@ class InstallService {
 
 	private function getAppRootFolder(): Folder {
 		$path = $this->getAppDataFolderName();
-		try {
+		$mount = Filesystem::getMountManager()->find($path);
+		$storage = $mount->getStorage();
+		$internalPath = $mount->getInternalPath($path);
+		if ($storage->file_exists($internalPath)) {
 			$folder = $this->rootFolder->get($path);
-		} catch (\Throwable $th) {
+		} else {
 			$folder = $this->rootFolder->newFolder($path);
 		}
 		return $folder;
@@ -111,7 +119,65 @@ class InstallService {
 		return $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
 	}
 
-	public function installJava(): void {
+	private function runAsync(): void {
+		$resource = $this->resource;
+		$process = new Process(['./occ', 'libresign:install', '--' . $resource]);
+		$process->start();
+		$data['pid'] = $process->getPid();
+		if ($data['pid']) {
+			$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $resource, $data);
+		}
+	}
+
+	private function progressToDatabase($downloadSize, $downloaded) {
+		$data = $this->getProressData();
+		$data['download_size'] = $downloadSize;
+		$data['downloaded'] = $downloaded;
+		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource, $data);
+	}
+
+	public function getProressData(): array {
+		$data = $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource) ?? [];
+		return $data;
+	}
+
+	private function removeDownloadCache() {
+		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource);
+	}
+
+	public function getTotalSize(): array {
+		$resources = [
+			'java',
+			'jsignpdf',
+			'cli',
+			'cfssl'
+		];
+		$return = [];
+		foreach ($resources as $resource) {
+			$this->setResource($resource);
+			$progressData = $this->getProressData();
+			if (array_key_exists('download_size', $progressData)) {
+				if ($progressData['download_size']) {
+					$return[$resource] = $progressData['downloaded'] * 100 / $progressData['download_size'];
+				} else {
+					$return[$resource] = 0;
+				}
+			}
+		}
+		return $return;
+	}
+
+	public function setResource(string $resource): self {
+		$this->resource = $resource;
+		return $this;
+	}
+
+	public function installJava(?bool $async = false): void {
+		$this->setResource('java');
+		if ($async) {
+			$this->runAsync();
+			return;
+		}
 		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'java';
 		$appFolder = $this->getFolder();
 		if ($appFolder->nodeExists('java')) {
@@ -149,17 +215,20 @@ class InstallService {
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash);
 
-		if ($javaFolder->nodeExists('java-se-8u41-ri')) {
-			$javaFolder->get('java-se-8u41-ri')->delete();
-			/**
-			 * @todo Extrange behaviour, the directory won't full deleted, need run the methow 2 times
-			 */
+		/**
+		 * @todo Extrange behaviour, the directory won't full deleted,
+		 * go-Horse to force delete in not Windows environment
+		 */
+		if (PHP_OS_FAMILY !== 'Windows') {
+			exec('rm -rf ' . $this->getDataDir() . DIRECTORY_SEPARATOR . $javaFolder->getInternalPath() . DIRECTORY_SEPARATOR . 'java-se-8u41-ri');
+		} elseif ($javaFolder->nodeExists('java-se-8u41-ri')) {
 			$javaFolder->get('java-se-8u41-ri')->delete();
 		}
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
 		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/java-se-8u41-ri/bin/java' . $executableExtension);
+		$this->removeDownloadCache();
 	}
 
 	public function uninstallJava(): void {
@@ -180,22 +249,36 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
 
-	public function installJSignPdf(): void {
+	public function installJSignPdf(?bool $async = false): void {
 		if (!extension_loaded('zip')) {
 			throw new RuntimeException('Zip extension is not available');
 		}
+		$this->setResource('jsignpdf');
+		if ($async) {
+			$this->runAsync();
+			return;
+		}
 		$extractDir = $this->getFullPath();
 
-		$tempFile = $this->tempManager->getTemporaryFile('.zip');
+		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+		if (!$this->getFolder()->nodeExists($compressedFileName)) {
+			$compressedFile = $this->getFolder()->newFile($compressedFileName);
+		} else {
+			$compressedFile = $this->getFolder()->get($compressedFileName);
+		}
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
 		$url = 'https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%20' . JSignPdfHandler::VERSION . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+		/** WHEN UPDATE version: generate this hash handmade and update here */
+		$hash = 'be5a966be3a4a303f09a42c28b9b9a22';
 
-		$this->download($url, 'JSignPdf', $tempFile);
+		$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
 
-		$zip = new ZIP($tempFile);
+		$zip = new ZIP($extractDir . DIRECTORY_SEPARATOR . $compressedFileName);
 		$zip->extract($extractDir);
 
 		$fullPath = $extractDir . DIRECTORY_SEPARATOR. 'jsignpdf-' . JSignPdfHandler::VERSION . DIRECTORY_SEPARATOR. 'JSignPdf.jar';
 		$this->config->setAppValue(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
+		$this->removeDownloadCache();
 	}
 
 	public function uninstallJSignPdf(): void {
@@ -217,9 +300,14 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
-	public function installCli(): void {
+	public function installCli(?bool $async = false): void {
 		if (PHP_OS_FAMILY === 'Windows') {
 			throw new \RuntimeException('LibreSign CLI do not work in Windows!');
+		}
+		$this->setResource('cli');
+		if ($async) {
+			$this->runAsync();
+			return;
 		}
 		$folder = $this->getFolder();
 		$version = '0.0.4';
@@ -248,20 +336,7 @@ class InstallService {
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'libresign_cli_path', $fullPath);
-	}
-
-	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
-		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
-		if (!$folder->nodeExists($hashFileName)) {
-			$hashes = file_get_contents($checksumUrl);
-			if (!$hashes) {
-				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
-			}
-			$folder->newFile($hashFileName, $hashes);
-		}
-		$hashes = $folder->get($hashFileName)->getContent();
-		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
-		return $matches['hash'];
+		$this->removeDownloadCache();
 	}
 
 	public function uninstallCli(): void {
@@ -281,7 +356,12 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
 	}
 
-	public function installCfssl(): void {
+	public function installCfssl(?bool $async = false): void {
+		$this->setResource('cfssl');
+		if ($async) {
+			$this->runAsync();
+			return;
+		}
 		$folder = $this->getFolder();
 		$version = '1.6.1';
 
@@ -338,6 +418,7 @@ class InstallService {
 			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
 			$downloads[0]['destination'];
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
+		$this->removeDownloadCache();
 	}
 
 	public function uninstallCfssl(): void {
@@ -365,8 +446,11 @@ class InstallService {
 	}
 
 	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
-		if (file_exists($path) && hash_file($hash_algo, $path) === $hash) {
-			return;
+		if (file_exists($path)) {
+			$this->progressToDatabase(filesize($path), 0);
+			if (hash_file($hash_algo, $path) === $hash) {
+				return;
+			}
 		}
 		if (php_sapi_name() === 'cli' && $this->output instanceof OutputInterface) {
 			$this->downloadCli($url, $filename, $path, $hash, $hash_algo);
@@ -376,7 +460,10 @@ class InstallService {
 		try {
 			$client->get($url, [
 				'sink' => $path,
-				'timeout' => 0
+				'timeout' => 0,
+				'progress' => function ($downloadSize, $downloaded) {
+					$this->progressToDatabase($downloadSize, $downloaded);
+				},
 			]);
 		} catch (\Exception $e) {
 			throw new LibresignException('Failure on download ' . $filename . " try again.\n" . $e->getMessage());
@@ -398,6 +485,7 @@ class InstallService {
 				'progress' => function ($downloadSize, $downloaded) use ($progressBar) {
 					$progressBar->setMaxSteps($downloadSize);
 					$progressBar->setProgress($downloaded);
+					$this->progressToDatabase($downloadSize, $downloaded);
 				},
 			]);
 		} catch (\Exception $e) {
@@ -411,6 +499,20 @@ class InstallService {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
 		}
+	}
+
+	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
+		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
+		if (!$folder->nodeExists($hashFileName)) {
+			$hashes = file_get_contents($checksumUrl);
+			if (!$hashes) {
+				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
+			}
+			$folder->newFile($hashFileName, $hashes);
+		}
+		$hashes = $folder->get($hashFileName)->getContent();
+		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
+		return $matches['hash'];
 	}
 
 	public function generate(
