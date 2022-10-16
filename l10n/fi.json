@@ -157,7 +157,6 @@
     "Enter new password and then repeat it" : "Kirjoita uusi salasana ja toista se",
     "New password" : "Uusi salasana",
     "Repeat password" : "Toista salasana",
-    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Message" : "Viesti",
     "Resource" : "Resurssi",
     "Dependencies" : "Riippuvuudet",
@@ -189,6 +188,7 @@
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Open in LibreSign" : "Avaa LibreSignissa",
+    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Loading" : "Ladataan"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
