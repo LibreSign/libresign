@@ -206,7 +206,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "输入新密码并重复一次",
     "New password" : "新密码",
     "Repeat password" : "重复密码",
-    "Select authorized groups." : "选择授权组",
     "Message" : "消息",
     "Resource" : "源",
     "Dependencies" : "附属",
@@ -261,6 +260,7 @@ OC.L10N.register(
     "Password created!" : "已创建密码！",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Webhook" : "Webhook ",
+    "Select authorized groups." : "选择授权组",
     "To validate signature of the documents" : "用于验证文档的签名",
     "Loading" : "加载中"
 },

@@ -219,7 +219,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Inserisci la nuova password e poi ripetila",
     "New password" : "Nuova password",
     "Repeat password" : "Ripeti la password",
-    "Select authorized groups." : "Seleziona gruppi autorizzati.",
     "Message" : "Messaggio",
     "Resource" : "Risorsa",
     "Dependencies" : "Dipendenze",
@@ -276,6 +275,7 @@ OC.L10N.register(
     "Password created!" : "Password creato!",
     "Open in LibreSign" : "Apri in LibreSign",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "Seleziona gruppi autorizzati.",
     "To validate signature of the documents" : "Per convalidare la firma dei documenti",
     "Loading" : "Caricamento"
 },
