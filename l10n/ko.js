@@ -204,7 +204,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "새 암호를 입력한 후 반복합니다.",
     "New password" : "새 암호",
     "Repeat password" : "암호 확인",
-    "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
     "Message" : "메시지",
     "Resource" : "자원",
     "Dependencies" : "의존성",
@@ -259,6 +258,7 @@ OC.L10N.register(
     "Password created!" : "암호가 생성되었습니다!",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
     "To validate signature of the documents" : "문서의 서명을 확인하기 위해",
     "Loading" : "불러오는 중"
 },

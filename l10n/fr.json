@@ -200,9 +200,10 @@
     "Enter new password and then repeat it" : "Entrez un mot de passe et répétez-le",
     "New password" : "Nouveau mot de passe",
     "Repeat password" : "Répétez le mot de passe",
-    "Select authorized groups." : "Sélectionner les groupes autorisés.",
     "Message" : "Message",
     "Resource" : "Ressource",
+    "Advice" : "Conseil",
+    "Configuration check" : "Vérification de la configuration",
     "Dependencies" : "Dépendances",
     "Legal Information" : "Informations légales",
     "Legal information" : "Informations légales",
@@ -219,6 +220,8 @@
     "Generating certificate." : "Génération du certificat. ",
     "Generated certificate!" : "Certificat généré ! ",
     "Could not generate certificate." : "Impossible de générer le certificat.",
+    "Write QR code on footer with validation URL" : "Insérer le QR code de l'URL de validation en bas de page",
+    "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Pour valider la signature des documents. Changez cette valeur uniquement si vous voulez remplacer l'URL de validation par défaut par une autre.",
     "Validation URL" : "URL de validation",
     "Request signatures?" : "Demander une signature ?",
     "Element created" : "Élément créé",
@@ -250,7 +253,9 @@
     "Password created!" : "Mot de passe créé !",
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "Sélectionner les groupes autorisés.",
     "To validate signature of the documents" : "Pour valider la signature des documents",
-    "Loading" : "Chargement"
+    "Loading" : "Chargement",
+    "Tip" : "Astuce"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

@@ -132,7 +132,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Pone sa crae noa e a pustis torra·dda a pònnere",
     "New password" : "Crae noa",
     "Repeat password" : "Torra a pònnere sa crae",
-    "Select authorized groups." : "Seletziona grupos autorizados.",
     "Message" : "Messàgiu",
     "Dependencies" : "Dipendèntzias",
     "Legal Information" : "Informatziones legales",
@@ -169,6 +168,7 @@ OC.L10N.register(
     "Password created!" : "Crae creada!",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "Seletziona grupos autorizados.",
     "To validate signature of the documents" : "Para convalidar la firma de is documentos",
     "Loading" : "Carrighende"
 },

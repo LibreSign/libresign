@@ -159,7 +159,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Kirjoita uusi salasana ja toista se",
     "New password" : "Uusi salasana",
     "Repeat password" : "Toista salasana",
-    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Message" : "Viesti",
     "Resource" : "Resurssi",
     "Dependencies" : "Riippuvuudet",
@@ -191,6 +190,7 @@ OC.L10N.register(
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Open in LibreSign" : "Avaa LibreSignissa",
+    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Loading" : "Ladataan"
 },
 "nplurals=2; plural=(n != 1);");
