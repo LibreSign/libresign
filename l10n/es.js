@@ -219,7 +219,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Introduzca una nueva contraseña y luego repitala",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
-    "Select authorized groups." : "Seleccionar grupos autorizados.",
     "Message" : "Mensaje",
     "Resource" : "Recurso",
     "Dependencies" : "Dependencias",
@@ -277,6 +276,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Abrir en LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Esta es una aplicación libre para la firma digital de PDFs para Nextcloud**.\n\n* ✍️ Firma documentos PDF utilizando la firma digital\n* ⚠️ La configuración de esta app requiere acceso a un terminal e incluso ensuciarse las manos con la instalación de software adicional. Consulta las [instrucciones de configuración](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para más detalles.",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "Seleccionar grupos autorizados.",
     "To validate signature of the documents" : "Para validad las firmas de los documentos",
     "Loading" : "Cargando"
 },

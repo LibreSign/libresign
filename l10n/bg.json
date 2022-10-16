@@ -218,8 +218,6 @@
     "Enter new password and then repeat it" : "Въведете нова парола и след това я повторете",
     "New password" : "Нова парола",
     "Repeat password" : "Повторете паролата",
-    "Allowed to sign document" : "Подписването на документа е разрешено",
-    "Select authorized groups." : "Избор на оторизирани групи.",
     "Message" : "Съобщение",
     "Resource" : "Ресурс",
     "Status of setup" : "Състояние на настройката",
@@ -282,8 +280,10 @@
     "Open in LibreSign" : "Отваряне в LibreSign",
     "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Това е Libre приложение за цифров PDF подпис за Nextcloud**\n\n* ✍️ Подписвайте PDF документи с помощта на цифров подпис\n* ⚠️ Настройката на това приложение изисква достъп до терминал и дори да си изцапате ръцете с инсталиране на допълнителен софтуер. Вижте [инструкции за настройка](https://github.com/LibreSign/libresign/blob/main/README.md#setup) за подробности.",
     "Webhook" : " Уеб обратно повикване",
+    "Select authorized groups." : "Избор на оторизирани групи.",
     "To validate signature of the documents" : "За проверка на подписа на документите",
     "Loading" : "Зареждане",
+    "Allowed to sign document" : "Подписването на документа е разрешено",
     "Check configure" : "Проверка на конфигурацията",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

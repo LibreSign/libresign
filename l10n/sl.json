@@ -197,7 +197,6 @@
     "Enter new password and then repeat it" : "Vpišite geslo in ga nato spodaj ponovite",
     "New password" : "Novo geslo",
     "Repeat password" : "Ponovi geslo",
-    "Select authorized groups." : "Izbor overjenih skupin.",
     "Message" : "Sporočilo",
     "Resource" : "Vir",
     "Dependencies" : "Odvisnosti",
@@ -245,6 +244,7 @@
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Webhook" : "Spletni povezovalnik",
+    "Select authorized groups." : "Izbor overjenih skupin.",
     "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
     "Loading" : "Poteka nalaganje"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"

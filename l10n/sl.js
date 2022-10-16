@@ -199,7 +199,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Vpišite geslo in ga nato spodaj ponovite",
     "New password" : "Novo geslo",
     "Repeat password" : "Ponovi geslo",
-    "Select authorized groups." : "Izbor overjenih skupin.",
     "Message" : "Sporočilo",
     "Resource" : "Vir",
     "Dependencies" : "Odvisnosti",
@@ -247,6 +246,7 @@ OC.L10N.register(
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Webhook" : "Spletni povezovalnik",
+    "Select authorized groups." : "Izbor overjenih skupin.",
     "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
     "Loading" : "Poteka nalaganje"
 },

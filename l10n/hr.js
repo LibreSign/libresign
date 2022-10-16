@@ -192,7 +192,6 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Unesite novu zaporku, a zatim je ponovite",
     "New password" : "Nova zaporka",
     "Repeat password" : "Ponovi zaporku",
-    "Select authorized groups." : "Odaberite ovlaštenu grupu.",
     "Message" : "Poruka",
     "Resource" : "Resurs",
     "Dependencies" : "Ovisnosti",
@@ -231,6 +230,7 @@ OC.L10N.register(
     "Password created!" : "Zaporka je stvorena!",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Webhook" : "Webhook",
+    "Select authorized groups." : "Odaberite ovlaštenu grupu.",
     "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta",
     "Loading" : "Učitavanje"
 },
