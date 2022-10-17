@@ -24,7 +24,7 @@
 <template>
 	<NcSettingsSection :title="title" :description="description"
 		v-if=cfsslOk>
-		<div id="tableRootCertificate" class="form-libresign" v-if="generated">
+		<div id="tableRootCertificate" class="form-libresign" v-if="certificate.generated">
 			<table class="grid">
 				<tbody>
 					<tr>
@@ -154,7 +154,6 @@ export default {
 			submitLabel: t('libresign', 'Generate root certificate.'),
 			formDisabled: false,
 			loading: true,
-			generated: false,
 		}
 	},
 	computed: {
@@ -216,6 +215,7 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
+				console.log(this.certificate)
 				this.cfsslOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
 				if (response.data.commonName
@@ -236,7 +236,7 @@ export default {
 		afterCertificateGenerated() {
 			this.submitLabel = t('libresign', 'Generated certificate!')
 			this.description = ''
-			this.generated = true;
+			this.certificate.generated = true;
 		},
 	},
 }

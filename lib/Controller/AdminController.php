@@ -4,6 +4,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\AdminSignatureService;
 use OCA\Libresign\Service\ConfigureCheckService;
 use OCA\Libresign\Service\InstallService;
@@ -81,14 +82,14 @@ class AdminController extends Controller {
 	 */
 	public function loadCertificate(): DataResponse {
 		$certificate = $this->adminSignatureService->loadKeys();
-		$cfssl = $this->configureCheckService->checkCfssl();
-		$totalSuccess = count(array_filter(
+		$cfssl = $this->configureCheckService->checkCfsslConfigure();
+		$success = array_filter(
 			$cfssl,
-			function ($config) {
+			function (ConfigureCheckHelper $config) {
 				return $config->getStatus() === 'success';
 			}
-		));
-		$certificate['generated'] = $totalSuccess === count($cfssl);
+		);
+		$certificate['generated'] = count($success) === count($cfssl);
 
 		return new DataResponse($certificate);
 	}
