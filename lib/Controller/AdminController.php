@@ -63,7 +63,7 @@ class AdminController extends Controller {
 
 			return new DataResponse([
 				'success' => true,
-				'data' => $this->adminSignatureService->loadKeys()
+				'data' => $this->adminSignatureService->loadKeys(),
 			]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
