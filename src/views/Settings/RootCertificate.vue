@@ -79,7 +79,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else id="formrootCertificate" class="form-libresign">
+		<div v-else id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
@@ -288,7 +288,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-#formrootCertificate{
+#formRootCertificate{
 	text-align: left;
 	margin: 20px;
 }
@@ -316,7 +316,7 @@ export default {
 }
 
 @media screen and (max-width: 500px){
-	#formrootCertificate{
+	#formRootCertificate{
 		width: 100%;
 	}
 }
