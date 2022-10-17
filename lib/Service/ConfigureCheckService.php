@@ -189,6 +189,13 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkCfssl(): array {
+		$return = [];
+		$return = array_merge($return, $this->checkCfsslBinaries());
+		$return = array_merge($return, $this->checkCfsslConfigure());
+		return $return;
+	}
+
+	public function checkCfsslBinaries(): array {
 		if (PHP_OS_FAMILY === 'Windows') {
 			return [
 				(new ConfigureCheckHelper())
@@ -227,13 +234,19 @@ class ConfigureCheckService {
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
-		if (!is_dir($configPath)) {
-			$return[] = (new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure --cfssl');
-		}
 		return $return;
+	}
+
+	public function checkCfsslConfigure(): array {
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			return [(new ConfigureCheckHelper())
+				->setSuccessMessage('Root certificate generated.')
+				->setResource('cfssl-configure')];
+		}
+		return [(new ConfigureCheckHelper())
+			->setErrorMessage('CFSSL not configured.')
+			->setResource('cfssl-configure')
+			->setTip('Run occ libresign:configure --cfssl')];
 	}
 }
