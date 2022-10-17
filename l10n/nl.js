@@ -272,6 +272,7 @@ OC.L10N.register(
     "Webhook" : "Webhook",
     "Select authorized groups." : "Selecteer geautoriseerde groepen.",
     "To validate signature of the documents" : "Om handtekening van documenten te valideren",
-    "Loading" : "Laden"
+    "Loading" : "Laden",
+    "Check configure" : "Configuratiecontrole"
 },
 "nplurals=2; plural=(n != 1);");
