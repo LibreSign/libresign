@@ -53,6 +53,31 @@
 					</tr>
 				</tbody>
 			</table>
+			<NcButton
+				@click="showModal">
+				{{ t('libresign', 'Regenerate root certificate') }}
+			</NcButton>
+			<NcModal
+				v-if="modal"
+				@close="closeModal"
+				title="Title inside modal">
+				<div class="modal__content">
+					<h2>{{ t('libresign', 'Confirm') }}</h2>
+					{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?')}}
+					<div class="grid">
+						<NcButton
+							type="error"
+							@click="clearAndShowForm">
+							{{ t('libresign', 'Yes') }}
+						</NcButton>
+						<NcButton
+							type="primary"
+							@click="closeModal">
+							{{ t('libresign', 'No') }}
+						</NcButton>
+					</div>
+				</div>
+			</NcModal>
 		</div>
 		<div v-else id="formrootCertificate" class="form-libresign">
 			<div class="form-group">
@@ -125,6 +150,8 @@
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -136,10 +163,13 @@ export default {
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
+		NcModal,
+		NcButton,
 	},
 	data() {
 		return {
 			cfsslOk: false,
+			modal: false,
 			certificate: {
 				commonName: '',
 				country: '',
@@ -160,10 +190,10 @@ export default {
 		savePossible() {
 			return (
 				this.certificate
-                && this.certificate.commonName !== ''
-                && this.certificate.country !== ''
-                && this.certificate.organization !== ''
-                && this.certificate.organizationUnit !== ''
+								&& this.certificate.commonName !== ''
+								&& this.certificate.country !== ''
+								&& this.certificate.organization !== ''
+								&& this.certificate.organizationUnit !== ''
 			)
 		},
 	},
@@ -176,6 +206,23 @@ export default {
 	},
 
 	methods: {
+		showModal() {
+			this.modal = true
+		},
+		closeModal() {
+			this.modal = false
+		},
+		clearAndShowForm() {
+			this.certificate.commonName = ''
+			this.certificate.country = ''
+			this.certificate.organization = ''
+			this.certificate.organizationUnit = ''
+			this.certificate.cfsslUri = ''
+			this.certificate.configPath = ''
+			this.certificate.generated = false
+			this.customCfsslData = false
+			this.submitLabel = t('libresign', 'Generate root certificate.')
+		},
 		async generateCertificate() {
 			this.formDisabled = true
 			this.submitLabel = t('libresign', 'Generating certificate.')
@@ -215,7 +262,6 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
-				console.log(this.certificate)
 				this.cfsslOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
 				if (response.data.commonName
@@ -241,7 +287,7 @@ export default {
 	},
 }
 </script>
-<style scoped>
+<style lang="scss" scoped>
 #formrootCertificate{
 	text-align: left;
 	margin: 20px;
@@ -253,6 +299,20 @@ export default {
 
 .form-heading--required:after {
 	content:" *";
+}
+
+.modal__content {
+	margin: 50px;
+	text-align: center;
+
+	.grid {
+		display: flex;
+		flex-direction: row;
+		align-self: flex-end;
+		button {
+			margin: 10px;
+		}
+	}
 }
 
 @media screen and (max-width: 500px){
