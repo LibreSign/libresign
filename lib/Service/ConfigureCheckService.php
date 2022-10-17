@@ -241,7 +241,7 @@ class ConfigureCheckService {
 		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
 		if (is_dir($configPath)) {
 			return [(new ConfigureCheckHelper())
-				->setSuccessMessage('Root certificate generated.')
+				->setSuccessMessage('Root certificate config files found.')
 				->setResource('cfssl-configure')];
 		}
 		return [(new ConfigureCheckHelper())
