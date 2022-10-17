@@ -221,6 +221,8 @@ export default {
 			this.certificate.configPath = ''
 			this.certificate.generated = false
 			this.customCfsslData = false
+			this.formDisabled = false
+			this.modal = false
 			this.submitLabel = t('libresign', 'Generate root certificate.')
 		},
 		async generateCertificate() {
