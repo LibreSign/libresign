@@ -218,6 +218,8 @@
     "Enter new password and then repeat it" : "Yeni parolayı ve parola onayını yazın",
     "New password" : "Yeni parola",
     "Repeat password" : "Parola onayı",
+    "Allow request to sign" : "İmzalama isteğinde bulunun",
+    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Belge imzalama isteğinde bulunabilecek yetkili grupları seçin. Yönetici grubu varsayılan olarak istekte bulunabilir ve ayrıca tanımlanması gerekmez.",
     "Message" : "İleti",
     "Resource" : "Kaynak",
     "Advice" : "Öneri",

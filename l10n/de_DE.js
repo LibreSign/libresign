@@ -220,6 +220,8 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "Geben Sie ein neues Passwort ein und wiederholen Sie es",
     "New password" : "Neues Passwort",
     "Repeat password" : "Passwort wiederholen",
+    "Allow request to sign" : "Anforderung zum Signieren zulassen",
+    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Wählen Sie autorisierte Gruppen aus, die das Signieren von Dokumenten anfordern können. Die Admin-Gruppe ist die Standardgruppe und muss nicht definiert werden.",
     "Message" : "Nachricht",
     "Resource" : "Ressource",
     "Advice" : "Ratschlag",

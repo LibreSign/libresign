@@ -220,6 +220,8 @@ OC.L10N.register(
     "Enter new password and then repeat it" : "輸入新密碼，然後重複輸入",
     "New password" : "新密碼",
     "Repeat password" : "重複密碼",
+    "Allow request to sign" : "允許簽署請求",
+    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "選擇可以請求簽署文件的授權群組。管理員群組是默認群組，不需要定義。",
     "Message" : "訊息",
     "Resource" : "資源",
     "Advice" : "建議",

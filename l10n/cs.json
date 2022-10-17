@@ -218,6 +218,8 @@
     "Enter new password and then repeat it" : "Zadejte nové heslo (do obou kolonek)",
     "New password" : "Nové heslo",
     "Repeat password" : "Zopakujte zadání hesla",
+    "Allow request to sign" : "Umožnit zažádat o podepsání",
+    "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Vyberte skupiny pověřené tím, že mohou zažádat o podepisování dokumentů. Skupina Admin (správci) už je zde zahrnuta ve výchozím stavu (není třeba zadávat).",
     "Message" : "Zpráva",
     "Resource" : "Zdroj",
     "Advice" : "Rada",
