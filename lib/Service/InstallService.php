@@ -188,6 +188,8 @@ class InstallService {
 
 		$tempFile = $this->tempManager->getTemporaryFile('.zip');
 		$url = 'https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%20' . JSignPdfHandler::VERSION . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+		/** WHEN UPDATE version: generate this hash handmade and update here */
+		$hash = '327182016506f57109270d4875851784';
 
 		$this->download($url, 'JSignPdf', $tempFile);
 
