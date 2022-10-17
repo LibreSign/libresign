@@ -77,29 +77,27 @@ export default {
 				|| !libresign_cli
 				|| !cfssl
 			) {
-				this.labelDownloadAllBinaries = t('libresign', 'Download binaries')
+				this.changeState('need download')
 			} else {
-				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
+				this.changeState('done')
 			}
 		});
 	},
 	methods: {
 		async downloadAllBinaries() {
-			this.downloadInProgress = true
-			this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
+			this.changeState('in progress')
 			try {
 				axios.get(
 					generateUrl('/apps/libresign/api/0.1/admin/download-binaries')
 				)
 				.then(() => {
-					this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
-					this.downloadInProgress = false
+					this.changeState('waiting check')
 					console.debug('Done download with success')
 					this.$root.$emit('configCheck');
 				})
 			} catch (e) {
 				showError(t('libresign', 'Could not download binaries.'))
-				this.downloadInProgress = false
+				this.changeState('need download')
 			}
 			this.pooling()
 		},
@@ -120,7 +118,26 @@ export default {
 				this.pooling()
 			}, waitFor)
 			this.$root.$emit('configCheck');
-		}
+		},
+		changeState(state) {
+			if (state === 'in progress') {
+				this.downloadInProgress = true
+				this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
+				this.description = t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
+			} else if (state === 'waiting check') {
+				this.downloadInProgress = false
+				this.labelDownloadAllBinaries = t('libresign', 'Binaries downloaded')
+				this.description = t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
+			} else if (state === 'need download') {
+				this.downloadInProgress = false
+				this.labelDownloadAllBinaries = t('libresign', 'Download binaries')
+				this.description = t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
+			} else if (state === 'done') {
+				this.downloadInProgress = false
+				this.labelDownloadAllBinaries = t('libresign', 'Validate setup')
+				this.description = t('libresign', 'Binaries downloaded')
+			}
+		},
 	},
 }
 </script>

@@ -23,8 +23,8 @@
 
 <template>
 	<NcSettingsSection :title="title">
-		<ConfigureCheck />
 		<DownloadBinaries />
+		<ConfigureCheck />
 		<RootCertificate />
 		<SignPage />
 		<AllowedGroups />
@@ -34,8 +34,8 @@
 
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import ConfigureCheck from './ConfigureCheck.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
+import ConfigureCheck from './ConfigureCheck.vue'
 import RootCertificate from './RootCertificate.vue'
 import SignPage from './SignPage.vue'
 import AllowedGroups from './AllowedGroups.vue'
@@ -45,8 +45,8 @@ export default {
 	name: 'Settings',
 	components: {
 		NcSettingsSection,
-		ConfigureCheck,
 		DownloadBinaries,
+		ConfigureCheck,
 		RootCertificate,
 		SignPage,
 		AllowedGroups,
