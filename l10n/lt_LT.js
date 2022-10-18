@@ -36,6 +36,7 @@ OC.L10N.register(
     "Cancel" : "Atšaukti",
     "Save" : "Įrašyti",
     "Signatures" : "Parašai",
+    "Sign" : "Ženklas",
     "Send reminder" : "Siųsti priminimą",
     "Account not exist" : "Paskyros nėra",
     "Email" : "El. paštas",
