@@ -93,14 +93,35 @@ class ConfigureCheckService {
 		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
-				return [
-					(new ConfigureCheckHelper())
-						->setSuccessMessage('JSignPdf version: ' . JSignPdfHandler::VERSION)
-						->setResource('jsignpdf'),
-					(new ConfigureCheckHelper())
+				if (!$this->isJavaOk()){
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Necessary Java to run JSignPdf')
+							->setResource('jsignpdf')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
+				$jsignPdf = $this->jSignPdfHandler->getJSignPdf();
+				$jsignPdf->setParam($this->jSignPdfHandler->getJSignParam());
+				$currentVersion = $jsignPdf->getVersion();
+				if ($currentVersion < JSignPdfHandler::VERSION) {
+					$return[] = (new ConfigureCheckHelper())
+						->setErrorMessage('Necessary bump JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION)
+						->setResource('jsignpdf')
+						->setTip('Run occ libresign:install --jsignpdf');
+				}
+				if ($currentVersion > JSignPdfHandler::VERSION) {
+					$return[] = (new ConfigureCheckHelper())
+						->setErrorMessage('Necessary downgrade JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION)
+						->setResource('jsignpdf')
+						->setTip('Run occ libresign:install --jsignpdf');
+				}
+				$return[] = (new ConfigureCheckHelper())
+						->setSuccessMessage('JSignPdf version: ' . $currentVersion)
+						->setResource('jsignpdf');
+				$return[] = (new ConfigureCheckHelper())
 						->setSuccessMessage('JSignPdf path: ' . $jsignpdJarPath)
-						->setResource('jsignpdf'),
-				];
+						->setResource('jsignpdf');
 			}
 			return [
 				(new ConfigureCheckHelper())
@@ -159,6 +180,17 @@ class ConfigureCheckService {
 				->setResource('java')
 				->setTip('Run occ libresign:install --java'),
 		];
+	}
+
+	private function isJavaOk() : bool {
+		$checkJava = $this->checkJava();
+		$error = array_filter(
+			$checkJava,
+			function (ConfigureCheckHelper $config) {
+				return $config->getStatus() === 'error';
+			}
+		);
+		return empty($error);
 	}
 
 	/**
