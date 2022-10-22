@@ -141,7 +141,7 @@ class InstallService {
 		return $data;
 	}
 
-	private function removeDownloadCache() {
+	private function removeDownloadProgress() {
 		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource);
 	}
 
@@ -228,7 +228,7 @@ class InstallService {
 		$extractor->extract($extractDir);
 
 		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/java-se-8u41-ri/bin/java' . $executableExtension);
-		$this->removeDownloadCache();
+		$this->removeDownloadProgress();
 	}
 
 	public function uninstallJava(): void {
@@ -278,7 +278,7 @@ class InstallService {
 
 		$fullPath = $extractDir . DIRECTORY_SEPARATOR. 'jsignpdf-' . JSignPdfHandler::VERSION . DIRECTORY_SEPARATOR. 'JSignPdf.jar';
 		$this->config->setAppValue(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
-		$this->removeDownloadCache();
+		$this->removeDownloadProgress();
 	}
 
 	public function uninstallJSignPdf(): void {
@@ -336,7 +336,7 @@ class InstallService {
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'libresign_cli_path', $fullPath);
-		$this->removeDownloadCache();
+		$this->removeDownloadProgress();
 	}
 
 	public function uninstallCli(): void {
@@ -418,7 +418,7 @@ class InstallService {
 			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
 			$downloads[0]['destination'];
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
-		$this->removeDownloadCache();
+		$this->removeDownloadProgress();
 	}
 
 	public function uninstallCfssl(): void {
