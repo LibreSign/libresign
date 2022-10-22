@@ -23,6 +23,7 @@ OC.L10N.register(
     "Password" : "パスワード",
     "Confirm" : "承認",
     "Text" : "テキスト",
+    "Draw" : "描画",
     "Upload" : "アップロード",
     "Colors:" : "色：",
     "Apply" : "適用",
