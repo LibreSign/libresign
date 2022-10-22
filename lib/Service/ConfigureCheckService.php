@@ -96,6 +96,14 @@ class ConfigureCheckService {
 		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
+				if (!$this->isJavaOk()){
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Necessary Java to run JSignPdf')
+							->setResource('jsignpdf')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
 				$jsignPdf = $this->jSignPdfHandler->getJSignPdf();
 				$jsignPdf->setParam($this->jSignPdfHandler->getJSignParam());
 				$currentVersion = $jsignPdf->getVersion();
@@ -176,6 +184,17 @@ class ConfigureCheckService {
 				->setResource('java')
 				->setTip('Run occ libresign:install --java'),
 		];
+	}
+
+	private function isJavaOk() : bool {
+		$checkJava = $this->checkJava();
+		$error = array_filter(
+			$checkJava,
+			function (ConfigureCheckHelper $config) {
+				return $config->getStatus() === 'error';
+			}
+		);
+		return empty($error);
 	}
 
 	/**
