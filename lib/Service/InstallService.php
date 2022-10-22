@@ -172,10 +172,12 @@ class InstallService {
 		if (!strpos($javaPath, $name)) {
 			return;
 		}
-		try {
-			$folder = $appFolder->get('/libresign/java');
-			$folder->delete();
-		} catch (NotFoundException $e) {
+		if (PHP_OS_FAMILY !== 'Windows') {
+			exec('rm -rf ' . $this->getDataDir() . '/' . $this->getFolder()->getInternalPath() . '/java');
+		}
+		if ($appFolder->nodeExists('/libresign/java')) {
+			$javaFolder = $appFolder->get('/libresign/java');
+			$javaFolder->delete();
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
