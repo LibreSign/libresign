@@ -215,15 +215,6 @@ class InstallService {
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash);
 
-		/**
-		 * @todo Extrange behaviour, the directory won't full deleted,
-		 * go-Horse to force delete in not Windows environment
-		 */
-		if (PHP_OS_FAMILY !== 'Windows') {
-			exec('rm -rf ' . $this->getDataDir() . DIRECTORY_SEPARATOR . $javaFolder->getInternalPath() . DIRECTORY_SEPARATOR . 'java-se-8u41-ri');
-		} elseif ($javaFolder->nodeExists('java-se-8u41-ri')) {
-			$javaFolder->get('java-se-8u41-ri')->delete();
-		}
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
