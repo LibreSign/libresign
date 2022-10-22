@@ -78,7 +78,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
+		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
@@ -222,6 +222,7 @@ export default {
 			this.certificate.configPath = ''
 			this.certificate.generated = false
 			this.customCfsslData = false
+			this.cfsslConfigureOk = false
 			this.formDisabled = false
 			this.modal = false
 			this.submitLabel = t('libresign', 'Generate root certificate.')
