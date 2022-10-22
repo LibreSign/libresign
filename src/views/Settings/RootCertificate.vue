@@ -22,9 +22,8 @@
 -->
 
 <template>
-	<NcSettingsSection :title="title" :description="description"
-		v-if=cfsslOk>
-		<div id="tableRootCertificate" class="form-libresign" v-if="certificate.generated">
+	<NcSettingsSection :title="title" :description="description" v-if="cfsslConfigureOk || cfsslBinariesOk">
+		<div id="tableRootCertificate" class="form-libresign" v-if="cfsslConfigureOk">
 			<table class="grid">
 				<tbody>
 					<tr>
@@ -54,7 +53,7 @@
 				</tbody>
 			</table>
 			<NcButton
-				@click="showModal">
+				@click="showModal" v-if="cfsslBinariesOk">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcModal
@@ -79,7 +78,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else id="formRootCertificate" class="form-libresign">
+		<div v-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
@@ -168,7 +167,8 @@ export default {
 	},
 	data() {
 		return {
-			cfsslOk: false,
+			cfsslBinariesOk: false,
+			cfsslConfigureOk: false,
 			modal: false,
 			certificate: {
 				commonName: '',
@@ -201,7 +201,8 @@ export default {
 		this.loading = false
 		this.loadRootCertificate()
 		this.$root.$on('afterConfigCheck', data => {
-			this.cfsslOk = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
+			this.cfsslBinariesOk = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
+			this.cfsslConfigureOk = data.filter((o) => o.resource == 'cfssl-configure' && o.status == 'error').length == 0
 		})
 	},
 
@@ -264,13 +265,13 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
-				this.cfsslOk = this.certificate.generated
+				this.cfsslConfigureOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
 				if (response.data.commonName
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
-				&& this.cfsslOk
+				&& this.cfsslConfigureOk
 				) {
 					this.afterCertificateGenerated()
 					return
