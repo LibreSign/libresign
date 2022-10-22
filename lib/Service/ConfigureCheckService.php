@@ -93,7 +93,7 @@ class ConfigureCheckService {
 		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
-				if (!$this->isJavaOk()){
+				if (!$this->isJavaOk()) {
 					return [
 						(new ConfigureCheckHelper())
 							->setErrorMessage('Necessary Java to run JSignPdf')
