@@ -1,11 +1,16 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<div class="settings-section">
-		<input type="button"
-			class="primary"
-			:value="labelDownloadAllBinaries"
-			:disabled="downloadInProgress"
-			@click="downloadAllBinaries">
+			<NcButton class="primary"
+				type="primary"
+				native-type="submit"
+				:disabled="downloadInProgress"
+				@click="downloadAllBinaries">
+				<template #icon>
+					<NcLoadingIcon v-if="downloadInProgress" :size="20" />
+				</template>
+				<temblate>{{ labelDownloadAllBinaries }}</temblate>
+			</NcButton>
 		</div>
 
 		<label v-if="downloadStatus.java > 0">Java</label>
@@ -40,6 +45,8 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
@@ -49,6 +56,8 @@ export default {
 	name: 'DownloadBinaries',
 	components: {
 		NcSettingsSection,
+		NcLoadingIcon,
+		NcButton,
 		NcProgressBar,
 	},
 	data: () => ({
