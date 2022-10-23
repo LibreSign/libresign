@@ -13,8 +13,34 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 5.1.3 - 2022-08-04
+## 6.0.0 - 2022-10-23
 ### Changed
+* Big refactor to upgrade frontend components
+* Easy setup without necessity to run commands in server
+* Updated translations
+* Bump JSignPdf
+* Prevent delete signed file when original file was deleted
+
+## 5.2.0 - 2022-10-23
+### Changed
+* Easy setup without necessity to run commands in server
+* Updated translations
+* Bump JSignPdf
+* Prevent delete signed file when original file was deleted
+
+## 4.2.0 - 2022-10-23
+### Changed
+* Easy setup without necessity to run commands in server
+* Updated translations
+* Bump JSignPdf
+* Prevent delete signed file when original file was deleted
+
+## 5.1.4 - 2022-08-04
+### Fixed
+- Update file from master
+  [#879](https://github.com/LibreSign/libresign/pull/879)
+
+## 5.1.3 - 2022-08-04
 ### Fixed
 - General adjusts and updates
   [#870](https://github.com/LibreSign/libresign/pull/870)
