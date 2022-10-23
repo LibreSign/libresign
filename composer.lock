@@ -240,16 +240,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "8f29d1f92648fad8d0bca849fa06f5444262af05"
+                "reference": "e29b53bddfe5e7e241959265882088108c8257d4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/8f29d1f92648fad8d0bca849fa06f5444262af05",
-                "reference": "8f29d1f92648fad8d0bca849fa06f5444262af05",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/e29b53bddfe5e7e241959265882088108c8257d4",
+                "reference": "e29b53bddfe5e7e241959265882088108c8257d4",
                 "shasum": ""
             },
             "require": {
@@ -287,9 +287,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.1.0"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.0"
             },
-            "time": "2022-01-26T13:15:11+00:00"
+            "time": "2022-10-17T12:00:30+00:00"
         },
         {
             "name": "libresign/tcpdi_parser",
