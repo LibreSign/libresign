@@ -13,6 +13,13 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 4.2.0 - 2022-10-23
+### Changed
+* Easy setup without necessity to run commands in server
+* Updated translations
+* Bump JSignPdf
+* Prevent delete signed file when original file was deleted
+
 ## 4.1.3 - 2022-08-04
 ### Fixed
 - General adjusts and updates
