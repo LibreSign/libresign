@@ -13,7 +13,7 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 6.0.0 - 2022-10-23
+## 6.0.1 - 2022-10-23
 ### Changed
 * Big refactor to upgrade frontend components
 * Easy setup without necessity to run commands in server
