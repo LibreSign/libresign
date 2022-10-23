@@ -8,6 +8,7 @@ OC.L10N.register(
     "File not found" : "Файл не знайдено",
     "File already exists" : "Файл вже існує",
     "Empty file" : "Порожній файл",
+    "Sign »%s«" : "Зареєструватися \"%s\"",
     "Invalid user" : "Неправильний користувач",
     "Files" : "Робота з файлами",
     "Settings" : "Налаштування",
