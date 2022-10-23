@@ -12,13 +12,16 @@ use OCP\IConfig;
 class ConfigureCheckService {
 	private IConfig $config;
 	private SystemConfig $systemConfig;
+	private JSignPdfHandler $jSignPdfHandler;
 
 	public function __construct(
 		IConfig $config,
-		SystemConfig $systemConfig
+		SystemConfig $systemConfig,
+		JSignPdfHandler $jSignPdfHandler
 	) {
 		$this->config = $config;
 		$this->systemConfig = $systemConfig;
+		$this->jSignPdfHandler = $jSignPdfHandler;
 	}
 
 	/**
@@ -127,6 +130,7 @@ class ConfigureCheckService {
 				$return[] = (new ConfigureCheckHelper())
 						->setSuccessMessage('JSignPdf path: ' . $jsignpdJarPath)
 						->setResource('jsignpdf');
+				return $return;
 			}
 			return [
 				(new ConfigureCheckHelper())
@@ -226,6 +230,13 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkCfssl(): array {
+		$return = [];
+		$return = array_merge($return, $this->checkCfsslBinaries());
+		$return = array_merge($return, $this->checkCfsslConfigure());
+		return $return;
+	}
+
+	public function checkCfsslBinaries(): array {
 		if (PHP_OS_FAMILY === 'Windows') {
 			return [
 				(new ConfigureCheckHelper())
@@ -264,13 +275,19 @@ class ConfigureCheckService {
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
-		if (!is_dir($configPath)) {
-			$return[] = (new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure --cfssl');
-		}
 		return $return;
+	}
+
+	public function checkCfsslConfigure(): array {
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			return [(new ConfigureCheckHelper())
+				->setSuccessMessage('Root certificate config files found.')
+				->setResource('cfssl-configure')];
+		}
+		return [(new ConfigureCheckHelper())
+			->setErrorMessage('CFSSL not configured.')
+			->setResource('cfssl-configure')
+			->setTip('Run occ libresign:configure --cfssl')];
 	}
 }
