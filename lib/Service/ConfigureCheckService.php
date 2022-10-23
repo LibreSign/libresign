@@ -96,12 +96,25 @@ class ConfigureCheckService {
 		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
+				if (!$this->isJavaOk()) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage('Necessary Java to run JSignPdf')
+							->setResource('jsignpdf')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
 				$jsignPdf = $this->jSignPdfHandler->getJSignPdf();
 				$jsignPdf->setParam($this->jSignPdfHandler->getJSignParam());
 				$currentVersion = $jsignPdf->getVersion();
 				if ($currentVersion < JSignPdfHandler::VERSION) {
+					if (!$currentVersion) {
+						$message = 'Necessary install the version ' . JSignPdfHandler::VERSION;
+					} else {
+						$message = 'Necessary bump JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION;
+					}
 					$return[] = (new ConfigureCheckHelper())
-						->setErrorMessage('Necessary bump JSignPdf versin from ' . $currentVersion . ' to ' . JSignPdfHandler::VERSION)
+						->setErrorMessage($message)
 						->setResource('jsignpdf')
 						->setTip('Run occ libresign:install --jsignpdf');
 				}
@@ -178,6 +191,17 @@ class ConfigureCheckService {
 		];
 	}
 
+	private function isJavaOk() : bool {
+		$checkJava = $this->checkJava();
+		$error = array_filter(
+			$checkJava,
+			function (ConfigureCheckHelper $config) {
+				return $config->getStatus() === 'error';
+			}
+		);
+		return empty($error);
+	}
+
 	/**
 	 * Check all requirements to use LibreSign CLI tool
 	 *
@@ -206,6 +230,13 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkCfssl(): array {
+		$return = [];
+		$return = array_merge($return, $this->checkCfsslBinaries());
+		$return = array_merge($return, $this->checkCfsslConfigure());
+		return $return;
+	}
+
+	public function checkCfsslBinaries(): array {
 		if (PHP_OS_FAMILY === 'Windows') {
 			return [
 				(new ConfigureCheckHelper())
@@ -244,13 +275,19 @@ class ConfigureCheckService {
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
-		if (!is_dir($configPath)) {
-			$return[] = (new ConfigureCheckHelper())
-				->setErrorMessage('CFSSL not configured.')
-				->setResource('cfssl-configure')
-				->setTip('Run occ libresign:configure --cfssl');
-		}
 		return $return;
+	}
+
+	public function checkCfsslConfigure(): array {
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			return [(new ConfigureCheckHelper())
+				->setSuccessMessage('Root certificate config files found.')
+				->setResource('cfssl-configure')];
+		}
+		return [(new ConfigureCheckHelper())
+			->setErrorMessage('CFSSL not configured.')
+			->setResource('cfssl-configure')
+			->setTip('Run occ libresign:configure --cfssl')];
 	}
 }
