@@ -15,6 +15,9 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.0.2 - 2022-10-23
+* Fix css class of password change modal
+
 ## 6.0.0 - 2022-10-23
 ### Changed
 * Big refactor to upgrade frontend components
