@@ -243,6 +243,7 @@ OC.L10N.register(
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Pfad zur Konfig",
     "Regenerate root certificate" : "Root-Zertifikat erneut erstellen",
+    "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Stammzertifikat neu generieren macht alle Signaturschlüssel ungültig. Bestätigst du diese Aktion?",
     "Root certificate data." : "Daten für Root-Zertifikat.",
     "To generate new signatures, you must first generate the root certificate." : "Um neue Signaturen zu erzeugen, musst du zunächst das Stammzertifikat erzeugen.",
     "Generate root certificate." : "Root-Zertifikat erstellen.",
