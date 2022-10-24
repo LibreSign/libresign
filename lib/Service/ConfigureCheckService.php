@@ -156,7 +156,8 @@ class ConfigureCheckService {
 		$javaPath = $this->config->getAppValue(Application::APP_ID, 'java_path');
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
-				$javaVersion = exec($javaPath . " -version 2>&1");
+				\exec($javaPath . " -version 2>&1", $javaVersion);
+				$javaVersion = implode(\OC::$CLI ? "\n" : "<br>", $javaVersion);
 				return [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
