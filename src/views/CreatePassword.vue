@@ -1,5 +1,5 @@
 <template>
-	<NcContent app-name="libresign">
+	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="e => e.preventDefault()">
 			<header>
 				<h1>{{ t('libresign', 'Password Creation') }}</h1>
