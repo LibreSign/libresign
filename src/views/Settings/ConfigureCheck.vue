@@ -14,7 +14,7 @@
 						>
 						{{row.status}}
 					</td>
-					<td>{{row.message}}</td>
+					<td v-html=row.message></td>
 					<td>{{row.resource}}</td>
 					<td>{{row.tip}}</td>
 				</tr>
