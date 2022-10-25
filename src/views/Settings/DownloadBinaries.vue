@@ -9,7 +9,7 @@
 				<template #icon>
 					<NcLoadingIcon v-if="downloadInProgress" :size="20" />
 				</template>
-				<temblate>{{ labelDownloadAllBinaries }}</temblate>
+				{{ labelDownloadAllBinaries }}
 			</NcButton>
 		</div>
 
