@@ -511,9 +511,7 @@ class InstallService {
 
 	public function generate(
 		string $commonName,
-		string $country,
-		string $organization,
-		string $organizationUnit,
+		array $names = [],
 		string $configPath = '',
 		string $cfsslUri = '',
 		string $binary = ''
@@ -526,20 +524,12 @@ class InstallService {
 		$this->cfsslHandler->setConfigPath($configPath);
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
-			$country,
-			$organization,
-			$organizationUnit,
+			$names,
 			$key,
 			$configPath
 		);
-		$this->cfsslHandler->setCommonName($commonName);
-		$this->cfsslHandler->setCountry($country);
-		$this->cfsslHandler->setOrganization($organization);
-		$this->cfsslHandler->setOrganizationUnit($organizationUnit);
-		if ($cfsslUri) {
-			$this->cfsslHandler->setCfsslUri($cfsslUri);
-		} else {
-			$this->cfsslHandler->setCfsslUri(CfsslHandler::CFSSL_URI);
+		if (!$cfsslUri) {
+			$cfsslUri = CfsslHandler::CFSSL_URI;
 			if (!$binary) {
 				$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
 				if ($binary && !file_exists($binary)) {
@@ -558,12 +548,13 @@ class InstallService {
 				}
 			}
 		}
+		$this->cfsslHandler->setCfsslUri($cfsslUri);
 		if ($binary) {
 			$this->cfsslHandler->setBinary($binary);
 			$this->cfsslHandler->genkey();
 		}
 		for ($i = 1;$i <= 4;$i++) {
-			if ($this->cfsslHandler->health($this->cfsslHandler->getCfsslUri())) {
+			if ($this->cfsslHandler->health($cfsslUri)) {
 				break;
 			}
 			// @codeCoverageIgnoreStart
@@ -571,12 +562,12 @@ class InstallService {
 			// @codeCoverageIgnoreEnd
 		}
 
+		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
+			'commonName' => $commonName,
+			'names' => $names
+		]));
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
-		$this->config->setAppValue(Application::APP_ID, 'commonName', $commonName);
-		$this->config->setAppValue(Application::APP_ID, 'country', $country);
-		$this->config->setAppValue(Application::APP_ID, 'organization', $organization);
-		$this->config->setAppValue(Application::APP_ID, 'organizationUnit', $organizationUnit);
-		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $this->cfsslHandler->getCfsslUri());
+		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
 		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
 		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}

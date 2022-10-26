@@ -17,17 +17,20 @@ class AdminSignatureService {
 
 	/**
 	 * @return string[]
-	 *
-	 * @psalm-return array{commonName: string, country: string, organization: string, organizationUnit: string, cfsslUri: string, configPath: string}
 	 */
 	public function loadKeys(): array {
-		return [
-			'commonName' => $this->config->getAppValue(Application::APP_ID, 'commonName'),
-			'country' => $this->config->getAppValue(Application::APP_ID, 'country'),
-			'organization' => $this->config->getAppValue(Application::APP_ID, 'organization'),
-			'organizationUnit' => $this->config->getAppValue(Application::APP_ID, 'organizationUnit'),
+		$return = [
 			'cfsslUri' => $this->config->getAppValue(Application::APP_ID, 'cfsslUri'),
 			'configPath' => $this->config->getAppValue(Application::APP_ID, 'configPath'),
+			'rootCert' => [
+				'names' => [],
+			],
 		];
+		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = json_decode($rootCert, true);
+		if (is_array($rootCert)) {
+			$return['rootCert'] = array_merge($return['rootCert'], $rootCert);
+		}
+		return $return;
 	}
 }

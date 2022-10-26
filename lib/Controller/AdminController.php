@@ -44,19 +44,17 @@ class AdminController extends Controller {
 	 * @NoCSRFRequired
 	 */
 	public function generateCertificate(
-		string $commonName = null,
-		string $country = null,
-		string $organization = null,
-		string $organizationUnit = null,
+		array $rootCert,
 		string $cfsslUri = '',
 		string $configPath = ''
 	): DataResponse {
 		try {
+			foreach ($rootCert['names'] as $key => $name) {
+				$rootCert['names'][$key]['value'] = $this->trimAndThrowIfEmpty($key, $rootCert['names'][$key]['value']);
+			}
 			$this->installService->generate(
-				$this->trimAndThrowIfEmpty('commonName', $commonName),
-				$this->trimAndThrowIfEmpty('country', $country),
-				$this->trimAndThrowIfEmpty('organization', $organization),
-				$this->trimAndThrowIfEmpty('organizationUnit', $organizationUnit),
+				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
+				$rootCert['names'],
 				trim($configPath),
 				trim($cfsslUri)
 			);

@@ -186,6 +186,12 @@ final class SignFileControllerTest extends ApiTestCase {
 				'sign_method' => 'password',
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
+				'rootCert' => json_encode([
+					'commonName' => 'LibreCode',
+					'names' => [
+						['id' => 'C', 'value' => 'BR'],
+					]
+				]),
 			],
 		]);
 
@@ -203,7 +209,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate('person@test.coop', 'secretPassword', 'username');
+		$pkcs12Handler->generateCertificate(
+			[
+				'email' => 'person@test.coop',
+				'name' => 'John Doe',
+			],
+			'secretPassword',
+			'username'
+		);
 
 		$this->request
 			->withMethod('POST')
@@ -231,6 +244,12 @@ final class SignFileControllerTest extends ApiTestCase {
 				'sign_method' => 'password',
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
+				'rootCert' => json_encode([
+					'commonName' => 'LibreCode',
+					'names' => [
+						['id' => 'C', 'value' => 'BR'],
+					]
+				]),
 			],
 		]);
 
@@ -248,7 +267,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate('person@test.coop', 'secretPassword', 'username');
+		$pkcs12Handler->generateCertificate(
+			[
+				'email' => 'person@test.coop',
+				'name' => 'John Doe',
+			],
+			'secretPassword',
+			'username'
+		);
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
@@ -416,10 +442,16 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->mockConfig([
 			'libresign' => [
 				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
+				'rootCert' => json_encode([
+					'commonName' => 'LibreCode',
+					'names' => [
+						['id' => 'C', 'value' => 'BR'],
+						['id' => 'ST', 'value' => 'RJ'],
+						['id' => 'L', 'value' => 'Rio de Janeiro'],
+						['id' => 'O', 'value' => 'LibreCode Coop'],
+						['id' => 'OU', 'value' => 'LibreSign']
+					]
+				]),
 				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 				'sign_method' => 'password',
 				'cfssl_bin' => '',

@@ -101,7 +101,6 @@ export default {
 				)
 				.then(() => {
 					this.changeState('waiting check')
-					console.debug('Done download with success')
 					this.$root.$emit('configCheck');
 				})
 			} catch (e) {
@@ -111,18 +110,14 @@ export default {
 			this.pooling()
 		},
 		async pooling() {
-			console.debug('Start pooling')
 			const response = await axios.get(
 				generateUrl('/apps/libresign/api/0.1/admin/download-status')
 			)
 			this.downloadStatus = response.data
-			console.debug(['Download status:', this.downloadStatus])
 			if (!this.downloadInProgress) {
-				console.debug('stop pooling')
 				return
 			}
 			const waitFor = typeof this.downloadStatus === 'object' ? 1000 : 5000
-			console.debug('wait for: ' + waitFor)
 			setTimeout(() => {
 				this.pooling()
 			}, waitFor)

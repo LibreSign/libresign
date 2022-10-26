@@ -28,19 +28,11 @@
 				<tbody>
 					<tr>
 						<td>{{ t('libresign', 'Name (CN)') }}</td>
-						<td>{{ certificate.commonName }}</td>
+						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
-					<tr>
-						<td>{{ t('libresign', 'Country (C)') }}</td>
-						<td>{{ certificate.country }}</td>
-					</tr>
-					<tr>
-						<td>{{ t('libresign', 'Organization (O)') }}</td>
-						<td>{{ certificate.organization }}</td>
-					</tr>
-					<tr>
-						<td>{{ t('libresign', 'Organization Unit (OU)') }}</td>
-						<td>{{ certificate.organizationUnit }}</td>
+					<tr class="customNames" v-for="(customName, key) in certificate.rootCert.names" :key="customName.id">
+						<td>{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})</td>
+						<td>{{ certificate.rootCert.names[key].value }}</td>
 					</tr>
 					<tr>
 						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
@@ -83,33 +75,40 @@
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<input id="commonName"
 					ref="commonName"
-					v-model="certificate.commonName"
+					v-model="certificate.rootCert.commonName"
 					type="text"
 					:disabled="formDisabled">
 			</div>
 			<div class="form-group">
-				<label for="country" class="form-heading--required">{{ t('libresign', 'Country (C)') }}</label>
-				<input id="country"
-					ref="country"
-					v-model="certificate.country"
-					type="text"
-					:disabled="formDisabled">
+				<label for="optionalAttribute">Optional attributes</label>
+				<NcMultiselect
+					id=optionalAttribute
+					:options=customNamesOptions
+					track-by="id"
+					label="label"
+					placeholder="Select a custom name"
+					@change="onOptionalAttributeSelect"
+					/>
 			</div>
-			<div class="form-group">
-				<label for="organization" class="form-heading--required">{{ t('libresign', 'Organization (O)') }}</label>
-				<input id="organization"
-					ref="organization"
-					v-model="certificate.organization"
-					type="text"
-					:disabled="formDisabled">
-			</div>
-			<div class="form-group">
-				<label for="organizationUnit" class="form-heading--required">{{ t('libresign', 'Organization Unit (OU)') }}</label>
-				<input id="organizationUnit"
-					ref="organizationUnit"
-					v-model="certificate.organizationUnit"
-					type="text"
-					:disabled="formDisabled">
+			<div class="customNames" v-for="(customName, key) in certificate.rootCert.names" :key="customName.id">
+				<label for="country" class="form-heading--required">
+					{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
+				</label>
+				<div class="item">
+					<input id="country"
+						ref="country"
+						v-model="certificate.rootCert.names[key].value"
+						v-if="certificate.rootCert.names[key]"
+						type="text"
+						:disabled="formDisabled">
+					<NcButton
+						:aria-label="t('settings', 'Remove custom name entry from root certificate')"
+						@click="removeOptionalAttribute(key)">
+						<template #icon>
+							<Delete :size="20" />
+						</template>
+					</NcButton>
+				</div>
 			</div>
 			<div>
 				<NcCheckboxRadioSwitch
@@ -149,8 +148,10 @@
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import Delete from 'vue-material-design-icons/Delete.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -161,9 +162,11 @@ export default {
 	name: 'AdminFormLibresign',
 	components: {
 		NcSettingsSection,
+		NcMultiselect,
 		NcCheckboxRadioSwitch,
 		NcModal,
 		NcButton,
+		Delete,
 	},
 	data() {
 		return {
@@ -171,10 +174,10 @@ export default {
 			cfsslConfigureOk: false,
 			modal: false,
 			certificate: {
-				commonName: '',
-				country: '',
-				organization: '',
-				organizationUnit: '',
+				rootCert: {
+					commonName: '',
+					names: [],
+				},
 				cfsslUri: '',
 				configPath: '',
 			},
@@ -184,16 +187,20 @@ export default {
 			submitLabel: t('libresign', 'Generate root certificate.'),
 			formDisabled: false,
 			loading: true,
+			customNamesOptions: [
+				{id: 'C', label: 'Country'},
+				{id: 'ST', label: 'State'},
+				{id: 'L', label: 'Locality'},
+				{id: 'O', label: 'Organization'},
+				{id: 'OU', label: 'OrganizationalUnit'},
+			],
 		}
 	},
 	computed: {
 		savePossible() {
 			return (
-				this.certificate
-								&& this.certificate.commonName !== ''
-								&& this.certificate.country !== ''
-								&& this.certificate.organization !== ''
-								&& this.certificate.organizationUnit !== ''
+				this.certificate.rootCert.commonName !== ''
+				&& this.certificate.rootCert.names.filter((n) => n.value === '').length === 0
 			)
 		},
 	},
@@ -207,6 +214,21 @@ export default {
 	},
 
 	methods: {
+		getCustomNamesOptionsById(id) {
+			return this.customNamesOptions.filter((cn) => cn.id == id)[0].label
+		},
+		async onOptionalAttributeSelect(selected) {
+			if ((this.certificate.rootCert.names.filter((v) => v.id == selected.id)).length) {
+				return
+			}
+			this.certificate.rootCert.names.push({
+				'id': selected.id,
+				'value': ''
+			})
+		},
+		async removeOptionalAttribute(key) {
+			this.certificate.rootCert.names.splice(key, 1)
+		},
 		showModal() {
 			this.modal = true
 		},
@@ -214,10 +236,8 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.certificate.commonName = ''
-			this.certificate.country = ''
-			this.certificate.organization = ''
-			this.certificate.organizationUnit = ''
+			this.certificate.rootCert.commonName = ''
+			this.certificate.rootCert.names = []
 			this.certificate.cfsslUri = ''
 			this.certificate.configPath = ''
 			this.certificate.generated = false
@@ -268,7 +288,7 @@ export default {
 				this.certificate = response.data
 				this.cfsslConfigureOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
-				if (response.data.commonName
+				if (response.data.rootCert.commonName
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
@@ -297,8 +317,21 @@ export default {
 	margin: 20px;
 }
 
-.form-group > input[type='text'] {
+.form-group > input[type='text'], .form-group .multiselect {
 	width: 100%;
+}
+
+.customNames {
+	.item {
+		display: grid;
+		grid-template-columns: auto 54px;
+		input[type='text'] {
+			width: 100%;
+		}
+		.button-vue {
+			margin-left: 10px;
+		}
+	}
 }
 
 .form-heading--required:after {
