@@ -13,6 +13,9 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 5.2.1 - 2022-10-26
+* display with line break and prevent to use java when not available
+
 ## 5.2.0 - 2022-10-23
 ### Changed
 * Easy setup without necessity to run commands in server
