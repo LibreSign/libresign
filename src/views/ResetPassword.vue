@@ -71,7 +71,11 @@ export default {
 				this.hasLoading = false
 				this.$emit('close', true)
 			} catch (err) {
-				showError(t('libresign', 'Error creating new password, please contact the administrator'))
+				if (err.response.data.message) {
+					showError(err.response.data.message)
+				} else {
+					showError(t('libresign', 'Error creating new password, please contact the administrator'))
+				}
 				this.hasLoading = false
 			}
 		},

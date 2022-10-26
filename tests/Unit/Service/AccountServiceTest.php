@@ -169,7 +169,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->will($self->returnValue($fileUser));
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'invalid@test.coop',
+						'user' => [
+							'email' => 'invalid@test.coop',
+						],
 						'signPassword' => '132456789'
 					];
 				},
@@ -190,7 +192,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->will($self->returnValue(true));
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
 						'signPassword' => '123456789'
 					];
 				},
@@ -208,7 +212,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->will($self->returnValue($fileUser));
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
 						'signPassword' => '132456789',
 						'password' => ''
 					];
@@ -250,7 +256,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->willReturn($folder);
 					return [
 						'uuid' => '12345678-1234-1234-1234-123456789012',
-						'email' => 'valid@test.coop',
+						'user' => [
+							'email' => 'valid@test.coop',
+						],
 						'signPassword' => '132456789',
 						'password' => '123456789'
 					];
@@ -277,14 +285,18 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				[
 					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'email' => ''
+					'user' => [
+						'email' => '',
+					],
 				],
 				'You must have an email. You can define the email in your profile.'
 			],
 			[
 				[
 					'uuid' => '12345678-1234-1234-1234-123456789012',
-					'email' => 'invalid'
+					'user' => [
+						'email' => 'invalid',
+					],
 				],
 				'Invalid email'
 			]
@@ -302,7 +314,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnValue($fileUser));
 		$actual = $this->getService()->validateCertificateData([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
+			'user' => [
+				'email' => 'valid@test.coop',
+			],
 			'password' => '123456789',
 			'signPassword' => '123456',
 		]);
@@ -351,7 +365,9 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 		$actual = $this->getService()->validateCreateToSign([
 			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'email' => 'valid@test.coop',
+			'user' => [
+				'email' => 'valid@test.coop',
+			],
 			'password' => '123456789',
 			'signPassword' => '123456789',
 		]);
@@ -360,6 +376,16 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testCreateToSignWithErrorInSendingEmail() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
+		$fileUser
+			->method('__call')
+			->withConsecutive(
+				[$this->equalTo('getDisplayName')],
+				[$this->equalTo('getEmail')]
+			)
+			->will($this->returnValueMap([
+				['getDisplayName', [], 'John Doe'],
+				['getEmail', [], 'valid@test.coop']
+			]));
 		$this->fileUserMapper->method('getByUuid')->will($this->returnValue($fileUser));
 		$userToSign = $this->createMock(\OCP\IUser::class);
 		$this->userManagerInstance->method('createUser')->will($this->returnValue($userToSign));

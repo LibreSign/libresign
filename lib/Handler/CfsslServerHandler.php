@@ -10,17 +10,13 @@ class CfsslServerHandler {
 
 	public function createConfigServer(
 		string $commonName,
-		string $country,
-		string $organization,
-		string $organizationUnit,
+		array $names,
 		string $key,
 		string $configPath
 	): void {
 		$this->putCsrServer(
 			$commonName,
-			$country,
-			$organization,
-			$organizationUnit,
+			$names,
 			$configPath
 		);
 		$this->putConfigServer($key, $configPath);
@@ -28,9 +24,7 @@ class CfsslServerHandler {
 
 	private function putCsrServer(
 		string $commonName,
-		string $country,
-		string $organization,
-		string $organizationUnit,
+		array $names,
 		string $configPath
 	): void {
 		$filename = $configPath . self::CSR_FILE;
@@ -40,15 +34,10 @@ class CfsslServerHandler {
 				'algo' => 'rsa',
 				'size' => 2048,
 			],
-			'names' => [
-				[
-					'C' => $country,
-					'O' => $organization,
-					'OU' => $organizationUnit,
-					'CN' => $commonName,
-				],
-			],
 		];
+		foreach ($names as $name) {
+			$content['names'][0][$name['id']] = $name['value'];
+		}
 		
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {

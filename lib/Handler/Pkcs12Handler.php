@@ -269,17 +269,16 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function getCertificateHandler(): CfsslHandler {
+		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = json_decode($rootCert, true);
+		if (!empty($rootCert['names'])) {
+			foreach ($rootCert['names'] as $customName) {
+				$longCustomName = $this->cfsslHandler->translateToLong($customName['id']);
+				$this->cfsslHandler->{'set' . ucfirst($longCustomName)}($customName['value']);
+			}
+		}
 		if (!$this->cfsslHandler->getCommonName()) {
-			$this->cfsslHandler->setCommonName($this->config->getAppValue(Application::APP_ID, 'commonName'));
-		}
-		if (!$this->cfsslHandler->getCountry()) {
-			$this->cfsslHandler->setCountry($this->config->getAppValue(Application::APP_ID, 'country'));
-		}
-		if (!$this->cfsslHandler->getOrganization()) {
-			$this->cfsslHandler->setOrganization($this->config->getAppValue(Application::APP_ID, 'organization'));
-		}
-		if (!$this->cfsslHandler->getOrganizationUnit()) {
-			$this->cfsslHandler->setOrganizationUnit($this->config->getAppValue(Application::APP_ID, 'organizationUnit'));
+			$this->cfsslHandler->setCommonName($rootCert['commonName']);
 		}
 		if (!$this->cfsslHandler->getCfsslUri()) {
 			$cfsslUri = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
@@ -303,14 +302,15 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * Generate certificate
 	 *
-	 * @param string $email Email
+	 * @param array $user Example: ['email' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
 	 * @param string $uid User id
 	 * @return File
 	 */
-	public function generateCertificate(string $email, string $signPassword, string $uid, bool $isTempFile = false): File {
+	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
 		$content = $this->getCertificateHandler()
-			->setHosts([$email])
+			->setHosts([$user['email']])
+			->setCommonName($user['name'])
 			->setFriendlyName($uid)
 			->setPassword($signPassword)
 			->generateCertificate();

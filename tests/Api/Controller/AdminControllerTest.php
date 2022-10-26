@@ -35,14 +35,21 @@ final class AdminControllerTest extends ApiTestCase {
 			'{"success":true,"result":{"healthy":true},"errors":[],"messages":[]}'
 		));
 		$cfsslConfig = [
-			'commonName' => 'CommonName',
-			'country' => 'Brazil',
-			'organization' => 'Organization',
-			'organizationUnit' => 'organizationUnit',
+			'rootCert' => json_encode([
+				'commonName' => 'LibreCode',
+				'names' => [
+					['id' => 'C', 'value' => 'BR'],
+					['id' => 'ST', 'value' => 'RJ'],
+					['id' => 'L', 'value' => 'Rio de Janeiro'],
+					['id' => 'O', 'value' => 'LibreCode Coop'],
+					['id' => 'OU', 'value' => 'LibreSign']
+				]
+			]),
 			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 			'configPath' => 'vfs://home/'
 		];
 		$this->mockConfig(['libresign' => $cfsslConfig]);
+		$cfsslConfig['rootCert'] = json_decode($cfsslConfig['rootCert'], true);
 
 		// Configure request
 		$this->request
@@ -58,14 +65,18 @@ final class AdminControllerTest extends ApiTestCase {
 		$this->assertRequest();
 
 		// Test if settings has been saved
-		foreach ($cfsslConfig as $key => $value) {
-			$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', $key), $value);
-		}
+		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'cfsslUri'), $cfsslConfig['cfsslUri']);
+		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'configPath'), $cfsslConfig['configPath']);
+		$rootCert = \OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
+		$this->assertEqualsCanonicalizing(
+			$cfsslConfig['rootCert'],
+			json_decode($rootCert, true)
+		);
 
 		// Test result of endpoint
 		$csrServerJson = file_get_contents('vfs://home/csr_server.json');
 		$this->assertJsonStringEqualsJsonString(
-			'{"CN":"CommonName","key":{"algo":"rsa","size":2048},"names":[{"C":"Brazil","O":"Organization","OU":"organizationUnit","CN":"CommonName"}]}',
+			'{"CN":"LibreCode","key":{"algo":"rsa","size":2048},"names":[{"C":"BR","ST":"RJ","L":"Rio de Janeiro","O":"LibreCode Coop","OU":"LibreSign"}]}',
 			$csrServerJson
 		);
 
@@ -89,10 +100,16 @@ final class AdminControllerTest extends ApiTestCase {
 			])
 			->withPath('/admin/certificate')
 			->withRequestBody([
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
+				'rootCert' => [
+					'commonName' => 'CommonName',
+					'names' => [
+						['id' => 'C', 'value' => 'BR'],
+						['id' => 'ST', 'value' => 'RJ'],
+						['id' => 'L', 'value' => 'Rio de Janeiro'],
+						['id' => 'O', 'value' => 'LibreCode Coop'],
+						['id' => 'OU', 'value' => 'LibreSign']
+					]
+				],
 				'cfsslUri' => 'invalidUri',
 				'configPath' => ''
 			])
