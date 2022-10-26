@@ -80,7 +80,9 @@ class AccountController extends ApiController {
 		try {
 			$data = [
 				'uuid' => $uuid,
-				'email' => $email,
+				'user' => [
+					'email' => $email,
+				],
 				'password' => $password,
 				'signPassword' => $signPassword
 			];
@@ -135,7 +137,10 @@ class AccountController extends ApiController {
 	): JSONResponse {
 		try {
 			$data = [
-				'email' => $this->userSession->getUser()->getEMailAddress(),
+				'user' => [
+					'email' => $this->userSession->getUser()->getEMailAddress(),
+					'name' => $this->userSession->getUser()->getDisplayName(),
+				],
 				'signPassword' => $signPassword,
 				'userId' => $this->userSession->getUser()->getUID()
 			];

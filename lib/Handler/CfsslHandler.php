@@ -24,6 +24,10 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
  * @method string getFriendlyName()
  * @method CfsslHandler setCountry(string $country)
  * @method string getCountry()
+ * @method CfsslHandler setState(string $state)
+ * @method string getState()
+ * @method CfsslHandler setLocality(string $locality)
+ * @method string getLocality()
  * @method CfsslHandler setOrganization(string $organization)
  * @method string getOrganization()
  * @method CfsslHandler setOrganizationUnit(string $organizationUnit)
@@ -42,6 +46,8 @@ class CfsslHandler {
 	private $hosts = [];
 	private $friendlyName;
 	private $country;
+	private $state;
+	private $locality;
 	private $organization;
 	private $organizationUnit;
 	private $cfsslUri;
@@ -77,6 +83,38 @@ class CfsslHandler {
 		return $certContent;
 	}
 
+	public function translateToLong($name): string {
+		switch ($name) {
+			case 'CN':
+				return 'CommonName';
+			case 'C':
+				return 'Country';
+			case 'ST':
+				return 'State';
+			case 'L':
+				return 'Locality';
+			case 'O':
+				return 'Organization';
+			case 'OU':
+				return 'OrganizationUnit';
+		}
+		return '';
+	}
+
+	public function getNames(): array {
+		$names = [
+			'C' => $this->getCountry(),
+			'ST' => $this->getState(),
+			'L' => $this->getLocality(),
+			'O' => $this->getOrganization(),
+			'OU' => $this->getOrganizationUnit(),
+		];
+		$names = array_filter($names, function ($v) {
+			return !empty($v);
+		});
+		return $names;
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 * @return array
@@ -93,12 +131,7 @@ class CfsslHandler {
 						'size' => 2048,
 					],
 					'names' => [
-						[
-							'C' => $this->getCountry(),
-							'O' => $this->getOrganization(),
-							'OU' => $this->getOrganizationUnit(),
-							'CN' => $this->getCommonName(),
-						],
+						$this->getNames(),
 					],
 				],
 			],
