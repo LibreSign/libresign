@@ -13,6 +13,12 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 7.0.0-dev
+
+## 6.1.0 - 2022-10-26
+* Make possible generate root cert with custom values
+* display with line break and prevent to use java when not available
+
 ## 6.0.2 - 2022-10-23
 * Fix css class of password change modal
 
