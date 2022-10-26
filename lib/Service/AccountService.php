@@ -134,10 +134,10 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		if ($fileUser->getEmail() !== $data['email']) {
+		if ($fileUser->getEmail() !== $data['user']['email']) {
 			throw new LibresignException($this->l10n->t('This is not your file'), 1);
 		}
-		if ($this->userManager->userExists($data['email'])) {
+		if ($this->userManager->userExists($data['user']['email'])) {
 			throw new LibresignException($this->l10n->t('User already exists'), 1);
 		}
 		if (empty($data['password'])) {
@@ -172,10 +172,10 @@ class AccountService {
 	}
 
 	public function validateCertificateData(array $data): void {
-		if (!$data['email']) {
+		if (!$data['user']['email']) {
 			throw new LibresignException($this->l10n->t('You must have an email. You can define the email in your profile.'), 1);
 		}
-		if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+		if (!filter_var($data['user']['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'), 1);
 		}
 		if (empty($data['signPassword'])) {
@@ -233,7 +233,7 @@ class AccountService {
 
 		$newUser = $this->userManager->createUser($uid, $password);
 		$newUser->setDisplayName($fileUser->getDisplayName());
-		$newUser->setEMailAddress($fileUser->getEmail());
+		$newUser->setSystemEMailAddress($fileUser->getEmail());
 
 		$fileUser->setUserId($newUser->getUID());
 		$this->fileUserMapper->update($fileUser);
@@ -248,7 +248,14 @@ class AccountService {
 		}
 
 		if ($signPassword) {
-			$this->pkcs12Handler->generateCertificate($uid, $signPassword, $newUser->getUID());
+			$this->pkcs12Handler->generateCertificate(
+				[
+					'email' => $newUser->getPrimaryEMailAddress(),
+					'name' => $newUser->getDisplayName()
+				],
+				$signPassword,
+				$newUser->getUID()
+			);
 		}
 	}
 

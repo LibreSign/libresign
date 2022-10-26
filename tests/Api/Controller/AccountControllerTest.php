@@ -40,6 +40,12 @@ final class AccountControllerTest extends ApiTestCase {
 		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
+				'rootCert' => json_encode([
+					'commonName' => 'LibreCode',
+					'names' => [
+						['id' => 'C', 'value' => 'BR'],
+					]
+				]),
 			],
 		]);
 
