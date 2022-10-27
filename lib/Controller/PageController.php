@@ -133,7 +133,7 @@ class PageController extends Controller {
 		$resp->addHeader('Content-Type', 'application/pdf');
 
 		$csp = new ContentSecurityPolicy();
-		$csp->setInlineScriptAllowed(true);
+		$csp->allowInlineScript(true);
 		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
@@ -160,7 +160,7 @@ class PageController extends Controller {
 		$resp->addHeader('Content-Type', 'application/pdf');
 
 		$csp = new ContentSecurityPolicy();
-		$csp->setInlineScriptAllowed(true);
+		$csp->allowInlineScript(true);
 		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
