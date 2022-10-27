@@ -125,7 +125,7 @@ class InstallService {
 		}
 	}
 
-	private function progressToDatabase($downloadSize, int $downloaded): void {
+	private function progressToDatabase(int $downloadSize, int $downloaded): void {
 		$data = $this->getProressData();
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
@@ -437,7 +437,7 @@ class InstallService {
 
 	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path)) {
-			$this->progressToDatabase(filesize($path), 0);
+			$this->progressToDatabase((int) filesize($path), 0);
 			if (hash_file($hash_algo, $path) === $hash) {
 				return;
 			}
