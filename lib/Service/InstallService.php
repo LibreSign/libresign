@@ -7,7 +7,6 @@ namespace OCA\Libresign\Service;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Files\Filesystem;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
@@ -32,8 +31,6 @@ class InstallService {
 	public $config;
 	/** @var IClientService */
 	private $clientService;
-	/** @var SystemConfig */
-	private $systemConfig;
 	/** @var IRootFolder */
 	private $rootFolder;
 	/** @var CfsslServerHandler */
@@ -52,7 +49,6 @@ class InstallService {
 		CfsslServerHandler $cfsslServerHandler,
 		CfsslHandler $cfsslHandler,
 		IConfig $config,
-		SystemConfig $systemConfig,
 		IRootFolder $rootFolder
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
@@ -60,7 +56,6 @@ class InstallService {
 		$this->cfsslServerHandler = $cfsslServerHandler;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->config = $config;
-		$this->systemConfig = $systemConfig;
 		$this->rootFolder = $rootFolder;
 	}
 
@@ -79,7 +74,7 @@ class InstallService {
 	}
 
 	private function getAppDataFolderName(): string {
-		$instanceId = $this->systemConfig->getValue('instanceid', null);
+		$instanceId = $this->config->getSystemValue('instanceid', null);
 		if ($instanceId === null) {
 			throw new \RuntimeException('no instance id!');
 		}
@@ -88,7 +83,7 @@ class InstallService {
 	}
 
 	private function getDataDir(): string {
-		$dataDir = $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		return $dataDir;
 	}
 
