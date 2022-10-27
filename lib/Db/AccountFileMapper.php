@@ -155,10 +155,6 @@ class AccountFileMapper extends QBMapper {
 					$qb->andWhere(
 						$qb->expr()->eq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
 					);
-				} elseif ($filter['approved'] === 'yes') {
-					$qb->andWhere(
-						$qb->expr()->neq('f.status', $qb->createNamedParameter(File::STATUS_SIGNED, Types::INTEGER)),
-					);
 				}
 			}
 			if (!empty($filter['userId'])) {
