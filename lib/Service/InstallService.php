@@ -67,7 +67,7 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	private function getFolder($path = ''): Folder {
+	private function getFolder(string $path = ''): Folder {
 		$rootFolder = $this->getAppRootFolder();
 		if ($rootFolder->nodeExists(Application::APP_ID . DIRECTORY_SEPARATOR . $path)) {
 			$folder = $rootFolder->get(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
@@ -129,7 +129,7 @@ class InstallService {
 		}
 	}
 
-	private function progressToDatabase($downloadSize, $downloaded) {
+	private function progressToDatabase($downloadSize, int $downloaded): void {
 		$data = $this->getProressData();
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
@@ -141,7 +141,7 @@ class InstallService {
 		return $data;
 	}
 
-	private function removeDownloadProgress() {
+	private function removeDownloadProgress(): void {
 		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource);
 	}
 
