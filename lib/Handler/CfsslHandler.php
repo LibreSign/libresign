@@ -161,10 +161,10 @@ class CfsslHandler {
 	 * @param string $cfsslUri
 	 * @return array
 	 */
-	public function health(?string $cfsslUri): array {
+	public function health(?string $cfsslUri = self::CFSSL_URI): array {
 		try {
-			if (!$cfsslUri) {
-				$cfsslUri = self::CFSSL_URI;
+			if (!$this->getCfsslUri()) {
+				$this->setCfsslUri($cfsslUri);
 			}
 			$client = $this->getClient();
 			if (!$this->portOpen($cfsslUri)) {
@@ -198,8 +198,9 @@ class CfsslHandler {
 		return $responseDecoded['result'];
 	}
 
-	public function wakeUp(): void {
-		if ($this->portOpen($this->getCfsslUri())) {
+	private function wakeUp(): void {
+		$cfsslUri = $this->getCfsslUri() ?? self::CFSSL_URI;
+		if ($this->portOpen($cfsslUri)) {
 			return;
 		}
 		$binary = $this->getBinary();
@@ -219,7 +220,7 @@ class CfsslHandler {
 			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
-		while (!$this->portOpen($this->getCfsslUri()) && $loops <= 4) {
+		while (!$this->portOpen($cfsslUri) && $loops <= 4) {
 			sleep(1);
 			$loops++;
 		}
