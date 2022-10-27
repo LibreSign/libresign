@@ -115,9 +115,6 @@
     "Resource" : "Ресурс",
     "Dependencies" : "Зависимости",
     "Name (CN)" : "Имя (CN)",
-    "Country (C)" : "Страна (C)",
-    "Organization (O)" : "Организация (О)",
-    "Organization Unit (OU)" : "Подразделение (OU)",
     "Config path" : "Путь конфигурации",
     "Could not generate certificate." : "Не удалось создать сертификат",
     "Remove" : "Удалить",
@@ -127,6 +124,9 @@
     "View" : "Просмотр",
     "No date" : "Нет даты",
     "User created!" : "Пользователь создан",
+    "Country (C)" : "Страна (C)",
+    "Organization (O)" : "Организация (О)",
+    "Organization Unit (OU)" : "Подразделение (OU)",
     "Webhook" : "Веб-хук",
     "Loading" : "Загрузка"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
