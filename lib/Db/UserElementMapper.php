@@ -10,12 +10,6 @@ use OCP\IDBConnection;
  * Class FileElementsMapper
  *
  * @package OCA\Libresign\DB
- *
- * @codeCoverageIgnore
- * @method UserElement insert(UserElement $entity)
- * @method UserElement update(UserElement $entity)
- * @method UserElement insertOrUpdate(UserElement $entity)
- * @method UserElement delete(UserElement $entity)
  */
 class UserElementMapper extends QBMapper {
 	/** @var UserElement[] */
