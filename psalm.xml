@@ -17,8 +17,7 @@
         <UndefinedClass>
             <errorLevel type="suppress">
                 <referencedClass name="Doctrine\DBAL\Types\Types" />
-                <referencedClass name="GuzzleHttp\Exception\ConnectException" />
-                <referencedClass name="GuzzleHttp\Exception\RequestException" />
+                <referencedClass name="GuzzleHttp\*" />
                 <referencedClass name="OC" />
                 <referencedClass name="OC\*" />
                 <referencedClass name="OCA\TwoFactorGateway\Service\Gateway\IGateway" />
@@ -28,6 +27,7 @@
             <errorLevel type="suppress">
                 <referencedClass name="Doctrine\DBAL\Schema\Table" />
                 <referencedClass name="GuzzleHttp\Client" />
+                <referencedClass name="GuzzleHttp\ClientInterface" />
                 <referencedClass name="OC\*" />
             </errorLevel>
         </UndefinedDocblockClass>

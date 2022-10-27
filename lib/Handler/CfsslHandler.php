@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use OCA\Libresign\Exception\LibresignException;
@@ -34,7 +33,7 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
  * @method string getOrganizationUnit()
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
- * @method CfsslHandler setClient(ClientInterface $client)
+ * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
@@ -53,10 +52,10 @@ class CfsslHandler {
 	private $password;
 	private $configPath;
 	private $binary;
-	/** @var ClientInterface */
+	/** @var Client */
 	private $client;
 
-	public function getClient(): ClientInterface {
+	public function getClient(): Client {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
