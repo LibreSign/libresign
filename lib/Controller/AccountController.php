@@ -145,7 +145,11 @@ class AccountController extends ApiController {
 				'userId' => $this->userSession->getUser()->getUID()
 			];
 			$this->accountService->validateCertificateData($data);
-			$signaturePath = $this->pkcs12Handler->generateCertificate(...array_values($data));
+			$signaturePath = $this->pkcs12Handler->generateCertificate(
+				$data['user'],
+				$data['signPassword'],
+				$data['userId']
+			);
 
 			return new JSONResponse([
 				'success' => true,

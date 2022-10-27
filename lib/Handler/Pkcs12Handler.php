@@ -306,6 +306,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param array $user Example: ['email' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
 	 * @param string $uid User id
+	 * @param bool $isTempFile
 	 * @return File
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
