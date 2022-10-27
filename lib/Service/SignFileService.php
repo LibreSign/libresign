@@ -572,6 +572,7 @@ class SignFileService {
 				]);
 			}
 			try {
+				/** @var \OCP\Files\File[] */
 				$node = $this->root->getById($userElement->getFileId());
 				if (!$node) {
 					throw new \Exception('empty');
