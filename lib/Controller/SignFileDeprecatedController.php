@@ -33,6 +33,8 @@ class SignFileDeprecatedController extends SignFileController {
 	protected $FileService;
 	/** @var SignFileService */
 	protected $signFileService;
+	/** @var FileService */
+	protected $fileService;
 	/** @var MailService */
 	private $mail;
 	/** @var LoggerInterface */
