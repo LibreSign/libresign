@@ -500,7 +500,9 @@ class InstallService {
 			}
 			$folder->newFile($hashFileName, $hashes);
 		}
-		$hashes = $folder->get($hashFileName)->getContent();
+		/** @var \OCP\Files\File */
+		$fileObject = $folder->get($hashFileName);
+		$hashes = $fileObject->getContent();
 		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
 		return $matches['hash'];
 	}
