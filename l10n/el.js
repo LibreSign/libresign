@@ -68,7 +68,6 @@ OC.L10N.register(
     "Message" : "Μήνυμα",
     "Resource" : "Πόρος",
     "Dependencies" : "Εξαρτήσεις",
-    "Country (C)" : "Χώρα (Χ)",
     "Validation URL" : "URL επικύρωσης",
     "Remove" : "Αφαίρεση",
     "Previous" : "Προηγούμενο",
@@ -80,6 +79,7 @@ OC.L10N.register(
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
     "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Country (C)" : "Χώρα (Χ)",
     "Loading" : "Γίνεται φόρτωση"
 },
 "nplurals=2; plural=(n != 1);");

@@ -12,9 +12,6 @@
     "Enter a password" : "စကားဝှက် ရိုက်ထည့်ပါ။",
     "Add users" : "အသုံးပြုသူ ထည့်သွင်းရန်",
     "Name (CN)" : "အမည် (CN)",
-    "Country (C)" : "နိုင်ငံ (C)",
-    "Organization (O)" : "အဖွဲ့အစည်း (O)",
-    "Organization Unit (OU)" : "အဖွဲ့အစည်း ယူနစ် (OU)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "ချိန်ညှိမှု path",
     "Root certificate data." : "Root Certificate အချက်အလက်",
@@ -31,6 +28,9 @@
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
     "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
     "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
+    "Country (C)" : "နိုင်ငံ (C)",
+    "Organization (O)" : "အဖွဲ့အစည်း (O)",
+    "Organization Unit (OU)" : "အဖွဲ့အစည်း ယူနစ် (OU)",
     "Webhook" : "Webhook",
     "Select authorized groups." : "ခွင့်ပြုချက်ရှိ အဖွဲ့များရွေးပါ။"
 },"pluralForm" :"nplurals=1; plural=0;"
