@@ -648,7 +648,7 @@ class SignFileService {
 			$tempPassword = sha1(time());
 			$this->setPassword($tempPassword);
 			return $this->pkcs12Handler->generateCertificate(
-				$this->fileUser->getEmail(),
+				['email' => $this->fileUser->getEmail()],
 				$tempPassword,
 				$this->fileUser->getUserId(),
 				true
