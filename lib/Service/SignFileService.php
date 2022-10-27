@@ -901,32 +901,35 @@ class SignFileService {
 	}
 
 	private function trhowIfFileUserNotExists(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
-		$fileUserId = $fileUser->getUserId();
-		if (!$fileUserId) {
-			if ($user) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('This is not your file')],
-				]));
+		if ($fileUser instanceof FileUserEntity) {
+			$fileUserId = $fileUser->getUserId();
+			if ($fileUserId) {
+				return;
 			}
-			$email = $fileUser->getEmail();
-			if ($this->userManager->getByEmail($email)) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_REDIRECT,
-					'errors' => [$this->l10n->t('User already exists. Please login.')],
-					'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-						'redirect_url' => $this->urlGenerator->linkToRoute(
-							'libresign.page.sign',
-							['uuid' => $uuid]
-						),
-					]),
-				]));
-			}
+		}
+		if ($user) {
 			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_CREATE_USER,
-				'settings' => ['accountHash' => md5($email)],
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('This is not your file')],
 			]));
 		}
+		$email = $fileUser->getEmail();
+		if ($this->userManager->getByEmail($email)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_REDIRECT,
+				'errors' => [$this->l10n->t('User already exists. Please login.')],
+				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+					'redirect_url' => $this->urlGenerator->linkToRoute(
+						'libresign.page.sign',
+						['uuid' => $uuid]
+					),
+				]),
+			]));
+		}
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_CREATE_USER,
+			'settings' => ['accountHash' => md5($email)],
+		]));
 	}
 
 	private function throwIfUserIsNotSigner(?IUser $user, FileUserEntity $fileUser): void {
