@@ -16,61 +16,18 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Handler/CfsslHandler.php">
-    <InvalidReturnStatement occurrences="1">
-      <code>$this-&gt;client</code>
-    </InvalidReturnStatement>
-    <InvalidReturnType occurrences="1">
-      <code>ClientInterface</code>
-    </InvalidReturnType>
-    <UndefinedClass occurrences="12">
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
-      <code>$th</code>
+    <UndefinedClass occurrences="4">
       <code>Client</code>
       <code>ClientInterface</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="3">
-      <code>$this-&gt;getClient()</code>
-      <code>$this-&gt;getClient()</code>
+    <UndefinedDocblockClass occurrences="1">
       <code>ClientInterface</code>
     </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Handler/Pkcs12Handler.php">
-    <UndefinedDocblockClass occurrences="1"/>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
     <MissingDependency occurrences="5"/>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version1000Date20210209004203.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version1000Date20210209011129.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version1000Date20210502200600.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version1000Date20210502200800.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version2040Date20210619135352.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version2040Date20210730022217.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version2040Date20211010194532.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Migration/Version2040Date20211010200549.php">
     <UndefinedClass occurrences="1"/>
   </file>
   <file src="lib/Service/AccountService.php">
@@ -79,7 +36,7 @@
       <code>NewUserMailHelper</code>
       <code>UUIDUtil</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="8">
+    <UndefinedDocblockClass occurrences="6">
       <code>$this-&gt;newUserMail</code>
       <code>$this-&gt;newUserMail</code>
       <code>NewUserMailHelper</code>
@@ -93,8 +50,5 @@
   <file src="lib/Service/SignFileService.php">
     <MissingDependency occurrences="8"/>
     <UndefinedClass occurrences="3"/>
-    <UndefinedDocblockClass occurrences="1">
-      <code>array{callback: string, name: string, userManager: OCP\IUserManager}</code>
-    </UndefinedDocblockClass>
   </file>
 </files>
