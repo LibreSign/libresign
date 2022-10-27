@@ -29,13 +29,13 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
-use OCP\IServerContainer;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
@@ -76,7 +76,7 @@ class SignFileService {
 	private $appManager;
 	/** @var IAccountManager */
 	private $accountManager;
-	/** @var IServerContainer */
+	/** @var ContainerInterface */
 	private $serverContainer;
 	/** @var IRootFolder */
 	private $root;
@@ -125,7 +125,7 @@ class SignFileService {
 		ISecureRandom $secureRandom,
 		IAppManager $appManager,
 		IAccountManager $accountManager,
-		IServerContainer $serverContainer,
+		ContainerInterface $serverContainer,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
