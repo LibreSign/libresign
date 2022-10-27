@@ -26,6 +26,8 @@ class MailService {
 	private $urlGenerator;
 	/** @var IConfig */
 	private $config;
+	/** @var array */
+	private $files = [];
 	
 	public function __construct(
 		LoggerInterface $logger,
