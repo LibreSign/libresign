@@ -92,7 +92,7 @@ class AdminController extends Controller {
 		return new DataResponse($certificate);
 	}
 
-	private function trimAndThrowIfEmpty($key, $value): string {
+	private function trimAndThrowIfEmpty(string $key, $value): string {
 		if (empty($value)) {
 			throw new LibresignException("parameter '{$key}' is required!", 400);
 		}

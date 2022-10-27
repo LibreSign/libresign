@@ -227,7 +227,7 @@ class CfsslHandler {
 		}
 	}
 
-	private function portOpen($uri): bool {
+	private function portOpen(string $uri): bool {
 		$host = parse_url($uri, PHP_URL_HOST);
 		$port = parse_url($uri, PHP_URL_PORT);
 		try {
