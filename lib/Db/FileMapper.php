@@ -158,5 +158,6 @@ class FileMapper extends QBMapper {
 			case File::STATUS_DELETED:
 				return $this->l->t('deleted');
 		}
+		return '';
 	}
 }
