@@ -2,14 +2,11 @@
 
 namespace OCA\Libresign\Service;
 
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
 
 class PdfParserService {
-	/** @var SystemConfig */
-	private $systemConfig;
 	/** @var IConfig */
 	private $config;
 	/** @var InstallService */
@@ -19,16 +16,14 @@ class PdfParserService {
 
 	public function __construct(
 		IConfig $config,
-		SystemConfig $systemConfig,
 		InstallService $installService
 	) {
-		$this->systemConfig = $systemConfig;
 		$this->config = $config;
 		$this->installService = $installService;
 	}
 
 	private function getDataDir(): string {
-		return $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		return $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 	}
 
 	/**
