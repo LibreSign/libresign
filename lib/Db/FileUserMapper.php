@@ -14,7 +14,6 @@ use OCP\IDBConnection;
  * @package OCA\Libresign\DB
  */
 class FileUserMapper extends QBMapper {
-	/** @var FileUser[][] */
 	private $signers = [];
 
 	/**
