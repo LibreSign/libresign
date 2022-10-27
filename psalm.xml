@@ -17,6 +17,7 @@
         <UndefinedClass>
             <errorLevel type="suppress">
                 <referencedClass name="OC" />
+                <referencedClass name="OC\*" />
                 <referencedClass name="OCA\TwoFactorGateway\Service\Gateway\IGateway" />
             </errorLevel>
         </UndefinedClass>
