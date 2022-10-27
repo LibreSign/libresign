@@ -35,7 +35,6 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
  * @method CfsslHandler setClient(ClientInterface $client)
- * @method Client getClient()
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
