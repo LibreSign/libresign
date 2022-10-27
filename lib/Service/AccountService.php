@@ -61,7 +61,7 @@ class AccountService {
 	private $accountFileMapper;
 	/** @var SignFileService */
 	private $signFileService;
-	/** @var \OCA\Libresign\DbFile */
+	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
@@ -149,9 +149,6 @@ class AccountService {
 		}
 	}
 
-	/**
-	 * @psalm-return array{fileData: \OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|\OCP\Files\Node}
-	 */
 	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
