@@ -7,6 +7,9 @@
     <UndefinedClass occurrences="1"/>
   </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
+    <InvalidArgument occurrences="1">
+      <code>$qb</code>
+    </InvalidArgument>
     <UndefinedDocblockClass occurrences="2">
       <code>callable(QueryBuilder): void</code>
       <code>callable(QueryBuilder): void</code>
