@@ -3,6 +3,15 @@
   <file src="lib/AppInfo/Application.php">
     <UndefinedClass occurrences="1"/>
   </file>
+  <file src="lib/Command/Configure/Cfssl.php">
+    <MissingDependency occurrences="1"/>
+  </file>
+  <file src="lib/Command/Install.php">
+    <MissingDependency occurrences="1"/>
+  </file>
+  <file src="lib/Command/Uninstall.php">
+    <MissingDependency occurrences="1"/>
+  </file>
   <file src="lib/Controller/SignFileController.php">
     <UndefinedClass occurrences="1"/>
   </file>
