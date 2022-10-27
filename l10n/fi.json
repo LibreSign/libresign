@@ -163,9 +163,6 @@
     "Legal Information" : "Lainopilliset tiedot",
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Name (CN)" : "Nimi (CN)",
-    "Country (C)" : "Maa (C)",
-    "Organization (O)" : "Organisaatio (O)",
-    "Organization Unit (OU)" : "Organisaatioyksikkö (OU)",
     "Generate root certificate." : "Luo juurivarmenne.",
     "Generating certificate." : "Luodaan varmennetta.",
     "Could not generate certificate." : "Varmennetta ei voitu luoda.",
@@ -188,6 +185,9 @@
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Open in LibreSign" : "Avaa LibreSignissa",
+    "Country (C)" : "Maa (C)",
+    "Organization (O)" : "Organisaatio (O)",
+    "Organization Unit (OU)" : "Organisaatioyksikkö (OU)",
     "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Loading" : "Ladataan"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

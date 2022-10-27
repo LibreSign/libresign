@@ -92,8 +92,6 @@ OC.L10N.register(
     "New password" : "Senhal novèl",
     "Resource" : "Ressorsa",
     "Name (CN)" : "Nom (CN)",
-    "Country (C)" : "País (C)",
-    "Organization (O)" : "Organizacion (O)",
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",
     "Remove" : "Suprimir",
@@ -106,6 +104,8 @@ OC.L10N.register(
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
     "User created!" : "Utilizaire creat !",
+    "Country (C)" : "País (C)",
+    "Organization (O)" : "Organizacion (O)",
     "Loading" : "Cargament"
 },
 "nplurals=2; plural=(n > 1);");
