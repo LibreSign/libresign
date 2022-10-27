@@ -3,12 +3,6 @@
   <file src="lib/AppInfo/Application.php">
     <UndefinedClass occurrences="1"/>
   </file>
-  <file src="lib/Controller/AccountController.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
-  <file src="lib/Controller/PageController.php">
-    <UndefinedClass occurrences="1"/>
-  </file>
   <file src="lib/Controller/SignFileController.php">
     <UndefinedClass occurrences="1"/>
   </file>
@@ -44,7 +38,6 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Handler/Pkcs12Handler.php">
-    <UndefinedClass occurrences="1"/>
     <UndefinedDocblockClass occurrences="1"/>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
@@ -79,7 +72,7 @@
   </file>
   <file src="lib/Service/AccountService.php">
     <MissingDependency occurrences="3"/>
-    <UndefinedClass occurrences="4">
+    <UndefinedClass occurrences="3">
       <code>NewUserMailHelper</code>
       <code>UUIDUtil</code>
     </UndefinedClass>
