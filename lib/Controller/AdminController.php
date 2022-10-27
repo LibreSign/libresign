@@ -19,7 +19,7 @@ class AdminController extends Controller {
 	/** @var IOutput */
 	private $output;
 	/** @var AdminSignatureService */
-	private $adminSignatureservice;
+	private $adminSignatureService;
 	/** @var ConfigureCheckService */
 	private $configureCheckService;
 	/** @var InstallService */
