@@ -150,9 +150,7 @@ class AccountService {
 	}
 
 	/**
-	 * @return (FileEntity|\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCP\Files\Node)[]
-	 *
-	 * @psalm-return array{fileData: FileEntity|\OCA\Libresign\DbFile, fileToSign: \OCA\Files\Node\File|\OCP\Files\Node}
+	 * @psalm-return array{fileData: \OCA\Libresign\Db\File, fileToSign: \OCA\Files\Node\File|\OCP\Files\Node}
 	 */
 	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
