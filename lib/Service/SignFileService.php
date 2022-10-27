@@ -193,7 +193,7 @@ class SignFileService {
 	 * Save file data
 	 *
 	 *
-	 * @param array{userManager: IUserManager, name: string, callback: string} $data
+	 * @param array{userManager: IUser, name: string, callback: string} $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
