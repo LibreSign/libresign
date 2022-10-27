@@ -27,6 +27,7 @@
         <UndefinedDocblockClass>
             <errorLevel type="suppress">
                 <referencedClass name="Doctrine\DBAL\Schema\Table" />
+                <referencedClass name="GuzzleHttp\Client" />
             </errorLevel>
         </UndefinedDocblockClass>
     </issueHandlers>
