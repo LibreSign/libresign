@@ -17,6 +17,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
+use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use RuntimeException;
