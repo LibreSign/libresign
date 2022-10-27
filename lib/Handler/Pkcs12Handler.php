@@ -83,14 +83,15 @@ class Pkcs12Handler extends SignEngineHandler {
 	 *
 	 * @psalm-suppress MixedReturnStatement
 	 * @param string $uid user id
-	 * @return \OCP\Files\Node
+	 * @return \OCP\Files\File
 	 */
-	public function getPfx($uid): \OCP\Files\Node {
+	public function getPfx($uid): \OCP\Files\File {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
+		/** @var \OCP\Files\File */
 		$node = $folder->get($this->pfxFilename);
 		if (!$node->getContent()) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
