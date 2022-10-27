@@ -377,17 +377,15 @@ class SignFileService {
 		}
 	}
 
-	/**
-	 * @return string|null
-	 */
-	private function getUserEmail(array $user): ?string {
+	private function getUserEmail(array $user): string {
 		if (!empty($user['email'])) {
 			return strtolower($user['email']);
 		}
 		if (!empty($user['uid'])) {
 			$user = $this->userManager->get($user['uid']);
-			return $user->getEMailAddress();
+			return $user->getEMailAddress() ?? '';
 		}
+		return '';
 	}
 
 	/**
