@@ -10,12 +10,6 @@ use OCP\IL10N;
  * Class FileTypeMapper
  *
  * @package OCA\Libresign\DB
- *
- * @codeCoverageIgnore
- * @method File insert(File $entity)
- * @method File update(File $entity)
- * @method File insertOrUpdate(File $entity)
- * @method File delete(File $entity)
  */
 class FileTypeMapper extends QBMapper {
 	/** @var IL10N */
