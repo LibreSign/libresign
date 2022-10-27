@@ -385,6 +385,7 @@ class AccountService {
 		}
 		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
 		$userFolder = $this->folderService->getFolder($userElement->getFileId());
+		/** @var \OCP\Files\File */
 		$file = $userFolder->getById($userElement->getFileId())[0];
 		$file->putContent($this->getFileRaw($data));
 	}
