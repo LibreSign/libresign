@@ -199,7 +199,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			);
 		}
 
-		return $pdf->Output(null, 'S');
+		return $pdf->Output('', 'S');
 	}
 
 	private function writeQrCode(string $text, TCPDI $fpdf): void {
