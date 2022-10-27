@@ -14,12 +14,6 @@ use OCP\IURLGenerator;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
- *
- * @codeCoverageIgnore
- * @method File insert(File $entity)
- * @method File update(File $entity)
- * @method File insertOrUpdate(File $entity)
- * @method File delete(File $entity)
  */
 class AccountFileMapper extends QBMapper {
 	/** @var IURLGenerator */
