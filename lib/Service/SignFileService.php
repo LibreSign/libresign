@@ -166,7 +166,7 @@ class SignFileService {
 	}
 
 	/**
-	 * @param array{callback: string, name: string, userManager: OCP\IUserManager} $data
+	 * @param array $data
 	 */
 	public function save(array $data): array {
 		$file = $this->saveFile($data);
