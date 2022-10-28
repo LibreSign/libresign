@@ -109,16 +109,16 @@
         },
         {
             "name": "endroid/qr-code",
-            "version": "4.6.0",
+            "version": "4.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/endroid/qr-code.git",
-                "reference": "b60873b14e2ca7bf3c3746f5e032023095a7e05c"
+                "reference": "a75c913b0e4d6ad275e49a2c1de1cacffc6c2184"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/endroid/qr-code/zipball/b60873b14e2ca7bf3c3746f5e032023095a7e05c",
-                "reference": "b60873b14e2ca7bf3c3746f5e032023095a7e05c",
+                "url": "https://api.github.com/repos/endroid/qr-code/zipball/a75c913b0e4d6ad275e49a2c1de1cacffc6c2184",
+                "reference": "a75c913b0e4d6ad275e49a2c1de1cacffc6c2184",
                 "shasum": ""
             },
             "require": {
@@ -169,7 +169,7 @@
             ],
             "support": {
                 "issues": "https://github.com/endroid/qr-code/issues",
-                "source": "https://github.com/endroid/qr-code/tree/4.6.0"
+                "source": "https://github.com/endroid/qr-code/tree/4.6.1"
             },
             "funding": [
                 {
@@ -177,7 +177,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-10-04T17:13:41+00:00"
+            "time": "2022-10-26T08:48:17+00:00"
         },
         {
             "name": "iio/libmergepdf",
