@@ -27,10 +27,18 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use OCA\Libresign\AppInfo\Application;
+use OCP\IConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version7000Date20221028022904 extends SimpleMigrationStep {
+	/** @var IConfig */
+	protected $config;
+
+	public function __construct(IConfig $config) {
+		$this->config = $config;
+	}
+
 	/**
 	 * The migration Version7000Date20221026003343 generated a wrong array to store the cert optional attibutes following this wrong format:
 	 * {"commonName":"Test Company","names":{"C":"BR","O":"Organization","OU":"Organization Unit"}}
@@ -39,7 +47,7 @@ class Version7000Date20221028022904 extends SimpleMigrationStep {
 	 * {"commonName":"Test Company","names":[{"id":"C","value":"BR"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organization Unit"}]}
 	 */
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$rootCert = $this->config->setAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (is_array($rootCert) && array_key_exists('names', $rootCert)) {
 			$names = [];
