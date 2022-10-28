@@ -242,6 +242,7 @@ OC.L10N.register(
     "Config path" : "Diretório de configuração",
     "Regenerate root certificate" : "Regenerar certificado raiz",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Regenerar certificado raiz irá invalidar todas as chaves de assinaturas. Você confirma esta ação?",
+    "Remove custom name entry from root certificate" : "Remover a entrada de nome personalizado do certificado raiz",
     "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL",
     "Not mandatory, don't fill to use default value." : "Não obrigatório, não preencha para usar o valor padrão.",
     "Root certificate data." : "Dados do certificado raiz. ",
