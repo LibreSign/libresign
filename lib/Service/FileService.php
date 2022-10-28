@@ -352,7 +352,7 @@ class FileService {
 	/**
 	 * @return array
 	 *
-	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array}
+	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array}|array<empty>
 	 */
 	private function getFile(): array {
 		$return = [];

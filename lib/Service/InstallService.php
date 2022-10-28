@@ -7,7 +7,6 @@ namespace OCA\Libresign\Service;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Files\Filesystem;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
@@ -17,6 +16,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
+use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use RuntimeException;
@@ -31,8 +31,6 @@ class InstallService {
 	public $config;
 	/** @var IClientService */
 	private $clientService;
-	/** @var SystemConfig */
-	private $systemConfig;
 	/** @var IRootFolder */
 	private $rootFolder;
 	/** @var CfsslServerHandler */
@@ -51,7 +49,6 @@ class InstallService {
 		CfsslServerHandler $cfsslServerHandler,
 		CfsslHandler $cfsslHandler,
 		IConfig $config,
-		SystemConfig $systemConfig,
 		IRootFolder $rootFolder
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
@@ -59,7 +56,6 @@ class InstallService {
 		$this->cfsslServerHandler = $cfsslServerHandler;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->config = $config;
-		$this->systemConfig = $systemConfig;
 		$this->rootFolder = $rootFolder;
 	}
 
@@ -67,7 +63,7 @@ class InstallService {
 		$this->output = $output;
 	}
 
-	private function getFolder($path = ''): Folder {
+	private function getFolder(string $path = ''): Folder {
 		$rootFolder = $this->getAppRootFolder();
 		if ($rootFolder->nodeExists(Application::APP_ID . DIRECTORY_SEPARATOR . $path)) {
 			$folder = $rootFolder->get(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
@@ -78,7 +74,7 @@ class InstallService {
 	}
 
 	private function getAppDataFolderName(): string {
-		$instanceId = $this->systemConfig->getValue('instanceid', null);
+		$instanceId = $this->config->getSystemValue('instanceid', null);
 		if ($instanceId === null) {
 			throw new \RuntimeException('no instance id!');
 		}
@@ -87,7 +83,7 @@ class InstallService {
 	}
 
 	private function getDataDir(): string {
-		$dataDir = $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		return $dataDir;
 	}
 
@@ -129,7 +125,7 @@ class InstallService {
 		}
 	}
 
-	private function progressToDatabase($downloadSize, $downloaded) {
+	private function progressToDatabase(int $downloadSize, int $downloaded): void {
 		$data = $this->getProressData();
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
@@ -141,7 +137,7 @@ class InstallService {
 		return $data;
 	}
 
-	private function removeDownloadProgress() {
+	private function removeDownloadProgress(): void {
 		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource);
 	}
 
@@ -441,7 +437,7 @@ class InstallService {
 
 	protected function download(string $url, string $filename, string $path, ?string $hash = '', ?string $hash_algo = 'md5'): void {
 		if (file_exists($path)) {
-			$this->progressToDatabase(filesize($path), 0);
+			$this->progressToDatabase((int) filesize($path), 0);
 			if (hash_file($hash_algo, $path) === $hash) {
 				return;
 			}
@@ -504,7 +500,9 @@ class InstallService {
 			}
 			$folder->newFile($hashFileName, $hashes);
 		}
-		$hashes = $folder->get($hashFileName)->getContent();
+		/** @var \OCP\Files\File */
+		$fileObject = $folder->get($hashFileName);
+		$hashes = $fileObject->getContent();
 		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
 		return $matches['hash'];
 	}

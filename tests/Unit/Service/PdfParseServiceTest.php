@@ -15,22 +15,18 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig|MockObject */
 	private $config;
-	/** @var SystemConfig|MockObject */
-	private $systemConfig;
 	/** @var InstallService|MockObject */
 	private $installService;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
-		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->installService = $this->createMock(InstallService::class);
 	}
 
 	private function getService(): PdfParserService {
 		return new PdfParserService(
 			$this->config,
-			$this->systemConfig,
 			$this->installService
 		);
 	}
@@ -44,8 +40,8 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					case 'libresign_cli_path': return '/fake_path/';
 				}
 			});
-		$this->systemConfig
-			->method('getValue')
+		$this->config
+			->method('getSystemValue')
 			->willReturnCallback(function ($key, $default) {
 				switch ($key) {
 					case 'datadirectory': return $default;

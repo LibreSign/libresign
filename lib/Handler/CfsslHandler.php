@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Handler;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use OCA\Libresign\Exception\LibresignException;
@@ -34,8 +33,7 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
  * @method string getOrganizationUnit()
  * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
- * @method CfsslHandler setClient(ClientInterface $client)
- * @method Client getClient()
+ * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
@@ -54,10 +52,10 @@ class CfsslHandler {
 	private $password;
 	private $configPath;
 	private $binary;
-	/** @var ClientInterface */
+	/** @var Client */
 	private $client;
 
-	public function getClient(): ClientInterface {
+	public function getClient(): Client {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
@@ -163,10 +161,10 @@ class CfsslHandler {
 	 * @param string $cfsslUri
 	 * @return array
 	 */
-	public function health(?string $cfsslUri): array {
+	public function health(?string $cfsslUri = self::CFSSL_URI): array {
 		try {
-			if (!$cfsslUri) {
-				$cfsslUri = self::CFSSL_URI;
+			if (!$this->getCfsslUri()) {
+				$this->setCfsslUri($cfsslUri);
 			}
 			$client = $this->getClient();
 			if (!$this->portOpen($cfsslUri)) {
@@ -200,8 +198,9 @@ class CfsslHandler {
 		return $responseDecoded['result'];
 	}
 
-	public function wakeUp(): void {
-		if ($this->portOpen($this->getCfsslUri())) {
+	private function wakeUp(): void {
+		$cfsslUri = $this->getCfsslUri() ?? self::CFSSL_URI;
+		if ($this->portOpen($cfsslUri)) {
 			return;
 		}
 		$binary = $this->getBinary();
@@ -221,13 +220,13 @@ class CfsslHandler {
 			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
-		while (!$this->portOpen($this->getCfsslUri()) && $loops <= 4) {
+		while (!$this->portOpen($cfsslUri) && $loops <= 4) {
 			sleep(1);
 			$loops++;
 		}
 	}
 
-	private function portOpen($uri): bool {
+	private function portOpen(string $uri): bool {
 		$host = parse_url($uri, PHP_URL_HOST);
 		$port = parse_url($uri, PHP_URL_PORT);
 		try {

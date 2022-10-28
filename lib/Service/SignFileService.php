@@ -29,13 +29,13 @@ use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
-use OCP\IServerContainer;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
@@ -76,7 +76,7 @@ class SignFileService {
 	private $appManager;
 	/** @var IAccountManager */
 	private $accountManager;
-	/** @var IServerContainer */
+	/** @var ContainerInterface */
 	private $serverContainer;
 	/** @var IRootFolder */
 	private $root;
@@ -125,7 +125,7 @@ class SignFileService {
 		ISecureRandom $secureRandom,
 		IAppManager $appManager,
 		IAccountManager $accountManager,
-		IServerContainer $serverContainer,
+		ContainerInterface $serverContainer,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
@@ -166,7 +166,7 @@ class SignFileService {
 	}
 
 	/**
-	 * @param array{callback: string, name: string, userManager: OCP\IUserManager} $data
+	 * @param array $data
 	 */
 	public function save(array $data): array {
 		$file = $this->saveFile($data);
@@ -193,7 +193,7 @@ class SignFileService {
 	 * Save file data
 	 *
 	 *
-	 * @param array{userManager: IUserManager, name: string, callback: string} $data
+	 * @param array{userManager: IUser, name: string, callback: string} $data
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
@@ -377,17 +377,15 @@ class SignFileService {
 		}
 	}
 
-	/**
-	 * @return string|null
-	 */
-	private function getUserEmail(array $user): ?string {
+	private function getUserEmail(array $user): string {
 		if (!empty($user['email'])) {
 			return strtolower($user['email']);
 		}
 		if (!empty($user['uid'])) {
 			$user = $this->userManager->get($user['uid']);
-			return $user->getEMailAddress();
+			return $user->getEMailAddress() ?? '';
 		}
+		return '';
 	}
 
 	/**
@@ -574,6 +572,7 @@ class SignFileService {
 				]);
 			}
 			try {
+				/** @var \OCP\Files\File[] */
 				$node = $this->root->getById($userElement->getFileId());
 				if (!$node) {
 					throw new \Exception('empty');
@@ -648,7 +647,7 @@ class SignFileService {
 			$tempPassword = sha1(time());
 			$this->setPassword($tempPassword);
 			return $this->pkcs12Handler->generateCertificate(
-				$this->fileUser->getEmail(),
+				['email' => $this->fileUser->getEmail()],
 				$tempPassword,
 				$this->fileUser->getUserId(),
 				true
@@ -902,32 +901,35 @@ class SignFileService {
 	}
 
 	private function trhowIfFileUserNotExists(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
-		$fileUserId = $fileUser->getUserId();
-		if (!$fileUserId) {
-			if ($user) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('This is not your file')],
-				]));
+		if ($fileUser instanceof FileUserEntity) {
+			$fileUserId = $fileUser->getUserId();
+			if ($fileUserId) {
+				return;
 			}
-			$email = $fileUser->getEmail();
-			if ($this->userManager->getByEmail($email)) {
-				throw new LibresignException(json_encode([
-					'action' => JSActions::ACTION_REDIRECT,
-					'errors' => [$this->l10n->t('User already exists. Please login.')],
-					'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-						'redirect_url' => $this->urlGenerator->linkToRoute(
-							'libresign.page.sign',
-							['uuid' => $uuid]
-						),
-					]),
-				]));
-			}
+		}
+		if ($user) {
 			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_CREATE_USER,
-				'settings' => ['accountHash' => md5($email)],
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('This is not your file')],
 			]));
 		}
+		$email = $fileUser->getEmail();
+		if ($this->userManager->getByEmail($email)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_REDIRECT,
+				'errors' => [$this->l10n->t('User already exists. Please login.')],
+				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+					'redirect_url' => $this->urlGenerator->linkToRoute(
+						'libresign.page.sign',
+						['uuid' => $uuid]
+					),
+				]),
+			]));
+		}
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_CREATE_USER,
+			'settings' => ['accountHash' => md5($email)],
+		]));
 	}
 
 	private function throwIfUserIsNotSigner(?IUser $user, FileUserEntity $fileUser): void {

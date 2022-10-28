@@ -2,12 +2,12 @@
 
 namespace OCA\Libresign\Controller;
 
-use OC\Security\CSP\ContentSecurityPolicy;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -133,7 +133,7 @@ class PageController extends Controller {
 		$resp->addHeader('Content-Type', 'application/pdf');
 
 		$csp = new ContentSecurityPolicy();
-		$csp->setInlineScriptAllowed(true);
+		$csp->allowInlineScript(true);
 		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
@@ -160,7 +160,7 @@ class PageController extends Controller {
 		$resp->addHeader('Content-Type', 'application/pdf');
 
 		$csp = new ContentSecurityPolicy();
-		$csp->setInlineScriptAllowed(true);
+		$csp->allowInlineScript(true);
 		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;

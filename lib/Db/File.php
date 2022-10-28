@@ -9,7 +9,7 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method void setId(int $id)
  * @method int getId()
- * @method void setNodeId(int $nodeId)
+ * @method void setNodeId(?int $nodeId)
  * @method int getNodeId()
  * @method void setSignedNodeId(int $nodeId)
  * @method int getSignedNodeId()

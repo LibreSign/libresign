@@ -16,9 +16,20 @@
     <issueHandlers>
         <UndefinedClass>
             <errorLevel type="suppress">
+                <referencedClass name="Doctrine\DBAL\Types\Types" />
+                <referencedClass name="GuzzleHttp\*" />
                 <referencedClass name="OC" />
+                <referencedClass name="OC\*" />
                 <referencedClass name="OCA\TwoFactorGateway\Service\Gateway\IGateway" />
             </errorLevel>
         </UndefinedClass>
+        <UndefinedDocblockClass>
+            <errorLevel type="suppress">
+                <referencedClass name="Doctrine\DBAL\Schema\Table" />
+                <referencedClass name="GuzzleHttp\Client" />
+                <referencedClass name="GuzzleHttp\ClientInterface" />
+                <referencedClass name="OC\*" />
+            </errorLevel>
+        </UndefinedDocblockClass>
     </issueHandlers>
 </psalm>
