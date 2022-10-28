@@ -6,6 +6,7 @@ OC.L10N.register(
     "deleted" : "Slettet",
     "File not found" : "Fil ikke fundet",
     "File already exists" : "Filen findes allerede",
+    "Empty file" : "Tom fil",
     "Invalid user" : "Ugyldig bruger",
     "Files" : "Filer",
     "Settings" : "Indstillinger",
