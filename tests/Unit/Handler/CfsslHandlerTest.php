@@ -2,7 +2,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Handler;
 
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use OCA\Libresign\Handler\CfsslHandler;
 use Psr\Http\Message\ResponseInterface;
@@ -31,7 +31,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$response->method('getBody')->willReturn(json_encode([
 			'success' => false
 		]));
-		$client = $this->createMock(ClientInterface::class);
+		$client = $this->createMock(Client::class);
 		$client->expects($this->once())
 			->method('request')
 			->willReturn($response);
@@ -42,7 +42,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGenerateCertificateWithUnexpectedError() {
 		$class = new CfsslHandler();
 		$this->expectExceptionCode(500);
-		$client = $this->createMock(ClientInterface::class);
+		$client = $this->createMock(Client::class);
 		$client->expects($this->once())
 			->method('request')
 			->willThrowException($this->createMock(ConnectException::class));
@@ -63,7 +63,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'success' => 'success',
 			'result' => $cert
 		]));
-		$client = $this->createMock(ClientInterface::class);
+		$client = $this->createMock(Client::class);
 		$client->expects($this->once())
 			->method('request')
 			->willReturn($response);
@@ -79,7 +79,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'success' => 'success',
 			'result' => json_decode($cert, true)
 		]));
-		$client = $this->createMock(ClientInterface::class);
+		$client = $this->createMock(Client::class);
 		$client->expects($this->once())
 			->method('request')
 			->willReturn($response);
@@ -94,7 +94,7 @@ final class CfsslHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testHealthWithoutSuccess() {
 		$class = new CfsslHandler();
 		$this->expectExceptionMessage('CFSSL server is down');
-		$client = $this->createMock(ClientInterface::class);
+		$client = $this->createMock(Client::class);
 		$class->setClient($client);
 		$class->health('http://cfssl.coop');
 	}

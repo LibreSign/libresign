@@ -11,12 +11,6 @@ use OCP\IL10N;
  * Class FileMapper
  *
  * @package OCA\Libresign\DB
- *
- * @codeCoverageIgnore
- * @method File insert(File $entity)
- * @method File update(File $entity)
- * @method File insertOrUpdate(File $entity)
- * @method File delete(File $entity)
  */
 class FileMapper extends QBMapper {
 	/** @var IL10N */
@@ -164,5 +158,6 @@ class FileMapper extends QBMapper {
 			case File::STATUS_DELETED:
 				return $this->l->t('deleted');
 		}
+		return '';
 	}
 }

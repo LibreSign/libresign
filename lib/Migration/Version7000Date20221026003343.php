@@ -26,9 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use Closure;
 use OCA\Libresign\AppInfo\Application;
-use OCP\DB\ISchemaWrapper;
 use OCP\IConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -41,12 +39,7 @@ class Version7000Date20221026003343 extends SimpleMigrationStep {
 		$this->config = $config;
 	}
 
-	/**
-	 * @param IOutput $output
-	 * @param Closure(): ISchemaWrapper $schemaClosure
-	 * @param array $options
-	 */
-	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$rootCert = [];
 		if ($commonName = $this->config->getAppValue(Application::APP_ID, 'commonName')) {
 			$rootCert['commonName'] = $commonName;

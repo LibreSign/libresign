@@ -61,7 +61,7 @@ class AccountService {
 	private $accountFileMapper;
 	/** @var SignFileService */
 	private $signFileService;
-	/** @var \OCA\Libresign\DbFile */
+	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
@@ -149,11 +149,6 @@ class AccountService {
 		}
 	}
 
-	/**
-	 * @return (FileEntity|\OCA\Files\Node\File|\OCA\Libresign\DbFile|\OCP\Files\Node)[]
-	 *
-	 * @psalm-return array{fileData: FileEntity|\OCA\Libresign\DbFile, fileToSign: \OCA\Files\Node\File|\OCP\Files\Node}
-	 */
 	public function getFileByUuid(string $uuid): array {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
@@ -385,6 +380,7 @@ class AccountService {
 		}
 		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
 		$userFolder = $this->folderService->getFolder($userElement->getFileId());
+		/** @var \OCP\Files\File */
 		$file = $userFolder->getById($userElement->getFileId())[0];
 		$file->putContent($this->getFileRaw($data));
 	}

@@ -92,8 +92,8 @@ class TestCase extends \Test\TestCase {
 			]
 		]);
 
-		$userManager = \OC::$server->getUserManager();
-		$groupManager = \OC::$server->getGroupManager();
+		$userManager = \OC::$server->get(\OCP\IUserManager::class);
+		$groupManager = \OC::$server->get(\OCP\IGroupManager::class);
 
 		$user = $userManager->get($username);
 		if (!$user) {
@@ -121,7 +121,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function deleteUserIfExists($username): void {
-		$user = \OC::$server->getUserManager()->get($username);
+		$user = \OC::$server->get(\OCP\IUserManager::class)->get($username);
 		if ($user) {
 			try {
 				$user->delete();

@@ -16,7 +16,9 @@ class AdminSignatureService {
 	}
 
 	/**
-	 * @return string[]
+	 * @return ((array|mixed)[]|string)[]
+	 *
+	 * @psalm-return array{cfsslUri: string, configPath: string, rootCert: array{names: array<empty, empty>|mixed}}
 	 */
 	public function loadKeys(): array {
 		$return = [

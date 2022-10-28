@@ -64,8 +64,14 @@ final class PageControllerTest extends TestCase {
 	public function testSignPolices() {
 		$response = $this->controller->sign('uuid');
 		$polices = $response->getContentSecurityPolicy();
-		$this->assertCount(1, $polices->getAllowedFrameDomains());
-		$this->assertContains("'self'", $polices->getAllowedFrameDomains());
+
+		$reflectionClass = new \ReflectionClass($polices);
+		$property = $reflectionClass->getProperty('allowedFrameDomains');
+		$property->setAccessible(true);
+		$allowedFrameDomains = $property->getValue($polices);
+
+		$this->assertCount(1, $allowedFrameDomains);
+		$this->assertContains("'self'", $allowedFrameDomains);
 	}
 
 	public function testSignReturnStatus() {
