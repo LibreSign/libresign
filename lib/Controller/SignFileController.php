@@ -365,6 +365,7 @@ class SignFileController extends ApiController {
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
 			$success = false;
+			// There was an error when to send SMS code to user.
 			$message = $this->l10n->t('Failed to send code.');
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		} catch (\Throwable $th) {
