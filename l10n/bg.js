@@ -242,6 +242,7 @@ OC.L10N.register(
     "Config path" : "Път на конфигурация",
     "Regenerate root certificate" : "Регенериране на основния сертификат",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Регенерирането на основният сертификат ще анулира всички ключове за подписи. Потвърждавате ли това действие?",
+    "Remove custom name entry from root certificate" : "Премахване на запис за персонализирано име от основния сертификат",
     "Define custom values to use CFSSL" : "Определяне на потребителски стойности за използване на CFSSL",
     "Not mandatory, don't fill to use default value." : "Не е задължително, не попълвайте това поле, за да използвате стойността по подразбиране.",
     "Root certificate data." : "Данни за основен сертификат.",
