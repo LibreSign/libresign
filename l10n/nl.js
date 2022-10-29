@@ -177,7 +177,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Fout bij maken wachtwoord. Neem contact op met je beheerder.",
     "Create new subscription." : "Creëer een nieuw abonnement.",
     "Root certificate has not been configured by the Administrator!" : "Root certificaat is niet geconfigureerd door de beheerder!",
-    "You need to create an account with the same email you received the invitation" : "Je moet een account maken met hetzelfde e-mailadres waarop je de uitnodiging ontving",
+    "You need to create an account with the same email address you received the invitation" : "Je moet een account maken met hetzelfde e-mailadres waarop je de uitnodiging ontving",
     "Your password must be greater than 4 digits" : "Je wachtwoord moet meer dan 4 cijfers zijn",
     "Confirm password" : "Bevestig wachtwoord",
     "Passwords does not match" : "Wachtwoorden komen niet overeen",

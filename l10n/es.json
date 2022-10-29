@@ -180,7 +180,7 @@
     "Error creating new password, please contact the administrator" : "Error al crear la nueva contraseña, por favor, contacte con su administrador.",
     "Create new subscription." : "Crear nueva suscripción.",
     "Root certificate has not been configured by the Administrator!" : "¡El certificado raíz no ha sido configurado por el administrador!",
-    "You need to create an account with the same email you received the invitation" : "Tienes que crear una cuenta con el mismo correo en el que recibiste la invitación",
+    "You need to create an account with the same email address you received the invitation" : "Tienes que crear una cuenta con el mismo correo en el que recibiste la invitación",
     "Your password must be greater than 4 digits" : "Tu contraseña tiene que tener más de 4 dígitos",
     "Confirm password" : "Confirme la contraseña",
     "Passwords does not match" : "Las contraseñas no coinciden",

@@ -156,7 +156,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Pogreška pri stvaranju nove zaporke, obratite se administratoru",
     "Create new subscription." : "Stvorite novu pretplatu.",
     "Root certificate has not been configured by the Administrator!" : "Administrator nije konfigurirao korijensku vjerodajnicu!",
-    "You need to create an account with the same email you received the invitation" : "Morate stvoriti račun koristeći se istom adresom e-pošte na koju ste primili poziv",
+    "You need to create an account with the same email address you received the invitation" : "Morate stvoriti račun koristeći se istom adresom e-pošte na koju ste primili poziv",
     "Your password must be greater than 4 digits" : "Vaša zaporka mora imati više od 4 znamenke",
     "Confirm password" : "Potvrdi zaporku",
     "Passwords does not match" : "Zaporke se ne podudaraju",

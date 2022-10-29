@@ -100,7 +100,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Errore creande sa crae noa, pro praghere, cuntata a s'amministratzione",
     "Create new subscription." : "Crea una sutaiscritzione noa.",
     "Root certificate has not been configured by the Administrator!" : "Tzertificadu sorgente non ancora cunfiguradu dae s'amministratzione!",
-    "You need to create an account with the same email you received the invitation" : "Depes creare unu contu cun su pròpiu indiritzu de posta eletrònica in ue as retzidu s'invitu",
+    "You need to create an account with the same email address you received the invitation" : "Depes creare unu contu cun su pròpiu indiritzu de posta eletrònica in ue as retzidu s'invitu",
     "Confirm password" : "Cunfirma sa crae",
     "Next" : "Imbeniente",
     "Set a password to sign the document" : "Imposta una crae pro firmare su documentu",

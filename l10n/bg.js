@@ -183,7 +183,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Грешка при създаването на нова парола, моля свържете се с администратора",
     "Create new subscription." : "Създаване на нов абонамент.",
     "Root certificate has not been configured by the Administrator!" : "Основният сертификат не е конфигуриран от администратора!",
-    "You need to create an account with the same email you received the invitation" : "Трябва да създадете профил със същия имейл, на който сте получили поканата",
+    "You need to create an account with the same email address you received the invitation" : "Трябва да създадете профил със същия имейл, на който сте получили поканата",
     "Your password must be greater than 4 digits" : "Вашата парола трябва да е по-голяма от 4 цифри",
     "Confirm password" : "Потвърдете паролата",
     "Passwords does not match" : "Паролите не съвпадат",
