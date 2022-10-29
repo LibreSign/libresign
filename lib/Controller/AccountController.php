@@ -469,6 +469,7 @@ class AccountController extends ApiController {
 				'data' => [
 					'userId' => $user->getUID(),
 					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),
+					// This messages indicates the user's settings saved with sucess
 					'message' => $this->l10n->t('Settings saved'),
 				],
 			],
