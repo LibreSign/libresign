@@ -113,7 +113,7 @@ class ValidateHelper {
 			return;
 		}
 		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new LibresignException($this->l10n->t('File type: %s. Inform URL or base64 or fileID.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a base64 string or a fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
