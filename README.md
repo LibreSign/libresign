@@ -21,13 +21,6 @@ After installing LibreSign, is necessary go to `Administration Settings > LibreS
 
 Go to `Administration Settings > Basic Settings` and configure email settings. Is mandatory.
 
-### Check setup
-
-Check install:
-```bash
-occ libresign:configure:check
-```
-
 ## Integrations
 
 * [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
