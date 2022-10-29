@@ -364,6 +364,7 @@ class SignFileService {
 			throw new \Exception($this->l10n->t('Empty users list'));
 		}
 		if (!is_array($data['users'])) {
+			// TRANSLATION This message will be displayed when the request to API with the key users has a value that is not an array
 			throw new \Exception($this->l10n->t('User list needs to be an array'));
 		}
 		$emails = [];
