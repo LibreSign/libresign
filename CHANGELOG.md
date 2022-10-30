@@ -13,7 +13,8 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 7.0.0-dev
+## 6.1.2 - 2022-10-29
+* Fix wrong migration
 
 ## 6.1.0 - 2022-10-26
 * Make possible generate root cert with custom values
