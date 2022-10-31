@@ -155,6 +155,13 @@ class ValidateHelper {
 		if ($newBase64 !== $base64) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
+
+		$f = finfo_open();
+		$mimeType = finfo_buffer($f, $string, FILEINFO_MIME_TYPE);
+		
+		if ($mimeType !== 'data:application/pdf') {
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+		}
 	}
 
 	public function validateNotRequestedSign(int $nodeId): void {
