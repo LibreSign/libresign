@@ -50,6 +50,18 @@ class Cfssl extends Base {
 				'Country name'
 			)
 			->addOption(
+				'st',
+				's',
+				InputOption::VALUE_REQUIRED,
+				'State'
+			)
+			->addOption(
+				'l',
+				'l',
+				InputOption::VALUE_REQUIRED,
+				'Locality'
+			)
+			->addOption(
 				'config-path',
 				null,
 				InputOption::VALUE_REQUIRED,
@@ -64,17 +76,24 @@ class Cfssl extends Base {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$names = [];
 		if (!$commonName = $input->getOption('cn')) {
 			throw new InvalidArgumentException('Invalid Comon Name');
 		}
-		if (!$organizationUnit = $input->getOption('ou')) {
-			throw new InvalidArgumentException('Invalid Organization Unit');
+		if ($input->getOption('ou')) {
+			$names[] = ['id' => 'OU', 'value' => $input->getOption('ou')];
 		}
-		if (!$organization = $input->getOption('o')) {
-			throw new InvalidArgumentException('Invalid Organization');
+		if ($input->getOption('o')) {
+			$names[] = ['id' => 'O', 'value' => $input->getOption('o')];
 		}
-		if (!$country = $input->getOption('c')) {
-			throw new InvalidArgumentException('Invalid Country');
+		if ($input->getOption('c')) {
+			$names[] = ['id' => 'C', 'value' => $input->getOption('c')];
+		}
+		if ($input->getOption('l')) {
+			$names[] = ['id' => 'L', 'value' => $input->getOption('l')];
+		}
+		if ($input->getOption('st')) {
+			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
 		}
 		if ($binary = $this->installService->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
 			if (PHP_OS_FAMILY === 'Windows') {
@@ -87,7 +106,7 @@ class Cfssl extends Base {
 				throw new InvalidArgumentException('CFSSL URI is not necessary');
 			}
 			$configPath = $this->installService->getConfigPath();
-			$cfsslUri = null;
+			$cfsslUri = '';
 		} else {
 			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
@@ -99,9 +118,7 @@ class Cfssl extends Base {
 		}
 		$this->installService->generate(
 			$commonName,
-			$country,
-			$organization,
-			$organizationUnit,
+			$names,
 			$configPath,
 			$cfsslUri,
 			$binary
