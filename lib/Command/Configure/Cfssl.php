@@ -5,31 +5,19 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use InvalidArgumentException;
-use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Base;
-use OCP\Files\IRootFolder;
-use OCP\Http\Client\IClientService;
-use OCP\IConfig;
-use OCP\ITempManager;
+use OCA\Libresign\Service\InstallService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
 	public function __construct(
-		ITempManager $tempManager,
-		IClientService $clientService,
-		IConfig $config,
-		SystemConfig $systemConfig,
-		IRootFolder $rootFolder
+		InstallService $installService
 	) {
 		parent::__construct(
-			$tempManager,
-			$clientService,
-			$config,
-			$systemConfig,
-			$rootFolder
+			$installService
 		);
 	}
 
@@ -88,7 +76,7 @@ class Cfssl extends Base {
 		if (!$country = $input->getOption('c')) {
 			throw new InvalidArgumentException('Invalid Country');
 		}
-		if ($binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
+		if ($binary = $this->installService->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
 			if (PHP_OS_FAMILY === 'Windows') {
 				throw new InvalidArgumentException('Incompatible with Windows');
 			}
@@ -99,7 +87,7 @@ class Cfssl extends Base {
 				throw new InvalidArgumentException('CFSSL URI is not necessary');
 			}
 			$configPath = $this->installService->getConfigPath();
-			$cfsslUri = null;
+			$cfsslUri = '';
 		} else {
 			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
