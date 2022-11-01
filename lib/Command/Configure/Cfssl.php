@@ -87,7 +87,7 @@ class Cfssl extends Base {
 				throw new InvalidArgumentException('CFSSL URI is not necessary');
 			}
 			$configPath = $this->installService->getConfigPath();
-			$cfsslUri = null;
+			$cfsslUri = '';
 		} else {
 			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
 			if (!$configPath = $input->getOption('config-path')) {
