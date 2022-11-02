@@ -262,6 +262,7 @@ OC.L10N.register(
     "Webhook" : "Webhook ",
     "Select authorized groups." : "选择授权组",
     "To validate signature of the documents" : "用于验证文档的签名",
-    "Loading" : "加载中"
+    "Loading" : "加载中",
+    "Check configure" : "检查配置"
 },
 "nplurals=1; plural=0;");
