@@ -51,6 +51,7 @@ OC.L10N.register(
     "Loading …" : "Laster ...",
     "View" : "Vis",
     "No date" : "Ingen dato",
-    "Loading" : "Laster"
+    "Loading" : "Laster",
+    "Check configure" : "Sjekk konfigurere"
 },
 "nplurals=2; plural=(n != 1);");
