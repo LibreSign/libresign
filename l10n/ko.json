@@ -252,12 +252,10 @@
     "Open in LibreSign" : "LibreSign으로 열기",
     "File type: %s. Inform URL or base64 or fileID." : "파일 형식: %s URL 또는 base64 또는 fileID를 알려주십시오.",
     "Element must be associated with a user" : "요소는 사용자와 연결되어야 합니다.",
+    "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
     "Country (C)" : "국가 (C)",
     "Organization (O)" : "조직 (O)",
     "Organization Unit (OU)" : "조직 단위 (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
-    "To validate signature of the documents" : "문서의 서명을 확인하기 위해",
-    "Loading" : "불러오는 중"
+    "To validate signature of the documents" : "문서의 서명을 확인하기 위해"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

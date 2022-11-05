@@ -44,7 +44,6 @@ OC.L10N.register(
     "Remove" : "Noņemt",
     "Previous" : "Iepriekšējā",
     "View" : "Skats",
-    "No date" : "No date",
-    "Loading" : "Ielādē"
+    "No date" : "No date"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

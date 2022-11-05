@@ -25,7 +25,6 @@ OC.L10N.register(
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Remove" : "ដកចេញ",
     "Previous" : "មុន",
-    "No date" : "No date",
-    "Loading" : "Loading"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

@@ -293,17 +293,14 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSign ile aç",
     "File type: %s. Inform URL or base64 or fileID." : "Dosya türü: %s. Bilgilendirme adresi ya da base64 ya da dosya kodu.",
     "Element must be associated with a user" : "Bileşen bir kullanıcı ile ilişkilendirilmelidir",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Nextcloud için Libre PDF imzalama uygulaması**\n\n* ✍️ Sayısal imzalar kullanarak PDF belgelerini imzalayın\n* ⚠️ Bu uygulamanın kurulması için uç birim erişilmesi gerekir. Ayrıca ek yazılımların yüklenmesi gibi işlemlerle de uğraşmanız gerekir. Ayrıntılı bilgi almak için [kurulum yönergeleri](https://github.com/LibreSign/libresign/blob/main/README.md#setup) bölümüne bakın.",
+    "Allowed to sign document" : "Belge imzalamasına izin verilenler",
+    "Select authorized groups." : "İzin verilen grupları seçin.",
+    "Tip" : "İpucu",
+    "Check configure" : "Yapılandırmayı denetle",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin.",
     "Country (C)" : "Ülke (C)",
     "Organization (O)" : "Kuruluş (O)",
     "Organization Unit (OU)" : "Kuruluş birimi (OU)",
-    "Webhook" : "Web bağlantısı",
-    "Select authorized groups." : "İzin verilen grupları seçin.",
-    "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
-    "Loading" : "Yükleniyor",
-    "Allowed to sign document" : "Belge imzalamasına izin verilenler",
-    "Tip" : "İpucu",
-    "Check configure" : "Yapılandırmayı denetle",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin."
+    "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için"
 },
 "nplurals=2; plural=(n > 1);");

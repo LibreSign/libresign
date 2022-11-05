@@ -268,13 +268,11 @@ OC.L10N.register(
     "Open in LibreSign" : "Ouvrir dans LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Type de fichier: %s. Renseignez l'URL, l'équivalent Base64 ou l'identifiant de fichier.",
     "Element must be associated with a user" : "L'élément doit être associé à un utilisateur",
+    "Select authorized groups." : "Sélectionner les groupes autorisés.",
+    "Tip" : "Astuce",
     "Country (C)" : "Pays (C)",
     "Organization (O)" : "Organisation (O)",
     "Organization Unit (OU)" : "Unité d'organisation (UO)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Sélectionner les groupes autorisés.",
-    "To validate signature of the documents" : "Pour valider la signature des documents",
-    "Loading" : "Chargement",
-    "Tip" : "Astuce"
+    "To validate signature of the documents" : "Pour valider la signature des documents"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -291,17 +291,14 @@ OC.L10N.register(
     "Open in LibreSign" : "Abra no LibreSign ",
     "File type: %s. Inform URL or base64 or fileID." : "Tipo de arquivo: %s. Informe a URL ou base64 ou fileID.",
     "Element must be associated with a user" : "O elemento deve ser associado a um usuário",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Este é um aplicativo de assinatura digital PDF gratuito para Nextcloud**\n\n* ✍️ Assine documentos PDF usando assinatura digital\n* ⚠️ A configuração deste aplicativo requer acesso ao terminal e até mesmo sujar as mãos com a instalação de software adicional. Consulte [instruções de configuração](https://github.com/LibreSign/libresign/blob/main/README.md#setup) para obter detalhes.",
+    "Allowed to sign document" : "Autorizado a assinar documento",
+    "Select authorized groups." : "Selecione os grupos autorizados.",
+    "Tip" : "Dica",
+    "Check configure" : "Verifique configure",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binários necessários para funcionar. Pode estar perto de 340Mb para download, espere um momento.",
     "Country (C)" : "País (C)",
     "Organization (O)" : "Nome da organização (O)",
     "Organization Unit (OU)" : "Unidade da organização (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Selecione os grupos autorizados.",
-    "To validate signature of the documents" : "Para validar a assinatura dos documentos",
-    "Loading" : "Carregando",
-    "Allowed to sign document" : "Autorizado a assinar documento",
-    "Tip" : "Dica",
-    "Check configure" : "Verifique configure",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binários necessários para funcionar. Pode estar perto de 340Mb para download, espere um momento."
+    "To validate signature of the documents" : "Para validar a assinatura dos documentos"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

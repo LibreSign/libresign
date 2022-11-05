@@ -271,13 +271,10 @@ OC.L10N.register(
     "Open in LibreSign" : "Otwórz w LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Typ pliku: %s. Podaj adres URL, base64 lub fileID.",
     "Element must be associated with a user" : "Element musi być powiązany z użytkownikiem",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Jest to bezpłatna aplikacja do podpisu cyfrowego PDF dla Nextcloud**\n\n* ✍️ Podpisuj dokumenty PDF za pomocą podpisu cyfrowego\n* ⚠️ Konfiguracja aplikacji wymaga dostępu do terminala, a nawet pobrudzenia rąk podczas instalacji dodatkowego oprogramowania. Zobacz [instrukcje konfiguracji] (https://github.com/LibreSign/libresign/blob/main/README.md#setup), aby uzyskać szczegółowe informacje.",
+    "Select authorized groups." : "Wybierz autoryzowane grupy.",
     "Country (C)" : "Kraj (C)",
     "Organization (O)" : "Organizacja (O)",
     "Organization Unit (OU)" : "Jednostka organizacyjna (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Wybierz autoryzowane grupy.",
-    "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów",
-    "Loading" : "Wczytywanie"
+    "To validate signature of the documents" : "W celu potwierdzenia sygnatury dokumentów"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

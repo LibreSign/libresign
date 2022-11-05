@@ -52,7 +52,6 @@
     "Previous" : "Предходна",
     "Loading …" : "Се вчитува…",
     "View" : "Погледни",
-    "No date" : "No date",
-    "Loading" : "Се вчитува"
+    "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;"
 }

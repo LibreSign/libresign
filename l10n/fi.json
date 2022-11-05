@@ -185,10 +185,9 @@
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Open in LibreSign" : "Avaa LibreSignissa",
+    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
     "Country (C)" : "Maa (C)",
     "Organization (O)" : "Organisaatio (O)",
-    "Organization Unit (OU)" : "Organisaatioyksikkö (OU)",
-    "Select authorized groups." : "Valitse valtuutetut ryhmät.",
-    "Loading" : "Ladataan"
+    "Organization Unit (OU)" : "Organisaatioyksikkö (OU)"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
