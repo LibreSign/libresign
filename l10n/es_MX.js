@@ -47,7 +47,6 @@ OC.L10N.register(
     "Remove" : "Eliminar",
     "Previous" : "Previo",
     "View" : "Ver",
-    "No date" : "Sin fecha",
-    "Loading" : "Cargando"
+    "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

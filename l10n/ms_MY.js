@@ -23,7 +23,6 @@ OC.L10N.register(
     "New password" : "Kata laluan baru",
     "Remove" : "Buang",
     "Previous" : "Sebelum",
-    "No date" : "No date",
-    "Loading" : "Loading"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

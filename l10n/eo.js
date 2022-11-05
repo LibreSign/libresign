@@ -48,7 +48,6 @@ OC.L10N.register(
     "Previous" : "Antaŭa",
     "Loading …" : "Ŝargas …",
     "View" : "Vidi",
-    "No date" : "No date",
-    "Loading" : "Ŝargado"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

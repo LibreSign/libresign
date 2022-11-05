@@ -25,7 +25,6 @@ OC.L10N.register(
     "Pending" : "Pending",
     "Password reset" : "Password reset",
     "New password" : "New password",
-    "Remove" : "Remove",
-    "Loading" : "Loading"
+    "Remove" : "Remove"
 },
 "nplurals=1; plural=0;");

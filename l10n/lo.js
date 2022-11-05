@@ -29,7 +29,6 @@ OC.L10N.register(
     "Remove" : "ຍ້າຍອອກ",
     "Previous" : "ກ່ອນໜ້າ",
     "Loading …" : "ກຳລັງໂຫຼດ",
-    "No date" : "ບໍ່ມີວັນທີ",
-    "Loading" : "ການໂຫຼດ"
+    "No date" : "ບໍ່ມີວັນທີ"
 },
 "nplurals=1; plural=0;");

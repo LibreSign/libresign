@@ -44,7 +44,6 @@ OC.L10N.register(
     "Previous" : "Precedentul",
     "Loading …" : "Se încarcă…",
     "View" : "Vizualizare",
-    "No date" : "No date",
-    "Loading" : "Loading"
+    "No date" : "No date"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

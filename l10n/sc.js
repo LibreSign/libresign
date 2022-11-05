@@ -164,12 +164,10 @@ OC.L10N.register(
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
     "Open in LibreSign" : "Aberi in LibreSign",
+    "Select authorized groups." : "Seletziona grupos autorizados.",
     "Country (C)" : "Natzione (C)",
     "Organization (O)" : "Organizatzione (O)",
     "Organization Unit (OU)" : "Unidade organizativa (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Seletziona grupos autorizados.",
-    "To validate signature of the documents" : "Para convalidar la firma de is documentos",
-    "Loading" : "Carrighende"
+    "To validate signature of the documents" : "Para convalidar la firma de is documentos"
 },
 "nplurals=2; plural=(n != 1);");

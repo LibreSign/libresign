@@ -44,7 +44,6 @@ OC.L10N.register(
     "Remove" : "Desaniciar",
     "Previous" : "Anterior",
     "Loading …" : "Cargando...",
-    "No date" : "No date",
-    "Loading" : "Cargando"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

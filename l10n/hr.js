@@ -226,12 +226,10 @@ OC.L10N.register(
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Vrsta datoteke: %s. Inform URL ili base64 ili fileID.",
     "Element must be associated with a user" : "Element mora biti povezan s korisnikom",
+    "Select authorized groups." : "Odaberite ovlaštenu grupu.",
     "Country (C)" : "Država (C)",
     "Organization (O)" : "Organizacija (O)",
     "Organization Unit (OU)" : "Organizacijska jedinica (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Odaberite ovlaštenu grupu.",
-    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta",
-    "Loading" : "Učitavanje"
+    "To validate signature of the documents" : "Za potvrdu valjanosti potpisa dokumenta"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

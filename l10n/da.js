@@ -50,7 +50,6 @@ OC.L10N.register(
     "Previous" : "Tidligere",
     "Loading …" : "Loading …",
     "View" : "Vis",
-    "No date" : "No date",
-    "Loading" : "Indlæser"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

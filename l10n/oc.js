@@ -105,7 +105,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
     "User created!" : "Utilizaire creat !",
     "Country (C)" : "País (C)",
-    "Organization (O)" : "Organizacion (O)",
-    "Loading" : "Cargament"
+    "Organization (O)" : "Organizacion (O)"
 },
 "nplurals=2; plural=(n > 1);");

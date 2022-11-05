@@ -52,7 +52,6 @@ OC.L10N.register(
     "Previous" : "Föregående",
     "Loading …" : "Läser in …",
     "View" : "Visa",
-    "No date" : "Inget datum",
-    "Loading" : "Läser in"
+    "No date" : "Inget datum"
 },
 "nplurals=2; plural=(n != 1);");

@@ -280,17 +280,14 @@ OC.L10N.register(
     "Open in LibreSign" : "Ireki LibreSign-en",
     "File type: %s. Inform URL or base64 or fileID." : "Fitxategi mota: %s. Idatzi URL edo base64 edo fileID.",
     "Element must be associated with a user" : "Elementua erabiltzaile bati lotuta egon behar da",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Hau Nextcloud-erako PDF sinadura digitaleko aplikazio librea da**\n\n*✍️Sinatu PDF dokumentuak sinadura digitala erabiliz\n*⚠️Aplikazio hau konfiguratzeak terminalera sartzea eta software osagarriaren instalazioarekin eskuak zikintzea eskatzen du. Xehetasunak ikusteko, ikus [konfigurazio argibideak] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Allowed to sign document" : "Dokumentua sinatzeko baimenduta",
+    "Select authorized groups." : "Hautatu baimendutako taldeak.",
+    "Tip" : "Argibidea",
+    "Check configure" : "Egiaztatu konfigurazioa",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez.",
     "Country (C)" : "Herrialdea (C)",
     "Organization (O)" : "Erakundea (O)",
     "Organization Unit (OU)" : "Erakunde Atala (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Hautatu baimendutako taldeak.",
-    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko",
-    "Loading" : "Kargatzen",
-    "Allowed to sign document" : "Dokumentua sinatzeko baimenduta",
-    "Tip" : "Argibidea",
-    "Check configure" : "Egiaztatu konfigurazioa",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez."
+    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko"
 },
 "nplurals=2; plural=(n != 1);");

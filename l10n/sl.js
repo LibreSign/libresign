@@ -242,12 +242,10 @@ OC.L10N.register(
     "Password created!" : "Geslo je uspešno ustvarjeno!",
     "Open in LibreSign" : "Odpri v LibreSign",
     "Element must be associated with a user" : "Predmet mora biti povezan z uporabnikom",
+    "Select authorized groups." : "Izbor overjenih skupin.",
     "Country (C)" : "Država (C)",
     "Organization (O)" : "Ustanova (U)",
     "Organization Unit (OU)" : "Organizacijska enota (OE)",
-    "Webhook" : "Spletni povezovalnik",
-    "Select authorized groups." : "Izbor overjenih skupin.",
-    "To validate signature of the documents" : "Za overjanje podpisov dokumenta",
-    "Loading" : "Poteka nalaganje"
+    "To validate signature of the documents" : "Za overjanje podpisov dokumenta"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

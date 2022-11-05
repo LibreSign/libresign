@@ -256,13 +256,11 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中打开",
     "File type: %s. Inform URL or base64 or fileID." : "文件类型：%s。告知 URL 或 base64 或 fileID",
     "Element must be associated with a user" : "元素必须与用户关联",
+    "Select authorized groups." : "选择授权组",
+    "Check configure" : "检查配置",
     "Country (C)" : "国家 (C)",
     "Organization (O)" : "组织 (O)",
     "Organization Unit (OU)" : "组织单位 (OU)",
-    "Webhook" : "Webhook ",
-    "Select authorized groups." : "选择授权组",
-    "To validate signature of the documents" : "用于验证文档的签名",
-    "Loading" : "加载中",
-    "Check configure" : "检查配置"
+    "To validate signature of the documents" : "用于验证文档的签名"
 },
 "nplurals=1; plural=0;");

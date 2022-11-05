@@ -282,17 +282,14 @@ OC.L10N.register(
     "Open in LibreSign" : "Otvoriť v LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Typ súboru: %s. Inform URL alebo base64 alebo fileID.",
     "Element must be associated with a user" : "Prvok musí byť asociovaný z užívateľom",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Toto je digitálna aplikácia pre podpisovanie PDF v Nextcloud **\n\n* ✍️ Podpíšte dokumenty PDF pomocou digitálneho podpisu\n* ⚠️ Inštalácia tejto aplikácie vyžaduje prístup k terminálu a dokonca aj inštaláciu dodatočného softvéru. Podrobnosti nájdete v [pokynoch na nastavenie] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Allowed to sign document" : "Povolené podpísať dokument",
+    "Select authorized groups." : "Vyberte povolené skupiny.",
+    "Tip" : "Tip",
+    "Check configure" : "Skontrolujte konfiguráciu",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu.",
     "Country (C)" : "Krajina (C)",
     "Organization (O)" : "Organizácia (O)",
     "Organization Unit (OU)" : "Organizačná jednotka (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Vyberte povolené skupiny.",
-    "To validate signature of the documents" : "Pre overenie podpisu dokumentov",
-    "Loading" : "Načítava sa",
-    "Allowed to sign document" : "Povolené podpísať dokument",
-    "Tip" : "Tip",
-    "Check configure" : "Skontrolujte konfiguráciu",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu."
+    "To validate signature of the documents" : "Pre overenie podpisu dokumentov"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

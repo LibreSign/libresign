@@ -43,7 +43,6 @@ OC.L10N.register(
     "Previous" : "Vorige",
     "Loading …" : "Laai …",
     "View" : "Bekyk",
-    "No date" : "Geen datum",
-    "Loading" : "Laai tans.."
+    "No date" : "Geen datum"
 },
 "nplurals=2; plural=(n != 1);");
