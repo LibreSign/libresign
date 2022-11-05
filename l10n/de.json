@@ -285,16 +285,13 @@
     "Open in LibreSign" : "In LibreSign öffnen",
     "File type: %s. Inform URL or base64 or fileID." : "Dateityp: %s. Inform-URL oder Base64 oder fileID.",
     "Element must be associated with a user" : "Element muss mit einem Benutzer verbunden sein",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "** Dies ist eine freie (libre) digitale PDF-Signatur-App für Nextcloud **\n\n* ✍️ Signiere PDF-Dokumente mit einer digitaler Signatur\n* ⚠️ Die Einrichtung dieser App erfordert den Zugriff auf das Terminal und Installation zusätzlicher Software. Weitere Informationen findest du unter [Setup-Anweisungen] (https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Allowed to sign document" : "Signierung des Dokumentes erlaubt",
+    "Select authorized groups." : "Autorisierte Gruppen wählen",
+    "Tip" : "Tipp",
+    "Check configure" : "Konfiguration überprüfen",
     "Country (C)" : "Land (C)",
     "Organization (O)" : "Organisation (O)",
     "Organization Unit (OU)" : "Organisationseinheit (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Autorisierte Gruppen wählen",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
-    "Loading" : "Lade",
-    "Allowed to sign document" : "Signierung des Dokumentes erlaubt",
-    "Tip" : "Tipp",
-    "Check configure" : "Konfiguration überprüfen"
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, "
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

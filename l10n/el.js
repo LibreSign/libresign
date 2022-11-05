@@ -79,7 +79,6 @@ OC.L10N.register(
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
     "User created!" : "Ο χρήστης δημιουργήθηκε!",
-    "Country (C)" : "Χώρα (Χ)",
-    "Loading" : "Γίνεται φόρτωση"
+    "Country (C)" : "Χώρα (Χ)"
 },
 "nplurals=2; plural=(n != 1);");

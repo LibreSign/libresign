@@ -49,7 +49,6 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Loading …" : "A carregar...",
     "View" : "Ver",
-    "No date" : "Sem data",
-    "Loading" : "A carregar"
+    "No date" : "Sem data"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

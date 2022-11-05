@@ -40,7 +40,6 @@ OC.L10N.register(
     "Remove" : "ลบออก",
     "Previous" : "ก่อนหน้า",
     "View" : "มุมมอง",
-    "No date" : "ไม่มีวันที่",
-    "Loading" : "กำลังโหลด"
+    "No date" : "ไม่มีวันที่"
 },
 "nplurals=1; plural=0;");

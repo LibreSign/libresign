@@ -68,7 +68,6 @@ OC.L10N.register(
     "No date" : "日付なし",
     "User created!" : "ユーザーが作成しました！",
     "Password created!" : "パスワードが作成しました！",
-    "Open in LibreSign" : "LibreSignで開く",
-    "Loading" : "読み込み中"
+    "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

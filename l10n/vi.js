@@ -46,7 +46,6 @@ OC.L10N.register(
     "Previous" : "Trước",
     "Loading …" : "Đang tải …",
     "View" : "Xem",
-    "No date" : "No date",
-    "Loading" : "Đang tải"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

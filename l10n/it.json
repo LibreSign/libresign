@@ -269,12 +269,10 @@
     "Open in LibreSign" : "Apri in LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Tipo di file: %s. Informa URL o base64 o fileID.",
     "Element must be associated with a user" : "L'elemento deve essere associato ad un utente",
+    "Select authorized groups." : "Seleziona gruppi autorizzati.",
     "Country (C)" : "Nazione (C)",
     "Organization (O)" : "Organizzazione (O)",
     "Organization Unit (OU)" : "Unità organizzativa (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Seleziona gruppi autorizzati.",
-    "To validate signature of the documents" : "Per convalidare la firma dei documenti",
-    "Loading" : "Caricamento"
+    "To validate signature of the documents" : "Per convalidare la firma dei documenti"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

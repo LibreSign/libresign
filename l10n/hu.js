@@ -290,17 +290,14 @@ OC.L10N.register(
     "Open in LibreSign" : "Megnyitás a LibreSignban",
     "File type: %s. Inform URL or base64 or fileID." : "Fájltípus: %s. Egy URL-t, egy base64 karakterláncot vagy egy fájlazonosítót adjon meg.",
     "Element must be associated with a user" : "Az elemnek egy felhasználóhoz kell kapcsolódnia",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Ez egy szabad digitális PDF aláíró alkalmazás a Nextcloudhoz**\n\n* ✍️ Digitális aláírással aláírja a PDF dokumentumokat\n* ⚠️ Az alkalmazás telepítéséhez terminálhozzáférés szükséges, és ezen felül, még a kezét is be kell piszkítania további szoftverek telepítésével. További részletekért lásd a [telepítési utasításokat](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Allowed to sign document" : "Aláírhatja a dokumentumot",
+    "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
+    "Tip" : "Tip",
+    "Check configure" : "Beállítás ellenőrzése",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit.",
     "Country (C)" : "Ország (C)",
     "Organization (O)" : "Szervezet (O)",
     "Organization Unit (OU)" : "Szervezeti egység (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
-    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez",
-    "Loading" : "Betöltés",
-    "Allowed to sign document" : "Aláírhatja a dokumentumot",
-    "Tip" : "Tip",
-    "Check configure" : "Beállítás ellenőrzése",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit."
+    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez"
 },
 "nplurals=2; plural=(n != 1);");

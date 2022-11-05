@@ -293,17 +293,14 @@ OC.L10N.register(
     "Open in LibreSign" : "在 LibreSign 中開啟",
     "File type: %s. Inform URL or base64 or fileID." : "檔案類型：%s。通知 URL 或 base64 或 fileID。",
     "Element must be associated with a user" : "元素必須與使用者相關",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**這是 Nextcloud 的自由數位 PDF 簽署應用程式**\n\n* ✍️ 使用數位簽章簽署 PDF 文件\n* ⚠️ 安裝此應用程式需要存取終端機，安裝額外的軟體。請見[安裝說明](https://github.com/LibreSign/libresign/blob/main/README.md#setup)以取得詳細資訊。",
+    "Allowed to sign document" : "允許簽署文件",
+    "Select authorized groups." : "選取已授權的群組。",
+    "Tip" : "訣竅",
+    "Check configure" : "檢查設定",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。",
     "Country (C)" : "國家 (C)",
     "Organization (O)" : "組織 (O)",
     "Organization Unit (OU)" : "組織部門 (OU)",
-    "Webhook" : "Webhook",
-    "Select authorized groups." : "選取已授權的群組。",
-    "To validate signature of the documents" : "驗證文件簽章",
-    "Loading" : "正在載入",
-    "Allowed to sign document" : "允許簽署文件",
-    "Tip" : "訣竅",
-    "Check configure" : "檢查設定",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。"
+    "To validate signature of the documents" : "驗證文件簽章"
 },
 "nplurals=1; plural=0;");

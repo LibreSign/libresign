@@ -51,7 +51,6 @@ OC.L10N.register(
     "Previous" : "Fyrra",
     "Loading …" : "Hleð inn …",
     "View" : "Skoða",
-    "No date" : "Engin dagsetning",
-    "Loading" : "Hleð inn"
+    "No date" : "Engin dagsetning"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

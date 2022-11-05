@@ -34,7 +34,6 @@ OC.L10N.register(
     "Resource" : "Ressurs",
     "Remove" : "Fjern",
     "Previous" : "Førre",
-    "No date" : "No date",
-    "Loading" : "Loading"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

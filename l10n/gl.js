@@ -55,7 +55,6 @@ OC.L10N.register(
     "There are no documents" : "Non hai documentos",
     "View" : "Ver",
     "Document Informations" : "Información do documento",
-    "No date" : "Sen data",
-    "Loading" : "Cargando"
+    "No date" : "Sen data"
 },
 "nplurals=2; plural=(n != 1);");

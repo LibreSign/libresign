@@ -293,17 +293,14 @@ OC.L10N.register(
     "Open in LibreSign" : "Otevřít v LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Typ souboru: %s. Informační URL nebo base64 nebo identif. souboru.",
     "Element must be associated with a user" : "Je třeba, aby prvek měl přiřazeného uživatele",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature\n* ⚠️ Setup of this app requires access to terminal and even getting your hands dirty with installation of additional software. See [setup instructions](https://github.com/LibreSign/libresign/blob/main/README.md#setup) for details." : "**Toto je svobodná aplikace pro digitální podepisování PDF, určená pro Nextcloud**\n\n* ✍️ Podepisujte PDF dokumenty digitálním podpisem\n* ⚠️ Nastavení této aplikace vyžaduje přístup k terminálu a dokonce vaší práci s instalací dalšího software. Podrobnosti viz [pokyny pro nastavení](https://github.com/LibreSign/libresign/blob/main/README.md#setup).",
+    "Allowed to sign document" : "Kdo může podepisovat dokumenty",
+    "Select authorized groups." : "Vybrat oprávněné skupiny.",
+    "Tip" : "Tip",
+    "Check configure" : "Zkontrolovat nastavení",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli.",
     "Country (C)" : "Země (C)",
     "Organization (O)" : "Organizace (O)",
     "Organization Unit (OU)" : "Organizační jednotka (OU)",
-    "Webhook" : "Webový háček",
-    "Select authorized groups." : "Vybrat oprávněné skupiny.",
-    "To validate signature of the documents" : "K ověření podpisu dokumentů",
-    "Loading" : "Načítání",
-    "Allowed to sign document" : "Kdo může podepisovat dokumenty",
-    "Tip" : "Tip",
-    "Check configure" : "Zkontrolovat nastavení",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli."
+    "To validate signature of the documents" : "K ověření podpisu dokumentů"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
