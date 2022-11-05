@@ -41,9 +41,11 @@ OC.L10N.register(
     "Password reset" : "პაროლის აღდგენა",
     "New password" : "ახალი პაროლი",
     "Repeat password" : "პაროლის გამეორება",
+    "Message" : "წერილი",
+    "Resource" : "რესურსი",
+    "Dependencies" : "დამოკიდებულებები",
     "Remove" : "წაშლა",
     "Previous" : "წინა",
-    "Loading" : "იტვირთება",
     "No date" : "თარიღი არაა"
 },
 "nplurals=2; plural=(n!=1);");

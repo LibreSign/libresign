@@ -37,9 +37,10 @@
     "Password reset" : "Parole atiestatīta",
     "New password" : "Jauna parole",
     "Repeat password" : "Atkārtojiet paroli",
+    "Message" : "Ziņojums",
+    "Resource" : "Resurss",
     "Remove" : "Noņemt",
     "Previous" : "Iepriekšējā",
-    "Loading" : "Ielādē",
     "View" : "Skats",
     "No date" : "No date"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"

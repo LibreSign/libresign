@@ -45,9 +45,12 @@ OC.L10N.register(
     "Password reset" : "Lösenordsåterställning",
     "New password" : "Nytt lösenord",
     "Repeat password" : "Repetera lösenord",
+    "Message" : "Meddelande",
+    "Resource" : "Resurs",
+    "Dependencies" : "Beroenden",
     "Remove" : "Ta bort",
     "Previous" : "Föregående",
-    "Loading" : "Läser in",
+    "Loading …" : "Läser in …",
     "View" : "Visa",
     "No date" : "Inget datum"
 },

@@ -37,9 +37,9 @@ OC.L10N.register(
     "Pending" : "Tunggu",
     "Password reset" : "Setel ulang kata sandi",
     "New password" : "Kata sandi baru",
+    "Message" : "Pesan",
     "Remove" : "Buang",
     "Previous" : "Sebelumnya",
-    "Loading" : "Memuat",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");

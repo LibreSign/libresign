@@ -35,7 +35,7 @@ OC.L10N.register(
     "Password reset" : "Ger-tremen cheñchet",
     "New password" : "Ger-tremen nevez",
     "Remove" : "Lemel",
-    "Loading" : "Kargañ",
+    "Loading …" : "O Kargañ ...",
     "View" : "Gwell",
     "No date" : "Deizat ebet"
 },

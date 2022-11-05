@@ -42,9 +42,12 @@ OC.L10N.register(
     "Password reset" : "Ресетовање лозинке",
     "New password" : "Нова лозинка",
     "Repeat password" : "Поновите лозинку",
+    "Message" : "Порука",
+    "Resource" : "Ресурс",
+    "Dependencies" : "Зависности",
     "Remove" : "Уклони",
     "Previous" : "Претходно",
-    "Loading" : "Учитавам",
+    "Loading …" : "Учитавање…",
     "View" : "Погледај",
     "No date" : "Нема датума"
 },

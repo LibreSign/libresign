@@ -15,6 +15,7 @@ OC.L10N.register(
     "Password" : "PassordP",
     "Confirm" : "Bekreft",
     "Text" : "Tekst",
+    "Draw" : "Tegn",
     "Upload" : "Last opp",
     "Apply" : "Bruk",
     "Cancel" : "Avbryt",
@@ -42,10 +43,14 @@ OC.L10N.register(
     "Password reset" : "Tilbakestilling av passord",
     "New password" : "Nytt passord",
     "Repeat password" : "Gjenta passord",
+    "Message" : "Melding",
+    "Resource" : "Ressurs",
+    "Dependencies" : "Avhengigheter",
     "Remove" : "Fjern",
     "Previous" : "Forrige",
-    "Loading" : "Laster",
+    "Loading …" : "Laster ...",
     "View" : "Vis",
-    "No date" : "Ingen dato"
+    "No date" : "Ingen dato",
+    "Check configure" : "Sjekk konfigurere"
 },
 "nplurals=2; plural=(n != 1);");

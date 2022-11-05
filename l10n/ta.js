@@ -23,7 +23,6 @@ OC.L10N.register(
     "New password" : "புதிய கடவுச்சொல்",
     "Remove" : "அகற்றுக",
     "Previous" : "முன்தைய",
-    "Loading" : "Loading",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

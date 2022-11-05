@@ -48,9 +48,11 @@ OC.L10N.register(
     "Add users" : "Додади корисници",
     "Password reset" : "Ресетирај лозинка",
     "New password" : "Нова лозинка",
+    "Message" : "Порака",
+    "Resource" : "Ресурси",
     "Remove" : "Отстрани ",
     "Previous" : "Предходна",
-    "Loading" : "Се вчитува",
+    "Loading …" : "Се вчитува…",
     "View" : "Погледни",
     "No date" : "No date"
 },

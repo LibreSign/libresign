@@ -17,7 +17,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "New password" : "نیا پاسورڈ",
-    "Loading" : "Loading",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

@@ -42,9 +42,12 @@ OC.L10N.register(
     "Choose from Files" : "Escolher a partir dos ficheiros",
     "Password reset" : "Reposição da senha",
     "New password" : "Nova palavra-passe",
+    "Message" : "Mensagem",
+    "Resource" : "Recurso",
+    "Dependencies" : "Dependências",
     "Remove" : "Remover",
     "Previous" : "Anterior",
-    "Loading" : "A carregar",
+    "Loading …" : "A carregar...",
     "View" : "Ver",
     "No date" : "Sem data"
 },

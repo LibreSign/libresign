@@ -39,9 +39,10 @@ OC.L10N.register(
     "Password reset" : "Parole atiestatīta",
     "New password" : "Jauna parole",
     "Repeat password" : "Atkārtojiet paroli",
+    "Message" : "Ziņojums",
+    "Resource" : "Resurss",
     "Remove" : "Noņemt",
     "Previous" : "Iepriekšējā",
-    "Loading" : "Ielādē",
     "View" : "Skats",
     "No date" : "No date"
 },

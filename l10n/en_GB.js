@@ -42,9 +42,12 @@ OC.L10N.register(
     "Password reset" : "Password reset",
     "New password" : "New password",
     "Repeat password" : "Repeat password",
+    "Message" : "Message",
+    "Resource" : "Resource",
+    "Dependencies" : "Dependencies",
     "Remove" : "Remove",
     "Previous" : "Previous",
-    "Loading" : "Loading",
+    "Loading …" : "Loading …",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

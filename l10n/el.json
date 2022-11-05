@@ -63,17 +63,20 @@
     "Enter new password and then repeat it" : "Εισάγετε νέο συνθηματικό και μετά επαναλάβετέ το",
     "New password" : "Νέο συνθηματικό",
     "Repeat password" : "Επανάληψη συνθηματικού",
-    "Country (C)" : "Χώρα (Χ)",
+    "Message" : "Μήνυμα",
+    "Resource" : "Πόρος",
+    "Dependencies" : "Εξαρτήσεις",
     "Validation URL" : "URL επικύρωσης",
     "Remove" : "Αφαίρεση",
     "Previous" : "Προηγούμενο",
     "Sign the document." : "Υπογραφή του εγγράφου.",
-    "Loading" : "Γίνεται φόρτωση",
+    "Loading …" : "Φόρτωση …",
     "All Files" : "Όλα τα αρχεία",
     "View" : "Προβολή",
     "Validate Subscription." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!"
+    "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Country (C)" : "Χώρα (Χ)"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

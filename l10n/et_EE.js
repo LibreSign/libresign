@@ -37,9 +37,11 @@ OC.L10N.register(
     "Pending" : "Ootel",
     "Password reset" : "Parooli taastamine ",
     "New password" : "Uus parool",
+    "Message" : "Sõnum",
+    "Resource" : "Ressurss",
+    "Dependencies" : "Sõltuvused",
     "Remove" : "Eemalda",
     "Previous" : "Eelmine",
-    "Loading" : "Laadimine",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

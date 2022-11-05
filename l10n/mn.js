@@ -33,9 +33,10 @@ OC.L10N.register(
     "Choose from Files" : "Файлаас сонгох",
     "Password reset" : "Нууц үг солих",
     "New password" : "шинэ нууц үг",
+    "Resource" : "Нөөц",
     "Remove" : "Устгах",
     "Previous" : "өмнөх",
-    "Loading" : "Loading",
+    "Loading …" : "Уншиж байна...",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

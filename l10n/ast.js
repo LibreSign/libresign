@@ -38,9 +38,12 @@ OC.L10N.register(
     "Password reset" : "Reaniciu de contrseña",
     "New password" : "Contraseña nueva",
     "Repeat password" : "Repitir contraseña",
+    "Message" : "Menxase",
+    "Resource" : "Recursu",
+    "Dependencies" : "Dependencies",
     "Remove" : "Desaniciar",
     "Previous" : "Anterior",
-    "Loading" : "Cargando",
+    "Loading …" : "Cargando...",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

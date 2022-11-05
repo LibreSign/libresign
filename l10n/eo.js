@@ -41,9 +41,12 @@ OC.L10N.register(
     "Password reset" : "Restarigi pasvorton",
     "New password" : "Nova pasvorto",
     "Repeat password" : "Ripetu la pasvorton",
+    "Message" : "Mesaĝo",
+    "Resource" : "Risurco",
+    "Dependencies" : "Dependecoj",
     "Remove" : "Forigi",
     "Previous" : "Antaŭa",
-    "Loading" : "Ŝargado",
+    "Loading …" : "Ŝargas …",
     "View" : "Vidi",
     "No date" : "No date"
 },

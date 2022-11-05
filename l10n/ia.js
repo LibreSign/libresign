@@ -27,8 +27,8 @@ OC.L10N.register(
     "No" : "No",
     "Pending" : "Pendente",
     "New password" : "Nove contrasigno",
+    "Resource" : "Ressource",
     "Previous" : "Previe",
-    "Loading" : "Loading",
     "View" : "Vider",
     "No date" : "No date"
 },

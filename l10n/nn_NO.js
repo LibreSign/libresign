@@ -31,9 +31,9 @@ OC.L10N.register(
     "Pending" : "Under vegs",
     "Password reset" : "Passord omstilling",
     "New password" : "Nytt passord",
+    "Resource" : "Ressurs",
     "Remove" : "Fjern",
     "Previous" : "Førre",
-    "Loading" : "Loading",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

@@ -4,6 +4,7 @@
     "deleted" : "Slettet",
     "File not found" : "Fil ikke fundet",
     "File already exists" : "Filen findes allerede",
+    "Empty file" : "Tom fil",
     "Invalid user" : "Ugyldig bruger",
     "Files" : "Filer",
     "Settings" : "Indstillinger",
@@ -40,9 +41,12 @@
     "Password reset" : "Nulstil adgangskode",
     "New password" : "Ny adgangskode",
     "Repeat password" : "Gentag adgangskode",
+    "Message" : "Besked",
+    "Resource" : "Ressource",
+    "Dependencies" : "Afhængigheder",
     "Remove" : "Fjern",
     "Previous" : "Tidligere",
-    "Loading" : "Indlæser",
+    "Loading …" : "Loading …",
     "View" : "Vis",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

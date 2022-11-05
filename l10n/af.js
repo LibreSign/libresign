@@ -37,9 +37,11 @@ OC.L10N.register(
     "Pending" : "Hangend",
     "Password reset" : "Wagwoord herstel",
     "New password" : "Nuwe wagwoord",
+    "Resource" : "Hulpbron",
+    "Dependencies" : "Afhanklikhede",
     "Remove" : "Verwyder",
     "Previous" : "Vorige",
-    "Loading" : "Laai tans..",
+    "Loading …" : "Laai …",
     "View" : "Bekyk",
     "No date" : "Geen datum"
 },

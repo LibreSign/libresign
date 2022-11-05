@@ -40,9 +40,11 @@ OC.L10N.register(
     "Password reset" : "Restablecer contraseña",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
+    "Message" : "Mensaje",
+    "Resource" : "Recurso",
+    "Dependencies" : "Dependencias",
     "Remove" : "Eliminar",
     "Previous" : "Previo",
-    "Loading" : "Cargando",
     "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -36,9 +36,9 @@ OC.L10N.register(
     "Pending" : "อยู่ระหว่างดำเนินการ",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "New password" : "รหัสผ่านใหม่",
+    "Resource" : "ทรัพยากร",
     "Remove" : "ลบออก",
     "Previous" : "ก่อนหน้า",
-    "Loading" : "กำลังโหลด",
     "View" : "มุมมอง",
     "No date" : "ไม่มีวันที่"
 },

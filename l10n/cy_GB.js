@@ -26,9 +26,10 @@ OC.L10N.register(
     "No" : "No",
     "Pending" : "I ddod",
     "New password" : "Cyfrinair newydd",
+    "Resource" : "Adnodd",
     "Remove" : "Gwaredu",
     "Previous" : "Blaenorol",
-    "Loading" : "Llwytho",
+    "Loading …" : "Yn llwytho …",
     "No date" : "No date"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");
