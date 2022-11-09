@@ -39,7 +39,7 @@ endif
 dev-setup: clean clean-dev composer npm-install
 
 npm-install:
-	npm install
+	npm ci
 
 # Building
 build-js:
