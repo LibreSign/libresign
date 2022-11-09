@@ -1,0 +1,5 @@
+{
+    "require-dev": {
+        "nextcloud/coding-standard": "^1.0"
+    }
+}
