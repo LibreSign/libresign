@@ -128,12 +128,16 @@ class CfsslHandler {
 						'algo' => 'rsa',
 						'size' => 2048,
 					],
-					'names' => [
-						$this->getNames(),
-					],
+					'names' => [],
 				],
 			],
 		];
+
+		$names = $this->getNames();
+		if (!empty($names)) {
+			$json['json']['request']['names'][] = $names;
+		}
+
 		try {
 			$response = $this->getClient()
 				->request('post',
