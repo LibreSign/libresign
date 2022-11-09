@@ -8,6 +8,7 @@
     "iio/libmergepdf": "dev-move-tcpdi-parser-to-package",
     "jsignpdf/jsignpdf-php": "^1.1",
     "pagerfanta/pagerfanta": "^3.6",
+    "php-coveralls/php-coveralls": "^2.5",
     "tecnickcom/tcpdf": "^6.4"
   },
   "require-dev": {
