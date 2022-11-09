@@ -98,6 +98,11 @@ jobs:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
         run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
+      - name: Install php Coveralls
+        working-directory: apps/${{ env.APP_NAME }}
+        if: matrix.xdebug_mode == 'coverage'
+        run: wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.5.3/php-coveralls.phar
+
       - name: Upload coverage results to Coveralls
         working-directory: apps/${{ env.APP_NAME }}
         if: matrix.xdebug_mode == 'coverage'
@@ -105,9 +110,7 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
           COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: |
-          composer global require php-coveralls/php-coveralls --no-progress --no-interaction
-          php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -vvv
+        run: php php-coveralls.phar --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -vvv
 
   finish-coverage:
     needs: phpunit
