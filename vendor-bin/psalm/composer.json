@@ -1,6 +1,5 @@
 {
     "require-dev": {
-        "vimeo/psalm": "^4.30",
-        "nextcloud/ocp": "^24.0"
+        "vimeo/psalm": "^4.30"
     }
 }

@@ -489,13 +489,8 @@
       <code>FileUserMapper</code>
     </MissingDependency>
     <UndefinedClass occurrences="1">
-      <code>IUserSession</code>
+      <code>Process</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="3">
-      <code>$this-&gt;userSession</code>
-      <code>$this-&gt;userSession</code>
-      <code>IUserSession</code>
-    </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/SignFileService.php">
     <MissingDependency occurrences="36">
