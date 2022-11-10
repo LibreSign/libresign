@@ -25,6 +25,7 @@ jobs:
         include:
           - php-versions: '7.4'
             databases: 'sqlite'
+            coverage: xdebug
             server-versions: 'stable25'
             xdebug_mode: coverage
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
