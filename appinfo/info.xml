@@ -24,8 +24,9 @@
     <repository type="git">https://github.com/LibreSign/libresign</repository>
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
-        <php min-version="7.4" />
         <nextcloud min-version="25" max-version="25"/>
+        <architecture>x86_64</architecture>
+        <architecture>aarch64</architecture>
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
