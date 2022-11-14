@@ -515,6 +515,9 @@ class InstallService {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
 		}
+		if (!file_exists($path)) {
+			$this->output->writeln('<error>Failure on download ' . $filename . ', empty file, try again</error>');
+		}
 	}
 
 	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
