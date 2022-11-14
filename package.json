@@ -67,7 +67,7 @@
     "jest-localstorage-mock": "^2.4.21",
     "jest-mock-axios": "^4.6.1",
     "jest-transform-stub": "^2.0.0",
-    "stylelint": "^14.14.0",
+    "stylelint": "^14.15.0",
     "stylelint-config-recommended-scss": "^8.0.0",
     "stylelint-scss": "^4.3.0",
     "stylelint-webpack-plugin": "^3.3.0",
