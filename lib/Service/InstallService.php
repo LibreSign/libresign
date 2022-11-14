@@ -203,7 +203,6 @@ class InstallService {
 				$compressedFileName = 'OpenJDK17U-jre_aarch64_linux_hotspot_' . $version . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
 			}
-			$executableExtension = '';
 			$class = TAR::class;
 		} else {
 			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
@@ -224,7 +223,7 @@ class InstallService {
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
-		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/jdk-17.0.5+8-jre/bin/java' . $executableExtension);
+		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/jdk-17.0.5+8-jre/bin/java');
 		$this->removeDownloadProgress();
 	}
 
