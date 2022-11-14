@@ -356,43 +356,32 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
+		if (PHP_OS_FAMILY !== 'Linux') {
+			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
+		}
+		$architecture = php_uname('m');
+		if ($architecture === 'x86_64') {
+			$this->installCfssl64();
+		} elseif ($architecture === 'aarch64') {
+			$this->installCfsslArm();
+		}
+		$this->removeDownloadProgress();
+	}
+
+	private function installCfssl64(): void {
 		$folder = $this->getFolder();
 		$version = '1.6.1';
 
-		if (PHP_OS_FAMILY === 'Windows') {
-			$downloads = [
-				[
-					'file' => 'cfssl_' . $version . '_windows_amd64.exe',
-					'destination' => 'cfssl.exe',
-				],
-				[
-					'file' => 'cfssljson_' . $version . '_windows_amd64.exe',
-					'destination' => 'cfssljson.exe',
-				],
-			];
-		} elseif (PHP_OS_FAMILY === 'Darwin') {
-			$downloads = [
-				[
-					'file' => 'cfssl_' . $version . '_darwin_amd64',
-					'destination' => 'cfssl',
-				],
-				[
-					'file' => 'cfssljson_' . $version . '_darwin_amd64',
-					'destination' => 'cfssljson',
-				],
-			];
-		} else {
-			$downloads = [
-				[
-					'file' => 'cfssl_' . $version . '_linux_amd64',
-					'destination' => 'cfssl',
-				],
-				[
-					'file' => 'cfssljson_' . $version . '_linux_amd64',
-					'destination' => 'cfssljson',
-				],
-			];
-		}
+		$downloads = [
+			[
+				'file' => 'cfssl_' . $version . '_linux_amd64',
+				'destination' => 'cfssl',
+			],
+			[
+				'file' => 'cfssljson_' . $version . '_linux_amd64',
+				'destination' => 'cfssljson',
+			],
+		];
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/cfssl_' . $version . '_checksums.txt';
 		foreach ($downloads as $download) {
@@ -403,16 +392,49 @@ class InstallService {
 
 			$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
 
-			if (PHP_OS_FAMILY !== 'Windows') {
-				chmod($fullPath, 0700);
-			}
+			chmod($fullPath, 0700);
 		}
 
 		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
 			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
 			$downloads[0]['destination'];
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
-		$this->removeDownloadProgress();
+	}
+
+	private function installCfsslArm(): void {
+		$appFolder = $this->getFolder();
+		if ($appFolder->nodeExists('cfssl')) {
+			/** @var Folder */
+			$cfsslFolder = $appFolder->get('cfssl');
+		} else {
+			$cfsslFolder = $appFolder->newFolder('cfssl');
+		}
+		$compressedFileName = 'cfssl-1.6.3-1-aarch64.pkg.tar.xz';
+		$url = 'http://mirror.archlinuxarm.org/aarch64/community/' . $compressedFileName;
+		// Generated handmade with command sha256sum
+		$hash = '944a6c54e53b0e2ef04c9b22477eb5f637715271c74ccea9bb91d7ac0473b855';
+		if (!$cfsslFolder->nodeExists($compressedFileName)) {
+			$compressedFile = $cfsslFolder->newFile($compressedFileName);
+		} else {
+			$compressedFile = $cfsslFolder->get($compressedFileName);
+		}
+
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
+
+		$this->download($url, 'cfssl', $comporessedInternalFileName, $hash, 'sha256');
+
+		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
+		$extractor = new TAR($comporessedInternalFileName);
+
+		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl';
+		$result = $extractor->extract($extractDir);
+		if (!$result) {
+			throw new \RuntimeException('Error to extract xz file. Install xz. Read more: https://github.com/codemasher/php-ext-xz');
+		}
+		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
+			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
+			'cfssl/usr/bin/cfssl';
+		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 	}
 
 	public function uninstallCfssl(): void {
