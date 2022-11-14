@@ -206,7 +206,7 @@ class InstallService {
 			$executableExtension = '';
 			$class = TAR::class;
 		} else {
-			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with homologated.', PHP_OS_FAMILY));
+			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
