@@ -15,6 +15,18 @@ Nextcloud app to sign PDF documents.
 
 ## Setup
 
+Normally go to nextcloud/apps folder
+
+git clone https://github.com/libresign/libresign -b stable25
+
+apt install make webpack npm nodejs g++
+
+npm install npm@latest -g
+
+npm i vue-loader
+
+make
+
 After installing LibreSign, go to `Administration Settings > LibreSign` and:
 * Click in the `Download binaries` button. When it show status `successful` to all items, except `CFSSL not configured`, is time to configure root certificate in the next section.
 
