@@ -188,6 +188,7 @@ class ValidateHelper {
 			return;
 		}
 		if (!array_key_exists('fileUserId', $element)) {
+			// TRANSLATION The element can be an image or text. It has to be associated with an user. The element will be added to the document.
 			throw new LibresignException($this->l10n->t('Element must be associated with a user'));
 		}
 		try {
