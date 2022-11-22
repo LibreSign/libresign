@@ -50,7 +50,6 @@ OC.L10N.register(
     "Previous" : "Forrige",
     "Loading …" : "Laster ...",
     "View" : "Vis",
-    "No date" : "Ingen dato",
-    "Check configure" : "Sjekk konfigurere"
+    "No date" : "Ingen dato"
 },
 "nplurals=2; plural=(n != 1);");
