@@ -47,11 +47,18 @@ OC.L10N.register(
     "Repeat password" : "Repetera lösenord",
     "Message" : "Meddelande",
     "Resource" : "Resurs",
+    "Configuration check" : "Kontroll av konfiguration",
     "Dependencies" : "Beroenden",
+    "Download binaries" : "Ladda ned binärer",
+    "Could not download binaries." : "Kunde inte ladda ned binärer",
+    "Downloading binaries" : "Laddar ned binärer",
+    "Binaries downloaded" : "Binärer nedladdade",
     "Remove" : "Ta bort",
     "Previous" : "Föregående",
     "Loading …" : "Läser in …",
     "View" : "Visa",
-    "No date" : "Inget datum"
+    "No date" : "Inget datum",
+    "Allowed to sign document" : "Behörig att signera dokument",
+    "Tip" : "Tips"
 },
 "nplurals=2; plural=(n != 1);");
