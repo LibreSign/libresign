@@ -25,6 +25,8 @@
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
         <nextcloud min-version="26" max-version="26"/>
+        <architecture>x86_64</architecture>
+        <architecture>aarch64</architecture>
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
