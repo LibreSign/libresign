@@ -1,0 +1,10 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "donatj/mock-webserver": "^2.5",
+        "mikey179/vfsstream": "^1.6",
+        "byjg/swagger-test": "^3.1",
+        "guzzlehttp/psr7": "^2.4",
+        "symfony/yaml": "^5.4"
+    }
+}

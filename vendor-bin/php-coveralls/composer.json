@@ -1,0 +1,5 @@
+{
+    "require-dev": {
+        "php-coveralls/php-coveralls": "^2.5"
+    }
+}
