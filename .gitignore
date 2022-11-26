@@ -2,6 +2,7 @@
 .vscode
 *.iml
 /vendor/
+/vendor-bin/**/vendor/
 /tests/integration/vendor
 /tests/integration/output
 /js/

@@ -25,6 +25,7 @@ jobs:
         include:
           - php-versions: '7.4'
             databases: 'sqlite'
+            coverage: xdebug
             server-versions: 'stable24'
             xdebug_mode: coverage
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
@@ -96,7 +97,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         env:
           XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: ./vendor/phpunit/phpunit/phpunit -c phpunit.xml
+        run: ./vendor/bin/phpunit -c phpunit.xml
 
       - name: Upload coverage results to Coveralls
         working-directory: apps/${{ env.APP_NAME }}
@@ -105,9 +106,7 @@ jobs:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
           COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: |
-          composer global require php-coveralls/php-coveralls --no-progress --no-interaction
-          php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -vvv
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
 
   finish-coverage:
     needs: phpunit
