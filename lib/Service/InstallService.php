@@ -189,19 +189,23 @@ class InstallService {
 		 * URL used to get the MD5 and URL to download:
 		 * https://jdk.java.net/java-se-ri/8-MR3
 		 */
-		if (PHP_OS_FAMILY === 'Windows') {
-			$compressedFileName = 'openjdk-8u41-b04-windows-i586-14_jan_2020.zip';
-			$url = 'https://download.java.net/openjdk/jdk8u41/ri/' . $compressedFileName;
-			$executableExtension = '.exe';
-			$class = ZIP::class;
-			$hash = '48ac2152d1fb0ad1d343104be210d532';
-		} else {
-			$compressedFileName = 'openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz';
-			$url = 'https://download.java.net/openjdk/jdk8u41/ri/' . $compressedFileName;
-			$executableExtension = '';
+		if (PHP_OS_FAMILY === 'Linux') {
+			$architecture = php_uname('m');
+			$version = '17.0.5_8';
+			if ($architecture === 'x86_64') {
+				$compressedFileName = 'OpenJDK17U-jre_x64_linux_hotspot_' . $version . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
+			} elseif ($architecture === 'aarch64') {
+				$compressedFileName = 'OpenJDK17U-jre_aarch64_linux_hotspot_' . $version . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
+			}
 			$class = TAR::class;
-			$hash = '35f515e9436f4fefad091db2c1450c5f';
+		} else {
+			throw new RuntimeException(sprintf('OS_FAMILY %s is incompatible with LibreSign.', PHP_OS_FAMILY));
 		}
+		$folder = $this->getFolder();
+		$checksumUrl = $url . '.sha256.txt';
+		$hash = $this->getHash($folder, 'java', $compressedFileName, $version, $checksumUrl);
 		if (!$javaFolder->nodeExists($compressedFileName)) {
 			$compressedFile = $javaFolder->newFile($compressedFileName);
 		} else {
@@ -209,13 +213,13 @@ class InstallService {
 		}
 		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
 
-		$this->download($url, 'java', $comporessedInternalFileName, $hash);
+		$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
 
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
-		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/java-se-8u41-ri/bin/java' . $executableExtension);
+		$this->config->setAppValue(Application::APP_ID, 'java_path', $extractDir . '/jdk-17.0.5+8-jre/bin/java');
 		$this->removeDownloadProgress();
 	}
 
@@ -266,7 +270,7 @@ class InstallService {
 		$zip = new ZIP($extractDir . DIRECTORY_SEPARATOR . $compressedFileName);
 		$zip->extract($extractDir);
 
-		$fullPath = $extractDir . DIRECTORY_SEPARATOR. 'jsignpdf-' . JSignPdfHandler::VERSION . DIRECTORY_SEPARATOR. 'JSignPdf.jar';
+		$fullPath = $extractDir . DIRECTORY_SEPARATOR . 'jsignpdf-' . JSignPdfHandler::VERSION . DIRECTORY_SEPARATOR . 'JSignPdf.jar';
 		$this->config->setAppValue(Application::APP_ID, 'jsignpdf_jar_path', $fullPath);
 		$this->removeDownloadProgress();
 	}
@@ -551,7 +555,7 @@ class InstallService {
 			$this->cfsslHandler->setBinary($binary);
 			$this->cfsslHandler->genkey();
 		}
-		for ($i = 1;$i <= 4;$i++) {
+		for ($i = 1; $i <= 4; $i++) {
 			if ($this->cfsslHandler->health($cfsslUri)) {
 				break;
 			}
