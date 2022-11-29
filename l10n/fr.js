@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Succès",
     "Invalid user or password" : "Nom d'utilisateur ou mot de passe incorrect",
+    "_Element created with success_::_Elements created with success_" : ["Élément créé avec succès","Élément créé avec succès","Éléments créés avec succès"],
     "Elements not found" : "Élements non trouvés",
     "Element not found" : "Élement non trouvés",
     "Element updated with success" : "Élément mis à jour avec succès",
@@ -257,6 +258,7 @@ OC.L10N.register(
     "All Files" : "Tous les fichiers",
     "There are no documents" : "Il n'y a pas de documents",
     "View" : "Afficher",
+    "Signatories:" : "Signataires :",
     "Document Informations" : "Informations sur le document",
     "Validate Subscription." : "Valider l'abonnement.",
     "Enter the ID or UUID of the document to validate." : "Entrez l'identifiant ou l'UUID du document pour valider.",
