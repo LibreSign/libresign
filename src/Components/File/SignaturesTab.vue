@@ -53,6 +53,7 @@ import { format } from 'date-fns'
 import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { getCurrentUser } from '@nextcloud/auth'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import { get, find } from 'lodash-es'
@@ -74,8 +75,7 @@ export default {
 		}),
 		isRequester() {
 			const uid = get(this.currentFile, ['requested_by', 'uid'])
-			const signer = find(this.currentFile?.signers, row => row.me)
-			return signer?.uid === uid
+			return getCurrentUser().uid === uid
 		},
 		signers() {
 			return get(this.currentFile, 'signers', [])
