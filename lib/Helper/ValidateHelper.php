@@ -577,6 +577,9 @@ class ValidateHelper {
 		}
 
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
+		if (!$authorized) {
+			$authorized = ['admin'];
+		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!$authorized || !array_intersect($userGroups, $authorized)) {
 			if ($throw) {
