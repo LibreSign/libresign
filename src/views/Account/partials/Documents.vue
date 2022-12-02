@@ -5,6 +5,7 @@ import ProgressBar from '../../../Components/ProgressBar.vue'
 import { documentsService, parseDocument } from '../../../domains/documents/index.js'
 import { pathJoin } from '../../../helpers/path.js'
 import { onError } from '../../../helpers/errors.js'
+import { getInitialState } from '../../../services/InitialStateService.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -56,6 +57,9 @@ export default {
 		list() {
 			return Object.values(this.documents)
 		},
+		enabledFlow() {
+			return getInitialState().settings.identificationDocumentsFlow
+		}
 	},
 	mounted() {
 		this.loadDocuments()
@@ -168,7 +172,7 @@ export default {
 </script>
 
 <template>
-	<div class="documents">
+	<div class="documents" v-if="enabledFlow">
 		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
 
 		<ProgressBar v-if="loading" infinity />

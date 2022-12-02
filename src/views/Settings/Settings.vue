@@ -29,6 +29,7 @@
 		<SignPage />
 		<AllowedGroups />
 		<LegalInformation />
+		<IdentificationDocuments />
 	</NcSettingsSection>
 </template>
 
@@ -40,6 +41,7 @@ import RootCertificate from './RootCertificate.vue'
 import SignPage from './SignPage.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
+import IdentificationDocuments from './IdentificationDocuments.vue'
 
 export default {
 	name: 'Settings',
@@ -51,6 +53,7 @@ export default {
 		SignPage,
 		AllowedGroups,
 		LegalInformation,
+		IdentificationDocuments,
 	},
 	data() {
 		return {
