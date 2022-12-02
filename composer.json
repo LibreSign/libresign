@@ -6,7 +6,7 @@
   "require": {
     "endroid/qr-code": "^4.6",
     "iio/libmergepdf": "dev-move-tcpdi-parser-to-package",
-    "jsignpdf/jsignpdf-php": "^1.1",
+    "jsignpdf/jsignpdf-php": "^1.2",
     "pagerfanta/pagerfanta": "^3.6",
     "symfony/console": "^5.4",
     "tecnickcom/tcpdf": "^6.4"
