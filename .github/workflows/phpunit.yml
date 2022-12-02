@@ -23,7 +23,7 @@ jobs:
         xdebug_mode: ['debug']
         server-versions: ['master']
         include:
-          - php-versions: '7.4'
+          - php-versions: '8.1'
             databases: 'sqlite'
             coverage: xdebug
             server-versions: 'master'
