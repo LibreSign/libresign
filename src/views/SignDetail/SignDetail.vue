@@ -346,6 +346,7 @@ export default {
 	&--sidebar {
 		width: 300px;
 	}
+	overflow: auto;
 }
 
 .image-page {
