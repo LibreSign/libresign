@@ -5,8 +5,6 @@ namespace OCA\Libresign\Tests\Unit;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 
 class TestCase extends \Test\TestCase {
-	use LibresignFileTrait;
-
 	private array $users = [];
 
 	public function mockConfig($config) {

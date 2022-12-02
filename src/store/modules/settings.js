@@ -8,6 +8,7 @@ export default {
 
 	state: defaults({}, libresignState?.settings || {}, {
 		hasSignatureFile: false,
+    identificationDocumentsFlow: false,
 		isApprover: false,
 		phoneNumber: '',
 		signMethod: 'password',

@@ -43,7 +43,7 @@
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
 
-				<NcAppNavigationItem v-if="settings.isApprover"
+				<NcAppNavigationItem v-if="settings.identificationDocumentsFlow && settings.isApprover"
 					:to="{name: 'DocsAccountValidation'}"
 					:title="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
@@ -99,6 +99,7 @@ export default {
 		return {
 			settings: defaults({}, libresignState?.settings || {}, {
 				hasSignatureFile: false,
+				identificationDocumentsFlow: false,
 				isApprover: false,
 				phoneNumber: '',
 				signMethod: 'password',
