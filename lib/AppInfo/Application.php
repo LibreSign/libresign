@@ -4,6 +4,7 @@ namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
 use OCA\Libresign\Event\SignedEvent;
+use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\SignedListener;
@@ -11,6 +12,7 @@ use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 
 /**
@@ -24,6 +26,12 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function boot(IBootContext $context): void {
+		$server = $context->getServerContainer();
+
+		/** @var IEventDispatcher $dispatcher */
+		$dispatcher = $server->get(IEventDispatcher::class);
+
+		FilesTemplateLoader::register($dispatcher);
 	}
 
 	public function register(IRegistrationContext $context): void {

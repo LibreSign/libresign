@@ -24,6 +24,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { imagePath } from '@nextcloud/router'
+import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab.vue'
 
@@ -39,7 +40,7 @@ if (!window.OCA.Libresign) {
 }
 
 const isEnabled = function(fileInfo) {
-	if (fileInfo && fileInfo.isDirectory()) {
+	if (fileInfo && fileInfo.isDirectory() || !loadState('libresign', 'certificate_ok')) {
 		return false
 	}
 
@@ -60,7 +61,7 @@ window.addEventListener('DOMContentLoaded', () => {
 	/**
 	 * Adds an entry to the menu in file options.
 	 */
-	if (OCA.Files && OCA.Files.fileActions) {
+	if (OCA.Files && OCA.Files.fileActions && loadState('libresign', 'certificate_ok')) {
 		OCA.Files.fileActions.registerAction({
 			name: 'libresign',
 			displayName: t('libresign', 'Open in LibreSign'),
