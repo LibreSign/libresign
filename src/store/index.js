@@ -85,7 +85,6 @@ export default new Store({
 			return state.settings.hasSignatureFile
 		},
 		getCertificateOk(state) {
-      console.log(state.settings)
 			return state.settings.certificateOk
 		},
 		getPdfData(state) {
