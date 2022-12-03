@@ -32,6 +32,7 @@
 					exact
 					@click="goToSign" />
 				<NcAppNavigationItem :to="{name: 'requestFiles'}"
+					v-if="settings.certificateOk"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
@@ -100,6 +101,7 @@ export default {
 			settings: defaults({}, libresignState?.settings || {}, {
 				hasSignatureFile: false,
 				identificationDocumentsFlow: false,
+				certificateOk: false,
 				isApprover: false,
 				phoneNumber: '',
 				signMethod: 'password',

@@ -77,11 +77,11 @@ const routes = [
 	// internal pages
 	{
 		path: '/f/',
-		redirect: { name: 'requestFiles' },
+		redirect: { name: libresignVar.certificateOk ? 'requestFiles' : 'signFiles'},
 	},
 	{
 		path: '/',
-		redirect: { name: 'requestFiles' },
+		redirect: { name: libresignVar.certificateOk ? 'requestFiles' : 'signFiles' },
 	},
 	{
 		path: '/f/validation',

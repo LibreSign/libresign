@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.29.0@7ec5ffbd5f68ae03782d7fd33fff0c45a69f95b3">
+<files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
   <file src="lib/AppInfo/Application.php">
     <UndefinedClass occurrences="1">
       <code>LoadSidebar</code>
@@ -33,6 +33,12 @@
       <code>callable(QueryBuilder): void</code>
       <code>callable(QueryBuilder): void</code>
     </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Files/TemplateLoader.php">
+    <UndefinedClass occurrences="2">
+      <code>LoadSidebar</code>
+      <code>LoadSidebar</code>
+    </UndefinedClass>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
     <MissingDependency occurrences="5">

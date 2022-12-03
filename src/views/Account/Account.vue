@@ -10,7 +10,7 @@
 							<p>{{ user.displayName }}</p>
 						</div>
 					</div>
-					<div class="user-password">
+					<div class="user-password" v-if="getCertificateOk">
 						<h3>{{ t('libresign', 'Password & Security') }}</h3>
 						<div class="user-display-password icon-password">
 							<button v-if="!getHasPfx" @click="handleModal(true)">
@@ -73,6 +73,7 @@ export default {
 	computed: {
 		...mapGetters({
 			getHasPfx: 'getHasPfx',
+			getCertificateOk: 'getCertificateOk',
 		}),
 	},
 	methods: {
