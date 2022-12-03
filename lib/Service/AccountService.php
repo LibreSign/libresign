@@ -61,6 +61,8 @@ class AccountService {
 	private $accountFileMapper;
 	/** @var SignFileService */
 	private $signFileService;
+	/** @var SignatureService */
+	private $signatureService;
 	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
@@ -91,6 +93,7 @@ class AccountService {
 		FileTypeMapper $fileTypeMapper,
 		AccountFileMapper $accountFileMapper,
 		SignFileService $signFileService,
+		SignatureService $signatureService,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
 		ValidateHelper $validateHelper,
@@ -112,6 +115,7 @@ class AccountService {
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->signFileService = $signFileService;
+		$this->signatureService = $signatureService;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
 		$this->validateHelper = $validateHelper;
@@ -270,6 +274,7 @@ class AccountService {
 			$info = json_decode($e->getMessage(), true);
 		}
 		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
+		$info['settings']['certificateOk'] = $this->signatureService->hasRootCert();
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
