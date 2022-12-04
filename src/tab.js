@@ -70,9 +70,9 @@ window.addEventListener('DOMContentLoaded', () => {
 			icon() {
 				return imagePath('libresign', 'app-dark')
 			},
-			actionHandler(fileName) {
+			actionHandler(fileName, context) {
 				OCA.Files.Sidebar.setActiveTab('libresign')
-				OCA.Files.Sidebar.open('/' + fileName)
+				OCA.Files.Sidebar.open(context.dir + '/' + fileName)
 			},
 		})
 	}
