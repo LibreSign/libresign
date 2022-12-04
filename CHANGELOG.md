@@ -13,6 +13,23 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.0 - 2022-12-04
+### Changed
+* Change the default java version
+* Make compatible with arm
+* Toogle enable identification documents flow
+* Hide features if havent certificate
+* Open tab in folder
+
+### Fixed
+* Fix command to configure root cert
+* Fix newcert request when names array is empty
+* Fix overflow
+* Fix rule to display button
+* Fix generate validate url
+
+**Full Changelog**: https://github.com/LibreSign/libresign/compare/v6.1.2...v6.2.0
+
 ## 6.1.2 - 2022-10-29
 * Fix wrong migration
 
