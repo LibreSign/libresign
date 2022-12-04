@@ -6,6 +6,7 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -25,6 +26,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->config = $this->createMock(IConfig::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->l10n = $this->createMock(IL10N::class);
@@ -34,6 +36,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->urlGenerator,
 			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
@@ -90,6 +93,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->urlGenerator,
 			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
@@ -113,6 +117,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->config,
+			$this->urlGenerator,
 			$this->systemConfig,
 			$this->cfsslHandler,
 			$this->l10n
@@ -124,7 +129,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->method('getContent')
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$actual = $this->pkcs12Handler->writeFooter($file, 'uuid');
-		$this->assertEquals(16627, strlen($actual));
+		$this->assertEquals(18359, strlen($actual));
 	}
 
 	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {

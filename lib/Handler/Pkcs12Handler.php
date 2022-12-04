@@ -17,6 +17,7 @@ use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use TCPDI;
 
 class Pkcs12Handler extends SignEngineHandler {
@@ -30,23 +31,27 @@ class Pkcs12Handler extends SignEngineHandler {
 	private $config;
 	/** @var SystemConfig */
 	private $systemConfig;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 	/** @var CfsslHandler */
 	private $cfsslHandler;
 	/** @var IL10N */
 	private $l10n;
 	/** @var QrCode */
 	private $qrCode;
-	private const MIN_QRCODE_SIZE = 20;
+	private const MIN_QRCODE_SIZE = 100;
 
 	public function __construct(
 		FolderService $folderService,
 		IConfig $config,
+		IURLGenerator $urlGenerator,
 		SystemConfig $systemConfig,
 		CfsslHandler $cfsslHandler,
 		IL10N $l10n
 	) {
 		$this->folderService = $folderService;
 		$this->config = $config;
+		$this->urlGenerator = $urlGenerator;
 		$this->systemConfig = $systemConfig;
 		$this->cfsslHandler = $cfsslHandler;
 		$this->l10n = $l10n;
@@ -135,10 +140,11 @@ class Pkcs12Handler extends SignEngineHandler {
 			return '';
 		}
 		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
-		if (!$validation_site) {
-			return '';
+		if ($validation_site) {
+			$validation_site = rtrim($validation_site, '/').'/'.$uuid;
+		} else {
+			$validation_site = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', ['uuid' => $uuid]);
 		}
-		$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 
 		$pdf = new TCPDILibresign();
 		$pageCount = $pdf->setSourceData($file->getContent());
@@ -177,9 +183,9 @@ class Pkcs12Handler extends SignEngineHandler {
 				$x += $this->qrCode->getSize();
 			}
 
-			$pdf->SetXY($x, -15);
+			$pdf->SetXY($x, -35);
 			$pdf->Write(
-				8,
+				10,
 				iconv(
 					'UTF-8',
 					'windows-1252',
@@ -192,9 +198,9 @@ class Pkcs12Handler extends SignEngineHandler {
 			if ($footerSecondRow === 'Validate in %s.') {
 				$footerSecondRow = $this->l10n->t('Validate in %s.', $validation_site);
 			}
-			$pdf->SetXY($x, -10);
+			$pdf->SetXY($x, -25);
 			$pdf->Write(
-				8,
+				10,
 				iconv('UTF-8', 'windows-1252', $footerSecondRow),
 				$validation_site
 			);
