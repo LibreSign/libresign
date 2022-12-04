@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d53e676461335c6c243bd2e79e75fdd3",
+    "content-hash": "1d24409e02b7831bf68c33fca66acded",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -332,16 +332,16 @@
         },
         {
             "name": "pagerfanta/pagerfanta",
-            "version": "v3.6.2",
+            "version": "v3.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BabDev/Pagerfanta.git",
-                "reference": "0486e63edb74e55f85485c16c31decbf65f6e432"
+                "reference": "d0230abaf94c2625b77a8e05d0c79fea9d80fda5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/0486e63edb74e55f85485c16c31decbf65f6e432",
-                "reference": "0486e63edb74e55f85485c16c31decbf65f6e432",
+                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/d0230abaf94c2625b77a8e05d0c79fea9d80fda5",
+                "reference": "d0230abaf94c2625b77a8e05d0c79fea9d80fda5",
                 "shasum": ""
             },
             "require": {
@@ -351,8 +351,8 @@
                 "symfony/polyfill-php80": "^1.15"
             },
             "conflict": {
-                "doctrine/collections": "<1.6",
-                "doctrine/dbal": "<2.13.1 || ~3.0.0",
+                "doctrine/collections": "<1.8",
+                "doctrine/dbal": "<3.1",
                 "doctrine/mongodb-odm": "<2.2.2",
                 "doctrine/orm": "<2.8",
                 "doctrine/phpcr-odm": "<1.5",
@@ -374,17 +374,17 @@
             "require-dev": {
                 "dg/bypass-finals": "^1.3",
                 "doctrine/cache": "^1.11 || ^2.0",
-                "doctrine/collections": "^1.6",
-                "doctrine/dbal": "^2.13.1 || ^3.1",
+                "doctrine/collections": "^1.8 || ^2.0",
+                "doctrine/dbal": "^3.1",
                 "doctrine/mongodb-odm": "^2.2.2",
                 "doctrine/orm": "^2.8",
                 "doctrine/phpcr-odm": "^1.5",
-                "friendsofphp/php-cs-fixer": "^3.8",
+                "friendsofphp/php-cs-fixer": "^3.13",
                 "jackalope/jackalope-doctrine-dbal": "^1.6",
                 "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.8.0",
-                "phpstan/phpstan-phpunit": "1.1.1",
-                "phpunit/phpunit": "9.5.21",
+                "phpstan/phpstan": "1.9.2",
+                "phpstan/phpstan-phpunit": "1.2.2",
+                "phpunit/phpunit": "9.5.26",
                 "ruflin/elastica": "^6.0 || ^7.0",
                 "solarium/solarium": "^5.0 || ^6.0",
                 "symfony/cache": "^4.4 || ^5.4 || ^6.0",
@@ -424,7 +424,7 @@
             ],
             "support": {
                 "issues": "https://github.com/BabDev/Pagerfanta/issues",
-                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.6.2"
+                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.7.0"
             },
             "funding": [
                 {
@@ -432,7 +432,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-07-21T23:35:12+00:00"
+            "time": "2022-12-02T16:35:42+00:00"
         },
         {
             "name": "psr/container",
@@ -1518,12 +1518,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "d1f996e8d03a10184d48a0120282886b3f7806f7"
+                "reference": "daec406d141d825cfdcc8178ac7f2323f9eff496"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/d1f996e8d03a10184d48a0120282886b3f7806f7",
-                "reference": "d1f996e8d03a10184d48a0120282886b3f7806f7",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/daec406d141d825cfdcc8178ac7f2323f9eff496",
+                "reference": "daec406d141d825cfdcc8178ac7f2323f9eff496",
                 "shasum": ""
             },
             "require": {
@@ -1554,7 +1554,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/master"
             },
-            "time": "2022-11-10T00:44:20+00:00"
+            "time": "2022-12-04T00:36:52+00:00"
         },
         {
             "name": "psr/event-dispatcher",
@@ -1662,12 +1662,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "da95b1ad6506ec4dd087e04627f74f16cdb78c43"
+                "reference": "891ecbb72eac808c80fb97f2cce67824e94e5652"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/da95b1ad6506ec4dd087e04627f74f16cdb78c43",
-                "reference": "da95b1ad6506ec4dd087e04627f74f16cdb78c43",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/891ecbb72eac808c80fb97f2cce67824e94e5652",
+                "reference": "891ecbb72eac808c80fb97f2cce67824e94e5652",
                 "shasum": ""
             },
             "conflict": {
@@ -1692,12 +1692,12 @@
                 "awesome-support/awesome-support": "<=6.0.7",
                 "aws/aws-sdk-php": ">=3,<3.2.1",
                 "backdrop/backdrop": "<=1.23",
-                "badaso/core": "<2.6.1",
+                "badaso/core": "<2.7",
                 "bagisto/bagisto": "<0.1.5",
                 "barrelstrength/sprout-base-email": "<1.2.7",
                 "barrelstrength/sprout-forms": "<3.9",
                 "barryvdh/laravel-translation-manager": "<0.6.2",
-                "baserproject/basercms": "<4.5.4",
+                "baserproject/basercms": "<=4.7.1",
                 "billz/raspap-webgui": "<=2.6.6",
                 "bk2k/bootstrap-package": ">=7.1,<7.1.2|>=8,<8.0.8|>=9,<9.0.4|>=9.1,<9.1.3|>=10,<10.0.10|>=11,<11.0.3",
                 "bmarshall511/wordpress_zero_spam": "<5.2.13",
@@ -1846,6 +1846,7 @@
                 "ivankristianto/phpwhois": "<=4.3",
                 "jackalope/jackalope-doctrine-dbal": "<1.7.4",
                 "james-heinrich/getid3": "<1.9.21",
+                "jasig/phpcas": "<1.3.3",
                 "joomla/archive": "<1.1.12|>=2,<2.0.1",
                 "joomla/filesystem": "<1.6.2|>=2,<2.0.1",
                 "joomla/filter": "<1.4.4|>=2,<2.0.1",
@@ -1898,7 +1899,7 @@
                 "modx/revolution": "<= 2.8.3-pl|<2.8",
                 "mojo42/jirafeau": "<4.4",
                 "monolog/monolog": ">=1.8,<1.12",
-                "moodle/moodle": "<4.0.1",
+                "moodle/moodle": "<4.0.5",
                 "mustache/mustache": ">=2,<2.14.1",
                 "namshi/jose": "<2.2",
                 "neoan3-apps/template": "<1.1.1",
@@ -1955,6 +1956,7 @@
                 "phpunit/phpunit": ">=4.8.19,<4.8.28|>=5,<5.6.3",
                 "phpwhois/phpwhois": "<=4.2.5",
                 "phpxmlrpc/extras": "<0.6.1",
+                "phpxmlrpc/phpxmlrpc": "<4.9",
                 "pimcore/data-hub": "<1.2.4",
                 "pimcore/pimcore": "<10.5.9",
                 "pocketmine/bedrock-protocol": "<8.0.2",
@@ -2023,6 +2025,7 @@
                 "snipe/snipe-it": "<6.0.11|>= 6.0.0-RC-1, <= 6.0.0-RC-5",
                 "socalnick/scn-social-auth": "<1.15.2",
                 "socialiteproviders/steam": "<1.1",
+                "spatie/browsershot": "<3.57.4",
                 "spipu/html2pdf": "<5.2.4",
                 "spoonity/tcpdf": "<6.2.22",
                 "squizlabs/php_codesniffer": ">=1,<2.8.1|>=3,<3.0.1",
@@ -2194,7 +2197,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-11-22T00:16:41+00:00"
+            "time": "2022-12-02T23:04:13+00:00"
         }
     ],
     "aliases": [],
