@@ -234,6 +234,8 @@ OC.L10N.register(
     "Downloading binaries" : "Binary dosyaları indiriliyor",
     "Binaries downloaded" : "Binary dosyaları indirildi",
     "Validate setup" : "Kurulumu doğrula",
+    "Enable identification documents flow" : "Kimlik belgeleri akışı kullanılsın",
+    "Identification documents" : "Kimlik belgeleri",
     "Legal Information" : "Yasal bilgiler",
     "Legal information" : "Yasal bilgiler",
     "This information will appear on the validation page" : "Bu bilgiler doğrulama sayfasında görüntülenir",
