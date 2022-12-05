@@ -234,6 +234,7 @@
     "Validate setup" : "Kurulumu doğrula",
     "Enable identification documents flow" : "Kimlik belgeleri akışı kullanılsın",
     "Identification documents" : "Kimlik belgeleri",
+    "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Kimlik belgeleri akışı, bir dosyayı imzalaması gereken herkesin, onay grubunun bazı üyeleri tarafından onaylanmak üzere kimlik belgelerini göndermesini zorunlu kılar. Kullanıcı, yalnızca kimlik belgelerinin onaylanmasından sonra sertifika oluşturabilir.",
     "Legal Information" : "Yasal bilgiler",
     "Legal information" : "Yasal bilgiler",
     "This information will appear on the validation page" : "Bu bilgiler doğrulama sayfasında görüntülenir",
