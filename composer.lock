@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1d24409e02b7831bf68c33fca66acded",
+    "content-hash": "f9c9d81ed483195586a2152a46efe25f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -240,16 +240,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.2.2",
+            "version": "v1.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "abd3a2ef22d28c0e8fae6eb0cfaccc69d5c254ff"
+                "reference": "fa302ee5333a8643cf49c60ce33189aa86961350"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/abd3a2ef22d28c0e8fae6eb0cfaccc69d5c254ff",
-                "reference": "abd3a2ef22d28c0e8fae6eb0cfaccc69d5c254ff",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/fa302ee5333a8643cf49c60ce33189aa86961350",
+                "reference": "fa302ee5333a8643cf49c60ce33189aa86961350",
                 "shasum": ""
             },
             "require": {
@@ -287,9 +287,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.2"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.3"
             },
-            "time": "2022-11-14T12:00:12+00:00"
+            "time": "2022-12-02T17:27:21+00:00"
         },
         {
             "name": "libresign/tcpdi_parser",
@@ -1514,16 +1514,16 @@
         },
         {
             "name": "nextcloud/ocp",
-            "version": "dev-master",
+            "version": "dev-stable25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "daec406d141d825cfdcc8178ac7f2323f9eff496"
+                "reference": "9b19a5a12c990cafe832aa8ccc95be4f57f24c9d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/daec406d141d825cfdcc8178ac7f2323f9eff496",
-                "reference": "daec406d141d825cfdcc8178ac7f2323f9eff496",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/9b19a5a12c990cafe832aa8ccc95be4f57f24c9d",
+                "reference": "9b19a5a12c990cafe832aa8ccc95be4f57f24c9d",
                 "shasum": ""
             },
             "require": {
@@ -1532,7 +1532,6 @@
                 "psr/event-dispatcher": "^1.0",
                 "psr/log": "^1.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -1552,9 +1551,9 @@
             "description": "Composer package containing Nextcloud's public API (classes, interfaces)",
             "support": {
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
-                "source": "https://github.com/nextcloud-deps/ocp/tree/master"
+                "source": "https://github.com/nextcloud-deps/ocp/tree/stable25"
             },
-            "time": "2022-12-04T00:36:52+00:00"
+            "time": "2022-11-11T00:48:02+00:00"
         },
         {
             "name": "psr/event-dispatcher",
