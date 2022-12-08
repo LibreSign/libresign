@@ -71,6 +71,7 @@ OC.L10N.register(
     "Validation URL" : "URL επικύρωσης",
     "Remove" : "Αφαίρεση",
     "Previous" : "Προηγούμενο",
+    "Document not available for signature." : "Το έγγραφο δεν είναι διαθέσιμο για υπογραφή.",
     "Sign the document." : "Υπογραφή του εγγράφου.",
     "Loading …" : "Φόρτωση …",
     "All Files" : "Όλα τα αρχεία",
