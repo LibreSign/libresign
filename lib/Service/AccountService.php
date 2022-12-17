@@ -342,6 +342,7 @@ class AccountService {
 
 	public function getSettings(?IUser $user = null): array {
 		$return['canRequestSign'] = $this->canRequestSign($user);
+		$return['canPreviewPageAsImage'] = shell_exec(sprintf("which %s", escapeshellarg('ghostscript'))) !== null;
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
 		return $return;
 	}
