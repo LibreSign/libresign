@@ -45,7 +45,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			$javaPath = $this->config->getAppValue(Application::APP_ID, 'java_path');
 			$this->jSignParam = (new JSignParam())
 				->setTempPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir())
+					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
 				)
 				->setIsUseJavaInstalled(empty($javaPath))
 				->setjSignPdfJarPath(
