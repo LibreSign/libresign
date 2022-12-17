@@ -65,6 +65,15 @@ class ConfigureCheckService {
 			];
 		}
 
+		if (!shell_exec(sprintf("which %s", escapeshellarg('ghostscript')))) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('Is necessary install ghostscript in your operational system to make possible Imagick read PDF files. This feature will be used only if you need to add visible signatures in your PDF files using the web interface.')
+					->setResource('imagick')
+					->setTip('https://www.php.net/manual/en/imagick.requirements.php '),
+			];
+		}
+
 		$imagick = new \Imagick();
 		$imagick->setResolution(100, 100);
 		$pdf = file_get_contents(__DIR__ . '/../../tests/fixtures/small_valid.pdf');
