@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.1 - 2022-12-17
+* Fix temp dir, thanks to @unnilennium
+* Check if have ghostscript
+* Bump dependencies
+
 ## 6.2.0 - 2022-12-04
 ### Changed
 * Change the default java version
