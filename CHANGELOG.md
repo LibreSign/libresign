@@ -15,6 +15,9 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.2.2 - 2022-12-17
+* Fix temp directory separator, thanks to @cabaseira
+
 ## 6.2.1 - 2022-12-17
 * Fix temp dir, thanks to @unnilennium
 * Check if have ghostscript
