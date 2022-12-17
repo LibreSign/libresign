@@ -156,6 +156,7 @@ export default {
 			uuid: '',
 			settings: {
 				canRequestSign: false,
+				canPreviewPageAsImage: false,
 				canSign: true,
 				hasSignatureFile: false,
 				phoneNumber: '',
@@ -375,7 +376,10 @@ export default {
 		},
 
 		async createRegister(users, fileInfo) {
-			const needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
+			let needElements = false;
+			if (this.settings.canPreviewPageAsImage) {
+				needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
+			}
 
 			const status = needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN
 
