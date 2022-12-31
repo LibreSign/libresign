@@ -235,6 +235,7 @@ class SignFileController extends ApiController {
 					break;
 				default:
 					$this->logger->error($message);
+					$this->logger->error(json_encode($th->getTrace()));
 					$message = $this->l10n->t('Internal error. Contact admin.');
 			}
 		}
