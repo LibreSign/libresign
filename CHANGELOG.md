@@ -13,6 +13,15 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.3 - 2022-12-31
+
+Happy new year!
+* Bump dependencies
+* TCPDF updates:
+  * Bumped version of TCPDF that could solve problem when add qrcode in specific cases. #1299
+  * Added backtrace to admins identify when TCPDF throw an error when sign a file
+* Improvements to verify dependency versions. Now will show error when is incompatible version of CFSSL and JSignPdf. Thanks to @tasagore
+
 ## 6.2.2 - 2022-12-17
 * Fix temp directory separator, thanks to @cabaseira
 
