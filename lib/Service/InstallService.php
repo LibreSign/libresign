@@ -27,6 +27,10 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
 	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
+	/**
+	 * When update, verify the hash of all architectures
+	 */
+	public const CFSSL_VERSION = '1.6.3';
 	/** @var ICache */
 	private $cache;
 	/** @var IConfig */
@@ -373,22 +377,21 @@ class InstallService {
 
 	private function installCfssl64(): void {
 		$folder = $this->getFolder();
-		$version = '1.6.1';
 
 		$downloads = [
 			[
-				'file' => 'cfssl_' . $version . '_linux_amd64',
+				'file' => 'cfssl_' . self::CFSSL_VERSION . '_linux_amd64',
 				'destination' => 'cfssl',
 			],
 			[
-				'file' => 'cfssljson_' . $version . '_linux_amd64',
+				'file' => 'cfssljson_' . self::CFSSL_VERSION . '_linux_amd64',
 				'destination' => 'cfssljson',
 			],
 		];
-		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/';
-		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . $version . '/cfssl_' . $version . '_checksums.txt';
+		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
+		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
 		foreach ($downloads as $download) {
-			$hash = $this->getHash($folder, 'libresign-cli', $download['file'], $version, $checksumUrl);
+			$hash = $this->getHash($folder, 'libresign-cli', $download['file'], self::CFSSL_VERSION, $checksumUrl);
 
 			$file = $folder->newFile($download['destination']);
 			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
@@ -412,7 +415,7 @@ class InstallService {
 		} else {
 			$cfsslFolder = $appFolder->newFolder('cfssl');
 		}
-		$compressedFileName = 'cfssl-1.6.3-1-aarch64.pkg.tar.xz';
+		$compressedFileName = 'cfssl-' . self::CFSSL_VERSION . '-1-aarch64.pkg.tar.xz';
 		$url = 'http://mirror.archlinuxarm.org/aarch64/community/' . $compressedFileName;
 		// Generated handmade with command sha256sum
 		$hash = '944a6c54e53b0e2ef04c9b22477eb5f637715271c74ccea9bb91d7ac0473b855';
