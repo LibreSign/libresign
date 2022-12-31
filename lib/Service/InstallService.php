@@ -25,6 +25,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
+	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
+	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
 	/** @var ICache */
 	private $cache;
 	/** @var IConfig */
@@ -184,19 +186,20 @@ class InstallService {
 		}
 
 		/**
-		 * To update:
-		 * Check the compatible version of Java to use JSignPdf and update all the follow data
+		 * Steps to update:
+		 *     Check the compatible version of Java to use JSignPdf
+		 *     Update all the follow data
+		 *     Update the constants with java version
 		 * URL used to get the MD5 and URL to download:
 		 * https://jdk.java.net/java-se-ri/8-MR3
 		 */
 		if (PHP_OS_FAMILY === 'Linux') {
 			$architecture = php_uname('m');
-			$version = '17.0.5_8';
 			if ($architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK17U-jre_x64_linux_hotspot_' . $version . '.tar.gz';
+				$compressedFileName = 'OpenJDK17U-jre_x64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
 			} elseif ($architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK17U-jre_aarch64_linux_hotspot_' . $version . '.tar.gz';
+				$compressedFileName = 'OpenJDK17U-jre_aarch64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
 			}
 			$class = TAR::class;
@@ -205,7 +208,7 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($folder, 'java', $compressedFileName, $version, $checksumUrl);
+		$hash = $this->getHash($folder, 'java', $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
 		if (!$javaFolder->nodeExists($compressedFileName)) {
 			$compressedFile = $javaFolder->newFile($compressedFileName);
 		} else {
