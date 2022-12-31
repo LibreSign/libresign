@@ -293,10 +293,22 @@ class ConfigureCheckService {
 			];
 		}
 		$return = [];
+		$version = str_replace("\n", ', ', trim(`$binary version`));
+		if (strpos($version, InstallService::CFSSL_VERSION) === false) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(sprintf(
+						'Invalid version. Expected: %s, actual: %s',
+						InstallService::CFSSL_VERSION,
+						$version
+					))
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl')
+			];
+		}
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL binary path: ' . $binary)
 			->setResource('cfssl');
-		$version = str_replace("\n", ', ', trim(`$binary version`));
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
