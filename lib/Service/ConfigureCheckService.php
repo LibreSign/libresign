@@ -166,7 +166,21 @@ class ConfigureCheckService {
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
 				\exec($javaPath . " -version 2>&1", $javaVersion);
-				$javaVersion = implode(\OC::$CLI ? "\n" : "<br>", $javaVersion);
+				$javaVersion = current($javaVersion);
+				if ($javaVersion !== InstallService::JAVA_VERSION) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage(
+								sprintf(
+									"Invalid java version. Found: %s expected: %s",
+									$javaVersion,
+									InstallService::JAVA_VERSION
+								)
+							)
+							->setResource('java')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
 				return [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
@@ -186,6 +200,7 @@ class ConfigureCheckService {
 		$javaVersion = exec("java -version 2>&1");
 		$hasJavaVersion = strpos($javaVersion, 'not found') === false;
 		if ($hasJavaVersion) {
+			$javaVersion = current($javaVersion);
 			return [
 				(new ConfigureCheckHelper())
 					->setSuccessMessage('Using java from operational system. Version: ' . $javaVersion)
