@@ -166,7 +166,21 @@ class ConfigureCheckService {
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
 				\exec($javaPath . " -version 2>&1", $javaVersion);
-				$javaVersion = implode(\OC::$CLI ? "\n" : "<br>", $javaVersion);
+				$javaVersion = current($javaVersion);
+				if ($javaVersion !== InstallService::JAVA_VERSION) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage(
+								sprintf(
+									"Invalid java version. Found: %s expected: %s",
+									$javaVersion,
+									InstallService::JAVA_VERSION
+								)
+							)
+							->setResource('java')
+							->setTip('Run occ libresign:install --java'),
+					];
+				}
 				return [
 					(new ConfigureCheckHelper())
 						->setSuccessMessage('Java version: ' . $javaVersion)
@@ -183,7 +197,8 @@ class ConfigureCheckService {
 					->setTip('Run occ libresign:install --java'),
 			];
 		}
-		$javaVersion = exec("java -version 2>&1");
+		\exec("java -version 2>&1", $javaVersion);
+		$javaVersion = current($javaVersion);
 		$hasJavaVersion = strpos($javaVersion, 'not found') === false;
 		if ($hasJavaVersion) {
 			return [
@@ -278,10 +293,22 @@ class ConfigureCheckService {
 			];
 		}
 		$return = [];
+		$version = str_replace("\n", ', ', trim(`$binary version`));
+		if (strpos($version, InstallService::CFSSL_VERSION) === false) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(sprintf(
+						'Invalid version. Expected: %s, actual: %s',
+						InstallService::CFSSL_VERSION,
+						$version
+					))
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl')
+			];
+		}
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL binary path: ' . $binary)
 			->setResource('cfssl');
-		$version = str_replace("\n", ', ', trim(`$binary version`));
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
