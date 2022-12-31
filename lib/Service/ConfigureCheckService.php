@@ -197,10 +197,10 @@ class ConfigureCheckService {
 					->setTip('Run occ libresign:install --java'),
 			];
 		}
-		$javaVersion = exec("java -version 2>&1");
+		\exec("java -version 2>&1", $javaVersion);
+		$javaVersion = current($javaVersion);
 		$hasJavaVersion = strpos($javaVersion, 'not found') === false;
 		if ($hasJavaVersion) {
-			$javaVersion = current($javaVersion);
 			return [
 				(new ConfigureCheckHelper())
 					->setSuccessMessage('Using java from operational system. Version: ' . $javaVersion)
