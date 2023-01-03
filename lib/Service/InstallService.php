@@ -538,6 +538,12 @@ class InstallService {
 		/** @var \OCP\Files\File */
 		$fileObject = $folder->get($hashFileName);
 		$hashes = $fileObject->getContent();
+		if (!$hashes) {
+			throw new LibresignException(
+				'Failute to load content of hash file: ' . $hashFileName . '. ' .
+				'File corrupted or not found. Run "occ files:scan-app-data libresign".'
+			);
+		}
 		preg_match('/(?<hash>\w*) +' . $file . '/', $hashes, $matches);
 		return $matches['hash'];
 	}
