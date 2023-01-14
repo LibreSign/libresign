@@ -5,10 +5,13 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
+use OCP\ITempManager;
 
 class PdfParserService {
 	/** @var IConfig */
 	private $config;
+	/** @var ITempManager */
+	private $tempManager;
 	/** @var InstallService */
 	private $installService;
 	/** @var string */
@@ -16,9 +19,11 @@ class PdfParserService {
 
 	public function __construct(
 		IConfig $config,
+		ITempManager $tempManager,
 		InstallService $installService
 	) {
 		$this->config = $config;
+		$this->tempManager = $tempManager;
 		$this->installService = $installService;
 	}
 
@@ -27,7 +32,7 @@ class PdfParserService {
 	}
 
 	/**
-	 * @param string $filePath
+	 * @param \OCP\Files\Node $node
 	 *
 	 * @return (array[]|int)[]
 	 *
@@ -35,14 +40,23 @@ class PdfParserService {
 	 *
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
-	public function getMetadata(string $filePath): array {
-		$fullPath = $this->getDataDir() . $filePath;
-		$fullPath = realpath($fullPath);
-		if ($fullPath === false) {
-			throw new LibresignException('File not found on specified place.');
+	public function getMetadata(\OCP\Files\Node $node): array {
+		$content = $node->getContent();
+		if (!$content) {
+			throw new LibresignException('Empty file.');
 		}
+
+		/**
+		 * Generate temporary file to prevent error when get path of
+		 * shared file
+		 */
+		$tempFile = $this->tempManager->getTemporaryFile('.pdf');
+		file_put_contents($tempFile, $content);
+
 		$cliPath = $this->getLibesignCli();
-		$json = shell_exec($cliPath . ' info ' . escapeshellarg($fullPath));
+		$json = shell_exec($cliPath . ' info ' . $tempFile);
+		unlink($tempFile);
+
 		$array = json_decode($json, true);
 		if (!is_array($array)) {
 			throw new LibresignException('Impossible get metadata from this file. Check if you installed correctly the libresign-cli.');

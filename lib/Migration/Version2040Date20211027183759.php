@@ -65,7 +65,7 @@ class Version2040Date20211027183759 extends SimpleMigrationStep {
 			/** @var File[] */
 			$file = $userFolder->getById($row['node_id']);
 			if (count($file) >= 1) {
-				$data = $this->PdfParserService->getMetadata($file[0]->getPath());
+				$data = $this->PdfParserService->getMetadata($file[0]);
 				$json = json_encode($data);
 				$query = $this->connection->getQueryBuilder();
 				$query
