@@ -237,7 +237,7 @@ class SignFileService {
 			'extension' => $node->getExtension(),
 		];
 		if ($metadata['extension'] === 'pdf') {
-			$metadata = $this->pdfParserService->getMetadata($node->getPath());
+			$metadata = $this->pdfParserService->getMetadata($node);
 		}
 		return $metadata;
 	}

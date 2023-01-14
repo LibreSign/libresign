@@ -6,7 +6,9 @@ use OC\SystemConfig;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\InstallService;
 use OCA\Libresign\Service\PdfParserService;
+use OCP\Files\File;
 use OCP\IConfig;
+use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -15,24 +17,32 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IConfig|MockObject */
 	private $config;
+	/** @var ITempManager */
+	private $tempManager;
 	/** @var InstallService|MockObject */
 	private $installService;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
+		$this->tempManager = \OC::$server->get(ITempManager::class);
 		$this->installService = $this->createMock(InstallService::class);
 	}
 
 	private function getService(): PdfParserService {
 		return new PdfParserService(
 			$this->config,
+			$this->tempManager,
 			$this->installService
 		);
 	}
 
-	public function testGetMetadataWithFail(): void {
+	/**
+	 * @dataProvider dataGetMetadataWithFail
+	 */
+	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
+		$this->expectErrorMessageMatches($errorMessage);
 		$this->config
 			->method('getAppValue')
 			->willReturnCallback(function ($appid, $key, $default) {
@@ -47,25 +57,40 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					case 'datadirectory': return $default;
 				}
 			});
-		$path = '/fake';
-		$this->getService()->getMetadata($path);
+		$file = $this->createMock(File::class);
+		if (file_exists($path)) {
+			$file->method('getContent')
+				->willReturn(file_get_contents($path));
+		}
+		$this->getService()->getMetadata($file);
+	}
+
+	public function dataGetMetadataWithFail(): array {
+		return [
+			['/fail', '/Empty file/'],
+			['README.md', '/Impossible get metadata/'],
+		];
 	}
 
 	/**
-	 * @dataProvider providerGetMetadataWIthSuccess
+	 * @dataProvider providerGetMetadataWithSuccess
 	 */
-	public function testGetMetadataWIthSuccess(string $path, array $expected): void {
+	public function testGetMetadataWithSuccess(string $path, array $expected): void {
 		$this->installService = \OC::$server->get(InstallService::class);
 		$this->systemConfig = \OC::$server->get(SystemConfig::class);
 		$this->config = \OC::$server->get(IConfig::class);
-		$actual = $this->getService()->getMetadata($path);
+
+		$file = $this->createMock(File::class);
+		$file->method('getContent')
+			->willReturn(file_get_contents($path));
+		$actual = $this->getService()->getMetadata($file);
 		$this->assertEquals($expected, $actual);
 	}
 
-	public function providerGetMetadataWIthSuccess(): array {
+	public function providerGetMetadataWithSuccess(): array {
 		return [
 			[
-				'/../apps/libresign/tests/fixtures/small_valid.pdf',
+				'tests/fixtures/small_valid.pdf',
 				[
 					'p' => 1,
 					'd' => [
@@ -74,7 +99,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			],
 			[
-				'/../apps/libresign/tests/fixtures/small_valid-signed.pdf',
+				'tests/fixtures/small_valid-signed.pdf',
 				[
 					'p' => 1,
 					'd' => [
