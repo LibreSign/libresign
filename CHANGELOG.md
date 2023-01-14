@@ -15,9 +15,20 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.2.4 - 2023-01-14
+### Changed
+* Add message "Nothing to do" in tab of app Files when have nothing to do. #1356
+
+### Fixed
+
+* Handle error when update dependencies #1329
+* Fix command name #1335
+* Change icon color by theme #1354
+* Read metadata of shared file #1352
+
 ## 6.2.3 - 2022-12-31
 
-Happy new year!
+* **Happy new year!**
 * Bump dependencies
 * TCPDF updates:
   * Bumped version of TCPDF that could solve problem when add qrcode in specific cases. #1299
