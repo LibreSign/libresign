@@ -27,6 +27,9 @@
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
+				<NcEmptyContent v-if="!hasSign && !canRequestSign && !haveRequest && !showValidation"
+					:title="t('libresign', 'Nothing to do')">
+				</NcEmptyContent>
 				<button v-if="hasSign" class="primary" @click="gotoSign">
 					{{ t('libresign', 'Sign') }}
 				</button>
@@ -125,6 +128,7 @@ import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 
 export default {
 	name: 'LibresignTab',
@@ -134,6 +138,7 @@ export default {
 		NcActions,
 		NcActionButton,
 		NcAppSidebarTab,
+		NcEmptyContent,
 		Request,
 	},
 
