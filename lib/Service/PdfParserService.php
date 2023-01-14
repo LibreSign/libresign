@@ -4,6 +4,7 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCP\Files\File;
 use OCP\IConfig;
 use OCP\ITempManager;
 
@@ -32,7 +33,7 @@ class PdfParserService {
 	}
 
 	/**
-	 * @param \OCP\Files\Node $node
+	 * @param \OCP\Files\File $node
 	 *
 	 * @return (array[]|int)[]
 	 *
@@ -40,7 +41,7 @@ class PdfParserService {
 	 *
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
-	public function getMetadata(\OCP\Files\Node $node): array {
+	public function getMetadata(File $node): array {
 		$content = $node->getContent();
 		if (!$content) {
 			throw new LibresignException('Empty file.');
