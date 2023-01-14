@@ -28,6 +28,8 @@ import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab.vue'
 
+import './style/icons.scss'
+
 import './plugins/vuelidate.js'
 import '@nextcloud/dialogs/styles/toast.scss'
 
@@ -67,9 +69,7 @@ window.addEventListener('DOMContentLoaded', () => {
 			displayName: t('libresign', 'Open in LibreSign'),
 			mime: 'application/pdf',
 			permissions: OC.PERMISSION_READ,
-			icon() {
-				return imagePath('libresign', 'app-dark')
-			},
+			iconClass: 'icon-libresign',
 			actionHandler(fileName, context) {
 				OCA.Files.Sidebar.setActiveTab('libresign')
 				OCA.Files.Sidebar.open(context.dir + '/' + fileName)
