@@ -200,6 +200,7 @@ OC.L10N.register(
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sajnáljuk, de a keresett oldal nem létezik, eltávolították, áthelyezték vagy ideiglenesen nem érhető el.",
     "See Document Validation" : "Lásd a dokumentum-ellenőrzést",
     "Congratulations you have digitally signed a document using LibreSign" : "Gratulálunk, aláírt digitálisan egy dokumentumot a LibreSignnal",
+    "Nothing to do" : "Nincs teendő",
     "Validate Document" : "Dokumentum ellenőrzése",
     "Return" : "Vissza",
     "Pending" : "Függőben",
