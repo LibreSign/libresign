@@ -200,6 +200,7 @@ OC.L10N.register(
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，您要查找的頁面不存在，已被刪除，移動或暫時不可用。",
     "See Document Validation" : "請參閱文件驗證",
     "Congratulations you have digitally signed a document using LibreSign" : "恭喜您已使用 LibreSign 對文件進行數字簽署",
+    "Nothing to do" : "無事可做",
     "Validate Document" : "驗證文件",
     "Return" : "返回",
     "Pending" : "待定的",
