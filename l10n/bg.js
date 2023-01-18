@@ -200,6 +200,7 @@ OC.L10N.register(
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Съжаляваме, но страницата, която търсите, не съществува, премахната е, преместена или временно не е достъпна.",
     "See Document Validation" : "Вижте проверката на документа",
     "Congratulations you have digitally signed a document using LibreSign" : "Поздравления, вие подписахте цифрово документ с LibreSign",
+    "Nothing to do" : "Няма задачи",
     "Validate Document" : "Проверка на документ",
     "Return" : "Връщане ",
     "Pending" : "Чакащ",
