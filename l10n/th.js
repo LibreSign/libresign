@@ -28,6 +28,7 @@ OC.L10N.register(
     "Type" : "ประเภท",
     "Status" : "สถานะ",
     "Actions" : "การกระทำ",
+    "Signature" : "ลายเซ็น",
     "Profile picture" : "รูปภาพโปรไฟล์",
     "Enter a password" : "Enter a password",
     "Next" : "ถัดไป",
