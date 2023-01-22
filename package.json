@@ -36,7 +36,6 @@
     "vue": "^2.7.10",
     "vue-advanced-cropper": "^1.11.6",
     "vue-drag-resize": "^1.5.4",
-    "vue-pdf": "^4.3.0",
     "vue-router": "^3.6.5",
     "vuelidate": "^0.7.7",
     "vuex": "^3.6.2",
@@ -48,7 +47,7 @@
   ],
   "engines": {
     "node": ">=16.0.0",
-    "npm": "^7"
+    "npm": "^7.0.0 || ^8.0.0"
   },
   "devDependencies": {
     "@nextcloud/babel-config": "^1.0.0",
@@ -74,7 +73,6 @@
     "stylelint-webpack-plugin": "^3.3.0",
     "url-loader": "^4.1.1",
     "uuidv4": "^6.2.13",
-    "vue-jest": "^3.0.7",
     "vue-template-compiler": "^2.7.8"
   }
 }
