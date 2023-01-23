@@ -73,6 +73,6 @@
     "stylelint-webpack-plugin": "^3.3.0",
     "url-loader": "^4.1.1",
     "uuidv4": "^6.2.13",
-    "vue-template-compiler": "^2.7.8"
+    "vue-template-compiler": "^2.7.14"
   }
 }
