@@ -13,6 +13,11 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.5 - 2023-01-23
+### Fixed
+* Fix hide previous when haven't previous
+* Bump dependencies
+
 ## 6.2.4 - 2023-01-14
 ### Changed
 * Add message "Nothing to do" in tab of app Files when have nothing to do. #1356
