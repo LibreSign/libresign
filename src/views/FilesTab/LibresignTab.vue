@@ -269,6 +269,7 @@ export default {
 		async getMe() {
 			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
 			this.hasPfx = response.data.settings.hasSignatureFile
+			this.settings.canPreviewPageAsImage = response.data.settings.canPreviewPageAsImage
 			this.canRequestSign = response.data.settings.canRequestSign
 		},
 

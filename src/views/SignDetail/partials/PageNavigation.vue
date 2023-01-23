@@ -30,7 +30,7 @@ export default {
 			return this.actual < this.size
 		},
 		allowPrevious() {
-			return this.value > 0
+			return this.value > 1
 		},
 	},
 	methods: {
