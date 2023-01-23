@@ -55,7 +55,7 @@ class PdfParserService {
 		file_put_contents($tempFile, $content);
 
 		$cliPath = $this->getLibesignCli();
-		$json = shell_exec($cliPath . ' info ' . $tempFile);
+		$json = shell_exec($cliPath . ' info ' . $tempFile . ' 2> /dev/null');
 		unlink($tempFile);
 
 		$array = json_decode($json, true);

@@ -136,6 +136,9 @@ class TestCase extends \Test\TestCase {
 		if (!file_exists($cachePath)) {
 			return;
 		}
+		if (!is_dir($appPath)) {
+			mkdir($appPath, 0777, true);
+		}
 		$this->recursiveCopy($cachePath, $appPath);
 	}
 
