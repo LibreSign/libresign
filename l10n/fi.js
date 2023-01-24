@@ -85,6 +85,7 @@ OC.L10N.register(
     "Confirm" : "Vahvista",
     "Incorrect password!" : "Virheellinen salasana!",
     "Text" : "Teksti",
+    "Draw" : "Piirrä",
     "Upload" : "Lähetä",
     "Colors:" : "Värit:",
     "Apply" : "Toteuta",
