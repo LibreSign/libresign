@@ -200,6 +200,7 @@ OC.L10N.register(
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Désolé, la page que vous cherchez n'existe plus, a été supprimée, déplacée ou est temporairement indisponible.",
     "See Document Validation" : "Voir la validation du document",
     "Congratulations you have digitally signed a document using LibreSign" : "Félicitations, vous avez signé numériquement un document avec LibreSign",
+    "Nothing to do" : "Rien à faire",
     "Validate Document" : "Valider le document",
     "Return" : "Retour",
     "Pending" : "En attente",
