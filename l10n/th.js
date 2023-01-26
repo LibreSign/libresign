@@ -1,7 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
-    "Success" : "เสร็จสิ้น",
+    "Success" : "สำเร็จ",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
     "File not found" : "ไม่พบไฟล์",
     "File already exists" : "มีไฟล์นี้อยู่แล้ว",
@@ -30,11 +30,11 @@ OC.L10N.register(
     "Actions" : "การกระทำ",
     "Signature" : "ลายเซ็น",
     "Profile picture" : "รูปภาพโปรไฟล์",
-    "Enter a password" : "Enter a password",
+    "Enter a password" : "ใส่รหัสผ่าน",
     "Next" : "ถัดไป",
     "Yes" : "ใช่",
     "No" : "ไม่",
-    "Pending" : "อยู่ระหว่างดำเนินการ",
+    "Pending" : "รอดำเนินการ",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "New password" : "รหัสผ่านใหม่",
     "Resource" : "ทรัพยากร",
