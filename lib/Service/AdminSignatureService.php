@@ -36,7 +36,16 @@ class AdminSignatureService {
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (is_array($rootCert)) {
-			$return['rootCert'] = array_merge($return['rootCert'], $rootCert);
+			foreach ($rootCert as $key => $value) {
+				if ($key === 'names') {
+					foreach ($value as $name => $customName) {
+						$return['rootCert']['names'][$name]['id'] = $name;
+						$return['rootCert']['names'][$name]['value'] = $customName['value'];
+					}
+				} else {
+					$return['rootCert'][$key] = $value;
+				}
+			}
 		}
 		return $return;
 	}
