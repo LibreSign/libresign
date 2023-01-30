@@ -22,12 +22,17 @@ class AdminSignatureService {
 	 */
 	public function loadKeys(): array {
 		$return = [
-			'cfsslUri' => $this->config->getAppValue(Application::APP_ID, 'cfsslUri'),
-			'configPath' => $this->config->getAppValue(Application::APP_ID, 'configPath'),
+			'cfsslUri' => '',
+			'configPath' => '',
 			'rootCert' => [
 				'names' => [],
 			],
 		];
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			$return['cfsslUri'] = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
+			$return['configPath'] = $configPath;
+		}
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (is_array($rootCert)) {
