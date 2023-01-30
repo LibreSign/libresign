@@ -22,7 +22,10 @@
 -->
 
 <template>
-	<NcSettingsSection :title="title" :description="description" v-if="cfsslConfigureOk || cfsslBinariesOk">
+	<NcSettingsSection :title="title"
+		:description="description"
+		:doc-url="docUrl"
+		v-if="cfsslConfigureOk || cfsslBinariesOk">
 		<div id="tableRootCertificate" class="form-libresign" v-if="cfsslConfigureOk">
 			<table class="grid">
 				<tbody>
@@ -185,6 +188,7 @@ export default {
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate.'),
+			docUrl: 'https://github.com/LibreSign/libresign/issues/1120',
 			formDisabled: false,
 			loading: true,
 			customNamesOptions: [
