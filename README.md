@@ -8,7 +8,6 @@ Nextcloud app to sign PDF documents.
 
 **Table of contents**
 - [Setup](#setup)
-  - [Check setup](#check-setup)
 - [Integrations](#integrations)
 - [Full documentation](#full-documentation)
 - [Contributing](#contributing)
