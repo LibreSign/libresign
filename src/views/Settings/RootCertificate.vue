@@ -161,6 +161,13 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 
+const rootCertDataset = [
+	{id: 'C', label: 'Country'},
+	{id: 'ST', label: 'State'},
+	{id: 'L', label: 'Locality'},
+	{id: 'O', label: 'Organization'},
+	{id: 'OU', label: 'OrganizationalUnit'},
+]
 export default {
 	name: 'AdminFormLibresign',
 	components: {
@@ -191,13 +198,7 @@ export default {
 			docUrl: 'https://github.com/LibreSign/libresign/issues/1120',
 			formDisabled: false,
 			loading: true,
-			customNamesOptions: [
-				{id: 'C', label: 'Country'},
-				{id: 'ST', label: 'State'},
-				{id: 'L', label: 'Locality'},
-				{id: 'O', label: 'Organization'},
-				{id: 'OU', label: 'OrganizationalUnit'},
-			],
+			customNamesOptions: [],
 		}
 	},
 	computed: {
@@ -219,7 +220,7 @@ export default {
 
 	methods: {
 		getCustomNamesOptionsById(id) {
-			return this.customNamesOptions.filter((cn) => cn.id == id)[0].label
+			return rootCertDataset.filter((cn) => cn.id == id)[0].label
 		},
 		async onOptionalAttributeSelect(selected) {
 			if ((this.certificate.rootCert.names.filter((v) => v.id == selected.id)).length) {
@@ -229,8 +230,22 @@ export default {
 				'id': selected.id,
 				'value': ''
 			})
+			for( var i = 0; i < this.customNamesOptions.length; i++) {
+				if (this.customNamesOptions[i].id === selected.id) {
+					this.customNamesOptions.splice(i, 1)
+					break;
+				}
+			}
 		},
 		async removeOptionalAttribute(key) {
+			rootCertDataset.every(item => {
+				if (this.certificate.rootCert.names[key].id === item.id) {
+					this.customNamesOptions.push(item)
+					return false
+				}
+				return true
+			});
+
 			this.certificate.rootCert.names.splice(key, 1)
 		},
 		showModal() {
@@ -292,6 +307,11 @@ export default {
 				this.certificate = response.data
 				this.cfsslConfigureOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
+				rootCertDataset.forEach(item => {
+					if (this.certificate.rootCert.names.filter((n) => n.id === item.id).length === 0) {
+						this.customNamesOptions.push(item)
+					}
+				});
 				if (response.data.rootCert.commonName
 				&& response.data.country
 				&& response.data.organization
