@@ -33,9 +33,9 @@
 						<td>{{ t('libresign', 'Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
-					<tr class="customNames" v-for="(customName, key) in certificate.rootCert.names" :key="customName.id">
+					<tr class="customNames" v-for="(customName) in certificate.rootCert.names" :key="customName.id">
 						<td>{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})</td>
-						<td>{{ certificate.rootCert.names[key].value }}</td>
+						<td>{{ customName.value }}</td>
 					</tr>
 					<tr>
 						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
@@ -76,11 +76,14 @@
 		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
-				<input id="commonName"
+				<NcTextField id="commonName"
 					ref="commonName"
-					v-model="certificate.rootCert.commonName"
-					type="text"
-					:disabled="formDisabled">
+					:value.sync="certificate.rootCert.commonName"
+					:helper-text="t('libresign', 'Full name of the main company or main user of this instance')"
+					:minlength="1"
+					:success="certificate.rootCert.commonName !== ''"
+					:error="certificate.rootCert.commonName === ''"
+					:disabled="formDisabled" />
 			</div>
 			<div class="form-group">
 				<label for="optionalAttribute">Optional attributes</label>
@@ -94,16 +97,19 @@
 					/>
 			</div>
 			<div class="customNames" v-for="(customName, key) in certificate.rootCert.names" :key="customName.id">
-				<label for="country" class="form-heading--required">
+				<label :for="customName.id" class="form-heading--required">
 					{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
 				</label>
 				<div class="item">
-					<input id="country"
-						ref="country"
-						v-model="certificate.rootCert.names[key].value"
-						v-if="certificate.rootCert.names[key]"
-						type="text"
-						:disabled="formDisabled">
+					<NcTextField :id="customName.id"
+						:value.sync="customName.value"
+						:success="typeof customName.error === 'boolean' && !customName.error"
+						:error="customName.error"
+						:maxlength="customName.maxlength"
+						:helper-text="customName.helperText"
+						@update:value="validate(customName.id)"
+						v-if="customName"
+						:disabled="formDisabled" />
 					<NcButton
 						:aria-label="t('settings', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(key)">
@@ -123,21 +129,19 @@
 			</div>
 			<div class="form-group" v-if="customCfsslData">
 				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
-				<input id="cfsslUri"
-					ref="cfsslUri"
-					v-model="certificate.cfsslUri"
-					type="text"
+				<NcTextField id="cfsslUri"
+					:value.sync="certificate.cfsslUri"
+					:label-outside="true"
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
-					:disabled="formDisabled">
+					:disabled="formDisabled" />
 			</div>
 			<div class="form-group" v-if="customCfsslData">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
-				<input id="configPath"
-					ref="configPath"
-					v-model="certificate.configPath"
-					type="text"
+				<NcTextField id="configPath"
+					:value.sync="certificate.configPath"
+					:label-outside="true"
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
-					:disabled="formDisabled">
+					:disabled="formDisabled" />
 			</div>
 			<input type="button"
 				class="primary"
@@ -154,6 +158,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
@@ -161,13 +166,6 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 
-const rootCertDataset = [
-	{id: 'C', label: 'Country'},
-	{id: 'ST', label: 'State'},
-	{id: 'L', label: 'Locality'},
-	{id: 'O', label: 'Organization'},
-	{id: 'OU', label: 'OrganizationalUnit'},
-]
 export default {
 	name: 'AdminFormLibresign',
 	components: {
@@ -176,6 +174,7 @@ export default {
 		NcCheckboxRadioSwitch,
 		NcModal,
 		NcButton,
+		NcTextField,
 		Delete,
 	},
 	data() {
@@ -186,11 +185,46 @@ export default {
 			certificate: {
 				rootCert: {
 					commonName: '',
-					names: [],
+					names: {},
 				},
 				cfsslUri: '',
 				configPath: '',
 			},
+			rootCertDataset: {
+				C: {
+					id: 'C',
+					label: 'Country',
+					min: 2,
+					max: 2,
+					minHelper: t('libresign', 'Two-letter ISO 3166 country code'),
+					defaultHelper: t('libresign', 'Two-letter ISO 3166 country code'),
+				},
+				ST: {
+					id: 'ST',
+					label: 'State',
+					min: 1,
+					defaultHelper: t('libresign', 'Full names of states or provinces'),
+				},
+				L: {
+					id: 'L',
+					label: 'Locality',
+					min: 1,
+					defaultHelper: t('libresign', 'Names of a locality or place, such as a city, county, or other geographic region'),
+				},
+				O: {
+					id: 'O',
+					label: 'Organization',
+					min: 1,
+					defaultHelper: t('libresign', 'Names of an organization'),
+				},
+				OU: {
+					id: 'OU',
+					label: 'OrganizationalUnit',
+					min: 1,
+					defaultHelper: t('libresign', 'Names of an organizational unit'),
+				},
+			},
+			error: false,
 			customCfsslData: false,
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
@@ -203,9 +237,13 @@ export default {
 	},
 	computed: {
 		savePossible() {
+			var emptyNames = Object.keys(this.certificate.rootCert.names).filter(key => {
+				var item = this.certificate.rootCert.names[key]
+				return item.value === ''
+			})
 			return (
 				this.certificate.rootCert.commonName !== ''
-				&& this.certificate.rootCert.names.filter((n) => n.value === '').length === 0
+				&& emptyNames.length === 0
 			)
 		},
 	},
@@ -219,16 +257,37 @@ export default {
 	},
 
 	methods: {
+		validate(id) {
+			var dataset = this.rootCertDataset[id];
+			var item = this.certificate.rootCert.names[id]
+			if (Object.hasOwn(dataset, 'min')) {
+				if (item.value.length < dataset.min) {
+					item.helperText = Object.hasOwn(dataset, 'minHelper') ? dataset.minHelper : ''
+					item.error = true
+				} else {
+					item.helperText = Object.hasOwn(this.rootCertDataset[id], 'defaultHelper')
+						? this.rootCertDataset[id].defaultHelper
+						: '',
+					item.error = false
+				}
+			}
+		},
 		getCustomNamesOptionsById(id) {
-			return rootCertDataset.filter((cn) => cn.id == id)[0].label
+			return this.rootCertDataset[id].label
 		},
 		async onOptionalAttributeSelect(selected) {
-			if ((this.certificate.rootCert.names.filter((v) => v.id == selected.id)).length) {
+			if (Object.hasOwn(this.certificate.rootCert.names, selected.id)) {
 				return
 			}
-			this.certificate.rootCert.names.push({
+			this.$set(this.certificate.rootCert.names, selected.id, {
 				'id': selected.id,
-				'value': ''
+				'value': '',
+				'maxlength': Object.hasOwn(this.rootCertDataset[selected.id], 'max')
+					? this.rootCertDataset[selected.id].max
+					: '',
+				'helperText': Object.hasOwn(this.rootCertDataset[selected.id], 'defaultHelper')
+					? this.rootCertDataset[selected.id].defaultHelper
+					: '',
 			})
 			for( var i = 0; i < this.customNamesOptions.length; i++) {
 				if (this.customNamesOptions[i].id === selected.id) {
@@ -238,15 +297,8 @@ export default {
 			}
 		},
 		async removeOptionalAttribute(key) {
-			rootCertDataset.every(item => {
-				if (this.certificate.rootCert.names[key].id === item.id) {
-					this.customNamesOptions.push(item)
-					return false
-				}
-				return true
-			});
-
-			this.certificate.rootCert.names.splice(key, 1)
+			this.customNamesOptions.push(this.rootCertDataset[key])
+			delete this.certificate.rootCert.names[key]
 		},
 		showModal() {
 			this.modal = true
@@ -255,8 +307,13 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
+			this.customNamesOptions = []
+			Object.keys(this.rootCertDataset).forEach(key => {
+				var item = this.rootCertDataset[key]
+				this.customNamesOptions.push(item)
+			})
 			this.certificate.rootCert.commonName = ''
-			this.certificate.rootCert.names = []
+			this.certificate.rootCert.names = {}
 			this.certificate.cfsslUri = ''
 			this.certificate.configPath = ''
 			this.certificate.generated = false
@@ -272,7 +329,7 @@ export default {
 			try {
 				const response = await axios.post(
 					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
-					this.certificate
+					this.getDataToSave()
 				)
 
 				if (!response.data || response.data.message) {
@@ -294,6 +351,32 @@ export default {
 			}
 			this.formDisabled = false
 		},
+		getDataToSave() {
+			var data = {};
+			Object.keys(this.certificate).forEach(rootProperty => {
+				if (!Object.hasOwn(data, rootProperty)) {
+					data[rootProperty] = {}
+				}
+				if (rootProperty === 'rootCert') {
+					Object.keys(this.certificate[rootProperty]).forEach(level2 => {
+						if (level2 === 'names') {
+							if (!Object.hasOwn(data[rootProperty], 'names')) {
+								data[rootProperty]['names'] = {}
+							}
+							Object.keys(this.certificate[rootProperty]['names']).forEach(name => {
+								data[rootProperty]['names'][name] = {}
+								data[rootProperty]['names'][name]['value'] = this.certificate[rootProperty]['names'][name]['value']
+							})
+						} else {
+							data[rootProperty][level2] = this.certificate[rootProperty][level2]
+						}
+					})
+				} else {
+					data[rootProperty] = this.certificate[rootProperty]
+				}
+			})
+			return data
+		},
 
 		async loadRootCertificate() {
 			this.formDisabled = true
@@ -307,11 +390,17 @@ export default {
 				this.certificate = response.data
 				this.cfsslConfigureOk = this.certificate.generated
 				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
-				rootCertDataset.forEach(item => {
-					if (this.certificate.rootCert.names.filter((n) => n.id === item.id).length === 0) {
+				if (!Object.hasOwn(this.certificate.rootCert, 'commonName')) {
+					this.$set(this.certificate.rootCert, 'commonName', '')
+				}
+				Object.keys(this.rootCertDataset).forEach(key => {
+					var item = this.rootCertDataset[key]
+					if (!Object.hasOwn(this.certificate.rootCert.names, key)) {
 						this.customNamesOptions.push(item)
+					} else {
+						this.validate(key)
 					}
-				});
+				})
 				if (response.data.rootCert.commonName
 				&& response.data.country
 				&& response.data.organization
