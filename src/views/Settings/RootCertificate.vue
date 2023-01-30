@@ -89,7 +89,7 @@
 					:options=customNamesOptions
 					track-by="id"
 					label="label"
-					placeholder="Select a custom name"
+					:placeholder="t('libresign', 'Select a custom name')"
 					@change="onOptionalAttributeSelect"
 					/>
 			</div>
