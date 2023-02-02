@@ -253,7 +253,7 @@ OC.L10N.register(
     "Not mandatory, don't fill to use default value." : "Nicht obligatorisch, nicht ausfüllen, um den Standardwert zu verwenden.",
     "Two-letter ISO 3166 country code" : "Zweibuchstabiger ISO 3166-Ländercode",
     "Full names of states or provinces" : "Vollständige Namen von Staaten oder Provinzen",
-    "Names of a locality or place, such as a city, county, or other geographic region" : "Namen einer Ortschaft oder eines Ortes, z. B. einer Stadt, eines Landkreises oder einer anderen geografischen Region",
+    "Names of a locality or place, such as a city, county, or other geographic region" : "Namen eines Ortes oder eines Platzes, z. B. einer Stadt, eines Landkreises oder einer anderen geografischen Region",
     "Names of an organization" : "Namen einer Organisation",
     "Names of an organizational unit" : "Namen einer Organisationseinheit",
     "Root certificate data." : "Daten für Root-Zertifikat.",
