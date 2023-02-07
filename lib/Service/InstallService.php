@@ -162,7 +162,7 @@ class InstallService {
 				$file = $appFolder->get('setup-cache.json');
 			} catch (\Throwable $th) {
 				/** @var File */
-				$file = $appFolder->newFile('setup-cache.txt', '[]');
+				$file = $appFolder->newFile('setup-cache.json', '[]');
 			}
 			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 			$json[$key] = $value;
@@ -181,7 +181,7 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				/** @var File */
-				$file = $appFolder->get('setup-cache.txt');
+				$file = $appFolder->get('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
 			} catch (\Throwable $th) {
@@ -195,7 +195,7 @@ class InstallService {
 		if ($this->cache instanceof NullCache) {
 			$appFolder = $this->getFolder();
 			try {
-				$file = $appFolder->get('setup-cache.txt');
+				$file = $appFolder->get('setup-cache.json');
 				$file->delete();
 			} catch (\Throwable $th) {
 			}
