@@ -7,11 +7,13 @@ namespace OCA\Libresign\Service;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Files\Filesystem;
+use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslHandler;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
+use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -127,7 +129,7 @@ class InstallService {
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
-			$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $resource, $data);
+			$this->setCache($resource, $data);
 		}
 	}
 
@@ -135,16 +137,71 @@ class InstallService {
 		$data = $this->getProressData();
 		$data['download_size'] = $downloadSize;
 		$data['downloaded'] = $downloaded;
-		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource, $data);
+		$this->setCache($this->resource, $data);
 	}
 
 	public function getProressData(): array {
-		$data = $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource) ?? [];
+		$data = $this->getCache($this->resource) ?? [];
 		return $data;
 	}
 
 	private function removeDownloadProgress(): void {
-		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $this->resource);
+		$this->removeCache($this->resource);
+	}
+
+	/**
+	 * @param string $key
+	 * @param mixed $value
+	 * @return void
+	 */
+	private function setCache(string $key, $value): void {
+		if ($this->cache instanceof NullCache) {
+			$appFolder = $this->getFolder();
+			try {
+				/** @var File */
+				$file = $appFolder->get('setup-cache.txt');
+			} catch (\Throwable $th) {
+				/** @var File */
+				$file = $appFolder->newFile('setup-cache.txt', '[]');
+			}
+			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
+			$json[$key] = $value;
+			$file->putContent(json_encode($json));
+			return;
+		}
+		$this->cache->set(Application::APP_ID . '-asyncDownloadProgress-' . $key, $value);
+	}
+
+	/**
+	 * @param string $key
+	 * @return mixed
+	 */
+	private function getCache(string $key) {
+		if ($this->cache instanceof NullCache) {
+			$appFolder = $this->getFolder();
+			try {
+				/** @var File */
+				$file = $appFolder->get('setup-cache.txt');
+				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
+				return $json[$key] ?? null;
+			} catch (\Throwable $th) {
+			}
+			return;
+		}
+		$this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $key);
+	}
+
+	private function removeCache(string $key): void {
+		if ($this->cache instanceof NullCache) {
+			$appFolder = $this->getFolder();
+			try {
+				$file = $appFolder->get('setup-cache.txt');
+				$file->delete();
+			} catch (\Throwable $th) {
+			}
+			return;
+		}
+		$this->cache->remove(Application::APP_ID . '-asyncDownloadProgress-' . $key);
 	}
 
 	public function getTotalSize(): array {
