@@ -236,6 +236,7 @@
     "Name (CN)" : "Izena (CN)",
     "CFSSL API URI" : "CFSSL API URIa",
     "Config path" : "Konfigurazioaren bide-izena",
+    "Define custom values to use CFSSL" : "Definitu CFSSL erabiltzeko balio pertsonalizatuak",
     "Root certificate data." : "Root ziurtagiriaren datuak.",
     "To generate new signatures, you must first generate the root certificate." : "Sinadura berriak sortzeko, lehenik root ziurtagiria sortu behar duzu.",
     "Generate root certificate." : "Sortu root ziurtagiria.",
