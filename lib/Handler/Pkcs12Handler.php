@@ -279,8 +279,8 @@ class Pkcs12Handler extends SignEngineHandler {
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (!empty($rootCert['names'])) {
-			foreach ($rootCert['names'] as $customName) {
-				$longCustomName = $this->cfsslHandler->translateToLong($customName['id']);
+			foreach ($rootCert['names'] as $id => $customName) {
+				$longCustomName = $this->cfsslHandler->translateToLong($id);
 				$this->cfsslHandler->{'set' . ucfirst($longCustomName)}($customName['value']);
 			}
 		}

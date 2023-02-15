@@ -86,7 +86,7 @@
 					:disabled="formDisabled" />
 			</div>
 			<div class="form-group">
-				<label for="optionalAttribute">Optional attributes</label>
+				<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
 				<NcMultiselect
 					id=optionalAttribute
 					:options=customNamesOptions

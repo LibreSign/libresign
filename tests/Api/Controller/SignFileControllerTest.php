@@ -189,7 +189,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'rootCert' => json_encode([
 					'commonName' => 'LibreCode',
 					'names' => [
-						['id' => 'C', 'value' => 'BR'],
+						'C' => ['value' => 'BR'],
 					]
 				]),
 			],
@@ -247,7 +247,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'rootCert' => json_encode([
 					'commonName' => 'LibreCode',
 					'names' => [
-						['id' => 'C', 'value' => 'BR'],
+						'C' => ['value' => 'BR'],
 					]
 				]),
 			],
@@ -445,11 +445,11 @@ final class SignFileControllerTest extends ApiTestCase {
 				'rootCert' => json_encode([
 					'commonName' => 'LibreCode',
 					'names' => [
-						['id' => 'C', 'value' => 'BR'],
-						['id' => 'ST', 'value' => 'RJ'],
-						['id' => 'L', 'value' => 'Rio de Janeiro'],
-						['id' => 'O', 'value' => 'LibreCode Coop'],
-						['id' => 'OU', 'value' => 'LibreSign']
+						'C' => ['value' => 'BR'],
+						'ST' => ['value' => 'RJ'],
+						'L' => ['value' => 'Rio de Janeiro'],
+						'O' => ['value' => 'LibreCode Coop'],
+						'OU' => ['value' => 'LibreSign']
 					]
 				]),
 				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
