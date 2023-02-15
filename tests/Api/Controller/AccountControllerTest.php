@@ -43,7 +43,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'rootCert' => json_encode([
 					'commonName' => 'LibreCode',
 					'names' => [
-						['id' => 'C', 'value' => 'BR'],
+						'C' => ['value' => 'BR'],
 					]
 				]),
 			],
