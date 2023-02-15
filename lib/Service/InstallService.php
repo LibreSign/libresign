@@ -159,7 +159,7 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				/** @var File */
-				$file = $appFolder->get('setup-cache.txt');
+				$file = $appFolder->get('setup-cache.json');
 			} catch (\Throwable $th) {
 				/** @var File */
 				$file = $appFolder->newFile('setup-cache.txt', '[]');
