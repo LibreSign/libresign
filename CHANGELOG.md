@@ -15,6 +15,16 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.2.6 - 2023-02-14
+### Changed
+* Frontend improvements to generate root cert
+* Bump dependencies
+
+### Fixed
+* Fix composer autoload bug
+* Show progress bar when havent memcache
+* Minor bugfixes and translation fix 
+
 ## 6.2.5 - 2023-01-23
 ### Fixed
 * Fix hide previous when haven't previous
