@@ -4,6 +4,8 @@ OC.L10N.register(
     "Settings saved" : "Seaded salvestatud",
     "deleted" : "kustutatud",
     "File not found" : "Faili ei leitud",
+    "File already exists" : "Fail on juba olemas",
+    "Empty file" : "Tühi fail",
     "Invalid user" : "Vigane kasutaja",
     "Files" : "Failid",
     "Settings" : "Seaded",

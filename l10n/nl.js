@@ -136,6 +136,7 @@ OC.L10N.register(
     "Save" : "Opslaan",
     "Select other file" : "Selecteer ander bestand",
     "Select your signature file." : "Kies uw kandtekening bestand.",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Gebruik uw muiswiel om in of uit te zoomen op de afbeelding en vind de beste weergave van uw handtekening.",
     "Enter your Full Name or Initials to create Signature" : "Voer je Volledige Naam of Initialen in om Handtekening te creëren",
     "Validate File" : "Valideer Bestand",
     "Signatures" : "Handtekeningen",
