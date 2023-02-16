@@ -245,6 +245,7 @@
     "Regenerate root certificate" : "Znovu vytvořit kořenový certifikát",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Znovuvytvoření kořenového certifikátu zneplatní veškeré podpisové klíče. Chcete tuto akci potvrdit?",
     "Full name of the main company or main user of this instance" : "Úplný název hlavní společnosti nebo hlavního uživatele této instance",
+    "Optional attributes" : "Volitelné atributy",
     "Select a custom name" : "Vybrat uživatelsky určený název",
     "Remove custom name entry from root certificate" : "Odebrat položku s uživatelsky určeným názvem z kořenového certifikátu",
     "Define custom values to use CFSSL" : "Pokud chcete použít CFSSL, je třeba zadat uživatelsky určené hodnoty",
