@@ -245,6 +245,7 @@
     "Regenerate root certificate" : "Regenerar certificado raiz",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Regenerar certificado raiz irá invalidar todas as chaves de assinaturas. Você confirma esta ação?",
     "Full name of the main company or main user of this instance" : "Nome completo da empresa principal ou usuário principal desta instância",
+    "Optional attributes" : "Atributos opcionais",
     "Select a custom name" : "Selecione um nome personalizado",
     "Remove custom name entry from root certificate" : "Remover a entrada de nome personalizado do certificado raiz",
     "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL",

@@ -247,6 +247,7 @@ OC.L10N.register(
     "Regenerate root certificate" : "Root-Zertifikat neu erstellen",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Stammzertifikat neu erstellen macht alle Signaturschlüssel ungültig. Bestätigen Sie diese Aktion?",
     "Full name of the main company or main user of this instance" : "Vollständiger Name der Hauptfirma oder des Hauptbenutzers dieser Instanz",
+    "Optional attributes" : "Optionale Attribute",
     "Select a custom name" : "Einen benutzerdefinierten Namen auswählen",
     "Remove custom name entry from root certificate" : "Entfernen des benutzerdefinierten Namenseintrags aus dem Stammzertifikat",
     "Define custom values to use CFSSL" : "Definieren Sie benutzerdefinierte Werte zur Verwendung von CFSSL",
