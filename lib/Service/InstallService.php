@@ -188,7 +188,7 @@ class InstallService {
 			}
 			return;
 		}
-		$this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $key);
+		return $this->cache->get(Application::APP_ID . '-asyncDownloadProgress-' . $key);
 	}
 
 	private function removeCache(string $key): void {
