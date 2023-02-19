@@ -29,6 +29,7 @@ OC.L10N.register(
     "Status" : "Trạng thái",
     "Actions" : "Hành động",
     "Signature" : "Chữ ký",
+    "Profile picture" : "Ảnh đại diện",
     "Enter a password" : "Nhập mật khẩu",
     "Confirm password" : "Xác nhận mật khẩu",
     "Next" : "Tiếp theo",
