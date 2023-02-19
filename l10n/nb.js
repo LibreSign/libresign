@@ -20,6 +20,7 @@ OC.L10N.register(
     "Apply" : "Bruk",
     "Cancel" : "Avbryt",
     "Save" : "Lagre",
+    "Sign" : "Skilt",
     "Email" : "E-post",
     "Description" : "Beskrivelse",
     "Add" : "Legg til",
