@@ -245,6 +245,7 @@
     "Regenerate root certificate" : "Regenerate root certificate",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?",
     "Full name of the main company or main user of this instance" : "Full name of the main company or main user of this instance",
+    "Optional attributes" : "Optional attributes",
     "Select a custom name" : "Select a custom name",
     "Remove custom name entry from root certificate" : "Remove custom name entry from root certificate",
     "Define custom values to use CFSSL" : "Define custom values to use CFSSL",
