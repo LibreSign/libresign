@@ -247,6 +247,7 @@ OC.L10N.register(
     "Regenerate root certificate" : "重新產生根證書",
     "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "重新產生根證書將會讓所有的簽章金鑰無效。您確認要執行此動作嗎？",
     "Full name of the main company or main user of this instance" : "此實例的主要公司或主要用戶的全名",
+    "Optional attributes" : "可選屬性",
     "Select a custom name" : "選擇自訂名稱",
     "Remove custom name entry from root certificate" : "移除來自根證書的自訂名稱條目",
     "Define custom values to use CFSSL" : "定義自訂值以使用 CFSSL",
