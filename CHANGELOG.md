@@ -15,6 +15,14 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.2.7 - 2023-02-21
+### Changed
+* Bump dependencies
+
+### Fixed
+* Fix binaries download
+* Fix grammar
+
 ## 6.2.6 - 2023-02-14
 ### Changed
 * Frontend improvements to generate root cert
