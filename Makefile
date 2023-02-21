@@ -91,11 +91,10 @@ test: composer
 appstore: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
-	npm install
+	npm ci
 	npm run build
 	cp -r \
 		appinfo \
-		cfssl \
 		img \
 		js \
 		l10n \
