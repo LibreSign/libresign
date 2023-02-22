@@ -13,6 +13,10 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.8 - 2023-02-22
+### Fixed
+* Fix app files signing
+
 ## 6.2.7 - 2023-02-21
 ### Changed
 * Bump dependencies
