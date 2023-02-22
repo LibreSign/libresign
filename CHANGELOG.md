@@ -15,6 +15,10 @@ Types of changes:
 <!-- changelog-linker -->
 ## 7.0.0-dev
 
+## 6.2.8 - 2023-02-22
+### Fixed
+* Fix app files signing
+
 ## 6.2.7 - 2023-02-21
 ### Changed
 * Bump dependencies
