@@ -11,7 +11,7 @@ app_name=$(notdir $(CURDIR))
 project_directory=$(CURDIR)/../$(app_name)
 build_tools_directory=$(CURDIR)/build/tools
 site_build_directory=$(CURDIR)/build/site
-appstore_build_directory=$(CURDIR)/build/artifacts/appstore
+appstore_build_directory=$(CURDIR)/build/artifacts
 appstore_package_name=$(appstore_build_directory)/$(app_name)
 appstore_sign_dir=$(appstore_build_directory)/sign
 cert_dir=$(build_tools_directory)/certificates
@@ -88,7 +88,44 @@ test: composer
 
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
-appstore: clean
+appstore:
+	rm -rf $(appstore_build_directory)
+	mkdir -p $(appstore_sign_dir)/$(app_name)
+	cp -r \
+		appinfo \
+		img \
+		js \
+		l10n \
+		lib \
+		templates \
+		vendor \
+		CHANGELOG.md \
+		LICENSE \
+		$(appstore_sign_dir)/$(app_name)
+	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
+	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
+	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures
+
+	@if [ -f $(cert_dir)/$(app_name).key ]; then \
+		echo "Signing app files…"; \
+		php ../../occ integrity:sign-app \
+			--privateKey=$(cert_dir)/$(app_name).key\
+			--certificate=$(cert_dir)/$(app_name).crt\
+			--path=$(appstore_sign_dir)/$(app_name); \
+	fi
+	tar -czf $(appstore_package_name).tar.gz \
+		-C $(appstore_sign_dir) $(app_name)
+
+	@if [ -f $(cert_dir)/$(app_name).key ]; then \
+		echo "Signing package…"; \
+		openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(build_dir)/$(app_name).tar.gz | openssl base64; \
+	fi
+
+# Earlier version of appstore command that builds the app and has some custom
+# support for local signing. Left here in case it's needed by some developer
+# used to it.
+.PHONY: appstore-local
+appstore-local: clean
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	composer install --no-dev
 	npm ci
