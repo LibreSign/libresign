@@ -532,7 +532,13 @@ class ValidateHelper {
 		return $signMethod !== 'password';
 	}
 
-	public function canSignWithIdentificationDocumentStatus(int $status): void {
+	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
+		// User that can approve validation documents don't need to have a valid
+		// document attached to our profile because if this is mandatory, nobody
+		// will can sign any document
+		if ($this->userCanApproveValidationDocuments($user, false)) {
+			return;
+		}
 		$allowedStatus = [
 			FileService::IDENTIFICATION_DOCUMENTS_DISABLED,
 			FileService::IDENTIFICATION_DOCUMENTS_APPROVED,
