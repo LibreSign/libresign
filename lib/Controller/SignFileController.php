@@ -184,6 +184,7 @@ class SignFileController extends ApiController {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
+				$user,
 				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
 			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
