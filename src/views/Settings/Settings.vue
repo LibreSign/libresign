@@ -30,6 +30,7 @@
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
+		<CollectMetadata />
 	</NcSettingsSection>
 </template>
 
@@ -42,6 +43,7 @@ import SignPage from './SignPage.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
+import CollectMetadata from './CollectMetadata.vue'
 
 export default {
 	name: 'Settings',
@@ -54,6 +56,7 @@ export default {
 		AllowedGroups,
 		LegalInformation,
 		IdentificationDocuments,
+		CollectMetadata,
 	},
 	data() {
 		return {
