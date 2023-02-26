@@ -197,6 +197,10 @@ class SignFileController extends ApiController {
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setFileUser($fileUser)
+				->storeUserMetadata([
+					'user-agent' => $this->request->getHeader('User-Agent'),
+					'remote-address' => $this->request->getRemoteAddress(),
+				])
 				->setVisibleElements($elements)
 				->setSignWithoutPassword(!empty($code))
 				->setPassword($password)

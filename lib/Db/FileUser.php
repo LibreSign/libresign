@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method void setId(int $uid)
@@ -27,6 +28,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getFullName()
  * @method void setCode(string $code)
  * @method string getCode()
+ * @method void setMetadata(array $metadata)
+ * @method string getMetadata()
  */
 class FileUser extends Entity {
 	/** @var integer */
@@ -62,6 +65,9 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $code;
 
+	/** @var string */
+	protected $metadata;
+
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
@@ -74,5 +80,6 @@ class FileUser extends Entity {
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
 		$this->addType('code', 'string');
+		$this->addType('metadata', Types::JSON);
 	}
 }
