@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "Успешно",
     "Settings saved" : "Поставке сачуване",
     "deleted" : "обрисано",
+    "User already exists" : "Корисник већ постоји",
     "File not found" : "Фајл није нађен",
     "File already exists" : "Фајл већ постоји",
     "Empty file" : "Празан фајл",
