@@ -4,7 +4,7 @@
 			type="switch"
 			:checked.sync="collectMetadataEnabled"
 			@update:checked="saveCollectMetadata()">
-			{{ t('libresign', 'Collect signers metadata when sign a document') }}
+			{{ t('libresign', 'Collect signers metadata when signing a document') }}
 		</NcCheckboxRadioSwitch>
 	</NcSettingsSection>
 </template>
@@ -24,7 +24,7 @@ export default {
 	data() {
 		return {
 			title: t('libresign', 'Collect signers metadata'),
-			description: t('libresign', 'Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer.'),
+			description: t('libresign', 'Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer.'),
 			collectMetadataEnabled: false,
 		}
 	},
