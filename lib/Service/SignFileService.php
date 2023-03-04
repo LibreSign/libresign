@@ -629,6 +629,16 @@ class SignFileService {
 		return $signedFile;
 	}
 
+	public function storeUserMetadata(array $metadata = []): self {
+		$collectMetadata = $this->config->getAppValue(Application::APP_ID, 'collect_metadata') ? true : false;
+		if (!$collectMetadata || !$metadata) {
+			return $this;
+		}
+		$this->fileUser->setMetadata($metadata);
+		$this->fileUserMapper->update($this->fileUser);
+		return $this;
+	}
+
 	private function updateStatus(): bool {
 		$signers = $this->fileUserMapper->getByFileId($this->fileUser->getFileId());
 		$total = array_reduce($signers, function ($carry, $signer) {
