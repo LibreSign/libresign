@@ -221,9 +221,7 @@
     "Repeat password" : "Repetir contraseña",
     "Allow request to sign" : "Permitir solicitud para firmar",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Seleccione a los grupos autorizados que pueden solicitar la firma de documentos. El grupo Admin es el grupo por defecto y no necesita ser definido.",
-    "Collect signers metadata when sign a document" : "Recolectar metadatos de firmantes cuando se firme un documento",
     "Collect signers metadata" : "Recolectar metadatos de firmantes",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Al habilitar esta característica, cada vez que se firme un documento, se almacenará la dirección IP y el agente de usuario del firmante.",
     "Message" : "Mensaje",
     "Resource" : "Recurso",
     "Advice" : "Consejo",
@@ -312,6 +310,8 @@
     "Country (C)" : "País (C)",
     "Organization (O)" : "Organización (O)",
     "Organization Unit (OU)" : "Unidad de Organización (OU)",
-    "To validate signature of the documents" : "Para validad las firmas de los documentos"
+    "To validate signature of the documents" : "Para validad las firmas de los documentos",
+    "Collect signers metadata when sign a document" : "Recolectar metadatos de firmantes cuando se firme un documento",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Al habilitar esta característica, cada vez que se firme un documento, se almacenará la dirección IP y el agente de usuario del firmante."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
