@@ -221,9 +221,7 @@
     "Repeat password" : "Повторете паролата",
     "Allow request to sign" : "Разрешаване на заявка за подписване",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Изберете упълномощени групи, които могат да подават заявки за подписване на документи. Групата на администратора е група по подразбиране и не е необходимо да се определя.",
-    "Collect signers metadata when sign a document" : "Събиране на метаданни на подписващите при подписване на документ",
     "Collect signers metadata" : "Събиране на метаданни на подписващите",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия.",
     "Message" : "Съобщение",
     "Resource" : "Ресурс",
     "Advice" : "Съвет",
@@ -312,6 +310,8 @@
     "Country (C)" : "Държава (C)",
     "Organization (O)" : "Организация (O)",
     "Organization Unit (OU)" : "Отдел в организацията (OU)",
-    "To validate signature of the documents" : "За проверка на подписа на документите"
+    "To validate signature of the documents" : "За проверка на подписа на документите",
+    "Collect signers metadata when sign a document" : "Събиране на метаданни на подписващите при подписване на документ",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

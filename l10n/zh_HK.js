@@ -223,9 +223,7 @@ OC.L10N.register(
     "Repeat password" : "重複密碼",
     "Allow request to sign" : "允許簽署請求",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "選擇可以請求簽署文件的授權群組。管理員群組是默認群組，不需要定義。",
-    "Collect signers metadata when sign a document" : "簽署文件時收集簽名者元數據",
     "Collect signers metadata" : "收集簽名者元數據",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "如果啟用此功能，LibreSign 將在簽署文件時存儲簽名者的 IP 和用戶代理。",
     "Message" : "訊息",
     "Resource" : "資源",
     "Advice" : "建議",
@@ -314,6 +312,8 @@ OC.L10N.register(
     "Country (C)" : "國家（C）",
     "Organization (O)" : "組織（O）",
     "Organization Unit (OU)" : "組織部門（OU）",
-    "To validate signature of the documents" : "驗證文件簽名"
+    "To validate signature of the documents" : "驗證文件簽名",
+    "Collect signers metadata when sign a document" : "簽署文件時收集簽名者元數據",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "如果啟用此功能，LibreSign 將在簽署文件時存儲簽名者的 IP 和用戶代理。"
 },
 "nplurals=1; plural=0;");

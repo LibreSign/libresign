@@ -223,9 +223,7 @@ OC.L10N.register(
     "Repeat password" : "Passwort wiederholen",
     "Allow request to sign" : "Anforderung zum Signieren zulassen",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Wählen Sie autorisierte Gruppen aus, die das Signieren von Dokumenten anfordern können. Die Admin-Gruppe ist die Standardgruppe und muss nicht definiert werden.",
-    "Collect signers metadata when sign a document" : "Metadaten von Unterzeichnern beim Signieren von Dokumenten sammeln",
-    "Collect signers metadata" : "Matadaten der Unterzeichner sammeln",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ist diese Funktion aktiviert, speichert LibreSign jedes Mal, wenn ein Dokument signiert wird, die IP und den Benutzeragenten des Unterzeichners.",
+    "Collect signers metadata" : "Metadaten der Unterzeichner sammeln",
     "Message" : "Nachricht",
     "Resource" : "Ressource",
     "Advice" : "Ratschlag",
@@ -314,6 +312,8 @@ OC.L10N.register(
     "Country (C)" : "Land (C)",
     "Organization (O)" : "Organisation (O):",
     "Organization Unit (OU)" : "Organisationseinheit (OU):",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren"
+    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren",
+    "Collect signers metadata when sign a document" : "Metadaten von Unterzeichnern beim Signieren von Dokumenten sammeln",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ist diese Funktion aktiviert, speichert LibreSign jedes Mal, wenn ein Dokument signiert wird, die IP und den Benutzeragenten des Unterzeichners."
 },
 "nplurals=2; plural=(n != 1);");
