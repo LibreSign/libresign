@@ -18,6 +18,7 @@ OC.L10N.register(
     "Next" : "Հաջորդ",
     "Yes" : "Yes",
     "No" : "No",
+    "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",
     "Previous" : "Նախորդ",
