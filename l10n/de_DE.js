@@ -225,7 +225,7 @@ OC.L10N.register(
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Wählen Sie autorisierte Gruppen aus, die das Signieren von Dokumenten anfordern können. Die Admin-Gruppe ist die Standardgruppe und muss nicht definiert werden.",
     "Collect signers metadata when signing a document" : "Metadaten von Unterzeichnern beim Signieren von Dokumenten sammeln",
     "Collect signers metadata" : "Metadaten der Unterzeichner sammeln",
-    "Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer." : "Wenn Sie diese Funktion aktivieren, speichert LibreSign bei jeder Unterzeichnung eines Dokuments die IP-Adresse und den Benutzeragenten des Unterzeichners.",
+    "Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer." : "Ist diese Funktion aktiviert, speichert LibreSign beim Signieren eines Dokumentes die IP und den Benutzeragenten des Unterzeichners.",
     "Message" : "Nachricht",
     "Resource" : "Ressource",
     "Advice" : "Ratschlag",
