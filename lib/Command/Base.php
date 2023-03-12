@@ -6,16 +6,22 @@ namespace OCA\Libresign\Command;
 
 use OC\Core\Command\Base as CommandBase;
 use OCA\Libresign\Service\InstallService;
+use Psr\Log\LoggerInterface;
 
 class Base extends CommandBase {
 	/** @var InstallService */
 	public $installService;
 
+	/** @var LoggerInterface */
+	protected $logger;
+
 	public function __construct(
-		InstallService $installService
+		InstallService $installService,
+		LoggerInterface $logger
 	) {
 		parent::__construct();
 		$this->installService = $installService;
+		$this->logger = $logger;
 	}
 
 	protected function installJava(): void {
