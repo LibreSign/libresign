@@ -31,7 +31,6 @@ import LibresignTab from './views/FilesTab/LibresignTab.vue'
 import './style/icons.scss'
 
 import './plugins/vuelidate.js'
-import '@nextcloud/dialogs/styles/toast.scss'
 
 Vue.prototype.t = t
 Vue.prototype.n = n
