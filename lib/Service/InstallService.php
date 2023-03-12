@@ -21,6 +21,7 @@ use OCP\Http\Client\IClientService;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -50,6 +51,8 @@ class InstallService {
 	/** @var bool */
 	/** @var string */
 	private $resource = '';
+	/** @var LoggerInterface */
+	private $logger;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
@@ -57,7 +60,8 @@ class InstallService {
 		CfsslServerHandler $cfsslServerHandler,
 		CfsslHandler $cfsslHandler,
 		IConfig $config,
-		IRootFolder $rootFolder
+		IRootFolder $rootFolder,
+		LoggerInterface $logger
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
 		$this->clientService = $clientService;
@@ -65,6 +69,7 @@ class InstallService {
 		$this->cfsslHandler = $cfsslHandler;
 		$this->config = $config;
 		$this->rootFolder = $rootFolder;
+		$this->logger = $logger;
 	}
 
 	public function setOutput(OutputInterface $output): void {
@@ -570,6 +575,7 @@ class InstallService {
 		} catch (\Exception $e) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again.</error>');
 			$this->output->writeln('<error>' . $e->getMessage() . '</error>');
+			$this->logger->error('Failure on download ' . $filename . '. ' . $e->getMessage());
 		}
 		$progressBar->finish();
 		$this->output->writeln('');
@@ -577,9 +583,11 @@ class InstallService {
 		if ($hash && file_exists($path) && hash_file($hash_algo, $path) !== $hash) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ' try again</error>');
 			$this->output->writeln('<error>Invalid ' . $hash_algo . '</error>');
+			$this->logger->error('Failure on download ' . $filename . '. Invalid ' . $hash_algo . '.');
 		}
 		if (!file_exists($path)) {
 			$this->output->writeln('<error>Failure on download ' . $filename . ', empty file, try again</error>');
+			$this->logger->error('Failure on download ' . $filename . ', empty file.');
 		}
 	}
 

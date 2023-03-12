@@ -31,6 +31,7 @@ use OCP\Http\Client\IClientService;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use org\bovigo\vfs\vfsStream;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -46,6 +47,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $config;
 	/** @var IRootFolder|MockObject */
 	private $rootFolder;
+	/** @var LoggerInterface */
 
 	public function setUp(): void {
 		parent::setUp();
@@ -58,13 +60,15 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
+		$this->logger = $this->createMock(LoggerInterface::class);
 		return new InstallService(
 			$this->cacheFactory,
 			$this->clientService,
 			$this->cfsslServerHandler,
 			$this->cfsslHandler,
 			$this->config,
-			$this->rootFolder
+			$this->rootFolder,
+			$this->logger
 		);
 	}
 

@@ -8,16 +8,19 @@ use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Base;
 use OCA\Libresign\Service\InstallService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
 	public function __construct(
-		InstallService $installService
+		InstallService $installService,
+		LoggerInterface $logger
 	) {
 		parent::__construct(
-			$installService
+			$installService,
+			$logger
 		);
 	}
 
