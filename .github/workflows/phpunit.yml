@@ -2,6 +2,18 @@ name: PHPUnit
 
 on:
   pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'appinfo/**'
+      - 'lib/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'vendor/**'
+      - 'vendor-bin/**'
+      - '.php-cs-fixer.dist.php'
+      - 'composer.json'
+      - 'composer.lock'
+
   push:
     branches:
       - main
