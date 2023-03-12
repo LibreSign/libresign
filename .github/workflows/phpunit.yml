@@ -33,12 +33,12 @@ jobs:
         databases: ['sqlite']
         coverage: ['xdebug']
         xdebug_mode: ['debug']
-        server-versions: ['master']
+        server-versions: ['stable26']
         include:
           - php-versions: '8.0'
             databases: 'sqlite'
             coverage: xdebug
-            server-versions: 'master'
+            server-versions: 'stable26'
             xdebug_mode: coverage
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
