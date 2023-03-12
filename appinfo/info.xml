@@ -9,7 +9,7 @@
 
 ]]>
     </description>
-    <version>7.0.0-dev.3</version>
+    <version>8.0.0-dev.1</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
     <documentation>
@@ -24,7 +24,7 @@
     <repository type="git">https://github.com/LibreSign/libresign</repository>
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
-        <nextcloud min-version="26" max-version="26"/>
+        <nextcloud min-version="27" max-version="27"/>
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
     </dependencies>
