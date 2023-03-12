@@ -41,7 +41,6 @@ import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
-import '@nextcloud/dialogs/styles/toast.scss'
 import { showError } from '@nextcloud/dialogs'
 
 export default {

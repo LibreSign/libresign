@@ -48,7 +48,6 @@ import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar'
-import '@nextcloud/dialogs/styles/toast.scss'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
