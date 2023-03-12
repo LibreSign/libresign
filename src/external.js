@@ -34,7 +34,6 @@ import './plugins/vuelidate.js'
 import './init.js'
 
 import './assets/styles/main.scss'
-import '@nextcloud/dialogs/styles/toast.scss'
 
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line
