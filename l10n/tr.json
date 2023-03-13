@@ -221,9 +221,6 @@
     "Repeat password" : "Parola onayı",
     "Allow request to sign" : "İmzalama isteğinde bulunun",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Belge imzalama isteğinde bulunabilecek yetkili grupları seçin. Yönetici grubu varsayılan olarak istekte bulunabilir ve ayrıca tanımlanması gerekmez.",
-    "Collect signers metadata when signing a document" : "Bir belge imzalanırken imzalayanın üst verileri alınsın",
-    "Collect signers metadata" : "İmzalayanın üst verileri alınsın",
-    "Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer." : "Bu seçenek etkinleştirildiğinde, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder.",
     "Message" : "İleti",
     "Resource" : "Kaynak",
     "Advice" : "Öneri",
@@ -314,6 +311,7 @@
     "Organization Unit (OU)" : "Kuruluş birimi (OU)",
     "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
     "Collect signers metadata when sign a document" : "Bir belge imzalanırken imzalayanın üst verileri alınsın",
+    "Collect signers metadata" : "İmzalayanın üst verileri alınsın",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Bu seçenek etkinleştirildiğinde, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

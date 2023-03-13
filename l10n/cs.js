@@ -223,9 +223,6 @@ OC.L10N.register(
     "Repeat password" : "Zopakujte zadání hesla",
     "Allow request to sign" : "Umožnit zažádat o podepsání",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Vyberte skupiny pověřené tím, že mohou zažádat o podepisování dokumentů. Skupina Admin (správci) už je zde zahrnuta ve výchozím stavu (není třeba zadávat).",
-    "Collect signers metadata when signing a document" : "Shromáždit při podepisování metadata o podepisujících",
-    "Collect signers metadata" : "Shromáždit metadata o podepisujících",
-    "Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího.",
     "Message" : "Zpráva",
     "Resource" : "Zdroj",
     "Advice" : "Rada",
@@ -316,6 +313,7 @@ OC.L10N.register(
     "Organization Unit (OU)" : "Organizační jednotka (OU)",
     "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "Collect signers metadata when sign a document" : "Shromáždit při podepisování metadata o podepisujících",
+    "Collect signers metadata" : "Shromáždit metadata o podepisujících",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

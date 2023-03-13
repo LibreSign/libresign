@@ -309,6 +309,9 @@
     "Country (C)" : "País (C)",
     "Organization (O)" : "Organización (O)",
     "Organization Unit (OU)" : "Unidade organizativa (OU)",
-    "To validate signature of the documents" : "Para validar a sinatura dos documentos"
+    "To validate signature of the documents" : "Para validar a sinatura dos documentos",
+    "Collect signers metadata when sign a document" : "Recolle metadatos dos asinantes ao asinar un documento",
+    "Collect signers metadata" : "Recoller metadatos dos asinantes",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ao activar esta función, cada vez que asine un documento, LibreSign almacenará a IP e o axente de usuario do asinante."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
