@@ -221,9 +221,6 @@
     "Repeat password" : "再次輸入密碼",
     "Allow request to sign" : "允許簽署請求",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "選取可以請求簽署文件的授權群組。管理員群組是預設群組，不需要定義。",
-    "Collect signers metadata when signing a document" : "簽署文件時蒐集簽署者詮釋資料",
-    "Collect signers metadata" : "蒐集簽署者的詮釋資料",
-    "Enabling this feature, everytime a document is signed, LibreSign will store the IP address and user agent of the signer." : "如果啟用此功能，LibreSign 將在簽署文件時儲存簽署者的 IP 與使用者代理字串。",
     "Message" : "訊息",
     "Resource" : "資源",
     "Advice" : "建議",
@@ -314,6 +311,7 @@
     "Organization Unit (OU)" : "組織部門 (OU)",
     "To validate signature of the documents" : "驗證文件簽章",
     "Collect signers metadata when sign a document" : "簽署文件時蒐集簽署者的詮釋資料",
+    "Collect signers metadata" : "蒐集簽署者的詮釋資料",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "若啟用此功能，LibreSign 將在簽署文件時儲存簽署者的 IP 與使用者代理字串。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
