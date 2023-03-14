@@ -32,7 +32,7 @@
     "linkify-string": "^4.1.0",
     "lodash-es": "^4.17.21",
     "marked": "^4.2.12",
-    "style-loader": "^3.3.1",
+    "style-loader": "^3.3.2",
     "vue": "^2.7.10",
     "vue-advanced-cropper": "^1.11.6",
     "vue-drag-resize": "^1.5.4",
