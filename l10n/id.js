@@ -40,6 +40,7 @@ OC.L10N.register(
     "Message" : "Pesan",
     "Remove" : "Buang",
     "Previous" : "Sebelumnya",
+    "View" : "Tampilan",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");
