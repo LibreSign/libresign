@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "Lyckades",
     "Settings saved" : "Inställningar sparade",
     "deleted" : "raderas",
+    "User already exists" : "Användaren finns redan",
     "File not found" : "Filen hittades inte",
     "File already exists" : "Filen existerar redan",
     "Empty file" : "Tom fil",

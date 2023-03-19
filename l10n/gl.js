@@ -106,7 +106,7 @@ OC.L10N.register(
     "Document already signed" : "Documento xa asinado",
     "Sending authorization code not enabled." : "O envío do código de autorización non está activado.",
     "%s is your LibreSign verification code." : "%s é o teu código de verificación de LibreSign.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "A autorización de sinatura mediante o token %s está desactivada porque Nextcloud Two-Factor Gateway non está activada.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "A autorización de sinatura mediante o testemuño %s está desactivada porque Nextcloud Two-Factor Gateway non está activada.",
     "Gateway %s not configured on Two-Factor Gateway." : "Gateway %s non configurado en Two-Factor Gateway.",
     "File already signed by you" : "Ficheiro xa asinado por ti",
     "You are not logged in. Please log in." : "Non estás rexistrado. Por favor, inicia sesión.",
