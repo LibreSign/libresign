@@ -272,6 +272,7 @@ OC.L10N.register(
     "Open in LibreSign" : "Otwórz w LibreSign",
     "File type: %s. Inform URL or base64 or fileID." : "Typ pliku: %s. Podaj adres URL, base64 lub fileID.",
     "Select authorized groups." : "Wybierz autoryzowane grupy.",
+    "Tip" : "Porada",
     "Country (C)" : "Kraj (C)",
     "Organization (O)" : "Organizacja (O)",
     "Organization Unit (OU)" : "Jednostka organizacyjna (OU)",
