@@ -13,6 +13,17 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.2.9 - 2023-03-21
+### Changed
+* Bump dependencies
+* Collect metadata of signers
+* Log CLI exceptions
+* Limit execution of backend tests
+
+### Fixed
+* Fix missing signed htaccess
+* Make possible to approvers can sign identification documents
+
 ## 6.2.8 - 2023-02-22
 ### Fixed
 * Fix app files signing
