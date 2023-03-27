@@ -424,7 +424,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Empty users list');
 
 		$this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => 'dGVzdA=='],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'userManager' => $this->user
 		]);
@@ -434,7 +434,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('User list needs to be an array');
 
 		$this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => 'dGVzdA=='],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => 'asdfg',
 			'userManager' => $this->user
@@ -445,7 +445,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Empty users list');
 
 		$this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => 'dGVzdA=='],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => null,
 			'userManager' => $this->user
@@ -456,7 +456,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
 
 		$this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => 'dGVzdA=='],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[
@@ -472,7 +472,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testValidateSuccess() {
 		$actual = $this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => 'dGVzdA=='],
+			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
 				[

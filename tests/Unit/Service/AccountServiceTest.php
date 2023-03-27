@@ -534,7 +534,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[
 				'type' => 'IDENTIFICATION',
 				'file' => [
-					'base64' => 'dGVzdA=='
+					'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 				]
 			]
 		], $user);
