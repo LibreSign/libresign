@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -34,6 +35,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
+	/** @var IMimeTypeDetector */
+	private $mimeTypeDetector;
 	/** @var IHasher */
 	private $hasher;
 	/** @var IConfig|MockObject */
@@ -56,6 +59,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -72,6 +76,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
+			$this->mimeTypeDetector,
 			$this->hasher,
 			$this->config,
 			$this->groupManager,
@@ -247,12 +252,36 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function dataValidateBase64(): array {
 		return [
-			['invalid', ValidateHelper::TYPE_TO_SIGN, false],
-			['dGVzdA==', ValidateHelper::TYPE_TO_SIGN, true],
-			['data:application/pdf;base63,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, false],
-			['data:application/bla;base64,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, false],
-			['data:application/pdf;base64,dGVzdA==', ValidateHelper::TYPE_TO_SIGN, true],
-			['data:application/pdf;base64,invalid', ValidateHelper::TYPE_TO_SIGN, false],
+			[
+				'invalid',
+				ValidateHelper::TYPE_TO_SIGN,
+				false
+			],
+			[
+				base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				ValidateHelper::TYPE_TO_SIGN,
+				true
+			],
+			[
+				'data:application/pdf;base63,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				ValidateHelper::TYPE_TO_SIGN,
+				false
+			],
+			[
+				'data:application/bla;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				ValidateHelper::TYPE_TO_SIGN,
+				false
+			],
+			[
+				'data:application/pdf;base64,' . base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf')),
+				ValidateHelper::TYPE_TO_SIGN,
+				true
+			],
+			[
+				'data:application/pdf;base64,invalid',
+				ValidateHelper::TYPE_TO_SIGN,
+				false
+			],
 		];
 	}
 
@@ -454,7 +483,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$elements = [[
 			'type' => 'signature',
 			'file' => [
-				'base64' => 'dGVzdA=='
+				'base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))
 			]
 		]];
 		$actual = $this->getValidateHelper()->validateVisibleElements($elements, ValidateHelper::TYPE_TO_SIGN);
