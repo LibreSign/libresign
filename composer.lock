@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f9c9d81ed483195586a2152a46efe25f",
+    "content-hash": "c902f31e8fe8af394706dadcdb297983",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1518,12 +1518,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/nextcloud-deps/ocp.git",
-                "reference": "0b2faa169ab28f80e6ca897d55415ba221cdcd63"
+                "reference": "bbdf512d23b94bf6e7eeb54635bd24caa14ad42f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/0b2faa169ab28f80e6ca897d55415ba221cdcd63",
-                "reference": "0b2faa169ab28f80e6ca897d55415ba221cdcd63",
+                "url": "https://api.github.com/repos/nextcloud-deps/ocp/zipball/bbdf512d23b94bf6e7eeb54635bd24caa14ad42f",
+                "reference": "bbdf512d23b94bf6e7eeb54635bd24caa14ad42f",
                 "shasum": ""
             },
             "require": {
@@ -1553,7 +1553,7 @@
                 "issues": "https://github.com/nextcloud-deps/ocp/issues",
                 "source": "https://github.com/nextcloud-deps/ocp/tree/stable25"
             },
-            "time": "2023-02-15T00:39:02+00:00"
+            "time": "2023-03-25T00:35:37+00:00"
         },
         {
             "name": "psr/event-dispatcher",
@@ -2247,8 +2247,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "platform-overrides": {
-        "php": "7.4"
-    },
     "plugin-api-version": "2.3.0"
 }
