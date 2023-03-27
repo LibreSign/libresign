@@ -14,6 +14,7 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -37,6 +38,8 @@ class ValidateHelper {
 	private $accountFileMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var IMimeTypeDetector */
+	private $mimeTypeDetector;
 	/** @var IHasher */
 	private $hasher;
 	/** @var IConfig */
@@ -68,6 +71,7 @@ class ValidateHelper {
 		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
 		UserElementMapper $userElementMapper,
+		IMimeTypeDetector $mimeTypeDetector,
 		IHasher $hasher,
 		IConfig $config,
 		IGroupManager $groupManager,
@@ -81,6 +85,7 @@ class ValidateHelper {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->userElementMapper = $userElementMapper;
+		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->hasher = $hasher;
 		$this->config = $config;
 		$this->groupManager = $groupManager;
@@ -156,10 +161,9 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
 
-		$f = finfo_open();
-		$mimeType = finfo_buffer($f, $string, FILEINFO_MIME_TYPE);
-		
-		if ($mimeType !== 'data:application/pdf') {
+		$mimeType = $this->mimeTypeDetector->detectString($string);
+
+		if ($mimeType !== 'application/pdf') {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
