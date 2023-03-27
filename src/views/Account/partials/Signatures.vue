@@ -103,7 +103,7 @@ export default {
 			</span>
 		</Signature>
 
-		<Signature :value="sings.initial.value" type="initial" v-on="{ save }">
+		<Signature :value="sings.initial.value" type="initial" v-on="{ save }" v-if="false">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
 			</template>

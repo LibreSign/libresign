@@ -159,6 +159,7 @@ export default {
 			this.$emit('close')
 		},
 		saveSignature() {
+			this.handleModal(false)
 			this.$emit('save', this.imageData)
 		},
 	},
