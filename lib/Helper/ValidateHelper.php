@@ -163,7 +163,10 @@ class ValidateHelper {
 
 		$mimeType = $this->mimeTypeDetector->detectString($string);
 
-		if ($mimeType !== 'application/pdf') {
+		if (
+			($type === self::TYPE_TO_SIGN && $mimeType !== 'application/pdf')
+			|| (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF]) && $mimeType !== 'image/png')
+		) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
