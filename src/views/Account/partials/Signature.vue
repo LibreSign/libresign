@@ -112,7 +112,8 @@ export default {
 		padding: 15px;
 		margin: 5px;
 		border-radius: 10px;
-		background-color: #cecece;
+		background-color: var(--color-main-background);
+		box-shadow: 0 2px 9px var(--color-box-shadow);
 		cursor: pointer;
 		span{
 			cursor: inherit;
