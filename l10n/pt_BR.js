@@ -223,6 +223,9 @@ OC.L10N.register(
     "Repeat password" : "Repita a senha ",
     "Allow request to sign" : "Permitir solicitação para assinar",
     "Select authorized groups that can request to sign documents. Admin group is the default group and don't need to be defined." : "Selecione grupos autorizados que podem solicitar a assinatura de documentos. O grupo de administradores é o grupo padrão e não precisa ser definido.",
+    "Collect signers' metadata when signing a document" : "Collect signers' metadata when signing a document",
+    "Collect signers' metadata" : "Collect signers' metadata",
+    "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer." : "Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.",
     "Message" : "Mensagem",
     "Resource" : "Recurso",
     "Advice" : "Sugestão",
@@ -253,6 +256,10 @@ OC.L10N.register(
     "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL",
     "Not mandatory, don't fill to use default value." : "Não obrigatório, não preencha para usar o valor padrão.",
     "Two-letter ISO 3166 country code" : "Código de país ISO 3166 de duas letras",
+    "Full name of states or provinces" : "Full name of states or provinces",
+    "Name of a locality or place, such as a city, county, or other geographic region" : "Name of a locality or place, such as a city, county, or other geographic region",
+    "Name of an organization" : "Name of an organization",
+    "Name of an organizational unit" : "Name of an organizational unit",
     "Root certificate data." : "Dados do certificado raiz. ",
     "To generate new signatures, you must first generate the root certificate." : "Para gerar novas assinaturas, você precisa primeiro gerar o certificado raiz.",
     "Generate root certificate." : "Gere o certificado raiz. ",
@@ -307,6 +314,9 @@ OC.L10N.register(
     "Country (C)" : "País (C)",
     "Organization (O)" : "Nome da organização (O)",
     "Organization Unit (OU)" : "Unidade da organização (OU)",
-    "To validate signature of the documents" : "Para validar a assinatura dos documentos"
+    "To validate signature of the documents" : "Para validar a assinatura dos documentos",
+    "Collect signers metadata when sign a document" : "Collect signers metadata when sign a document",
+    "Collect signers metadata" : "Collect signers metadata",
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
