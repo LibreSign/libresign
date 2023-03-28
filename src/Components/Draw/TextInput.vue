@@ -77,6 +77,7 @@ export default {
 
 	methods: {
 		saveSignature() {
+			this.handleModal(false)
 			this.$emit('save', this.imageData)
 		},
 
