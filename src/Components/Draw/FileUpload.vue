@@ -55,6 +55,7 @@ export default {
 			this.imageData = canvas.toDataURL('image/png')
 		},
 		saveSignature() {
+			this.modal = false
 			this.$emit('save', this.imageData)
 		},
 		confirmSave() {
