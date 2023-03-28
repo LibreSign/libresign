@@ -306,6 +306,15 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->cfsslHandler;
 	}
 
+	public function isHandlerOk(): bool {
+		try {
+			$this->getCertificateHandler()->getClient();
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
+	}
+
 	/**
 	 * Generate certificate
 	 *
