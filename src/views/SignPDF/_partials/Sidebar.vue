@@ -64,8 +64,6 @@ export default {
 	display: flex;
 	align-items: flex-start;
 	flex-direction: column;
-	margin-left: 3px;
-	margin-right: 3px;
 	header {
 		display: block;
 		text-align: center;
