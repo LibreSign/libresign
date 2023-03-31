@@ -85,6 +85,7 @@ OC.L10N.register(
     "Next" : "Seguent",
     "Yes" : "Òc",
     "No" : "Non",
+    "Page not found" : "Pagina pas trobada",
     "Return" : "Tornar",
     "Pending" : "En espèra",
     "Add users" : "Apondre utilizaires",
