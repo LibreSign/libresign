@@ -282,7 +282,7 @@
     "Phone stored." : "Telefon kaydedildi.",
     "Sign with your cellphone number." : "Cep telefonu numarasıyla imzalayın.",
     "Save your number." : "Numaranızı kaydedin.",
-    "This iframe is not supported in your browser." : "Bu iFrame web tarayıcınız tarafından desteklenmiyor.",
+    "This iframe is not supported in your browser." : "Tarayıcınız bu iFrame ögesini desteklemiyor.",
     "Loading …" : "Yükleniyor…",
     "%s is not a valid sign method" : "%s geçerli bir imzalama yöntemi değil",
     "Please define your sign password" : "Lütfen imzalama parolanızı tanımlayın",
