@@ -25,7 +25,7 @@ class AdminSignatureService {
 			'cfsslUri' => '',
 			'configPath' => '',
 			'rootCert' => [
-				'names' => [],
+				'names' => new \stdClass,
 			],
 		];
 		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
