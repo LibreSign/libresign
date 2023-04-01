@@ -58,7 +58,6 @@ form{
 	padding: 20px;
 	margin: 20px;
 	border-radius: 8px;
-	border: 1px solid var(--color-background-dark);
 	max-width: 500px;
 	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 
@@ -84,7 +83,6 @@ h3{
 input{
 	width: 100%;
 	margin: 20px 0px;
-	background-color: var(--color-background-dark);
 }
 
 button{
@@ -139,8 +137,7 @@ button{
 	p{
 		font-size: 1rem;
 	}
-	a{
-		width: fit-content;
+	button{
 		align-self: flex-end;
 	}
 	#sign {
