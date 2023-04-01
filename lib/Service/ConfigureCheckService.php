@@ -323,7 +323,7 @@ class ConfigureCheckService {
 				->setResource('cfssl-configure')];
 		}
 		return [(new ConfigureCheckHelper())
-			->setErrorMessage('CFSSL not configured.')
+			->setErrorMessage('CFSSL (root certificate) not configured.')
 			->setResource('cfssl-configure')
 			->setTip('Run occ libresign:configure:cfssl --help')];
 	}
