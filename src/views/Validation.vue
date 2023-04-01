@@ -9,9 +9,14 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="myUuid" type="text">
-					<button :class="hasLoading ? 'btn-load primary loading':'btn'" @click.prevent="validate(myUuid)">
+					<NcButton
+						type="primary"
+						@click.prevent="validate(myUuid)" >
+						<template #icon>
+							<NcLoadingIcon v-if="hasLoading" :size="20" />
+						</template>
 						{{ buttonTitle }}
-					</button>
+					</NcButton>
 				</form>
 				<div v-if="hasInfo" class="infor-container">
 					<div class="infor-bg">
@@ -29,7 +34,14 @@
 									{{ legalInformation }}
 								</span>
 
-								<a class="button" :href="linkToDownload(document.file)"> {{ t('libresign', 'View') }} </a>
+								<NcButton
+									type="primary"
+									@click="viewDocument(document.file)" >
+									<template #icon>
+										<NcLoadingIcon v-if="hasLoading" :size="20" />
+									</template>
+									{{ t('libresign', 'View') }}
+								</NcButton>
 							</div>
 						</div>
 					</div>
@@ -51,9 +63,11 @@
 							</div>
 						</div>
 					</div>
-					<button type="primary" class="btn- btn-return" @click.prevent="changeInfo">
+					<NcButton
+						type="primary"
+						@click.prevent="changeInfo" >
 						{{ t('libresign', 'Return') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
 		</div>
@@ -63,6 +77,8 @@
 <script>
 import axios from '@nextcloud/axios'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
@@ -77,6 +93,8 @@ export default {
 
 	components: {
 		NcContent,
+		NcButton,
+		NcLoadingIcon,
 	},
 
 	props: {
@@ -166,8 +184,8 @@ export default {
 
 			return 'None'
 		},
-		linkToDownload(val) {
-			return `${val}?_t=${Date.now()}`
+		viewDocument(val) {
+			window.open(`${val}?_t=${Date.now()}`)
 		},
 		changeInfo() {
 			this.hasInfo = !this.hasInfo
@@ -186,5 +204,4 @@ export default {
 
 <style lang="scss" scoped>
 @import '../assets/styles/validation.scss';
-@import '../assets/styles/loading.scss';
 </style>
