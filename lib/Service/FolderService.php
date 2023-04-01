@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -91,7 +92,8 @@ class FolderService {
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');
 
 		if (empty($path)) {
-			$path = '/' . $this->l10n->t('LibreSign');
+			$defaultFolder = $this->config->getAppValue(Application::APP_ID, 'default_user_folder', 'LibreSign');
+			$path = '/' . $defaultFolder;
 			$this->config->setUserValue($this->userId, 'libresign', 'folder', $path);
 		}
 
