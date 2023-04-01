@@ -13,6 +13,20 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 7.1.0 - 2023-04-01
+### Changed
+* Make possible change the default user folder
+* Hide initial and fix save signature modal
+* Hide generate passowrd when cert handler isn't ok
+* Remove sidebar marging
+* Change validate page image
+* Make the text more clear
+* Increase PDF validation
+
+### Fixed
+* Fix save signature as image
+* Fix generate root certificate at the first time
+
 ## 7.0.0 - 2023-03-21
 ### Changed
 * Compatibility with Nextcloud Hub 4 (26)
