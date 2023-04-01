@@ -25,7 +25,7 @@ class AdminSignatureService {
 			'cfsslUri' => '',
 			'configPath' => '',
 			'rootCert' => [
-				'names' => new \stdClass,
+				'names' => [],
 			],
 		];
 		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
@@ -35,9 +35,11 @@ class AdminSignatureService {
 		}
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
+		$hasCustomName = false;
 		if (is_array($rootCert)) {
 			foreach ($rootCert as $key => $value) {
 				if ($key === 'names') {
+					$hasCustomName = true;
 					foreach ($value as $name => $customName) {
 						$return['rootCert']['names'][$name]['id'] = $name;
 						$return['rootCert']['names'][$name]['value'] = $customName['value'];
@@ -46,6 +48,9 @@ class AdminSignatureService {
 					$return['rootCert'][$key] = $value;
 				}
 			}
+		}
+		if (!$hasCustomName) {
+			$return['rootCert']['names'] = new \stdClass;
 		}
 		return $return;
 	}
