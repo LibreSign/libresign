@@ -1,0 +1,65 @@
+<template>
+	<NcSettingsSection :title="title" :description="description">
+		<div class="default-user-folder-content">
+			<NcCheckboxRadioSwitch
+				type="switch"
+				:checked.sync="customUserFolder">
+				{{ t('libresign', 'Customize default user folder') }}
+			</NcCheckboxRadioSwitch>
+			<div v-if="customUserFolder">
+				<NcTextField
+					:placeholder="t('libresign', 'Customize default user folder')"
+					:value.sync="value"
+					@update:value="saveDefaultUserFolder" />
+			</div>
+		</div>
+	</NcSettingsSection>
+</template>
+<script>
+import { translate as t } from '@nextcloud/l10n'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+
+export default {
+	name: 'DefaultUserFolder',
+	components: {
+		NcSettingsSection,
+		NcTextField,
+		NcCheckboxRadioSwitch,
+	},
+	data() {
+		return {
+			title: t('libresign', 'Customize default user folder'),
+			description: t('libresign', 'Name of the folder that will contain the user\'s digital certificate, visible signature images, and other files related to LibreSign.'),
+			value: '',
+			customUserFolder: false,
+		}
+	},
+	created() {
+		this.getData()
+	},
+	methods: {
+		async getData() {
+			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/default_user_folder', {})
+			this.customUserFolder = response.data.ocs.data.data ? true : false
+			this.value = response.data.ocs.data.data || 'LibreSign'
+		},
+		saveDefaultUserFolder() {
+			OCP.AppConfig.setValue('libresign', 'default_user_folder', this.value)
+		},
+	},
+}
+</script>
+<style scoped>
+.default-user-folder-content{
+	display: flex;
+	flex-direction: column;
+}
+textarea {
+	width: 50%;
+	height: 150px;
+}
+</style>
