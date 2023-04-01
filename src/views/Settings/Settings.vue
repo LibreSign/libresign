@@ -31,6 +31,7 @@
 		<LegalInformation />
 		<IdentificationDocuments />
 		<CollectMetadata />
+		<DefaultUserFolder />
 	</NcSettingsSection>
 </template>
 
@@ -44,6 +45,7 @@ import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
+import DefaultUserFolder from './DefaultUserFolder.vue'
 
 export default {
 	name: 'Settings',
@@ -57,6 +59,7 @@ export default {
 		LegalInformation,
 		IdentificationDocuments,
 		CollectMetadata,
+		DefaultUserFolder,
 	},
 	data() {
 		return {
