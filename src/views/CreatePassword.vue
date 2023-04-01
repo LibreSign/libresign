@@ -63,7 +63,11 @@ export default {
 				this.$emit('close', true)
 				this.$emit('change-pfx', true)
 			} catch (err) {
-				showError(t('libresign', 'Error creating new password, please contact the administrator'))
+				if (err.response.data.message) {
+					showError(err.response.data.message)
+				} else {
+					showError(t('libresign', 'Error creating new password, please contact the administrator'))
+				}
 				this.hasLoading = false
 				this.$emit('change-pfx', false)
 			}
