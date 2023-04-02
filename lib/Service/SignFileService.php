@@ -279,6 +279,13 @@ class SignFileService {
 		return $return;
 	}
 
+	public function getUserIdentifyMethod(array $user): string {
+		if (array_key_exists('identify', $user)) {
+			return $user['identify'];
+		}
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud');
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -299,6 +306,8 @@ class SignFileService {
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 		}
+		$identifyMethod = $this->getUserIdentifyMethod($user);
+		$fileUser->setIdentifyMethod($identifyMethod);
 		$fileUser->setEmail($user['email']);
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 			$fileUser->setDescription($user['description']);
@@ -369,6 +378,7 @@ class SignFileService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
+			$this->validateHelper->validateIdentifyMethod($user);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);

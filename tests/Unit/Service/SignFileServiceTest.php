@@ -324,6 +324,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$this->assertEquals(36, strlen($subject[0]));
 					return true;
 				})],
+				[$this->equalTo('setIdentifyMethod'), $this->equalTo(['nextcloud'])],
 				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
 				[$this->equalTo('getDescription')],
 				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])],
@@ -337,6 +338,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['setFileId', [], null],
 				['getUuid', [], null],
 				['setUuid', [], null],
+				['setIdentifyMethod', [], null],
 				['setEmail', [], null],
 				['getDescription', [], null],
 				['setDescription', [], null],
@@ -353,6 +355,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getDisplayName')->willReturn('John Doe');
 		$this->userManager->method('getByEmail')->willReturn([$user]);
+		$this->config->method('getAppValue')->will($this->returnValue('nextcloud'));
 		$actual = $this->getService()->save([
 			'uuid' => 'the-uuid-here',
 			'users' => [
