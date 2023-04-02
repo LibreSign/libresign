@@ -17,14 +17,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branches: ["main", "stable26", "stable25"]
+        include:
+          - branch: main
+            ocp: master
+          - branch: stable26
+            ocp: stable26
+          - branch: stable25
+            ocp: stable25
 
-    name: update-nextcloud-ocp-${{ matrix.branches }}
+    name: update-nextcloud-ocp-${{ matrix.ocp }}
 
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
         with:
-          ref: ${{ matrix.branches }}
+          ref: ${{ matrix.branch }}
           submodules: true
 
       - name: Set up php8.0
@@ -40,7 +46,7 @@ jobs:
         run: composer install
 
       - name: Composer update nextcloud/ocp
-        run: composer require --dev nextcloud/ocp:dev-${{ matrix.branches }}
+        run: composer require --dev nextcloud/ocp:dev-${{ matrix.ocp }}
         continue-on-error: true
 
       - name: Reset checkout dirs
@@ -59,8 +65,8 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: nextcloud-command <nextcloud-command@users.noreply.github.com>
           signoff: true
-          branch: automated/noid/${{ matrix.branches }}-update-nextcloud-ocp
-          title: "[${{ matrix.branches }}] Update nextcloud/ocp dependency"
+          branch: automated/noid/${{ matrix.branch }}-update-nextcloud-ocp
+          title: "[${{ matrix.branch }}] Update nextcloud/ocp dependency"
           body: |
             Auto-generated update of [nextcloud/ocp](https://github.com/nextcloud-deps/ocp/) dependency
           labels: |
