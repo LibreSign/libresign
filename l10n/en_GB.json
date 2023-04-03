@@ -229,6 +229,8 @@
     "Advice" : "Advice",
     "Configuration check" : "Configuration check",
     "Status of setup" : "Status of setup",
+    "Customize default user folder" : "Customise default user folder",
+    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign.",
     "Dependencies" : "Dependencies",
     "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Binaries required to work. Download size could be nearly 340MB, please wait a moment.",
     "Download binaries" : "Download binaries",
