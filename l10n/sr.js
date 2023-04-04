@@ -231,6 +231,8 @@ OC.L10N.register(
     "Advice" : "Савет",
     "Configuration check" : "Провера конфигурације",
     "Status of setup" : "Статус подешавања",
+    "Customize default user folder" : "Прилагоси подразумевани кориснички фолдер",
+    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Име фолдера које ће да садржи корисников дигитални сертификат, видљиве слике потписа и остале фајлове везане за LibreSign.",
     "Dependencies" : "Зависности",
     "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Неопходни су бинарни фајлови за рад. Величина преузимања може бити скоро 340MB, причекајте мало.",
     "Download binaries" : "Преузми бинарне фајлове",
