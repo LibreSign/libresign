@@ -124,3 +124,12 @@ jobs:
           COVERALLS_PARALLEL: true
           COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
         run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
+  finish-coverage:
+    needs: upload-coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Let Coveralls know that all tests have finished
+        uses: coverallsapp/github-action@v2.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
