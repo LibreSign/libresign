@@ -232,7 +232,7 @@ OC.L10N.register(
     "Configuration check" : "Prüfung der Konfiguration",
     "Status of setup" : "Status der Einrichtung",
     "Customize default user folder" : "Standardbenutzerordner anpassen",
-    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Name des Ordners, der das digitale Zertifikat des Benutzers, sichtbare Signaturbilder und andere Dateien im Zusammenhang mit LibreSign enthalten wird.",
+    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Name des Ordners, der das digitale Zertifikat des Benutzers, sichtbare Signaturbilder und andere Dateien im Zusammenhang mit LibreSign enthalten soll.",
     "Dependencies" : "Abhängigkeiten",
     "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte einen Moment warten.",
     "Download binaries" : "Binärdateien herunterladen",
