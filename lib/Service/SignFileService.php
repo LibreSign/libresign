@@ -837,7 +837,7 @@ class SignFileService {
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]));
 		}
-		$this->trhowIfFileUserNotExists($uuid, $user, $fileUser);
+		$this->trhowIfCantIdentifyUser($uuid, $user, $fileUser);
 		$this->throwIfUserIsNotSigner($user, $fileUser);
 		$this->throwIfAlreadySigned($fileEntity, $fileUser);
 		$this->throwIfInvalidUser($uuid, $user);
@@ -921,7 +921,7 @@ class SignFileService {
 		}
 	}
 
-	private function trhowIfFileUserNotExists(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
+	private function trhowIfCantIdentifyUser(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
 		if ($fileUser instanceof FileUserEntity) {
 			$fileUserId = $fileUser->getUserId();
 			if ($fileUserId) {
