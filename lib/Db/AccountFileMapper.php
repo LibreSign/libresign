@@ -226,6 +226,11 @@ class AccountFileMapper extends QBMapper {
 		return $row;
 	}
 
+	/**
+	 * @param array $files
+	 * @param FileUser[] $signers
+	 * @return array
+	 */
 	private function assocFileToFileUserAndFormat(array $files, array $signers): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
@@ -241,7 +246,8 @@ class AccountFileMapper extends QBMapper {
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
-						'fileUserId' => $signer->getId()
+						'fileUserId' => $signer->getId(),
+						'identify' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())
