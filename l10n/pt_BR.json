@@ -229,6 +229,8 @@
     "Advice" : "Sugestão",
     "Configuration check" : "Verificação de configuração",
     "Status of setup" : "Status da configuração",
+    "Customize default user folder" : "Personalize a pasta de usuário padrão",
+    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Nome da pasta que conterá o certificado digital do usuário, imagens de assinatura visíveis e outros arquivos relacionados ao LibreSign.",
     "Dependencies" : "Dependências",
     "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Binários são necessários para prosseguir. O tamanho pode chegar a 340MB, por favor aguarde um momento.",
     "Download binaries" : "Baixar binários",
