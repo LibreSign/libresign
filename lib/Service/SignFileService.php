@@ -378,7 +378,8 @@ class SignFileService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
-			$this->validateHelper->validateIdentifyMethod($user);
+			$identifyMethod = $this->getUserIdentifyMethod($user);
+			$this->validateHelper->validateIdentifyMethod($identifyMethod);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
