@@ -63,7 +63,7 @@ class FeatureContext implements Context {
 	}
 
 	/**
-	 * @When /^sending "([^"]*)" to "([^"]*)"( with)?$/
+	 * @When /^sending "([^"]*)" to "([^"]*)"?$/
 	 * @param string $verb
 	 * @param string $url
 	 * @param TableNode|array|null $body
@@ -84,7 +84,7 @@ class FeatureContext implements Context {
 		}
 		if ($body instanceof TableNode) {
 			$fd = $body->getRowsHash();
-			$options['form_params'] = $fd;
+			$options['form_params'] = $this->decodeIfIsJsonString($fd);
 		} elseif (is_array($body)) {
 			$options['form_params'] = $body;
 		}
@@ -101,6 +101,16 @@ class FeatureContext implements Context {
 		} catch (\GuzzleHttp\Exception\ServerException $ex) {
 			$this->response = $ex->getResponse();
 		}
+	}
+
+	protected function decodeIfIsJsonString(array $list): array {
+		foreach ($list as $key => $value) {
+			$decoded = json_decode($value);
+			if (json_last_error() == JSON_ERROR_NONE) {
+				$list[$key] = $decoded;
+			}
+		}
+		return $list;
 	}
 
 	protected function getUserCookieJar($user) {
