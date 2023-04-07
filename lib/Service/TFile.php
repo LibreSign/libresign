@@ -42,7 +42,6 @@ trait TFile {
 		if ($extension === 'pdf') {
 			$this->validatePdfStringWithFpdi($content);
 		}
-		$data['name'] = $this->sanitizeName($data['name'], $extension);
 
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $data['userManager']);
@@ -78,20 +77,6 @@ trait TFile {
 			}
 		}
 		return '';
-	}
-
-	private function sanitizeName(?string $name, string $extension): ?string {
-		//MimeTypeDetector
-		if (!empty($name)) {
-			$extensionWithDot = substr($name, strlen($name) - strlen($extension) - 1);
-			if ($extensionWithDot[0] === '.') {
-				if (ltrim($extensionWithDot, '.') !== $extension) {
-					throw new LibresignException($this->l10n->t('Invalid file type.'));
-				}
-				return rtrim($name, '.' . $extension);
-			}
-		}
-		return $name;
 	}
 
 	/**
