@@ -113,4 +113,4 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
-        run: vendor/bin/behat -f junit -f pretty
+        run: vendor/bin/behat -f junit -f pretty --colors
