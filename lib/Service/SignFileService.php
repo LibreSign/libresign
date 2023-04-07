@@ -283,7 +283,7 @@ class SignFileService {
 		if (array_key_exists('identify', $user)) {
 			return $user['identify'];
 		}
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud');
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
 	}
 
 	/**
