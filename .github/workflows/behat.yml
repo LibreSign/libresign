@@ -1,4 +1,4 @@
-name: Integration tests
+name: Behat
 
 on:
   pull_request:
@@ -22,9 +22,8 @@ env:
   APP_NAME: libresign
 
 jobs:
-  integration:
+  behat:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -36,7 +35,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:15
         ports:
           - 4445:5432/tcp
         env:
@@ -85,10 +84,10 @@ jobs:
           composer install
           composer --working-dir=tests/integration install
 
-    - name: Install Ghostscript
-      run: |
-        sudo apt-get update
-        sudo apt-get install ghostscript
+      - name: Install Ghostscript
+        run: |
+          sudo apt-get update
+          sudo apt-get install ghostscript
 
       - name: Set up Nextcloud
         run: |
