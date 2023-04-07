@@ -181,6 +181,17 @@ class FeatureContext implements Context {
 		$this->setCurrentUser($currentUser);
 	}
 
+	/** @Given /^set the email of user "([^"]*)" to "([^"]*)"$/  */
+	public function setUserEmail($user, $email) {
+		$currentUser = $this->currentUser;
+		$this->setCurrentUser('admin');
+		$this->sendOCSRequest('PUT', '/cloud/users/' . $user, [
+			'key' => 'email',
+			'value' => $email
+		]);
+		$this->setCurrentUser($currentUser);
+	}
+
 	/**
 	 * @param ResponseInterface $response
 	 * @param int $statusCode
