@@ -14,4 +14,4 @@ Feature: account/me
     And the response should be a JSON array with the following mandatory values
       | key      | value                                                                                                   |
       | account  | {"uid":"signer1","emailAddress":"","displayName":"signer1-displayname"}                                 |
-      | settings | {"canPreviewPageAsImage": false, "canRequestSign":false,"hasSignatureFile":false}                       |
+      | settings | {"canPreviewPageAsImage": true, "canRequestSign":false,"hasSignatureFile":false}                       |
