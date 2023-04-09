@@ -66,7 +66,7 @@ OC.L10N.register(
     "Do not use code when signing method is with password." : "서명 방법이 비밀번호로 되어 있을 때는 코드를 사용하지 마세요.",
     "Invalid code." : "잘못된 코드입니다.",
     "Invalid file type." : "잘못된 파일 형식입니다.",
-    "You are not allowed to approve user profile documents." : "사용자 프로파일 문서를 승인할 수 없습니다.",
+    "You are not allowed to approve user profile documents." : "사용자 프로필 문서를 승인할 수 없습니다.",
     "Invalid UUID" : "잘못된 UUID",
     "UUID not found" : "UUID를 찾을 수 없습니다.",
     "This is not your file" : "이것은 당신의 파일이 아닙니다.",
