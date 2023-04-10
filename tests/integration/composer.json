@@ -7,6 +7,6 @@
     },
     "require-dev": {
         "libresign/behat-builtin-extension": "^0.4.3",
-        "libresign/nextcloud-behat": "^0.3.0"
+        "libresign/nextcloud-behat": "^0.5.0"
     }
 }
