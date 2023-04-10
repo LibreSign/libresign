@@ -10,6 +10,7 @@ use OCP\Files\File;
 use OCP\IConfig;
 use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
@@ -21,19 +22,23 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $tempManager;
 	/** @var InstallService|MockObject */
 	private $installService;
+	/** @var LoggerInterface|MockObject */
+	private $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
 		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = \OC::$server->get(ITempManager::class);
 		$this->installService = $this->createMock(InstallService::class);
+		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getService(): PdfParserService {
 		return new PdfParserService(
 			$this->config,
 			$this->tempManager,
-			$this->installService
+			$this->installService,
+			$this->loggerInterface
 		);
 	}
 
@@ -43,13 +48,6 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
 		$this->expectErrorMessageMatches($errorMessage);
-		$this->config
-			->method('getAppValue')
-			->willReturnCallback(function ($appid, $key, $default) {
-				switch ($key) {
-					case 'libresign_cli_path': return '/fake_path/';
-				}
-			});
 		$this->config
 			->method('getSystemValue')
 			->willReturnCallback(function ($key, $default) {

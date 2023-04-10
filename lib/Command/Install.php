@@ -40,11 +40,6 @@ class Install extends Base {
 				InputOption::VALUE_NONE,
 				'CFSSL'
 			)
-			->addOption('cli',
-				null,
-				InputOption::VALUE_NONE,
-				'LibreSign CLI'
-			)
 			->addOption('java',
 				null,
 				InputOption::VALUE_NONE,
@@ -68,10 +63,6 @@ class Install extends Base {
 			}
 			if ($input->getOption('cfssl') || $all) {
 				$this->installService->installCfssl();
-				$ok = true;
-			}
-			if ($input->getOption('cli') || $all) {
-				$this->installService->installCli();
 				$ok = true;
 			}
 		} catch (\Exception $e) {
