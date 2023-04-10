@@ -4,17 +4,18 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCP\Files\File;
-use OCP\IConfig;
 use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class PdfParserService {
+	private ITempManager $tempManager;
+	private LoggerInterface $logger;
 	public function __construct(
-		private IConfig $config,
-		private ITempManager $tempManager,
-		private InstallService $installService,
-		private LoggerInterface $logger,
+		ITempManager $tempManager,
+		LoggerInterface $logger
 	) {
+		$this->tempManager = $tempManager;
+		$this->logger = $logger;
 	}
 
 	/**
