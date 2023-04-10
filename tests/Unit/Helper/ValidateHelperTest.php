@@ -9,6 +9,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -610,6 +611,28 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			[['file' => []],                '',     'Invalid fileID'],
 			[[],                            [],     'Inform or UUID or a File object'],
 			[['file' => ['fileId' => 171]], '',     ''],
+		];
+	}
+
+	/**
+	 * @dataProvider dataValidateIdentifyMethod
+	 */
+	public function testValidateIdentifyMethod(string $identifyMethod, bool $throwException): void {
+		if ($throwException) {
+			$this->expectException(LibresignException::class);
+		}
+		$return = $this->getValidateHelper()->validateIdentifyMethod($identifyMethod);
+		$this->assertNull($return);
+	}
+
+	public function dataValidateIdentifyMethod(): array {
+		return [
+			['', true],
+			['invalid', true],
+			['nextcloud', false],
+			['email-link', false],
+			['email-token', false],
+			['sms-token', false],
 		];
 	}
 }

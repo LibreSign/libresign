@@ -30,6 +30,8 @@ use OCP\DB\Types;
  * @method string getCode()
  * @method void setMetadata(array $metadata)
  * @method string getMetadata()
+ * @method void setIdentifyMethod(string $identifyMethod)
+ * @method string getIdentifyMethod()
  */
 class FileUser extends Entity {
 	/** @var integer */
@@ -67,6 +69,9 @@ class FileUser extends Entity {
 
 	/** @var string */
 	protected $metadata;
+
+	/** @var string */
+	protected $identifyMethod;
 
 	public function __construct() {
 		$this->addType('id', 'integer');

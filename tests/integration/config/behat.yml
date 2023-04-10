@@ -5,8 +5,6 @@ default:
     default:
       paths:
         - '%paths.base%/../features'
-      contexts:
-        - FeatureContext
 
   extensions:
       PhpBuiltin\Server: ~
