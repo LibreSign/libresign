@@ -213,7 +213,6 @@ class InstallService {
 		$resources = [
 			'java',
 			'jsignpdf',
-			'cli',
 			'cfssl'
 		];
 		$return = [];
@@ -363,62 +362,6 @@ class InstallService {
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
-	public function installCli(?bool $async = false): void {
-		if (PHP_OS_FAMILY === 'Windows') {
-			throw new \RuntimeException('LibreSign CLI do not work in Windows!');
-		}
-		$this->setResource('cli');
-		if ($async) {
-			$this->runAsync();
-			return;
-		}
-		$folder = $this->getFolder();
-		$version = '0.0.4';
-		$file = null;
-		if (PHP_OS_FAMILY === 'Darwin') {
-			$file = 'libresign_' . $version . '_Linux_arm64';
-		} elseif (PHP_OS_FAMILY === 'Linux') {
-			if (PHP_INT_SIZE === 4) {
-				$file = 'libresign_' . $version . '_Linux_i386';
-			} else {
-				$file = 'libresign_' . $version . '_Linux_x86_64';
-			}
-		}
-
-		$checksumUrl = 'https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/checksums.txt';
-		$hash = $this->getHash($folder, 'libresign-cli', $file, $version, $checksumUrl);
-
-		$url = 'https://github.com/LibreSign/libresign-cli/releases/download/v' . $version . '/' . $file;
-		$file = $folder->newFile('libresign-cli');
-		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
-
-		$this->download($url, 'libresign-cli', $fullPath, $hash, 'sha256');
-
-		if (PHP_OS_FAMILY !== 'Windows') {
-			chmod($fullPath, 0700);
-		}
-
-		$this->config->setAppValue(Application::APP_ID, 'libresign_cli_path', $fullPath);
-		$this->removeDownloadProgress();
-	}
-
-	public function uninstallCli(): void {
-		$libresignCliPath = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		if (!$libresignCliPath) {
-			return;
-		}
-		$appFolder = $this->getAppRootFolder();
-		$name = $appFolder->getName();
-		// Remove prefix
-		$path = explode($name, $libresignCliPath)[1];
-		try {
-			$folder = $appFolder->get($path);
-			$folder->delete();
-		} catch (NotFoundException $e) {
-		}
-		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
-	}
-
 	public function installCfssl(?bool $async = false): void {
 		$this->setResource('cfssl');
 		if ($async) {
@@ -453,7 +396,7 @@ class InstallService {
 		$baseUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/';
 		$checksumUrl = 'https://github.com/cloudflare/cfssl/releases/download/v' . self::CFSSL_VERSION . '/cfssl_' . self::CFSSL_VERSION . '_checksums.txt';
 		foreach ($downloads as $download) {
-			$hash = $this->getHash($folder, 'libresign-cli', $download['file'], self::CFSSL_VERSION, $checksumUrl);
+			$hash = $this->getHash($folder, 'cfssl', $download['file'], self::CFSSL_VERSION, $checksumUrl);
 
 			$file = $folder->newFile($download['destination']);
 			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
