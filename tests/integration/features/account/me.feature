@@ -3,7 +3,7 @@ Feature: account/me
     Given user "signer1" exists
 
   Scenario: who a me with fail because need an authenticated user
-    Given as user "guest"
+    Given as user ""
     And sending "get" to "/apps/libresign/api/0.1/account/me"
     Then the response should have a status code 404
 
