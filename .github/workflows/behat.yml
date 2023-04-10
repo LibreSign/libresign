@@ -1,4 +1,4 @@
-name: Integration tests
+name: Behat
 
 on:
   pull_request:
@@ -22,9 +22,8 @@ env:
   APP_NAME: libresign
 
 jobs:
-  integration:
+  behat:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -36,7 +35,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:15
         ports:
           - 4445:5432/tcp
         env:
@@ -72,11 +71,11 @@ jobs:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # 2.24.0
         with:
           php-version: ${{ matrix.php-versions }}
           tools: phpunit
-          extensions: mbstring, iconv, fileinfo, intl, sqlite, pdo_sqlite, mysql, pdo_mysql, pgsql, pdo_pgsql,
+          extensions: mbstring, iconv, fileinfo, intl, imagick, sqlite, pdo_sqlite, mysql, pdo_mysql, pgsql, pdo_pgsql,
           coverage: none
 
       - name: Set up dependencies
@@ -84,6 +83,11 @@ jobs:
         run: |
           composer install
           composer --working-dir=tests/integration install
+
+      - name: Install Ghostscript
+        run: |
+          sudo apt-get update
+          sudo apt-get install ghostscript
 
       - name: Set up Nextcloud
         run: |
@@ -109,4 +113,4 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
-        run: vendor/bin/behat -f junit -f pretty
+        run: vendor/bin/behat -f junit -f pretty --colors

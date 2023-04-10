@@ -342,7 +342,8 @@ class FileUserMapper extends QBMapper {
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
 						'fileUserId' => $signer->getId(),
-						'me' => $userId === $signer->getUserId()
+						'me' => $userId === $signer->getUserId(),
+						'identify' => $signer->getIdentifyMethod(),
 					];
 
 					if ($data['me']) {

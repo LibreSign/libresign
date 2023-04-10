@@ -279,6 +279,13 @@ class SignFileService {
 		return $return;
 	}
 
+	public function getUserIdentifyMethod(array $user): string {
+		if (array_key_exists('identify', $user)) {
+			return $user['identify'];
+		}
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -299,6 +306,8 @@ class SignFileService {
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 		}
+		$identifyMethod = $this->getUserIdentifyMethod($user);
+		$fileUser->setIdentifyMethod($identifyMethod);
 		$fileUser->setEmail($user['email']);
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 			$fileUser->setDescription($user['description']);
@@ -370,6 +379,8 @@ class SignFileService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
+			$identifyMethod = $this->getUserIdentifyMethod($user);
+			$this->validateHelper->validateIdentifyMethod($identifyMethod);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
@@ -827,7 +838,7 @@ class SignFileService {
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]));
 		}
-		$this->trhowIfFileUserNotExists($uuid, $user, $fileUser);
+		$this->trhowIfCantIdentifyUser($uuid, $user, $fileUser);
 		$this->throwIfUserIsNotSigner($user, $fileUser);
 		$this->throwIfAlreadySigned($fileEntity, $fileUser);
 		$this->throwIfInvalidUser($uuid, $user);
@@ -911,7 +922,7 @@ class SignFileService {
 		}
 	}
 
-	private function trhowIfFileUserNotExists(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
+	private function trhowIfCantIdentifyUser(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
 		if ($fileUser instanceof FileUserEntity) {
 			$fileUserId = $fileUser->getUserId();
 			if ($fileUserId) {

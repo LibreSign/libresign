@@ -484,6 +484,16 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateIdentifyMethod(string $identify): void {
+		if (!in_array($identify, ['nextcloud', 'email-link', 'email-token', 'sms-token'])) {
+			// TRANSLATORS When is requested to a person to sign a file, is
+			// necessary identify what is the identification method. The
+			// identification method is used to define how will be the sign
+			// flow.
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+	}
+
 	public function signerWasAssociated(array $signer): void {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
