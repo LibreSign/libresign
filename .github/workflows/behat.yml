@@ -89,6 +89,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install ghostscript
 
+      - name: SMTP service
+        uses: upgundecha/start-sendria-github-action@v1.0.0
+        with:
+          smtp-port: 1025
+
       - name: Set up Nextcloud
         run: |
           if [ "${{ matrix.databases }}" = "mysql" ]; then
@@ -108,6 +113,8 @@ jobs:
             --admin-user=admin \
             --admin-pass=admin
           ./occ app:enable ${{ env.APP_NAME }}
+          ./occ config:system:set mail_smtpport --value 1025 --type integer
+          ./occ config:system:set mail_smtphost --value 127.0.0.1
 
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration

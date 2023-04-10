@@ -88,7 +88,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateFileWithoutAllNecessaryData() {
-		$this->expectExceptionMessage('File type: %s. Inform URL or base64 or fileID.');
+		$this->expectExceptionMessage('File type: %s. Specify a URL, a base64 string or a fileID.');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['invalid'],
 			'name' => 'test'
