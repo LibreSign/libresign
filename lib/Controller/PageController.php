@@ -49,12 +49,12 @@ class PageController extends Controller {
 	 * @return TemplateResponse
 	 */
 	public function index(): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
@@ -72,12 +72,12 @@ class PageController extends Controller {
 	 * @return TemplateResponse
 	 */
 	public function sign($uuid): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -97,12 +97,12 @@ class PageController extends Controller {
 	 * @return TemplateResponse
 	 */
 	public function signAccountFile($uuid): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -175,12 +175,12 @@ class PageController extends Controller {
 	 * @return TemplateResponse
 	 */
 	public function validation(): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
@@ -209,12 +209,12 @@ class PageController extends Controller {
 	 * @return TemplateResponse
 	 */
 	public function resetPassword(): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
 			$this->request->getParam('uuid'),
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'reset_password');
@@ -230,12 +230,12 @@ class PageController extends Controller {
 	 * @PublicPage
 	 */
 	public function validationFile(string $uuid): TemplateResponse {
-		$this->initialState->provideInitialState('config', json_encode($this->accountService->getConfig(
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
-		)));
+		));
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
