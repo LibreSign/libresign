@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "Успіх",
     "Settings saved" : "Налаштування збережено",
     "deleted" : "вилучено",
+    "Sign process already started. Unable to change status." : "Процес підписування вже розпочато. Неможливо змінити статус.",
     "User already exists" : "Користувач вже існує",
     "File not found" : "Файл не знайдено",
     "File already exists" : "Файл вже існує",
