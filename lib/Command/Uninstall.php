@@ -40,11 +40,6 @@ class Uninstall extends Base {
 				InputOption::VALUE_NONE,
 				'CFSSL'
 			)
-			->addOption('cli',
-				null,
-				InputOption::VALUE_NONE,
-				'LibreSign CLI'
-			)
 			->addOption('java',
 				null,
 				InputOption::VALUE_NONE,
@@ -67,10 +62,6 @@ class Uninstall extends Base {
 			}
 			if ($input->getOption('cfssl') || $all) {
 				$this->installService->uninstallCfssl();
-				$ok = true;
-			}
-			if ($input->getOption('cli') || $all) {
-				$this->installService->uninstallCli($output);
 				$ok = true;
 			}
 		} catch (\Exception $e) {

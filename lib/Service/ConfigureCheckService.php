@@ -46,7 +46,6 @@ class ConfigureCheckService {
 		$return = [];
 		$return = array_merge($return, $this->checkJava());
 		$return = array_merge($return, $this->checkJSignPdf());
-		$return = array_merge($return, $this->checkLibresignCli());
 		return $return;
 	}
 
@@ -225,28 +224,6 @@ class ConfigureCheckService {
 			}
 		);
 		return empty($error);
-	}
-
-	/**
-	 * Check all requirements to use LibreSign CLI tool
-	 *
-	 * @return ConfigureCheckHelper[]
-	 */
-	private function checkLibresignCli(): array {
-		$path = $this->config->getAppValue(Application::APP_ID, 'libresign_cli_path');
-		if (!file_exists($path) || !is_executable($path)) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('LibreSign cli tools not found or without execute permission.')
-					->setResource('libresign-cli')
-					->setTip('Run occ libresign:install --cli'),
-			];
-		}
-		return [
-			(new ConfigureCheckHelper())
-				->setSuccessMessage('LibreSign cli tools found in path: ' . $path)
-				->setResource('libresign-cli'),
-		];
 	}
 
 	/**
