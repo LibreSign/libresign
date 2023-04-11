@@ -33,13 +33,6 @@
 			size="medium"
 			v-if="downloadStatus.jsignpdf > 0"
 			:value="downloadStatus.jsignpdf"/>
-
-		<label v-if="downloadStatus.cli > 0">cli</label>
-		<NcProgressBar
-			:error="true"
-			size="medium"
-			v-if="downloadStatus.cli > 0"
-			:value="downloadStatus.cli"/>
 	</NcSettingsSection>
 </template>
 <script>
@@ -67,7 +60,6 @@ export default {
 		downloadStatus: {
 			java: 0,
 			jsignpdf: 0,
-			cli: 0,
 			cfssl: 0,
 		}
 	}),
@@ -78,11 +70,9 @@ export default {
 			}
 			const java = data.filter((o) => o.resource == 'java' && o.status == 'error').length == 0
 			const jsignpdf = data.filter((o) => o.resource == 'jsignpdf' && o.status == 'error').length == 0
-			const libresign_cli = data.filter((o) => o.resource == 'libresign-cli' && o.status == 'error').length == 0
 			const cfssl = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
 			if (!java
 				|| !jsignpdf
-				|| !libresign_cli
 				|| !cfssl
 			) {
 				this.changeState('need download')

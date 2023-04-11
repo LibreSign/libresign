@@ -40,14 +40,6 @@ class Base extends CommandBase {
 		$this->installService->uninstallJSignPdf();
 	}
 
-	protected function installCli(): void {
-		$this->installService->installCli();
-	}
-
-	protected function uninstallCli(): void {
-		$this->installService->uninstallCli();
-	}
-
 	protected function installCfssl(): void {
 		$this->installService->installCfssl();
 	}

@@ -2,38 +2,32 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OC\SystemConfig;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Service\InstallService;
 use OCA\Libresign\Service\PdfParserService;
 use OCP\Files\File;
-use OCP\IConfig;
 use OCP\ITempManager;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
  */
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IConfig|MockObject */
-	private $config;
 	/** @var ITempManager */
 	private $tempManager;
-	/** @var InstallService|MockObject */
-	private $installService;
+	/** @var LoggerInterface|MockObject */
+	private $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->config = $this->createMock(IConfig::class);
 		$this->tempManager = \OC::$server->get(ITempManager::class);
-		$this->installService = $this->createMock(InstallService::class);
+		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getService(): PdfParserService {
 		return new PdfParserService(
-			$this->config,
 			$this->tempManager,
-			$this->installService
+			$this->loggerInterface
 		);
 	}
 
@@ -43,20 +37,6 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
 		$this->expectErrorMessageMatches($errorMessage);
-		$this->config
-			->method('getAppValue')
-			->willReturnCallback(function ($appid, $key, $default) {
-				switch ($key) {
-					case 'libresign_cli_path': return '/fake_path/';
-				}
-			});
-		$this->config
-			->method('getSystemValue')
-			->willReturnCallback(function ($key, $default) {
-				switch ($key) {
-					case 'datadirectory': return $default;
-				}
-			});
 		$file = $this->createMock(File::class);
 		if (file_exists($path)) {
 			$file->method('getContent')
@@ -76,10 +56,6 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 * @dataProvider providerGetMetadataWithSuccess
 	 */
 	public function testGetMetadataWithSuccess(string $path, array $expected): void {
-		$this->installService = \OC::$server->get(InstallService::class);
-		$this->systemConfig = \OC::$server->get(SystemConfig::class);
-		$this->config = \OC::$server->get(IConfig::class);
-
 		$file = $this->createMock(File::class);
 		$file->method('getContent')
 			->willReturn(file_get_contents($path));

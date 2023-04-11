@@ -108,7 +108,6 @@ class AdminController extends Controller {
 			$this->installService->installJava($async);
 			$this->installService->installJSignPdf($async);
 			$this->installService->installCfssl($async);
-			$this->installService->installCli($async);
 			$previous = [];
 			do {
 				$totalSize = $this->installService->getTotalSize();
