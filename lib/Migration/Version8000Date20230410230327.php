@@ -26,10 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use Closure;
-use OC\Files\AppData\Factory;
 use OCA\Libresign\AppInfo\Application;
-use OCP\DB\ISchemaWrapper;
+use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
 use OCP\IConfig;
@@ -37,12 +35,16 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version8000Date20230410230327 extends SimpleMigrationStep {
+	protected IConfig $config;
+	protected IAppDataFactory $appDataFactory;
 	protected IAppData $appData;
 
 	public function __construct(
-		protected IConfig $config,
-		protected Factory $appDataFactory
+		IConfig $config,
+		IAppDataFactory $appDataFactory
 	) {
+		$this->config = $config;
+		$this->appDataFactory = $appDataFactory;
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
