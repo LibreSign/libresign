@@ -3,11 +3,16 @@ default:
     '': '%paths.base%/../features/bootstrap'
   suites:
     default:
+      contexts:
+        - rpkamp\Behat\MailhogExtension\Context\MailhogContext
+        - FeatureContext
       paths:
         - '%paths.base%/../features'
 
   extensions:
-      PhpBuiltin\Server: ~
-      jarnaiz\JUnitFormatter\JUnitFormatterExtension:
-        filename: report.xml
-        outputDir: '%paths.base%/../output/'
+    rpkamp\Behat\MailhogExtension:
+      base_url: http://mailhog:8025
+    PhpBuiltin\Server: ~
+    jarnaiz\JUnitFormatter\JUnitFormatterExtension:
+      filename: report.xml
+      outputDir: '%paths.base%/../output/'
