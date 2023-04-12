@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Успешно је захтеван кôд за потписивање фајла.",
     "Failed to send code." : "Кôд није могао да се пошаље.",
     "draft" : "нацрт",
-    "able to sign" : "може да се потпише",
+    "Available for Signature" : "може да се потпише",
     "partially signed" : "делимично потписан",
     "signed" : "потписан",
     "deleted" : "обрисано",

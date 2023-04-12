@@ -15,7 +15,7 @@
     "The code to sign file was successfully requested." : "Pomyślnie zażądano kodu do podpisania pliku.",
     "Failed to send code." : "Nie udało się wysłać kodu.",
     "draft" : "kopia robocza",
-    "able to sign" : "do podpisu",
+    "Available for Signature" : "do podpisu",
     "partially signed" : "częściowo podpisany",
     "signed" : "podpisany",
     "deleted" : "usunięty",

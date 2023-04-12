@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "A fájl aláírásához használt kód kérése sikeres.",
     "Failed to send code." : "A kód küldése sikertelen.",
     "draft" : "vázlat",
-    "able to sign" : "aláírható",
+    "Available for Signature" : "aláírható",
     "partially signed" : "részlegesen aláírva",
     "signed" : "aláírva",
     "deleted" : "törölve",

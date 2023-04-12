@@ -16,7 +16,7 @@ OC.L10N.register(
     "Invalid data to sign file" : "Некорректные данные подписания файла",
     "Failed to send code." : "Не удалось отправить код.",
     "draft" : "черновик",
-    "able to sign" : "можно подписать",
+    "Available for Signature" : "можно подписать",
     "partially signed" : "частично подписан",
     "signed" : "подписан",
     "deleted" : "удалено",

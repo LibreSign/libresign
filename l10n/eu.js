@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Fitxategia sinatzeko kodea ondo eskatu da.",
     "Failed to send code." : "Kodea bidaltzeak huts egin du.",
     "draft" : "zirriborroa",
-    "able to sign" : "sinatu daiteke",
+    "Available for Signature" : "sinatu daiteke",
     "partially signed" : "partzialki sinatuta",
     "signed" : "sinatuta",
     "deleted" : "ezabatua",

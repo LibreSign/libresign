@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Koda, namenjena podpisu datoteke, je uspešno ustvarjena.",
     "Failed to send code." : "Pošiljanje kode je spodletelo.l",
     "draft" : "osnutek",
-    "able to sign" : "mogoče podpisati",
+    "Available for Signature" : "mogoče podpisati",
     "partially signed" : "delno podpisano",
     "signed" : "podpisano",
     "deleted" : "izbrisano",

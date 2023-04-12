@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Кодът за подписване на файла беше успешно поискан.",
     "Failed to send code." : "Неуспешно изпращане на код.",
     "draft" : "чернова",
-    "able to sign" : "в състояние да подпише",
+    "Available for Signature" : "в състояние да подпише",
     "partially signed" : "частично подписан",
     "signed" : "подписан",
     "deleted" : "изтрит",

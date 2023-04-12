@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Il codice per firmare il file è stato richiesto correttamente.",
     "Failed to send code." : "Impossibile inviare codice.",
     "draft" : "bozza",
-    "able to sign" : "in grado di firmare",
+    "Available for Signature" : "in grado di firmare",
     "partially signed" : "parzialmente firmato",
     "signed" : "firmato",
     "deleted" : "eliminato",

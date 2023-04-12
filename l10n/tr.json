@@ -15,7 +15,7 @@
     "The code to sign file was successfully requested." : "Dosyayı imzalama kodu istendi.",
     "Failed to send code." : "Kod gönderilemedi",
     "draft" : "taslak",
-    "able to sign" : "imzalayabilir",
+    "Available for Signature" : "imzalayabilir",
     "partially signed" : "kısmen imzalanmış",
     "signed" : "imzalanmış",
     "deleted" : "silindi",

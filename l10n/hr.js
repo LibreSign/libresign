@@ -15,7 +15,7 @@ OC.L10N.register(
     "Internal error. Contact admin." : "Unutarnja pogreška. Obratite se administratoru.",
     "Invalid data to sign file" : "Nevažeći podaci datoteke za potpisivanje",
     "draft" : "skica",
-    "able to sign" : "moguće potpisati",
+    "Available for Signature" : "moguće potpisati",
     "partially signed" : "djelomično potpisano",
     "signed" : "potpisao",
     "deleted" : "izbrisano",

@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "Kód pro podepsání souboru byl úspěšně vyžádán.",
     "Failed to send code." : "Kód se nepodařilo odeslat.",
     "draft" : "koncept",
-    "able to sign" : "možné podepsat",
+    "Available for Signature" : "možné podepsat",
     "partially signed" : "částečně podepsáno",
     "signed" : "podepsáno",
     "deleted" : "smazáno",

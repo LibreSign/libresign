@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "파일에 서명할 코드가 성공적으로 요청되었습니다.",
     "Failed to send code." : "코드를 전송하지 못했습니다.",
     "draft" : "초안",
-    "able to sign" : "서명할 수 있는",
+    "Available for Signature" : "서명할 수 있는",
     "partially signed" : "부분 서명됨",
     "signed" : "서명됨",
     "deleted" : "삭제됨",

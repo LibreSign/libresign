@@ -13,7 +13,7 @@ OC.L10N.register(
     "Internal error. Contact admin." : "Sisäinen virhe. Ota yhteys ylläpitäjään.",
     "Failed to send code." : "Koodin lähetys epäonnistui.",
     "draft" : "luonnos",
-    "able to sign" : "kykenevä allekirjoittamaan",
+    "Available for Signature" : "kykenevä allekirjoittamaan",
     "partially signed" : "osittain allekirjoitettu",
     "signed" : "allekirjoitettu",
     "deleted" : "poistettu",

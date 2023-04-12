@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "El codi per signar el fitxer s'ha sol·licitat correctament.",
     "Failed to send code." : "No s'ha pogut enviar el codi.",
     "draft" : "esborrany",
-    "able to sign" : "capaç de signar",
+    "Available for Signature" : "capaç de signar",
     "partially signed" : "signat parcialment",
     "signed" : "signat",
     "deleted" : "suprimit",

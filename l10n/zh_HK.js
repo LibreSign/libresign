@@ -17,7 +17,7 @@ OC.L10N.register(
     "The code to sign file was successfully requested." : "已成功請求籤名文件的代碼。",
     "Failed to send code." : "無法發送代碼。",
     "draft" : "草稿",
-    "able to sign" : "能夠簽署",
+    "Available for Signature" : "能夠簽署",
     "partially signed" : "部分簽署",
     "signed" : "已簽署",
     "deleted" : "已刪除",

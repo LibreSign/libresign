@@ -15,7 +15,7 @@
     "The code to sign file was successfully requested." : "已成功請求檔案簽名的代碼。",
     "Failed to send code." : "傳送代碼失敗。",
     "draft" : "草稿",
-    "able to sign" : "可以簽署",
+    "Available for Signature" : "可以簽署",
     "partially signed" : "部份簽署",
     "signed" : "已簽署",
     "deleted" : "已刪除",
