@@ -60,6 +60,7 @@ OC.L10N.register(
     "User %s has no email address." : "Корисник %s нема и-мејл адресу.",
     "Email required" : "Потребан је и-мејл",
     "Invalid email" : "Неисправан и-мејл",
+    "Invalid identification method" : "Неисправан метод идентификације",
     "File not loaded" : "Није пронађен фајл",
     "No signature was requested to %s" : "Није захтеван ниједан потпис за %s",
     "%s already signed this file" : "%s је већ потписао овај фајл",
