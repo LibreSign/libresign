@@ -15,6 +15,16 @@ Types of changes:
 <!-- changelog-linker -->
 ## 8.0.0-dev
 
+## 7.1.1 - 2023-04-12
+### Changed
+* Update translations
+* Drop libresign cli
+* Add identify method
+* Add more tests
+* Bump packages
+### Fixed
+* fix: style preview signatur modal like canva style
+
 ## 7.1.0 - 2023-04-01
 ### Changed
 * Make possible change the default user folder
