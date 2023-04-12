@@ -7,6 +7,7 @@ import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
+import PreviewSignature from '../../../Components/PreviewSignature'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -21,6 +22,7 @@ export default {
 		PasswordManager,
 		SMSManager,
 		EmailManager,
+		PreviewSignature,
 	},
 	props: {
 		uuid: {
@@ -227,7 +229,7 @@ export default {
 	<div class="document-sign">
 		<div class="sign-elements">
 			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
-				<img :src="element.url" alt="">
+				<PreviewSignature :src="element.url" />
 			</figure>
 		</div>
 		<div v-if="ableToSign">

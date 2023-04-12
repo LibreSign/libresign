@@ -1,5 +1,6 @@
 <script>
 import Draw from '../../../Components/Draw/index.js'
+import PreviewSignature from '../../../Components/PreviewSignature'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import { startsWith } from 'lodash-es'
 
@@ -8,6 +9,7 @@ export default {
 	components: {
 		Draw,
 		NcModal,
+		PreviewSignature,
 	},
 	props: {
 		type: {
@@ -65,7 +67,9 @@ export default {
 			<div v-if="hasSignature" class="icon icon-rename" @click="edit" />
 		</header>
 
-		<img v-if="hasSignature" :src="imgSrc">
+		<div v-if="hasSignature">
+			<PreviewSignature :src="imgSrc" />
+		</div>
 		<div v-else class="no-signatures" @click="edit">
 			<slot name="no-signatures" />
 		</div>
