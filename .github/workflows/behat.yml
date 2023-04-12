@@ -50,6 +50,11 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
         options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+      mailhog:
+        image: mailhog/mailhog
+        ports:
+          - 8025:8025/tcp
+          - 1025:1025/tcp
 
     steps:
       - name: Checkout server
@@ -89,11 +94,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install ghostscript
 
-      - name: SMTP service
-        uses: upgundecha/start-sendria-github-action@v1.0.0
-        with:
-          smtp-port: 1025
-
       - name: Set up Nextcloud
         run: |
           if [ "${{ matrix.databases }}" = "mysql" ]; then
@@ -101,6 +101,7 @@ jobs:
           elif [ "${{ matrix.databases }}" = "pgsql" ]; then
             export DB_PORT=4445
           fi
+          sudo echo "127.0.0.1 mailhog" | sudo tee -a /etc/hosts
           mkdir data
           ./occ maintenance:install \
             --verbose \
@@ -114,7 +115,7 @@ jobs:
             --admin-pass=admin
           ./occ app:enable ${{ env.APP_NAME }}
           ./occ config:system:set mail_smtpport --value 1025 --type integer
-          ./occ config:system:set mail_smtphost --value 127.0.0.1
+          ./occ config:system:set mail_smtphost --value mailhog
 
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
