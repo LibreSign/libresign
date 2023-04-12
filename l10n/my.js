@@ -23,7 +23,7 @@ OC.L10N.register(
     "Generated certificate!" : "Certificate ဖန်တီးပြီး!",
     "View" : "ကြည့်ရန်",
     "Document Information" : "စာရွက်စာတမ်း အချက်အလက်များ",
-    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။",
+    "Validate Signature." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။",
     "Enter the ID or UUID of the document to validate." : "စာရွက်စာတမ်းကို ခိုင်လုံမှုစစ်ဆေးရန် ID သို့မဟုတ် UUID ဖြည့်သွင်းပါ။",
     "Validation" : "ခိုင်လုံမှုစိစစ်ခြင်း",
     "No date" : "ရက်စွဲမပါ",

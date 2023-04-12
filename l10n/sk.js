@@ -272,7 +272,7 @@ OC.L10N.register(
     "View" : "Zobrazenie",
     "Signatories:" : "Signatári:",
     "Document Information" : "Informácie o dokumente",
-    "Validate Subscription." : "Overiť predplatné.",
+    "Validate Signature." : "Overiť predplatné.",
     "Enter the ID or UUID of the document to validate." : "Vložte ID alebo UUID dokumentu pre overenie.",
     "Validation" : "Kontrola platnosti",
     "No date" : "Žiadný dátum",

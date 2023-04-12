@@ -297,7 +297,7 @@ OC.L10N.register(
     "View" : "Изглед",
     "Signatories:" : "Подписалите се:",
     "Document Information" : "Информация за документ",
-    "Validate Subscription." : "Проверка на абонамент.",
+    "Validate Signature." : "Проверка на абонамент.",
     "Enter the ID or UUID of the document to validate." : "Въведете ID или UUID на документа за проверка.",
     "Validation" : "Проверка",
     "No date" : "Няма дата",

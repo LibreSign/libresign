@@ -297,7 +297,7 @@ OC.L10N.register(
     "View" : "Ansehen",
     "Signatories:" : "Unterzeichner:",
     "Document Information" : "Informationen zum Dokument",
-    "Validate Subscription." : "Abonnement überprüfen",
+    "Validate Signature." : "Abonnement überprüfen",
     "Enter the ID or UUID of the document to validate." : "Gebe die ID oder UUID des zu überprüfenden Dokuments ein",
     "Validation" : "Überprüfung",
     "No date" : "Kein Datum",

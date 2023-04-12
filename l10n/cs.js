@@ -300,7 +300,7 @@ OC.L10N.register(
     "View" : "Zobrazit",
     "Signatories:" : "Signatáři:",
     "Document Information" : "Informace o dokumentu",
-    "Validate Subscription." : "Ověřit předplatné.",
+    "Validate Signature." : "Ověřit předplatné.",
     "Enter the ID or UUID of the document to validate." : "Zadejte identif. nebo nikde se neopakující identif. dokumentu, který ověřit.",
     "Validation" : "Ověření",
     "No date" : "Žádné datum",

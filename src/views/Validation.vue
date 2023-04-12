@@ -111,7 +111,7 @@ export default {
 			infoDocument: t('libresign', 'Document Information'),
 			infoIcon: iconA,
 			signatureIcon: iconB,
-			title: t('libresign', 'Validate Subscription.'),
+			title: t('libresign', 'Validate Signature.'),
 			legend: t('libresign', 'Enter the ID or UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
 			noDateMessage: t('libresign', 'No date'),

@@ -248,7 +248,7 @@ OC.L10N.register(
     "There are no documents" : "无文档",
     "View" : "查看",
     "Document Information" : "文档信息",
-    "Validate Subscription." : "验证订阅",
+    "Validate Signature." : "验证订阅",
     "Enter the ID or UUID of the document to validate." : "素如要验证文档的 ID 或 UUID",
     "Validation" : "验证 ",
     "No date" : "无日期",

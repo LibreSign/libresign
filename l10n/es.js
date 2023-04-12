@@ -299,7 +299,7 @@ OC.L10N.register(
     "View" : "Ver",
     "Signatories:" : "Firmantes:",
     "Document Information" : "Información del documento",
-    "Validate Subscription." : "Validar Suscripción.",
+    "Validate Signature." : "Validar Suscripción.",
     "Enter the ID or UUID of the document to validate." : "Introduce el ID o UUID del documento para validar.",
     "Validation" : "Validación",
     "No date" : "Sin fecha",

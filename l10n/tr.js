@@ -300,7 +300,7 @@ OC.L10N.register(
     "View" : "Görüntüle",
     "Signatories:" : "İmzalayanlar:",
     "Document Information" : "Belge bilgileri",
-    "Validate Subscription." : "Aboneliği doğrula.",
+    "Validate Signature." : "Aboneliği doğrula.",
     "Enter the ID or UUID of the document to validate." : "Belgeyi doğrulamak için ID ya da UUID değerini yazın.",
     "Validation" : "Doğrulama",
     "No date" : "Tarih yok",

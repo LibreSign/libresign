@@ -80,7 +80,7 @@ OC.L10N.register(
     "Loading …" : "Φόρτωση …",
     "All Files" : "Όλα τα αρχεία",
     "View" : "Προβολή",
-    "Validate Subscription." : "Επικύρωση συνδρομής.",
+    "Validate Signature." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
     "User created!" : "Ο χρήστης δημιουργήθηκε!",

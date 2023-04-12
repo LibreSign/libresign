@@ -298,7 +298,7 @@
     "View" : "檢視",
     "Signatories:" : "簽署人：",
     "Document Information" : "文件資料",
-    "Validate Subscription." : "驗證訂閱。",
+    "Validate Signature." : "驗證訂閱。",
     "Enter the ID or UUID of the document to validate." : "輸入要驗證的文檔的 ID 或 UUID。",
     "Validation" : "驗證",
     "No date" : "沒有日期",

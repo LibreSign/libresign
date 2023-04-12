@@ -261,7 +261,7 @@ OC.L10N.register(
     "View" : "Visualizza",
     "Signatories:" : "Firmatari:",
     "Document Information" : "Informazioni sul documento",
-    "Validate Subscription." : "Convalida sottoscrizione.",
+    "Validate Signature." : "Convalida sottoscrizione.",
     "Enter the ID or UUID of the document to validate." : "Inserisci l'ID o l'UUID del documento dal convalidare.",
     "Validation" : "Convalida",
     "No date" : "Nessuna data",

@@ -300,7 +300,7 @@ OC.L10N.register(
     "View" : "Погледај",
     "Signatories:" : "Потписници:",
     "Document Information" : "Информације о документу",
-    "Validate Subscription." : "Потврди претплату.",
+    "Validate Signature." : "Потврди претплату.",
     "Enter the ID or UUID of the document to validate." : "Унесите ID или UUID документа који се проверава.",
     "Validation" : "Провера",
     "No date" : "Нема датума",

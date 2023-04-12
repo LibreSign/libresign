@@ -278,7 +278,7 @@ OC.L10N.register(
     "View" : "Ikusi",
     "Signatories:" : "Sinatzaileak:",
     "Document Information" : "Dokumentuen informazioa",
-    "Validate Subscription." : "Egiaztapen harpidetza.",
+    "Validate Signature." : "Egiaztapen harpidetza.",
     "Enter the ID or UUID of the document to validate." : "Sartu dokumentuaren IDa edo UUIDa balioztatzeko",
     "Validation" : "Egiaztapena",
     "No date" : "Datarik gabe",

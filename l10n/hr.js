@@ -216,7 +216,7 @@ OC.L10N.register(
     "There are no documents" : "Nema dokumenata",
     "View" : "Pregledaj",
     "Document Information" : "Podaci o dokumentu",
-    "Validate Subscription." : "Potvrdite valjanost pretplate.",
+    "Validate Signature." : "Potvrdite valjanost pretplate.",
     "Enter the ID or UUID of the document to validate." : "Unesite ID ili UUID dokumenta za potvrdu valjanosti.",
     "Validation" : "Potvrda valjanosti",
     "No date" : "Nema datuma",

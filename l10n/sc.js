@@ -155,7 +155,7 @@ OC.L10N.register(
     "All Files" : "Totu is archìvios",
     "View" : "Visualiza",
     "Document Information" : "Informatziones de su documentu",
-    "Validate Subscription." : "Cunvàlida sutaiscritzione.",
+    "Validate Signature." : "Cunvàlida sutaiscritzione.",
     "Enter the ID or UUID of the document to validate." : "Inserta su ID o UUID de su documentu de cumbalidare.",
     "Validation" : "Cunvàlida",
     "No date" : "Peruna data",

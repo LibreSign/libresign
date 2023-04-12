@@ -234,7 +234,7 @@ OC.L10N.register(
     "There are no documents" : "Ni razpoložljivih dokumentov",
     "View" : "Pogled",
     "Document Information" : "Podrobnosti dokumenta",
-    "Validate Subscription." : "Potrdi naročnino",
+    "Validate Signature." : "Potrdi naročnino",
     "Validation" : "Potrjevanje",
     "No date" : "Ni datuma",
     "This document is valid" : "Ta dokument je veljaven",

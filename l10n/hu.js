@@ -297,7 +297,7 @@ OC.L10N.register(
     "View" : "Megtekintés",
     "Signatories:" : "Aláírók:",
     "Document Information" : "Dokumentuminformációk",
-    "Validate Subscription." : "Aláírás ellenőrzése.",
+    "Validate Signature." : "Aláírás ellenőrzése.",
     "Enter the ID or UUID of the document to validate." : "Adja meg az ellenőrizendő dokumentum azonosítóját vagy UUID azonosítóját.",
     "Validation" : "Ellenőrzés",
     "No date" : "Nincs dátum",
