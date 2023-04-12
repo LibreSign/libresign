@@ -60,6 +60,7 @@ OC.L10N.register(
     "User %s has no email address." : "Uživatel %s nemá žádnou e-mailovou adresu.",
     "Email required" : "Vyžadován e-mail",
     "Invalid email" : "Neplatný e-mail",
+    "Invalid identification method" : "Neplatná metoda identifikace",
     "File not loaded" : "Soubor nebyl načten",
     "No signature was requested to %s" : "Pro %s nebyl vyžádán podpis",
     "%s already signed this file" : "%s už tento soubor podepsal(a)",
