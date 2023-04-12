@@ -33,9 +33,7 @@
 		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
-				<div class="modal-draw">
-					<img :src="imageData">
-				</div>
+				<PreviewSignature :src="imageData" />				
 				<div class="actions-modal">
 					<button class="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
@@ -51,6 +49,7 @@
 
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import PreviewSignature from '../PreviewSignature'
 import { SignatureImageDimensions } from './options.js'
 
 export default {
@@ -58,6 +57,7 @@ export default {
 
 	components: {
 		NcModal,
+		PreviewSignature,
 	},
 
 	data: () => ({
@@ -277,12 +277,6 @@ export default {
 		@media screen and (max-width: 650px){
 			width: 100%;
 		}
-	}
-	
-	.modal-draw{
-		background-color: #cecece;
-		border-radius: 10px;
-		margin: 10px;
 	}
 
 	.actions-modal{
