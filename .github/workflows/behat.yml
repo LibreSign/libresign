@@ -54,6 +54,7 @@ jobs:
         image: mailhog/mailhog
         ports:
           - 8025:8025/tcp
+          - 1025:1025/tcp
 
     steps:
       - name: Checkout server
@@ -120,4 +121,4 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
-        run: vendor/bin/behat -f junit -f pretty --colors -v
+        run: vendor/bin/behat -f junit -f pretty --colors
