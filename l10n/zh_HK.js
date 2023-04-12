@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "成功",
     "Invalid user or password" : "無效的用戶或密碼",
-    "_Element created with success_::_Elements created with success_" : ["成功建立元素"],
+    "Signature created!::_Elements created with success_" : ["成功建立元素"],
     "Elements not found" : "找不到元素",
     "Element not found" : "找不到元素",
     "Element updated with success" : "成功更新元素",

@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Sikeres",
     "Invalid user or password" : "Érvénytelen felhasználó vagy jelszó",
-    "_Element created with success_::_Elements created with success_" : ["Elem sikeresen létrehozva","Elemek sikeresen létrehozva"],
+    "Signature created!::_Elements created with success_" : ["Elem sikeresen létrehozva","Elemek sikeresen létrehozva"],
     "Elements not found" : "Az elemek nem találhatók",
     "Element not found" : "Az elem nem található",
     "Element updated with success" : "Elem sikeresen frissítve",

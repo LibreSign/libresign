@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Επιτυχής",
     "Invalid user or password" : "Μη έγκυρος χρήστης ή συνθηματικό",
-    "_Element created with success_::_Elements created with success_" : ["Στοιχεία δημιουργήθηκαν με επιτυχία","Στοιχεία δημιουργήθηκαν με επιτυχία"],
+    "Signature created!::_Elements created with success_" : ["Στοιχεία δημιουργήθηκαν με επιτυχία","Στοιχεία δημιουργήθηκαν με επιτυχία"],
     "Elements not found" : "Τα στοιχεία δεν βρέθηκαν",
     "Element not found" : "Το στοιχείο δεν βρέθηκε",
     "Element updated with success" : "Τα στοιχεία ανανεώθηκαν επιτυχώς ",

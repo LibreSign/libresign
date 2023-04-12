@@ -1,7 +1,7 @@
 { "translations": {
     "Success" : "Èxit",
     "Invalid user or password" : "Usuari o contrasenya no vàlids",
-    "_Element created with success_::_Elements created with success_" : ["Element creat amb èxit","Elements creats amb èxit"],
+    "Signature created!::_Elements created with success_" : ["Element creat amb èxit","Elements creats amb èxit"],
     "Elements not found" : "Elements no trobats",
     "Element not found" : "Element no trobat",
     "Element updated with success" : "Element actualitzat correctament",

@@ -1,7 +1,7 @@
 { "translations": {
     "Success" : "성공",
     "Invalid user or password" : "잘못된 유저 또는 암호",
-    "_Element created with success_::_Elements created with success_" : ["성공적으로 생성된 요소"],
+    "Signature created!::_Elements created with success_" : ["성공적으로 생성된 요소"],
     "Elements not found" : "요소를 찾을 수 없습니다.",
     "Element not found" : "요소를 찾을 수 없습니다.",
     "Element updated with success" : "성공으로 요소가 업데이트되었습니다.",

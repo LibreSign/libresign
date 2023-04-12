@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Arrakasta",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
-    "_Element created with success_::_Elements created with success_" : ["Elementua ondo sortu da","Elementuak ondo sortu dira"],
+    "Signature created!::_Elements created with success_" : ["Elementua ondo sortu da","Elementuak ondo sortu dira"],
     "Elements not found" : "Elementuak ez dira aurkitu",
     "Element not found" : "Elementua ez da aurkitu",
     "Element updated with success" : "Elementua ondo eguneratu da",

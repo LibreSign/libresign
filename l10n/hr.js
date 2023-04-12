@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Uspjeh",
     "Invalid user or password" : "Nevažeći korisnik ili zaporka",
-    "_Element created with success_::_Elements created with success_" : ["Element je uspješno stvoren","Elementi su uspješno stvoreni","Elementi su uspješno stvoreni"],
+    "Signature created!::_Elements created with success_" : ["Element je uspješno stvoren","Elementi su uspješno stvoreni","Elementi su uspješno stvoreni"],
     "Elements not found" : "Elementi nisu pronađeni",
     "Element not found" : "Element nije pronađen",
     "Element updated with success" : "Element uspješno ažuriran",

@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Úspěch",
     "Invalid user or password" : "Neplatný uživatel nebo heslo",
-    "_Element created with success_::_Elements created with success_" : ["Prvek úspěšně vytvořen","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny"],
+    "Signature created!::_Elements created with success_" : ["Prvek úspěšně vytvořen","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny"],
     "Elements not found" : "Prvky nenelezeny",
     "Element not found" : "Prvek nenalezen",
     "Element updated with success" : "Prvek úspěšně aktualizován",

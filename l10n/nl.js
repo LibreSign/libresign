@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Geslaagd",
     "Invalid user or password" : "Ongeldige gebruikersnaam of wachtwoord",
-    "_Element created with success_::_Elements created with success_" : ["Element succesvol gecreërd","Element succesvol gecreëerd"],
+    "Signature created!::_Elements created with success_" : ["Element succesvol gecreërd","Element succesvol gecreëerd"],
     "Elements not found" : "Element niet gevonden",
     "Element not found" : "Element niet gevonden",
     "Element updated with success" : "Element succesvol geüpdatet",

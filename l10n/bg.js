@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Success" : "Успех",
     "Invalid user or password" : "Невалиден потребител или парола",
-    "_Element created with success_::_Elements created with success_" : ["Елементите са успешно създадени","Елементите са успешно създадени"],
+    "Signature created!::_Elements created with success_" : ["Елементите са успешно създадени","Елементите са успешно създадени"],
     "Elements not found" : "Елементите не са намерени",
     "Element not found" : "Елеменът не е намерен",
     "Element updated with success" : "Елементът е обновен успешно",

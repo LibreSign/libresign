@@ -1,7 +1,7 @@
 { "translations": {
     "Success" : "Powiodło się",
     "Invalid user or password" : "Nieprawidłowy użytkownik lub hasło",
-    "_Element created with success_::_Elements created with success_" : ["Element utworzony z powodzeniem","Elementy utworzone z powodzeniem","Elementy utworzone z powodzeniem","Elementy utworzone z powodzeniem"],
+    "Signature created!::_Elements created with success_" : ["Element utworzony z powodzeniem","Elementy utworzone z powodzeniem","Elementy utworzone z powodzeniem","Elementy utworzone z powodzeniem"],
     "Elements not found" : "Nie znaleziono elementów",
     "Element not found" : "Nie znaleziono elementu",
     "Element updated with success" : "Element zaktualizowany z powodzeniem",

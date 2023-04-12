@@ -1,7 +1,7 @@
 { "translations": {
     "Success" : "Tamamlandı",
     "Invalid user or password" : "Kullanıcı adı ya da parola geçersiz",
-    "_Element created with success_::_Elements created with success_" : ["Bileşen oluşturuldu","Bileşen oluşturuldu"],
+    "Signature created!::_Elements created with success_" : ["Bileşen oluşturuldu","Bileşen oluşturuldu"],
     "Elements not found" : "Bileşen bulunamadı",
     "Element not found" : "Bileşen bulunamadı",
     "Element updated with success" : "Bileşen güncellendi",
