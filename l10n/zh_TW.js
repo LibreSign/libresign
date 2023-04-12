@@ -60,6 +60,7 @@ OC.L10N.register(
     "User %s has no email address." : "使用者 %s 沒有電子郵件地址。",
     "Email required" : "需要電子郵件",
     "Invalid email" : "無效的電子郵件",
+    "Invalid identification method" : "無效的身份識別方法",
     "File not loaded" : "無法載入檔案",
     "No signature was requested to %s" : "並未要求簽章 %s",
     "%s already signed this file" : "%s 已簽署了此檔案",
