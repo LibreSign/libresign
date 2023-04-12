@@ -9,7 +9,6 @@ Feature: page/sign
       | users | [{"uid":"signer1"}] |
       | name | document |
     And the response should have a status code 200
-    And test smtp
     And there should be 1 emails in my inbox
     And I open the latest email with subject "LibreSign: There is a file for you to sign"
     And I open the latest email with body "There is a document for you to sign. Access the link below"
