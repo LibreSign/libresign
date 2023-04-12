@@ -60,6 +60,7 @@ OC.L10N.register(
     "User %s has no email address." : "%s kullanıcısının bir e-posta adresi yok.",
     "Email required" : "E-posta adresinin yazılması zorunludur.",
     "Invalid email" : "E-posta adresi geçersiz",
+    "Invalid identification method" : "Tanımlama yöntemi geçersiz",
     "File not loaded" : "Dosya yüklenmedi",
     "No signature was requested to %s" : "%s için imza istenmemiş",
     "%s already signed this file" : "%s bu dosyayı zaten imzalamış",
