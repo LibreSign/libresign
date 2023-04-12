@@ -271,7 +271,7 @@ OC.L10N.register(
     "There are no documents" : "Neexistujú žiadne dokumenty",
     "View" : "Zobrazenie",
     "Signatories:" : "Signatári:",
-    "Document Informations" : "Informácie o dokumente",
+    "Document Information" : "Informácie o dokumente",
     "Validate Subscription." : "Overiť predplatné.",
     "Enter the ID or UUID of the document to validate." : "Vložte ID alebo UUID dokumentu pre overenie.",
     "Validation" : "Kontrola platnosti",

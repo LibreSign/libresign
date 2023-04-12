@@ -260,7 +260,7 @@ OC.L10N.register(
     "There are no documents" : "Brak dokumentów",
     "View" : "Podgląd",
     "Signatories:" : "Sygnatariusze:",
-    "Document Informations" : "Informacje o dokumencie",
+    "Document Information" : "Informacje o dokumencie",
     "Validate Subscription." : "Zatwierdź subskrypcję.",
     "Enter the ID or UUID of the document to validate." : "Wprowadź ID lub UUID dokumentu, który chcesz zweryfikować.",
     "Validation" : "Walidacja",

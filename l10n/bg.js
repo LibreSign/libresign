@@ -296,7 +296,7 @@ OC.L10N.register(
     "There are no documents" : "Няма документи",
     "View" : "Изглед",
     "Signatories:" : "Подписалите се:",
-    "Document Informations" : "Информация за документ",
+    "Document Information" : "Информация за документ",
     "Validate Subscription." : "Проверка на абонамент.",
     "Enter the ID or UUID of the document to validate." : "Въведете ID или UUID на документа за проверка.",
     "Validation" : "Проверка",

@@ -299,7 +299,7 @@ OC.L10N.register(
     "There are no documents" : "Нема докумената",
     "View" : "Погледај",
     "Signatories:" : "Потписници:",
-    "Document Informations" : "Информације о документу",
+    "Document Information" : "Информације о документу",
     "Validate Subscription." : "Потврди претплату.",
     "Enter the ID or UUID of the document to validate." : "Унесите ID или UUID документа који се проверава.",
     "Validation" : "Провера",

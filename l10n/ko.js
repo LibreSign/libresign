@@ -243,7 +243,7 @@ OC.L10N.register(
     "All Files" : "모든 파일",
     "There are no documents" : "문서가 없습니다.",
     "View" : "보기",
-    "Document Informations" : "문서 정보",
+    "Document Information" : "문서 정보",
     "Validate Subscription." : "구독 유효성 확인",
     "Enter the ID or UUID of the document to validate." : "인증할 문서의 ID 또는 UUID를 입력하십시오.",
     "Validation" : "인증",

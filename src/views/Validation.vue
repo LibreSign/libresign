@@ -108,7 +108,7 @@ export default {
 	data() {
 		return {
 			image: BackgroundImage,
-			infoDocument: t('libresign', 'Document Informations'),
+			infoDocument: t('libresign', 'Document Information'),
 			infoIcon: iconA,
 			signatureIcon: iconB,
 			title: t('libresign', 'Validate Subscription.'),

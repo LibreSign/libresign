@@ -298,7 +298,7 @@ OC.L10N.register(
     "There are no documents" : "Não existem documentos",
     "View" : "Visualizar",
     "Signatories:" : "Signatários:",
-    "Document Informations" : "Informações do Documento",
+    "Document Information" : "Informações do Documento",
     "Validate Subscription." : "Validar Assinatura. ",
     "Enter the ID or UUID of the document to validate." : "Insira o ID ou UUID do documento a ser validado. ",
     "Validation" : "Validação",

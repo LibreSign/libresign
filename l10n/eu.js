@@ -277,7 +277,7 @@ OC.L10N.register(
     "There are no documents" : "Ez dago dokumenturik",
     "View" : "Ikusi",
     "Signatories:" : "Sinatzaileak:",
-    "Document Informations" : "Dokumentuen informazioa",
+    "Document Information" : "Dokumentuen informazioa",
     "Validate Subscription." : "Egiaztapen harpidetza.",
     "Enter the ID or UUID of the document to validate." : "Sartu dokumentuaren IDa edo UUIDa balioztatzeko",
     "Validation" : "Egiaztapena",

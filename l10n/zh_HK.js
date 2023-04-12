@@ -299,7 +299,7 @@ OC.L10N.register(
     "There are no documents" : "沒有文件",
     "View" : "檢視",
     "Signatories:" : "簽署人：",
-    "Document Informations" : "文件資料",
+    "Document Information" : "文件資料",
     "Validate Subscription." : "驗證訂閱。",
     "Enter the ID or UUID of the document to validate." : "輸入要驗證的文檔的 ID 或 UUID。",
     "Validation" : "驗證",

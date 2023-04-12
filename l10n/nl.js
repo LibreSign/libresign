@@ -256,7 +256,7 @@ OC.L10N.register(
     "All Files" : "Alle bestanden",
     "There are no documents" : "Er zijn geen documenten",
     "View" : "Bekijken",
-    "Document Informations" : "Documentinformatie",
+    "Document Information" : "Documentinformatie",
     "Validate Subscription." : "Abonnement valideren",
     "Enter the ID or UUID of the document to validate." : "Voer de ID of UUID van het te valideren document in.",
     "Validation" : "Validatie",

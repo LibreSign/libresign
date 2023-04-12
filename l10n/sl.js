@@ -233,7 +233,7 @@ OC.L10N.register(
     "All Files" : "Vse datoteke",
     "There are no documents" : "Ni razpoložljivih dokumentov",
     "View" : "Pogled",
-    "Document Informations" : "Podrobnosti dokumenta",
+    "Document Information" : "Podrobnosti dokumenta",
     "Validate Subscription." : "Potrdi naročnino",
     "Validation" : "Potrjevanje",
     "No date" : "Ni datuma",
