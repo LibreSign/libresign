@@ -33,7 +33,9 @@
 		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
-				<img :src="imageData">
+				<div class="modal-draw">
+					<img :src="imageData">
+				</div>
 				<div class="actions-modal">
 					<button class="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
@@ -275,6 +277,12 @@ export default {
 		@media screen and (max-width: 650px){
 			width: 100%;
 		}
+	}
+	
+	.modal-draw{
+		background-color: #cecece;
+		border-radius: 10px;
+		margin: 10px;
 	}
 
 	.actions-modal{
