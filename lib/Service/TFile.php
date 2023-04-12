@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
