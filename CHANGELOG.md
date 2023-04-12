@@ -13,6 +13,16 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+## 6.3.1 - 2023-04-12
+### Changed
+* Update translations
+* Drop libresign cli
+* Add identify method
+* Add more tests
+* Bump packages
+### Fixed
+* fix: style preview signatur modal like canva style
+
 ## 6.3.0 - 2023-04-01
 ### Changed
 * Make possible change the default user folder
