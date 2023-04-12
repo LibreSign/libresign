@@ -182,7 +182,7 @@
     "Error creating new password, please contact the administrator" : "Belgeyi imzalamak için yeni parola oluşturulurken sorun çıktı. Lütfen BT yöneticiniz ile görüşün",
     "Create new subscription." : "Yeni abonelik ekle.",
     "Root certificate has not been configured by the Administrator!" : "Kök sertifika Yönetici tarafından yapılandırılmamış!",
-    "You need to create an account with the same email you received the invitation" : "Çağrıyı aldığınız e-posta adresi ile bir hesap açmalısınız",
+    "You need to create an account with the same email address you received the invitation" : "Çağrıyı aldığınız e-posta adresi ile bir hesap açmalısınız",
     "Your password must be greater than 4 digits" : "Parolanız en az 4 rakamdan uzun olmalıdır",
     "Confirm password" : "Parola onayı",
     "Passwords does not match" : "Parola ile onayı aynı değil",

@@ -183,7 +183,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Produciuse un erro ao crear un novo contrasinal, póñase en contacto co administrador",
     "Create new subscription." : "Crear unha nova subscrición.",
     "Root certificate has not been configured by the Administrator!" : "O certificado raíz non foi configurado polo Administrador!",
-    "You need to create an account with the same email you received the invitation" : "Debes crear unha conta co mesmo correo electrónico no que recibiches a invitación",
+    "You need to create an account with the same email address you received the invitation" : "Debes crear unha conta co mesmo correo electrónico no que recibiches a invitación",
     "Your password must be greater than 4 digits" : "O teu contrasinal debe ter máis de 4 díxitos",
     "Confirm password" : "Confirme o contrasinal",
     "Passwords does not match" : "Os contrasinais non coinciden",

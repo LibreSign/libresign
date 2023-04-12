@@ -180,7 +180,7 @@
     "Error creating new password, please contact the administrator" : "Errorea pasahitz berria sortzean, jarri administratzailearekin harremanetan",
     "Create new subscription." : "Sortu harpidetza berria.",
     "Root certificate has not been configured by the Administrator!" : "Administratzaileak ez du root ziurtagiria konfiguratu!",
-    "You need to create an account with the same email you received the invitation" : "Sortu behar duzu kontu bat gonbidapena jaso zenuen posta elektroniko berarekin ",
+    "You need to create an account with the same email address you received the invitation" : "Sortu behar duzu kontu bat gonbidapena jaso zenuen posta elektroniko berarekin ",
     "Your password must be greater than 4 digits" : "Zure pasahitzak 4 digitu baino gehiago eduki behar ditu",
     "Confirm password" : "Pasahitza berretsi",
     "Passwords does not match" : "Pasahitzak ez datoz bat",

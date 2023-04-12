@@ -183,7 +183,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Hiba az új jelszó létrehozása során, vegye fel a kapcsolatot a rendszergazdával",
     "Create new subscription." : "Új előfizetés létrehozása",
     "Root certificate has not been configured by the Administrator!" : "A rendszergazda nem konfigurálta a gyökértanúsítványt.",
-    "You need to create an account with the same email you received the invitation" : "Azzal az e-mail-címmel kell létrehoznia fiókot, amelyikre a meghívót kapta",
+    "You need to create an account with the same email address you received the invitation" : "Azzal az e-mail-címmel kell létrehoznia fiókot, amelyikre a meghívót kapta",
     "Your password must be greater than 4 digits" : "A jelszavának 4 számjegynél hosszabbnak kell lennie.",
     "Confirm password" : "Jelszó megerősítése",
     "Passwords does not match" : "A jelszavak nem egyeznek",

@@ -184,7 +184,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Fehler beim Erstellen eines neuen Passwortes. Bitte kontaktieren Sie Ihren Administrator.",
     "Create new subscription." : "Neues Abonnement erstellen.",
     "Root certificate has not been configured by the Administrator!" : "Root-Zertifikat wurde vom Administrator noch nicht konfiguriert!",
-    "You need to create an account with the same email you received the invitation" : "Sie müssen ein Konto mit derselben E-Mail-Adresse erstellen, über die Sie die Einladung erhalten haben",
+    "You need to create an account with the same email address you received the invitation" : "Sie müssen ein Konto mit derselben E-Mail-Adresse erstellen, über die Sie die Einladung erhalten haben",
     "Your password must be greater than 4 digits" : "Ihr Passwort muss länger als 4 Zeichen sein",
     "Confirm password" : "Passwort bestätigen",
     "Passwords does not match" : "Passwörter stimmen nicht überein",

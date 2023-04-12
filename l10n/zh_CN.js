@@ -168,7 +168,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "创建新密码出错，请联系管理员",
     "Create new subscription." : "创建新订阅",
     "Root certificate has not been configured by the Administrator!" : "管理员尚未配置根证书！",
-    "You need to create an account with the same email you received the invitation" : "你需要用和收到邀请相同的电子邮箱创建一个账户",
+    "You need to create an account with the same email address you received the invitation" : "你需要用和收到邀请相同的电子邮箱创建一个账户",
     "Your password must be greater than 4 digits" : "你的密码长度必须大于4位",
     "Confirm password" : "确认密码",
     "Passwords does not match" : "密码不匹配",

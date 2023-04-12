@@ -34,7 +34,7 @@
 						:size="sizeAvatar" />
 
 					<div v-show="controllerView === 0" class="form-account">
-						<h2>{{ t('libresign', 'You need to create an account with the same email you received the invitation') }}</h2>
+						<h2>{{ t('libresign', 'You need to create an account with the same email address you received the invitation') }}</h2>
 
 						<div class="group">
 							<input v-model.trim="$v.email.$model"

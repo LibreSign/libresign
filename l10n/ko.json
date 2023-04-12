@@ -164,7 +164,7 @@
     "Error creating new password, please contact the administrator" : "새 암호 생성 중 오류가 발생했습니다. 관리자에게 문의하십시오.",
     "Create new subscription." : "새 헤드라인 등록을 만듭니다.",
     "Root certificate has not been configured by the Administrator!" : "관리자가 루트 인증서를 구성하지 않았습니다!",
-    "You need to create an account with the same email you received the invitation" : "초대를 받은 것과 동일한 전자 메일로 계정을 만들어야 합니다.",
+    "You need to create an account with the same email address you received the invitation" : "초대를 받은 것과 동일한 전자 메일로 계정을 만들어야 합니다.",
     "Your password must be greater than 4 digits" : "비밀번호는 4자리 이상이어야 합니다.",
     "Confirm password" : "암호 확인",
     "Passwords does not match" : "암호가 일치하지 않습니다.",

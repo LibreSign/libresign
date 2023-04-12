@@ -183,7 +183,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "S'ha produït un error en crear una contrasenya nova, poseu-vos en contacte amb l'administrador",
     "Create new subscription." : "Crea una subscripció nova.",
     "Root certificate has not been configured by the Administrator!" : "El certificat arrel no ha estat configurat per l'administrador!",
-    "You need to create an account with the same email you received the invitation" : "Heu de crear un compte amb el mateix correu electrònic que heu rebut la invitació",
+    "You need to create an account with the same email address you received the invitation" : "Heu de crear un compte amb el mateix correu electrònic que heu rebut la invitació",
     "Your password must be greater than 4 digits" : "La vostra contrasenya ha de tenir més de 4 dígits",
     "Confirm password" : "Confirma la contrasenya",
     "Passwords does not match" : "Les contrasenyes no coincideixen",

@@ -184,7 +184,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Грешка приликом креирања нове лозинке, молимо вас да се обратите администратору",
     "Create new subscription." : "Креирање нове претплате.",
     "Root certificate has not been configured by the Administrator!" : "Администратор није подесио корени сертификат!",
-    "You need to create an account with the same email you received the invitation" : "Морате да креирате налог са истим и-мејлом на који сте примили позивницу",
+    "You need to create an account with the same email address you received the invitation" : "Морате да креирате налог са истим и-мејлом на који сте примили позивницу",
     "Your password must be greater than 4 digits" : "Ваша лозинка мора имати више од 4 цифре",
     "Confirm password" : "Потврдите лозинку",
     "Passwords does not match" : "Лозинке се не подударају",

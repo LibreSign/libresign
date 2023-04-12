@@ -182,7 +182,7 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Chyba pri vytváraní nového hesla, prosím kontaktujte administrátora",
     "Create new subscription." : "Vytvoriť nový odber.",
     "Root certificate has not been configured by the Administrator!" : "Koreňový certifikát nebol nastavený Administrátorom!",
-    "You need to create an account with the same email you received the invitation" : "Musíte si vytvoriť účet s rovnakým e-mailom, na aký ste dostali pozvánku",
+    "You need to create an account with the same email address you received the invitation" : "Musíte si vytvoriť účet s rovnakým e-mailom, na aký ste dostali pozvánku",
     "Your password must be greater than 4 digits" : "Vaše heslo musí byť dlhšie ako 4 znaky",
     "Confirm password" : "Potvrďte heslo",
     "Passwords does not match" : "Heslá sa nezhodujú",

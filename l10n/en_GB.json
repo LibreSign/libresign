@@ -181,7 +181,7 @@
     "Error creating new password, please contact the administrator" : "Error creating new password, please contact the administrator",
     "Create new subscription." : "Create new subscription.",
     "Root certificate has not been configured by the Administrator!" : "Root certificate has not been configured by the Administrator!",
-    "You need to create an account with the same email you received the invitation" : "You need to create an account with the same email you received the invitation",
+    "You need to create an account with the same email address you received the invitation" : "You need to create an account with the same email address you received the invitation",
     "Your password must be greater than 4 digits" : "Your password must be greater than 4 digits",
     "Confirm password" : "Confirm password",
     "Passwords does not match" : "Passwords does not match",

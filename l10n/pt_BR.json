@@ -181,7 +181,7 @@
     "Error creating new password, please contact the administrator" : "Erro ao criar nova senha, entre em contato com o administrador ",
     "Create new subscription." : "Criar nova assinatura.",
     "Root certificate has not been configured by the Administrator!" : "Certificado raiz não foi configurado pelo administrador!",
-    "You need to create an account with the same email you received the invitation" : "Você precisa criar uma conta com o mesmo e-mail com o qual recebeu o convite ",
+    "You need to create an account with the same email address you received the invitation" : "Você precisa criar uma conta com o mesmo e-mail com o qual recebeu o convite ",
     "Your password must be greater than 4 digits" : "Sua senha deve ter mais de 4 dígitos",
     "Confirm password" : "Confirmação de senha",
     "Passwords does not match" : "As senhas não coincidem",
