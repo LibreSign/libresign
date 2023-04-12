@@ -189,7 +189,7 @@ OC.L10N.register(
     "Passwords does not match" : "A jelszavak nem egyeznek",
     "Next" : "Következő",
     "Set a password to sign the document" : "Állítson be egy jelszót a dokumentum aláírásához",
-    "Password for sign document." : "Jelszó a dokumentum aláírásához.",
+    "Password to sign the document." : "Jelszó a dokumentum aláírásához.",
     "Create password to sign document" : "Jelszó létrehozása a dokumentum aláírásához",
     "Do you want to create your signature and initials now?" : "Biztos, hogy most létrehozza az aláírását és monogramját?",
     "Yes" : "Igen",

@@ -174,7 +174,7 @@ OC.L10N.register(
     "Passwords does not match" : "密码不匹配",
     "Next" : "下一个",
     "Set a password to sign the document" : "设置文档签字密码",
-    "Password for sign document." : "签署文档的密码",
+    "Password to sign the document." : "签署文档的密码",
     "Create password to sign document" : "创建密码来签署文档",
     "Do you want to create your signature and initials now?" : "您想现在创建您的签名和首字母吗？",
     "Yes" : "是",

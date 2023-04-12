@@ -103,7 +103,7 @@ OC.L10N.register(
     "Root certificate has not been configured by the Administrator!" : "Корневой сертификат не был настроен администратором!",
     "Confirm password" : "Подтвердить пароль",
     "Next" : "Далее",
-    "Password for sign document." : "Пароль для подписания",
+    "Password to sign the document." : "Пароль для подписания",
     "Yes" : "Да",
     "No" : "Нет",
     "Page not found" : "Страница не найдена",

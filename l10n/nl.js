@@ -183,7 +183,7 @@ OC.L10N.register(
     "Passwords does not match" : "Wachtwoorden komen niet overeen",
     "Next" : "Volgende",
     "Set a password to sign the document" : "Stel een wachtwoord in om dit document te tekenen",
-    "Password for sign document." : "Wachtwoord om documenten te tekenen.",
+    "Password to sign the document." : "Wachtwoord om documenten te tekenen.",
     "Create password to sign document" : "Creëer wachtwoord om dit document te tekenen",
     "Do you want to create your signature and initials now?" : "Wil je je handtekening en initialen nu creëren?",
     "Yes" : "Ja",

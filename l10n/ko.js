@@ -172,7 +172,7 @@ OC.L10N.register(
     "Passwords does not match" : "암호가 일치하지 않습니다.",
     "Next" : "다음",
     "Set a password to sign the document" : "문서에 서명하기 위한 암호 설정",
-    "Password for sign document." : "서명 문서의 암호입니다.",
+    "Password to sign the document." : "서명 문서의 암호입니다.",
     "Create password to sign document" : "문서에 서명할 암호 만들기",
     "Do you want to create your signature and initials now?" : "지금 서명과 이니셜을 만드시겠습니까?",
     "Yes" : "예",

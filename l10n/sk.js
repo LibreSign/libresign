@@ -188,7 +188,7 @@ OC.L10N.register(
     "Passwords does not match" : "Heslá sa nezhodujú",
     "Next" : "Ďalšie",
     "Set a password to sign the document" : "Nastaviť heslo pre podpis dokumentu",
-    "Password for sign document." : "Heslo pre podpis dokumentu.",
+    "Password to sign the document." : "Heslo pre podpis dokumentu.",
     "Create password to sign document" : "Vytvoriť heslo pre podpisovanie dokumentu",
     "Do you want to create your signature and initials now?" : "Chcete teraz vytvoriť svoj podpis a iniciály?",
     "Yes" : "Áno",

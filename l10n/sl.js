@@ -173,7 +173,7 @@ OC.L10N.register(
     "Passwords does not match" : "Gesli se ne skladata",
     "Next" : "Naprej",
     "Set a password to sign the document" : "Vpišite geslo za podpisovanje dokumenta",
-    "Password for sign document." : "Geslo za podpis dokumenta.",
+    "Password to sign the document." : "Geslo za podpis dokumenta.",
     "Create password to sign document" : "Ustvarite geslo za podpisovanje dokumenta",
     "Do you want to create your signature and initials now?" : "Ali želite ustvariti podpis in začetnice imena in priimka?",
     "Yes" : "Da",

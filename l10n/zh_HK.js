@@ -190,7 +190,7 @@ OC.L10N.register(
     "Passwords does not match" : "密碼不匹配",
     "Next" : "下一個檔案",
     "Set a password to sign the document" : "設置密碼以簽署文件",
-    "Password for sign document." : "簽署文件的密碼。",
+    "Password to sign the document." : "簽署文件的密碼。",
     "Create password to sign document" : "創建密碼以簽署此文件",
     "Do you want to create your signature and initials now?" : "您想現在創建您的簽名和簽名首字母嗎？",
     "Yes" : "是",

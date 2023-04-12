@@ -188,7 +188,7 @@ OC.L10N.register(
     "Passwords does not match" : "Pasahitzak ez datoz bat",
     "Next" : "Hurrengoa",
     "Set a password to sign the document" : "Ezarri pasahitza dokumentua sinatzeko",
-    "Password for sign document." : "Dokumentua sinatzeko pasahitza.",
+    "Password to sign the document." : "Dokumentua sinatzeko pasahitza.",
     "Create password to sign document" : "Sortu pasahitza dokumentua sinatzeko",
     "Do you want to create your signature and initials now?" : "Zure sinadura eta inizialak orain sortu nahi dituzu?",
     "Yes" : "Bai",

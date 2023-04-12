@@ -161,7 +161,7 @@ OC.L10N.register(
     "Passwords does not match" : "Zaporke se ne podudaraju",
     "Next" : "Dalje",
     "Set a password to sign the document" : "Postavi zaporku za potpisivanje dokumenta",
-    "Password for sign document." : "Zaporka za potpisani dokument.",
+    "Password to sign the document." : "Zaporka za potpisani dokument.",
     "Create password to sign document" : "Stvori zaporku za potpisivanje dokumenta",
     "Do you want to create your signature and initials now?" : "Želite li stvoriti potpis i inicijale?",
     "Yes" : "Da",

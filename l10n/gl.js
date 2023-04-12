@@ -189,7 +189,7 @@ OC.L10N.register(
     "Passwords does not match" : "Os contrasinais non coinciden",
     "Next" : "Seguinte",
     "Set a password to sign the document" : "Establece un contrasinal para asinar o documento",
-    "Password for sign document." : "Contrasinal para asinar o documento.",
+    "Password to sign the document." : "Contrasinal para asinar o documento.",
     "Create password to sign document" : "Crear contrasinal para asinar o documento",
     "Do you want to create your signature and initials now?" : "Queres crear a túa sinatura e iniciais agora?",
     "Yes" : "Si",

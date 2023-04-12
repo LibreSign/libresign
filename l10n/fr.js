@@ -189,7 +189,7 @@ OC.L10N.register(
     "Passwords does not match" : "Les mots de passe ne correspondent pas",
     "Next" : "Suivant",
     "Set a password to sign the document" : "Choisir un mot de passe pour signer le document",
-    "Password for sign document." : "Mot de passe pour signer le document.",
+    "Password to sign the document." : "Mot de passe pour signer le document.",
     "Create password to sign document" : "Créer un mot de passe pour signer le document",
     "Do you want to create your signature and initials now?" : "Voulez-vous créer votre signature ainsi que vos initiales maintenant ?",
     "Yes" : "Oui",

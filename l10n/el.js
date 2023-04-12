@@ -54,7 +54,7 @@ OC.L10N.register(
     "Enter a password" : "Εισάγετε συνθηματικό",
     "Confirm password" : "Επιβεβαίωση συνθηματικού",
     "Next" : "Επόμενο",
-    "Password for sign document." : "Συνθηματικό για υπογραφή του εγγράφου.",
+    "Password to sign the document." : "Συνθηματικό για υπογραφή του εγγράφου.",
     "Yes" : "Ναι",
     "No" : "Όχι",
     "Page not found" : "Δεν βρέθηκε η σελίδα",

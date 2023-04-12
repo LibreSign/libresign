@@ -190,7 +190,7 @@ OC.L10N.register(
     "Passwords does not match" : "Лозинке се не подударају",
     "Next" : "Следећа",
     "Set a password to sign the document" : "Поставите лозинку да потпишете документ",
-    "Password for sign document." : "Лозинка за потписивање документа.",
+    "Password to sign the document." : "Лозинка за потписивање документа.",
     "Create password to sign document" : "Креирајте лозинку да потпишете документ",
     "Do you want to create your signature and initials now?" : "Да ли желите да сада креирате свој потпис и иницијале?",
     "Yes" : "Да",

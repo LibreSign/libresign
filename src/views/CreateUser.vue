@@ -78,7 +78,7 @@
 						<div class="group">
 							<input v-model="$v.pfx.$model"
 								type="password"
-								:placeholder="t('libresign', 'Password for sign document.')">
+								:placeholder="t('libresign', 'Password to sign the document.')">
 							<span v-show="showPfxError">{{ t('libresign', 'Your password must be greater than 4 digits') }} </span>
 						</div>
 						<div class="buttons">
