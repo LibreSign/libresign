@@ -80,10 +80,10 @@ import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
-import { getInitialState } from './services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 import { defaults } from 'lodash-es'
 
-const libresignState = getInitialState()
+const libresignState = loadState('libresign', 'config')
 
 export default {
 	name: 'App',
