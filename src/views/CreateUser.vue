@@ -131,7 +131,7 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import Draw from '../Components/Draw/index.js'
-import { getInitialState } from '../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'CreateUser',
@@ -241,7 +241,7 @@ export default {
 	created() {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
-		this.initial = getInitialState()
+		this.initial = loadState('libresign', 'config')
 	},
 
 	methods: {
