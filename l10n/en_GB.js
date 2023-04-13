@@ -60,6 +60,7 @@ OC.L10N.register(
     "User %s has no email address." : "User %s has no email address.",
     "Email required" : "Email required",
     "Invalid email" : "Invalid email",
+    "Invalid identification method" : "Invalid identification method",
     "File not loaded" : "File not loaded",
     "No signature was requested to %s" : "No signature was requested to %s",
     "%s already signed this file" : "%s already signed this file",
