@@ -1,7 +1,7 @@
 <template>
     <div class="modal-draw">
         <img :src="src">
-    </div>				
+    </div>
 </template>
 
 <script>
@@ -26,7 +26,6 @@ export default {
 		canvas: null,
 		isDrawing: false,
 		color: '#000000',
-		src: null,
 	}),
 
 	mounted() {
