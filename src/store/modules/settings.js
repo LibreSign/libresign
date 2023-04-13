@@ -1,7 +1,7 @@
-import { getInitialState } from '../../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 import { defaults } from 'lodash-es'
 
-const libresignState = getInitialState()
+const libresignState = loadState('libresign', 'config')
 
 export default {
 	namespaced: true,

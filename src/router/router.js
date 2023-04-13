@@ -22,9 +22,9 @@
 
 import { translate as t } from '@nextcloud/l10n'
 import { selectAction } from '../helpers/SelectAction.js'
-import { getInitialState } from '../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 
-const libresignVar = getInitialState()
+const libresignVar = loadState('libresign', 'config')
 
 const routes = [
 	{
