@@ -1,4 +1,4 @@
-Feature: page/sign
+Feature: page/sign_default
   Background: Create users
     Given user "signer1" exists
     And as user "admin"
@@ -22,6 +22,9 @@ Feature: page/sign
       | callback | |
       | status | 2 |
       | status_text | pending |
+    And the signer contains
+      | key | value |
+      | identify | nextcloud |
 
   Scenario: Open sign file with invalid data
     # With invalid UUID, need to be the signer UUID
