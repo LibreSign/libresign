@@ -20,7 +20,7 @@
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
 import { showSuccess } from '@nextcloud/dialogs'
 import { defaultsDeep, set } from 'lodash-es'
-import { getInitialState } from '../../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 import { canSign, getStatusLabel, service as signService } from '../../domains/sign/index.js'
 import { onError, showErrors } from '../../helpers/errors.js'
 import PDFViewer from './_partials/PDFViewer.vue'
@@ -40,7 +40,7 @@ export default {
 		},
 	},
 	data() {
-		const state = defaultsDeep(getInitialState() || {}, {
+		const state = defaultsDeep(loadState('libresign', 'config') || {}, {
 			action: 0,
 			errors: [],
 			user: {

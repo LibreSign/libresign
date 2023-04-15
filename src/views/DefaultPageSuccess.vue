@@ -38,7 +38,7 @@
 import icon from '../assets/images/logo-white.png'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { getInitialState } from '../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 export default {
 	name: 'DefaultPageSuccess',
 	data() {
@@ -49,7 +49,7 @@ export default {
 	},
 	computed: {
 		myUuid() {
-			const config = getInitialState()
+			const config = loadState('libresign', 'config')
 			const getUuid = this.$store.getters.getUuidToValidate
 			if (getUuid) {
 				return getUuid
