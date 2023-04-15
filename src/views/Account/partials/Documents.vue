@@ -5,7 +5,7 @@ import ProgressBar from '../../../Components/ProgressBar.vue'
 import { documentsService, parseDocument } from '../../../domains/documents/index.js'
 import { pathJoin } from '../../../helpers/path.js'
 import { onError } from '../../../helpers/errors.js'
-import { getInitialState } from '../../../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -58,7 +58,7 @@ export default {
 			return Object.values(this.documents)
 		},
 		enabledFlow() {
-			return getInitialState().settings.identificationDocumentsFlow
+			return loadState('libresign', 'config').settings.identificationDocumentsFlow
 		}
 	},
 	mounted() {

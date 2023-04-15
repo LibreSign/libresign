@@ -30,11 +30,11 @@ import validate from './modules/validate.js'
 import error from './modules/errors.js'
 import settings from './modules/settings.js'
 import user from './modules/user.js'
-import { getInitialState } from '../services/InitialStateService.js'
+import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Vuex)
 
-const libresignVar = getInitialState()
+const libresignVar = loadState('libresign', 'config')
 
 export default new Store({
 
