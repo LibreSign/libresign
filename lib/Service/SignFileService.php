@@ -840,7 +840,7 @@ class SignFileService {
 		$this->trhowIfCantIdentifyUser($uuid, $user, $fileUser);
 		$this->throwIfUserIsNotSigner($user, $fileUser);
 		$this->throwIfAlreadySigned($fileEntity, $fileUser);
-		$this->throwIfInvalidUser($uuid, $user);
+		$this->throwIfInvalidUser($uuid, $fileUser, $user);
 		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
 		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
 		if (count($fileToSign) < 1) {
@@ -894,7 +894,10 @@ class SignFileService {
 		return $return;
 	}
 
-	private function throwIfInvalidUser(string $uuid, ?IUser $user): void {
+	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
+		if ($fileUser->getIdentifyMethod() !== IdentifyMethodService::IDENTIFTY_NEXTCLOUD) {
+			return;
+		}
 		if (!$user) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
@@ -962,7 +965,7 @@ class SignFileService {
 		}
 	}
 
-	private function getFileData(FileEntity $fileData, IUser $user, ?FileUserEntity $fileUser = null): array {
+	private function getFileData(FileEntity $fileData, ?IUser $user, ?FileUserEntity $fileUser = null): array {
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['sign'] = [
 			'uuid' => $fileData->getUuid(),
@@ -971,6 +974,7 @@ class SignFileService {
 		if ($fileUser) {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
+			$return['settings']['identify'] = $fileUser->getIdentifyMethod();
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}

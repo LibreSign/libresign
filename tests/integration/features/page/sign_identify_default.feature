@@ -1,4 +1,4 @@
-Feature: page/sign_default
+Feature: page/sign_identify_default
   Background: Create users
     Given user "signer1" exists
     And as user "admin"
@@ -59,5 +59,5 @@ Feature: page/sign_default
     Then the response should contain the initial state "libresign-config" with the following values:
       | key | value |
       | action | 250 |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identify":"nextcloud","signMethod":"password","isApprover":false} |
       | user | {"name":""} |
