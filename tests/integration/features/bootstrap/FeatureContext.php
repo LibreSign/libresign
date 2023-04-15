@@ -21,7 +21,7 @@ class FeatureContext extends NextcloudApiContext {
 		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
 		$this->signer = [];
 		$this->file = [];
-		foreach (arraY_reverse($response['data']) as $file) {
+		foreach (array_reverse($response['data']) as $file) {
 			$currentSigner = array_filter($file['signers'], function ($signer): bool {
 				return $signer['me'];
 			});
