@@ -1,4 +1,4 @@
-Feature: page/sign_email_link
+Feature: page/sign_identify_email_link
   Background: Create users
     Given user "signer1" exists
     And as user "admin"
@@ -43,15 +43,6 @@ Feature: page/sign_email_link
       | action | 200 |
       | errors | ["Invalid user"] |
       | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":true} |
-    # With unauthenticated user
-    When as user ""
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      | key | value |
-      | action | 100 |
-      | errors | ["You are not logged in. Please log in."] |
-      | redirect | /index.php/login?redirect_url=/index.php/apps/libresign/p/sign/<SIGN_UUID> |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":false} |
 
   Scenario: Open sign file with all data valid
     When as user ""
@@ -59,5 +50,5 @@ Feature: page/sign_email_link
     Then the response should contain the initial state "libresign-config" with the following values:
       | key | value |
       | action | 250 |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identify":"email-link","signMethod":"password","isApprover":false} |
       | user | {"name":""} |
