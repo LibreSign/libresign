@@ -759,12 +759,14 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						->withConsecutive(
 							[$this->equalTo('getFileId')],
 							[$this->equalTo('getUserId')],
-							[$this->equalTo('getSigned')]
+							[$this->equalTo('getSigned')],
+							[$this->equalTo('getIdentifyMethod')],
 						)
 						->will($this->returnValueMap([
 							['getFileId', [], 1],
 							['getUserId', [], 'fileuser'],
-							['getSigned', [], false]
+							['getSigned', [], false],
+							['getIdentifyMethod', [], 'nextcloud'],
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -818,14 +820,16 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getNodeId')]
+							[$this->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getNodeId')],
 						)
 						->will($self->returnValueMap([
 							['getFileId', [], 1],
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getNodeId', [], 1]
+							['getIdentifyMethod', [], 'nextcloud'],
+							['getNodeId', [], 1],
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -857,6 +861,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'uuid', 'username', 'base64',
 				[
 					'action' => JSActions::ACTION_SIGN,
+					'settings' => [
+						'identify' => 'nextcloud',
+					],
 					'sign' => [
 						'pdf' => [
 							'base64' => base64_encode('content')
@@ -878,6 +885,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
+							[$this->equalTo('getIdentifyMethod')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')]
 						)
@@ -886,6 +894,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
+							['getIdentifyMethod', [], 'nextcloud'],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], '']
 						]));
@@ -914,6 +923,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'uuid', 'username', 'url',
 				[
 					'action' => JSActions::ACTION_SIGN,
+					'settings' => [
+						'identify' => 'nextcloud',
+					],
 					'sign' => [
 						'pdf' => [
 							'url' => ''
@@ -935,6 +947,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
+							[$this->equalTo('getIdentifyMethod')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')]
 						)
@@ -943,6 +956,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
+							['getIdentifyMethod', [], 'nextcloud'],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], '']
 						]));
@@ -989,6 +1003,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'uuid', 'username', 'file',
 				[
 					'action' => JSActions::ACTION_SIGN,
+					'settings' => [
+						'identify' => 'nextcloud',
+					],
 					'sign' => [
 						'pdf' => [
 							'file' => new \stdClass()
@@ -1010,6 +1027,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
+							[$this->equalTo('getIdentifyMethod')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')]
 						)
@@ -1018,6 +1036,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
+							['getIdentifyMethod', [], 'nextcloud'],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], '']
 						]));
@@ -1046,6 +1065,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				'uuid', 'username', 'nodeId',
 				[
 					'action' => JSActions::ACTION_SIGN,
+					'settings' => [
+						'identify' => 'nextcloud',
+					],
 					'sign' => [
 						'pdf' => [
 							'nodeId' => null
@@ -1067,6 +1089,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
+							[$this->equalTo('getIdentifyMethod')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')]
 						)
@@ -1075,6 +1098,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
+							['getIdentifyMethod', [], 'nextcloud'],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], '']
 						]));
@@ -1112,6 +1136,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[$this->equalTo('getUserId')],
 				[$this->equalTo('getUserId')],
 				[$this->equalTo('getSigned')],
+				[$this->equalTo('getIdentifyMethod')],
 				[$this->equalTo('getDisplayName')],
 				[$this->equalTo('getDescription')]
 			)
@@ -1120,6 +1145,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getUserId', [], 'username'],
 				['getUserId', [], 'username'],
 				['getSigned', [], false],
+				['getIdentifyMethod', [], 'nextcloud'],
 				['getDisplayName', [], 'username'],
 				['getDescription', [], '']
 			]));
@@ -1152,6 +1178,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			json_encode($actual),
 			json_encode([
 				'action' => JSActions::ACTION_SIGN,
+				'settings' => [
+					'identify' => 'nextcloud',
+				],
 				'sign' => [
 					'pdf' => [
 						'file' => new \stdClass()
