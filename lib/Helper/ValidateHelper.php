@@ -15,6 +15,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignMethodService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -495,6 +496,15 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateSignMethod(string $signMethod): void {
+		if (!in_array($signMethod, SignMethodService::SIGN_METHODS)) {
+			// TRANSLATORS When is requested to a person to sign a file, is
+			// necessary identify what is the sign method. The
+			// sign method is used to define how will be signatue.
+			throw new LibresignException($this->l10n->t('Invalid sign method'));
+		}
+	}
+
 	public function signerWasAssociated(array $signer): void {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
@@ -552,9 +562,8 @@ class ValidateHelper {
 		}
 	}
 
-	public function canRequestCode(): bool {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
-		return $signMethod !== 'password';
+	public function canRequestCode(FileUser $fileUser): bool {
+		return $fileUser->getSignMethod() !== 'password';
 	}
 
 	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
@@ -574,13 +583,15 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(FileUser $fileUser, array $params): void {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+		$signMethod = $fileUser->getSignMethod();
 		switch ($signMethod) {
-			case 'sms':
-			case 'email':
+			case SignMethodService::SIGN_SMS:
+			case SignMethodService::SIGN_TELEGRAM:
+			case SignMethodService::SIGN_SIGNAL:
+			case SignMethodService::SIGN_EMAIL:
 				$this->valdateCode($fileUser, $params);
 				break;
-			case 'password':
+			case SignMethodService::SIGN_PASSWORD:
 				if (isset($params['code'])) {
 					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
 				}
