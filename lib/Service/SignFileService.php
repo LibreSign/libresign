@@ -286,6 +286,13 @@ class SignFileService {
 		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
 	}
 
+	public function getUserSignMethod(array $user): string {
+		if (array_key_exists('signMethod', $user)) {
+			return $user['signMethod'];
+		}
+		return $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password') ?? 'password';
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -308,6 +315,8 @@ class SignFileService {
 		}
 		$identifyMethod = $this->getUserIdentifyMethod($user);
 		$fileUser->setIdentifyMethod($identifyMethod);
+		$signMethod = $this->getUserSignMethod($user);
+		$fileUser->setSignMethod($signMethod);
 		$fileUser->setEmail($user['email']);
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 			$fileUser->setDescription($user['description']);
@@ -381,6 +390,8 @@ class SignFileService {
 			$this->validateHelper->haveValidMail($user);
 			$identifyMethod = $this->getUserIdentifyMethod($user);
 			$this->validateHelper->validateIdentifyMethod($identifyMethod);
+			$signMethod = $this->getUserSignMethod($user);
+			$this->validateHelper->validateSignMethod($signMethod);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
@@ -725,15 +736,15 @@ class SignFileService {
 	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code): void {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
-			case 'sms':
-			case 'telegram':
-			case 'signal':
+			case SignMethodService::SIGN_SMS:
+			case SignMethodService::SIGN_TELEGRAM:
+			case SignMethodService::SIGN_SIGNAL:
 				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
-			case 'email':
+			case SignMethodService::SIGN_EMAIL:
 				$this->sendCodeByEmail($fileUser, $code);
 				break;
-			case 'password':
+			case SignMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
@@ -976,6 +987,7 @@ class SignFileService {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
 			$return['settings']['identifyMethod'] = $fileUser->getIdentifyMethod();
+			$return['settings']['signMethod'] = $fileUser->getSignMethod();
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}

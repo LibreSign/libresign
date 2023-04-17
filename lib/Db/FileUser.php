@@ -32,6 +32,8 @@ use OCP\DB\Types;
  * @method string getMetadata()
  * @method void setIdentifyMethod(string $identifyMethod)
  * @method string getIdentifyMethod()
+ * @method void setSignMethod(string $signMethod)
+ * @method string getSignMethod()
  */
 class FileUser extends Entity {
 	/** @var integer */
@@ -73,6 +75,9 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $identifyMethod;
 
+	/** @var string */
+	protected $signMethod;
+
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
@@ -86,6 +91,7 @@ class FileUser extends Entity {
 		$this->addType('signed', 'string');
 		$this->addType('code', 'string');
 		$this->addType('identifyMethod', 'string');
+		$this->addType('signMethod', 'string');
 		$this->addType('metadata', Types::JSON);
 	}
 }
