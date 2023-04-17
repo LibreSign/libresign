@@ -277,7 +277,6 @@ class AccountService {
 		$info['settings']['certificateOk'] = $this->signatureService->hasRootCert() && $this->pkcs12Handler->isHandlerOk();
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
-		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		$info['settings']['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		return $info;
 	}
