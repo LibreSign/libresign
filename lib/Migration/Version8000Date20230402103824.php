@@ -49,6 +49,11 @@ class Version8000Date20230402103824 extends SimpleMigrationStep {
 				'default' => 'nextcloud',
 				'length' => 30,
 			]);
+			$table->addColumn('sign_method', Types::STRING, [
+				'notnull' => true,
+				'default' => 'password',
+				'length' => 30,
+			]);
 			return $schema;
 		}
 		return null;
