@@ -7,7 +7,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"base64":""} |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -19,7 +19,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"invalid":""} |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -28,7 +28,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"base64":""} |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -37,7 +37,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"url":""} |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -46,7 +46,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"fileId":""} |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -55,7 +55,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                        |
       | file   | {"base64":"invalid"}     |
-      | users  | {"identify":"nextcloud"} |
+      | users  | {"identifyMethod":"nextcloud"} |
       | name   | document                 |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -64,7 +64,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                       |
       | file | {"base64":";;,invalid"}   |
-      | users | {"identify":"nextcloud"} |
+      | users | {"identifyMethod":"nextcloud"} |
       | name | document                  |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -73,7 +73,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                                         |
       | file   | {"base64":"data:application/pdf,invalid"} |
-      | users  | {"identify":"nextcloud"}                  |
+      | users  | {"identifyMethod":"nextcloud"}                  |
       | name   | document                                  |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -82,7 +82,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                                          |
       | file   | {"base64":"data:application/pdf;,invalid"} |
-      | users  | {"identify":"nextcloud"}                   |
+      | users  | {"identifyMethod":"nextcloud"}                   |
       | name   | document                                   |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -91,7 +91,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                                              |
       | file   | {"base64":"data:application/pdf;text,invalid"} |
-      | users  | {"identify":"nextcloud"}                       |
+      | users  | {"identifyMethod":"nextcloud"}                       |
       | name   | document                                       |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -100,7 +100,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                                                |
       | file   | {"base64":"data:application/pdf;base64,invalid"} |
-      | users  | {"identify":"nextcloud"}                         |
+      | users  | {"identifyMethod":"nextcloud"}                         |
       | name   | document                                         |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -109,7 +109,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1                                             |
       | file   | {"base64":"data:application/pdf;base64,MQ=="} |
-      | users  | {"identify":"nextcloud"}                      |
+      | users  | {"identifyMethod":"nextcloud"}                      |
       | name   | document                                      |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -122,7 +122,7 @@ Feature: sign/register
     When sending "post" to "/apps/libresign/api/0.1/sign/register"
       | status | 1 |
       | file | {"base64":"data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="} |
-      | users | [{"identify":"nextcloud"}] |
+      | users | [{"identifyMethod":"nextcloud"}] |
       | name | document |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
