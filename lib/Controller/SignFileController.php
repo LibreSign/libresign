@@ -363,7 +363,7 @@ class SignFileController extends ApiController {
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
-			$this->validateHelper->canRequestCode();
+			$this->validateHelper->canRequestCode($fileUser);
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode($fileUser, $user);

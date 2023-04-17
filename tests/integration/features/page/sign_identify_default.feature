@@ -34,7 +34,7 @@ Feature: page/sign_identify_default
       | key | value |
       | action | 200 |
       | errors | ["Invalid UUID"] |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":false} |
     # With invalid user
     When as user "admin"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
@@ -42,7 +42,7 @@ Feature: page/sign_identify_default
       | key | value |
       | action | 200 |
       | errors | ["Invalid user"] |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":true} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":true} |
     # With unauthenticated user
     When as user ""
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
@@ -51,7 +51,7 @@ Feature: page/sign_identify_default
       | action | 100 |
       | errors | ["You are not logged in. Please log in."] |
       | redirect | /index.php/login?redirect_url=/index.php/apps/libresign/p/sign/<SIGN_UUID> |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","signMethod":"password","isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":false} |
 
   Scenario: Open sign file with all data valid
     When as user "signer1"
