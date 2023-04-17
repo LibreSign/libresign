@@ -335,16 +335,16 @@
         },
         {
             "name": "pagerfanta/pagerfanta",
-            "version": "v3.7.0",
+            "version": "v3.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BabDev/Pagerfanta.git",
-                "reference": "d0230abaf94c2625b77a8e05d0c79fea9d80fda5"
+                "reference": "a07c84296e491add39d103b812129de77610c33b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/d0230abaf94c2625b77a8e05d0c79fea9d80fda5",
-                "reference": "d0230abaf94c2625b77a8e05d0c79fea9d80fda5",
+                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/a07c84296e491add39d103b812129de77610c33b",
+                "reference": "a07c84296e491add39d103b812129de77610c33b",
                 "shasum": ""
             },
             "require": {
@@ -361,7 +361,7 @@
                 "doctrine/phpcr-odm": "<1.5",
                 "ruflin/elastica": "<6.0",
                 "solarium/solarium": "<5.0",
-                "twig/twig": "<1.35 || >=2.0,<2.5"
+                "twig/twig": "<2.13"
             },
             "replace": {
                 "pagerfanta/core": "self.version",
@@ -382,17 +382,16 @@
                 "doctrine/mongodb-odm": "^2.2.2",
                 "doctrine/orm": "^2.8",
                 "doctrine/phpcr-odm": "^1.5",
-                "friendsofphp/php-cs-fixer": "^3.13",
-                "jackalope/jackalope-doctrine-dbal": "^1.6",
+                "jackalope/jackalope-doctrine-dbal": "^1.7.4",
                 "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.9.2",
-                "phpstan/phpstan-phpunit": "1.2.2",
-                "phpunit/phpunit": "9.5.26",
+                "phpstan/phpstan": "1.9.14",
+                "phpstan/phpstan-phpunit": "1.3.3",
+                "phpunit/phpunit": "9.6.7 || 10.1.0",
+                "rector/rector": "0.15.12",
                 "ruflin/elastica": "^6.0 || ^7.0",
                 "solarium/solarium": "^5.0 || ^6.0",
-                "symfony/cache": "^4.4 || ^5.4 || ^6.0",
-                "symfony/phpunit-bridge": "^5.4 || ^6.0",
-                "twig/twig": "^1.35 || ^2.5 || ^3.0"
+                "symfony/cache": "^5.4 || ^6.0",
+                "twig/twig": "^2.13 || ^3.0"
             },
             "suggest": {
                 "twig/twig": "To integrate Pagerfanta with Twig"
@@ -427,7 +426,7 @@
             ],
             "support": {
                 "issues": "https://github.com/BabDev/Pagerfanta/issues",
-                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.7.0"
+                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.8.0"
             },
             "funding": [
                 {
@@ -435,7 +434,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-12-02T16:35:42+00:00"
+            "time": "2023-04-15T16:39:36+00:00"
         },
         {
             "name": "psr/container",
@@ -1715,12 +1714,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "892a245d17587a4a3749d0b4faf99b60f3ba22e8"
+                "reference": "6b077f852cc72d9c585dbf1241746b5af08ea1d4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/892a245d17587a4a3749d0b4faf99b60f3ba22e8",
-                "reference": "892a245d17587a4a3749d0b4faf99b60f3ba22e8",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6b077f852cc72d9c585dbf1241746b5af08ea1d4",
+                "reference": "6b077f852cc72d9c585dbf1241746b5af08ea1d4",
                 "shasum": ""
             },
             "conflict": {
@@ -1874,7 +1873,7 @@
                 "friendsofsymfony/user-bundle": ">=1.2,<1.3.5",
                 "friendsoftypo3/mediace": ">=7.6.2,<7.6.5",
                 "froala/wysiwyg-editor": "<3.2.7",
-                "froxlor/froxlor": "<2.0.13",
+                "froxlor/froxlor": "<2.0.14",
                 "fuel/core": "<1.8.1",
                 "funadmin/funadmin": "<=3.2",
                 "gaoming13/wechat-php-sdk": "<=1.10.2",
@@ -1993,7 +1992,7 @@
                 "netgen/tagsbundle": ">=3.4,<3.4.11|>=4,<4.0.15",
                 "nette/application": ">=2,<2.0.19|>=2.1,<2.1.13|>=2.2,<2.2.10|>=2.3,<2.3.14|>=2.4,<2.4.16|>=3,<3.0.6",
                 "nette/nette": ">=2,<2.0.19|>=2.1,<2.1.13",
-                "nilsteampassnet/teampass": "<3.0.0.23",
+                "nilsteampassnet/teampass": "<3.0.3",
                 "notrinos/notrinos-erp": "<=0.7",
                 "noumo/easyii": "<=0.9",
                 "nukeviet/nukeviet": "<4.5.2",
@@ -2205,7 +2204,7 @@
                 "unisharp/laravel-filemanager": "<=2.5.1",
                 "userfrosting/userfrosting": ">=0.3.1,<4.6.3",
                 "usmanhalalit/pixie": "<1.0.3|>=2,<2.0.2",
-                "uvdesk/community-skeleton": "<1.1",
+                "uvdesk/community-skeleton": "<=1.1.1",
                 "vanilla/safecurl": "<0.9.2",
                 "verot/class.upload.php": "<=1.0.3|>=2,<=2.0.4",
                 "vova07/yii2-fileapi-widget": "<0.1.9",
@@ -2307,7 +2306,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-04-10T17:04:04+00:00"
+            "time": "2023-04-17T18:04:34+00:00"
         }
     ],
     "aliases": [],
