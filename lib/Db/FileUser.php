@@ -85,6 +85,7 @@ class FileUser extends Entity {
 		$this->addType('createdAt', 'string');
 		$this->addType('signed', 'string');
 		$this->addType('code', 'string');
+		$this->addType('identifyMethod', 'string');
 		$this->addType('metadata', Types::JSON);
 	}
 }

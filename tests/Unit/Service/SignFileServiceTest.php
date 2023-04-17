@@ -862,7 +862,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identify' => 'nextcloud',
+						'identifyMethod' => 'nextcloud',
 					],
 					'sign' => [
 						'pdf' => [
@@ -924,7 +924,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identify' => 'nextcloud',
+						'identifyMethod' => 'nextcloud',
 					],
 					'sign' => [
 						'pdf' => [
@@ -1004,7 +1004,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identify' => 'nextcloud',
+						'identifyMethod' => 'nextcloud',
 					],
 					'sign' => [
 						'pdf' => [
@@ -1066,7 +1066,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identify' => 'nextcloud',
+						'identifyMethod' => 'nextcloud',
 					],
 					'sign' => [
 						'pdf' => [
@@ -1179,7 +1179,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			json_encode([
 				'action' => JSActions::ACTION_SIGN,
 				'settings' => [
-					'identify' => 'nextcloud',
+					'identifyMethod' => 'nextcloud',
 				],
 				'sign' => [
 					'pdf' => [

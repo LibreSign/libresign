@@ -247,7 +247,7 @@ class AccountFileMapper extends QBMapper {
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
 						'fileUserId' => $signer->getId(),
-						'identify' => $signer->getIdentifyMethod(),
+						'identifyMethod' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())
