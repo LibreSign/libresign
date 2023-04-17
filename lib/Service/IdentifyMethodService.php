@@ -26,13 +26,9 @@ namespace OCA\Libresign\Service;
 
 class IdentifyMethodService {
 	public const IDENTIFTY_NEXTCLOUD = 'nextcloud';
-	public const IDENTIFY_EMAIL_LINK = 'email-link';
-	public const IDENTIFY_EMAIL_TOKEN = 'email-token';
-	public const IDENTIFY_SMS_TOKEN = 'sms-token';
+	public const IDENTIFY_TOKEN = 'token';
 	public const IDENTIFY_METHODS = [
 		self::IDENTIFTY_NEXTCLOUD,
-		self::IDENTIFY_EMAIL_LINK,
-		self::IDENTIFY_EMAIL_TOKEN,
-		self::IDENTIFY_SMS_TOKEN,
+		self::IDENTIFY_TOKEN,
 	];
 }
