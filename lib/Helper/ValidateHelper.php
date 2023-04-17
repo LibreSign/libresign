@@ -485,8 +485,8 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIdentifyMethod(string $identify): void {
-		if (!in_array($identify, IdentifyMethodService::IDENTIFY_METHODS)) {
+	public function validateIdentifyMethod(string $identifyMethod): void {
+		if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
 			// necessary identify what is the identification method. The
 			// identification method is used to define how will be the sign
