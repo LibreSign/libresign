@@ -21,12 +21,12 @@ class FeatureContext extends NextcloudApiContext {
 		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
 		$this->signer = [];
 		$this->file = [];
-		foreach ($response['data'] as $file) {
+		foreach (array_reverse($response['data']) as $file) {
 			$currentSigner = array_filter($file['signers'], function ($signer): bool {
 				return $signer['me'];
 			});
 			if (count($currentSigner) === 1) {
-				$this->signer = current($currentSigner);
+				$this->signer = end($currentSigner);
 				$this->file = $file;
 				break;
 			}
@@ -72,5 +72,22 @@ class FeatureContext extends NextcloudApiContext {
 		];
 		$text = preg_replace($patterns, $replacements, $text);
 		return $text;
+	}
+
+	/**
+	 * @Given the signer contains
+	 */
+	public function theSignerContains(TableNode $table): void {
+		if (!$this->signer) {
+			$this->theSignerHaveAFileToSign($this->currentUser);
+		}
+		$expectedValues = $table->getColumnsHash();
+		foreach ($expectedValues as $value) {
+			Assert::assertArrayHasKey($value['key'], $this->signer);
+			if ($value['value'] === '<IGNORE>') {
+				continue;
+			}
+			Assert::assertEquals($value['value'], $this->signer[$value['key']]);
+		}
 	}
 }
