@@ -280,8 +280,8 @@ class SignFileService {
 	}
 
 	public function getUserIdentifyMethod(array $user): string {
-		if (array_key_exists('identify', $user)) {
-			return $user['identify'];
+		if (array_key_exists('identifyMethod', $user)) {
+			return $user['identifyMethod'];
 		}
 		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
 	}
@@ -975,7 +975,7 @@ class SignFileService {
 		if ($fileUser) {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
-			$return['settings']['identify'] = $fileUser->getIdentifyMethod();
+			$return['settings']['identifyMethod'] = $fileUser->getIdentifyMethod();
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}
