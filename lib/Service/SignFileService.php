@@ -76,6 +76,8 @@ class SignFileService {
 	private $urlGenerator;
 	/** @var SignMethodService */
 	private $signMethod;
+	/** @var IdentifyMethodService */
+	private $identifyMethod;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
 	/** @var PdfParserService */
@@ -114,6 +116,7 @@ class SignFileService {
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
 		SignMethodService $signMethod,
+		IdentifyMethodService $identifyMethod,
 		PdfParserService $pdfParserService,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
@@ -138,6 +141,7 @@ class SignFileService {
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
 		$this->signMethod = $signMethod;
+		$this->identifyMethod = $identifyMethod;
 		$this->pdfParserService = $pdfParserService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
@@ -257,13 +261,6 @@ class SignFileService {
 		return $return;
 	}
 
-	public function getUserIdentifyMethod(array $user): string {
-		if (array_key_exists('identifyMethod', $user)) {
-			return $user['identifyMethod'];
-		}
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
-	}
-
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -284,7 +281,7 @@ class SignFileService {
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 		}
-		$identifyMethod = $this->getUserIdentifyMethod($user);
+		$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
 		$fileUser->setIdentifyMethod($identifyMethod);
 		$signMethod = $this->signMethod->getUserSignMethod($user);
 		$fileUser->setSignMethod($signMethod);
@@ -359,7 +356,7 @@ class SignFileService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
-			$identifyMethod = $this->getUserIdentifyMethod($user);
+			$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
 			$this->validateHelper->validateIdentifyMethod($identifyMethod);
 			$signMethod = $this->signMethod->getUserSignMethod($user);
 			$this->validateHelper->validateSignMethod($signMethod);
