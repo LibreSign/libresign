@@ -12,6 +12,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\SignFileService;
@@ -75,6 +76,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $urlGenerator;
 	/** @var SignMethodService|MockObject */
 	private $signMethod;
+	/** @var IdentifyMethodService|MockObject */
+	private $identifyMethod;
 	/** @var PdfParserService */
 	private $pdfParserService;
 	/** @var IMimeTypeDetector|MockObject */
@@ -108,6 +111,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
+		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
@@ -135,6 +139,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->eventDispatcher,
 			$this->urlGenerator,
 			$this->signMethod,
+			$this->identifyMethod,
 			$this->pdfParserService,
 			$this->mimeTypeDetector,
 			$this->tempManager
@@ -338,6 +343,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userManager->method('getByEmail')->willReturn([$user]);
 		$this->config->method('getAppValue')->will($this->returnValue('nextcloud'));
 		$this->signMethod->method('getUserSignMethod')->will($this->returnValue('password'));
+		$this->identifyMethod->method('getUserIdentifyMethod')->will($this->returnValue('nextcloud'));
 		$actual = $this->getService()->save([
 			'uuid' => 'the-uuid-here',
 			'users' => [
