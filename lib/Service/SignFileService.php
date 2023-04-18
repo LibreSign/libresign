@@ -17,11 +17,8 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCP\Accounts\IAccountManager;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
-use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
@@ -33,9 +30,6 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\Security\IHasher;
-use OCP\Security\ISecureRandom;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
@@ -68,16 +62,6 @@ class SignFileService {
 	private $config;
 	/** @var ValidateHelper */
 	private $validateHelper;
-	/** @var IHasher */
-	private $hasher;
-	/** @var ISecureRandom */
-	private $secureRandom;
-	/** @var IAppManager */
-	private $appManager;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var ContainerInterface */
-	private $serverContainer;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
@@ -90,6 +74,8 @@ class SignFileService {
 	private $eventDispatcher;
 	/** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var SignMethodService */
+	private $signMethod;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
 	/** @var PdfParserService */
@@ -121,17 +107,13 @@ class SignFileService {
 		LoggerInterface $logger,
 		IConfig $config,
 		ValidateHelper $validateHelper,
-		IHasher $hasher,
-		ISecureRandom $secureRandom,
-		IAppManager $appManager,
-		IAccountManager $accountManager,
-		ContainerInterface $serverContainer,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
 		FileElementService $fileElementService,
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
+		SignMethodService $signMethod,
 		PdfParserService $pdfParserService,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
@@ -149,17 +131,13 @@ class SignFileService {
 		$this->logger = $logger;
 		$this->config = $config;
 		$this->validateHelper = $validateHelper;
-		$this->hasher = $hasher;
-		$this->secureRandom = $secureRandom;
-		$this->appManager = $appManager;
-		$this->accountManager = $accountManager;
-		$this->serverContainer = $serverContainer;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
 		$this->fileElementService = $fileElementService;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
+		$this->signMethod = $signMethod;
 		$this->pdfParserService = $pdfParserService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
@@ -286,13 +264,6 @@ class SignFileService {
 		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
 	}
 
-	public function getUserSignMethod(array $user): string {
-		if (array_key_exists('signMethod', $user)) {
-			return $user['signMethod'];
-		}
-		return $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password') ?? 'password';
-	}
-
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -315,7 +286,7 @@ class SignFileService {
 		}
 		$identifyMethod = $this->getUserIdentifyMethod($user);
 		$fileUser->setIdentifyMethod($identifyMethod);
-		$signMethod = $this->getUserSignMethod($user);
+		$signMethod = $this->signMethod->getUserSignMethod($user);
 		$fileUser->setSignMethod($signMethod);
 		$fileUser->setEmail($user['email']);
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
@@ -390,7 +361,7 @@ class SignFileService {
 			$this->validateHelper->haveValidMail($user);
 			$identifyMethod = $this->getUserIdentifyMethod($user);
 			$this->validateHelper->validateIdentifyMethod($identifyMethod);
-			$signMethod = $this->getUserSignMethod($user);
+			$signMethod = $this->signMethod->getUserSignMethod($user);
 			$this->validateHelper->validateSignMethod($signMethod);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
@@ -726,54 +697,7 @@ class SignFileService {
 	}
 
 	public function requestCode(FileUserEntity $fileUser, IUser $user): string {
-		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
-		$this->sendCode($user, $fileUser, $token);
-		$fileUser->setCode($this->hasher->hash($token));
-		$this->fileUserMapper->update($fileUser);
-		return $token;
-	}
-
-	private function sendCode(IUser $user, FileUserEntity $fileUser, string $code): void {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
-		switch ($signMethod) {
-			case SignMethodService::SIGN_SMS:
-			case SignMethodService::SIGN_TELEGRAM:
-			case SignMethodService::SIGN_SIGNAL:
-				$this->sendCodeByGateway($user, $code, $signMethod);
-				break;
-			case SignMethodService::SIGN_EMAIL:
-				$this->sendCodeByEmail($fileUser, $code);
-				break;
-			case SignMethodService::SIGN_PASSWORD:
-				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
-		}
-	}
-
-	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName): void {
-		$gateway = $this->getGateway($user, $gatewayName);
-		
-		$userAccount = $this->accountManager->getAccount($user);
-		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
-	}
-
-	/**
-	 * @throws OCSForbiddenException
-	 */
-	private function getGateway(IUser $user, string $gatewayName): \OCA\TwoFactorGateway\Service\Gateway\IGateway {
-		if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
-			throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
-		}
-		$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
-		$gateway = $factory->getGateway($gatewayName);
-		if (!$gateway->getConfig()->isComplete()) {
-			throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
-		}
-		return $gateway;
-	}
-
-	private function sendCodeByEmail(FileUserEntity $fileUser, string $code): void {
-		$this->mail->sendCodeToSign($fileUser, $code);
+		return $this->signMethod->requestCode($fileUser, $user);
 	}
 
 	public function getFileUserToSign(FileEntity $libresignFile, IUser $user): FileUserEntity {
