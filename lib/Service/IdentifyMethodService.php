@@ -25,6 +25,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
+use OCP\IConfig;
+
 class IdentifyMethodService {
 	public const IDENTIFTY_NEXTCLOUD = 'nextcloud';
 	public const IDENTIFY_TOKEN = 'token';
@@ -32,4 +35,16 @@ class IdentifyMethodService {
 		self::IDENTIFTY_NEXTCLOUD,
 		self::IDENTIFY_TOKEN,
 	];
+
+	public function __construct(
+		private IConfig $config
+	) {
+	}
+
+	public function getUserIdentifyMethod(array $user): string {
+		if (array_key_exists('identifyMethod', $user)) {
+			return $user['identifyMethod'];
+		}
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
+	}
 }
