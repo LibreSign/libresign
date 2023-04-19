@@ -305,7 +305,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->createUser('username', 'password');
 		$this->request
 			->withMethod('POST')
-			->withPath('/sign/request')
+			->withPath('/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
@@ -337,7 +337,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->request
 			->withMethod('POST')
-			->withPath('/sign/request')
+			->withPath('/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
@@ -366,7 +366,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->createUser('username', 'password');
 		$this->request
 			->withMethod('PATCH')
-			->withPath('/sign/request')
+			->withPath('/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
@@ -409,7 +409,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->request
 			->withMethod('PATCH')
-			->withPath('/sign/request')
+			->withPath('/request-signature')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'

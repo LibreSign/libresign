@@ -35,7 +35,7 @@ const actions = {
 	},
 	REQUEST: async ({ dispatch }, { fileId, name, users }) => {
 		try {
-			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/sign/request'), {
+			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/request-signature'), {
 				file: {
 					fileId,
 				},
