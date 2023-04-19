@@ -92,7 +92,7 @@ const buildService = (http) => {
 			return data
 		},
 		async createRegister({ users, name, fileId, status }) {
-			const url = getAPIURL('sign/request')
+			const url = getAPIURL('request-signature')
 
 			const body = {
 				users,
@@ -114,7 +114,7 @@ const buildService = (http) => {
 		 * @return  {Promise<unknown>}
 		 */
 		async updateRegister(fileId, content = {}) {
-			const url = getAPIURL('sign/request')
+			const url = getAPIURL('request-signature')
 
 			const body = {
 				file: { fileId },
