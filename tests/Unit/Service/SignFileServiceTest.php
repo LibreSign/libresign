@@ -146,7 +146,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testCanDeleteSignRequestWhenDocumentAlreadySigned() {
+	public function testCanDeleteRequestSignatureWhenDocumentAlreadySigned() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
@@ -161,10 +161,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
 		$this->expectErrorMessage('Document already signed');
-		$this->getService()->canDeleteSignRequest(['uuid' => 'valid']);
+		$this->getService()->canDeleteRequestSignature(['uuid' => 'valid']);
 	}
 
-	public function testCanDeleteSignRequestWhenNoSignatureWasRequested() {
+	public function testCanDeleteRequestSignatureWhenNoSignatureWasRequested() {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
@@ -181,7 +181,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			]));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
 		$this->expectErrorMessage('No signature was requested to %');
-		$this->getService()->canDeleteSignRequest([
+		$this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
 			'users' => [
 				[
@@ -191,7 +191,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testCanDeleteSignRequestSuccess() {
+	public function testCanDeleteRequestSignatureSuccess() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser
 			->method('__call')
@@ -206,7 +206,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileUserMapper
 			->method('getByFileUuid')
 			->willReturn([$fileUser]);
-		$actual = $this->getService()->canDeleteSignRequest([
+		$actual = $this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
 			'users' => [
 				[

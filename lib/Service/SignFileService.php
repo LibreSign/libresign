@@ -384,7 +384,7 @@ class SignFileService {
 	 *
 	 * @param array $data
 	 */
-	public function canDeleteSignRequest(array $data): void {
+	public function canDeleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
 			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
@@ -408,7 +408,7 @@ class SignFileService {
 	 * @param array $data
 	 * @return void
 	 */
-	public function deleteSignRequest(array $data): void {
+	public function deleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
 			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
