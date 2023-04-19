@@ -98,52 +98,6 @@ class ApiTestCase extends TestCase {
 	}
 
 	/**
-	 * @param string $method The HTTP Method: GET, PUT, DELETE, POST, etc
-	 * @param string $path The REST path call
-	 * @param int $statusExpected
-	 * @param array|null $query
-	 * @param array|null $requestBody
-	 * @param array $requestHeader
-	 * @return mixed
-	 * @throws DefinitionNotFoundException
-	 * @throws GenericSwaggerException
-	 * @throws HttpMethodNotFoundException
-	 * @throws InvalidDefinitionException
-	 * @throws NotMatchedException
-	 * @throws PathNotFoundException
-	 * @throws StatusCodeNotMatchedException
-	 * @throws MessageException
-	 * @deprecated Use assertRequest instead
-	 */
-	protected function makeRequest(
-		$method,
-		$path,
-		$statusExpected = 200,
-		$query = null,
-		$requestBody = null,
-		$requestHeader = []
-	) {
-		$this->checkSchema();
-		$body = $this->requester
-			->withSchema($this->schema)
-			->withMethod($method)
-			->withPath($path)
-			->withQuery($query)
-			->withRequestBody($requestBody)
-			->withRequestHeader($requestHeader)
-			->assertResponseCode($statusExpected)
-			->send();
-
-		// Note:
-		// This code is only reached if the send is successful and
-		// all matches are satisfied. Otherwise an error is throwed before
-		// reach this
-		$this->assertTrue(true);
-
-		return $body;
-	}
-
-	/**
 	 * @param AbstractRequester $request
 	 * @return Response
 	 * @throws DefinitionNotFoundException

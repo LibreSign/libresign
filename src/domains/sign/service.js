@@ -92,7 +92,7 @@ const buildService = (http) => {
 			return data
 		},
 		async createRegister({ users, name, fileId, status }) {
-			const url = getAPIURL('sign/register')
+			const url = getAPIURL('sign/request')
 
 			const body = {
 				users,
@@ -114,7 +114,7 @@ const buildService = (http) => {
 		 * @return  {Promise<unknown>}
 		 */
 		async updateRegister(fileId, content = {}) {
-			const url = getAPIURL('sign/register')
+			const url = getAPIURL('sign/request')
 
 			const body = {
 				file: { fileId },
