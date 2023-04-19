@@ -35,7 +35,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
-class SignRequestController extends ApiController {
+class RequestSignatureController extends ApiController {
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
@@ -149,7 +149,7 @@ class SignRequestController extends ApiController {
 	 * @param integer $fileUserId
 	 * @return JSONResponse
 	 */
-	public function deleteOneSignRequestUsingFileId(int $fileId, int $fileUserId) {
+	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId) {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -185,7 +185,7 @@ class SignRequestController extends ApiController {
 	 * @param integer $fileId
 	 * @return JSONResponse
 	 */
-	public function deleteAllSignRequestUsingFileId(int $fileId) {
+	public function deleteAllRequestSignatureUsingFileId(int $fileId) {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -195,7 +195,7 @@ class SignRequestController extends ApiController {
 			];
 			$this->signFileService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
-			$this->signFileService->deleteSignRequest($data);
+			$this->signFileService->deleteRequestSignature($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
