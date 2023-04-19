@@ -405,49 +405,6 @@ class SignFileService {
 	}
 
 	/**
-	 * @deprecated 2.4.0
-	 *
-	 * @param array $data
-	 *
-	 * @return \OCP\AppFramework\Db\Entity[]
-	 *
-	 * @psalm-return list<\OCP\AppFramework\Db\Entity>
-	 */
-	public function deleteSignRequestDeprecated(array $data): array {
-		$this->validateHelper->validateFileUuid($data);
-		$this->validateUsers($data);
-		$this->canDeleteSignRequest($data);
-
-		if (!empty($data['uuid'])) {
-			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
-			$fileData = $this->fileMapper->getByUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
-			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
-		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
-		}
-
-		$deletedUsers = [];
-		foreach ($data['users'] as $signer) {
-			try {
-				$fileUser = $this->fileUserMapper->getByEmailAndFileId(
-					$signer['email'],
-					$fileData->getId()
-				);
-				$deletedUsers[] = $fileUser;
-				$this->fileUserMapper->delete($fileUser);
-			} catch (\Throwable $th) {
-				// already deleted
-			}
-		}
-		if ((empty($data['users']) && !count($signatures)) || count($signatures) === count($data['users'])) {
-			$this->fileMapper->delete($fileData);
-		}
-		return $deletedUsers;
-	}
-
-	/**
 	 * @param array $data
 	 * @return void
 	 */
