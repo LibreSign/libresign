@@ -21,8 +21,8 @@ return [
 		['name' => 'account#deleteSignatureElement',    'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'DELETE'],
 
 		// Account
-		['name' => 'RequestSignature#request',                             'url' => '/api/0.1/sign/request', 'verb' => 'POST'],
-		['name' => 'RequestSignature#updateSign',                          'url' => '/api/0.1/sign/request', 'verb' => 'PATCH'],
+		['name' => 'RequestSignature#request',                             'url' => '/api/0.1/request-signature', 'verb' => 'POST'],
+		['name' => 'RequestSignature#updateSign',                          'url' => '/api/0.1/request-signature', 'verb' => 'PATCH'],
 		['name' => 'RequestSignature#deleteAllRequestSignatureUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
 		['name' => 'RequestSignature#deleteOneRequestSignatureUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
