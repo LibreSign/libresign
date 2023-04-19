@@ -21,10 +21,10 @@ return [
 		['name' => 'account#deleteSignatureElement',    'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'DELETE'],
 
 		// Account
-		['name' => 'signRequest#request',                         'url' => '/api/0.1/sign/request', 'verb' => 'POST'],
-		['name' => 'signRequest#updateSign',                      'url' => '/api/0.1/sign/request', 'verb' => 'PATCH'],
-		['name' => 'signRequest#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
-		['name' => 'signRequest#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
+		['name' => 'RequestSignature#request',                             'url' => '/api/0.1/sign/request', 'verb' => 'POST'],
+		['name' => 'RequestSignature#updateSign',                          'url' => '/api/0.1/sign/request', 'verb' => 'PATCH'],
+		['name' => 'RequestSignature#deleteAllRequestSignatureUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
+		['name' => 'RequestSignature#deleteOneRequestSignatureUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
 		['name' => 'signFile#signUsingUuid',                   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
 		['name' => 'signFile#signUsingFileId',                 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],

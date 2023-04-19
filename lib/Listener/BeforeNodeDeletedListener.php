@@ -45,7 +45,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 			case 'signed_file':
 				$file = $this->fileMapper->getByFileId($nodeId);
 				$nodeId = $file->getNodeId();
-				$this->signFileService->deleteSignRequest(['file' => ['fileId' => $nodeId]]);
+				$this->signFileService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'file':
 				$libresignFile = $this->fileMapper->getByFileId($nodeId);
@@ -54,7 +54,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 					$this->fileMapper->update($libresignFile);
 					break;
 				}
-				$this->signFileService->deleteSignRequest(['file' => ['fileId' => $nodeId]]);
+				$this->signFileService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'user_element':
 			case 'file_element':
