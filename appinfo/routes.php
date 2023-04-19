@@ -5,9 +5,6 @@ return [
 		// API
 		['name' => 'api#preflighted_cors',            'url' => '/api/0.1/{path}', 'verb' => 'OPTIONS', 'requirements' => ['path' => '.+'], ],
 
-		// Deprecated - Account
-		['name' => 'accountDeprecated#me',            'url' => '/api/0.1/webhook/me', 'verb' => 'GET'],
-
 		// Account
 		['name' => 'account#createToSign',              'url' => '/api/0.1/account/create/{uuid}', 'verb' => 'POST'],
 		['name' => 'account#me',                        'url' => '/api/0.1/account/me', 'verb' => 'GET'],
@@ -23,21 +20,16 @@ return [
 		['name' => 'account#patchSignatureElement',     'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'PATCH'],
 		['name' => 'account#deleteSignatureElement',    'url' => '/api/0.1/account/signature/elements/{elementId}', 'verb' => 'DELETE'],
 
-		// Deprecated - Account
-		['name' => 'signFileDeprecated#requestSign',  'url' => '/api/0.1/webhook/register', 'verb' => 'POST'],
-		['name' => 'signFileDeprecated#updateSign',   'url' => '/api/0.1/webhook/register', 'verb' => 'PATCH'],
-		['name' => 'signFileDeprecated#removeSign',   'url' => '/api/0.1/webhook/register/signature', 'verb' => 'DELETE'],
-		['name' => 'signFileDeprecated#sign',         'url' => '/api/0.1/sign', 'verb' => 'POST'],
-
 		// Account
-		['name' => 'signFile#requestSign',                     'url' => '/api/0.1/sign/register', 'verb' => 'POST'],
-		['name' => 'signFile#updateSign',                      'url' => '/api/0.1/sign/register', 'verb' => 'PATCH'],
+		['name' => 'signRequest#request',                         'url' => '/api/0.1/sign/request', 'verb' => 'POST'],
+		['name' => 'signRequest#updateSign',                      'url' => '/api/0.1/sign/request', 'verb' => 'PATCH'],
+		['name' => 'signRequest#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
+		['name' => 'signRequest#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
+
 		['name' => 'signFile#signUsingUuid',                   'url' => '/api/0.1/sign/uuid/{uuid}', 'verb' => 'POST'],
 		['name' => 'signFile#signUsingFileId',                 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'POST'],
 		['name' => 'signFile#getCodeUsingUuid',                'url' => '/api/0.1/sign/uuid/{uuid}/code', 'verb' => 'POST'],
 		['name' => 'signFile#getCodeUsingFileId',              'url' => '/api/0.1/sign/file_id/{fileId}/code', 'verb' => 'POST'],
-		['name' => 'signFile#deleteAllSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}', 'verb' => 'DELETE'],
-		['name' => 'signFile#deleteOneSignRequestUsingFileId', 'url' => '/api/0.1/sign/file_id/{fileId}/{fileUserId}', 'verb' => 'DELETE'],
 
 		['name' => 'File#Save',              'url' => '/api/0.1/file', 'verb' => 'POST'],
 		['name' => 'File#list',              'url' => '/api/0.1/file/list', 'verb' => 'GET'],
@@ -50,9 +42,6 @@ return [
 		['name' => 'FileElement#delete',      'url' => '/api/0.1/file-element/{uuid}/{elementId}', 'verb' => 'DELETE'],
 
 		['name' => 'notify#signers',                  'url' => '/api/0.1/notify/signers', 'verb' => 'POST'],
-
-		// Deprecated
-		['name' => 'settingDeprecated#hasRootCert',   'url' => '/api/0.1/signature/has-root-cert', 'verb' => 'GET'],
 
 		// Settings
 		['name' => 'setting#hasRootCert',             'url' => '/api/0.1/setting/has-root-cert', 'verb' => 'GET'],
