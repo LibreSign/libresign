@@ -101,7 +101,7 @@ export default {
 		...mapActions({
 			resetSidebarStatus: 'sidebar/RESET',
 			setSidebarStatus: 'sidebar/setStatus',
-			requestNewSign: 'sign/REQUEST',
+			requestNewSign: 'request-signature',
 			resetValidateFile: 'validate/RESET',
 			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
