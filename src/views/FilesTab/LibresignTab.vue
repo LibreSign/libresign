@@ -368,7 +368,7 @@ export default {
 		},
 
 		async updateRegister(users, fileInfo) {
-			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/request'), {
+			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/request-signature'), {
 				file: {
 					fileId: this.fileInfo.id,
 				},
