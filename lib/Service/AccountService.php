@@ -61,6 +61,8 @@ class AccountService {
 	private $accountFileMapper;
 	/** @var SignFileService */
 	private $signFileService;
+	/** @var RequestSignatureService */
+	private $requestSignatureService;
 	/** @var SignatureService */
 	private $signatureService;
 	/** @var \OCA\Libresign\Db\File */
@@ -93,6 +95,7 @@ class AccountService {
 		FileTypeMapper $fileTypeMapper,
 		AccountFileMapper $accountFileMapper,
 		SignFileService $signFileService,
+		RequestSignatureService $requestSignatureService,
 		SignatureService $signatureService,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
@@ -115,6 +118,7 @@ class AccountService {
 		$this->fileTypeMapper = $fileTypeMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->signFileService = $signFileService;
+		$this->requestSignatureService = $requestSignatureService;
 		$this->signatureService = $signatureService;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
@@ -352,7 +356,7 @@ class AccountService {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->signFileService->saveFile($dataToSave);
+			$file = $this->requestSignatureService->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}
