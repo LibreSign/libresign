@@ -3,7 +3,7 @@
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -14,18 +14,18 @@ use OCP\IDBConnection;
 class BeforeNodeDeletedListener implements IEventListener {
 	/** @var FileMapper */
 	private $fileMapper;
-	/** @var SignFileService */
-	private $signFileService;
+	/** @var RequestSignatureService */
+	private $requestSignatureService;
 	/** @var IDBConnection */
 	private $db;
 
 	public function __construct(
 		FileMapper $fileMapper,
-		SignFileService $signFileService,
+		RequestSignatureService $requestSignatureService,
 		IDBConnection $db
 	) {
 		$this->fileMapper = $fileMapper;
-		$this->signFileService = $signFileService;
+		$this->requestSignatureService = $requestSignatureService;
 		$this->db = $db;
 	}
 
@@ -45,7 +45,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 			case 'signed_file':
 				$file = $this->fileMapper->getByFileId($nodeId);
 				$nodeId = $file->getNodeId();
-				$this->signFileService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
+				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'file':
 				$libresignFile = $this->fileMapper->getByFileId($nodeId);
@@ -54,7 +54,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 					$this->fileMapper->update($libresignFile);
 					break;
 				}
-				$this->signFileService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
+				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'user_element':
 			case 'file_element':

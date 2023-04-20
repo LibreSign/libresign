@@ -34,9 +34,9 @@ class FileService {
 	/** @var FileElementService */
 	private $fileElementService;
 	/** @var FolderService */
-	private $folderService;
+	protected $folderService;
 	/** @var ValidateHelper */
-	private $validateHelper;
+	protected $validateHelper;
 	/** @var AccountService */
 	private $accountService;
 	/** @var IUserSession */
@@ -54,11 +54,11 @@ class FileService {
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
+	protected $mimeTypeDetector;
 	/** @var LoggerInterface */
-	private $logger;
+	protected $logger;
 	/** @var IL10N */
-	private $l10n;
+	protected $l10n;
 	/** @var bool */
 	private $showSigners = false;
 	/** @var bool */
