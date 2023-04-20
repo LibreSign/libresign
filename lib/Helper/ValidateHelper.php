@@ -486,22 +486,15 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIdentifyMethod(string $identifyMethod): void {
-		if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the identification method. The
-			// identification method is used to define how will be the sign
-			// flow.
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
-		}
-	}
-
-	public function validateSignMethod(string $signMethod): void {
-		if (!in_array($signMethod, SignMethodService::SIGN_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the sign method. The
-			// sign method is used to define how will be signatue.
-			throw new LibresignException($this->l10n->t('Invalid sign method'));
+	public function validateIdentifyMethods(array $identifyMethods): void {
+		foreach ($identifyMethods as $identifyMethod) {
+			if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
+				// TRANSLATORS When is requested to a person to sign a file, is
+				// necessary identify what is the identification method. The
+				// identification method is used to define how will be the sign
+				// flow.
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
 		}
 	}
 

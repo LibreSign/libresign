@@ -615,21 +615,28 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @dataProvider dataValidateIdentifyMethod
+	 * @dataProvider datavalidateIdentifyMethods
 	 */
-	public function testValidateIdentifyMethod(string $identifyMethod, bool $throwException): void {
+	public function testvalidateIdentifyMethods(array $identifyMethods, bool $throwException): void {
 		if ($throwException) {
 			$this->expectException(LibresignException::class);
 		}
-		$return = $this->getValidateHelper()->validateIdentifyMethod($identifyMethod);
+		$return = $this->getValidateHelper()->validateIdentifyMethods($identifyMethods);
 		$this->assertNull($return);
 	}
 
-	public function dataValidateIdentifyMethod(): array {
+	public function datavalidateIdentifyMethods(): array {
 		return [
-			['', true],
-			['invalid', true],
-			['nextcloud', false],
+			[[''], true],
+			[['invalid'], true],
+			[['invalid', 'nextcloud'], true],
+			[['nextcloud', 'invalid'], true],
+			[['password'], false],
+			[['nextcloud'], false],
+			[['email'], false],
+			[['sms'], false],
+			[['signal'], false],
+			[['telegram'], false],
 		];
 	}
 }

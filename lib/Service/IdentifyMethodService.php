@@ -30,10 +30,18 @@ use OCP\IConfig;
 
 class IdentifyMethodService {
 	public const IDENTIFTY_NEXTCLOUD = 'nextcloud';
-	public const IDENTIFY_TOKEN = 'token';
+	public const IDENTIFY_EMAIL = 'email';
+	public const IDENTIFY_SIGNAL = 'signal';
+	public const IDENTIFY_TELEGRAM = 'telegram';
+	public const IDENTIFY_SMS = 'sms';
+	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_METHODS = [
 		self::IDENTIFTY_NEXTCLOUD,
-		self::IDENTIFY_TOKEN,
+		self::IDENTIFY_EMAIL,
+		self::IDENTIFY_SIGNAL,
+		self::IDENTIFY_TELEGRAM,
+		self::IDENTIFY_SMS,
+		self::IDENTIFY_PASSWORD,
 	];
 
 	public function __construct(
@@ -41,10 +49,10 @@ class IdentifyMethodService {
 	) {
 	}
 
-	public function getUserIdentifyMethod(array $user): string {
+	public function getUserIdentifyMethods(array $user): array {
 		if (array_key_exists('identifyMethod', $user)) {
 			return $user['identifyMethod'];
 		}
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', 'nextcloud') ?? 'nextcloud';
+		return json_decode($this->config->getAppValue(Application::APP_ID, 'identify_method', '["nextcloud"]') ?? '["nextcloud"]', true);
 	}
 }

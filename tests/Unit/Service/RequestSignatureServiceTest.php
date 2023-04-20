@@ -26,6 +26,7 @@ declare(strict_types=1);
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -54,6 +55,8 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private $fileMapper;
 	/** @var FileUserMapper|MockObject */
 	private $fileUserMapper;
+	/** @var IdentifyMethodMapper|MockObject */
+	private $identifyMethodMapper;
 	/** @var IUser|MockObject */
 	private $user;
 	/** @var IClientService|MockObject */
@@ -90,6 +93,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->mailService = $this->createMock(MailService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
+		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->clientService = $this->createMock(IClientService::class);
@@ -115,6 +119,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->fileMapper,
+			$this->identifyMethodMapper,
 			$this->pdfParserService,
 			$this->fileElementService,
 			$this->fileElementMapper,
@@ -272,8 +277,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->assertEquals(36, strlen($subject[0]));
 					return true;
 				})],
-				[$this->equalTo('setIdentifyMethod'), $this->equalTo(['nextcloud'])],
-				[$this->equalTo('setSignMethod'), $this->equalTo(['password'])],
 				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
 				[$this->equalTo('getDescription')],
 				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])],
@@ -287,8 +290,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				['setFileId', [], null],
 				['getUuid', [], null],
 				['setUuid', [], null],
-				['setIdentifyMethod', [], null],
-				['setSignMethod', [], null],
 				['setEmail', [], null],
 				['getDescription', [], null],
 				['setDescription', [], null],
@@ -306,8 +307,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user->method('getDisplayName')->willReturn('John Doe');
 		$this->userManager->method('getByEmail')->willReturn([$user]);
 		$this->config->method('getAppValue')->will($this->returnValue('nextcloud'));
-		$this->signMethod->method('getUserSignMethod')->will($this->returnValue('password'));
-		$this->identifyMethod->method('getUserIdentifyMethod')->will($this->returnValue('nextcloud'));
 		$actual = $this->getService()->save([
 			'uuid' => 'the-uuid-here',
 			'users' => [
