@@ -5,6 +5,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
@@ -74,6 +75,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $signMethod;
 	/** @var IdentifyMethodService|MockObject */
 	private $identifyMethod;
+	/** @var IdentifyMethodMapper|MockObject */
+	private $identifyMethodMapper;
 	/** @var IMimeTypeDetector|MockObject */
 	private $mimeTypeDetector;
 	/** @var ITempManager|MockObject */
@@ -104,6 +107,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
 		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
@@ -129,6 +133,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->signMethod,
 			$this->identifyMethod,
+			$this->identifyMethodMapper,
 			$this->mimeTypeDetector,
 			$this->tempManager
 		);
@@ -441,6 +446,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						],
 						'redirect' => '',
 					]));
+					$self->identifyMethodMapper
+						->method('getIdentifyMethodsFromFileUserId')
+						->will($self->returnValue(['nextcloud']));
 					$fileUser = $self->createMock(FileUser::class);
 					$fileUser
 						->method('__call')
@@ -448,13 +456,13 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getFileId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 						)
 						->will($self->returnValueMap([
 							['getFileId', [], 1],
 							['getUserId', [], 'fileuser'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 						]));
 					$self->fileUserMapper
 						->method('getByUuid')
@@ -508,7 +516,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getNodeId')],
 						)
 						->will($self->returnValueMap([
@@ -516,7 +524,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getNodeId', [], 1],
 						]));
 					$self->fileUserMapper
@@ -550,8 +558,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identifyMethod' => 'nextcloud',
-						'signMethod' => 'password',
+						'identifyMethods' => [],
 					],
 					'sign' => [
 						'pdf' => [
@@ -574,10 +581,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getSignMethod')]
 						)
 						->will($self->returnValueMap([
@@ -585,10 +592,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], ''],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getSignMethod', [], 'password'],
 						]));
 					$self->fileUserMapper
@@ -617,8 +624,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identifyMethod' => 'nextcloud',
-						'signMethod' => 'password',
+						'identifyMethods' => [],
 					],
 					'sign' => [
 						'pdf' => [
@@ -641,10 +647,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getSignMethod')]
 						)
 						->will($self->returnValueMap([
@@ -652,10 +658,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], ''],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getSignMethod', [], 'password'],
 						]));
 					$self->fileUserMapper
@@ -702,8 +708,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identifyMethod' => 'nextcloud',
-						'signMethod' => 'password',
+						'identifyMethods' => [],
 					],
 					'sign' => [
 						'pdf' => [
@@ -726,10 +731,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getSignMethod')]
 						)
 						->will($self->returnValueMap([
@@ -737,10 +742,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], ''],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getSignMethod', [], 'password'],
 						]));
 					$self->fileUserMapper
@@ -769,8 +774,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'action' => JSActions::ACTION_SIGN,
 					'settings' => [
-						'identifyMethod' => 'nextcloud',
-						'signMethod' => 'password',
+						'identifyMethods' => [],
 					],
 					'sign' => [
 						'pdf' => [
@@ -793,10 +797,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getUserId')],
 							[$self->equalTo('getSigned')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getDisplayName')],
 							[$self->equalTo('getDescription')],
-							[$self->equalTo('getIdentifyMethod')],
+							[$self->equalTo('getId')],
 							[$self->equalTo('getSignMethod')]
 						)
 						->will($self->returnValueMap([
@@ -804,10 +808,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 							['getUserId', [], 'username'],
 							['getUserId', [], 'username'],
 							['getSigned', [], false],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getDisplayName', [], 'username'],
 							['getDescription', [], ''],
-							['getIdentifyMethod', [], 'nextcloud'],
+							['getId', [], 1],
 							['getSignMethod', [], 'password'],
 						]));
 					$self->fileUserMapper
@@ -844,10 +848,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[$this->equalTo('getUserId')],
 				[$this->equalTo('getUserId')],
 				[$this->equalTo('getSigned')],
-				[$this->equalTo('getIdentifyMethod')],
+				[$this->equalTo('getId')],
 				[$this->equalTo('getDisplayName')],
 				[$this->equalTo('getDescription')],
-				[$this->equalTo('getIdentifyMethod')],
+				[$this->equalTo('getId')],
 				[$this->equalTo('getSignMethod')]
 			)
 			->will($this->returnValueMap([
@@ -855,10 +859,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getUserId', [], 'username'],
 				['getUserId', [], 'username'],
 				['getSigned', [], false],
-				['getIdentifyMethod', [], 'nextcloud'],
+				['getId', [], 1],
 				['getDisplayName', [], 'username'],
 				['getDescription', [], ''],
-				['getIdentifyMethod', [], 'nextcloud'],
+				['getId', [], 1],
 				['getSignMethod', [], 'password'],
 			]));
 		$this->fileUserMapper
@@ -891,8 +895,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			json_encode([
 				'action' => JSActions::ACTION_SIGN,
 				'settings' => [
-					'identifyMethod' => 'nextcloud',
-					'signMethod' => 'password',
+					'identifyMethods' => [],
 				],
 				'sign' => [
 					'pdf' => [

@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Event\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
@@ -73,6 +74,8 @@ class SignFileService {
 	private $signMethod;
 	/** @var IdentifyMethodService */
 	private $identifyMethod;
+	/** @var IdentifyMethodMapper */
+	private $identifyMethodMapper;
 	/** @var IMimeTypeDetector */
 	protected $mimeTypeDetector;
 	/** @var ITempManager */
@@ -108,6 +111,7 @@ class SignFileService {
 		IURLGenerator $urlGenerator,
 		SignMethodService $signMethod,
 		IdentifyMethodService $identifyMethod,
+		IdentifyMethodMapper $identifyMethodMapper,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
 	) {
@@ -130,6 +134,7 @@ class SignFileService {
 		$this->urlGenerator = $urlGenerator;
 		$this->signMethod = $signMethod;
 		$this->identifyMethod = $identifyMethod;
+		$this->identifyMethodMapper = $identifyMethodMapper;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
 	}
@@ -507,7 +512,8 @@ class SignFileService {
 	}
 
 	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
-		if ($fileUser->getIdentifyMethod() !== IdentifyMethodService::IDENTIFTY_NEXTCLOUD) {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		if (!in_array(IdentifyMethodService::IDENTIFTY_NEXTCLOUD, $identifyMethods)) {
 			return;
 		}
 		if (!$user) {
@@ -586,8 +592,7 @@ class SignFileService {
 		if ($fileUser) {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
-			$return['settings']['identifyMethod'] = $fileUser->getIdentifyMethod();
-			$return['settings']['signMethod'] = $fileUser->getSignMethod();
+			$return['settings']['identifyMethods'] = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}
