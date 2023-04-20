@@ -32,7 +32,10 @@ use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-class Version8000Date20230402103824 extends SimpleMigrationStep {
+/**
+ * Auto-generated migration step: Please modify to your needs!
+ */
+class Version8000Date20230420125331 extends SimpleMigrationStep {
 	/**
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
@@ -42,13 +45,26 @@ class Version8000Date20230402103824 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper */
 		$schema = $schemaClosure();
-		$table = $schema->getTable('libresign_file_user');
-		if (!$table->hasColumn('identify_method')) {
-			$table->addColumn('identify_method', Types::STRING, [
+		$fileUser = $schema->getTable('libresign_file_user');
+		$changed = false;
+		if ($fileUser->hasColumn('identify_method')) {
+			$fileUser->dropColumn('identify_method');
+			$changed = true;
+		}
+		if (!$schema->hasTable('libresign_identify_method')) {
+			$identifyMethod = $schema->createTable('libresign_identify_method');
+			$identifyMethod->addColumn('file_user_id', Types::BIGINT, [
+				'notnull' => true,
+			]);
+			$identifyMethod->addColumn('method', 'string', [
 				'notnull' => true,
 				'default' => 'nextcloud',
 				'length' => 30,
 			]);
+			$identifyMethod->addUniqueIndex(['file_user_id', 'method'], 'identify_method_unique_index');
+			$changed = true;
+		}
+		if ($changed) {
 			return $schema;
 		}
 		return null;
