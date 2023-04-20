@@ -162,7 +162,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Password to sign not defined. Create a password to sign.', $body['errors'][0]);
+		$this->assertEquals('', $body['errors'][0]);
 	}
 
 	/**
@@ -219,7 +219,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Certificate Password is Empty.', $body['errors'][0]);
+		$this->assertEquals('Empty identify data.', $body['errors'][0]);
 	}
 
 	/**

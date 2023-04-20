@@ -11,6 +11,8 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
@@ -580,20 +582,40 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(FileUser $fileUser, array $params): void {
-		$identifyMethods = $this->identifyMethodService->getCurrentIdentifyMethod($fileUser, $params);
-		throw new \Exception('I stopped here');
-		$signMethod = $fileUser->getSignMethod();
-		switch ($signMethod) {
-			case SignMethodService::SIGN_SMS:
-			case SignMethodService::SIGN_TELEGRAM:
-			case SignMethodService::SIGN_SIGNAL:
-			case SignMethodService::SIGN_EMAIL:
+		$params = array_filter($params, function($value): bool {
+			return !empty($value);
+		});
+		if (count($params) === 0) {
+			throw new LibresignException($this->l10n->t('Empty identify data.'));
+		}
+		if (count($params) > 1) {
+			throw new LibresignException($this->l10n->t('Do not use mixed identify data.'));
+		}
+
+		$currentIdentifyMethod = key($params);
+		$this->validateIdentifyMethods([$currentIdentifyMethod]);
+		$default = $this->identifyMethodService->getDefaultIdentiyMethod($fileUser->getId());
+		if ($default->getIdentifiedAtDate() || $default->getMethod() !== $currentIdentifyMethod) {
+			throw new LibresignException($this->l10n->t('File already signed.'));
+		}
+
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$identifyMethod = array_filter($identifyMethods, function(IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
+			return $identifyMethod->getMethod() === $currentIdentifyMethod;
+		});
+		if (!$identifyMethod) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+		$identifyMethod = current($identifyMethod);
+
+		switch ($identifyMethod->getMethod()) {
+			case IdentifyMethodService::IDENTIFY_SMS:
+			case IdentifyMethodService::IDENTIFY_TELEGRAM:
+			case IdentifyMethodService::IDENTIFY_SIGNAL:
+			case IdentifyMethodService::IDENTIFY_EMAIL:
 				$this->valdateCode($fileUser, $params);
 				break;
-			case SignMethodService::SIGN_PASSWORD:
-				if (isset($params['code'])) {
-					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
-				}
+			case IdentifyMethodService::IDENTIFY_PASSWORD:
 		}
 	}
 

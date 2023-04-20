@@ -28,6 +28,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCP\IConfig;
 
 class IdentifyMethodService {
@@ -47,7 +48,8 @@ class IdentifyMethodService {
 	];
 
 	public function __construct(
-		private IConfig $config
+		private IConfig $config,
+		private IdentifyMethodMapper $identifyMethodMapper
 	) {
 	}
 
@@ -58,7 +60,27 @@ class IdentifyMethodService {
 		return json_decode($this->config->getAppValue(Application::APP_ID, 'identify_method', '["nextcloud"]') ?? '["nextcloud"]', true);
 	}
 
-	public function getCurrentIdentifyMethod(FileUser $fileUser, array $keys): IdentifyMethod {
-		return new IdentifyMethod();
+	/**
+	 * @param array<IdentifyMethod> $identifyMethods
+	 * @return IdentifyMethod
+	 */
+	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
+		$default = array_filter($identifyMethods, function(IdentifyMethod $current): bool {
+			return $current->getDefault() === 1;
+		});
+		if (!$default) {
+			return $this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFTY_NEXTCLOUD) ?? self::IDENTIFTY_NEXTCLOUD;
+		}
+		return current($default);
+	}
+
+	/**
+	 * @param integer $fileUserId
+	 * @return array<IdentifyMethod>
+	 */
+	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
+		return $identifyMethods;
 	}
 }
