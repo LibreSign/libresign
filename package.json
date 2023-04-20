@@ -24,7 +24,7 @@
     "@nextcloud/l10n": "^2.0.1",
     "@nextcloud/password-confirmation": "^4.0.3",
     "@nextcloud/paths": "^2.1.0",
-    "@nextcloud/router": "^2.0.1",
+    "@nextcloud/router": "^2.1.0",
     "@nextcloud/vue": "^7.10.0",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.29.1",
