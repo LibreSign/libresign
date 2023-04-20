@@ -113,12 +113,6 @@ final class SignFileControllerTest extends ApiTestCase {
 		$libresignFolder = $folderService->getFolder();
 		$libresignFolder->delete();
 
-		$this->mockConfig([
-			'libresign' => [
-				'sign_method' => 'password',
-			],
-		]);
-
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -154,12 +148,6 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user
 		]);
 
-		$this->mockConfig([
-			'libresign' => [
-				'sign_method' => 'password',
-			],
-		]);
-
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -183,7 +171,6 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testSignUsingFileIdWithEmptyCertificatePassword() {
 		$this->mockConfig([
 			'libresign' => [
-				'sign_method' => 'password',
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
 				'rootCert' => json_encode([
@@ -241,7 +228,6 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testSignUsingFileIdWithSuccess() {
 		$this->mockConfig([
 			'libresign' => [
-				'sign_method' => 'password',
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
 				'rootCert' => json_encode([
@@ -453,7 +439,6 @@ final class SignFileControllerTest extends ApiTestCase {
 					]
 				]),
 				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-				'sign_method' => 'password',
 				'cfssl_bin' => '',
 			]
 		]);

@@ -82,7 +82,6 @@ class FileService {
 		'hasSignatureFile' => false,
 		'signerFileUuid' => null,
 		'phoneNumber' => '',
-		'signMethod' => 'password'
 	];
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
@@ -319,7 +318,6 @@ class FileService {
 				$this->settings['identificationDocumentsWaitingApproval'] = true;
 			}
 		}
-		$this->settings['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		return $this->settings;
 	}
 

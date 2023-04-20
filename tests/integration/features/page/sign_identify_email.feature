@@ -24,7 +24,10 @@ Feature: page/sign_identify_token
       | status_text | pending |
     And the signer contains
       | key | value |
-      | identifyMethod | [email] |
+      | uid | signer1 |
+      | email | signer1@domain.test |
+      | me | true |
+      | identifyMethods | ["email"] |
 
   Scenario: Open sign file with invalid data
     # With invalid UUID, need to be the signer UUID
@@ -50,5 +53,5 @@ Feature: page/sign_identify_token
     Then the response should contain the initial state "libresign-config" with the following values:
       | key | value |
       | action | 250 |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identifyMethod":["email"],"isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identifyMethods":["email"],"isApprover":false} |
       | user | {"name":""} |
