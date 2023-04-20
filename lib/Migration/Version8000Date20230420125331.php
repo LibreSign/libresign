@@ -51,17 +51,46 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			$fileUser->dropColumn('identify_method');
 			$changed = true;
 		}
+		$libresignFileUser = $schema->getTable('libresign_file_user');
+		if ($libresignFileUser->hasColumn('code')) {
+			$libresignFileUser->dropColumn('code');
+			$changed = true;
+		}
 		if (!$schema->hasTable('libresign_identify_method')) {
 			$identifyMethod = $schema->createTable('libresign_identify_method');
 			$identifyMethod->addColumn('file_user_id', Types::BIGINT, [
 				'notnull' => true,
 			]);
-			$identifyMethod->addColumn('method', 'string', [
+			$identifyMethod->addColumn('method', Types::STRING, [
 				'notnull' => true,
 				'default' => 'nextcloud',
 				'length' => 30,
 			]);
+			$identifyMethod->addColumn('default', Types::SMALLINT, [
+				'notnull' => true,
+				'default' => 0,
+				'length' => 1,
+			]);
+			$identifyMethod->addColumn('code', Types::STRING, [
+				'notnull' => false,
+				'length' => 256,
+			]);
+			$identifyMethod->addColumn('attemps', Types::SMALLINT, [
+				'notnull' => true,
+				'default' => 0,
+			]);
+			$identifyMethod->addColumn('identified_at_date', Types::DATETIME, [
+				'notnull' => false,
+				'length' => 20,
+				'unsigned' => true,
+			]);
+			$identifyMethod->addColumn('last_attempt_date', Types::DATETIME, [
+				'notnull' => false,
+				'length' => 20,
+				'unsigned' => true,
+			]);
 			$identifyMethod->addUniqueIndex(['file_user_id', 'method'], 'identify_method_unique_index');
+			$identifyMethod->addUniqueIndex(['file_user_id', 'default'], 'identify_default_unique_index');
 			$changed = true;
 		}
 		if ($changed) {
