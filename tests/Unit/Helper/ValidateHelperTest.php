@@ -11,6 +11,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -36,6 +37,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
+	/** @var IdentifyMethodService|MockObject */
+	private $identifyMethodService;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
 	/** @var IHasher */
@@ -60,6 +63,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->config = $this->createMock(IConfig::class);
@@ -77,6 +81,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
+			$this->identifyMethodService,
 			$this->mimeTypeDetector,
 			$this->hasher,
 			$this->config,
