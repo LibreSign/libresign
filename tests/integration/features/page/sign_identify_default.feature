@@ -24,7 +24,10 @@ Feature: page/sign_identify_default
       | status_text | pending |
     And the signer contains
       | key | value |
-      | identifyMethod | nextcloud |
+      | uid | signer1 |
+      | email | signer1@domain.test |
+      | me | true |
+      | identifyMethods | ["nextcloud"] |
 
   Scenario: Open sign file with invalid data
     # With invalid UUID, need to be the signer UUID
@@ -59,5 +62,5 @@ Feature: page/sign_identify_default
     Then the response should contain the initial state "libresign-config" with the following values:
       | key | value |
       | action | 250 |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identifyMethod":"nextcloud","signMethod":"password","isApprover":false} |
+      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","identifyMethods":["nextcloud"],"isApprover":false} |
       | user | {"name":""} |
