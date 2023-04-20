@@ -33,14 +33,62 @@ use OCP\AppFramework\Db\Entity;
  * @method int getFileUserId()
  * @method void setMethod(string $method)
  * @method string getMethod()
+ * @method void setAttempts(int $default)
+ * @method int getDefault()
+ * @method void setCode(string $code)
+ * @method string getCode()
+ * @method void setAttempts(int $attempts)
+ * @method int getAttempts()
+ * @method \DateTime getIdentifiedAtDate()
+ * @method \DateTime getLastAttemptDate()
  */
 class IdentifyMethod extends Entity {
 	/** @var integer */
 	public $fileUserId;
 	/** @var string */
 	public $method;
+	/** @var int */
+	public $default;
+	/** @var string */
+	public $code;
+	/** @var int */
+	public $attempts;
+	/** @var \DateTime */
+	public $identifiedAtDate;
+	/** @var \DateTime */
+	public $lastAttemptDate;
+
 	public function __construct() {
 		$this->addType('file_user_id', 'integer');
 		$this->addType('method', 'string');
+		$this->addType('default', 'int');
+		$this->addType('code', 'string');
+		$this->addType('attempts', 'int');
+		$this->addType('identifiedAtDate', 'datetime');
+		$this->addType('lastAttemptDate', 'datetime');
+	}
+
+	/**
+	 * @param \DateTime|string $createdAt
+	 * @return void
+	 */
+	public function setIdentifiedAtDate($identifiedAtDate): void {
+		if (!$identifiedAtDate instanceof \DateTime) {
+			$identifiedAtDate = new \DateTime($identifiedAtDate);
+		}
+		$this->identifiedAtDate = $identifiedAtDate;
+		$this->markFieldUpdated('identifiedAtDate');
+	}
+
+	/**
+	 * @param \DateTime|string $createdAt
+	 * @return void
+	 */
+	public function setLastAttemptDate($lastAttemptDate): void {
+		if (!$lastAttemptDate instanceof \DateTime) {
+			$lastAttemptDate = new \DateTime($lastAttemptDate);
+		}
+		$this->lastAttemptDate = $lastAttemptDate;
+		$this->markFieldUpdated('lastAttemptDate');
 	}
 }
