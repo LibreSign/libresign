@@ -2,27 +2,13 @@
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Helper\ValidateHelper;
-use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
-use OCP\IL10N;
-use Psr\Log\LoggerInterface;
 use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use TCPDF_PARSER;
 
 trait TFile {
-	/** @var FolderService */
-	private $folderService;
 	/** @var IClientService */
 	private $client;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IL10N */
-	private $l10n;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
 	/** @var ?string */
 	private $mimetype = null;
 
