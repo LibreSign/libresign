@@ -24,33 +24,23 @@ declare(strict_types=1);
  *
  */
 
-namespace OCA\Libresign\Migration;
+namespace OCA\Libresign\Db;
 
-use Closure;
-use OCP\DB\ISchemaWrapper;
-use OCP\DB\Types;
-use OCP\Migration\IOutput;
-use OCP\Migration\SimpleMigrationStep;
+use OCP\AppFramework\Db\Entity;
 
-class Version8000Date20230402103824 extends SimpleMigrationStep {
-	/**
-	 * @param IOutput $output
-	 * @param Closure(): ISchemaWrapper $schemaClosure
-	 * @param array $options
-	 * @return null|ISchemaWrapper
-	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
-		/** @var ISchemaWrapper */
-		$schema = $schemaClosure();
-		$table = $schema->getTable('libresign_file_user');
-		if (!$table->hasColumn('identify_method')) {
-			$table->addColumn('identify_method', Types::STRING, [
-				'notnull' => true,
-				'default' => 'nextcloud',
-				'length' => 30,
-			]);
-			return $schema;
-		}
-		return null;
+/**
+ * @method void setFileUserId(int $fileUserId)
+ * @method int getFileUserId()
+ * @method void setMethod(string $method)
+ * @method string getMethod()
+ */
+class IdentifyMethod extends Entity {
+	/** @var integer */
+	public $fileUserId;
+	/** @var string */
+	public $method;
+	public function __construct() {
+		$this->addType('file_user_id', 'integer');
+		$this->addType('method', 'string');
 	}
 }
