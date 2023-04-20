@@ -47,6 +47,10 @@ class SignMethodService {
 	public const SIGN_EMAIL = 'email';
 	public const SIGN_METHODS = [
 		self::SIGN_PASSWORD,
+		self::SIGN_SIGNAL,
+		self::SIGN_TELEGRAM,
+		self::SIGN_SMS,
+		self::SIGN_EMAIL,
 	];
 
 	public function __construct(
@@ -60,13 +64,6 @@ class SignMethodService {
 		private ContainerInterface $serverContainer,
 		private MailService $mail
 	) {
-	}
-
-	public function getUserSignMethod(array $user): string {
-		if (array_key_exists('signMethod', $user)) {
-			return $user['signMethod'];
-		}
-		return $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password') ?? 'password';
 	}
 
 	public function requestCode(FileUser $fileUser, IUser $user): string {

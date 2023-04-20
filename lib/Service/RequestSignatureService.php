@@ -30,6 +30,8 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -51,6 +53,7 @@ class RequestSignatureService {
 		protected FileUserMapper $fileUserMapper,
 		protected IUserManager $userManager,
 		protected FileMapper $fileMapper,
+		protected IdentifyMethodMapper $identifyMethodMapper,
 		protected PdfParserService $pdfParserService,
 		protected FileElementService $fileElementService,
 		protected FileElementMapper $fileElementMapper,
@@ -142,6 +145,8 @@ class RequestSignatureService {
 				$fileUser = $this->getFileUser($user['email'], $fileId);
 				$this->setDataToUser($fileUser, $user, $fileId);
 				$this->saveFileUser($fileUser, $notifyAsNewUser);
+				$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
+				$this->saveIdentifyMethods($fileUser, $identifyMethods);
 				$return[] = $fileUser;
 			}
 		}
@@ -203,10 +208,8 @@ class RequestSignatureService {
 		$emails = [];
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
-			$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
-			$this->validateHelper->validateIdentifyMethod($identifyMethod);
-			$signMethod = $this->signMethod->getUserSignMethod($user);
-			$this->validateHelper->validateSignMethod($signMethod);
+			$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
+			$this->validateHelper->validateIdentifyMethods($identifyMethods);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
@@ -229,6 +232,15 @@ class RequestSignatureService {
 		}
 	}
 
+	private function saveIdentifyMethods(FileUserEntity $fileUser, array $identifyMethods): void {
+		foreach ($identifyMethods as $method) {
+			$identifyMethod = new IdentifyMethod();
+			$identifyMethod->setFileUserId($fileUser->getId());
+			$identifyMethod->setMethod($method);
+			$this->identifyMethodMapper->insert($identifyMethod);
+		}
+	}
+
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
@@ -237,10 +249,6 @@ class RequestSignatureService {
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 		}
-		$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
-		$fileUser->setIdentifyMethod($identifyMethod);
-		$signMethod = $this->signMethod->getUserSignMethod($user);
-		$fileUser->setSignMethod($signMethod);
 		$fileUser->setEmail($user['email']);
 		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
 			$fileUser->setDescription($user['description']);
