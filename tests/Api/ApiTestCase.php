@@ -41,8 +41,8 @@ class ApiTestCase extends TestCase {
 	 */
 	protected static $server;
 
-	/** @var SignFileService */
-	private $signFileService;
+	/** @var RequestSignatureService */
+	private $requestSignatureService;
 
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
@@ -169,17 +169,17 @@ class ApiTestCase extends TestCase {
 				'name' => 'userId'
 			];
 		}
-		$file = $this->getSignFileService()->save($data);
+		$file = $this->getRequestSignatureService()->save($data);
 		return $file;
 	}
 
 	/**
-	 * @return \OCA\Libresign\Service\SignFileService
+	 * @return \OCA\Libresign\Service\RequestSignatureService
 	 */
-	public function getSignFileService(): \OCA\Libresign\Service\SignFileService {
-		if (!$this->signFileService) {
-			$this->signFileService = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
+	public function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
+		if (!$this->requestSignatureService) {
+			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
 		}
-		return $this->signFileService;
+		return $this->requestSignatureService;
 	}
 }

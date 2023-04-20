@@ -18,7 +18,6 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Http;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\IMimeTypeDetector;
@@ -37,7 +36,7 @@ class SignFileService {
 	use TFile;
 
 	/** @var IL10N */
-	private $l10n;
+	protected $l10n;
 	/** @var FileMapper */
 	private $fileMapper;
 	/** @var FileUserMapper */
@@ -49,27 +48,23 @@ class SignFileService {
 	/** @var Pkcs12Handler */
 	private $pkcs12Handler;
 	/** @var FolderService */
-	private $folderService;
+	protected $folderService;
 	/** @var IClientService */
 	private $client;
 	/** @var IUserManager */
 	private $userManager;
-	/** @var MailService */
-	private $mail;
 	/** @var LoggerInterface */
-	private $logger;
+	protected $logger;
 	/** @var IConfig */
 	private $config;
 	/** @var ValidateHelper */
-	private $validateHelper;
+	protected $validateHelper;
 	/** @var IRootFolder */
 	private $root;
 	/** @var FileElementMapper */
 	private $fileElementMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
-	/** @var FileElementService */
-	private $fileElementService;
 	/** @var IEventDispatcher */
 	private $eventDispatcher;
 	/** @var IURLGenerator */
@@ -79,9 +74,7 @@ class SignFileService {
 	/** @var IdentifyMethodService */
 	private $identifyMethod;
 	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var PdfParserService */
-	private $pdfParserService;
+	protected $mimeTypeDetector;
 	/** @var ITempManager */
 	private $tempManager;
 	/** @var FileUserEntity */
@@ -105,19 +98,16 @@ class SignFileService {
 		FolderService $folderService,
 		IClientService $client,
 		IUserManager $userManager,
-		MailService $mail,
 		LoggerInterface $logger,
 		IConfig $config,
 		ValidateHelper $validateHelper,
 		IRootFolder $root,
 		FileElementMapper $fileElementMapper,
 		UserElementMapper $userElementMapper,
-		FileElementService $fileElementService,
 		IEventDispatcher $eventDispatcher,
 		IURLGenerator $urlGenerator,
 		SignMethodService $signMethod,
 		IdentifyMethodService $identifyMethod,
-		PdfParserService $pdfParserService,
 		IMimeTypeDetector $mimeTypeDetector,
 		ITempManager $tempManager
 	) {
@@ -130,253 +120,18 @@ class SignFileService {
 		$this->folderService = $folderService;
 		$this->client = $client;
 		$this->userManager = $userManager;
-		$this->mail = $mail;
 		$this->logger = $logger;
 		$this->config = $config;
 		$this->validateHelper = $validateHelper;
 		$this->root = $root;
 		$this->fileElementMapper = $fileElementMapper;
 		$this->userElementMapper = $userElementMapper;
-		$this->fileElementService = $fileElementService;
 		$this->eventDispatcher = $eventDispatcher;
 		$this->urlGenerator = $urlGenerator;
 		$this->signMethod = $signMethod;
 		$this->identifyMethod = $identifyMethod;
-		$this->pdfParserService = $pdfParserService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->tempManager = $tempManager;
-	}
-
-	/**
-	 * @param array $data
-	 */
-	public function save(array $data): array {
-		$file = $this->saveFile($data);
-		$this->saveVisibleElements($data, $file);
-		$return['uuid'] = $file->getUuid();
-		$return['nodeId'] = $file->getNodeId();
-		$return['users'] = $this->associateToUsers($data, $file->getId());
-		return $return;
-	}
-
-	private function saveVisibleElements(array $data, FileEntity $file): array {
-		if (empty($data['visibleElements'])) {
-			return [];
-		}
-		$elements = $data['visibleElements'];
-		foreach ($elements as $key => $element) {
-			$element['fileId'] = $file->getId();
-			$elements[$key] = $this->fileElementService->saveVisibleElement($element);
-		}
-		return $elements;
-	}
-
-	/**
-	 * Save file data
-	 *
-	 *
-	 * @param array{userManager: IUser, name: string, callback: string} $data
-	 */
-	public function saveFile(array $data): FileEntity {
-		if (!empty($data['uuid'])) {
-			return $this->fileMapper->getByUuid($data['uuid']);
-		}
-		if (!empty($data['file']['fileId'])) {
-			try {
-				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
-				if (!empty($data['status']) && $data['status'] > $file->getStatus()) {
-					$file->setStatus($data['status']);
-					return $this->fileMapper->update($file);
-				}
-				return $file;
-			} catch (\Throwable $th) {
-			}
-		}
-
-		$node = $this->getNodeFromData($data);
-
-		$file = new FileEntity();
-		$file->setNodeId($node->getId());
-		$file->setUserId($data['userManager']->getUID());
-		$file->setUuid(UUIDUtil::getUUID());
-		$file->setCreatedAt(time());
-		$file->setName($data['name']);
-		$file->setMetadata(json_encode($this->getFileMetadata($node)));
-		if (!empty($data['callback'])) {
-			$file->setCallback($data['callback']);
-		}
-		if (isset($data['status'])) {
-			$file->setStatus($data['status']);
-		} else {
-			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
-		}
-		$this->fileMapper->insert($file);
-		return $file;
-	}
-
-	public function getFileMetadata(\OCP\Files\Node $node): array {
-		$metadata = [
-			'extension' => $node->getExtension(),
-		];
-		if ($metadata['extension'] === 'pdf') {
-			$metadata = $this->pdfParserService->getMetadata($node);
-		}
-		return $metadata;
-	}
-
-	public function saveFileUser(FileUserEntity $fileUser, bool $notifyAsNewUser = false): void {
-		if ($fileUser->getId()) {
-			$this->fileUserMapper->update($fileUser);
-		} else {
-			$this->fileUserMapper->insert($fileUser);
-			$notifyAsNewUser = true;
-		}
-		if ($notifyAsNewUser) {
-			$this->mail->notifyUnsignedUser($fileUser);
-		} else {
-			$this->mail->notifySignDataUpdated($fileUser);
-		}
-	}
-
-	/**
-	 * @return FileUserEntity[]
-	 *
-	 * @psalm-return list<FileUserEntity>
-	 */
-	private function associateToUsers(array $data, int $fileId): array {
-		$return = [];
-		if (!empty($data['users'])) {
-			$notifyAsNewUser = false;
-			if (isset($data['status']) && $data['status'] === FileEntity::STATUS_ABLE_TO_SIGN) {
-				$notifyAsNewUser = true;
-			}
-			foreach ($data['users'] as $user) {
-				$user['email'] = $this->getUserEmail($user);
-				$fileUser = $this->getFileUser($user['email'], $fileId);
-				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser, $notifyAsNewUser);
-				$return[] = $fileUser;
-			}
-		}
-		return $return;
-	}
-
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	private function getFileUser(string $email, int $fileId): FileUserEntity {
-		try {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
-		} catch (DoesNotExistException $e) {
-			$fileUser = new FileUserEntity();
-		}
-		return $fileUser;
-	}
-
-	/**
-	 * @psalm-suppress MixedMethodCall
-	 */
-	private function setDataToUser(FileUserEntity $fileUser, array $user, int $fileId): void {
-		$fileUser->setFileId($fileId);
-		if (!$fileUser->getUuid()) {
-			$fileUser->setUuid(UUIDUtil::getUUID());
-		}
-		$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
-		$fileUser->setIdentifyMethod($identifyMethod);
-		$signMethod = $this->signMethod->getUserSignMethod($user);
-		$fileUser->setSignMethod($signMethod);
-		$fileUser->setEmail($user['email']);
-		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
-			$fileUser->setDescription($user['description']);
-		}
-		if (empty($user['uid'])) {
-			$userToSign = $this->userManager->getByEmail($user['email']);
-			if ($userToSign) {
-				$fileUser->setUserId($userToSign[0]->getUID());
-				if (empty($user['displayName'])) {
-					$user['displayName'] = $userToSign[0]->getDisplayName();
-				}
-			}
-		} else {
-			$fileUser->setUserId($user['uid']);
-		}
-		if (!empty($user['displayName'])) {
-			$fileUser->setDisplayName($user['displayName']);
-		}
-		if (!$fileUser->getId()) {
-			$fileUser->setCreatedAt(time());
-		}
-	}
-
-	public function validateNewRequestToFile(array $data): void {
-		$this->validateUserManager($data);
-		$this->validateNewFile($data);
-		$this->validateUsers($data);
-		$this->validateHelper->validateFileStatus($data);
-	}
-
-	public function validateUserManager(array $user): void {
-		if (!isset($user['userManager'])) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
-		$this->validateHelper->canRequestSign($user['userManager']);
-	}
-
-	public function validateNewFile(array $data): void {
-		if (empty($data['name'])) {
-			throw new \Exception($this->l10n->t('Name is mandatory'));
-		}
-		$this->validateHelper->validateNewFile($data);
-	}
-
-	public function validateExistingFile(array $data): void {
-		if (isset($data['uuid'])) {
-			$this->validateHelper->validateFileUuid($data);
-			$file = $this->fileMapper->getByUuid($data['uuid']);
-			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $file->getNodeId());
-		} elseif (isset($data['file'])) {
-			if (!isset($data['file']['fileId'])) {
-				throw new \Exception($this->l10n->t('Invalid fileID'));
-			}
-			$this->validateHelper->validateLibreSignNodeId($data['file']['fileId']);
-			$this->validateHelper->iRequestedSignThisFile($data['userManager'], $data['file']['fileId']);
-		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
-		}
-	}
-
-	public function validateUsers(array $data): void {
-		if (empty($data['users'])) {
-			throw new \Exception($this->l10n->t('Empty users list'));
-		}
-		if (!is_array($data['users'])) {
-			// TRANSLATION This message will be displayed when the request to API with the key users has a value that is not an array
-			throw new \Exception($this->l10n->t('User list needs to be an array'));
-		}
-		$emails = [];
-		foreach ($data['users'] as $index => $user) {
-			$this->validateHelper->haveValidMail($user);
-			$identifyMethod = $this->identifyMethod->getUserIdentifyMethod($user);
-			$this->validateHelper->validateIdentifyMethod($identifyMethod);
-			$signMethod = $this->signMethod->getUserSignMethod($user);
-			$this->validateHelper->validateSignMethod($signMethod);
-			$emails[$index] = strtolower($this->getUserEmail($user));
-		}
-		$uniques = array_unique($emails);
-		if (count($emails) > count($uniques)) {
-			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
-		}
-	}
-
-	private function getUserEmail(array $user): string {
-		if (!empty($user['email'])) {
-			return strtolower($user['email']);
-		}
-		if (!empty($user['uid'])) {
-			$user = $this->userManager->get($user['uid']);
-			return $user->getEMailAddress() ?? '';
-		}
-		return '';
 	}
 
 	/**
@@ -402,39 +157,6 @@ class SignFileService {
 				throw new \Exception($this->l10n->t('No signature was requested to %s', $user['email']));
 			}
 		});
-	}
-
-	/**
-	 * @param array $data
-	 * @return void
-	 */
-	public function deleteRequestSignature(array $data): void {
-		if (!empty($data['uuid'])) {
-			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
-			$fileData = $this->fileMapper->getByUuid($data['uuid']);
-		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
-			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
-		} else {
-			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
-		}
-		foreach ($signatures as $fileUser) {
-			$this->fileUserMapper->delete($fileUser);
-		}
-		$this->fileMapper->delete($fileData);
-		$this->fileElementService->deleteVisibleElements($fileData->getId());
-	}
-
-	public function unassociateToUser(int $fileId, int $fileUserId): void {
-		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
-		try {
-			$this->fileUserMapper->delete($fileUser);
-			$visibleElements = $this->fileElementMapper->getByFileIdAndUserId($fileId, $fileUser->getUserId());
-			foreach ($visibleElements as $visibleElement) {
-				$this->fileElementMapper->delete($visibleElement);
-			}
-		} catch (\Throwable $th) {
-		}
 	}
 
 	/**
