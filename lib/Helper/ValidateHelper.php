@@ -40,6 +40,8 @@ class ValidateHelper {
 	private $accountFileMapper;
 	/** @var UserElementMapper */
 	private $userElementMapper;
+	/** @var IdentifyMethodService */
+	private $identifyMethodService;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
 	/** @var IHasher */
@@ -73,6 +75,7 @@ class ValidateHelper {
 		FileElementMapper $fileElementMapper,
 		AccountFileMapper $accountFileMapper,
 		UserElementMapper $userElementMapper,
+		IdentifyMethodService $identifyMethodService,
 		IMimeTypeDetector $mimeTypeDetector,
 		IHasher $hasher,
 		IConfig $config,
@@ -87,6 +90,7 @@ class ValidateHelper {
 		$this->fileElementMapper = $fileElementMapper;
 		$this->accountFileMapper = $accountFileMapper;
 		$this->userElementMapper = $userElementMapper;
+		$this->identifyMethodService = $identifyMethodService;
 		$this->mimeTypeDetector = $mimeTypeDetector;
 		$this->hasher = $hasher;
 		$this->config = $config;
@@ -576,6 +580,8 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(FileUser $fileUser, array $params): void {
+		$identifyMethods = $this->identifyMethodService->getCurrentIdentifyMethod($fileUser, $params);
+		throw new \Exception('I stopped here');
 		$signMethod = $fileUser->getSignMethod();
 		switch ($signMethod) {
 			case SignMethodService::SIGN_SMS:
