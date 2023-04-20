@@ -27,7 +27,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -41,7 +41,7 @@ class RequestSignatureController extends ApiController {
 		protected IL10N $l10n,
 		protected IUserSession $userSession,
 		protected ValidateHelper $validateHelper,
-		protected SignFileService $signFileService
+		protected RequestSignatureService $requestSignatureService
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -71,8 +71,8 @@ class RequestSignatureController extends ApiController {
 			'userManager' => $user
 		];
 		try {
-			$this->signFileService->validateNewRequestToFile($data);
-			$return = $this->signFileService->save($data);
+			$this->requestSignatureService->validateNewRequestToFile($data);
+			$return = $this->requestSignatureService->save($data);
 			unset(
 				$return['id'],
 				$return['users'],
@@ -113,13 +113,13 @@ class RequestSignatureController extends ApiController {
 			'visibleElements' => $visibleElements
 		];
 		try {
-			$this->signFileService->validateUserManager($data);
+			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			if (!empty($data['visibleElements'])) {
 				$this->validateHelper->validateVisibleElements($data['visibleElements'], $this->validateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 			}
-			$return = $this->signFileService->save($data);
+			$return = $this->requestSignatureService->save($data);
 			unset(
 				$return['id'],
 				$return['users'],
@@ -157,10 +157,10 @@ class RequestSignatureController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->signFileService->validateUserManager($data);
+			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($fileUserId, $fileId);
-			$this->signFileService->unassociateToUser($fileId, $fileUserId);
+			$this->requestSignatureService->unassociateToUser($fileId, $fileUserId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -193,9 +193,9 @@ class RequestSignatureController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->signFileService->validateUserManager($data);
+			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
-			$this->signFileService->deleteRequestSignature($data);
+			$this->requestSignatureService->deleteRequestSignature($data);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
