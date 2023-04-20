@@ -45,13 +45,6 @@ class SignMethodService {
 	public const SIGN_TELEGRAM = 'telegram';
 	public const SIGN_SMS = 'sms';
 	public const SIGN_EMAIL = 'email';
-	public const SIGN_METHODS = [
-		self::SIGN_PASSWORD,
-		self::SIGN_SIGNAL,
-		self::SIGN_TELEGRAM,
-		self::SIGN_SMS,
-		self::SIGN_EMAIL,
-	];
 
 	public function __construct(
 		private FileUserMapper $fileUserMapper,
