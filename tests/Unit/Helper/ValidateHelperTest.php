@@ -37,7 +37,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
-	/** @var IdentifyMethodService|MockObject */
+	/** @var IdentifyMethodService */
 	private $identifyMethodService;
 	/** @var IMimeTypeDetector */
 	private $mimeTypeDetector;
