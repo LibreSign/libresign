@@ -106,6 +106,12 @@
       <code>Process</code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/RequestSignatureService.php">
+    <UndefinedClass occurrences="2">
+      <code>UUIDUtil</code>
+      <code>UUIDUtil</code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/SignFileService.php">
     <MissingDependency occurrences="8">
       <code>$this-&gt;root</code>
@@ -117,9 +123,7 @@
       <code>IRootFolder</code>
       <code>IRootFolder</code>
     </MissingDependency>
-    <UndefinedClass occurrences="3">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass occurrences="1">
       <code>UUIDUtil</code>
     </UndefinedClass>
   </file>
