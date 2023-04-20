@@ -87,7 +87,11 @@ class FeatureContext extends NextcloudApiContext {
 			if ($value['value'] === '<IGNORE>') {
 				continue;
 			}
-			Assert::assertEquals($value['value'], $this->signer[$value['key']]);
+			$actual = $this->signer[$value['key']];
+			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
+				$actual = json_encode($actual);
+			}
+			Assert::assertEquals($value['value'], $actual);
 		}
 	}
 }

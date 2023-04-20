@@ -271,8 +271,34 @@ class FileUserMapper extends QBMapper {
 			$data[] = $this->formatListRow($row, $url);
 		}
 		$signers = $this->getByMultipleFileId($fileIds);
-		$return['data'] = $this->assocFileToFileUserAndFormat($userId, $data, $signers);
+		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
+		$return['data'] = $this->associateAllAndFormat($userId, $data, $signers, $identifyMethods);
 		$return['pagination'] = $pagination;
+		return $return;
+	}
+
+	private function getIdentifyMethodsFromSigners(array $signers): array {
+		$fileUserIds = array_map(function (FileUser $fileUser): int {
+			return $fileUser->getId();
+		}, $signers);
+		if (!$fileUserIds) {
+			return [];
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select(
+			'im.method',
+			'im.file_user_id'
+		)
+			->from('libresign_identify_method', 'im')
+			->where(
+				$qb->expr()->in('im.file_user_id', $qb->createNamedParameter($fileUserIds, IQueryBuilder::PARAM_INT_ARRAY))
+			);
+
+		$cursor = $qb->executeQuery();
+		$return = [];
+		while ($row = $cursor->fetch()) {
+			$return[$row['file_user_id']][] = $row['method'];
+		}
 		return $return;
 	}
 
@@ -327,7 +353,7 @@ class FileUserMapper extends QBMapper {
 		return $pagination;
 	}
 
-	private function assocFileToFileUserAndFormat(string $userId, array $files, array $signers): array {
+	private function associateAllAndFormat(string $userId, array $files, array $signers, array $signMethods): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
@@ -343,8 +369,7 @@ class FileUserMapper extends QBMapper {
 						'uid' => $signer->getUserId(),
 						'fileUserId' => $signer->getId(),
 						'me' => $userId === $signer->getUserId(),
-						'identifyMethod' => $signer->getIdentifyMethod(),
-						'signMethod' => $signer->getSignMethod(),
+						'identifyMethods' => $signMethods[$signer->getId()] ?? [],
 					];
 
 					if ($data['me']) {
