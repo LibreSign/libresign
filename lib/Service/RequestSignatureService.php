@@ -141,11 +141,21 @@ class RequestSignatureService {
 				$notifyAsNewUser = true;
 			}
 			foreach ($data['users'] as $user) {
-				$user['email'] = $this->getUserEmail($user);
-				$fileUser = $this->getFileUser($user['email'], $fileId);
+				$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
+				$defaultIdentifyMethod = $identifyMethods[$this->identifyMethod->getDefaultIdentifyMethod()];
+				$fileUser = $this->getFileUserByIdentifyMethod(
+					$defaultIdentifyMethod,
+					$fileId
+				);
 				$this->setDataToUser($fileUser, $user, $fileId);
 				$this->saveFileUser($fileUser, $notifyAsNewUser);
-				$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
+				if ($notifyAsNewUser) {
+					$defaultIdentifyMethod->notifyUnsignedUser();
+					$this->mail->notifyUnsignedUser($fileUser);
+				} else {
+					$defaultIdentifyMethod->notifySignDataUpdated();
+					$this->mail->notifySignDataUpdated($fileUser);
+				}
 				$this->saveIdentifyMethods($fileUser, $identifyMethods);
 				$return[] = $fileUser;
 			}
@@ -209,7 +219,6 @@ class RequestSignatureService {
 		foreach ($data['users'] as $index => $user) {
 			$this->validateHelper->haveValidMail($user);
 			$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
-			$this->validateHelper->validateIdentifyMethods($identifyMethods);
 			$emails[$index] = strtolower($this->getUserEmail($user));
 		}
 		$uniques = array_unique($emails);
@@ -218,25 +227,22 @@ class RequestSignatureService {
 		}
 	}
 
-	public function saveFileUser(FileUserEntity $fileUser, bool $notifyAsNewUser = false): void {
+	public function saveFileUser(FileUserEntity $fileUser): void {
 		if ($fileUser->getId()) {
 			$this->fileUserMapper->update($fileUser);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
-			$notifyAsNewUser = true;
-		}
-		if ($notifyAsNewUser) {
-			$this->mail->notifyUnsignedUser($fileUser);
-		} else {
-			$this->mail->notifySignDataUpdated($fileUser);
 		}
 	}
 
+	/**
+	 * @param FileUserEntity $fileUser
+	 * @param array<IdentifyMethod> $identifyMethods
+	 * @return void
+	 */
 	private function saveIdentifyMethods(FileUserEntity $fileUser, array $identifyMethods): void {
-		foreach ($identifyMethods as $method) {
-			$identifyMethod = new IdentifyMethod();
+		foreach ($identifyMethods as $identifyMethod) {
 			$identifyMethod->setFileUserId($fileUser->getId());
-			$identifyMethod->setMethod($method);
 			$this->identifyMethodMapper->insert($identifyMethod);
 		}
 	}
@@ -249,21 +255,6 @@ class RequestSignatureService {
 		if (!$fileUser->getUuid()) {
 			$fileUser->setUuid(UUIDUtil::getUUID());
 		}
-		$fileUser->setEmail($user['email']);
-		if (!empty($user['description']) && $fileUser->getDescription() !== $user['description']) {
-			$fileUser->setDescription($user['description']);
-		}
-		if (empty($user['uid'])) {
-			$userToSign = $this->userManager->getByEmail($user['email']);
-			if ($userToSign) {
-				$fileUser->setUserId($userToSign[0]->getUID());
-				if (empty($user['displayName'])) {
-					$user['displayName'] = $userToSign[0]->getDisplayName();
-				}
-			}
-		} else {
-			$fileUser->setUserId($user['uid']);
-		}
 		if (!empty($user['displayName'])) {
 			$fileUser->setDisplayName($user['displayName']);
 		}
@@ -275,9 +266,9 @@ class RequestSignatureService {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
-	private function getFileUser(string $email, int $fileId): FileUserEntity {
+	private function getFileUserByIdentifyMethod(IdentifyMethod $identifyMethod, int $fileId): FileUserEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByEmailAndFileId($email, $fileId);
+			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
 		} catch (DoesNotExistException $e) {
 			$fileUser = new FileUserEntity();
 		}

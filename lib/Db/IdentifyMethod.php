@@ -33,12 +33,16 @@ use OCP\AppFramework\Db\Entity;
  * @method int getFileUserId()
  * @method void setMethod(string $method)
  * @method string getMethod()
- * @method void setAttempts(int $default)
- * @method int getDefault()
- * @method void setCode(string $code)
- * @method string getCode()
  * @method void setAttempts(int $attempts)
  * @method int getAttempts()
+ * @method void setDefault(int $default)
+ * @method int getDefault()
+ * @method void setIdentifierKey(string $identifierKey)
+ * @method string getIdentifierKey()
+ * @method void setIdentifierValue(string $identifierValue)
+ * @method string getIdentifierValue()
+ * @method void setCode(string $code)
+ * @method string getCode()
  * @method ?\DateTime getIdentifiedAtDate()
  * @method ?\DateTime getLastAttemptDate()
  */
@@ -51,6 +55,10 @@ class IdentifyMethod extends Entity {
 	public $default;
 	/** @var string */
 	public $code;
+	/** @var string */
+	public $identifierKey;
+	/** @var string */
+	public $identifierValue;
 	/** @var int */
 	public $attempts;
 	/** @var ?\DateTime */
@@ -59,10 +67,12 @@ class IdentifyMethod extends Entity {
 	public $lastAttemptDate;
 
 	public function __construct() {
-		$this->addType('file_user_id', 'integer');
+		$this->addType('fileUserId', 'integer');
 		$this->addType('method', 'string');
 		$this->addType('default', 'int');
 		$this->addType('code', 'string');
+		$this->addType('identifierKey', 'string');
+		$this->addType('identifierValue', 'string');
 		$this->addType('attempts', 'int');
 		$this->addType('identifiedAtDate', 'datetime');
 		$this->addType('lastAttemptDate', 'datetime');
