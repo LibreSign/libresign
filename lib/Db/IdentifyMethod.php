@@ -39,8 +39,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getCode()
  * @method void setAttempts(int $attempts)
  * @method int getAttempts()
- * @method \DateTime getIdentifiedAtDate()
- * @method \DateTime getLastAttemptDate()
+ * @method ?\DateTime getIdentifiedAtDate()
+ * @method ?\DateTime getLastAttemptDate()
  */
 class IdentifyMethod extends Entity {
 	/** @var integer */
@@ -53,9 +53,9 @@ class IdentifyMethod extends Entity {
 	public $code;
 	/** @var int */
 	public $attempts;
-	/** @var \DateTime */
+	/** @var ?\DateTime */
 	public $identifiedAtDate;
-	/** @var \DateTime */
+	/** @var ?\DateTime */
 	public $lastAttemptDate;
 
 	public function __construct() {
@@ -72,8 +72,8 @@ class IdentifyMethod extends Entity {
 	 * @param \DateTime|string $createdAt
 	 * @return void
 	 */
-	public function setIdentifiedAtDate($identifiedAtDate): void {
-		if (!$identifiedAtDate instanceof \DateTime) {
+	public function setIdentifiedAtDate(?string $identifiedAtDate): void {
+		if ($identifiedAtDate && !$identifiedAtDate instanceof \DateTime) {
 			$identifiedAtDate = new \DateTime($identifiedAtDate);
 		}
 		$this->identifiedAtDate = $identifiedAtDate;
@@ -84,8 +84,8 @@ class IdentifyMethod extends Entity {
 	 * @param \DateTime|string $createdAt
 	 * @return void
 	 */
-	public function setLastAttemptDate($lastAttemptDate): void {
-		if (!$lastAttemptDate instanceof \DateTime) {
+	public function setLastAttemptDate(?string $lastAttemptDate): void {
+		if ($lastAttemptDate && !$lastAttemptDate instanceof \DateTime) {
 			$lastAttemptDate = new \DateTime($lastAttemptDate);
 		}
 		$this->lastAttemptDate = $lastAttemptDate;
