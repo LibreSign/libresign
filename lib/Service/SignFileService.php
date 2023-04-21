@@ -514,7 +514,7 @@ class SignFileService {
 
 	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$nextcloudIdentifyMethod = array_filter($identifyMethods, function(IdentifyMethod $identifyMethod): bool {
+		$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
 			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
 		});
 		if (!count($nextcloudIdentifyMethod)) {
@@ -596,7 +596,9 @@ class SignFileService {
 		if ($fileUser) {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
-			$return['settings']['identifyMethods'] = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): string {
+				return $identifyMethod->getMethod();
+			}, $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId()));
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}

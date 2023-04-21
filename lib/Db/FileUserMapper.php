@@ -79,6 +79,22 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
+	public function getByIdentifyMethodAndFileId(IdentifyMethod $identifyMethod, int $fileId): \OCP\AppFramework\Db\Entity {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName(), 'fu')
+			->join('fu', 'libresign_identify_method', 'im', 'fu.file_id = im.file_user_id')
+			->where(
+				$qb->expr()->eq('method', $qb->createNamedParameter($identifyMethod->getMethod()))
+			)
+			->andWhere(
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+			);
+
+		return $this->findEntity($qb);
+	}
+
 	/**
 	 * Get all signers by fileId
 	 *
@@ -277,27 +293,31 @@ class FileUserMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getIdentifyMethodsFromSigners(array $signers): array {
+	/**
+	 * @param array<FileUser> $fileUsers
+	 * @return array<int, array<array<IdentifyMethod>>>
+	 */
+	private function getIdentifyMethodsFromSigners(array $fileUsers): array {
 		$fileUserIds = array_map(function (FileUser $fileUser): int {
 			return $fileUser->getId();
-		}, $signers);
+		}, $fileUsers);
 		if (!$fileUserIds) {
 			return [];
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->select(
-			'im.method',
-			'im.file_user_id'
-		)
+		$qb->select('im.*')
 			->from('libresign_identify_method', 'im')
 			->where(
 				$qb->expr()->in('im.file_user_id', $qb->createNamedParameter($fileUserIds, IQueryBuilder::PARAM_INT_ARRAY))
-			);
+			)
+			->orderBy('im.default', 'DESC')
+			->addOrderBy('im.identified_at_date', 'ASC');
 
 		$cursor = $qb->executeQuery();
 		$return = [];
 		while ($row = $cursor->fetch()) {
-			$return[$row['file_user_id']][] = $row['method'];
+			$identifyMethod = new IdentifyMethod();
+			$return[$row['file_user_id']][] = $identifyMethod->fromRow($row);
 		}
 		return $return;
 	}
@@ -353,7 +373,14 @@ class FileUserMapper extends QBMapper {
 		return $pagination;
 	}
 
-	private function associateAllAndFormat(string $userId, array $files, array $signers, array $signMethods): array {
+	/**
+	 * @param string $userId
+	 * @param array $files
+	 * @param array<FileUser> $signers
+	 * @param array<IdentifyMethod> $identifyMethods
+	 * @return array
+	 */
+	private function associateAllAndFormat(string $userId, array $files, array $signers, array $identifyMethods): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
@@ -369,7 +396,13 @@ class FileUserMapper extends QBMapper {
 						'uid' => $signer->getUserId(),
 						'fileUserId' => $signer->getId(),
 						'me' => $userId === $signer->getUserId(),
-						'identifyMethods' => $signMethods[$signer->getId()] ?? [],
+						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
+							return [
+								'method' => $identifyMethod->getMethod(),
+								'default' => $identifyMethod->getDefault(),
+								'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate()
+							];
+						}, $identifyMethods[$signer->getId()] ?? []),
 					];
 
 					if ($data['me']) {
