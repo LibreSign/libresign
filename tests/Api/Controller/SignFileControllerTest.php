@@ -162,7 +162,8 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('', $body['errors'][0]);
+		$this->assertEquals(200, $body['action']);
+		$this->assertEquals('Empty identify data.', $body['errors'][0]);
 	}
 
 	/**

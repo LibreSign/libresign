@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCP\IConfig;
@@ -60,17 +59,17 @@ class IdentifyMethodService {
 		return json_decode($this->config->getAppValue(Application::APP_ID, 'identify_method', '["nextcloud"]') ?? '["nextcloud"]', true);
 	}
 
-	/**
-	 * @param array<IdentifyMethod> $identifyMethods
-	 * @return IdentifyMethod
-	 */
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
-		$default = array_filter($identifyMethods, function(IdentifyMethod $current): bool {
+		$default = array_filter($identifyMethods, function (IdentifyMethod $current): bool {
 			return $current->getDefault() === 1;
 		});
 		if (!$default) {
-			return $this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFTY_NEXTCLOUD) ?? self::IDENTIFTY_NEXTCLOUD;
+			$identifyMethod = new IdentifyMethod();
+			$identifyMethod->setMethod(
+				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFTY_NEXTCLOUD) ?? self::IDENTIFTY_NEXTCLOUD
+			);
+			return $identifyMethod;
 		}
 		return current($default);
 	}
