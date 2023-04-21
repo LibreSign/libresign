@@ -75,7 +75,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'notnull' => false,
 				'length' => 256,
 			]);
-			$identifyMethod->addColumn('attemps', Types::SMALLINT, [
+			$identifyMethod->addColumn('attempts', Types::SMALLINT, [
 				'notnull' => true,
 				'default' => 0,
 			]);

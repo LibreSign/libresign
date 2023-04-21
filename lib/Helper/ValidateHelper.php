@@ -12,12 +12,10 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
-use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\SignMethodService;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -582,7 +580,7 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(FileUser $fileUser, array $params): void {
-		$params = array_filter($params, function($value): bool {
+		$params = array_filter($params, function ($value): bool {
 			return !empty($value);
 		});
 		if (count($params) === 0) {
@@ -593,6 +591,9 @@ class ValidateHelper {
 		}
 
 		$currentIdentifyMethod = key($params);
+		if ($currentIdentifyMethod === IdentifyMethodService::IDENTIFY_PASSWORD) {
+			$currentIdentifyMethod = IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+		}
 		$this->validateIdentifyMethods([$currentIdentifyMethod]);
 		$default = $this->identifyMethodService->getDefaultIdentiyMethod($fileUser->getId());
 		if ($default->getIdentifiedAtDate() || $default->getMethod() !== $currentIdentifyMethod) {
@@ -600,7 +601,7 @@ class ValidateHelper {
 		}
 
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$identifyMethod = array_filter($identifyMethods, function(IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
+		$identifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
 			return $identifyMethod->getMethod() === $currentIdentifyMethod;
 		});
 		if (!$identifyMethod) {
@@ -615,7 +616,6 @@ class ValidateHelper {
 			case IdentifyMethodService::IDENTIFY_EMAIL:
 				$this->valdateCode($fileUser, $params);
 				break;
-			case IdentifyMethodService::IDENTIFY_PASSWORD:
 		}
 	}
 
