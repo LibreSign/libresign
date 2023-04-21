@@ -28,7 +28,9 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
+use OCP\IL10N;
 
 class IdentifyMethodService {
 	public const IDENTIFTY_NEXTCLOUD = 'nextcloud';
@@ -45,18 +47,60 @@ class IdentifyMethodService {
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_PASSWORD,
 	];
+	/**
+	 * @var array<IdentifyMethod>
+	 */
+	private array $methods = [];
 
 	public function __construct(
 		private IConfig $config,
-		private IdentifyMethodMapper $identifyMethodMapper
+		private IdentifyMethodMapper $identifyMethodMapper,
+		private IL10N $l10n
 	) {
 	}
 
+	/**
+	 * @param array $user
+	 * @return array<string, self>
+	 */
 	public function getUserIdentifyMethods(array $user): array {
-		if (array_key_exists('identifyMethod', $user)) {
-			return $user['identifyMethod'];
+		$defaultMethod = $this->getDefaultIdentifyMethod();
+		if (!array_key_exists('identifyMethods', $user)) {
+			$user = [
+				'identifyMethods' => [
+					$defaultMethod => $user,
+				],
+			];
 		}
-		return json_decode($this->config->getAppValue(Application::APP_ID, 'identify_method', '["nextcloud"]') ?? '["nextcloud"]', true);
+		foreach ($user['identifyMethods'] as $method => $identifyData) {
+			if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
+				// TRANSLATORS When is requested to a person to sign a file, is
+				// necessary identify what is the identification method. The
+				// identification method is used to define how will be the sign
+				// flow.
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
+			$this->setIdentifyMethod($identifyData, $method, $defaultMethod);
+		}
+		return $this->methods;
+	}
+
+	public function getDefaultIdentifyMethod(): string {
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFTY_NEXTCLOUD)
+			?? IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+	}
+
+	private function setIdentifyMethod(array $identifyData, string $currentMethod, string $defaultMethod): IdentifyMethod {
+		if (!array_key_exists($currentMethod, $this->methods)) {
+			$this->methods[$currentMethod] = new IdentifyMethod();
+		}
+		if ($identifyData) {
+			$this->methods[$currentMethod]->setIdentifierKey(key($identifyData));
+			$this->methods[$currentMethod]->setIdentifierValue(current($identifyData));
+		}
+		$this->methods[$currentMethod]->setDefault($currentMethod === $defaultMethod ? 1 : 0);
+		$this->methods[$currentMethod]->setMethod($currentMethod);
+		return $this->methods[$currentMethod];
 	}
 
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
