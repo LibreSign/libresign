@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Event\SignedEvent;
@@ -513,7 +514,10 @@ class SignFileService {
 
 	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		if (!in_array(IdentifyMethodService::IDENTIFTY_NEXTCLOUD, $identifyMethods)) {
+		$nextcloudIdentifyMethod = array_filter($identifyMethods, function(IdentifyMethod $identifyMethod): bool {
+			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+		});
+		if (!count($nextcloudIdentifyMethod)) {
 			return;
 		}
 		if (!$user) {

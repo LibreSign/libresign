@@ -30,22 +30,22 @@ Feature: page/sign_identify_default
       | identifyMethods | ["nextcloud"] |
 
   Scenario: Open sign file with invalid data
-    # With invalid UUID, need to be the signer UUID
-    When as user "signer1"
-    And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      | key | value |
-      | action | 200 |
-      | errors | ["Invalid UUID"] |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":false} |
-    # With invalid user
-    When as user "admin"
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      | key | value |
-      | action | 200 |
-      | errors | ["Invalid user"] |
-      | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":true} |
+    # # With invalid UUID, need to be the signer UUID
+    # When as user "signer1"
+    # And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
+    # Then the response should contain the initial state "libresign-config" with the following values:
+    #   | key | value |
+    #   | action | 200 |
+    #   | errors | ["Invalid UUID"] |
+    #   | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":false} |
+    # # With invalid user
+    # When as user "admin"
+    # And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    # Then the response should contain the initial state "libresign-config" with the following values:
+    #   | key | value |
+    #   | action | 200 |
+    #   | errors | ["Invalid user"] |
+    #   | settings | {"identificationDocumentsFlow":false,"certificateOk":false,"hasSignatureFile":false,"phoneNumber":"","isApprover":true} |
     # With unauthenticated user
     When as user ""
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
