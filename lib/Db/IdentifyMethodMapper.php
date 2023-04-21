@@ -41,16 +41,14 @@ class IdentifyMethodMapper extends QBMapper {
 
 	/**
 	 * @param integer $fileUserId
-	 * @return array<IdentifyMethod>|null
+	 * @return array<IdentifyMethod>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
 		if (array_key_exists($fileUserId, $this->methodsByFileUser)) {
 			return $this->methodsByFileUser[$fileUserId];
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->select(
-			'im.method'
-		)
+		$qb->select('im.*')
 			->from('libresign_identify_method', 'im')
 			->where(
 				$qb->expr()->eq('im.file_user_id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_INT))
@@ -58,7 +56,7 @@ class IdentifyMethodMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		$this->methodsByFileUser[$fileUserId] = [];
 		while ($row = $cursor->fetch()) {
-			$this->methodsByFileUser[$fileUserId][] = $row['method'];
+			$this->methodsByFileUser[$fileUserId][] = $this->mapRowToEntity($row);
 		}
 		return $this->methodsByFileUser[$fileUserId];
 	}
