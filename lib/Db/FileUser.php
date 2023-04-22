@@ -10,10 +10,6 @@ use OCP\DB\Types;
  * @method int getId()
  * @method void setFileId(int $fileId)
  * @method int getFileId()
- * @method void setUserId(string $userId)
- * @method string getUserId()
- * @method void setEmail(string $email)
- * @method string getEmail()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setDescription(string $description)
@@ -39,13 +35,11 @@ class FileUser extends Entity {
 	protected $fileId;
 
 	/** @var string */
-	protected $userId;
 
 	/** @var string */
 	protected $uuid;
 
 	/** @var string */
-	protected $email;
 
 	/** @var string */
 	protected $displayName;
@@ -71,9 +65,7 @@ class FileUser extends Entity {
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
-		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
-		$this->addType('email', 'string');
 		$this->addType('displayName', 'string');
 		$this->addType('fullName', 'string');
 		$this->addType('description', 'string');

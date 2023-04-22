@@ -25,5 +25,22 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-class Email extends AbstractIdentifyMethod {
+use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\IdentifyMethod;
+
+abstract class AbstractIdentifyMethod implements IIdentifyMethod {
+	protected IdentifyMethod $entity;
+	public function __construct() {
+		$this->entity = new IdentifyMethod();
+	}
+
+	public function getEntity(): IdentifyMethod {
+		return $this->entity;
+	}
+
+	public function notify(bool $isNew, FileUser $fileUser): void {
+	}
+
+	public function validate(): void {
+	}
 }
