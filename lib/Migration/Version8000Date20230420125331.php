@@ -29,6 +29,7 @@ namespace OCA\Libresign\Migration;
 use Closure;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
+use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -36,6 +37,10 @@ use OCP\Migration\SimpleMigrationStep;
  * Auto-generated migration step: Please modify to your needs!
  */
 class Version8000Date20230420125331 extends SimpleMigrationStep {
+	public function __construct(
+		private IDBConnection $connection
+	) {
+	}
 	/**
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
@@ -58,6 +63,10 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		}
 		if (!$schema->hasTable('libresign_identify_method')) {
 			$identifyMethod = $schema->createTable('libresign_identify_method');
+			$identifyMethod->addColumn('id', Types::BIGINT, [
+				'autoincrement' => true,
+				'notnull' => true,
+			]);
 			$identifyMethod->addColumn('file_user_id', Types::BIGINT, [
 				'notnull' => true,
 			]);
@@ -99,11 +108,62 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			]);
 			$identifyMethod->addUniqueIndex(['file_user_id', 'method'], 'identify_method_unique_index');
 			$identifyMethod->addUniqueIndex(['file_user_id', 'default'], 'identify_default_unique_index');
+			$identifyMethod->setPrimaryKey(['id'], 'identify_pk_idx');
 			$changed = true;
 		}
 		if ($changed) {
 			return $schema;
 		}
 		return null;
+	}
+
+	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
+		$query = $this->connection->getQueryBuilder();
+		$query->select('*')
+			->from('libresign_file_user', 'fu')
+			->where(
+				$query->expr()->isNotNull('user_id')
+			);
+		$result = $query->executeQuery();
+		$insert = $this->connection->getQueryBuilder()
+			->insert('libresign_identify_method');
+		while ($row = $result->fetch()) {
+			$insert
+				->values([
+					'file_user_id' => $row['file_user_id'],
+					'method' => 'nextcloud',
+					'default' => 1,
+					'identifier_key' => 'uid',
+					'identifier_value' => $row['user_id'],
+					'attempts' => $row['signed'] ? 1 : 0,
+					'identified_at' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+					'last_attempt_date' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+				])
+				->executeStatement();
+		}
+
+		$query = $this->connection->getQueryBuilder();
+		$query->select('*')
+			->from('libresign_file_user', 'fu')
+			->where(
+				$query->expr()->isNotNull('email')
+			);
+		$result = $query->executeQuery();
+		$insert = $this->connection->getQueryBuilder()
+			->insert('libresign_identify_method');
+		while ($row = $result->fetch()) {
+			$insert
+				->values([
+					'file_user_id' => $row['file_user_id'],
+					'method' => 'nextcloud',
+					'default' => 1,
+					'identifier_key' => 'email',
+					'identifier_value' => $row['email'],
+					'attempts' => $row['signed'] ? 1 : 0,
+					'identified_at' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+					'last_attempt_date' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+				])
+				->executeStatement();
+		}
 	}
 }
