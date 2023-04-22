@@ -515,7 +515,7 @@ class SignFileService {
 	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
 		$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
-			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD;
 		});
 		if (!count($nextcloudIdentifyMethod)) {
 			return;
@@ -546,10 +546,16 @@ class SignFileService {
 		}
 	}
 
+	/**
+	 * @todo validate here if is possible identify the user by identification methods
+	 */
 	private function trhowIfCantIdentifyUser(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
 		if ($fileUser instanceof FileUserEntity) {
-			$fileUserId = $fileUser->getUserId();
-			if ($fileUserId) {
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
+				return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD;
+			});
+			if (count($nextcloudIdentifyMethod)) {
 				return;
 			}
 		}
@@ -559,8 +565,19 @@ class SignFileService {
 				'errors' => [$this->l10n->t('This is not your file')],
 			]));
 		}
-		$email = $fileUser->getEmail();
-		if ($this->userManager->getByEmail($email)) {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$email =  array_reduce($identifyMethods, function(string $carry, IdentifyMethod $identifyMethod): string {
+			/**
+			 * @todo go-horse to make working with implementation when is necessary to have an email
+			 */
+			if ($identifyMethod->getIdentifierKey() === 'uid') {
+				return $identifyMethod->getIdentifierValue();
+			} elseif ($identifyMethod->getIdentifierKey() === 'email') {
+				return $identifyMethod->getIdentifierValue();
+			}
+			return $carry;
+		}, '');
+		if ($email && $this->userManager->getByEmail($email)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->l10n->t('User already exists. Please login.')],
@@ -578,8 +595,21 @@ class SignFileService {
 		]));
 	}
 
+	/**
+	 * @todo use the validation of identify methods
+	 */
 	private function throwIfUserIsNotSigner(?IUser $user, FileUserEntity $fileUser): void {
-		if ($user && $fileUser->getUserId() !== $user->getUID()) {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$uid = array_reduce($identifyMethods, function(string $carry, IdentifyMethod $identifyMethod): string {
+			/**
+			 * @todo go-horse to make working with implementation when is necessary to have an email
+			 */
+			if ($identifyMethod->getIdentifierKey() === 'uid') {
+				return $identifyMethod->getIdentifierValue();
+			}
+			return $carry;
+		}, '');
+		if ($user && $uid !== $user->getUID()) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid user')],
@@ -596,8 +626,12 @@ class SignFileService {
 		if ($fileUser) {
 			$return['user']['name'] = $fileUser->getDisplayName();
 			$return['sign']['description'] = $fileUser->getDescription();
-			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): string {
-				return $identifyMethod->getMethod();
+			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
+				return [
+					'default' => $identifyMethod->getDefault(),
+					'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
+					'method' => $identifyMethod->getMethod(),
+				];
 			}, $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId()));
 		} else {
 			$return['user']['name'] = $user->getDisplayName();

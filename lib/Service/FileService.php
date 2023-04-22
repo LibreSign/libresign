@@ -469,7 +469,12 @@ class FileService {
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
-		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $url, $page, $length);
+		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted(
+			$user,
+			$url,
+			$page,
+			$length
+		);
 		$data['pagination']->setRootPath('/file/list');
 		return [
 			'data' => $data['data'],
