@@ -26,9 +26,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\IConfig;
 use OCP\IL10N;
 
@@ -48,9 +50,10 @@ class IdentifyMethodService {
 		self::IDENTIFY_PASSWORD,
 	];
 	/**
-	 * @var array<IdentifyMethod>
+	 * @var array<IIdentifyMethod>
 	 */
-	private array $methods = [];
+	private array $identifyMethod = [];
+	private ?FileUser $fileUser = null;
 
 	public function __construct(
 		private IConfig $config,
@@ -59,12 +62,33 @@ class IdentifyMethodService {
 	) {
 	}
 
-	/**
-	 * @param array $user
-	 * @return array<string, self>
-	 */
-	public function getUserIdentifyMethods(array $user): array {
-		$defaultMethod = $this->getDefaultIdentifyMethod();
+	private function getIdentifyMethod($name): IIdentifyMethod {
+		if (!array_key_exists($name, $this->identifyMethod)) {
+			$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
+			$this->identifyMethod[$name] = \OC::$server->get($className);
+		}
+		return $this->identifyMethod[$name];
+	}
+
+	private function setEntityData(string $method, array $identifyData, bool $isDefault): void {
+		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
+			// TRANSLATORS When is requested to a person to sign a file, is
+			// necessary identify what is the identification method. The
+			// identification method is used to define how will be the sign
+			// flow.
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+		$entity = $this->getIdentifyMethod($method)->getEntity($method);
+		if ($identifyData) {
+			$entity->setIdentifierKey(key($identifyData));
+			$entity->setIdentifierValue(current($identifyData));
+		}
+		$entity->setDefault($isDefault ? 1 : 0);
+		$entity->setMethod($method);
+	}
+
+	public function setAllEntityData(array $user): void {
+		$defaultMethod = $this->getDefaultIdentifyMethodName();
 		if (!array_key_exists('identifyMethods', $user)) {
 			$user = [
 				'identifyMethods' => [
@@ -73,34 +97,23 @@ class IdentifyMethodService {
 			];
 		}
 		foreach ($user['identifyMethods'] as $method => $identifyData) {
-			if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
-				// TRANSLATORS When is requested to a person to sign a file, is
-				// necessary identify what is the identification method. The
-				// identification method is used to define how will be the sign
-				// flow.
-				throw new LibresignException($this->l10n->t('Invalid identification method'));
-			}
-			$this->setIdentifyMethod($identifyData, $method, $defaultMethod);
+			$this->setEntityData($method, $identifyData, $method === $defaultMethod);
 		}
-		return $this->methods;
 	}
 
-	public function getDefaultIdentifyMethod(): string {
+	public function getDefaultIdentifyMethodName(): string {
 		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFTY_NEXTCLOUD)
 			?? IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
 	}
 
-	private function setIdentifyMethod(array $identifyData, string $currentMethod, string $defaultMethod): IdentifyMethod {
-		if (!array_key_exists($currentMethod, $this->methods)) {
-			$this->methods[$currentMethod] = new IdentifyMethod();
+	public function validateAll(): void {
+		foreach ($this->identifyMethod as $identifyMethod) {
+			$identifyMethod->validate();
 		}
-		if ($identifyData) {
-			$this->methods[$currentMethod]->setIdentifierKey(key($identifyData));
-			$this->methods[$currentMethod]->setIdentifierValue(current($identifyData));
-		}
-		$this->methods[$currentMethod]->setDefault($currentMethod === $defaultMethod ? 1 : 0);
-		$this->methods[$currentMethod]->setMethod($currentMethod);
-		return $this->methods[$currentMethod];
+	}
+
+	public function getDefaultEntity(): IdentifyMethod {
+		return $this->identifyMethod[$this->getDefaultIdentifyMethodName()]->getEntity();
 	}
 
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
@@ -118,6 +131,10 @@ class IdentifyMethodService {
 		return current($default);
 	}
 
+	public function setFileUser(FileUser $fileUser): void {
+		$this->fileUser = $fileUser;
+	}
+
 	/**
 	 * @param integer $fileUserId
 	 * @return array<IdentifyMethod>
@@ -125,5 +142,23 @@ class IdentifyMethodService {
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
 		return $identifyMethods;
+	}
+
+	/**
+	 * @param FileUser $fileUser
+	 * @return void
+	 */
+	public function save(FileUser $fileUser): void {
+		foreach ($this->identifyMethod as $identifyMethod) {
+			$entity = $identifyMethod->getEntity();
+			$entity->setFileUserId($fileUser->getId());
+			if ($entity->getId()) {
+				$entity = $this->identifyMethodMapper->update($entity);
+				$identifyMethod->notify(false, $fileUser);
+			} else {
+				$entity = $this->identifyMethodMapper->insert($entity);
+				$identifyMethod->notify(true, $fileUser);
+			}
+		}
 	}
 }
