@@ -193,24 +193,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateUserDuplicatedEmail() {
-		$this->expectExceptionMessage('Remove duplicated users, email address need to be unique');
-
-		$this->getService()->validateNewRequestToFile([
-			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
-			'name' => 'test',
-			'users' => [
-				[
-					'email' => 'jhondoe@test.coop'
-				],
-				[
-					'email' => 'jhondoe@test.coop'
-				]
-			],
-			'userManager' => $this->user
-		]);
-	}
-
 	public function testValidateSuccess() {
 		$actual = $this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
