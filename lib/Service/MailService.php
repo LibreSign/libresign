@@ -64,7 +64,7 @@ class MailService {
 	 * @param FileUser $data
 	 * @return void
 	 */
-	public function notifySignDataUpdated(FileUser $data): void {
+	public function notifySignDataUpdated(FileUser $data, string $email): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
@@ -78,9 +78,9 @@ class MailService {
 		);
 		$message = $this->mailer->createMessage();
 		if ($data->getDisplayName()) {
-			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
+			$message->setTo([$email => $data->getDisplayName()]);
 		} else {
-			$message->setTo([$data->getEmail()]);
+			$message->setTo([$email]);
 		}
 		$message->useTemplate($emailTemplate);
 		try {
@@ -96,7 +96,7 @@ class MailService {
 	 * @param FileUser $data
 	 * @return void
 	 */
-	public function notifyUnsignedUser(FileUser $data): void {
+	public function notifyUnsignedUser(FileUser $data, string $email): void {
 		$notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true);
 		if (!$notifyUnsignedUser) {
 			return;
@@ -114,9 +114,9 @@ class MailService {
 		);
 		$message = $this->mailer->createMessage();
 		if ($data->getDisplayName()) {
-			$message->setTo([$data->getEmail() => $data->getDisplayName()]);
+			$message->setTo([$email => $data->getDisplayName()]);
 		} else {
-			$message->setTo([$data->getEmail()]);
+			$message->setTo([$email]);
 		}
 		$message->useTemplate($emailTemplate);
 		try {
