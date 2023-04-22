@@ -7,6 +7,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IUser;
 
 /**
  * Class FileUserMapper
@@ -273,8 +274,13 @@ class FileUserMapper extends QBMapper {
 	 * @return array<\OCA\Libresign\Helper\Pagination|array>
 	 * @psalm-return array{pagination: \OCA\Libresign\Helper\Pagination, data: array}
 	 */
-	public function getFilesAssociatedFilesWithMeFormatted(string $userId, string $url, int $page = null, int $length = null): array {
-		$pagination = $this->getFilesAssociatedFilesWithMeStmt($userId);
+	public function getFilesAssociatedFilesWithMeFormatted(
+		IUser $user,
+		string $url,
+		int $page = null,
+		int $length = null
+	): array {
+		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID());
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -288,7 +294,7 @@ class FileUserMapper extends QBMapper {
 		}
 		$signers = $this->getByMultipleFileId($fileIds);
 		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
-		$return['data'] = $this->associateAllAndFormat($userId, $data, $signers, $identifyMethods);
+		$return['data'] = $this->associateAllAndFormat($user, $data, $signers, $identifyMethods);
 		$return['pagination'] = $pagination;
 		return $return;
 	}
@@ -325,7 +331,7 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * @return Pagination
 	 */
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, bool $count = false): Pagination {
+	private function getFilesAssociatedFilesWithMeStmt(string $userId): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'f.id',
@@ -340,11 +346,16 @@ class FileUserMapper extends QBMapper {
 			->selectAlias($qb->func()->max('fu.signed'), 'status_date')
 			->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id')
-			->leftJoin('f', 'users', 'u', 'f.user_id = u.uid')
+			->leftJoin('f', 'libresign_identify_method',  'im', $qb->expr()->andX(
+				$qb->expr()->eq('fu.id', 'im.file_user_id'),
+				$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+			))
+			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
 			->where(
 				$qb->expr()->orX(
 					$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
+					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 				)
 			)
 			->groupBy(
@@ -380,22 +391,44 @@ class FileUserMapper extends QBMapper {
 	 * @param array<IdentifyMethod> $identifyMethods
 	 * @return array
 	 */
-	private function associateAllAndFormat(string $userId, array $files, array $signers, array $identifyMethods): array {
+	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
 					$data = [
-						'email' => $signer->getEmail(),
+						'email' =>  array_reduce($identifyMethods[$signer->getId()] ?? [], function(string $carry, IdentifyMethod $identifyMethod): bool {
+							if ($identifyMethod->getIdentifierKey() === 'uid') {
+								return $identifyMethod->getIdentifierValue();
+							} elseif ($identifyMethod->getIdentifierKey() === 'email') {
+								return $identifyMethod->getIdentifierValue();
+							}
+							return $carry;
+						}, ''),
 						'description' => $signer->getDescription(),
 						'displayName' => $signer->getDisplayName(),
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => $signer->getUserId(),
+						'uid' => array_reduce($identifyMethods[$signer->getId()] ?? [], function(string $carry, IdentifyMethod $identifyMethod): bool {
+							if ($identifyMethod->getIdentifierKey() === 'uid') {
+								return $identifyMethod->getIdentifierValue();
+							}
+							return $carry;
+						}, ''),
 						'fileUserId' => $signer->getId(),
-						'me' => $userId === $signer->getUserId(),
+						'me' => array_reduce($identifyMethods[$signer->getId()] ?? [], function(bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+							if (!$user->getEMailAddress()) {
+								return false;
+							}
+							if ($identifyMethod->getIdentifierKey() === 'uid') {
+								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
+									return true;
+								}
+							}
+							return $carry;
+						}, false),
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
 								'method' => $identifyMethod->getMethod(),

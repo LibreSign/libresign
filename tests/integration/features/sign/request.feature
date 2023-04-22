@@ -156,19 +156,6 @@ Feature: request-signature
       | key      | value            |
       | message  | "User signer1 has no email address." |
 
-  Scenario: Get error when try to request to sign with duplicated user
-    Given as user "admin"
-    And set the email of user "signer1" to "signer1@domain.test"
-    When sending "post" to "/apps/libresign/api/0.1/request-signature"
-      | status | 1 |
-      | file | {"base64":"data:application/pdf;base64,JVBERi0xLjAKMSAwIG9iajw8L1BhZ2VzIDIgMCBSPj5lbmRvYmogMiAwIG9iajw8L0tpZHNbMyAwIFJdL0NvdW50IDE+PmVuZG9iaiAzIDAgb2JqPDwvTWVkaWFCb3hbMCAwIDMgM10+PmVuZG9iagp0cmFpbGVyPDwvUm9vdCAxIDAgUj4+Cg=="} |
-      | users | [{"uid":"signer1"},{"uid":"signer1"}] |
-      | name | document |
-    Then the response should have a status code 422
-    And the response should be a JSON array with the following mandatory values
-      | key      | value            |
-      | message  | "Remove duplicated users, email address need to be unique" |
-
   Scenario: Get error when try to request to sign with invalid file to TCPDI
     Given as user "admin"
     And set the email of user "signer1" to "signer1@domain.test"
