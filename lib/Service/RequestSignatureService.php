@@ -47,7 +47,6 @@ class RequestSignatureService {
 
 	public function __construct(
 		protected IL10N $l10n,
-		protected MailService $mail,
 		protected SignMethodService $signMethod,
 		protected IdentifyMethodService $identifyMethod,
 		protected FileUserMapper $fileUserMapper,
@@ -136,27 +135,15 @@ class RequestSignatureService {
 	private function associateToUsers(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
-			$notifyAsNewUser = false;
-			if (isset($data['status']) && $data['status'] === FileEntity::STATUS_ABLE_TO_SIGN) {
-				$notifyAsNewUser = true;
-			}
 			foreach ($data['users'] as $user) {
-				$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
-				$defaultIdentifyMethod = $identifyMethods[$this->identifyMethod->getDefaultIdentifyMethod()];
+				$defaultIdentifyMethodEntity = $this->identifyMethod->getDefaultEntity();
 				$fileUser = $this->getFileUserByIdentifyMethod(
-					$defaultIdentifyMethod,
+					$defaultIdentifyMethodEntity,
 					$fileId
 				);
 				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser, $notifyAsNewUser);
-				if ($notifyAsNewUser) {
-					$defaultIdentifyMethod->notifyUnsignedUser();
-					$this->mail->notifyUnsignedUser($fileUser);
-				} else {
-					$defaultIdentifyMethod->notifySignDataUpdated();
-					$this->mail->notifySignDataUpdated($fileUser);
-				}
-				$this->saveIdentifyMethods($fileUser, $identifyMethods);
+				$this->saveFileUser($fileUser);
+				$this->identifyMethod->save($fileUser);
 				$return[] = $fileUser;
 			}
 		}
@@ -215,35 +202,19 @@ class RequestSignatureService {
 			// TRANSLATION This message will be displayed when the request to API with the key users has a value that is not an array
 			throw new \Exception($this->l10n->t('User list needs to be an array'));
 		}
-		$emails = [];
 		foreach ($data['users'] as $index => $user) {
-			$this->validateHelper->haveValidMail($user);
-			$identifyMethods = $this->identifyMethod->getUserIdentifyMethods($user);
-			$emails[$index] = strtolower($this->getUserEmail($user));
-		}
-		$uniques = array_unique($emails);
-		if (count($emails) > count($uniques)) {
-			throw new \Exception($this->l10n->t('Remove duplicated users, email address need to be unique'));
+			$this->identifyMethod->setAllEntityData($user);
+			$this->identifyMethod->validateAll($user);
 		}
 	}
 
 	public function saveFileUser(FileUserEntity $fileUser): void {
 		if ($fileUser->getId()) {
 			$this->fileUserMapper->update($fileUser);
+			$this->identifyMethod->setFileUser($fileUser, false);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
-		}
-	}
-
-	/**
-	 * @param FileUserEntity $fileUser
-	 * @param array<IdentifyMethod> $identifyMethods
-	 * @return void
-	 */
-	private function saveIdentifyMethods(FileUserEntity $fileUser, array $identifyMethods): void {
-		foreach ($identifyMethods as $identifyMethod) {
-			$identifyMethod->setFileUserId($fileUser->getId());
-			$this->identifyMethodMapper->insert($identifyMethod);
+			$this->identifyMethod->setFileUser($fileUser, true);
 		}
 	}
 
