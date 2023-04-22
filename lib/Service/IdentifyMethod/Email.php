@@ -25,5 +25,30 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\MailService;
+use OCP\IL10N;
+
 class Email extends AbstractIdentifyMethod {
+	public function __construct(
+		private IL10N $l10n,
+		protected MailService $mail
+	) {
+		parent::__construct();
+	}
+
+	public function notify(bool $isNew, FileUser $fileUser): void {
+		if ($isNew) {
+			$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
+			return;
+		}
+		$this->mail->notifySignDataUpdated($fileUser, $this->getEntity()->getIdentifierValue());
+	}
+
+	public function validate(): void {
+		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'));
+		}
+	}
 }
