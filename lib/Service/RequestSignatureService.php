@@ -202,7 +202,7 @@ class RequestSignatureService {
 			// TRANSLATION This message will be displayed when the request to API with the key users has a value that is not an array
 			throw new \Exception($this->l10n->t('User list needs to be an array'));
 		}
-		foreach ($data['users'] as $index => $user) {
+		foreach ($data['users'] as $user) {
 			$this->identifyMethod->setAllEntityData($user);
 			$this->identifyMethod->validateAll($user);
 		}
@@ -211,10 +211,8 @@ class RequestSignatureService {
 	public function saveFileUser(FileUserEntity $fileUser): void {
 		if ($fileUser->getId()) {
 			$this->fileUserMapper->update($fileUser);
-			$this->identifyMethod->setFileUser($fileUser, false);
 		} else {
 			$this->fileUserMapper->insert($fileUser);
-			$this->identifyMethod->setFileUser($fileUser, true);
 		}
 	}
 
