@@ -35,14 +35,14 @@ use OCP\IConfig;
 use OCP\IL10N;
 
 class IdentifyMethodService {
-	public const IDENTIFTY_NEXTCLOUD = 'nextcloud';
+	public const IDENTIFY_NEXTCLOUD = 'nextcloud';
 	public const IDENTIFY_EMAIL = 'email';
 	public const IDENTIFY_SIGNAL = 'signal';
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_METHODS = [
-		self::IDENTIFTY_NEXTCLOUD,
+		self::IDENTIFY_NEXTCLOUD,
 		self::IDENTIFY_EMAIL,
 		self::IDENTIFY_SIGNAL,
 		self::IDENTIFY_TELEGRAM,
@@ -53,7 +53,6 @@ class IdentifyMethodService {
 	 * @var array<IIdentifyMethod>
 	 */
 	private array $identifyMethod = [];
-	private ?FileUser $fileUser = null;
 
 	public function __construct(
 		private IConfig $config,
@@ -70,7 +69,7 @@ class IdentifyMethodService {
 		return $this->identifyMethod[$name];
 	}
 
-	private function setEntityData(string $method, array $identifyData, bool $isDefault): void {
+	private function setEntityData(string $method, $identifyData, bool $isDefault): void {
 		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
 			// necessary identify what is the identification method. The
@@ -78,10 +77,13 @@ class IdentifyMethodService {
 			// flow.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
-		$entity = $this->getIdentifyMethod($method)->getEntity($method);
-		if ($identifyData) {
+		$entity = $this->getIdentifyMethod($method)->getEntity();
+		if (is_array($identifyData)) {
 			$entity->setIdentifierKey(key($identifyData));
 			$entity->setIdentifierValue(current($identifyData));
+		} elseif (is_string($identifyData)) {
+			$entity->setIdentifierKey($method);
+			$entity->setIdentifierValue($identifyData);
 		}
 		$entity->setDefault($isDefault ? 1 : 0);
 		$entity->setMethod($method);
@@ -102,11 +104,17 @@ class IdentifyMethodService {
 	}
 
 	public function getDefaultIdentifyMethodName(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFTY_NEXTCLOUD)
-			?? IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFY_NEXTCLOUD)
+			?? IdentifyMethodService::IDENTIFY_NEXTCLOUD;
 	}
 
 	public function validateAll(): void {
+		if (!array_key_exists($this->getDefaultIdentifyMethodName(), $this->identifyMethod)) {
+			/**
+			 * @todo check if is necessary to return a more specific message. i.e.: the identification method xpto wasn't found
+			 */
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
 		foreach ($this->identifyMethod as $identifyMethod) {
 			$identifyMethod->validate();
 		}
@@ -124,15 +132,11 @@ class IdentifyMethodService {
 		if (!$default) {
 			$identifyMethod = new IdentifyMethod();
 			$identifyMethod->setMethod(
-				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFTY_NEXTCLOUD) ?? self::IDENTIFTY_NEXTCLOUD
+				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFY_NEXTCLOUD) ?? self::IDENTIFY_NEXTCLOUD
 			);
 			return $identifyMethod;
 		}
 		return current($default);
-	}
-
-	public function setFileUser(FileUser $fileUser): void {
-		$this->fileUser = $fileUser;
 	}
 
 	/**

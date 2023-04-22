@@ -580,7 +580,7 @@ class ValidateHelper {
 
 		$currentIdentifyMethod = key($params);
 		if ($currentIdentifyMethod === IdentifyMethodService::IDENTIFY_PASSWORD) {
-			$currentIdentifyMethod = IdentifyMethodService::IDENTIFTY_NEXTCLOUD;
+			$currentIdentifyMethod = IdentifyMethodService::IDENTIFY_NEXTCLOUD;
 		}
 		$this->validateIdentifyMethods([$currentIdentifyMethod]);
 		$default = $this->identifyMethodService->getDefaultIdentiyMethod($fileUser->getId());
