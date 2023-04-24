@@ -550,6 +550,21 @@ class SignFileService {
 	 * @todo validate here if is possible identify the user by identification methods
 	 */
 	private function trhowIfCantIdentifyUser(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
+		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$maxAttempts = (int) $this->config->getAppValue(Application::APP_ID, 'max_attempts', 5);
+		foreach ($identifyMethods as $identifyMethod) {
+			$entity = $identifyMethod->getEntity();
+			if ($entity->getIdentifiedAtDate()) {
+				continue;
+			}
+			if ($entity->getAttempts() > $maxAttempts) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('Exceeded identification attempts')],
+				]));
+			}
+			$identifyMethod->validateContextBeforeSign($user, $fileUser);
+		}
 		if ($fileUser instanceof FileUserEntity) {
 			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
 			$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
@@ -566,7 +581,7 @@ class SignFileService {
 			]));
 		}
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$email =  array_reduce($identifyMethods, function(string $carry, IdentifyMethod $identifyMethod): string {
+		$email = array_reduce($identifyMethods, function (string $carry, IdentifyMethod $identifyMethod): string {
 			/**
 			 * @todo go-horse to make working with implementation when is necessary to have an email
 			 */
@@ -600,7 +615,7 @@ class SignFileService {
 	 */
 	private function throwIfUserIsNotSigner(?IUser $user, FileUserEntity $fileUser): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$uid = array_reduce($identifyMethods, function(string $carry, IdentifyMethod $identifyMethod): string {
+		$uid = array_reduce($identifyMethods, function (string $carry, IdentifyMethod $identifyMethod): string {
 			/**
 			 * @todo go-horse to make working with implementation when is necessary to have an email
 			 */
