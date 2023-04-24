@@ -3,13 +3,20 @@
 use Behat\Gherkin\Node\TableNode;
 use Libresign\NextcloudBehat\NextcloudApiContext;
 use PHPUnit\Framework\Assert;
+use rpkamp\Behat\MailhogExtension\Context\OpenedEmailStorageAwareContext;
+use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 
 /**
  * Defines application features from the specific context.
  */
-class FeatureContext extends NextcloudApiContext {
+class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
+	private OpenedEmailStorage $openedEmailStorage;
+
+	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
+		$this->openedEmailStorage = $storage;
+	}
 
 	/**
 	 * @Then /^the signer "([^"]*)" have a file to sign$/
@@ -93,5 +100,20 @@ class FeatureContext extends NextcloudApiContext {
 			}
 			Assert::assertEquals($value['value'], $actual);
 		}
+	}
+
+	/**
+	 * @Then follow the link on opened email
+	 */
+	public function iDoSomethingWithTheOpenedEmail(): void {
+		if (!$this->openedEmailStorage->hasOpenedEmail()) {
+			throw new RuntimeException('No email opened, unable to do something!');
+		}
+
+		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
+		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
+		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
+
+		$this->sendRequest('get', '/apps/libresign/p/sign/' . $matches['uuid']);
 	}
 }
