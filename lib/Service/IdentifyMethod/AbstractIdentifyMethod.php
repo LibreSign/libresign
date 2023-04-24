@@ -34,6 +34,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->entity = new IdentifyMethod();
 	}
 
+	public function setEntity(IdentifyMethod $entity): void {
+		$this->entity = $entity;
+	}
+
 	public function getEntity(): IdentifyMethod {
 		return $this->entity;
 	}

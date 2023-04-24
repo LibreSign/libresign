@@ -346,7 +346,7 @@ class FileUserMapper extends QBMapper {
 			->selectAlias($qb->func()->max('fu.signed'), 'status_date')
 			->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id')
-			->leftJoin('f', 'libresign_identify_method',  'im', $qb->expr()->andX(
+			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->andX(
 				$qb->expr()->eq('fu.id', 'im.file_user_id'),
 				$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
 				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
@@ -397,7 +397,7 @@ class FileUserMapper extends QBMapper {
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
 					$data = [
-						'email' =>  array_reduce($identifyMethods[$signer->getId()] ?? [], function(string $carry, IdentifyMethod $identifyMethod): bool {
+						'email' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (string $carry, IdentifyMethod $identifyMethod): bool {
 							if ($identifyMethod->getIdentifierKey() === 'uid') {
 								return $identifyMethod->getIdentifierValue();
 							} elseif ($identifyMethod->getIdentifierKey() === 'email') {
@@ -411,14 +411,14 @@ class FileUserMapper extends QBMapper {
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => array_reduce($identifyMethods[$signer->getId()] ?? [], function(string $carry, IdentifyMethod $identifyMethod): bool {
+						'uid' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (string $carry, IdentifyMethod $identifyMethod): bool {
 							if ($identifyMethod->getIdentifierKey() === 'uid') {
 								return $identifyMethod->getIdentifierValue();
 							}
 							return $carry;
 						}, ''),
 						'fileUserId' => $signer->getId(),
-						'me' => array_reduce($identifyMethods[$signer->getId()] ?? [], function(bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+						'me' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if (!$user->getEMailAddress()) {
 								return false;
 							}
