@@ -29,6 +29,7 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
 
 interface IIdentifyMethod {
+	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
 	public function notify(bool $isNew, FileUser $fileUser): void;
 	public function validate(): void;
