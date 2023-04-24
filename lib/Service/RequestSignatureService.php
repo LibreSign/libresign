@@ -204,7 +204,7 @@ class RequestSignatureService {
 		}
 		foreach ($data['users'] as $user) {
 			$this->identifyMethod->setAllEntityData($user);
-			$this->identifyMethod->validateAll($user);
+			$this->identifyMethod->validateToRequestToSign($user);
 		}
 	}
 
