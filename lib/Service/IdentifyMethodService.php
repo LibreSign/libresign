@@ -108,7 +108,7 @@ class IdentifyMethodService {
 			?? IdentifyMethodService::IDENTIFY_NEXTCLOUD;
 	}
 
-	public function validateAll(): void {
+	public function validateToRequestToSign(): void {
 		if (!array_key_exists($this->getDefaultIdentifyMethodName(), $this->identifyMethod)) {
 			/**
 			 * @todo check if is necessary to return a more specific message. i.e.: the identification method xpto wasn't found
@@ -141,11 +141,15 @@ class IdentifyMethodService {
 
 	/**
 	 * @param integer $fileUserId
-	 * @return array<IdentifyMethod>
+	 * @return array<IIdentifyMethod>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
-		return $identifyMethods;
+		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
+		foreach ($entities as $entity) {
+			$identifyMethod = $this->getIdentifyMethod($entity->getMethod());
+			$identifyMethod->setEntity($entity);
+		}
+		return $this->identifyMethod;
 	}
 
 	/**
