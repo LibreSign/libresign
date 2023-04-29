@@ -81,7 +81,12 @@ const routes = [
 	},
 	{
 		path: '/',
-		redirect: { name: libresignVar.settings.certificateOk ? 'requestFiles' : 'signFiles' },
+		redirect: { name: libresignVar.settings.certificateOk ? 'requestFiles' : 'incomplete' },
+	},
+	{
+		path: '/f/incomplete',
+		component: () => import('../views/IncompleteCertication.vue'),
+		name: 'incomplete',
 	},
 	{
 		path: '/f/validation',
