@@ -1,0 +1,54 @@
+<template>
+	<div class="container">
+		<div class="container-image">
+				<img :src="image" draggable="false">
+		</div>
+		<h1 class="title">Wellcomen to Libresign</h1>
+		<p>The admin not completed config of Libresign, please await</p>
+	</div>
+</template>
+
+<script>
+
+
+import BackgroundImage from '../assets/images/bg.png'
+
+const PDF_MIME_TYPE = 'application/pdf'
+
+export default {
+	name: 'Validation',
+	data() {
+		return {
+			image: BackgroundImage,
+		}
+	}
+}
+</script>
+
+<style lang="scss" scoped>
+.container{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	
+	h1 {
+		font-weight: bold;
+		font-size: 24px;
+		color: var(--color-main-text);
+	}
+}
+
+.container-image {
+	display: flex;
+	justify-content: center;
+	margin: 20px;
+
+	img {
+		width: 30%;	
+	}
+}
+
+</style>
