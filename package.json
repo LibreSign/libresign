@@ -27,7 +27,7 @@
     "@nextcloud/router": "^2.1.1",
     "@nextcloud/vue": "^7.10.0",
     "crypto-js": "^4.1.1",
-    "date-fns": "^2.29.1",
+    "date-fns": "^2.30.0",
     "dompurify": "^3.0.2",
     "linkify-string": "^4.1.1",
     "lodash-es": "^4.17.21",
