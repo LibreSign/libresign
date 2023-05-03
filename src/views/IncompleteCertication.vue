@@ -10,13 +10,10 @@
 
 <script>
 
-
 import BackgroundImage from '../assets/images/bg.png'
 
-const PDF_MIME_TYPE = 'application/pdf'
-
 export default {
-	name: 'Validation',
+	name: 'IncompleteCertification',
 	data() {
 		return {
 			image: BackgroundImage,
