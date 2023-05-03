@@ -26,6 +26,7 @@
 		<DownloadBinaries />
 		<ConfigureCheck />
 		<RootCertificate />
+		<IdentifierFactor />
 		<SignPage />
 		<AllowedGroups />
 		<LegalInformation />
@@ -46,6 +47,7 @@ import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
+import IdentifierFactor from './IdentifierFactor.vue'
 
 export default {
 	name: 'Settings',
@@ -54,6 +56,7 @@ export default {
 		DownloadBinaries,
 		ConfigureCheck,
 		RootCertificate,
+		IdentifierFactor,
 		SignPage,
 		AllowedGroups,
 		LegalInformation,
