@@ -233,6 +233,7 @@ OC.L10N.register(
     "Configuration check" : "Beállítás-ellenőrzés",
     "Status of setup" : "Beállítás állapota",
     "Customize default user folder" : "Alapértelmezés felhasználói mappa testreszabása",
+    "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "A mappa neve, amely a felhasználó digitális tanúsítványát, látható aláírásképét és más, a LibreSignhoz kapcsolódó fájljait fogja tartalmazni.",
     "Dependencies" : "Függőségek",
     "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "A működéshez szükséges binárisok. A letöltési méret majdnem 340 MB, várjon egy kicsit.",
     "Download binaries" : "Binárisok letöltése",
