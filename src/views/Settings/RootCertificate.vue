@@ -50,7 +50,7 @@
 			<NcButton
 				@click="showModal" v-if="cfsslBinariesOk">
 				{{ t('libresign', 'Regenerate root certificate') }}
-			</NcButton>
+	</NcButton>
 			<NcModal
 				v-if="modal"
 				@close="closeModal"
