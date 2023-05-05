@@ -16,6 +16,7 @@ OC.L10N.register(
     "Password" : "Lösenord",
     "Confirm" : "Bekräfta",
     "Text" : "Text",
+    "Draw" : "Rita",
     "Upload" : "Ladda upp",
     "Apply" : "Tillämpa",
     "Cancel" : "Avbryt",
