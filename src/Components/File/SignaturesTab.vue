@@ -51,7 +51,7 @@
 import axios from '@nextcloud/axios'
 import { format } from 'date-fns'
 import { mapGetters } from 'vuex'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { getCurrentUser } from '@nextcloud/auth'
 import NcActions from '@nextcloud/vue/dist/Components/NcActions'
@@ -102,7 +102,7 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileId}/${user.fileUserId}`))
+					const response = await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileId}/${user.fileUserId}`))
 
 					this.update()
 					showSuccess(response.data.message)
@@ -114,7 +114,7 @@ export default {
 		async sendNotify(email) {
 			try {
 				this.disableBtn = true
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signers'), {
 					fileId: this.fileId,
 					signers: [
 						{

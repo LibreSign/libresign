@@ -117,7 +117,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import { getAPPURL } from '../../helpers/path.js'
@@ -267,7 +267,7 @@ export default {
 			return t('libresign', 'Account not exist')
 		},
 		async getMe() {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			this.hasPfx = response.data.settings.hasSignatureFile
 			this.settings.canPreviewPageAsImage = response.data.settings.canPreviewPageAsImage
 			this.canRequestSign = response.data.settings.canRequestSign
@@ -275,7 +275,7 @@ export default {
 
 		async getInfo() {
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
 				this.uuid = response.data.uuid
 				this.settings = { ...response.data.settings }
@@ -313,7 +313,7 @@ export default {
 				this.loadingInput = true
 				this.disabledSign = true
 
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+				const response = await axios.post(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 
@@ -326,7 +326,7 @@ export default {
 				return OCA.Files.App.fileList.reload()
 			} catch (err) {
 				if (err.response.data.action === 400) {
-					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
+					window.location.href = generateOcsUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
 				this.disabledSign = false
 				this.loadingInput = false
@@ -337,7 +337,7 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.fileUserId}`))
+					const response = await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileInfo.id}/${user.fileUserId}`))
 					if (this.signers.length <= 0) {
 						this.option('signatures')
 					}
@@ -352,7 +352,7 @@ export default {
 
 		async resendEmail(email) {
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signers'), {
 					fileId: this.fileInfo.id,
 					signers: [
 						{
@@ -368,7 +368,7 @@ export default {
 		},
 
 		async updateRegister(users, fileInfo) {
-			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/request-signature'), {
+			const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 				file: {
 					fileId: this.fileInfo.id,
 				},
@@ -453,7 +453,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
+			window.location.href = generateOcsUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
 		},
 	},
 }
