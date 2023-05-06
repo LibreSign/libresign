@@ -24,7 +24,6 @@ import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 import Input from '../Components/Input/Input.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
@@ -51,7 +50,7 @@ export default {
 		async send() {
 			this.hasLoading = true
 			try {
-				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
 					signPassword: this.password,
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
