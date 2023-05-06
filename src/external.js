@@ -39,11 +39,6 @@ import './assets/styles/main.scss'
 // eslint-disable-next-line
 __webpack_nonce__ = btoa(getRequestToken())
 
-// Correct the root of the app for chunk loading
-// OC.linkTo matches the apps folders
-// OC.generateUrl ensure the index.php (or not)
-// We do not want the index.php since we're loading files
-// eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
 sync(store, router)
