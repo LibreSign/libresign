@@ -1,17 +1,17 @@
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import store from '../store/index.js'
 
 export const loadSignatures = async () => {
 	const response = await axios.get(
-		generateUrl('/apps/libresign/api/0.1/account/signatures/elements')
+		generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements')
 	)
 	return response
 }
 
 export const newSignature = async (type, base64) => {
 	const response = await axios.post(
-		generateUrl('/apps/libresign/api/0.1/account/signatures/elements', {
+		generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements', {
 			type,
 			file: {
 				base64,
@@ -23,7 +23,7 @@ export const newSignature = async (type, base64) => {
 
 export const getElement = async (elementId) => {
 	const response = await axios.get(
-		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementId}`)
+		generateOcsUrl(`/apps/libresign/api/v1/account/signatures/elements/${elementId}`)
 	)
 	store.commit('signatures/setSignature', response.data)
 	return response
@@ -31,7 +31,7 @@ export const getElement = async (elementId) => {
 
 export const updateElement = async (element) => {
 	const response = await axios.patch(
-		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${element.id}`, {
+		generateOcsUrl(`/apps/libresign/api/v1/account/signatures/elements/${element.id}`, {
 			element,
 		})
 	)
@@ -50,7 +50,7 @@ export const newElement = async (element) => {
 
 export const deleteElement = async (elementID) => {
 	const response = await axios.delete(
-		generateUrl(`/apps/libresign/api/0.1/account/signatures/elements/${elementID}`)
+		generateOcsUrl(`/apps/libresign/api/v1/account/signatures/elements/${elementID}`)
 	)
 	return response
 }

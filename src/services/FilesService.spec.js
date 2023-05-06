@@ -1,4 +1,4 @@
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 // eslint-disable-next-line node/no-unpublished-import
 import { uuid } from 'uuidv4'
 import mockAxios from '../__test__/__mocks__/axios.js'
@@ -48,7 +48,7 @@ describe('FilesService', () => {
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledTimes(1)
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uid}`)
+			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uid}`)
 		)
 		mockAxios.mockResponse(response)
 		expect(mockAxios.get).toHaveReturnedTimes(1)

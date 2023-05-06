@@ -1,6 +1,5 @@
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
 
 const state = {
 	file: {},
@@ -37,7 +36,7 @@ const actions = {
 	},
 	GET_ALL_FILES: async ({ dispatch }) => {
 		try {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/file/list'))
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'))
 			dispatch('SET_FILES', response.data.data)
 		} catch (err) {
 			showError('An error occurred while fetching the files')

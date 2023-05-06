@@ -25,7 +25,7 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
 export default {
@@ -47,7 +47,7 @@ export default {
 	methods: {
 		async checkSetup() {
 			const response = await axios.get(
-				generateUrl('/apps/libresign/api/0.1/admin/configure-check')
+				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check')
 			)
 			this.items = response.data
 			this.$root.$emit('afterConfigCheck', response.data);
