@@ -1,4 +1,3 @@
-import { generateUrl } from '@nextcloud/router'
 import mockAxios from '../__test__/__mocks__/axios.js'
 import { deleteElement, getElement, loadSignatures, newSignature, updateElement } from './SignaturesService.js'
 
@@ -28,7 +27,7 @@ describe('SignaturesService', () => {
 
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateUrl('/apps/libresign/api/0.1/account/signatures/elements')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements')
 		)
 
 		mockAxios.mockResponse(response)
@@ -41,7 +40,7 @@ describe('SignaturesService', () => {
 
 		expect(mockAxios.post).toHaveBeenCalledTimes(1)
 		expect(mockAxios.post).toHaveBeenCalledWith(
-			generateUrl('/apps/libresign/api/0.1/account/signatures/elements', {
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements', {
 				type: 'signature',
 				file: {
 					base64: 'base64',
@@ -76,7 +75,7 @@ describe('SignaturesService', () => {
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledTimes(1)
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateUrl('/apps/libresign/api/0.1/account/signatures/elements/5')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5')
 		)
 		mockAxios.mockResponse(response)
 		expect(mockAxios.get).toHaveReturned()
@@ -97,7 +96,7 @@ describe('SignaturesService', () => {
 		expect(mockAxios.patch).toHaveBeenCalled()
 		expect(mockAxios.patch).toHaveBeenCalledTimes(1)
 		expect(mockAxios.patch).toHaveBeenCalledWith(
-			generateUrl('/apps/libresign/api/0.1/account/signatures/elements/5', {
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5', {
 				type: 'signature',
 				file: {
 					base64: 'base64',
@@ -121,7 +120,7 @@ describe('SignaturesService', () => {
 		expect(mockAxios.delete).toHaveBeenCalled()
 		expect(mockAxios.delete).toHaveBeenCalledTimes(1)
 		expect(mockAxios.delete).toHaveBeenCalledWith(
-			generateUrl('/apps/libresign/api/0.1/account/signatures/elements/5')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5')
 		)
 		expect(mockAxios.delete).toHaveReturned()
 		expect(mockAxios.delete).toHaveReturnedTimes(1)

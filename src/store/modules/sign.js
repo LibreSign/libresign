@@ -1,6 +1,6 @@
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 
 const state = {
 	sign: false,
@@ -11,12 +11,12 @@ const actions = {
 		try {
 			let response
 			if (fileId.length >= 10) {
-				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/uuid/${fileId}`), {
+				response = await axios.post(generateOcsUrl(`/apps/libresign/api/v1/sign/uuid/${fileId}`), {
 					password,
 					elements,
 				})
 			} else {
-				response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${fileId}`), {
+				response = await axios.post(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${fileId}`), {
 					password,
 					elements,
 				})
@@ -35,7 +35,7 @@ const actions = {
 	},
 	REQUEST: async ({ dispatch }, { fileId, name, users }) => {
 		try {
-			const response = await axios.post(generateUrl('/apps/libresign/api/0.1/request-signature'), {
+			const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 				file: {
 					fileId,
 				},
