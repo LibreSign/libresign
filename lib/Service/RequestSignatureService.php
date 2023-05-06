@@ -174,17 +174,9 @@ class RequestSignatureService {
 	}
 
 	public function validateNewRequestToFile(array $data): void {
-		$this->validateUserManager($data);
 		$this->validateNewFile($data);
 		$this->validateUsers($data);
 		$this->validateHelper->validateFileStatus($data);
-	}
-
-	public function validateUserManager(array $user): void {
-		if (!isset($user['userManager'])) {
-			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
-		}
-		$this->validateHelper->canRequestSign($user['userManager']);
 	}
 
 	public function validateNewFile(array $data): void {
