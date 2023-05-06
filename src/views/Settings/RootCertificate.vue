@@ -160,7 +160,7 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
 import Delete from 'vue-material-design-icons/Delete.vue'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
@@ -327,7 +327,7 @@ export default {
 			this.submitLabel = t('libresign', 'Generating certificate.')
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
+					generateOcsUrl('/apps/libresign/api/v1/admin/certificate'),
 					this.getDataToSave()
 				)
 
@@ -381,7 +381,7 @@ export default {
 			this.formDisabled = true
 			try {
 				const response = await axios.get(
-					generateUrl('/apps/libresign/api/0.1/admin/certificate'),
+					generateOcsUrl('/apps/libresign/api/v1/admin/certificate'),
 				)
 				if (!response.data || response.data.message) {
 					throw new Error(response.data)

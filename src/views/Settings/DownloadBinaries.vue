@@ -41,7 +41,7 @@ import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
 export default {
@@ -86,7 +86,7 @@ export default {
 			this.changeState('in progress')
 			try {
 				axios.get(
-					generateUrl('/apps/libresign/api/0.1/admin/download-binaries')
+					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries')
 				)
 				.then(() => {
 					this.changeState('waiting check')
@@ -100,7 +100,7 @@ export default {
 		},
 		async pooling() {
 			const response = await axios.get(
-				generateUrl('/apps/libresign/api/0.1/admin/download-status')
+				generateOcsUrl('/apps/libresign/api/v1/admin/download-status')
 			)
 			this.downloadStatus = response.data
 			if (!this.downloadInProgress) {
