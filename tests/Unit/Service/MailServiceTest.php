@@ -78,7 +78,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->willReturn(true);
-		$actual = $this->service->notifyUnsignedUser($fileUser);
+		$actual = $this->service->notifyUnsignedUser($fileUser, 'a@b.coop');
 		$this->assertNull($actual);
 	}
 
@@ -113,7 +113,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->will($this->returnValue(true));
-		$actual = $this->service->notifyUnsignedUser($fileUser);
+		$actual = $this->service->notifyUnsignedUser($fileUser, 'a@b.coop');
 		$this->assertNull($actual);
 	}
 }

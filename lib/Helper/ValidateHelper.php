@@ -607,6 +607,18 @@ class ValidateHelper {
 		}
 	}
 
+	public function validateIdentifyMethods(array $identifyMethods): void {
+		foreach ($identifyMethods as $identifyMethod) {
+			if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
+				// TRANSLATORS When is requested to a person to sign a file, is
+				// necessary identify what is the identification method. The
+				// identification method is used to define how will be the sign
+				// flow.
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
+		}
+	}
+
 	public function valdateCode(FileUser $fileUser, array $params): void {
 		if (empty($params['code']) || !$this->hasher->verify($params['code'], $fileUser->getCode())) {
 			throw new LibresignException($this->l10n->t('Invalid code.'));
