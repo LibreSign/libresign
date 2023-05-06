@@ -27,15 +27,15 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\RequestSignatureService;
-use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
-class RequestSignatureController extends ApiController {
+class RequestSignatureController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
@@ -60,6 +60,7 @@ class RequestSignatureController extends ApiController {
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
+	#[RequireManager]
 	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1) {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -102,6 +103,7 @@ class RequestSignatureController extends ApiController {
 	 * @param array $users
 	 * @return JSONResponse
 	 */
+	#[RequireManager]
 	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null) {
 		$user = $this->userSession->getUser();
 		$data = [
@@ -113,7 +115,6 @@ class RequestSignatureController extends ApiController {
 			'visibleElements' => $visibleElements
 		];
 		try {
-			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateFileStatus($data);
 			if (!empty($data['visibleElements'])) {
@@ -149,6 +150,7 @@ class RequestSignatureController extends ApiController {
 	 * @param integer $fileUserId
 	 * @return JSONResponse
 	 */
+	#[RequireManager]
 	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId) {
 		try {
 			$data = [
@@ -157,7 +159,6 @@ class RequestSignatureController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->validateHelper->validateIsSignerOfFile($fileUserId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $fileUserId);
@@ -185,6 +186,7 @@ class RequestSignatureController extends ApiController {
 	 * @param integer $fileId
 	 * @return JSONResponse
 	 */
+	#[RequireManager]
 	public function deleteAllRequestSignatureUsingFileId(int $fileId) {
 		try {
 			$data = [
@@ -193,7 +195,6 @@ class RequestSignatureController extends ApiController {
 					'fileId' => $fileId
 				]
 			];
-			$this->requestSignatureService->validateUserManager($data);
 			$this->validateHelper->validateExistingFile($data);
 			$this->requestSignatureService->deleteRequestSignature($data);
 		} catch (\Throwable $th) {
