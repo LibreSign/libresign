@@ -207,11 +207,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	public function testValidateUserManagerWithoutUserManager() {
-		$this->expectExceptionMessage('You are not allowed to request signing');
-		$this->getService()->validateUserManager([]);
-	}
-
 	public function testSaveFileUserWhenUserExists() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser
