@@ -82,7 +82,7 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
-import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime } from 'date-fns'
@@ -146,7 +146,7 @@ export default {
 			this.hasLoading = true
 
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/uuid/${uuid}`))
+				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true
@@ -159,7 +159,7 @@ export default {
 		async validateByNodeID(nodeId) {
 			this.hasLoading = true
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${nodeId}`))
+				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${nodeId}`))
 				showSuccess(t('libresign', 'This document is valid'))
 				this.document = response.data
 				this.hasInfo = true

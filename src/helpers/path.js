@@ -1,11 +1,11 @@
 /* eslint-disable valid-jsdoc */
 
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 
 const rgxBegin = /^\//
 const rgxEnd = /\/$/
 
-const API_PATH = '/apps/libresign/api/0.1/'
+const API_PATH = '/apps/libresign/api/v1/'
 const APP_PATH = '/apps/libresign/'
 
 /**
@@ -15,8 +15,8 @@ const APP_PATH = '/apps/libresign/'
  *
  * @return {string}
  */
-const getAPIURL = path => generateUrl(pathJoin(API_PATH, path))
-const getAPPURL = path => generateUrl(pathJoin(APP_PATH, path))
+const getAPIURL = path => generateOcsUrl(pathJoin(API_PATH, path))
+const getAPPURL = path => generateOcsUrl(pathJoin(APP_PATH, path))
 
 const pathJoin = (...parts) => {
 	const s = parts.length - 1
