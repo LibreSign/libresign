@@ -1,5 +1,5 @@
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 
 const state = {
 	file: {
@@ -24,7 +24,7 @@ const getters = {
 const actions = {
 	VALIDATE_BY_ID: async ({ commit, dispatch }, id) => {
 		try {
-			const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${id}`))
+			const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${id}`))
 			await commit('setFile', response.data)
 		} catch (err) {
 			dispatch('error/SET_ERROR', { code: err.response.status, message: err.response.data.message }, { root: true })
