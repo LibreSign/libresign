@@ -17,31 +17,15 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class FileController extends Controller {
-	/** @var IL10N */
-	private $l10n;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var FileService */
-	private $fileService;
-	/** @var ValidateHelper */
-	private $validateHelper;
-
 	public function __construct(
 		IRequest $request,
-		IL10N $l10n,
-		LoggerInterface $logger,
-		IUserSession $userSession,
-		FileService $fileService,
-		ValidateHelper $validateHelper
+		private IL10N $l10n,
+		private LoggerInterface $logger,
+		private IUserSession $userSession,
+		private FileService $fileService,
+		private ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->l10n = $l10n;
-		$this->logger = $logger;
-		$this->userSession = $userSession;
-		$this->fileService = $fileService;
-		$this->validateHelper = $validateHelper;
 	}
 
 	/**

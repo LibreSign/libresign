@@ -10,16 +10,10 @@ use OCP\IConfig;
 use OCP\IUser;
 
 class AccountFileService {
-	/** @var AccountFileMapper */
-	protected $accountFileMapper;
-	/** @var IConfig */
-	protected $config;
 	public function __construct(
-		AccountFileMapper $accountFileMapper,
-		IConfig $config
+		protected AccountFileMapper $accountFileMapper,
+		protected IConfig $config
 	) {
-		$this->accountFileMapper = $accountFileMapper;
-		$this->config = $config;
 	}
 
 	public function addFile(File $file, IUser $user, string $fileType): void {
