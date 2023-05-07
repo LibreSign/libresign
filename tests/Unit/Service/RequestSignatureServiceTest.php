@@ -31,12 +31,10 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignMethodService;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
@@ -49,8 +47,6 @@ use Psr\Log\LoggerInterface;
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/** @var IL10N|MockObject */
 	private $l10n;
-	/** @var MailService|MockObject */
-	private $mailService;
 	/** @var FileMapper|MockObject */
 	private $fileMapper;
 	/** @var FileUserMapper|MockObject */
@@ -76,11 +72,13 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	/** @var SignMethodService|MockObject */
 	private $signMethod;
 	/** @var IdentifyMethodService|MockObject */
-	private $identifyMethod;
+	private $identifyMethodService;
 	/** @var PdfParserService|MockObject */
 	private $pdfParserService;
 	/** @var IMimeTypeDetector|MockObject */
 	private $mimeTypeDetector;
+	/** @var IClientService */
+	private $client;
 	/** @var LoggerInterface|MockObject */
 	private $loggerInterface;
 
@@ -90,7 +88,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->l10n
 			->method('t')
 			->will($this->returnArgument(0));
-		$this->mailService = $this->createMock(MailService::class);
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
@@ -104,18 +101,18 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
-		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
+		$this->client = $this->createMock(IClientService::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 
 	private function getService(): RequestSignatureService {
 		return new RequestSignatureService(
 			$this->l10n,
-			$this->mailService,
 			$this->signMethod,
-			$this->identifyMethod,
+			$this->identifyMethodService,
 			$this->fileUserMapper,
 			$this->userManager,
 			$this->fileMapper,
@@ -126,6 +123,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->folderService,
 			$this->mimeTypeDetector,
 			$this->validateHelper,
+			$this->client,
 			$this->loggerInterface
 		);
 	}
