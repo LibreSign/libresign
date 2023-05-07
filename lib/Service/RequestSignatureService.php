@@ -34,8 +34,8 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\AppFramework\Http;
 use OCP\Files\IMimeTypeDetector;
+use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -59,6 +59,7 @@ class RequestSignatureService {
 		protected FolderService $folderService,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected ValidateHelper $validateHelper,
+		protected IClientService $client,
 		protected LoggerInterface $logger
 	) {
 	}
@@ -136,6 +137,7 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
+				$this->identifyMethod->setAllEntityData($user);
 				$defaultIdentifyMethodEntity = $this->identifyMethod->getDefaultEntity();
 				$fileUser = $this->getFileUserByIdentifyMethod(
 					$defaultIdentifyMethodEntity,
