@@ -8,14 +8,10 @@ use OCP\ITempManager;
 use Psr\Log\LoggerInterface;
 
 class PdfParserService {
-	private ITempManager $tempManager;
-	private LoggerInterface $logger;
 	public function __construct(
-		ITempManager $tempManager,
-		LoggerInterface $logger,
+		private ITempManager $tempManager,
+		private LoggerInterface $logger,
 	) {
-		$this->tempManager = $tempManager;
-		$this->logger = $logger;
 	}
 
 	/**

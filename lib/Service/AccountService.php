@@ -31,110 +31,41 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	/** @var IL10N */
-	private $l10n;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
 	/** @var FileUser */
 	private $fileUser;
-	/** @var IUserManager */
-	protected $userManager;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var IRootFolder */
-	private $root;
-	/** @var IConfig */
-	private $config;
-	/** @var NewUserMailHelper */
-	private $newUserMail;
-	/** @var IdentifyMethodService */
-	private $identifyMethodService;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var Pkcs12Handler */
-	private $pkcs12Handler;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
-	/** @var SignFileService */
-	private $signFileService;
-	/** @var RequestSignatureService */
-	private $requestSignatureService;
-	/** @var SignatureService */
-	private $signatureService;
 	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var AccountFileService */
-	private $accountFileService;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var FolderService */
-	private $folderService;
-	/** @var IClientService */
-	private $clientService;
-	/** @var TimeFactory */
-	private $timeFactory;
 
 	public const ELEMENT_SIGN_WIDTH = 350;
 	public const ELEMENT_SIGN_HEIGHT = 100;
 
 	public function __construct(
-		IL10N $l10n,
-		FileUserMapper $fileUserMapper,
-		IUserManager $userManager,
-		IAccountManager $accountManager,
-		IRootFolder $root,
-		FileMapper $fileMapper,
-		FileTypeMapper $fileTypeMapper,
-		AccountFileMapper $accountFileMapper,
-		SignFileService $signFileService,
-		RequestSignatureService $requestSignatureService,
-		SignatureService $signatureService,
-		IConfig $config,
-		NewUserMailHelper $newUserMail,
-		IdentifyMethodService $identifyMethodService,
-		ValidateHelper $validateHelper,
-		IURLGenerator $urlGenerator,
-		Pkcs12Handler $pkcs12Handler,
-		IGroupManager $groupManager,
-		AccountFileService $accountFileService,
-		UserElementMapper $userElementMapper,
-		FolderService $folderService,
-		IClientService $clientService,
-		TimeFactory $timeFactory
+		private IL10N $l10n,
+		private FileUserMapper $fileUserMapper,
+		private IUserManager $userManager,
+		private IAccountManager $accountManager,
+		private IRootFolder $root,
+		private FileMapper $fileMapper,
+		private FileTypeMapper $fileTypeMapper,
+		private AccountFileMapper $accountFileMapper,
+		private SignFileService $signFileService,
+		private RequestSignatureService $requestSignatureService,
+		private SignatureService $signatureService,
+		private IConfig $config,
+		private NewUserMailHelper $newUserMail,
+		private IdentifyMethodService $identifyMethodService,
+		private ValidateHelper $validateHelper,
+		private IURLGenerator $urlGenerator,
+		private Pkcs12Handler $pkcs12Handler,
+		private IGroupManager $groupManager,
+		private AccountFileService $accountFileService,
+		private UserElementMapper $userElementMapper,
+		private FolderService $folderService,
+		private IClientService $clientService,
+		private TimeFactory $timeFactory
 	) {
-		$this->l10n = $l10n;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->userManager = $userManager;
-		$this->accountManager = $accountManager;
-		$this->root = $root;
-		$this->fileMapper = $fileMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
-		$this->accountFileMapper = $accountFileMapper;
-		$this->signFileService = $signFileService;
-		$this->requestSignatureService = $requestSignatureService;
-		$this->signatureService = $signatureService;
-		$this->config = $config;
-		$this->newUserMail = $newUserMail;
-		$this->identifyMethodService = $identifyMethodService;
-		$this->validateHelper = $validateHelper;
-		$this->urlGenerator = $urlGenerator;
-		$this->pkcs12Handler = $pkcs12Handler;
-		$this->groupManager = $groupManager;
-		$this->accountFileService = $accountFileService;
-		$this->userElementMapper = $userElementMapper;
-		$this->folderService = $folderService;
-		$this->clientService = $clientService;
-		$this->timeFactory = $timeFactory;
 	}
 
 	public function validateCreateToSign(array $data): void {
