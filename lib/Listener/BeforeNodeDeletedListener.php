@@ -12,21 +12,11 @@ use OCP\Files\File;
 use OCP\IDBConnection;
 
 class BeforeNodeDeletedListener implements IEventListener {
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var RequestSignatureService */
-	private $requestSignatureService;
-	/** @var IDBConnection */
-	private $db;
-
 	public function __construct(
-		FileMapper $fileMapper,
-		RequestSignatureService $requestSignatureService,
-		IDBConnection $db
+		private FileMapper $fileMapper,
+		private RequestSignatureService $requestSignatureService,
+		private IDBConnection $db
 	) {
-		$this->fileMapper = $fileMapper;
-		$this->requestSignatureService = $requestSignatureService;
-		$this->db = $db;
 	}
 
 	public function handle(Event $event): void {

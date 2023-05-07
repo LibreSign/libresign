@@ -36,40 +36,22 @@ class InstallService {
 	public const CFSSL_VERSION = '1.6.3';
 	/** @var ICache */
 	private $cache;
-	/** @var IConfig */
-	public $config;
-	/** @var IClientService */
-	private $clientService;
-	/** @var IRootFolder */
-	private $rootFolder;
-	/** @var CfsslServerHandler */
-	private $cfsslServerHandler;
-	/** @var CfsslHandler */
-	private $cfsslHandler;
 	/** @var OutputInterface */
 	private $output;
 	/** @var bool */
 	/** @var string */
 	private $resource = '';
-	/** @var LoggerInterface */
-	private $logger;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
-		IClientService $clientService,
-		CfsslServerHandler $cfsslServerHandler,
-		CfsslHandler $cfsslHandler,
-		IConfig $config,
-		IRootFolder $rootFolder,
-		LoggerInterface $logger
+		private IClientService $clientService,
+		private CfsslServerHandler $cfsslServerHandler,
+		private CfsslHandler $cfsslHandler,
+		private IConfig $config,
+		private IRootFolder $rootFolder,
+		private LoggerInterface $logger
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
-		$this->clientService = $clientService;
-		$this->cfsslServerHandler = $cfsslServerHandler;
-		$this->cfsslHandler = $cfsslHandler;
-		$this->config = $config;
-		$this->rootFolder = $rootFolder;
-		$this->logger = $logger;
 	}
 
 	public function setOutput(OutputInterface $output): void {
