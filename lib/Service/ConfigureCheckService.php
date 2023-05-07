@@ -10,18 +10,11 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IConfig;
 
 class ConfigureCheckService {
-	private IConfig $config;
-	private SystemConfig $systemConfig;
-	private JSignPdfHandler $jSignPdfHandler;
-
 	public function __construct(
-		IConfig $config,
-		SystemConfig $systemConfig,
-		JSignPdfHandler $jSignPdfHandler
+		private IConfig $config,
+		private SystemConfig $systemConfig,
+		private JSignPdfHandler $jSignPdfHandler
 	) {
-		$this->config = $config;
-		$this->systemConfig = $systemConfig;
-		$this->jSignPdfHandler = $jSignPdfHandler;
 	}
 
 	/**
