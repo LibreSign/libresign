@@ -16,27 +16,14 @@ use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 
 class AdminController extends Controller {
-	/** @var IOutput */
-	private $output;
-	/** @var AdminSignatureService */
-	private $adminSignatureService;
-	/** @var ConfigureCheckService */
-	private $configureCheckService;
-	/** @var InstallService */
-	private $installService;
-
 	public function __construct(
 		IRequest $request,
-		IOutput $output,
-		AdminSignatureService $adminSignatureService,
-		ConfigureCheckService $configureCheckService,
-		InstallService $installService
+		private IOutput $output,
+		private AdminSignatureService $adminSignatureService,
+		private ConfigureCheckService $configureCheckService,
+		private InstallService $installService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->output = $output;
-		$this->adminSignatureService = $adminSignatureService;
-		$this->configureCheckService = $configureCheckService;
-		$this->installService = $installService;
 	}
 
 	/**
