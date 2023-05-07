@@ -35,52 +35,6 @@ use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 
 class SignFileService {
-	use TFile;
-
-	/** @var IL10N */
-	protected $l10n;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
-	/** @var Pkcs7Handler */
-	private $pkcs7Handler;
-	/** @var Pkcs12Handler */
-	private $pkcs12Handler;
-	/** @var FolderService */
-	protected $folderService;
-	/** @var IClientService */
-	private $client;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var LoggerInterface */
-	protected $logger;
-	/** @var IConfig */
-	private $config;
-	/** @var ValidateHelper */
-	protected $validateHelper;
-	/** @var IRootFolder */
-	private $root;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var IEventDispatcher */
-	private $eventDispatcher;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var SignMethodService */
-	private $signMethod;
-	/** @var IdentifyMethodService */
-	private $identifyMethod;
-	/** @var IdentifyMethodMapper */
-	private $identifyMethodMapper;
-	/** @var IMimeTypeDetector */
-	protected $mimeTypeDetector;
-	/** @var ITempManager */
-	private $tempManager;
 	/** @var FileUserEntity */
 	private $fileUser;
 	/** @var string */
@@ -93,51 +47,29 @@ class SignFileService {
 	private $signWithoutPassword = false;
 
 	public function __construct(
-		IL10N $l10n,
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
-		AccountFileMapper $accountFileMapper,
-		Pkcs7Handler $pkcs7Handler,
-		Pkcs12Handler $pkcs12Handler,
-		FolderService $folderService,
-		IClientService $client,
-		IUserManager $userManager,
-		LoggerInterface $logger,
-		IConfig $config,
-		ValidateHelper $validateHelper,
-		IRootFolder $root,
-		FileElementMapper $fileElementMapper,
-		UserElementMapper $userElementMapper,
-		IEventDispatcher $eventDispatcher,
-		IURLGenerator $urlGenerator,
-		SignMethodService $signMethod,
-		IdentifyMethodService $identifyMethod,
-		IdentifyMethodMapper $identifyMethodMapper,
-		IMimeTypeDetector $mimeTypeDetector,
-		ITempManager $tempManager
+		protected IL10N $l10n,
+		private FileMapper $fileMapper,
+		private FileUserMapper $fileUserMapper,
+		private AccountFileMapper $accountFileMapper,
+		private Pkcs7Handler $pkcs7Handler,
+		private Pkcs12Handler $pkcs12Handler,
+		protected FolderService $folderService,
+		private IClientService $client,
+		private IUserManager $userManager,
+		protected LoggerInterface $logger,
+		private IConfig $config,
+		protected ValidateHelper $validateHelper,
+		private IRootFolder $root,
+		private FileElementMapper $fileElementMapper,
+		private UserElementMapper $userElementMapper,
+		private IEventDispatcher $eventDispatcher,
+		private IURLGenerator $urlGenerator,
+		private SignMethodService $signMethod,
+		private IdentifyMethodService $identifyMethod,
+		private IdentifyMethodMapper $identifyMethodMapper,
+		private IMimeTypeDetector $mimeTypeDetector,
+		private ITempManager $tempManager
 	) {
-		$this->l10n = $l10n;
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->accountFileMapper = $accountFileMapper;
-		$this->pkcs7Handler = $pkcs7Handler;
-		$this->pkcs12Handler = $pkcs12Handler;
-		$this->folderService = $folderService;
-		$this->client = $client;
-		$this->userManager = $userManager;
-		$this->logger = $logger;
-		$this->config = $config;
-		$this->validateHelper = $validateHelper;
-		$this->root = $root;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->userElementMapper = $userElementMapper;
-		$this->eventDispatcher = $eventDispatcher;
-		$this->urlGenerator = $urlGenerator;
-		$this->signMethod = $signMethod;
-		$this->identifyMethod = $identifyMethod;
-		$this->identifyMethodMapper = $identifyMethodMapper;
-		$this->mimeTypeDetector = $mimeTypeDetector;
-		$this->tempManager = $tempManager;
 	}
 
 	/**
@@ -385,7 +317,32 @@ class SignFileService {
 	public function getFileUserToSign(FileEntity $libresignFile, IUser $user): FileUserEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			$fileUser = $this->fileUserMapper->getByFileIdAndUserId($libresignFile->getNodeId(), $user->getUID());
+			$fileUsers = $this->fileUserMapper->getByFileId($libresignFile->getId());
+
+			$fileUser = array_reduce($fileUsers, function (?FileUserEntity $carry, FileUserEntity $fileUser) use ($user): ?FileUserEntity {
+				$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+				$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
+						&& (
+							$identifyMethod->getIdentifierValue() === $user->getUID()
+							|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
+						)
+					) {
+						return true;
+					}
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_NEXTCLOUD
+						&& $identifyMethod->getIdentifierValue() === $user->getUID()
+					) {
+						return true;
+					}
+					return false;
+				});
+				if (count($found) > 0) {
+					return $fileUser;
+				}
+				return $carry;
+			});
+
 			if ($fileUser->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
@@ -563,7 +520,8 @@ class SignFileService {
 					'errors' => [$this->l10n->t('Exceeded identification attempts')],
 				]));
 			}
-			$identifyMethod->validateContextBeforeSign($user, $fileUser);
+			/** @todo Validate identify method here if necessary */
+			// $identifyMethod->validateContextBeforeSign($user, $fileUser);
 		}
 		if ($fileUser instanceof FileUserEntity) {
 			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());

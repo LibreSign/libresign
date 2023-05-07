@@ -41,12 +41,11 @@
     </UndefinedClass>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
-    <MissingDependency occurrences="5">
+    <MissingDependency occurrences="4">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>private</code>
     </MissingDependency>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
@@ -81,10 +80,9 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/FileService.php">
-    <MissingDependency occurrences="3">
+    <MissingDependency occurrences="2">
       <code>$this-&gt;rootFolder</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>private</code>
     </MissingDependency>
   </file>
   <file src="lib/Service/FolderService.php">
@@ -113,15 +111,14 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/SignFileService.php">
-    <MissingDependency occurrences="8">
+    <MissingDependency occurrences="7">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>private</code>
     </MissingDependency>
     <UndefinedClass occurrences="1">
       <code>UUIDUtil</code>
