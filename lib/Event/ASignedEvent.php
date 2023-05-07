@@ -9,21 +9,11 @@ use OCP\EventDispatcher\Event;
 use OCP\Files\File;
 
 abstract class ASignedEvent extends Event {
-	/** @var SignFileService */
-	public $fileService;
-	/** @var \OCP\Files\Node */
-	public $signedFile;
-	/** @var bool */
-	public $allSigned;
-
 	public function __construct(
-		SignFileService $fileService,
-		File $signedFile,
-		bool $allSigned
+		public SignFileService $fileService,
+		public File $signedFile,
+		public bool $allSigned
 	) {
 		parent::__construct();
-		$this->fileService = $fileService;
-		$this->signedFile = $signedFile;
-		$this->allSigned = $allSigned;
 	}
 }

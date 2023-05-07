@@ -23,38 +23,20 @@ use TCPDI;
 class Pkcs12Handler extends SignEngineHandler {
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
-	/** @var FolderService */
-	private $folderService;
 	/** @var JSignPdfHandler|null */
 	private $JSignPdfHandler;
-	/** @var IConfig */
-	private $config;
-	/** @var SystemConfig */
-	private $systemConfig;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var CfsslHandler */
-	private $cfsslHandler;
-	/** @var IL10N */
-	private $l10n;
 	/** @var QrCode */
 	private $qrCode;
 	private const MIN_QRCODE_SIZE = 100;
 
 	public function __construct(
-		FolderService $folderService,
-		IConfig $config,
-		IURLGenerator $urlGenerator,
-		SystemConfig $systemConfig,
-		CfsslHandler $cfsslHandler,
-		IL10N $l10n
+		private FolderService $folderService,
+		private IConfig $config,
+		private IURLGenerator $urlGenerator,
+		private SystemConfig $systemConfig,
+		private CfsslHandler $cfsslHandler,
+		private IL10N $l10n
 	) {
-		$this->folderService = $folderService;
-		$this->config = $config;
-		$this->urlGenerator = $urlGenerator;
-		$this->systemConfig = $systemConfig;
-		$this->cfsslHandler = $cfsslHandler;
-		$this->l10n = $l10n;
 	}
 
 	/**
