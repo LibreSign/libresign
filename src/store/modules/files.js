@@ -1,5 +1,6 @@
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
+import { generateOcsUrl } from '@nextcloud/router'
 
 const state = {
 	file: {},
