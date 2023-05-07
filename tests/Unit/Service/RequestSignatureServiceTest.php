@@ -35,6 +35,7 @@ use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignMethodService;
 use OCP\Files\IMimeTypeDetector;
+use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
 use OCP\IConfig;
@@ -252,9 +253,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 					$this->assertEquals(36, strlen($subject[0]));
 					return true;
 				})],
-				[$this->equalTo('setEmail'), $this->equalTo(['user@test.coop'])],
-				[$this->equalTo('getDescription')],
-				[$this->equalTo('setDescription'), $this->equalTo(['Please, sign'])],
+				[$this->equalTo('getId')],
+				[$this->equalTo('setCreatedAt')],
+				[$this->equalTo('getId')],
 				[$this->equalTo('setUserId')],
 				[$this->equalTo('setDisplayName')],
 				[$this->equalTo('getId')],
@@ -265,9 +266,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 				['setFileId', [], null],
 				['getUuid', [], null],
 				['setUuid', [], null],
-				['setEmail', [], null],
-				['getDescription', [], null],
-				['setDescription', [], null],
+				['getId', [], null],
+				['setCreatedAt', [], null],
+				['getId', [], null],
 				['setUserId', [], 123],
 				['setDisplayName', [], 123],
 				['getId', [], 123],
@@ -277,6 +278,9 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->fileUserMapper
 			->method('getByEmailAndFileId')
 			->with('user@test.coop')
+			->will($this->returnValue($fileUser));
+		$this->fileUserMapper
+			->method('getByIdentifyMethodAndFileId')
 			->will($this->returnValue($fileUser));
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getDisplayName')->willReturn('John Doe');
