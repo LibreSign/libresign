@@ -23,7 +23,6 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { imagePath } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab.vue'
