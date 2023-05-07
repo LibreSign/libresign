@@ -23,16 +23,22 @@
 namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SignatureService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IRequest;
+use OCP\IUserSession;
 
 class TemplateLoader implements IEventListener {
 	public function __construct(
+		private IRequest $request,
+		private IUserSession $userSession,
+		private AccountService $accountService,
 		private IInitialState $initialState,
-		private SignatureService $signatureService
+		private SignatureService $signatureService,
 	) {
 		$this->initialState = $initialState;
 		$this->signatureService = $signatureService;
@@ -50,5 +56,12 @@ class TemplateLoader implements IEventListener {
 			'certificate_ok',
 			$this->signatureService->hasRootCert()
 		);
+
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
+			'file_user_uuid',
+			$this->request->getParam('uuid'),
+			$this->userSession->getUser(),
+			'url'
+		));
 	}
 }
