@@ -14,35 +14,17 @@ use OCP\Mail\IMailer;
 use Psr\Log\LoggerInterface;
 
 class MailService {
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IMailer */
-	private $mailer;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var IL10N */
-	private $l10n;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var IConfig */
-	private $config;
 	/** @var array */
 	private $files = [];
 	
 	public function __construct(
-		LoggerInterface $logger,
-		IMailer $mailer,
-		FileMapper $fileMapper,
-		IL10N $l10n,
-		IURLGenerator $urlGenerator,
-		IConfig $config
+		private LoggerInterface $logger,
+		private IMailer $mailer,
+		private FileMapper $fileMapper,
+		private IL10N $l10n,
+		private IURLGenerator $urlGenerator,
+		private IConfig $config
 	) {
-		$this->logger = $logger;
-		$this->mailer = $mailer;
-		$this->fileMapper = $fileMapper;
-		$this->l10n = $l10n;
-		$this->urlGenerator = $urlGenerator;
-		$this->config = $config;
 	}
 
 	/**
