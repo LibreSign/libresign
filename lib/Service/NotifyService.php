@@ -4,28 +4,17 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\IUserSession;
 
 class NotifyService {
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var MailService */
-	private $mailService;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-
 	public function __construct(
-		ValidateHelper $validateHelper,
-		IUserSession $userSession,
-		MailService $mailService,
-		FileUserMapper $fileUserMapper
+		private ValidateHelper $validateHelper,
+		private IUserSession $userSession,
+		private MailService $mailService,
+		private FileUserMapper $fileUserMapper,
+		private IdentifyMethodService $identifyMethodService
 	) {
-		$this->validateHelper = $validateHelper;
-		$this->userSession = $userSession;
-		$this->mailService = $mailService;
-		$this->fileUserMapper = $fileUserMapper;
 	}
 
 	public function signers(int $nodeId, array $signers): void {
@@ -37,9 +26,25 @@ class NotifyService {
 			$this->validateHelper->signerWasAssociated($signer);
 			$this->validateHelper->notSigned($signer);
 		}
-		foreach ($signers as $signer) {
-			$fileUser = $this->fileUserMapper->getByFileIdAndEmail($nodeId, $signer['email']);
-			$this->mailService->notifyUnsignedUser($fileUser);
+		$fileUsers = $this->fileUserMapper->getByNodeId($nodeId);
+		foreach ($fileUsers as $fileUser) {
+			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$identifyMethod = array_reduce($identifyMethods, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
+				foreach ($signers as $signer) {
+					$key = key($signer);
+					$value = current($signer);
+					$entity = $identifyMethod->getEntity();
+					if ($entity->getIdentifierKey() === $key
+						&& $entity->getIdentifierValue() === $value
+					) {
+						return $identifyMethod;
+					}
+				}
+				return $carry;
+			});
+			if ($identifyMethod instanceof IIdentifyMethod) {
+				$identifyMethod->notify(false, $fileUser);
+			}
 		}
 	}
 }
