@@ -11,19 +11,12 @@ use OCP\IL10N;
 use OCP\IRequest;
 
 class NotifyController extends Controller {
-	/** @var IL10N */
-	private $l10n;
-	/** @var NotifyService */
-	private $notifyService;
-
 	public function __construct(
 		IRequest $request,
-		IL10N $l10n,
-		NotifyService $notifyService
+		private IL10N $l10n,
+		private NotifyService $notifyService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->l10n = $l10n;
-		$this->notifyService = $notifyService;
 	}
 	/**
 	 * @NoAdminRequired

@@ -49,36 +49,21 @@ class FileElementMapper extends QBMapper {
 
 			$qb->select('fe.*')
 				->from($this->getTableName(), 'fe')
-				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
+				->leftJoin('fe', 'libresign_identify_method', 'im', $qb->expr()->andX(
+					$qb->expr()->eq('fe.file_user_id', 'im.file_user_id'),
+					$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+				))
 				->where(
 					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
+					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 				);
 
 			$this->cache['fileId'][$fileId][$userId] = $this->findEntities($qb);
 		}
 		return $this->cache['fileId'][$fileId][$userId];
-	}
-
-	public function getByDocumentElementIdAndFileUserId(int $documentElementId, string $userId): FileElement {
-		if (!isset($this->cache['documentElementId'][$documentElementId])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('fe.*')
-				->from($this->getTableName(), 'fe')
-				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
-				->where(
-					$qb->expr()->eq('fe.id', $qb->createNamedParameter($documentElementId, IQueryBuilder::PARAM_INT))
-				)
-				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
-				);
-
-			$this->cache['documentElementId'][$documentElementId] = $this->findEntity($qb);
-		}
-		return $this->cache['documentElementId'][$documentElementId];
 	}
 
 	public function getById(int $id): FileElement {
