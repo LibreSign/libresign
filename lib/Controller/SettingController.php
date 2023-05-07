@@ -9,15 +9,11 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class SettingController extends Controller {
-	/** @var SignatureService */
-	private $signatureService;
-
 	public function __construct(
 		IRequest $request,
-		SignatureService $signatureService
+		private SignatureService $signatureService
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->signatureService = $signatureService;
 	}
 
 	/**

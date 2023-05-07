@@ -30,14 +30,9 @@ use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
 
 class TemplateLoader implements IEventListener {
-	/** @var IInitialState */
-	private $initialState;
-	/** @var SignatureService */
-	private $signatureService;
-
 	public function __construct(
-		IInitialState $initialState,
-		SignatureService $signatureService
+		private IInitialState $initialState,
+		private SignatureService $signatureService
 	) {
 		$this->initialState = $initialState;
 		$this->signatureService = $signatureService;

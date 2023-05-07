@@ -12,8 +12,6 @@ use OCP\IL10N;
  * @package OCA\Libresign\DB
  */
 class FileTypeMapper extends QBMapper {
-	/** @var IL10N */
-	private $l;
 	private $types = [];
 
 	/**
@@ -21,9 +19,8 @@ class FileTypeMapper extends QBMapper {
 	 */
 	public function __construct(
 		IDBConnection $db,
-		IL10N $l
+		private IL10N $l
 	) {
-		$this->l = $l;
 		parent::__construct($db, 'libresign_file_type');
 	}
 
