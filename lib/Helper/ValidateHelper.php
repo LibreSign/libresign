@@ -12,6 +12,7 @@ use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
@@ -26,34 +27,6 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 
 class ValidateHelper {
-	/** @var IL10N */
-	private $l10n;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var IdentifyMethodService */
-	private $identifyMethodService;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var IHasher */
-	private $hasher;
-	/** @var IConfig */
-	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IRootFolder */
-	private $root;
 	/** @var \OCP\Files\File[] */
 	private $file;
 
@@ -68,35 +41,22 @@ class ValidateHelper {
 	public const STATUS_DELETED = 4;
 
 	public function __construct(
-		IL10N $l10n,
-		FileUserMapper $fileUserMapper,
-		FileMapper $fileMapper,
-		FileTypeMapper $fileTypeMapper,
-		FileElementMapper $fileElementMapper,
-		AccountFileMapper $accountFileMapper,
-		UserElementMapper $userElementMapper,
-		IdentifyMethodService $identifyMethodService,
-		IMimeTypeDetector $mimeTypeDetector,
-		IHasher $hasher,
-		IConfig $config,
-		IGroupManager $groupManager,
-		IUserManager $userManager,
-		IRootFolder $root
+		private IL10N $l10n,
+		private FileUserMapper $fileUserMapper,
+		private FileMapper $fileMapper,
+		private FileTypeMapper $fileTypeMapper,
+		private FileElementMapper $fileElementMapper,
+		private AccountFileMapper $accountFileMapper,
+		private UserElementMapper $userElementMapper,
+		private IdentifyMethodMapper $identifyMethodMapper,
+		private IdentifyMethodService $identifyMethodService,
+		private IMimeTypeDetector $mimeTypeDetector,
+		private IHasher $hasher,
+		private IConfig $config,
+		private IGroupManager $groupManager,
+		private IUserManager $userManager,
+		private IRootFolder $root
 	) {
-		$this->l10n = $l10n;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileMapper = $fileMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->accountFileMapper = $accountFileMapper;
-		$this->userElementMapper = $userElementMapper;
-		$this->identifyMethodService = $identifyMethodService;
-		$this->mimeTypeDetector = $mimeTypeDetector;
-		$this->hasher = $hasher;
-		$this->config = $config;
-		$this->groupManager = $groupManager;
-		$this->userManager = $userManager;
-		$this->root = $root;
 	}
 	public function validateNewFile(array $data): void {
 		$this->validateFile($data, self::TYPE_TO_SIGN);
@@ -310,8 +270,14 @@ class ValidateHelper {
 
 	public function validateUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
 		try {
-			$this->fileElementMapper->getByDocumentElementIdAndFileUserId($documentElementId, $uid);
+			$documentElement = $this->fileElementMapper->getById($documentElementId);
+			$fileUser = $this->fileUserMapper->getById($documentElement->getFileUserId());
+			$file = $this->fileMapper->getById($fileUser->getFileId());
+			if ($file->getUserId() !== $uid) {
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+			}
 		} catch (\Throwable $th) {
+			($fileUser->getFileId());
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
 		}
 	}
@@ -497,7 +463,18 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
+		$exists = array_filter($signatures, function (FileUser $fileUser) use ($signer): bool {
+			$key = key($signer);
+			$value = current($signer);
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
+				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
+					return true;
+				}
+				return false;
+			});
+			return count($found) > 0;
+		});
 		if (!$exists) {
 			throw new LibresignException($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
@@ -510,7 +487,22 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email'] && $s->getSigned());
+
+		$exists = array_filter($signatures, function (FileUser $fileUser) use ($signer): bool {
+			$key = key($signer);
+			$value = current($signer);
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
+				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
+					return true;
+				}
+				return false;
+			});
+			if (count($found) > 0) {
+				return $fileUser->getSigned() !== null;
+			}
+			return false;
+		});
 		if (!$exists) {
 			return;
 		}
@@ -597,7 +589,7 @@ class ValidateHelper {
 		}
 		$identifyMethod = current($identifyMethod);
 
-		switch ($identifyMethod->getMethod()) {
+		switch ($identifyMethod->getEntity->getMethod()) {
 			case IdentifyMethodService::IDENTIFY_SMS:
 			case IdentifyMethodService::IDENTIFY_TELEGRAM:
 			case IdentifyMethodService::IDENTIFY_SIGNAL:

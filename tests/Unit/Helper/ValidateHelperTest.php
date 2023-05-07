@@ -8,6 +8,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -37,6 +38,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $accountFileMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
+	/** @var IdentifyMethodMapper|MockObject */
+	private $identifyMethodMapper;
 	/** @var IdentifyMethodService */
 	private $identifyMethodService;
 	/** @var IMimeTypeDetector */
@@ -63,6 +66,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
@@ -81,6 +85,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
+			$this->identifyMethodMapper,
 			$this->identifyMethodService,
 			$this->mimeTypeDetector,
 			$this->hasher,
@@ -349,34 +354,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn([]);
 		$this->getValidateHelper()->signerWasAssociated([
 			'email' => 'invalid@test.coop'
-		]);
-	}
-
-	public function testNotSignedWithError() {
-		$this->expectExceptionMessage('%s already signed this file');
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile
-			->method('__call')
-			->willReturn('uuid');
-		$this->fileMapper
-			->method('getByFileId')
-			->willReturn($libresignFile);
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getEmail'), $this->anything()],
-				[$this->equalTo('getSigned'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				['getEmail', [], 'signed@test.coop'],
-				['getSigned', [], date('Y-m-d H:i:s')]
-			]));
-		$this->fileUserMapper
-			->method('getByFileUuid')
-			->willReturn([$fileUser]);
-		$this->getValidateHelper()->notSigned([
-			'email' => 'signed@test.coop'
 		]);
 	}
 

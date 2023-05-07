@@ -10,6 +10,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -25,40 +26,6 @@ use Psr\Log\LoggerInterface;
 class FileService {
 	use TFile;
 
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var FileElementService */
-	private $fileElementService;
-	/** @var FolderService */
-	protected $folderService;
-	/** @var ValidateHelper */
-	protected $validateHelper;
-	/** @var AccountService */
-	private $accountService;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var IClientService */
-	private $client;
-	/** @var IConfig */
-	private $config;
-	/** @var IRootFolder */
-	private $rootFolder;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var IMimeTypeDetector */
-	protected $mimeTypeDetector;
-	/** @var LoggerInterface */
-	protected $logger;
-	/** @var IL10N */
-	protected $l10n;
 	/** @var bool */
 	private $showSigners = false;
 	/** @var bool */
@@ -88,41 +55,25 @@ class FileService {
 	public const IDENTIFICATION_DOCUMENTS_NEED_APPROVAL = 2;
 	public const IDENTIFICATION_DOCUMENTS_APPROVED = 3;
 	public function __construct(
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
-		FileElementMapper $fileElementMapper,
-		FileElementService $fileElementService,
-		FolderService $folderService,
-		ValidateHelper $validateHelper,
-		AccountService $accountService,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		IAccountManager $accountManager,
-		IClientService $client,
-		IConfig $config,
-		IRootFolder $rootFolder,
-		IURLGenerator $urlGenerator,
-		IMimeTypeDetector $mimeTypeDetector,
-		LoggerInterface $logger,
-		IL10N $l10n
+		protected FileMapper $fileMapper,
+		protected FileUserMapper $fileUserMapper,
+		protected FileElementMapper $fileElementMapper,
+		protected FileElementService $fileElementService,
+		protected FolderService $folderService,
+		protected ValidateHelper $validateHelper,
+		private AccountService $accountService,
+		private IdentifyMethodService $identifyMethodService,
+		private IUserSession $userSession,
+		private IUserManager $userManager,
+		private IAccountManager $accountManager,
+		protected IClientService $client,
+		private IConfig $config,
+		private IRootFolder $rootFolder,
+		private IURLGenerator $urlGenerator,
+		protected IMimeTypeDetector $mimeTypeDetector,
+		protected LoggerInterface $logger,
+		protected IL10N $l10n
 	) {
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->fileElementService = $fileElementService;
-		$this->folderService = $folderService;
-		$this->validateHelper = $validateHelper;
-		$this->accountService = $accountService;
-		$this->userSession = $userSession;
-		$this->userManager = $userManager;
-		$this->accountManager = $accountManager;
-		$this->client = $client;
-		$this->config = $config;
-		$this->rootFolder = $rootFolder;
-		$this->urlGenerator = $urlGenerator;
-		$this->mimeTypeDetector = $mimeTypeDetector;
-		$this->logger = $logger;
-		$this->l10n = $l10n;
 	}
 
 	/**
@@ -218,17 +169,36 @@ class FileService {
 				'fileUserId' => $signer->getId()
 			];
 			if (!empty($uid)) {
+				$identifyMethodServices = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId());
 				if ($uid === $this->file->getUserId()) {
-					$signatureToShow['email'] = $signer->getEmail();
-					$user = $this->userManager->getByEmail($signer->getEmail());
+					$email = array_reduce($identifyMethodServices, function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
+						if ($identifyMethod->getEntity()->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+							$carry = $identifyMethod->getEntity()->getIdentifierValue();
+						}
+						return $carry;
+					});
+					$signatureToShow['email'] = $email;
+					$user = $this->userManager->getByEmail($email);
 					if ($user) {
 						$signatureToShow['uid'] = $user[0]->getUID();
 					}
 				}
-				$signatureToShow['me'] = $uid === $signer->getUserId();
-				if ($uid === $signer->getUserId() && !$signer->getSigned()) {
-					$this->settings['canSign'] = true;
-					$this->settings['signerFileUuid'] = $signer->getUuid();
+				$nextcloudIdentifyMethod = array_reduce($identifyMethodServices, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod): ?IIdentifyMethod {
+					if ($identifyMethod->getEntity()->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+						$carry = $identifyMethod;
+					}
+					return $carry;
+				});
+				if ($nextcloudIdentifyMethod) {
+					$entity = $nextcloudIdentifyMethod->getEntity();
+					$signatureToShow['me'] = false;
+					if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+						$signatureToShow['me'] = $this->me->getEMailAddress() === $entity->getIdentifierValue();
+						if (!$signer->getSigned()) {
+							$this->settings['canSign'] = true;
+							$this->settings['signerFileUuid'] = $signer->getUuid();
+						}
+					}
 				}
 			}
 			$this->signers[] = $signatureToShow;
