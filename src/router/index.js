@@ -25,12 +25,13 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import routes from './router.js'
 import store from '../store/index.js'
+import { generateUrl } from '@nextcloud/router'
 
 Vue.use(Router)
 
 const libresignVar = store.state.settings
 
-const base = generateOcsUrl('/apps/libresign')
+const base = generateUrl('/apps/libresign')
 
 const router = new Router({
 	mode: 'history',
