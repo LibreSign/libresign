@@ -101,9 +101,9 @@ class FileUserMapper extends QBMapper {
 	 *
 	 * @param int $fileId
 	 *
-	 * @return FileUser|\OCP\AppFramework\Db\Entity[]
+	 * @return FileUser|FileUser[]
 	 *
-	 * @psalm-return FileUser|array<int, \OCP\AppFramework\Db\Entity>
+	 * @psalm-return FileUser|array<int, FileUser>
 	 */
 	public function getByFileId(int $fileId) {
 		if (!isset($this->signers['fileId'][$fileId])) {
@@ -225,11 +225,19 @@ class FileUserMapper extends QBMapper {
 		$qb->select('fu.*')
 			->from($this->getTableName(), 'fu')
 			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
+
+
+			->leftJoin('fu', 'libresign_identify_method', 'im', $qb->expr()->andX(
+				$qb->expr()->eq('fu.id', 'im.file_user_id'),
+				$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+			))
+			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
 			->where(
 				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id))
 			)
-			->andWhere(
-				$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
+			->where(
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 			);
 
 		return $this->findEntity($qb);
@@ -301,7 +309,7 @@ class FileUserMapper extends QBMapper {
 
 	/**
 	 * @param array<FileUser> $fileUsers
-	 * @return array<int, array<array<IdentifyMethod>>>
+	 * @return array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>>
 	 */
 	private function getIdentifyMethodsFromSigners(array $fileUsers): array {
 		$fileUserIds = array_map(function (FileUser $fileUser): int {
@@ -323,7 +331,7 @@ class FileUserMapper extends QBMapper {
 		$return = [];
 		while ($row = $cursor->fetch()) {
 			$identifyMethod = new IdentifyMethod();
-			$return[$row['file_user_id']][] = $identifyMethod->fromRow($row);
+			$return[$row['file_user_id']][$row['method']] = $identifyMethod->fromRow($row);
 		}
 		return $return;
 	}
@@ -388,7 +396,7 @@ class FileUserMapper extends QBMapper {
 	 * @param string $userId
 	 * @param array $files
 	 * @param array<FileUser> $signers
-	 * @param array<IdentifyMethod> $identifyMethods
+	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
 	 * @return array
 	 */
 	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods): array {
@@ -396,8 +404,10 @@ class FileUserMapper extends QBMapper {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
 				if ($signer->getFileId() === $file['id']) {
+					/** @var array<IdentifyMethod> */
+					$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
 					$data = [
-						'email' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (string $carry, IdentifyMethod $identifyMethod): bool {
+						'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 							if ($identifyMethod->getIdentifierKey() === 'uid') {
 								return $identifyMethod->getIdentifierValue();
 							} elseif ($identifyMethod->getIdentifierKey() === 'email') {
@@ -411,14 +421,14 @@ class FileUserMapper extends QBMapper {
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
-						'uid' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (string $carry, IdentifyMethod $identifyMethod): bool {
+						'uid' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
 							if ($identifyMethod->getIdentifierKey() === 'uid') {
 								return $identifyMethod->getIdentifierValue();
 							}
 							return $carry;
 						}, ''),
 						'fileUserId' => $signer->getId(),
-						'me' => array_reduce($identifyMethods[$signer->getId()] ?? [], function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
+						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if (!$user->getEMailAddress()) {
 								return false;
 							}
@@ -435,7 +445,7 @@ class FileUserMapper extends QBMapper {
 								'default' => $identifyMethod->getDefault(),
 								'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate()
 							];
-						}, $identifyMethods[$signer->getId()] ?? []),
+						}, $identifyMethodsOfSigner),
 					];
 
 					if ($data['me']) {

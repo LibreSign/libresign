@@ -32,6 +32,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	public function __construct() {
 		$this->entity = new IdentifyMethod();
+		$className = (new \ReflectionClass($this))->getShortName();
+		$key = lcfirst($className);
+		$this->entity->setIdentifierKey($key);
 	}
 
 	public function setEntity(IdentifyMethod $entity): void {

@@ -70,6 +70,11 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testValidateWithSuccessUsingSigner() {
 		$user = $this->createUser('username', 'password');
+		$this->mockConfig([
+			'libresign' => [
+				'identify_method' => 'nextcloud',
+			]
+		]);
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
