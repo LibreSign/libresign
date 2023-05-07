@@ -13,14 +13,11 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignPdf;
 	/** @var JSignParam */
 	private $jSignParam;
-	/** @var IConfig */
-	private $config;
 	public const VERSION = '2.2.0';
 
 	public function __construct(
-		IConfig $config
+		private IConfig $config
 	) {
-		$this->config = $config;
 	}
 
 	public function setJSignPdf(JSignPDF $jSignPdf): void {

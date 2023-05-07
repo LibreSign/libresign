@@ -9,23 +9,11 @@ use OCA\Libresign\Db\FileMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 class FileElementService {
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var ITimeFactory */
-	private $timeFactory;
-	/** @var array */
-	private $fileMetadata = [];
-
 	public function __construct(
-		FileMapper $fileMapper,
-		FileElementMapper $fileElementMapper,
-		ITimeFactory $timeFactory
+		private FileMapper $fileMapper,
+		private FileElementMapper $fileElementMapper,
+		private ITimeFactory $timeFactory
 	) {
-		$this->fileMapper = $fileMapper;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->timeFactory = $timeFactory;
 	}
 
 	public function saveVisibleElement(array $element, string $uuid = ''): FileElement {

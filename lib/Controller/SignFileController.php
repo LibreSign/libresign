@@ -20,43 +20,18 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class SignFileController extends ApiController {
-	/** @var IL10N */
-	protected $l10n;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var SignFileService */
-	protected $signFileService;
-	/** @var FileService */
-	private $fileService;
-	/** @var ValidateHelper */
-	protected $validateHelper;
-	/** @var LoggerInterface */
-	private $logger;
-
 	public function __construct(
 		IRequest $request,
-		IL10N $l10n,
-		FileUserMapper $fileUserMapper,
-		FileMapper $fileMapper,
-		IUserSession $userSession,
-		ValidateHelper $validateHelper,
-		SignFileService $signFileService,
-		FileService $fileService,
-		LoggerInterface $logger
+		protected IL10N $l10n,
+		private FileUserMapper $fileUserMapper,
+		private FileMapper $fileMapper,
+		private IUserSession $userSession,
+		private ValidateHelper $validateHelper,
+		protected SignFileService $signFileService,
+		private FileService $fileService,
+		protected LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->l10n = $l10n;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileMapper = $fileMapper;
-		$this->userSession = $userSession;
-		$this->validateHelper = $validateHelper;
-		$this->signFileService = $signFileService;
-		$this->fileService = $fileService;
-		$this->logger = $logger;
 	}
 
 	/**
