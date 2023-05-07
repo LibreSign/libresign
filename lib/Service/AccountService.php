@@ -47,6 +47,8 @@ class AccountService {
 	private $config;
 	/** @var NewUserMailHelper */
 	private $newUserMail;
+	/** @var IdentifyMethodService */
+	private $identifyMethodService;
 	/** @var ValidateHelper */
 	private $validateHelper;
 	/** @var IURLGenerator */
@@ -99,6 +101,7 @@ class AccountService {
 		SignatureService $signatureService,
 		IConfig $config,
 		NewUserMailHelper $newUserMail,
+		IdentifyMethodService $identifyMethodService,
 		ValidateHelper $validateHelper,
 		IURLGenerator $urlGenerator,
 		Pkcs12Handler $pkcs12Handler,
@@ -122,6 +125,7 @@ class AccountService {
 		$this->signatureService = $signatureService;
 		$this->config = $config;
 		$this->newUserMail = $newUserMail;
+		$this->identifyMethodService = $identifyMethodService;
 		$this->validateHelper = $validateHelper;
 		$this->urlGenerator = $urlGenerator;
 		$this->pkcs12Handler = $pkcs12Handler;
@@ -142,11 +146,18 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		if ($fileUser->getEmail() !== $data['user']['email']) {
-			throw new LibresignException($this->l10n->t('This is not your file'), 1);
-		}
-		if ($this->userManager->userExists($data['user']['email'])) {
-			throw new LibresignException($this->l10n->t('User already exists'), 1);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		foreach ($data['user'] as $identifyMethodName => $value) {
+			foreach ($identifyMethods as $identifyMethod) {
+				if ($identifyMethod->getEntity()->getIdentifierValue() !== $value) {
+					throw new LibresignException($this->l10n->t('This is not your file'), 1);
+				}
+				if ($identifyMethod->getEntity()->getIdentifierKey() === 'email') {
+					if ($this->userManager->userExists($value)) {
+						throw new LibresignException($this->l10n->t('User already exists'), 1);
+					}
+				}
+			}
 		}
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
@@ -231,15 +242,23 @@ class AccountService {
 	/**
 	 * @param null|string $signPassword
 	 */
-	public function createToSign(string $uuid, string $uid, string $password, ?string $signPassword): void {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
-		$newUser = $this->userManager->createUser($uid, $password);
+		$newUser = $this->userManager->createUser($email, $password);
 		$newUser->setDisplayName($fileUser->getDisplayName());
-		$newUser->setSystemEMailAddress($fileUser->getEmail());
+		$newUser->setSystemEMailAddress($email);
 
-		$fileUser->setUserId($newUser->getUID());
-		$this->fileUserMapper->update($fileUser);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		foreach ($identifyMethods as $name => $identifyMethod) {
+			if ($name === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+				$entity = $identifyMethod->getEntity();
+				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+					$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
+					$this->identifyMethodService->save($fileUser, false);
+				}
+			}
+		}
 
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
@@ -272,28 +291,28 @@ class AccountService {
 		 * @todo WIP, don't merge. Necessary identify how will get this info to send to web client
 		 */
 		try {
-			$this->fsm->setPayload($typeOfUuid, $uuid, $user, $formatOfPdfOnSign);
+			// $this->fsm->setPayload($typeOfUuid, $uuid, $user, $formatOfPdfOnSign);
 
-			if (!$this->isValidUrl()) {
-				// next state: do nothing
-				// Message: invalid data
-				return [];
-			}
-			if ($this->identifyMethodService->haveSession()) {
-				if (!$this->identifyMethodService->isMyDocument()) {
-					// next state: do nothing
-					// Message: haven't access
-					return [];
-				}
-				if (!$this->identifyMethodService->iCanSign()) {
-					// next state: do nothing
-					// Message: get the reason
-					return [];
-				}
-				// next state: show document
-				return [];
-			}
-			return $this->identifyMethodService->nextState();
+			// if (!$this->isValidUrl()) {
+			// 	// next state: do nothing
+			// 	// Message: invalid data
+			// 	return [];
+			// }
+			// if ($this->identifyMethodService->haveSession()) {
+			// 	if (!$this->identifyMethodService->isMyDocument()) {
+			// 		// next state: do nothing
+			// 		// Message: haven't access
+			// 		return [];
+			// 	}
+			// 	if (!$this->identifyMethodService->iCanSign()) {
+			// 		// next state: do nothing
+			// 		// Message: get the reason
+			// 		return [];
+			// 	}
+			// 	// next state: show document
+			// 	return [];
+			// }
+			// return $this->identifyMethodService->nextState();
 
 			if ($typeOfUuid === 'file_user_uuid') {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
