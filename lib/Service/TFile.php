@@ -7,10 +7,9 @@ use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use TCPDF_PARSER;
 
 trait TFile {
-	/** @var IClientService */
-	private $client;
 	/** @var ?string */
 	private $mimetype = null;
+	protected IClientService $client;
 
 	public function getNodeFromData(array $data): \OCP\Files\Node {
 		if (!$this->folderService->getUserId()) {

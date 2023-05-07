@@ -23,11 +23,15 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Middleware;
 
+use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Middleware;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -51,14 +55,9 @@ class InjectionMiddleware extends Middleware {
 	/**
 	 * @param Controller $controller
 	 * @param string $methodName
-	 * @throws LobbyException
-	 * @throws NotAModeratorException
-	 * @throws ParticipantNotFoundException
-	 * @throws PermissionsException
-	 * @throws ReadOnlyException
-	 * @throws RoomNotFoundException
+	 * @throws \Exception
 	 */
-	public function beforeController(Controller $controller, string $methodName): void {
+	public function beforeController(Controller $controller, string $methodName) {
 		if (!$controller instanceof AEnvironmentAwareController) {
 			return;
 		}
@@ -79,5 +78,27 @@ class InjectionMiddleware extends Middleware {
 			throw new \Exception($this->l10n->t('You are not allowed to request signing'), Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 		$this->validateHelper->canRequestSign($user);
+	}
+
+	/**
+	 * @param Controller $controller
+	 * @param string $methodName
+	 * @param \Exception $exception
+	 * @throws \Exception
+	 * @return Response
+	 */
+	public function afterException($controller, $methodName, \Exception $exception): Response {
+		if ($exception instanceof LibresignException) {
+			return new JSONResponse(
+				[
+					'message' => $exception->getMessage(),
+				],
+				$exception->getCode() === 0
+					? AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
+					: $exception->getCode()
+			);
+		}
+
+		throw $exception;
 	}
 }

@@ -121,7 +121,8 @@ class IdentifyMethodService {
 	}
 
 	public function getDefaultEntity(): IdentifyMethod {
-		return $this->identifyMethod[$this->getDefaultIdentifyMethodName()]->getEntity();
+		$identifyMethodName = $this->getDefaultIdentifyMethodName();
+		return $this->getIdentifyMethod($identifyMethodName)->getEntity();
 	}
 
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
@@ -156,16 +157,20 @@ class IdentifyMethodService {
 	 * @param FileUser $fileUser
 	 * @return void
 	 */
-	public function save(FileUser $fileUser): void {
+	public function save(FileUser $fileUser, bool $notify = true): void {
 		foreach ($this->identifyMethod as $identifyMethod) {
 			$entity = $identifyMethod->getEntity();
 			$entity->setFileUserId($fileUser->getId());
 			if ($entity->getId()) {
 				$entity = $this->identifyMethodMapper->update($entity);
-				$identifyMethod->notify(false, $fileUser);
+				if ($notify) {
+					$identifyMethod->notify(false, $fileUser);
+				}
 			} else {
 				$entity = $this->identifyMethodMapper->insert($entity);
-				$identifyMethod->notify(true, $fileUser);
+				if ($notify) {
+					$identifyMethod->notify(true, $fileUser);
+				}
 			}
 		}
 	}
