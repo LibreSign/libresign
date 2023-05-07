@@ -117,7 +117,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import { getAPPURL } from '../../helpers/path.js'
@@ -453,7 +453,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateOcsUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
+			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
 		},
 	},
 }
