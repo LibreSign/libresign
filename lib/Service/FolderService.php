@@ -12,24 +12,12 @@ use OCP\IL10N;
 use OCP\IUser;
 
 class FolderService {
-	/** @var IRootFolder */
-	private $root;
-	/** @var IConfig */
-	private $config;
-	/** @var IL10N */
-	private $l10n;
-	/** @var string|null */
-	private $userId;
-
 	public function __construct(
-		IRootFolder $root,
-		IConfig $config,
-		IL10N $l10n,
-		?string $userId
+		private IRootFolder $root,
+		private IConfig $config,
+		private IL10N $l10n,
+		private ?string $userId
 	) {
-		$this->root = $root;
-		$this->config = $config;
-		$this->l10n = $l10n;
 		$this->userId = $userId;
 	}
 

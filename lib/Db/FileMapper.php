@@ -13,8 +13,6 @@ use OCP\IL10N;
  * @package OCA\Libresign\DB
  */
 class FileMapper extends QBMapper {
-	/** @var IL10N */
-	private $l;
 	/** @var File[] */
 	private $file;
 
@@ -23,9 +21,8 @@ class FileMapper extends QBMapper {
 	 */
 	public function __construct(
 		IDBConnection $db,
-		IL10N $l
+		private IL10N $l
 	) {
-		$this->l = $l;
 		parent::__construct($db, 'libresign_file');
 	}
 

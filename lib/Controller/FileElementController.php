@@ -13,27 +13,14 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class FileElementController extends Controller {
-	/** @var FileElementService */
-	private $fileElementService;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var LoggerInterface */
-	private $logger;
-
 	public function __construct(
 		IRequest $request,
-		FileElementService $fileElementService,
-		IUserSession $userSession,
-		ValidateHelper $validateHelper,
-		LoggerInterface $logger
+		private FileElementService $fileElementService,
+		private IUserSession $userSession,
+		private ValidateHelper $validateHelper,
+		private LoggerInterface $logger
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->fileElementService = $fileElementService;
-		$this->userSession = $userSession;
-		$this->validateHelper = $validateHelper;
-		$this->logger = $logger;
 	}
 
 	/**

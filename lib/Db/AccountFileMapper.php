@@ -16,29 +16,17 @@ use OCP\IURLGenerator;
  * @package OCA\Libresign\DB
  */
 class AccountFileMapper extends QBMapper {
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
 	/**
 	 * @param IDBConnection $db
 	 */
 	public function __construct(
 		IDBConnection $db,
-		IURLGenerator $urlGenerator,
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
-		FileTypeMapper $fileTypeMapper
+		private IURLGenerator $urlGenerator,
+		private FileMapper $fileMapper,
+		private FileUserMapper $fileUserMapper,
+		private FileTypeMapper $fileTypeMapper
 	) {
 		parent::__construct($db, 'libresign_account_file');
-		$this->urlGenerator = $urlGenerator;
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
 	}
 
 	public function getByUserAndType(string $userId, string $type): AccountFile {

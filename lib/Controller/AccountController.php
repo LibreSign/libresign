@@ -21,51 +21,20 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class AccountController extends ApiController {
-	/** @var IL10N */
-	private $l10n;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var AccountService */
-	private $accountService;
-	/** @var AccountFileService */
-	private $accountFileService;
-	/** @var pkcs12Handler */
-	private $pkcs12Handler;
-	/** @var Chain */
-	private $loginChain;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var ValidateHelper */
-	private $validateHelper;
-
 	public function __construct(
 		IRequest $request,
-		IL10N $l10n,
-		IAccountManager $accountManager,
-		AccountService $accountService,
-		AccountFileService $accountFileService,
-		Pkcs12Handler $pkcs12Handler,
-		Chain $loginChain,
-		IURLGenerator $urlGenerator,
-		LoggerInterface $logger,
-		IUserSession $userSession,
-		ValidateHelper $validateHelper
+		private IL10N $l10n,
+		private IAccountManager $accountManager,
+		private AccountService $accountService,
+		private AccountFileService $accountFileService,
+		private Pkcs12Handler $pkcs12Handler,
+		private Chain $loginChain,
+		private IURLGenerator $urlGenerator,
+		private LoggerInterface $logger,
+		private IUserSession $userSession,
+		private ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->l10n = $l10n;
-		$this->accountManager = $accountManager;
-		$this->accountService = $accountService;
-		$this->accountFileService = $accountFileService;
-		$this->pkcs12Handler = $pkcs12Handler;
-		$this->loginChain = $loginChain;
-		$this->urlGenerator = $urlGenerator;
-		$this->logger = $logger;
-		$this->userSession = $userSession;
-		$this->validateHelper = $validateHelper;
 	}
 
 	/**

@@ -19,26 +19,14 @@ use OCP\IUserSession;
 use OCP\Util;
 
 class PageController extends Controller {
-	/** @var IUserSession */
-	protected $userSession;
-	/** @var IInitialState */
-	private $initialState;
-	/** @var AccountService */
-	private $accountService;
-	/** @var IURLGenerator */
-	protected $url;
 	public function __construct(
 		IRequest $request,
-		IUserSession $userSession,
-		IInitialState $initialState,
-		AccountService $accountService,
-		IURLGenerator $url
+		private IUserSession $userSession,
+		private IInitialState $initialState,
+		private AccountService $accountService,
+		private IURLGenerator $url
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->initialState = $initialState;
-		$this->userSession = $userSession;
-		$this->accountService = $accountService;
-		$this->url = $url;
 	}
 
 	/**
