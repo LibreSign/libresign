@@ -36,7 +36,7 @@
 			<NcActionCheckbox
 	  		:checked.sync="requiredTelegram"
 	  		>
- 				{{ t('libresign', 'add this method required')}}
+ 				{{ t('libresign', 'Make this method required')}}
 	  	</NcActionCheckbox>
 		</div>	
 
