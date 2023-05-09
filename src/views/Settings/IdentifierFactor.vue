@@ -10,7 +10,7 @@
 			<NcActionCheckbox
 	  		:checked.sync="allowedInviteUser"
 	  		>
- 				{{ t('libresign', 'Create account when email not has')}}
+ 				{{ t('libresign', 'Allow account creation for new users')}}
 	  	</NcActionCheckbox>
 		
 			<p>{{ t('libresign', 'Allow send invite when user no has registered account') }}</p>
