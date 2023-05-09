@@ -3,8 +3,8 @@
 		<div class="container-image">
 				<img :src="image" draggable="false">
 		</div>
-		<h1 class="title">Wellcomen to Libresign</h1>
-		<p>The admin not completed config of Libresign, please await</p>
+		<h1 class="title">Welcome to Libresign</h1>
+		<p>The admin hasn't set up LibreSign yet, please wait.</p>
 	</div>
 </template>
 
