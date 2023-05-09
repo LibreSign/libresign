@@ -89,7 +89,7 @@
 			<NcActionCheckbox
 	  		:checked.sync="requiredSignal"
 	  		>
- 			{{ t('libresign', 'add this method required')}}
+ 			{{ t('libresign', 'Make this method required')}}
 	  	</NcActionCheckbox>
 		</div>
 		<div class="container-checkbox">	
