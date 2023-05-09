@@ -13,7 +13,7 @@
  				{{ t('libresign', 'Allow account creation for new users')}}
 	  	</NcActionCheckbox>
 		
-			<p>{{ t('libresign', 'Allow send invite when user no has registered account') }}</p>
+			<p>{{ t('libresign', 'Allows sending registration email when the user does not have an account.') }}</p>
 		</div>
 		
 		<div class="container-select">
