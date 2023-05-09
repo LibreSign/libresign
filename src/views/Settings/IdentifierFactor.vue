@@ -67,7 +67,7 @@
 			<NcActionCheckbox
 	  		:checked.sync="requiredSMS"
 	  		>
- 				{{ t('libresign', 'add this method required')}}
+ 				{{ t('libresign', 'Make this method required')}}
 	  	</NcActionCheckbox>
 		</div>
 
