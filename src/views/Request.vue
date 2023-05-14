@@ -8,8 +8,8 @@
 			<div class="content-request">
 				<File v-show="!isEmptyFile"
 					:file="file"
-					status=0
-					status_text="none"
+					status="0"
+					status-text="none"
 					@sidebar="setSidebarStatus(true)" />
 				<button class="icon icon-folder" @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
@@ -46,9 +46,9 @@
 	</div>
 </template>
 <script>
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'

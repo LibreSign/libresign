@@ -29,7 +29,7 @@
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'

@@ -1,5 +1,5 @@
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { Cropper } from 'vue-advanced-cropper'
 import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'

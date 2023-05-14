@@ -1,3 +1,5 @@
+<!-- eslint-disable vue/no-v-html -->
+
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<table class="grid">
@@ -9,14 +11,12 @@
 					<th>{{ t('libresign', 'Advice') }}</th>
 				</tr>
 				<tr v-for="(row, index) in items" :key="index">
-					<td
-						:class=row.status
-						>
-						{{row.status}}
+					<td :class="row.status">
+						{{ row.status }}
 					</td>
-					<td v-html=row.message></td>
-					<td>{{row.resource}}</td>
-					<td>{{row.tip}}</td>
+					<td v-html="row.message" />
+					<td>{{ row.resource }}</td>
+					<td>{{ row.tip }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -24,7 +24,7 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -40,7 +40,7 @@ export default {
 	}),
 	mounted() {
 		this.checkSetup()
-		this.$root.$on('configCheck', data => {
+		this.$root.$on('config-check', data => {
 			this.checkSetup()
 		})
 	},
@@ -50,7 +50,7 @@ export default {
 				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check')
 			)
 			this.items = response.data
-			this.$root.$emit('afterConfigCheck', response.data);
+			this.$root.$emit('after-config-check', response.data)
 		},
 	},
 }

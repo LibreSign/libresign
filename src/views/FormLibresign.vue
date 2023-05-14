@@ -49,7 +49,7 @@
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'FormLibresign',

@@ -31,8 +31,8 @@
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<NcAppNavigationItem :to="{name: 'requestFiles'}"
-					v-if="settings.certificateOk"
+				<NcAppNavigationItem v-if="settings.certificateOk"
+					:to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
@@ -73,11 +73,11 @@
 
 <script>
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation'
-import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
-import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings'
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
+import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
+import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
+import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { loadState } from '@nextcloud/initial-state'

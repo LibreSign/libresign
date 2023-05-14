@@ -1,5 +1,5 @@
 <script>
-import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble'
+import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
 import { size } from 'lodash-es'
 
 export default {
