@@ -1,4 +1,5 @@
 import mockAxios from '../__test__/__mocks__/axios.js'
+import { generateOcsUrl } from '@nextcloud/router'
 import { deleteElement, getElement, loadSignatures, newSignature, updateElement } from './SignaturesService.js'
 
 describe('SignaturesService', () => {

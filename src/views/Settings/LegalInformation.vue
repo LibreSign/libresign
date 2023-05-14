@@ -1,7 +1,7 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<div class="legal-information-content">
-			<Textarea v-model="legalInformation"
+			<Lstextarea v-model="legalInformation"
 				:placeholder="t('libresign', 'Legal Information')"
 				@input="saveLegalInformation" />
 		</div>
@@ -9,16 +9,16 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
-import Textarea from '../../Components/Textarea/Textarea.vue'
+import Lstextarea from '../../Components/Textarea/Lstextarea.vue'
 
 export default {
 	name: 'LegalInformation',
 	components: {
 		NcSettingsSection,
-		Textarea,
+		Lstextarea,
 	},
 	data() {
 		return {

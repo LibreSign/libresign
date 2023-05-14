@@ -40,7 +40,7 @@ if (!window.OCA.Libresign) {
 }
 
 const isEnabled = function(fileInfo) {
-	if (fileInfo && fileInfo.isDirectory() || !loadState('libresign', 'certificate_ok')) {
+	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
 		return false
 	}
 

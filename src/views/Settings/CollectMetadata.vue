@@ -1,7 +1,6 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
-		<NcCheckboxRadioSwitch
-			type="switch"
+		<NcCheckboxRadioSwitch type="switch"
 			:checked.sync="collectMetadataEnabled"
 			@update:checked="saveCollectMetadata()">
 			{{ t('libresign', 'Collect signers\' metadata when signing a document') }}
@@ -10,8 +9,8 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -34,7 +33,7 @@ export default {
 	methods: {
 		async getData() {
 			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/collect_metadata', {})
-			this.collectMetadataEnabled = responseCollectMetadata.data.ocs.data.data ? true : false
+			this.collectMetadataEnabled = !!responseCollectMetadata.data.ocs.data.data
 		},
 		saveCollectMetadata() {
 			OCP.AppConfig.setValue('libresign', 'collect_metadata', this.collectMetadataEnabled ? 1 : 0)
