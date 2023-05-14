@@ -22,18 +22,18 @@
 -->
 
 <template>
-	<NcSettingsSection :title="title"
+	<NcSettingsSection v-if="cfsslConfigureOk || cfsslBinariesOk"
+		:title="title"
 		:description="description"
-		:doc-url="docUrl"
-		v-if="cfsslConfigureOk || cfsslBinariesOk">
-		<div id="tableRootCertificate" class="form-libresign" v-if="cfsslConfigureOk">
+		:doc-url="docUrl">
+		<div v-if="cfsslConfigureOk" id="tableRootCertificate" class="form-libresign">
 			<table class="grid">
 				<tbody>
 					<tr>
 						<td>{{ t('libresign', 'Name (CN)') }}</td>
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
-					<tr class="customNames" v-for="(customName) in certificate.rootCert.names" :key="customName.id">
+					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
 						<td>{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})</td>
 						<td>{{ customName.value }}</td>
 					</tr>
@@ -47,25 +47,22 @@
 					</tr>
 				</tbody>
 			</table>
-			<NcButton
-				@click="showModal" v-if="cfsslBinariesOk">
+			<NcButton v-if="cfsslBinariesOk"
+				@click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
-			<NcModal
-				v-if="modal"
-				@close="closeModal"
-				title="Title inside modal">
+			<NcModal v-if="modal"
+				title="Title inside modal"
+				@close="closeModal">
 				<div class="modal__content">
 					<h2>{{ t('libresign', 'Confirm') }}</h2>
-					{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?')}}
+					{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
 					<div class="grid">
-						<NcButton
-							type="error"
+						<NcButton type="error"
 							@click="clearAndShowForm">
 							{{ t('libresign', 'Yes') }}
 						</NcButton>
-						<NcButton
-							type="primary"
+						<NcButton type="primary"
 							@click="closeModal">
 							{{ t('libresign', 'No') }}
 						</NcButton>
@@ -87,31 +84,28 @@
 			</div>
 			<div class="form-group">
 				<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
-				<NcMultiselect
-					id=optionalAttribute
-					:options=customNamesOptions
+				<NcMultiselect id="optionalAttribute"
+					:options="customNamesOptions"
 					track-by="id"
 					label="label"
 					:placeholder="t('libresign', 'Select a custom name')"
-					@change="onOptionalAttributeSelect"
-					/>
+					@change="onOptionalAttributeSelect" />
 			</div>
-			<div class="customNames" v-for="(customName, key) in certificate.rootCert.names" :key="customName.id">
+			<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
 				<label :for="customName.id" class="form-heading--required">
 					{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
 				</label>
 				<div class="item">
-					<NcTextField :id="customName.id"
+					<NcTextField v-if="customName"
+						:id="customName.id"
 						:value.sync="customName.value"
 						:success="typeof customName.error === 'boolean' && !customName.error"
 						:error="customName.error"
 						:maxlength="customName.maxlength"
 						:helper-text="customName.helperText"
-						@update:value="validate(customName.id)"
-						v-if="customName"
-						:disabled="formDisabled" />
-					<NcButton
-						:aria-label="t('settings', 'Remove custom name entry from root certificate')"
+						:disabled="formDisabled"
+						@update:value="validate(customName.id)" />
+					<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
 						@click="removeOptionalAttribute(key)">
 						<template #icon>
 							<Delete :size="20" />
@@ -120,14 +114,13 @@
 				</div>
 			</div>
 			<div>
-				<NcCheckboxRadioSwitch
+				<NcCheckboxRadioSwitch v-if="!customCfsslData || !formDisabled"
 					type="switch"
-					v-if="!customCfsslData || !formDisabled"
 					:checked.sync="customCfsslData">
 					{{ t('libresign', 'Define custom values to use CFSSL') }}
 				</NcCheckboxRadioSwitch>
 			</div>
-			<div class="form-group" v-if="customCfsslData">
+			<div v-if="customCfsslData" class="form-group">
 				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
 				<NcTextField id="cfsslUri"
 					:value.sync="certificate.cfsslUri"
@@ -135,7 +128,7 @@
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<div class="form-group" v-if="customCfsslData">
+			<div v-if="customCfsslData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
 				<NcTextField id="configPath"
 					:value.sync="certificate.configPath"
@@ -153,12 +146,12 @@
 </template>
 
 <script>
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
-import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -166,7 +159,7 @@ import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 
 export default {
-	name: 'AdminFormLibresign',
+	name: 'RootCertificate',
 	components: {
 		NcSettingsSection,
 		NcMultiselect,
@@ -236,8 +229,8 @@ export default {
 	},
 	computed: {
 		savePossible() {
-			var emptyNames = Object.keys(this.certificate.rootCert.names).filter(key => {
-				var item = this.certificate.rootCert.names[key]
+			const emptyNames = Object.keys(this.certificate.rootCert.names).filter(key => {
+				const item = this.certificate.rootCert.names[key]
 				return item.value === ''
 			})
 			return (
@@ -249,16 +242,16 @@ export default {
 	async mounted() {
 		this.loading = false
 		this.loadRootCertificate()
-		this.$root.$on('afterConfigCheck', data => {
-			this.cfsslBinariesOk = data.filter((o) => o.resource == 'cfssl' && o.status == 'error').length == 0
-			this.cfsslConfigureOk = data.filter((o) => o.resource == 'cfssl-configure' && o.status == 'error').length == 0
+		this.$root.$on('after-config-check', data => {
+			this.cfsslBinariesOk = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
+			this.cfsslConfigureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
 		})
 	},
 
 	methods: {
 		validate(id) {
-			var dataset = this.rootCertDataset[id];
-			var item = this.certificate.rootCert.names[id]
+			const dataset = this.rootCertDataset[id]
+			const item = this.certificate.rootCert.names[id]
 			if (Object.hasOwn(dataset, 'min')) {
 				if (item.value.length < dataset.min) {
 					item.helperText = Object.hasOwn(dataset, 'minHelper') ? dataset.minHelper : ''
@@ -266,7 +259,7 @@ export default {
 				} else {
 					item.helperText = Object.hasOwn(this.rootCertDataset[id], 'defaultHelper')
 						? this.rootCertDataset[id].defaultHelper
-						: '',
+						: ''
 					item.error = false
 				}
 			}
@@ -279,19 +272,19 @@ export default {
 				return
 			}
 			this.$set(this.certificate.rootCert.names, selected.id, {
-				'id': selected.id,
-				'value': '',
-				'maxlength': Object.hasOwn(this.rootCertDataset[selected.id], 'max')
+				id: selected.id,
+				value: '',
+				maxlength: Object.hasOwn(this.rootCertDataset[selected.id], 'max')
 					? this.rootCertDataset[selected.id].max
 					: '',
-				'helperText': Object.hasOwn(this.rootCertDataset[selected.id], 'defaultHelper')
+				helperText: Object.hasOwn(this.rootCertDataset[selected.id], 'defaultHelper')
 					? this.rootCertDataset[selected.id].defaultHelper
 					: '',
 			})
-			for( var i = 0; i < this.customNamesOptions.length; i++) {
+			for (let i = 0; i < this.customNamesOptions.length; i++) {
 				if (this.customNamesOptions[i].id === selected.id) {
 					this.customNamesOptions.splice(i, 1)
-					break;
+					break
 				}
 			}
 		},
@@ -308,7 +301,7 @@ export default {
 		clearAndShowForm() {
 			this.customNamesOptions = []
 			Object.keys(this.rootCertDataset).forEach(key => {
-				var item = this.rootCertDataset[key]
+				const item = this.rootCertDataset[key]
 				this.customNamesOptions.push(item)
 			})
 			this.certificate.rootCert.commonName = ''
@@ -336,7 +329,7 @@ export default {
 				}
 				this.certificate = response.data.data
 				this.afterCertificateGenerated()
-				this.$root.$emit('configCheck');
+				this.$root.$emit('config-check')
 				return
 			} catch (e) {
 				console.error(e)
@@ -351,7 +344,7 @@ export default {
 			this.formDisabled = false
 		},
 		getDataToSave() {
-			var data = {};
+			const data = {}
 			Object.keys(this.certificate).forEach(rootProperty => {
 				if (!Object.hasOwn(data, rootProperty)) {
 					data[rootProperty] = {}
@@ -360,11 +353,11 @@ export default {
 					Object.keys(this.certificate[rootProperty]).forEach(level2 => {
 						if (level2 === 'names') {
 							if (!Object.hasOwn(data[rootProperty], 'names')) {
-								data[rootProperty]['names'] = {}
+								data[rootProperty].names = {}
 							}
-							Object.keys(this.certificate[rootProperty]['names']).forEach(name => {
-								data[rootProperty]['names'][name] = {}
-								data[rootProperty]['names'][name]['value'] = this.certificate[rootProperty]['names'][name]['value']
+							Object.keys(this.certificate[rootProperty].names).forEach(name => {
+								data[rootProperty].names[name] = {}
+								data[rootProperty].names[name].value = this.certificate[rootProperty].names[name].value
 							})
 						} else {
 							data[rootProperty][level2] = this.certificate[rootProperty][level2]
@@ -393,7 +386,7 @@ export default {
 					this.$set(this.certificate.rootCert, 'commonName', '')
 				}
 				Object.keys(this.rootCertDataset).forEach(key => {
-					var item = this.rootCertDataset[key]
+					const item = this.rootCertDataset[key]
 					if (!Object.hasOwn(this.certificate.rootCert.names, key)) {
 						this.customNamesOptions.push(item)
 					} else {
@@ -418,7 +411,7 @@ export default {
 		afterCertificateGenerated() {
 			this.submitLabel = t('libresign', 'Generated certificate!')
 			this.description = ''
-			this.certificate.generated = true;
+			this.certificate.generated = true
 		},
 	},
 }

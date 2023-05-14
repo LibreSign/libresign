@@ -1,9 +1,9 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import { getURL } from '../../helpers/path.js'
+import { generateOcsUrl } from '@nextcloud/router'
 
 /**
- * @param   {string}  type
+ * @param   {string}  type Type of signature
  * @param   {string}  base64 image base64
  */
 const buildSignaturePayload = (type, base64) => {
@@ -22,18 +22,18 @@ const buildSignaturePayload = (type, base64) => {
 /**
  * build siganture service
  *
- * @param {import('@nextcloud/axios').default} http
+ * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => {
 	return ({
 		async loadSignatures() {
-			const { data } = await http.get(getURL('account/signature/elements'))
+			const { data } = await http.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
 
 			return data
 		},
 
 		/**
-		 * @param   {string}  type
+		 * @param   {string}  type Type of signature
 		 * @param   {string}  base64 image base64
 		 *
 		 * @return  {*}
@@ -43,7 +43,7 @@ const buildService = (http) => {
 				elements: [buildSignaturePayload(type, base64)],
 			}
 
-			const { data } = await http.post(getURL('account/signature/elements'), body)
+			const { data } = await http.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), body)
 
 			return data
 		},
@@ -54,12 +54,12 @@ const buildService = (http) => {
 				...buildSignaturePayload(type, base64),
 			}
 
-			const { data } = await http.patch(getURL(`account/signature/elements/${id}`), body)
+			const { data } = await http.patch(generateOcsUrl(`/apps/libresign/api/v1/account/signature/elements/${id}`), body)
 
 			return data
 		},
 		async loadMe() {
-			const { data } = await http.get(getURL('account/me'))
+			const { data } = await http.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 
 			return data
 		},
