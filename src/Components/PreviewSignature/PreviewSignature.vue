@@ -1,7 +1,7 @@
 <template>
-    <div class="modal-draw">
-        <img :src="src">
-    </div>
+	<div class="modal-draw">
+		<img :src="src">
+	</div>
 </template>
 
 <script>
@@ -10,14 +10,14 @@ import { SignatureImageDimensions } from '../Draw/options.js'
 
 export default {
 	name: 'PreviewSignature',
+	components: {
+	},
 	props: {
 		src: {
 			type: String,
-			default: () => "",
+			default: () => '',
 			required: true,
-		}
-	},
-	components: {
+		},
 	},
 
 	data: () => ({

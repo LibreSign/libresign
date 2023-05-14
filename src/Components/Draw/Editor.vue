@@ -33,7 +33,7 @@
 		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
-				<PreviewSignature :src="imageData" />				
+				<PreviewSignature :src="imageData" />
 				<div class="actions-modal">
 					<button class="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
@@ -48,8 +48,8 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
-import PreviewSignature from '../PreviewSignature'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 import { SignatureImageDimensions } from './options.js'
 
 export default {
@@ -115,8 +115,8 @@ export default {
 		getMousePositionOnCanvas(e) {
 			const clientX = e.clientX || e.touches[0].clientX
 			const clientY = e.clientY || e.touches[0].clientY
-			const offsetLeft = e.target.getBoundingClientRect().left;
-			const offsetTop = e.target.getBoundingClientRect().top;
+			const offsetLeft = e.target.getBoundingClientRect().left
+			const offsetTop = e.target.getBoundingClientRect().top
 			const canvasX = clientX - offsetLeft
 			const canvasY = clientY - offsetTop
 			return { x: canvasX, y: canvasY }

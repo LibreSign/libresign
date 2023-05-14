@@ -8,7 +8,7 @@ import { isEmpty } from 'lodash-es'
 /**
  * build siganture service
  *
- * @param {import('@nextcloud/axios').default} http
+ * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => ({
 	/**

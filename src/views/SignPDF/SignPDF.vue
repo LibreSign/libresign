@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import isMobile from '@nextcloud/vue/dist/Mixins/isMobile'
+import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { defaultsDeep, set } from 'lodash-es'
 import { loadState } from '@nextcloud/initial-state'

@@ -28,8 +28,7 @@
 			:name="t('libresign', 'LibreSign')">
 			<div v-show="showButtons" class="lb-ls-buttons">
 				<NcEmptyContent v-if="!hasSign && !canRequestSign && !haveRequest && !showValidation"
-					:title="t('libresign', 'Nothing to do')">
-				</NcEmptyContent>
+					:title="t('libresign', 'Nothing to do')" />
 				<button v-if="hasSign" class="primary" @click="gotoSign">
 					{{ t('libresign', 'Sign') }}
 				</button>
@@ -120,14 +119,13 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
-import { getAPPURL } from '../../helpers/path.js'
 import { showResponseError } from '../../helpers/errors.js'
 import store from '../../store/index.js'
 import Request from '../../Components/Request/index.js'
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 
 export default {
@@ -298,7 +296,7 @@ export default {
 		gotoSign(e) {
 			// console.log({ x: this })
 			e.preventDefault()
-			const href = getAPPURL(`/p/sign/${this.settings.signerFileUuid}`)
+			const href = generateUrl(`/apps/libresign/p/sign/${this.settings.signerFileUuid}`)
 
 			window.location.href = href
 		},
@@ -382,7 +380,7 @@ export default {
 		},
 
 		async createRegister(users, fileInfo) {
-			let needElements = false;
+			let needElements = false
 			if (this.settings.canPreviewPageAsImage) {
 				needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
 			}
@@ -428,7 +426,7 @@ export default {
 		},
 
 		gotoDetails(uuid) {
-			const href = getAPPURL(`/f/sign/${uuid}`)
+			const href = generateUrl(`/apps/libresign/f/sign/${uuid}`)
 
 			window.location.href = href
 		},

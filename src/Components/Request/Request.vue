@@ -33,8 +33,9 @@
 </template>
 
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import ListItem from '../ListItem/index.js'
+// eslint-disable-next-line n/no-missing-import
 import { required, email } from 'vuelidate/lib/validators'
 import { validateEmail } from '../../utils/validators.js'
 

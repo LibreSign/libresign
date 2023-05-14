@@ -1,7 +1,7 @@
 <script>
 import Draw from '../../../Components/Draw/index.js'
-import PreviewSignature from '../../../Components/PreviewSignature'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { startsWith } from 'lodash-es'
 
 export default {
