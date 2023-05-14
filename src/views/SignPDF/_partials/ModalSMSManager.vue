@@ -1,10 +1,9 @@
 <script>
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { isEmpty, castArray } from 'lodash-es'
-import Content from '../../../Components/Modals/ModalContent.vue'
 import { onError } from '../../../helpers/errors.js'
 import { settingsService } from '../../../domains/settings/index.js'
 import { service as signService } from '../../../domains/sign/index.js'
@@ -17,7 +16,6 @@ const sanitizeNumber = val => {
 export default {
 	name: 'ModalSMSManager',
 	components: {
-		Content,
 		NcModal,
 	},
 	props: {

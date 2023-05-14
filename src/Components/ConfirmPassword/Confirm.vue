@@ -6,10 +6,8 @@
 			<form @submit="e=> e.preventDefault()">
 				<span v-if="!!errorMessage">{{ errorMessage }}</span>
 				<label>{{ t('libresign','Password') }}</label>
-				<Input v-model="password"
-					:has-error="!!errorMessage"
-					class="input-password"
-					type="password" />
+				<NcPasswordField :value.sync="password"
+					:error="!!errorMessage" />
 				<button :class=" hasLoading ? 'btn-load primary loading' : 'primary'" @click="confirmPassword">
 					{{ t('libresign', 'Confirm') }}
 				</button>
@@ -19,15 +17,15 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
-import Input from '../Input/Input.vue'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'Confirm',
 	components: {
 		NcModal,
-		Input,
+		NcPasswordField,
 	},
 	data() {
 		return {
@@ -95,9 +93,6 @@ export default {
 
 			button{
 				width: 80%;
-			}
-			.input-password{
-				margin-bottom: 10px;
 			}
 		}
 	}

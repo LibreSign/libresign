@@ -7,7 +7,7 @@ import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
-import PreviewSignature from '../../../Components/PreviewSignature'
+import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
