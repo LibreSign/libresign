@@ -10,7 +10,7 @@
 							<p>{{ user.displayName }}</p>
 						</div>
 					</div>
-					<div class="user-password" v-if="getCertificateOk">
+					<div v-if="getCertificateOk" class="user-password">
 						<h3>{{ t('libresign', 'Password & Security') }}</h3>
 						<div class="user-display-password icon-password">
 							<button v-if="!getHasPfx" @click="handleModal(true)">
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapGetters } from 'vuex'

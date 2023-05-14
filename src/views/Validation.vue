@@ -9,9 +9,8 @@
 					<h1>{{ title }}</h1>
 					<h3>{{ legend }}</h3>
 					<input v-model="myUuid" type="text">
-					<NcButton
-						type="primary"
-						@click.prevent="validate(myUuid)" >
+					<NcButton type="primary"
+						@click.prevent="validate(myUuid)">
 						<template #icon>
 							<NcLoadingIcon v-if="hasLoading" :size="20" />
 						</template>
@@ -34,9 +33,8 @@
 									{{ legalInformation }}
 								</span>
 
-								<NcButton
-									type="primary"
-									@click="viewDocument(document.file)" >
+								<NcButton type="primary"
+									@click="viewDocument(document.file)">
 									<template #icon>
 										<NcLoadingIcon v-if="hasLoading" :size="20" />
 									</template>
@@ -63,9 +61,8 @@
 							</div>
 						</div>
 					</div>
-					<NcButton
-						type="primary"
-						@click.prevent="changeInfo" >
+					<NcButton type="primary"
+						@click.prevent="changeInfo">
 						{{ t('libresign', 'Return') }}
 					</NcButton>
 				</div>
@@ -77,8 +74,8 @@
 <script>
 import axios from '@nextcloud/axios'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
@@ -203,5 +200,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/styles/validation.scss';
+@import '../assets/styles/validation';
 </style>

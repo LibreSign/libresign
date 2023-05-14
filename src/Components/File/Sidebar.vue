@@ -8,7 +8,7 @@
 		:header="false"
 		name="sidebar"
 		@update:active="updateActive"
-		@close="closeSidebar">
+		@close="closesidebar">
 		<div class="actions">
 			<button class="secondary" @click="validateFile">
 				{{ t('libresign', 'Validate File') }}
@@ -26,9 +26,10 @@
 <script>
 import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import SignaturesTab from './SignaturesTab.vue'
+// eslint-disable-next-line n/no-missing-import
 import format from 'date-fns/format'
 
 export default {
@@ -84,8 +85,8 @@ export default {
 	},
 
 	methods: {
-		closeSidebar() {
-			this.$emit('closeSidebar', true)
+		closesidebar() {
+			this.$emit('closesidebar', true)
 		},
 		validateFile() {
 			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })

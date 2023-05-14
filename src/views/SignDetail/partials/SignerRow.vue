@@ -1,6 +1,6 @@
 <script>
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import { fromUnixTime } from 'date-fns'
 
 export default {

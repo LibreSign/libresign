@@ -3,7 +3,7 @@ import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import axios from '@nextcloud/axios'
 import { deburr } from 'lodash-es'
-import { getAPIURL } from '../../helpers/path'
+import { generateOcsUrl } from '@nextcloud/router'
 
 // from https://gist.github.com/codeguy/6684588
 const slugfy = val =>
@@ -19,15 +19,9 @@ const slugfy = val =>
  * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => ({
-	/**
-	 * @param root0
-	 * @param root0.file
-	 * @param root0.name
-	 * @return  {Promise<{ id: number, fileId: number, message: string, name: string, type: string, etag: string, path: string }>}
-	 */
 	async uploadFile({ file, name }) {
 		await confirmPassword()
-		const url = getAPIURL('file')
+		const url = generateOcsUrl('/apps/libresign/api/v1/file')
 
 		const settings = {
 			folderName: `requests/${Date.now().toString(16)}-${slugfy(name)}`,

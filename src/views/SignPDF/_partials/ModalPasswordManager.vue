@@ -20,8 +20,8 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
-import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import ModalContent from '../../../Components/Modals/ModalContent.vue'
 import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
