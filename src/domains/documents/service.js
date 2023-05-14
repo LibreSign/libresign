@@ -1,13 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import axios from '@nextcloud/axios'
-import {
-	getAPIURL,
-} from '../../helpers/path.js'
+import { generateOcsUrl } from '@nextcloud/router'
 
 /**
  * build documents services
  *
- * @param {import('@nextcloud/axios').default} http
+ * @param {import('@nextcloud/axios').default} http axios instance
  */
 const buildService = (http) => ({
 	/**
@@ -16,7 +14,7 @@ const buildService = (http) => ({
 	 * @return  {Promise<unknown>}
 	 */
 	async loadAccountList() {
-		const url = getAPIURL('account/files')
+		const url = generateOcsUrl('/apps/libresign/api/v1/account/files')
 
 		const { data } = await http.get(url)
 
@@ -25,11 +23,11 @@ const buildService = (http) => ({
 	/**
 	 * save account document
 	 *
-	 * @param {*} payload
+	 * @param {*} payload payload
 	 * @return  {Promise<unknown>}
 	 */
 	async addAcountFile(payload) {
-		const url = getAPIURL('account/files')
+		const url = generateOcsUrl('/apps/libresign/api/v1/account/files')
 
 		const { data } = await http.post(url, { files: [payload] })
 
@@ -38,18 +36,18 @@ const buildService = (http) => ({
 	/**
 	 * delete account document
 	 *
-	 * @param {number} id
+	 * @param {number} id id
 	 * @return  {Promise<unknown>}
 	 */
 	async deleteAcountFile(id) {
-		const url = getAPIURL('account/files')
+		const url = generateOcsUrl('/apps/libresign/api/v1/account/files')
 
 		const { data } = await http.delete(url, { data: { nodeId: id } })
 
 		return data
 	},
 	async loadApprovalList(id) {
-		const url = getAPIURL('/account/files/approval/list')
+		const url = generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list')
 
 		const { data } = await http.get(url)
 

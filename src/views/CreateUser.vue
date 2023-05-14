@@ -120,16 +120,18 @@
 </template>
 
 <script>
+// eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
 import { translate as t } from '@nextcloud/l10n'
 import { showError } from '@nextcloud/dialogs'
 import { mapActions, mapGetters } from 'vuex'
 
+// eslint-disable-next-line n/no-missing-import
 import { required, email, minLength } from 'vuelidate/lib/validators'
 
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import Draw from '../Components/Draw/index.js'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -317,5 +319,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/styles/CreateUser.scss';
+@import '../assets/styles/CreateUser';
 </style>

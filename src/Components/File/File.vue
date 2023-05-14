@@ -2,8 +2,8 @@
 	<div class="content-file" @click="openSidebar">
 		<img :src="srcImg">
 		<div class="enDot">
-			<div :class="status_text!== 'none' ? 'dot ' + statusToClass(status) : '' " />
-			<span>{{ status_text !== 'none' ? statusToUppercase(status_text) : '' }}</span>
+			<div :class="statusText!== 'none' ? 'dot ' + statusToClass(status) : '' " />
+			<span>{{ statusText !== 'none' ? statusToUppercase(statusText) : '' }}</span>
 		</div>
 		<h1>{{ file.name }}</h1>
 	</div>
@@ -24,7 +24,7 @@ export default {
 			required: true,
 			default: 0,
 		},
-		status_text: {
+		statusText: {
 			type: String,
 			required: true,
 			default: 'none',
@@ -40,21 +40,21 @@ export default {
 		openSidebar() {
 			this.$emit('sidebar', this.file)
 		},
-		statusToUppercase(status_text) {
-			return status_text[0].toUpperCase() + status_text.substr(1)
+		statusToUppercase(statusText) {
+			return statusText[0].toUpperCase() + statusText.substr(1)
 		},
 		statusToClass(status) {
 			switch (Number(status)) {
-				case 0:
-					return 'no-signers'
-				case 1:
-					return 'signed'
-				case 2:
-					return 'pending'
-				default:
-					return ''
+			case 0:
+				return 'no-signers'
+			case 1:
+				return 'signed'
+			case 2:
+				return 'pending'
+			default:
+				return ''
 			}
-		}
+		},
 	},
 }
 </script>
