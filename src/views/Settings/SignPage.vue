@@ -1,16 +1,14 @@
 <template>
 	<NcSettingsSection :title="title">
 		<p>
-			<NcCheckboxRadioSwitch
-				type="switch"
+			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="addFooter"
 				@update:checked="toogleSetting('add_footer', addFooter)">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
-			<NcCheckboxRadioSwitch
-				type="switch"
+			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="writeQrcodeOnFooter"
 				@update:checked="toogleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
@@ -24,18 +22,18 @@
 				type="text"
 				@input="saveValidationiUrl()"
 				@click="fillValidationUrl()"
-				@keypress.enter="validationUrlEnter()"/>
+				@keypress.enter="validationUrlEnter()">
 		</p>
 	</NcSettingsSection>
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
-	name: 'UrlValidation',
+	name: 'SignPage',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
@@ -65,13 +63,13 @@ export default {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/add_footer', {}
 			)
-			this.addFooter = response.data.ocs.data.data ? true : false
+			this.addFooter = !!response.data.ocs.data.data
 		},
 		async getWriteQrcodeOnFooter() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/write_qrcode_on_footer', {}
 			)
-			this.writeQrcodeOnFooter = response.data.ocs.data.data ? true : false
+			this.writeQrcodeOnFooter = !!response.data.ocs.data.data
 		},
 		async getValidationUrlData() {
 			const response = await axios.get(

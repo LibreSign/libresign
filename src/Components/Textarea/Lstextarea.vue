@@ -1,10 +1,10 @@
 <template>
-	<textarea :value="value" @input="$emit('input', $event.target.value)" />
+	<Lstextarea :value="value" @input="$emit('input', $event.target.value)" />
 </template>
 
 <script>
 export default {
-	name: 'Textarea',
+	name: 'Lstextarea',
 	props: {
 		value: {
 			type: String,

@@ -1,14 +1,12 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<div class="default-user-folder-content">
-			<NcCheckboxRadioSwitch
-				type="switch"
+			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="customUserFolder">
 				{{ t('libresign', 'Customize default user folder') }}
 			</NcCheckboxRadioSwitch>
 			<div v-if="customUserFolder">
-				<NcTextField
-					:placeholder="t('libresign', 'Customize default user folder')"
+				<NcTextField :placeholder="t('libresign', 'Customize default user folder')"
 					:value.sync="value"
 					@update:value="saveDefaultUserFolder" />
 			</div>
@@ -17,9 +15,9 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -44,7 +42,7 @@ export default {
 	methods: {
 		async getData() {
 			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/default_user_folder', {})
-			this.customUserFolder = response.data.ocs.data.data ? true : false
+			this.customUserFolder = !!response.data.ocs.data.data
 			this.value = response.data.ocs.data.data || 'LibreSign'
 		},
 		saveDefaultUserFolder() {

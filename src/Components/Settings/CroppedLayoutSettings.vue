@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem'
+import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
 
 export default {
 	name: 'CroppedLayoutSettings',
