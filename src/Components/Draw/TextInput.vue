@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import '@fontsource/dancing-script'
 import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'

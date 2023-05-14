@@ -36,7 +36,8 @@
 
 <script>
 import FormLibresign from './FormLibresign.vue'
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import { generateOcsUrl } from '@nextcloud/router'
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 

@@ -34,7 +34,7 @@
 			:loading="loading"
 			:views-in-files="true"
 			@update="getAllFiles"
-			@closeSidebar="setSidebarStatus(false)" />
+			@closesidebar="setSidebarStatus(false)" />
 	</div>
 </template>
 
@@ -42,7 +42,7 @@
 import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../../Components/File/index.js'
 import Sidebar from '../../Components/File/Sidebar.vue'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 
 export default {
 	name: 'Timeline',

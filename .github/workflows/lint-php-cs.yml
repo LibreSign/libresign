@@ -1,24 +1,11 @@
-
 # This workflow is provided via the organization template repository
 #
 # https://github.com/nextcloud/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 
-name: Lint
+name: Lint php-cs
 
-on:
-  pull_request:
-    paths:
-      - '.github/workflows/**'
-      - 'appinfo/**'
-      - 'lib/**'
-      - 'templates/**'
-      - 'tests/**'
-      - 'vendor/**'
-      - 'vendor-bin/**'
-      - '.php-cs-fixer.dist.php'
-      - 'composer.json'
-      - 'composer.lock'
+on: pull_request
 
 permissions:
   contents: read
@@ -42,6 +29,7 @@ jobs:
         with:
           php-version: 8.1
           coverage: none
+          ini-file: development
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

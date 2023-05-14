@@ -59,7 +59,7 @@ export default {
 		},
 		enabledFlow() {
 			return loadState('libresign', 'config').settings.identificationDocumentsFlow
-		}
+		},
 	},
 	mounted() {
 		this.loadDocuments()
@@ -172,7 +172,7 @@ export default {
 </script>
 
 <template>
-	<div class="documents" v-if="enabledFlow">
+	<div v-if="enabledFlow" class="documents">
 		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
 
 		<ProgressBar v-if="loading" infinity />

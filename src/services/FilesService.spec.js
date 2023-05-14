@@ -1,5 +1,4 @@
 import { generateOcsUrl } from '@nextcloud/router'
-// eslint-disable-next-line node/no-unpublished-import
 import { uuid } from 'uuidv4'
 import mockAxios from '../__test__/__mocks__/axios.js'
 import { fetchDocuments } from './FilesService.js'
