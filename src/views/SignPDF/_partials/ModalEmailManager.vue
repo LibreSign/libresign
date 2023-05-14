@@ -1,8 +1,7 @@
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { castArray } from 'lodash-es'
-import Content from '../../../Components/Modals/ModalContent.vue'
 import { onError } from '../../../helpers/errors.js'
 import { service as signService } from '../../../domains/sign/index.js'
 
@@ -14,7 +13,6 @@ const sanitizeNumber = val => {
 export default {
 	name: 'ModalEmailManager',
 	components: {
-		Content,
 		NcModal,
 	},
 	props: {

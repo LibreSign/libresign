@@ -34,8 +34,8 @@
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
