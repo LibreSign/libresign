@@ -13,6 +13,11 @@ use OCA\Libresign\Service\AccountService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\CORS;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -37,15 +42,12 @@ class AccountController extends ApiController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @PublicPage
-	 * @UseSession
-	 * @return JSONResponse
-	 */
-	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword) {
+	#[NoAdminRequired]
+	#[CORS]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[UseSession]
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): JSONResponse {
 		try {
 			$data = [
 				'uuid' => $uuid,
@@ -97,10 +99,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signatureGenerate(
 		string $signPassword
 	): JSONResponse {
@@ -136,10 +136,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function addFiles(array $files): JSONResponse {
 		try {
 			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
@@ -173,10 +171,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function deleteFile(int $nodeId): JSONResponse {
 		try {
 			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
@@ -200,14 +196,12 @@ class AccountController extends ApiController {
 	 * Who am I.
 	 *
 	 * Validates API access data and returns the authenticated user's data.
-	 *
-	 * @NoAdminRequired
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @PublicPage
-	 * @return JSONResponse
 	 */
-	public function me() {
+	#[NoAdminRequired]
+	#[CORS]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	public function me(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new JSONResponse(
@@ -231,11 +225,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function createSignatureElement(array $elements): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
@@ -262,11 +253,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getSignatureElements(): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -286,11 +274,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -308,11 +293,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function patchSignatureElement($elementId, string $type = '', array $file = []): JSONResponse {
 		try {
 			$element['elementId'] = $elementId;
@@ -342,11 +324,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function deleteSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -367,10 +346,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function accountFileListToOwner(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$filter['userId'] = $this->userSession->getUser()->getUID();
@@ -386,10 +363,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function accountFileListToApproval(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
@@ -405,10 +380,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function updateSettings(?string $phone = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();

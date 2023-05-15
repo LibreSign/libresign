@@ -7,6 +7,9 @@ use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
@@ -31,10 +34,9 @@ class PageController extends Controller {
 
 	/**
 	 * Render default template
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -52,11 +54,10 @@ class PageController extends Controller {
 
 	/**
 	 * Show signature page
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -77,10 +78,9 @@ class PageController extends Controller {
 
 	/**
 	 * Show signature page
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signAccountFile($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_uuid',
@@ -102,11 +102,11 @@ class PageController extends Controller {
 	/**
 	 * Use UUID of file to get PDF
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
 	 * @return DataResponse|FileDisplayResponse
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function getPdf($uuid) {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
@@ -127,10 +127,10 @@ class PageController extends Controller {
 	/**
 	 * Use UUID of user to get PDF
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
 	 * @return DataResponse|FileDisplayResponse
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getPdfUser($uuid) {
 		$config = $this->accountService->getConfig(
 			'file_user_uuid',
@@ -153,11 +153,10 @@ class PageController extends Controller {
 
 	/**
 	 * Show validation page
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -174,23 +173,20 @@ class PageController extends Controller {
 
 	/**
 	 * Show validation page
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validation', ['uuid' => $this->request->getParam('uuid')]));
 	}
 
 	/**
 	 * Show validation page
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
-	 * @return TemplateResponse
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -207,11 +203,10 @@ class PageController extends Controller {
 
 	/**
 	 * Show validation page for a specific file UUID
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 * @PublicPage
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
