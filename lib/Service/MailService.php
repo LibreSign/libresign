@@ -28,13 +28,9 @@ class MailService {
 	}
 
 	/**
-	 * Undocumented function
-	 *
 	 * @psalm-suppress MixedReturnStatement
-	 * @param int $fileId
-	 * @return File
 	 */
-	private function getFileById($fileId): File {
+	private function getFileById(int $fileId): File {
 		if (!isset($this->files[$fileId])) {
 			$this->files[$fileId] = $this->fileMapper->getById($fileId);
 		}
@@ -43,8 +39,6 @@ class MailService {
 
 	/**
 	 * @psalm-suppress MixedMethodCall
-	 * @param FileUser $data
-	 * @return void
 	 */
 	public function notifySignDataUpdated(FileUser $data, string $email): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
@@ -75,8 +69,6 @@ class MailService {
 
 	/**
 	 * @psalm-suppress MixedMethodCall
-	 * @param FileUser $data
-	 * @return void
 	 */
 	public function notifyUnsignedUser(FileUser $data, string $email): void {
 		$notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', true);
@@ -111,8 +103,6 @@ class MailService {
 
 	/**
 	 * @psalm-suppress MixedMethodCall
-	 * @param FileUser $data
-	 * @return void
 	 */
 	public function notifyCancelSign(FileUser $data): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');

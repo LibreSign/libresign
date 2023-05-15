@@ -12,12 +12,6 @@ use OCP\IDBConnection;
  * @package OCA\Libresign\DB
  */
 class UserElementMapper extends QBMapper {
-	/** @var UserElement[] */
-	private $cache = [];
-
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_user_element');
 	}

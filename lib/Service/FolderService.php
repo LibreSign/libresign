@@ -35,8 +35,6 @@ class FolderService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress InvalidReturnStatement
 	 * @psalm-suppress MixedMethodCall
-	 * @param int $nodeId
-	 * @return Folder
 	 */
 	public function getFolder(int $nodeId = null): Folder {
 		if ($nodeId) {
@@ -55,9 +53,6 @@ class FolderService {
 	 * Finds a folder and creates it if non-existent
 	 *
 	 * @psalm-suppress MixedReturnStatement
-	 *
-	 * @return Folder
-	 *
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
@@ -74,7 +69,6 @@ class FolderService {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @return string
 	 */
 	public function getLibreSignDefaultPath(): string {
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');

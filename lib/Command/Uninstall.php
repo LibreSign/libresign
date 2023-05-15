@@ -4,23 +4,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Command;
 
-use OCA\Libresign\Service\InstallService;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Uninstall extends Base {
-	public function __construct(
-		InstallService $installService,
-		LoggerInterface $logger
-	) {
-		parent::__construct(
-			$installService,
-			$logger
-		);
-	}
-
 	protected function configure(): void {
 		$this
 			->setName('libresign:uninstall')
