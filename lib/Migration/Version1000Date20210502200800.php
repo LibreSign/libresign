@@ -16,9 +16,6 @@ class Version1000Date20210502200800 extends SimpleMigrationStep {
 	protected $connection;
 	private array $rows = [];
 
-	/**
-	 * @param IDBConnection $connection
-	 */
 	public function __construct(IDBConnection $connection) {
 		$this->connection = $connection;
 	}

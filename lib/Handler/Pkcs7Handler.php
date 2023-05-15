@@ -15,8 +15,6 @@ class Pkcs7Handler extends SignEngineHandler {
 	 * @param Node $fileToSign
 	 * @param Node $certificate
 	 * @param string $passphrase
-	 *
-	 * @return File
 	 */
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();

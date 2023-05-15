@@ -46,7 +46,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @Then /^the file to sign contains$/
 	 *
 	 * @param string $name
-	 * @return void
 	 */
 	public function theFileToSignContains(TableNode $table): void {
 		if (!$this->file) {

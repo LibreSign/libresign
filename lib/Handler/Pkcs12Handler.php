@@ -23,8 +23,6 @@ use TCPDI;
 class Pkcs12Handler extends SignEngineHandler {
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
-	/** @var JSignPdfHandler|null */
-	private $JSignPdfHandler;
 	/** @var QrCode */
 	private $qrCode;
 	private const MIN_QRCODE_SIZE = 100;
@@ -69,8 +67,6 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * Get pfx file
 	 *
 	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uid user id
-	 * @return \OCP\Files\File
 	 */
 	public function getPfx($uid): \OCP\Files\File {
 		$this->folderService->setUserId($uid);
@@ -112,9 +108,6 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @param File $file
-	 * @param string $uuid
-	 * @return string
 	 */
 	public function writeFooter(File $file, string $uuid): string {
 		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
@@ -304,7 +297,6 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param string $signPassword Password of signature
 	 * @param string $uid User id
 	 * @param bool $isTempFile
-	 * @return File
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
 		$content = $this->getCertificateHandler()
