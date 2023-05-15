@@ -13,6 +13,8 @@ use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -34,18 +36,14 @@ class SignFileController extends ApiController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, $fileId, null, $elements, $code);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signUsingUuid(string $uuid, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, null, $uuid, $elements, $code);
 	}
@@ -124,18 +122,14 @@ class SignFileController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getCodeUsingFileId(string $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);
 	}
