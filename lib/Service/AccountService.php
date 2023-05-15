@@ -78,7 +78,7 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		foreach ($data['user'] as $identifyMethodName => $value) {
+		foreach ($data['user'] as $value) {
 			foreach ($identifyMethods as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() !== $value) {
 					throw new LibresignException($this->l10n->t('This is not your file'), 1);
@@ -159,9 +159,6 @@ class AccountService {
 
 	/**
 	 * Get fileUser by Uuid
-	 *
-	 * @param string $uuid
-	 * @return FileUser
 	 */
 	public function getFileUserByUuid($uuid): FileUser {
 		if (!$this->fileUser) {
@@ -170,9 +167,6 @@ class AccountService {
 		return $this->fileUser;
 	}
 
-	/**
-	 * @param null|string $signPassword
-	 */
 	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
@@ -285,7 +279,6 @@ class AccountService {
 	 * Get PDF node by UUID
 	 *
 	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uuid
 	 * @throws Throwable
 	 * @return \OCP\Files\File
 	 */
@@ -435,7 +428,7 @@ class AccountService {
 	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
-		foreach ($elements as $key => $element) {
+		foreach ($elements as $element) {
 			$exists = $this->signatureFileExists($element);
 			if (!$exists) {
 				continue;

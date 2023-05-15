@@ -22,7 +22,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
-use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -67,15 +66,12 @@ class SignFileService {
 		private SignMethodService $signMethod,
 		private IdentifyMethodService $identifyMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private IMimeTypeDetector $mimeTypeDetector,
 		private ITempManager $tempManager
 	) {
 	}
 
 	/**
 	 * Can delete sing request
-	 *
-	 * @param array $data
 	 */
 	public function canDeleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
@@ -278,8 +274,6 @@ class SignFileService {
 	 * Get file to sign
 	 *
 	 * @throws LibresignException
-	 * @param FileEntity $libresignFile
-	 * @return \OCP\Files\Node
 	 */
 	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
@@ -368,8 +362,6 @@ class SignFileService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress InvalidReturnStatement
 	 * @psalm-suppress MixedMethodCall
-	 *
-	 * @return File
 	 */
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
 		if ($fileData->getSignedNodeId()) {
@@ -613,8 +605,6 @@ class SignFileService {
 	}
 
 	/**
-	 * @return array
-	 *
 	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
 	 */
 	private function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
