@@ -17,9 +17,6 @@ use OCP\IUser;
 class FileUserMapper extends QBMapper {
 	private $signers = [];
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_file_user');
 	}
@@ -46,8 +43,6 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get file user by UUID
 	 *
-	 * @param string $uuid
-	 * @return FileUser
 	 * @throws DoesNotExistException
 	 */
 	public function getByUuid(string $uuid): FileUser {
@@ -99,10 +94,7 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
-	 * @param int $fileId
-	 *
 	 * @return FileUser|FileUser[]
-	 *
 	 * @psalm-return FileUser|array<int, FileUser>
 	 */
 	public function getByFileId(int $fileId) {
@@ -140,7 +132,6 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by multiple fileId
 	 *
-	 * @param array $fileId
 	 * @return FileUser[]
 	 */
 	public function getByMultipleFileId(array $fileId) {
@@ -157,9 +148,6 @@ class FileUserMapper extends QBMapper {
 
 	/**
 	 * Get all signers by fileId
-	 *
-	 *
-	 * @param int $nodeId
 	 *
 	 * @return FileUser[]
 	 */
@@ -336,9 +324,6 @@ class FileUserMapper extends QBMapper {
 		return $return;
 	}
 
-	/**
-	 * @return Pagination
-	 */
 	private function getFilesAssociatedFilesWithMeStmt(string $userId): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
@@ -393,11 +378,10 @@ class FileUserMapper extends QBMapper {
 	}
 
 	/**
-	 * @param string $userId
+	 * @param IUser $userId
 	 * @param array $files
 	 * @param array<FileUser> $signers
 	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
-	 * @return array
 	 */
 	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods): array {
 		foreach ($files as $key => $file) {
