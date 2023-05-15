@@ -6,6 +6,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -18,10 +20,9 @@ class NotifyController extends Controller {
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signers($fileId, $signers): JSONResponse {
 		try {
 			$this->notifyService->signers($fileId, $signers);
