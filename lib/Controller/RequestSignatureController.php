@@ -30,6 +30,8 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -51,15 +53,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * Request that a file be signed by a group of people
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
 	 * @param array $file
 	 * @param array $users
 	 * @param string $name
 	 * @param string|null $callback
 	 * @return JSONResponse
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[RequireManager]
 	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1) {
 		$user = $this->userSession->getUser();
@@ -96,13 +97,12 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	}
 
 	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 *
 	 * @param string $uuid
 	 * @param array $users
 	 * @return JSONResponse
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[RequireManager]
 	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null) {
 		$user = $this->userSession->getUser();
@@ -142,10 +142,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[RequireManager]
 	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId) {
 		try {
@@ -175,10 +173,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[RequireManager]
 	public function deleteAllRequestSignatureUsingFileId(int $fileId) {
 		try {
