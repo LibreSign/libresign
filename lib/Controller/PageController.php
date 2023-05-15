@@ -34,7 +34,6 @@ class PageController extends Controller {
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 * @return TemplateResponse
 	 */
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
@@ -57,7 +56,6 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
-	 * @return TemplateResponse
 	 */
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
@@ -82,7 +80,6 @@ class PageController extends Controller {
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 * @return TemplateResponse
 	 */
 	public function signAccountFile($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
@@ -160,7 +157,6 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
-	 * @return TemplateResponse
 	 */
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
@@ -182,7 +178,6 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
-	 * @return RedirectResponse
 	 */
 	public function validationFileWithShortUrl(): RedirectResponse {
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validation', ['uuid' => $this->request->getParam('uuid')]));

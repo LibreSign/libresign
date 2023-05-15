@@ -139,7 +139,6 @@ class InstallService {
 	/**
 	 * @param string $key
 	 * @param mixed $value
-	 * @return void
 	 */
 	private function setCache(string $key, $value): void {
 		if ($this->cache instanceof NullCache) {
@@ -160,7 +159,6 @@ class InstallService {
 	}
 
 	/**
-	 * @param string $key
 	 * @return mixed
 	 */
 	private function getCache(string $key) {

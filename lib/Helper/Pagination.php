@@ -25,10 +25,6 @@ class Pagination extends Pagerfanta {
 		return $this;
 	}
 
-	/**
-	 * @param int|null $page
-	 * @param int|null $length
-	 */
 	public function getPagination(?int $page, ?int $length): array {
 		$this->setMaxPerPage($length);
 		$pagination['total'] = $this->count();
