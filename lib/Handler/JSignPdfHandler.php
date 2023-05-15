@@ -5,7 +5,6 @@ namespace OCA\Libresign\Handler;
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
-use OCP\Files\Node;
 use OCP\IConfig;
 
 class JSignPdfHandler extends SignEngineHandler {
@@ -35,7 +34,6 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @return JSignParam
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
@@ -60,10 +58,6 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @param Node $inputFile
-	 * @param Node $certificate
-	 * @param string $password
-	 * @return string
 	 */
 	public function sign(): string {
 		$param = $this->getJSignParam()

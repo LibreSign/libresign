@@ -32,8 +32,6 @@ class FileController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
-	 *
-	 * @return JSONResponse
 	 */
 	public function validateUuid($uuid): JSONResponse {
 		return $this->validate('Uuid', $uuid);
@@ -43,8 +41,6 @@ class FileController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 * @PublicPage
-	 *
-	 * @return JSONResponse
 	 */
 	public function validateFileId($fileId): JSONResponse {
 		return $this->validate('FileId', $fileId);
@@ -127,7 +123,6 @@ class FileController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 * @return JSONResponse
 	 */
 	public function save(string $name, array $file, array $settings = []): JSONResponse {
 		try {

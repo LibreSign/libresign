@@ -15,12 +15,8 @@ class PdfParserService {
 	}
 
 	/**
-	 * @param \OCP\Files\File $node
-	 *
 	 * @return (array[]|int)[]
-	 *
 	 * @throws LibresignException
-	 *
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
 	public function getMetadata(File $node): array {

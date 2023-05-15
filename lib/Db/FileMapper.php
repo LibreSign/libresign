@@ -16,9 +16,6 @@ class FileMapper extends QBMapper {
 	/** @var File[] */
 	private $file;
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(
 		IDBConnection $db,
 		private IL10N $l
@@ -94,7 +91,6 @@ class FileMapper extends QBMapper {
 	}
 
 	/**
-	 * @param string $userId
 	 * @return File[]
 	 */
 	public function getFilesOfAccount(string $userId): array {

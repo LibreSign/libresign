@@ -15,15 +15,11 @@ class FileElementMapper extends QBMapper {
 	/** @var FileElement[][] */
 	private $cache = [];
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_file_element');
 	}
 
 	/**
-	 * @param integer $fileId
 	 * @return FileElement[]
 	 */
 	public function getByFileId(int $fileId): array {
@@ -39,8 +35,6 @@ class FileElementMapper extends QBMapper {
 	}
 
 	/**
-	 * @param integer $fileId
-	 * @param string $userId
 	 * @return FileElement[]
 	 */
 	public function getByFileIdAndUserId(int $fileId, string $userId): array {

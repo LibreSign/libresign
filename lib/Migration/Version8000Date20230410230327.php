@@ -60,6 +60,5 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 		} catch (NotFoundException $e) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
-		return;
 	}
 }

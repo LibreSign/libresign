@@ -16,9 +16,6 @@ use OCP\IURLGenerator;
  * @package OCA\Libresign\DB
  */
 class AccountFileMapper extends QBMapper {
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(
 		IDBConnection $db,
 		private IURLGenerator $urlGenerator,
@@ -94,9 +91,6 @@ class AccountFileMapper extends QBMapper {
 		return $return;
 	}
 
-	/**
-	 * @return Pagination
-	 */
 	private function getUserAccountFile(array $filter = [], bool $count = false): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
@@ -217,7 +211,6 @@ class AccountFileMapper extends QBMapper {
 	/**
 	 * @param array $files
 	 * @param FileUser[] $signers
-	 * @return array
 	 */
 	private function assocFileToFileUserAndFormat(array $files, array $signers): array {
 		foreach ($files as $key => $file) {

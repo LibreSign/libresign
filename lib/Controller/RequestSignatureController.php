@@ -145,10 +145,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @param integer $fileId
-	 * @param integer $fileUserId
-	 * @return JSONResponse
 	 */
 	#[RequireManager]
 	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId) {
@@ -182,9 +178,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @param integer $fileId
-	 * @return JSONResponse
 	 */
 	#[RequireManager]
 	public function deleteAllRequestSignatureUsingFileId(int $fileId) {
