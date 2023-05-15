@@ -11,7 +11,6 @@ class NotifyService {
 	public function __construct(
 		private ValidateHelper $validateHelper,
 		private IUserSession $userSession,
-		private MailService $mailService,
 		private FileUserMapper $fileUserMapper,
 		private IdentifyMethodService $identifyMethodService
 	) {

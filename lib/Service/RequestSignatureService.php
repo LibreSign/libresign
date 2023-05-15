@@ -64,9 +64,6 @@ class RequestSignatureService {
 	) {
 	}
 
-	/**
-	 * @param array $data
-	 */
 	public function save(array $data): array {
 		$file = $this->saveFile($data);
 		$this->saveVisibleElements($data, $file);
@@ -150,17 +147,6 @@ class RequestSignatureService {
 			}
 		}
 		return $return;
-	}
-
-	private function getUserEmail(array $user): string {
-		if (!empty($user['email'])) {
-			return strtolower($user['email']);
-		}
-		if (!empty($user['uid'])) {
-			$user = $this->userManager->get($user['uid']);
-			return $user->getEMailAddress() ?? '';
-		}
-		return '';
 	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
@@ -250,10 +236,6 @@ class RequestSignatureService {
 		}
 	}
 
-	/**
-	 * @param array $data
-	 * @return void
-	 */
 	public function deleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
 			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);

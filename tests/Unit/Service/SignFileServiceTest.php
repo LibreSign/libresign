@@ -11,13 +11,11 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignMethodService;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -45,8 +43,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileUserMapper;
 	/** @var AccountFileMapper|MockObject */
 	private $accountFileMapper;
-	/** @var IUser|MockObject */
-	private $user;
 	/** @var IClientService|MockObject */
 	private $clientService;
 	/** @var IUserManager|MockObject */
@@ -65,8 +61,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $fileElementMapper;
 	/** @var UserElementMapper|MockObject */
 	private $userElementMapper;
-	/** @var FileElementService|MockObject */
-	private $fileElementService;
 	/** @var IEventDispatcher|MockObject */
 	private $eventDispatcher;
 	/** @var IURLGenerator|MockObject */
@@ -77,8 +71,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private $identifyMethod;
 	/** @var IdentifyMethodMapper|MockObject */
 	private $identifyMethodMapper;
-	/** @var IMimeTypeDetector|MockObject */
-	private $mimeTypeDetector;
 	/** @var ITempManager|MockObject */
 	private $tempManager;
 
@@ -91,7 +83,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper = $this->createMock(FileMapper::class);
 		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
-		$this->user = $this->createMock(IUser::class);
 		$this->pkcs7Handler = $this->createMock(Pkcs7Handler::class);
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->clientService = $this->createMock(IClientService::class);
@@ -108,7 +99,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signMethod = $this->createMock(SignMethodService::class);
 		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
-		$this->mimeTypeDetector = $this->createMock(IMimeTypeDetector::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
 
@@ -134,7 +124,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signMethod,
 			$this->identifyMethod,
 			$this->identifyMethodMapper,
-			$this->mimeTypeDetector,
 			$this->tempManager
 		);
 	}

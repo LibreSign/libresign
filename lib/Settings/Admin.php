@@ -12,8 +12,6 @@ class Admin implements ISettings {
 	}
 
 	/**
-	 * @return string
-	 *
 	 * @psalm-return 'libresign'
 	 */
 	public function getSection(): string {
@@ -21,8 +19,6 @@ class Admin implements ISettings {
 	}
 
 	/**
-	 * @return int
-	 *
 	 * @psalm-return 100
 	 */
 	public function getPriority(): int {

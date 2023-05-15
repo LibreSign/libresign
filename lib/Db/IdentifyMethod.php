@@ -80,7 +80,6 @@ class IdentifyMethod extends Entity {
 
 	/**
 	 * @param \DateTime|string $createdAt
-	 * @return void
 	 */
 	public function setIdentifiedAtDate(?string $identifiedAtDate): void {
 		if ($identifiedAtDate && !$identifiedAtDate instanceof \DateTime) {
@@ -92,7 +91,6 @@ class IdentifyMethod extends Entity {
 
 	/**
 	 * @param \DateTime|string $createdAt
-	 * @return void
 	 */
 	public function setLastAttemptDate(?string $lastAttemptDate): void {
 		if ($lastAttemptDate && !$lastAttemptDate instanceof \DateTime) {
