@@ -115,7 +115,6 @@ class CfsslHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @return array
 	 */
 	private function newCert(): array {
 		$json = [
@@ -162,8 +161,6 @@ class CfsslHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @param string $cfsslUri
-	 * @return array
 	 */
 	public function health(?string $cfsslUri = self::CFSSL_URI): array {
 		try {
@@ -254,9 +251,6 @@ class CfsslHandler {
 		return $this->binary;
 	}
 
-	/**
-	 * @return self
-	 */
 	public function setBinary(string $binary): self {
 		if ($binary) {
 			if (!file_exists($binary)) {

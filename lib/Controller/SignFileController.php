@@ -36,13 +36,7 @@ class SignFileController extends ApiController {
 
 	/**
 	 * @NoAdminRequired
-	 *
 	 * @NoCSRFRequired
-	 *
-	 * @param int $fileId
-	 * @param string $password
-	 *
-	 * @return JSONResponse
 	 */
 	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, $fileId, null, $elements, $code);
@@ -51,10 +45,6 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @param string $uuid
-	 * @param string $password
-	 * @return JSONResponse
 	 */
 	public function signUsingUuid(string $uuid, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, null, $uuid, $elements, $code);
@@ -137,10 +127,6 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @param string $uuid
-	 * @param array $users
-	 * @return JSONResponse
 	 */
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
@@ -149,10 +135,6 @@ class SignFileController extends ApiController {
 	/**
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
-	 *
-	 * @param string $uuid
-	 * @param array $users
-	 * @return JSONResponse
 	 */
 	public function getCodeUsingFileId(string $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);

@@ -224,8 +224,6 @@ class FileService {
 	}
 
 	/**
-	 * @return array
-	 *
 	 * @psalm-return list<array{elementId: int, fileUserId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
 	 */
 	private function getVisibleElements(): array {
@@ -318,8 +316,6 @@ class FileService {
 	}
 
 	/**
-	 * @return array
-	 *
 	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array}|array<empty>
 	 */
 	private function getFile(): array {
