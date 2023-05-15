@@ -14,9 +14,6 @@ use OCP\IL10N;
 class FileTypeMapper extends QBMapper {
 	private $types = [];
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(
 		IDBConnection $db,
 		private IL10N $l

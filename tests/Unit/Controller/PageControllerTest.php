@@ -80,7 +80,6 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testGetPdfNotFound() {
-		$file = $this->createMock(\OCP\Files\File::class);
 		$this->accountService
 			->method('getPdfByUuid')
 			->willThrowException($this->createMock(DoesNotExistException::class));

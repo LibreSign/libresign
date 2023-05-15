@@ -11,14 +11,12 @@ use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Http\IOutput;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 
 class AdminController extends Controller {
 	public function __construct(
 		IRequest $request,
-		private IOutput $output,
 		private AdminSignatureService $adminSignatureService,
 		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService
