@@ -79,7 +79,6 @@ class FileElement extends Entity {
 
 	/**
 	 * @param \DateTime|string $createdAt
-	 * @return void
 	 */
 	public function setCreatedAt($createdAt): void {
 		if (!$createdAt instanceof \DateTime) {

@@ -141,7 +141,6 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @param integer $fileUserId
 	 * @return array<IIdentifyMethod>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
@@ -153,10 +152,6 @@ class IdentifyMethodService {
 		return $this->identifyMethod;
 	}
 
-	/**
-	 * @param FileUser $fileUser
-	 * @return void
-	 */
 	public function save(FileUser $fileUser, bool $notify = true): void {
 		foreach ($this->identifyMethod as $identifyMethod) {
 			$entity = $identifyMethod->getEntity();

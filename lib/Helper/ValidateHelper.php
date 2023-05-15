@@ -68,8 +68,6 @@ class ValidateHelper {
 	/**
 	 * @property array $data
 	 * @property int $type to_sign|visible_element
-	 *
-	 * @return void
 	 */
 	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN): void {
 		if (empty($data['file'])) {
@@ -345,11 +343,7 @@ class ValidateHelper {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 *
-	 * @param integer $nodeId
-	 *
 	 * @return \OCP\Files\Node|array
-	 *
 	 * @psalm-return \OCP\Files\Node|array<empty, empty>
 	 */
 	private function getLibreSignFileByNodeId(int $nodeId) {

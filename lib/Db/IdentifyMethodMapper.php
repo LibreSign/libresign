@@ -32,15 +32,11 @@ use OCP\IDBConnection;
 
 class IdentifyMethodMapper extends QBMapper {
 	private array $methodsByFileUser = [];
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_identify_method');
 	}
 
 	/**
-	 * @param integer $fileUserId
 	 * @return array<IdentifyMethod>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
