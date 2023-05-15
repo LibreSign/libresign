@@ -10,6 +10,8 @@ use OCA\Libresign\Service\ConfigureCheckService;
 use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
@@ -24,10 +26,8 @@ class AdminController extends Controller {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function generateCertificate(
 		array $rootCert,
 		string $cfsslUri = '',
@@ -59,10 +59,8 @@ class AdminController extends Controller {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function loadCertificate(): DataResponse {
 		$certificate = $this->adminSignatureService->loadKeys();
 		$cfssl = $this->configureCheckService->checkCfsslConfigure();
@@ -84,9 +82,7 @@ class AdminController extends Controller {
 		return trim($value);
 	}
 
-	/**
-	 * @NoCSRFRequired
-	 */
+	#[NoCSRFRequired]
 	public function downloadBinaries(): Response {
 		try {
 			$async = \function_exists('proc_open');
@@ -123,17 +119,13 @@ class AdminController extends Controller {
 		}
 	}
 
-	/**
-	 * @NoCSRFRequired
-	 */
+	#[NoCSRFRequired]
 	public function downloadStatus(): dataResponse {
 		$return = $this->installService->getTotalSize();
 		return new DataResponse($return);
 	}
 
-	/**
-	 * @NoCSRFRequired
-	 */
+	#[NoCSRFRequired]
 	public function configureCheck(): DataResponse {
 		return new DataResponse(
 			$this->configureCheckService->checkAll()
