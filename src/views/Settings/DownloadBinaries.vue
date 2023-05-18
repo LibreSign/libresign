@@ -1,6 +1,7 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<div class="settings-section">
+		<h2>{{ time }}</h2>
 			<NcButton class="primary"
 				type="primary"
 				native-type="submit"
@@ -41,6 +42,7 @@ import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import Websocket from 'websocket';
 
 export default {
 	name: 'DownloadBinaries',
@@ -51,6 +53,7 @@ export default {
 		NcProgressBar,
 	},
 	data: () => ({
+		time: null,
 		title: t('libresign', 'Dependencies'),
 		description: t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.'),
 		labelDownloadAllBinaries: t('libresign', 'Download binaries'),
@@ -62,7 +65,15 @@ export default {
 		},
 	}),
 	mounted() {
-		this.$root.$on('after-config-check', data => {
+		let connection = new WebSocket('ws://localhost/apps/libresign/api/v1/admin/download-live');
+		connection.onmessage = (event) => {
+			// Vue data binding means you don't need any extra work to
+			// update your UI. Just set the `time` and Vue will automatically
+			// update the `<h2>`.
+			this.time = event.data;
+		}
+
+		this.$root.$on('afterConfigCheck', data => {
 			if (this.downloadInProgress) {
 				return
 			}
