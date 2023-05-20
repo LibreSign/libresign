@@ -1,7 +1,7 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
 		<div class="settings-section">
-		<h2>{{ time }}</h2>
+			<h2>{{ time }}</h2>
 			<NcButton class="primary"
 				type="primary"
 				native-type="submit"
@@ -69,7 +69,7 @@ export default {
 			// Vue data binding means you don't need any extra work to
 			// update your UI. Just set the `time` and Vue will automatically
 			// update the `<h2>`.
-			this.time = event.data;
+			this.time = event.data
 		}
 
 		this.$root.$on('afterConfigCheck', data => {
