@@ -64,7 +64,13 @@ export default {
 		},
 	}),
 	mounted() {
-		let connection = new WebSocket('ws://localhost/apps/libresign/api/v1/admin/download-live');
+		let currentUrl = new URL(window.location.href)
+		let url =
+			(currentUrl.protocol === 'http:' ? 'ws://' : 'wss://') +
+			currentUrl.hostname +
+			currentUrl.port +
+			generateOcsUrl('/apps/libesin/api/v1/admin/download-live')
+		const connection = new WebSocket(url)
 		connection.onmessage = (event) => {
 			// Vue data binding means you don't need any extra work to
 			// update your UI. Just set the `time` and Vue will automatically
