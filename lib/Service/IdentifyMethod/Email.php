@@ -29,11 +29,13 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
 		private IL10N $l10n,
-		protected MailService $mail
+		protected MailService $mail,
+		private IURLGenerator $urlGenerator
 	) {
 		parent::__construct();
 	}
@@ -50,5 +52,11 @@ class Email extends AbstractIdentifyMethod {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
+	}
+
+	public function getSettings(): array {
+		$settings = parent::getSettings();
+		$settings['test_url'] = $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail');
+		return $settings;
 	}
 }
