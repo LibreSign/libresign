@@ -611,10 +611,10 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[[''], true],
 			[['invalid'], true],
-			[['invalid', 'nextcloud'], true],
-			[['nextcloud', 'invalid'], true],
+			[['invalid', 'account'], true],
+			[['account', 'invalid'], true],
 			[['password'], false],
-			[['nextcloud'], false],
+			[['account'], false],
 			[['email'], false],
 			[['sms'], false],
 			[['signal'], false],

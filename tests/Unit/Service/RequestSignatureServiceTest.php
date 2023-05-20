@@ -285,7 +285,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$user = $this->createMock(\OCP\IUser::class);
 		$user->method('getDisplayName')->willReturn('John Doe');
 		$this->userManager->method('getByEmail')->willReturn([$user]);
-		$this->config->method('getAppValue')->will($this->returnValue('nextcloud'));
+		$this->config->method('getAppValue')->will($this->returnValue('account'));
 		$actual = $this->getService()->save([
 			'uuid' => 'the-uuid-here',
 			'users' => [
