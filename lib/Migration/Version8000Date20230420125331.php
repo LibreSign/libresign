@@ -72,7 +72,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			]);
 			$identifyMethod->addColumn('method', Types::STRING, [
 				'notnull' => true,
-				'default' => 'nextcloud',
+				'default' => 'account',
 				'length' => 30,
 			]);
 			$identifyMethod->addColumn('default', Types::SMALLINT, [
@@ -131,7 +131,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			$insert
 				->values([
 					'file_user_id' => $row['file_user_id'],
-					'method' => 'nextcloud',
+					'method' => 'account',
 					'default' => 1,
 					'identifier_key' => 'uid',
 					'identifier_value' => $row['user_id'],
@@ -155,7 +155,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			$insert
 				->values([
 					'file_user_id' => $row['file_user_id'],
-					'method' => 'nextcloud',
+					'method' => 'account',
 					'default' => 1,
 					'identifier_key' => 'email',
 					'identifier_value' => $row['email'],
