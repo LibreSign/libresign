@@ -176,9 +176,9 @@ class AccountService {
 
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
 		foreach ($identifyMethods as $name => $identifyMethod) {
-			if ($name === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+			if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 				$entity = $identifyMethod->getEntity();
-				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 					$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
 					$this->identifyMethodService->save($fileUser, false);
 				}

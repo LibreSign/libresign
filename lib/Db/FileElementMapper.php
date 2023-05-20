@@ -45,7 +45,7 @@ class FileElementMapper extends QBMapper {
 				->from($this->getTableName(), 'fe')
 				->leftJoin('fe', 'libresign_identify_method', 'im', $qb->expr()->andX(
 					$qb->expr()->eq('fe.file_user_id', 'im.file_user_id'),
-					$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+					$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
 					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
 				))
 				->where(
