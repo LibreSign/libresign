@@ -324,7 +324,7 @@ class SignFileService {
 					) {
 						return true;
 					}
-					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_NEXTCLOUD
+					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
 						&& $identifyMethod->getIdentifierValue() === $user->getUID()
 					) {
 						return true;
@@ -463,10 +463,10 @@ class SignFileService {
 
 	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
-			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD;
+		$accountIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
+			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT;
 		});
-		if (!count($nextcloudIdentifyMethod)) {
+		if (!count($accountIdentifyMethod)) {
 			return;
 		}
 		if (!$user) {
@@ -517,10 +517,10 @@ class SignFileService {
 		}
 		if ($fileUser instanceof FileUserEntity) {
 			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-			$nextcloudIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
-				return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD;
+			$accountIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
+				return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT;
 			});
-			if (count($nextcloudIdentifyMethod)) {
+			if (count($accountIdentifyMethod)) {
 				return;
 			}
 		}

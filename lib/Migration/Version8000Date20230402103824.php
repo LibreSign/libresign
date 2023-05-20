@@ -46,7 +46,7 @@ class Version8000Date20230402103824 extends SimpleMigrationStep {
 		if (!$table->hasColumn('identify_method')) {
 			$table->addColumn('identify_method', Types::STRING, [
 				'notnull' => true,
-				'default' => 'nextcloud',
+				'default' => 'account',
 				'length' => 30,
 			]);
 			return $schema;
