@@ -65,7 +65,7 @@ export default {
 			this.error = ''
 			try {
 				const response = await axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/settings/has-root-cert'),
+					generateOcsUrl('/apps/libresign/api/v1/setting/has-root-cert'),
 				)
 				if (!response.data || !response.data.hasRootCert) {
 					this.error = t('libresign', 'Root certificate has not been configured by the Administrator!')
