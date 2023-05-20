@@ -147,7 +147,7 @@ class ApiTestCase extends TestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'identify_method' => 'nextcloud',
+				'identify_method' => 'account',
 				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',
 				'country' => 'Brazil',
