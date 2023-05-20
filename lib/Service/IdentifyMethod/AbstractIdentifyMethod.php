@@ -30,11 +30,12 @@ use OCA\Libresign\Db\IdentifyMethod;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
+	protected string $name;
 	public function __construct() {
 		$this->entity = new IdentifyMethod();
 		$className = (new \ReflectionClass($this))->getShortName();
-		$key = lcfirst($className);
-		$this->entity->setIdentifierKey($key);
+		$this->name = lcfirst($className);
+		$this->entity->setIdentifierKey($this->name);
 	}
 
 	public function setEntity(IdentifyMethod $entity): void {
