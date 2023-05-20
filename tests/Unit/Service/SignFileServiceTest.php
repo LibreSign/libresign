@@ -438,7 +438,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					]));
 					$self->identifyMethodMapper
 						->method('getIdentifyMethodsFromFileUserId')
-						->will($self->returnValue(['nextcloud']));
+						->will($self->returnValue(['account']));
 					$fileUser = $self->createMock(FileUser::class);
 					$fileUser
 						->method('__call')
