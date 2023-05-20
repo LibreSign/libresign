@@ -51,4 +51,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	public function validate(): void {
 	}
+
+	public function getSettings(): array {
+		return [
+			'name' => $this->name,
+			'enabled' => true,
+			'mandatory' => true,
+			'can_be_used' => true,
+		];
+	}
 }
