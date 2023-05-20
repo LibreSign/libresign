@@ -30,19 +30,21 @@ use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethod\Account;
+use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\IConfig;
 use OCP\IL10N;
 
 class IdentifyMethodService {
-	public const IDENTIFY_NEXTCLOUD = 'nextcloud';
+	public const IDENTIFY_ACCOUNT = 'account';
 	public const IDENTIFY_EMAIL = 'email';
 	public const IDENTIFY_SIGNAL = 'signal';
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_PASSWORD = 'password';
 	public const IDENTIFY_METHODS = [
-		self::IDENTIFY_NEXTCLOUD,
+		self::IDENTIFY_ACCOUNT,
 		self::IDENTIFY_EMAIL,
 		self::IDENTIFY_SIGNAL,
 		self::IDENTIFY_TELEGRAM,
@@ -104,8 +106,8 @@ class IdentifyMethodService {
 	}
 
 	public function getDefaultIdentifyMethodName(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFY_NEXTCLOUD)
-			?? IdentifyMethodService::IDENTIFY_NEXTCLOUD;
+		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFY_ACCOUNT)
+			?? IdentifyMethodService::IDENTIFY_ACCOUNT;
 	}
 
 	public function validateToRequestToSign(): void {
@@ -133,7 +135,7 @@ class IdentifyMethodService {
 		if (!$default) {
 			$identifyMethod = new IdentifyMethod();
 			$identifyMethod->setMethod(
-				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFY_NEXTCLOUD) ?? self::IDENTIFY_NEXTCLOUD
+				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFY_ACCOUNT) ?? self::IDENTIFY_ACCOUNT
 			);
 			return $identifyMethod;
 		}

@@ -183,14 +183,14 @@ class FileService {
 						$signatureToShow['uid'] = $user[0]->getUID();
 					}
 				}
-				$nextcloudIdentifyMethod = array_reduce($identifyMethodServices, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod): ?IIdentifyMethod {
-					if ($identifyMethod->getEntity()->getMethod() === IdentifyMethodService::IDENTIFY_NEXTCLOUD) {
+				$accountIdentifyMethod = array_reduce($identifyMethodServices, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod): ?IIdentifyMethod {
+					if ($identifyMethod->getEntity()->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 						$carry = $identifyMethod;
 					}
 					return $carry;
 				});
-				if ($nextcloudIdentifyMethod) {
-					$entity = $nextcloudIdentifyMethod->getEntity();
+				if ($accountIdentifyMethod) {
+					$entity = $accountIdentifyMethod->getEntity();
 					$signatureToShow['me'] = false;
 					if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
 						$signatureToShow['me'] = $this->me->getEMailAddress() === $entity->getIdentifierValue();
