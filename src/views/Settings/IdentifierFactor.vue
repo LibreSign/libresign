@@ -33,7 +33,6 @@
 				</NcActionCheckbox>
 			</div>
 		</div>
-		>
 		<hr>
 
 		<NcCheckboxRadioSwitch type="switch"
@@ -65,33 +64,24 @@
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch'
-import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect'
-import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox'
-import { generateOcsUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 
 export default {
-	name: 'IdentificationFactor',
+	name: 'IdentifierFactor',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
-		NcMultiselect,
 		NcActionCheckbox,
 		NcSelect,
-		NcTextField,
 	},
 	data() {
 		return {
-	    title: 'Fatores de Identificação',
+			title: t('Identify factors'),
 			selectedDefaultIdentification: '',
 			options: [
-				'Certificado com senha',
-				'Boladão',
-				'Br',
 			],
 			allowedInviteUser: false,
 			useUser: true,
