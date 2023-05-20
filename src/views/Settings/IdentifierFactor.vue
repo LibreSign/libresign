@@ -1,80 +1,64 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">		
-		<NcCheckboxRadioSwitch
-			type="switch"
-	  	:checked.sync="useUser"
-	  	>
- 		{{ t('libresign', 'User')}}
-	  </NcCheckboxRadioSwitch>
+	<NcSettingsSection :title="title" :description="description">
+		<NcCheckboxRadioSwitch type="switch"
+			:checked.sync="useUser">
+			{{ t('libresign', 'User') }}
+		</NcCheckboxRadioSwitch>
 		<div v-if="useUser">
-			<div class="container-checkbox">	
-				<NcActionCheckbox
-	  			:checked.sync="allowedInviteUser"
-	  		>
-				{{ t('libresign', 'Allow account creation for new users')}}
-	  	</NcActionCheckbox>
-		
-			<p>{{ t('libresign', 'Allows sending registration email when the user does not have an account.') }}</p>
-		</div>
-		
-		<div class="container-select">
-			<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method')}}</label>
-				<NcSelect
-					v-model="selectedDefaultIdentification"
+			<div class="container-checkbox">
+				<NcActionCheckbox :checked.sync="allowedInviteUser">
+					{{ t('libresign', 'Allow account creation for new users') }}
+				</NcActionCheckbox>
+
+				<p>{{ t('libresign', 'Allows sending registration email when the user does not have an account.') }}</p>
+			</div>
+
+			<div class="container-select">
+				<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method') }}</label>
+				<NcSelect v-model="selectedDefaultIdentification"
 					:options="options"
-					inputId="selectIdentificationDefault"
-				/>
+					input-id="selectIdentificationDefault" />
 			</div>
-			</div>
-		<hr/>
+		</div>
+		<hr>
 
-		<NcCheckboxRadioSwitch
-			type="switch"
+		<NcCheckboxRadioSwitch type="switch"
 			:checked.sync="useTelegram">
-	  		{{ t('libresign', 'Telegram')}}
-	  </NcCheckboxRadioSwitch>
+			{{ t('libresign', 'Telegram') }}
+		</NcCheckboxRadioSwitch>
 		<div v-if="useTelegram">
-			<div class="container-checkbox">	
-				<NcActionCheckbox
-	  			:checked.sync="requiredTelegram"
-	  			>
- 					{{ t('libresign', 'Make this method required')}}
-	  		</NcActionCheckbox>
+			<div class="container-checkbox">
+				<NcActionCheckbox :checked.sync="requiredTelegram">
+					{{ t('libresign', 'Make this method required') }}
+				</NcActionCheckbox>
 			</div>
 		</div>
->
-		<hr/>
+		>
+		<hr>
 
-		<NcCheckboxRadioSwitch
-			type="switch"
+		<NcCheckboxRadioSwitch type="switch"
 			:checked.sync="useSMS">
-	  		{{ t('libresign', 'SMS')}}
-	  </NcCheckboxRadioSwitch>
-	 	<div v-if="useSMS">
-	  	<div class="container-checkbox">	
-				<NcActionCheckbox
-	  			:checked.sync="requiredSMS"
-	  			>
- 				{{ t('libresign', 'Make this method required')}}
-	  	</NcActionCheckbox>
+			{{ t('libresign', 'SMS') }}
+		</NcCheckboxRadioSwitch>
+		<div v-if="useSMS">
+			<div class="container-checkbox">
+				<NcActionCheckbox :checked.sync="requiredSMS">
+					{{ t('libresign', 'Make this method required') }}
+				</NcActionCheckbox>
 			</div>
-
 		</div>
-	  <hr/>
+		<hr>
 
-		<NcCheckboxRadioSwitch
-			type="switch"
+		<NcCheckboxRadioSwitch type="switch"
 			:checked.sync="useSignal">
-	  		{{ t('libresign', 'Signal')}}
-	  </NcCheckboxRadioSwitch>
+			{{ t('libresign', 'Signal') }}
+		</NcCheckboxRadioSwitch>
 
-	  <div v-if="useSignal">
-	  	<div class="container-checkbox">	
-				<NcActionCheckbox
-	  			:checked.sync="requiredSignal"
-	  			>
- 					{{ t('libresign', 'Make this method required')}}
-	  		</NcActionCheckbox>
+		<div v-if="useSignal">
+			<div class="container-checkbox">
+				<NcActionCheckbox :checked.sync="requiredSignal">
+					{{ t('libresign', 'Make this method required') }}
+				</NcActionCheckbox>
 			</div>
 		</div>
 	</NcSettingsSection>
@@ -102,18 +86,18 @@ export default {
 	},
 	data() {
 		return {
-	    title: "Fatores de Identificação",
+	    title: 'Fatores de Identificação',
 			selectedDefaultIdentification: '',
 			options: [
 				'Certificado com senha',
 				'Boladão',
-				'Br'
+				'Br',
 			],
 			allowedInviteUser: false,
 			useUser: true,
 			useTelegram: false,
-			botTelegramName: "",
-			botTelegramApi: "",
+			botTelegramName: '',
+			botTelegramApi: '',
 			signalApiToken: '',
 			requiredTelegram: false,
 			requiredSMS: false,
@@ -123,9 +107,9 @@ export default {
 	},
 	methods: {
 		changeAllowInviteUser(allowedInviteUser) {
-			this.allowedInviteUser = allowedInviteUser;	
-		}
-	}
+			this.allowedInviteUser = allowedInviteUser
+		},
+	},
 }
 </script>
 <style scoped>
@@ -136,12 +120,11 @@ export default {
 
 	.container-checkbox {
 		list-style: none;
-		
+
 		p {
 			padding: 15px;
 		}
 	}
-
 
 .identification-documents-content{
 	display: flex;
