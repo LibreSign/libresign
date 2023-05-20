@@ -42,7 +42,6 @@ import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
-import Websocket from 'websocket';
 
 export default {
 	name: 'DownloadBinaries',
