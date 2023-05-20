@@ -69,6 +69,7 @@ OC.L10N.register(
     "User already exists" : "Uporabnik že obstaja",
     "Password is mandatory" : "Geslo je obvezno",
     "File not found" : "Datoteke ni mogoče najti",
+    "You must have an email. You can define the email in your profile." : "Naveden mora biti veljaven elektronski naslov. Določiti ga je treba med podatki profila.",
     "Password to sign is mandatory" : "Geslo za podpis je obvezno",
     "File already exists" : "Datoteka že obstaja.",
     "Invalid URL file" : "Neveljavna datoteka naslova URL",
