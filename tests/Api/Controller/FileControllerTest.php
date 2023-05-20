@@ -72,7 +72,7 @@ final class FileControllerTest extends ApiTestCase {
 		$user = $this->createUser('username', 'password');
 		$this->mockConfig([
 			'libresign' => [
-				'identify_method' => 'nextcloud',
+				'identify_method' => 'account',
 			]
 		]);
 
