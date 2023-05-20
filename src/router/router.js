@@ -85,7 +85,7 @@ const routes = [
 	},
 	{
 		path: '/f/incomplete',
-		component: () => import('../views/IncompleteCertication.vue'),
+		component: () => import('../views/IncompleteCertification.vue'),
 		name: 'incomplete',
 	},
 	{
