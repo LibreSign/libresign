@@ -33,7 +33,7 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
 
-class Nextcloud extends AbstractIdentifyMethod {
+class Account extends AbstractIdentifyMethod {
 	private bool $canCreateAccount;
 	public function __construct(
 		private IConfig $config,
@@ -79,5 +79,15 @@ class Nextcloud extends AbstractIdentifyMethod {
 				throw new LibresignException($this->l10n->t('Invalid email'));
 			}
 		}
+	}
+
+	public function getSettings(): array {
+		$settings = parent::getSettings();
+		$settings['signature_method'] = 'password';
+		$settings['can_create_account'] = $this->canCreateAccount;
+		$settings['allowed_signature_methods'] = [
+			'password',
+		];
+		return $settings;
 	}
 }
