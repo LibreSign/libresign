@@ -1,9 +1,11 @@
 <template>
 	<div class="container">
 		<div class="container-image">
-				<img :src="image" draggable="false">
+			<img :src="image" draggable="false">
 		</div>
-		<h1 class="title">{{ t('libresign', 'Welcome to Libresign') }}</h1>
+		<h1 class="title">
+			{{ t('libresign', 'Welcome to Libresign') }}
+		</h1>
 		<p>{{ t('libresign', 'The admin hasn\'t set up LibreSign yet, please wait.') }}</p>
 	</div>
 </template>
@@ -18,7 +20,7 @@ export default {
 		return {
 			image: BackgroundImage,
 		}
-	}
+	},
 }
 </script>
 
@@ -30,7 +32,7 @@ export default {
 	align-items: center;
 	width: 100%;
 	height: 100%;
-	
+
 	h1 {
 		font-weight: bold;
 		font-size: 24px;
@@ -44,7 +46,7 @@ export default {
 	margin: 20px;
 
 	img {
-		width: 30%;	
+		width: 30%;
 	}
 }
 
