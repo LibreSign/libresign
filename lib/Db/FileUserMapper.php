@@ -217,7 +217,7 @@ class FileUserMapper extends QBMapper {
 
 			->leftJoin('fu', 'libresign_identify_method', 'im', $qb->expr()->andX(
 				$qb->expr()->eq('fu.id', 'im.file_user_id'),
-				$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+				$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
 				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
 			))
 			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
@@ -341,7 +341,7 @@ class FileUserMapper extends QBMapper {
 			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->andX(
 				$qb->expr()->eq('fu.id', 'im.file_user_id'),
-				$qb->expr()->eq('im.method', $qb->createNamedParameter('nextcloud')),
+				$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
 				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
 			))
 			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
