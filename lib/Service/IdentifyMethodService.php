@@ -59,7 +59,9 @@ class IdentifyMethodService {
 	public function __construct(
 		private IConfig $config,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private IL10N $l10n
+		private IL10N $l10n,
+		private Account $account,
+		private Email $email
 	) {
 	}
 
@@ -170,5 +172,30 @@ class IdentifyMethodService {
 				}
 			}
 		}
+	}
+
+	public function getAdminInitialState(): array {
+		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
+		$config = json_decode($config, true);
+		$return = [
+			array_merge(
+				$this->account->getSettings(),
+				$this->getMethodFromConfig('account', $config)
+			),
+			array_merge(
+				$this->email->getSettings(),
+				$this->getMethodFromConfig('email', $config)
+			),
+		];
+		return $return;
+	}
+
+	private function getMethodFromConfig(string $name, array $config): array {
+		foreach ($config as $current) {
+			if ($current['name'] === $name) {
+				return $current;
+			}
+		}
+		return [];
 	}
 }
