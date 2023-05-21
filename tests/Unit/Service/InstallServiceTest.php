@@ -31,23 +31,18 @@ use OCP\Http\Client\IClientService;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var ICacheFactory|MockObject */
-	private $cacheFactory;
-	/** @var IClientService|MockObject */
-	private $clientService;
-	/** @var CfsslServerHandler|MockObject */
-	private $cfsslServerHandler;
-	/** @var CfsslHandler|MockObject */
-	private $cfsslHandler;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var IRootFolder|MockObject */
-	private $rootFolder;
-	/** @var LoggerInterface */
+	private ICacheFactory|MockObject $cacheFactory;
+	private IClientService|MockObject $clientService;
+	private CfsslServerHandler|MockObject $cfsslServerHandler;
+	private CfsslHandler|MockObject $cfsslHandler;
+	private IConfig|MockObject $config;
+	private IRootFolder|MockObject $rootFolder;
+	private LoggerInterface|MockObject $logger;
 
 	public function setUp(): void {
 		parent::setUp();
