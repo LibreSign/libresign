@@ -6,8 +6,7 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Tests\Unit\TestCase;
 
 class ConfigureCheckHelperTest extends TestCase {
-	/** @var ConfigureCheckHelper */
-	private $helper;
+	private ConfigureCheckHelper $helper;
 
 	public function setUp(): void {
 		parent::setUp();

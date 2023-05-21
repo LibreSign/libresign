@@ -13,10 +13,8 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var ITempManager */
-	private $tempManager;
-	/** @var LoggerInterface|MockObject */
-	private $loggerInterface;
+	private ITempManager $tempManager;
+	private LoggerInterface|MockObject $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();

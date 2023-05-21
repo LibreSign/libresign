@@ -13,10 +13,8 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Admin $admin;
-	/** @var IInitialState|MockObject */
-	private $initialState;
-	/** @var IdentifyMethodService|MockObject */
-	private $identifyMethodService;
+	private IInitialState|MockObject $initialState;
+	private IdentifyMethodService|MockObject $identifyMethodService;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
