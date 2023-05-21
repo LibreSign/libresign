@@ -112,6 +112,8 @@ export default {
 			allowedInviteUser: false,
 			useUser: true,
 			useTelegram: false,
+			useSMS: false,
+			useSignal: false,
 			botTelegramName: "",
 			botTelegramApi: "",
 			signalApiToken: '',
