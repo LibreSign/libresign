@@ -24,36 +24,21 @@ use OCP\Security\IHasher;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N\|MockObject */
-	private $l10n;
-	/** @var FileUserMapper|MockObject */
-	private $fileUserMapper;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var FileTypeMapper|MockObject */
-	private $fileTypeMapper;
-	/** @var FileElementMapper|MockObject */
-	private $fileElementMapper;
-	/** @var AccountFileMapper|MockObject */
-	private $accountFileMapper;
-	/** @var UserElementMapper|MockObject */
-	private $userElementMapper;
-	/** @var IdentifyMethodMapper|MockObject */
-	private $identifyMethodMapper;
-	/** @var IdentifyMethodService */
-	private $identifyMethodService;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var IHasher */
-	private $hasher;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var IGroupManager|MockObject */
-	private $groupManager;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IRootFolder|MockObject */
-	private $root;
+	private IL10N|MockObject $l10n;
+	private FileUserMapper|MockObject $fileUserMapper;
+	private FileMapper|MockObject $fileMapper;
+	private FileTypeMapper|MockObject $fileTypeMapper;
+	private FileElementMapper|MockObject $fileElementMapper;
+	private AccountFileMapper|MockObject $accountFileMapper;
+	private UserElementMapper|MockObject $userElementMapper;
+	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private IdentifyMethodService $identifyMethodService;
+	private IMimeTypeDetector $mimeTypeDetector;
+	private IHasher $hasher;
+	private IConfig|MockObject $config;
+	private IGroupManager|MockObject $groupManager;
+	private IUserManager $userManager;
+	private IRootFolder|MockObject $root;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
