@@ -80,6 +80,7 @@ export default {
 	data() {
 		return {
 			title: t('Identify factors'),
+			description: t('Identify factors'),
 			selectedDefaultIdentification: '',
 			options: [
 			],
