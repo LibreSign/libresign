@@ -11,10 +11,8 @@ use PHPUnit\Framework\MockObject\MockObject;
  * @internal
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var JSignPdfHandler */
-	private $class;
-	/** @var IConfig|MockObject */
-	private $config;
+	private JSignPdfHandler $class;
+	private IConfig|MockObject $config;
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
 		$this->class = new JSignPdfHandler(

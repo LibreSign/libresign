@@ -18,20 +18,13 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var Mailer|MockObject */
-	private $mailer;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var IL10N\|MockObject */
-	private $l10n;
-	/** @var IURLGenerator|MockObject */
-	private $urlGenerator;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var MailService */
-	private $service;
+	private LoggerInterface|MockObject $logger;
+	private Mailer|MockObject $mailer;
+	private FileMapper|MockObject $fileMapper;
+	private IL10N|MockObject $l10n;
+	private IURLGenerator|MockObject $urlGenerator;
+	private IConfig|MockObject $config;
+	private MailService $service;
 
 	public function setUp(): void {
 		parent::setUp();
