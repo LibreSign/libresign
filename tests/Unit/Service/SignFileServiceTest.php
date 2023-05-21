@@ -31,48 +31,27 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N|MockObject */
-	private $l10n;
-	/** @var Pkcs7Handler|MockObject */
-	private $pkcs7Handler;
-	/** @var Pkcs12Handler|MockObject */
-	private $pkcs12Handler;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var FileUserMapper|MockObject */
-	private $fileUserMapper;
-	/** @var AccountFileMapper|MockObject */
-	private $accountFileMapper;
-	/** @var IClientService|MockObject */
-	private $clientService;
-	/** @var IUserManager|MockObject */
-	private $userManager;
-	/** @var FolderService|MockObject */
-	private $folderService;
-	/** @var LoggerInterface|MockObject */
-	private $logger;
-	/** @var IConfig */
-	private $config;
-	/** @var ValidateHelper|MockObject */
-	private $validateHelper;
-	/** @var IRootFolder|MockObject */
-	private $root;
-	/** @var FileElementMapper|MockObject */
-	private $fileElementMapper;
-	/** @var UserElementMapper|MockObject */
-	private $userElementMapper;
-	/** @var IEventDispatcher|MockObject */
-	private $eventDispatcher;
-	/** @var IURLGenerator|MockObject */
-	private $urlGenerator;
-	/** @var SignMethodService|MockObject */
-	private $signMethod;
-	/** @var IdentifyMethodService|MockObject */
-	private $identifyMethod;
-	/** @var IdentifyMethodMapper|MockObject */
-	private $identifyMethodMapper;
-	/** @var ITempManager|MockObject */
-	private $tempManager;
+	private IL10N|MockObject $l10n;
+	private Pkcs7Handler|MockObject $pkcs7Handler;
+	private Pkcs12Handler|MockObject $pkcs12Handler;
+	private FileMapper|MockObject $fileMapper;
+	private FileUserMapper|MockObject $fileUserMapper;
+	private AccountFileMapper|MockObject $accountFileMapper;
+	private IClientService|MockObject $clientService;
+	private IUserManager|MockObject $userManager;
+	private FolderService|MockObject $folderService;
+	private LoggerInterface|MockObject $logger;
+	private IConfig $config;
+	private ValidateHelper|MockObject $validateHelper;
+	private IRootFolder|MockObject $root;
+	private FileElementMapper|MockObject $fileElementMapper;
+	private UserElementMapper|MockObject $userElementMapper;
+	private IEventDispatcher|MockObject $eventDispatcher;
+	private IURLGenerator|MockObject $urlGenerator;
+	private SignMethodService|MockObject $signMethod;
+	private IdentifyMethodService|MockObject $identifyMethod;
+	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private ITempManager|MockObject $tempManager;
 
 	public function setUp(): void {
 		parent::setUp();

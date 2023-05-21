@@ -46,42 +46,24 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N|MockObject */
-	private $l10n;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var FileUserMapper|MockObject */
-	private $fileUserMapper;
-	/** @var IdentifyMethodMapper|MockObject */
-	private $identifyMethodMapper;
-	/** @var IUser|MockObject */
-	private $user;
-	/** @var IClientService|MockObject */
-	private $clientService;
-	/** @var IUserManager|MockObject */
-	private $userManager;
-	/** @var FolderService|MockObject */
-	private $folderService;
-	/** @var IConfig */
-	private $config;
-	/** @var ValidateHelper|MockObject */
-	private $validateHelper;
-	/** @var FileElementMapper|MockObject */
-	private $fileElementMapper;
-	/** @var FileElementService|MockObject */
-	private $fileElementService;
-	/** @var SignMethodService|MockObject */
-	private $signMethod;
-	/** @var IdentifyMethodService|MockObject */
-	private $identifyMethodService;
-	/** @var PdfParserService|MockObject */
-	private $pdfParserService;
-	/** @var IMimeTypeDetector|MockObject */
-	private $mimeTypeDetector;
-	/** @var IClientService */
-	private $client;
-	/** @var LoggerInterface|MockObject */
-	private $loggerInterface;
+	private IL10N|MockObject $l10n;
+	private FileMapper|MockObject $fileMapper;
+	private FileUserMapper|MockObject $fileUserMapper;
+	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private IUser|MockObject $user;
+	private IClientService|MockObject $clientService;
+	private IUserManager|MockObject $userManager;
+	private FolderService|MockObject $folderService;
+	private IConfig $config;
+	private ValidateHelper|MockObject $validateHelper;
+	private FileElementMapper|MockObject $fileElementMapper;
+	private FileElementService|MockObject $fileElementService;
+	private SignMethodService|MockObject $signMethod;
+	private IdentifyMethodService|MockObject $identifyMethodService;
+	private PdfParserService|MockObject $pdfParserService;
+	private IMimeTypeDetector|MockObject $mimeTypeDetector;
+	private IClientService $client;
+	private LoggerInterface|MockObject $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
