@@ -34,52 +34,29 @@ use PHPUnit\Framework\MockObject\MockObject;
  * @group DB
  */
 final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N\|MockObject */
-	private $l10n;
-	/** @var FileUserMapper|MockObject */
-	private $fileUserMapper;
-	/** @var IUserManager|MockObject */
-	private $userManagerInstance;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var IRootFolder|MockObject */
-	private $root;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var FileTypeMapper|MockObject */
-	private $fileTypeMapper;
-	/** @var AccountFileMapper|MockObject */
-	private $accountFileMapper;
-	/** @var SignFileService|MockObject */
-	private $signFile;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var NewUserMailHelper|MockObject */
-	private $newUserMail;
-	/** @var IdentifyMethodService|MockObject */
-	private $identifyMethodService;
-	/** @var ValidateHelper|MockObject */
-	private $validateHelper;
-	/** @var IURLGenerator|MockObject */
-	private $urlGenerator;
-	/** @var IGroupManager|MockObject */
-	private $groupManager;
-	/** @var AccountFileService */
-	private $accountFileService;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var FolderService */
-	private $folderService;
-	/** @var ClientService */
-	private $clientService;
-	/** @var TimeFactory|MockObject */
-	private $timeFactory;
-	/** @var RequestSignatureService|MockObject */
-	private $requestSignatureService;
-	/** @var SignatureService|MockObject */
-	private $signatureService;
-	/** @var Pkcs12Handler|MockObject */
-	private $pkcs12Handler;
+	private IL10N|MockObject $l10n;
+	private FileUserMapper|MockObject $fileUserMapper;
+	private IUserManager|MockObject $userManagerInstance;
+	private IAccountManager $accountManager;
+	private IRootFolder|MockObject $root;
+	private FileMapper|MockObject $fileMapper;
+	private FileTypeMapper|MockObject $fileTypeMapper;
+	private AccountFileMapper|MockObject $accountFileMapper;
+	private SignFileService|MockObject $signFile;
+	private IConfig|MockObject $config;
+	private NewUserMailHelper|MockObject $newUserMail;
+	private IdentifyMethodService|MockObject $identifyMethodService;
+	private ValidateHelper|MockObject $validateHelper;
+	private IURLGenerator|MockObject $urlGenerator;
+	private IGroupManager|MockObject $groupManager;
+	private AccountFileService $accountFileService;
+	private UserElementMapper $userElementMapper;
+	private FolderService $folderService;
+	private ClientService $clientService;
+	private TimeFactory|MockObject $timeFactory;
+	private RequestSignatureService|MockObject $requestSignatureService;
+	private SignatureService|MockObject $signatureService;
+	private Pkcs12Handler|MockObject $pkcs12Handler;
 
 	public function setUp(): void {
 		parent::setUp();

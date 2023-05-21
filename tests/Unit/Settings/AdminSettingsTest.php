@@ -11,8 +11,7 @@ use OCP\IURLGenerator;
  * @internal
  */
 final class AdminSettingsTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var AdminSettings */
-	private $adminSettings;
+	private AdminSettings $adminSettings;
 	public function setUp(): void {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n
