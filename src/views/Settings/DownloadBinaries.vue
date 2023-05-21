@@ -66,7 +66,7 @@ export default {
 		socket: null,
 	}),
 	mounted() {
-		let url = loadState('libresign', 'socket_url')
+		const url = loadState('libresign', 'socket_url')
 		console.log(url)
 		this.socket = new WebSocket(url)
 		this.socket.onmessage = (event) => {
@@ -76,10 +76,10 @@ export default {
 			console.debug('message', event)
 			this.time = event.data
 		}
-		this.socket.onopen = function (event) {
+		this.socket.onopen = function(event) {
 			console.debug('Connected', event)
-			this.socket.send('Hello World!');
-		};
+			this.socket.send('Hello World!')
+		}
 
 		this.$root.$on('afterConfigCheck', data => {
 			if (this.downloadInProgress) {
