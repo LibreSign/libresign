@@ -10,18 +10,12 @@ use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var Pkcs12Handler */
-	protected $pkcs12Handler;
-	/** @var FolderService|MockObject */
-	protected $folderService;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var SystemConfig */
-	private $systemConfig;
-	/** @var CfsslHandler|MockObject */
-	private $cfsslHandler;
-	/** @var IL10N|MockObject */
-	private $l10n;
+	protected Pkcs12Handler $pkcs12Handler;
+	protected FolderService|MockObject $folderService;
+	private IConfig|MockObject $config;
+	private SystemConfig $systemConfig;
+	private CfsslHandler|MockObject $cfsslHandler;
+	private IL10N|MockObject $l10n;
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
