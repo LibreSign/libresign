@@ -9,23 +9,18 @@ use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @group DB
  */
 final class PageControllerTest extends TestCase {
-	/** @var IRequest|MockObject */
-	private $request;
-	/** @var IUserSession|MockObject */
-	private $userSession;
-	/** @var IInitialState|MockObject */
-	private $initialState;
-	/** @var AccountService|MockObject */
-	private $accountService;
-	/** @var IURLGenerator|MockObject */
-	private $url;
-	/** @var PageController */
-	private $controller;
+	private IRequest|MockObject $request;
+	private IUserSession|MockObject $userSession;
+	private IInitialState|MockObject $initialState;
+	private AccountService|MockObject $accountService;
+	private IURLGenerator|MockObject $url;
+	private PageController $controller;
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
