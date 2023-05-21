@@ -5,9 +5,11 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Socket\Admin as SocketAdmin;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IConfig;
+use OCP\IRequest;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
@@ -16,7 +18,9 @@ class Admin implements ISettings {
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
-		private IConfig $config
+		private IConfig $config,
+		private SocketAdmin $socketAdmin,
+		private IRequest $request
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -28,6 +32,13 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState(
 			'certificate_engine',
 			$this->certificateEngineHandler->getEngine()->getName()
+		);
+		$protocol = $this->request->getServerProtocol() === 'https' ? 'wss' : 'ws';
+		$host = $this->request->getServerHost();
+		$port = $this->socketAdmin->start();
+		$this->initialState->provideInitialState(
+			'socket_url',
+			$protocol . '://' . $host . ':' . $port
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}

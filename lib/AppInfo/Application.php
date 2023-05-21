@@ -7,6 +7,7 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
+use OCA\Libresign\Listener\CSPListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedListener;
@@ -18,6 +19,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
+use OCP\Security\CSP\AddContentSecurityPolicyEvent;
 
 /**
  * @codeCoverageIgnore
@@ -47,5 +49,6 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(SignedEvent::class, SignedListener::class);
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
+		$context->registerEventListener(AddContentSecurityPolicyEvent::class, CSPListener::class);
 	}
 }

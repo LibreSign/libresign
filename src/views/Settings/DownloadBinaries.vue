@@ -40,6 +40,7 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
@@ -62,21 +63,23 @@ export default {
 			jsignpdf: 0,
 			cfssl: 0,
 		},
+		socket: null,
 	}),
 	mounted() {
-		let currentUrl = new URL(window.location.href)
-		let url =
-			(currentUrl.protocol === 'http:' ? 'ws://' : 'wss://') +
-			currentUrl.hostname +
-			currentUrl.port +
-			generateOcsUrl('/apps/libesin/api/v1/admin/download-live')
-		const connection = new WebSocket(url)
-		connection.onmessage = (event) => {
+		let url = loadState('libresign', 'socket_url')
+		console.log(url)
+		this.socket = new WebSocket(url)
+		this.socket.onmessage = (event) => {
 			// Vue data binding means you don't need any extra work to
 			// update your UI. Just set the `time` and Vue will automatically
 			// update the `<h2>`.
+			console.debug('message', event)
 			this.time = event.data
 		}
+		this.socket.onopen = function (event) {
+			console.debug('Connected', event)
+			this.socket.send('Hello World!');
+		};
 
 		this.$root.$on('afterConfigCheck', data => {
 			if (this.downloadInProgress) {
