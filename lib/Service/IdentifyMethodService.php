@@ -51,10 +51,11 @@ class IdentifyMethodService {
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_PASSWORD,
 	];
+	private array $identifyMethodsSettings = [];
 	/**
-	 * @var array<IIdentifyMethod>
+	 * @var array<string,array<IIdentifyMethod>>
 	 */
-	private array $identifyMethod = [];
+	private array $identifyMethods = [];
 
 	public function __construct(
 		private IConfig $config,
@@ -65,15 +66,16 @@ class IdentifyMethodService {
 	) {
 	}
 
-	private function getIdentifyMethod($name): IIdentifyMethod {
-		if (!array_key_exists($name, $this->identifyMethod)) {
-			$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
-			$this->identifyMethod[$name] = \OC::$server->get($className);
-		}
-		return $this->identifyMethod[$name];
+	private function newInstanceOfIdentifyMethod(string $name): IIdentifyMethod {
+		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
+		$identifyMethod = \OC::$server->get($className);
+		$this->identifyMethods[$name][] = $identifyMethod;
+		return $identifyMethod;
 	}
 
-	private function setEntityData(string $method, $identifyData, bool $isDefault): void {
+	private function setEntityData(string $method, string $identifyValue): void {
+		// @todo Replace bv enum when PHP 8.1 is the minimum version acceptable
+		// at server. Check file lib/versioncheck.php of server repository
 		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
 			// necessary identify what is the identification method. The
@@ -81,47 +83,53 @@ class IdentifyMethodService {
 			// flow.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
-		$entity = $this->getIdentifyMethod($method)->getEntity();
-		if (is_array($identifyData)) {
-			$entity->setIdentifierKey(key($identifyData));
-			$entity->setIdentifierValue(current($identifyData));
-		} elseif (is_string($identifyData)) {
-			$entity->setIdentifierKey($method);
-			$entity->setIdentifierValue($identifyData);
-		}
-		$entity->setDefault($isDefault ? 1 : 0);
+		$identifyMethod = $this->newInstanceOfIdentifyMethod($method);
+		$entity = $identifyMethod->getEntity();
+		$entity->setIdentifierKey($method);
+		$entity->setIdentifierValue($identifyValue);
+		$entity->setMandatory($this->isMandatoryMethod($method) ? 1 : 0);
 		$entity->setMethod($method);
+		$identifyMethod->validate();
 	}
 
 	public function setAllEntityData(array $user): void {
-		$defaultMethod = $this->getDefaultIdentifyMethodName();
-		if (!array_key_exists('identifyMethods', $user)) {
-			$user = [
-				'identifyMethods' => [
-					$defaultMethod => $user,
-				],
-			];
+		foreach ($user['identify'] as $method => $identifyValue) {
+			$this->setEntityData($method, $identifyValue);
 		}
-		foreach ($user['identifyMethods'] as $method => $identifyData) {
-			$this->setEntityData($method, $identifyData, $method === $defaultMethod);
+	}
+
+	private function isMandatoryMethod(string $methodName): bool {
+		$settings = $this->getIdentifyMethodsSettings();
+		foreach ($settings as $setting) {
+			if ($setting['name'] === $methodName) {
+				return $setting['mandatory'];
+			}
 		}
+		return false;
+	}
+
+	/**
+	 * @return array<IdentifyMethod>
+	 */
+	public function getByUserData(array $data) {
+		$return = [];
+		foreach ($this->identifyMethods as $methods) {
+			foreach ($methods as $method) {
+				foreach ($data as $key => $value) {
+					if ($method->getEntity()->getIdentifierKey() === $key) {
+						if ($method->getEntity()->getIdentifierValue() === $value) {
+							$return[] = $method;
+						}
+					}
+				}
+			}
+		}
+		return $return;
 	}
 
 	public function getDefaultIdentifyMethodName(): string {
 		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFY_ACCOUNT)
 			?? IdentifyMethodService::IDENTIFY_ACCOUNT;
-	}
-
-	public function validateToRequestToSign(): void {
-		if (!array_key_exists($this->getDefaultIdentifyMethodName(), $this->identifyMethod)) {
-			/**
-			 * @todo check if is necessary to return a more specific message. i.e.: the identification method xpto wasn't found
-			 */
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
-		}
-		foreach ($this->identifyMethod as $identifyMethod) {
-			$identifyMethod->validate();
-		}
 	}
 
 	public function getDefaultEntity(): IdentifyMethod {
@@ -153,31 +161,36 @@ class IdentifyMethodService {
 			$identifyMethod = $this->getIdentifyMethod($entity->getMethod());
 			$identifyMethod->setEntity($entity);
 		}
-		return $this->identifyMethod;
+		return $this->identifyMethods;
 	}
 
 	public function save(FileUser $fileUser, bool $notify = true): void {
-		foreach ($this->identifyMethod as $identifyMethod) {
-			$entity = $identifyMethod->getEntity();
-			$entity->setFileUserId($fileUser->getId());
-			if ($entity->getId()) {
-				$entity = $this->identifyMethodMapper->update($entity);
-				if ($notify) {
-					$identifyMethod->notify(false, $fileUser);
-				}
-			} else {
-				$entity = $this->identifyMethodMapper->insert($entity);
-				if ($notify) {
-					$identifyMethod->notify(true, $fileUser);
+		foreach ($this->identifyMethods as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$entity = $identifyMethod->getEntity();
+				$entity->setFileUserId($fileUser->getId());
+				if ($entity->getId()) {
+					$entity = $this->identifyMethodMapper->update($entity);
+					if ($notify) {
+						$identifyMethod->notify(false, $fileUser);
+					}
+				} else {
+					$entity = $this->identifyMethodMapper->insert($entity);
+					if ($notify) {
+						$identifyMethod->notify(true, $fileUser);
+					}
 				}
 			}
 		}
 	}
 
-	public function getAdminInitialState(): array {
+	public function getIdentifyMethodsSettings(): array {
+		if ($this->identifyMethodsSettings) {
+			return $this->identifyMethodsSettings;
+		}
 		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
 		$config = json_decode($config, true);
-		$return = [
+		$this->identifyMethodsSettings = [
 			array_merge(
 				$this->account->getSettings(),
 				$this->getMethodFromConfig('account', $config)
@@ -187,7 +200,7 @@ class IdentifyMethodService {
 				$this->getMethodFromConfig('email', $config)
 			),
 		];
-		return $return;
+		return $this->identifyMethodsSettings;
 	}
 
 	private function getMethodFromConfig(string $name, array $config): array {
