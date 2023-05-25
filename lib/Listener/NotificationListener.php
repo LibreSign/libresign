@@ -61,7 +61,7 @@ class NotificationListener implements IEventListener {
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
-			->setObject('identifyMethod', (string) $identifyMethod->getEntity()->getId())
+			->setObject('sign', 'document')
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		if ($isNew) {
