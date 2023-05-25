@@ -14,6 +14,16 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private array $file = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
+	/**
+	 * @BeforeSuite
+	 */
+	public static function beforeSuite(): void {
+		$console = realpath(__DIR__ . '/../../../../../../console.php');
+		$owner = posix_getpwuid(fileowner($console));
+		$command = 'runuser -u ' . $owner['name'] . ' php ' . $console . ' libresign:developer:reset';
+		exec($command, $output);
+	}
+
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
 		$this->openedEmailStorage = $storage;
 	}
@@ -114,5 +124,28 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 
 		$this->sendRequest('get', '/apps/libresign/p/sign/' . $matches['uuid']);
+	}
+
+	/**
+	 * @When user :user has the following notifications
+	 *
+	 * @param string $user
+	 * @param TableNode|null $body
+	 */
+	public function userNotifications(string $user, TableNode $body = null): void {
+		$this->setCurrentUser($user);
+		$this->sendOCSRequest(
+			'GET', '/apps/notifications/api/v2/notifications'
+		);
+
+		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		$data = $jsonBody['ocs']['data'];
+
+		if ($body === null) {
+			Assert::assertCount(0, $data);
+			return;
+		}
+
+		Assert::assertCount(count($data), $body, 'Notifications count does not match');
 	}
 }
