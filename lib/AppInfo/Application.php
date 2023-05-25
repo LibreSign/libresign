@@ -3,12 +3,15 @@
 namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
+use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedListener;
 use OCA\Libresign\Middleware\InjectionMiddleware;
+use OCA\Libresign\Notification\Notifier;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -38,8 +41,11 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		$context->registerMiddleWare(InjectionMiddleware::class);
 
+		$context->registerNotifierService(Notifier::class);
+
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(SignedEvent::class, SignedListener::class);
+		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
 	}
 }
