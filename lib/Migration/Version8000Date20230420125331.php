@@ -75,7 +75,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'default' => 'account',
 				'length' => 30,
 			]);
-			$identifyMethod->addColumn('default', Types::SMALLINT, [
+			$identifyMethod->addColumn('mandatory', Types::SMALLINT, [
 				'notnull' => true,
 				'default' => 0,
 				'length' => 1,
@@ -107,7 +107,6 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'unsigned' => true,
 			]);
 			$identifyMethod->addUniqueIndex(['file_user_id', 'method'], 'identify_method_unique_index');
-			$identifyMethod->addUniqueIndex(['file_user_id', 'default'], 'identify_default_unique_index');
 			$identifyMethod->setPrimaryKey(['id'], 'identify_pk_idx');
 			$changed = true;
 		}
@@ -132,7 +131,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				->values([
 					'file_user_id' => $row['file_user_id'],
 					'method' => 'account',
-					'default' => 1,
+					'mandatory' => 1,
 					'identifier_key' => 'uid',
 					'identifier_value' => $row['user_id'],
 					'attempts' => $row['signed'] ? 1 : 0,
@@ -156,7 +155,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				->values([
 					'file_user_id' => $row['file_user_id'],
 					'method' => 'account',
-					'default' => 1,
+					'mandatory' => 1,
 					'identifier_key' => 'email',
 					'identifier_value' => $row['email'],
 					'attempts' => $row['signed'] ? 1 : 0,
