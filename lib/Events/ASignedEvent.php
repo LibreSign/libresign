@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Libresign\Event;
+namespace OCA\Libresign\Events;
 
 use OCA\Libresign\Service\SignFileService;
 use OCP\EventDispatcher\Event;
