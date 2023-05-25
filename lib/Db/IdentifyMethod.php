@@ -35,8 +35,8 @@ use OCP\AppFramework\Db\Entity;
  * @method string getMethod()
  * @method void setAttempts(int $attempts)
  * @method int getAttempts()
- * @method void setDefault(int $default)
- * @method int getDefault()
+ * @method void setMandatory(int $mandatory)
+ * @method int getMandatory()
  * @method void setIdentifierKey(string $identifierKey)
  * @method string getIdentifierKey()
  * @method void setIdentifierValue(string $identifierValue)
@@ -52,7 +52,7 @@ class IdentifyMethod extends Entity {
 	/** @var string */
 	public $method;
 	/** @var int */
-	public $default;
+	public $mandatory;
 	/** @var string */
 	public $code;
 	/** @var string */
@@ -69,7 +69,7 @@ class IdentifyMethod extends Entity {
 	public function __construct() {
 		$this->addType('fileUserId', 'integer');
 		$this->addType('method', 'string');
-		$this->addType('default', 'int');
+		$this->addType('mandatory', 'int');
 		$this->addType('code', 'string');
 		$this->addType('identifierKey', 'string');
 		$this->addType('identifierValue', 'string');
