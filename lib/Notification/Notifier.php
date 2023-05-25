@@ -60,15 +60,18 @@ class Notifier implements INotifier {
 
 		switch ($notification->getSubject()) {
 			case 'new_sign_request':
-				return $this->parseNewSignRequest($notification, $l);
+				return $this->parseSignRequest($notification, $l, false);
+			case 'update_sign_request':
+				return $this->parseSignRequest($notification, $l, true);
 			default:
 				throw new \InvalidArgumentException();
 		}
 	}
 
-	private function parseNewSignRequest(
+	private function parseSignRequest(
 		INotification $notification,
-		IL10N $l
+		IL10N $l,
+		bool $update
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
 		$fileUser = $this->fileUserMapper->getById($parameters['fileUser']);
@@ -76,6 +79,9 @@ class Notifier implements INotifier {
 			->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')))
 			->setLink($this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $fileUser->getUuid()]));
 		$notification->setParsedSubject($l->t('There is a file for you to sign'));
+		if ($update) {
+			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
+		}
 
 		$signAction = $notification->createAction()
 			->setParsedLabel($l->t('View'))

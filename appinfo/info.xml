@@ -31,6 +31,7 @@
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
         <command>OCA\Libresign\Command\Configure\Cfssl</command>
+        <command>OCA\Libresign\Command\Developer\Reset</command>
         <command>OCA\Libresign\Command\Install</command>
         <command>OCA\Libresign\Command\Uninstall</command>
     </commands>
