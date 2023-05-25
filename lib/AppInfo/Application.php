@@ -36,7 +36,6 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function register(IRegistrationContext $context): void {
-		include_once __DIR__ . '/../../vendor/autoload.php';
 		$context->registerMiddleWare(InjectionMiddleware::class);
 
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
