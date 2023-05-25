@@ -27,8 +27,10 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -39,23 +41,20 @@ class Account extends AbstractIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private IUserManager $userManager,
-		protected MailService $mail
+		private IEventDispatcher $eventDispatcher,
+		private MailService $mail
 	) {
 		parent::__construct();
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
 
 	public function notify(bool $isNew, FileUser $fileUser): void {
-		if ($this->entity->getIdentifierKey() === 'uid') {
-			/**
-			 * @todo Use nextcloud notification service to respect user notification policy
-			 */
-			$user = $this->userManager->get($this->entity->getIdentifierValue());
-			if ($isNew) {
-				$this->mail->notifyUnsignedUser($fileUser, $user->getEMailAddress());
-				return;
-			}
-			$this->mail->notifySignDataUpdated($fileUser, $user->getEMailAddress());
+		if ($this->entity->getIdentifierKey() === 'account') {
+			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
+				$fileUser,
+				$this,
+				$isNew
+			));
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
 			if ($isNew) {
 				$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
@@ -66,7 +65,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function validate(): void {
-		if ($this->entity->getIdentifierKey() === 'uid') {
+		if ($this->entity->getIdentifierKey() === 'account') {
 			$user = $this->userManager->get($this->entity->getIdentifierValue());
 			if (!$user) {
 				throw new LibresignException($this->l10n->t('User not found.'));
