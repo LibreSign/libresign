@@ -27,11 +27,14 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	protected string $name;
-	public function __construct() {
+	public function __construct(
+		private IdentifyMethodMapper $identifyMethodMapper
+	) {
 		$this->entity = new IdentifyMethod();
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
@@ -46,7 +49,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->entity;
 	}
 
-	public function notify(bool $isNew, FileUser $fileUser): void {
+	public function notify(bool $isNew): void {
 	}
 
 	public function validate(): void {
@@ -59,5 +62,15 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'mandatory' => true,
 			'can_be_used' => true,
 		];
+	}
+
+	public function save(): void {
+		if ($this->getEntity()->getId()) {
+			$this->identifyMethodMapper->update($this->getEntity());
+			$this->notify(false);
+		} else {
+			$this->identifyMethodMapper->insert($this->getEntity());
+			$this->notify(true);
+		}
 	}
 }
