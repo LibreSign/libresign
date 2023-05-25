@@ -25,13 +25,13 @@ declare(strict_types=1);
 namespace OCA\Libresign\Events;
 
 use OCA\Libresign\Db\FileUser;
-use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
 
 class SendSignNotificationEvent extends Event {
 	public function __construct(
 		private FileUser $fileUser,
-		private AbstractIdentifyMethod $identifyMethod,
+		private IIdentifyMethod $identifyMethod,
 		private bool $isNew
 	) {
 	}
@@ -44,7 +44,7 @@ class SendSignNotificationEvent extends Event {
 		return $this->isNew;
 	}
 
-	public function getIdentifyMethod(): AbstractIdentifyMethod {
+	public function getIdentifyMethod(): IIdentifyMethod {
 		return $this->identifyMethod;
 	}
 }
