@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
 use OCP\IL10N;
@@ -34,13 +36,16 @@ use OCP\IURLGenerator;
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
 		private IL10N $l10n,
-		protected MailService $mail,
+		private MailService $mail,
+		private FileUserMapper $fileUserMapper,
+		private IdentifyMethodMapper $identifyMethodMapper,
 		private IURLGenerator $urlGenerator
 	) {
-		parent::__construct();
+		parent::__construct($identifyMethodMapper);
 	}
 
-	public function notify(bool $isNew, FileUser $fileUser): void {
+	public function notify(bool $isNew): void {
+		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
 		if ($isNew) {
 			$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
 			return;
