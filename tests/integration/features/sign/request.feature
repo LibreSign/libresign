@@ -227,5 +227,8 @@ Feature: request-signature
       | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer2"}}] |
       | name | document |
     Then the response should have a status code 200
+    And user signer2 has the following notifications
+      | app       | object_type | object_id | subject                         |
+      | libresign | sign        | pdf       | There is a file for you to sign |
     And there should be 1 emails in my inbox
     And I should see an email with subject "LibreSign: There is a file for you to sign"

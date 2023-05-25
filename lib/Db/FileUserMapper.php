@@ -82,7 +82,7 @@ class FileUserMapper extends QBMapper {
 	public function getByIdentifyMethodAndFileId(array $identifyMethods, int $fileId): \OCP\AppFramework\Db\Entity {
 		foreach ($identifyMethods as $identifyMethod) {
 			$qb = $this->db->getQueryBuilder();
-			$qb->select('*')
+			$qb->select('fu.*')
 				->from($this->getTableName(), 'fu')
 				->join('fu', 'libresign_identify_method', 'im', 'fu.file_id = im.file_user_id')
 				->where($qb->expr()->eq('im.method', $qb->createNamedParameter($identifyMethod->getEntity()->getMethod())))
