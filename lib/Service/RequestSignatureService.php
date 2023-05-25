@@ -33,6 +33,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
@@ -69,7 +70,7 @@ class RequestSignatureService {
 		$this->saveVisibleElements($data, $file);
 		$return['uuid'] = $file->getUuid();
 		$return['nodeId'] = $file->getNodeId();
-		$return['users'] = $this->associateToUsers($data, $file->getId());
+		$return['users'] = $this->associateToSigners($data, $file->getId());
 		return $return;
 	}
 
@@ -130,14 +131,12 @@ class RequestSignatureService {
 	 *
 	 * @psalm-return list<FileUserEntity>
 	 */
-	private function associateToUsers(array $data, int $fileId): array {
+	private function associateToSigners(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
-				$this->identifyMethod->setAllEntityData($user);
-				$defaultIdentifyMethodEntity = $this->identifyMethod->getDefaultEntity();
 				$fileUser = $this->getFileUserByIdentifyMethod(
-					$defaultIdentifyMethodEntity,
+					$this->identifyMethod->getByUserData($user['identify']),
 					$fileId
 				);
 				$this->setDataToUser($fileUser, $user, $fileId);
@@ -184,7 +183,6 @@ class RequestSignatureService {
 		}
 		foreach ($data['users'] as $user) {
 			$this->identifyMethod->setAllEntityData($user);
-			$this->identifyMethod->validateToRequestToSign($user);
 		}
 	}
 
@@ -213,11 +211,11 @@ class RequestSignatureService {
 	}
 
 	/**
-	 * @psalm-suppress MixedReturnStatement
+	 * @param array<IdentifyMethod> $identifyMethods
 	 */
-	private function getFileUserByIdentifyMethod(IdentifyMethod $identifyMethod, int $fileId): FileUserEntity {
+	private function getFileUserByIdentifyMethod(array $identifyMethods, int $fileId): FileUserEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
+			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethods, $fileId);
 		} catch (DoesNotExistException $e) {
 			$fileUser = new FileUserEntity();
 		}

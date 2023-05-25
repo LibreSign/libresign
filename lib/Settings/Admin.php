@@ -19,7 +19,7 @@ class Admin implements ISettings {
 		Util::addScript(Application::APP_ID, 'libresign-settings');
 		$this->initialState->provideInitialState(
 			'identify_methods',
-			$this->identifyMethodService->getAdminInitialState()
+			$this->identifyMethodService->getIdentifyMethodsSettings()
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
