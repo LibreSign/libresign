@@ -3,7 +3,7 @@
 namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
-use OCA\Libresign\Event\SignedEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
