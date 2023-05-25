@@ -109,7 +109,7 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @return array<IdentifyMethod>
+	 * @return array<IIdentifyMethod>
 	 */
 	public function getByUserData(array $data) {
 		$return = [];

@@ -33,7 +33,6 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
@@ -135,13 +134,17 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
+				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
 				$fileUser = $this->getFileUserByIdentifyMethod(
-					$this->identifyMethod->getByUserData($user['identify']),
+					$identifyMethods,
 					$fileId
 				);
 				$this->setDataToUser($fileUser, $user, $fileId);
 				$this->saveFileUser($fileUser);
-				$this->identifyMethod->save($fileUser);
+				foreach ($identifyMethods as $identifyMethod) {
+					$identifyMethod->getEntity()->setFileUserId($fileUser->getId());
+					$identifyMethod->save();
+				}
 				$return[] = $fileUser;
 			}
 		}
