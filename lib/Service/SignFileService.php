@@ -13,7 +13,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
-use OCA\Libresign\Event\SignedEvent;
+use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
