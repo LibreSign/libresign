@@ -25,12 +25,12 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethod;
 
 interface IIdentifyMethod {
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
-	public function notify(bool $isNew, FileUser $fileUser): void;
+	public function notify(bool $isNew): void;
 	public function validate(): void;
+	public function save(): void;
 }

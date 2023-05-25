@@ -26,7 +26,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
@@ -41,14 +42,17 @@ class Account extends AbstractIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private IUserManager $userManager,
+		private FileUserMapper $fileUserMapper,
 		private IEventDispatcher $eventDispatcher,
+		private IdentifyMethodMapper $identifyMethodMapper,
 		private MailService $mail
 	) {
-		parent::__construct();
+		parent::__construct($identifyMethodMapper);
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
 
-	public function notify(bool $isNew, FileUser $fileUser): void {
+	public function notify(bool $isNew): void {
+		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
 				$fileUser,
