@@ -2,7 +2,7 @@
 
 namespace OCA\Libresign\Listener;
 
-use OCA\Libresign\Event\ASignedEvent;
+use OCA\Libresign\Events\ASignedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
