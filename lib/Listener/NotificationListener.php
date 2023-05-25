@@ -27,7 +27,7 @@ namespace OCA\Libresign\Listener;
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Events\SendSignNotificationEvent;
-use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -55,7 +55,7 @@ class NotificationListener implements IEventListener {
 
 	private function sendNewSignNotification(
 		FileUser $fileUser,
-		AbstractIdentifyMethod $identifyMethod,
+		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
 		$notification = $this->notificationManager->createNotification();
