@@ -20,7 +20,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public static function beforeSuite(): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
-		$command = 'runuser -u ' . $owner['name'] . ' php ' . $console . ' libresign:developer:reset';
+		$command = 'runuser -u ' . $owner['name'] . ' -- php ' . $console . ' libresign:developer:reset --all';
 		exec($command, $output);
 	}
 
