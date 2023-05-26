@@ -231,4 +231,4 @@ Feature: request-signature
       | app       | object_type | object_id | subject                         |
       | libresign | sign        | pdf       | There is a file for you to sign |
     And there should be 1 emails in my inbox
-    And I should see an email with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
