@@ -574,23 +574,24 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
 
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$identifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
-			return $identifyMethod->getMethod() === $currentIdentifyMethod;
-		});
-		if (!$identifyMethod) {
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
-		}
-		$identifyMethod = current($identifyMethod);
+		// @todo implement this logic to validate the identify method, the follow code is complex and dont work
+		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		// $identifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
+		// 	return $identifyMethod->getMethod() === $currentIdentifyMethod;
+		// });
+		// if (!$identifyMethod) {
+		// 	throw new LibresignException($this->l10n->t('Invalid identification method'));
+		// }
+		// $identifyMethod = current($identifyMethod);
 
-		switch ($identifyMethod->getEntity->getMethod()) {
-			case IdentifyMethodService::IDENTIFY_SMS:
-			case IdentifyMethodService::IDENTIFY_TELEGRAM:
-			case IdentifyMethodService::IDENTIFY_SIGNAL:
-			case IdentifyMethodService::IDENTIFY_EMAIL:
-				$this->valdateCode($fileUser, $params);
-				break;
-		}
+		// switch ($identifyMethod->getEntity->getMethod()) {
+		// 	case IdentifyMethodService::IDENTIFY_SMS:
+		// 	case IdentifyMethodService::IDENTIFY_TELEGRAM:
+		// 	case IdentifyMethodService::IDENTIFY_SIGNAL:
+		// 	case IdentifyMethodService::IDENTIFY_EMAIL:
+		// 		$this->valdateCode($fileUser, $params);
+		// 		break;
+		// }
 	}
 
 	public function validateIdentifyMethods(array $identifyMethods): void {

@@ -25,25 +25,26 @@ class NotifyService {
 			$this->validateHelper->signerWasAssociated($signer);
 			$this->validateHelper->notSigned($signer);
 		}
-		$fileUsers = $this->fileUserMapper->getByNodeId($nodeId);
-		foreach ($fileUsers as $fileUser) {
-			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-			$identifyMethod = array_reduce($identifyMethods, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
-				foreach ($signers as $signer) {
-					$key = key($signer);
-					$value = current($signer);
-					$entity = $identifyMethod->getEntity();
-					if ($entity->getIdentifierKey() === $key
-						&& $entity->getIdentifierValue() === $value
-					) {
-						return $identifyMethod;
-					}
-				}
-				return $carry;
-			});
-			if ($identifyMethod instanceof IIdentifyMethod) {
-				$identifyMethod->notify(false, $fileUser);
-			}
-		}
+		// @todo refactor this code
+		// $fileUsers = $this->fileUserMapper->getByNodeId($nodeId);
+		// foreach ($fileUsers as $fileUser) {
+		// 	$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		// 	$identifyMethod = array_reduce($identifyMethods, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
+		// 		foreach ($signers as $signer) {
+		// 			$key = key($signer);
+		// 			$value = current($signer);
+		// 			$entity = $identifyMethod->getEntity();
+		// 			if ($entity->getIdentifierKey() === $key
+		// 				&& $entity->getIdentifierValue() === $value
+		// 			) {
+		// 				return $identifyMethod;
+		// 			}
+		// 		}
+		// 		return $carry;
+		// 	});
+		// 	if ($identifyMethod instanceof IIdentifyMethod) {
+		// 		$identifyMethod->notify(false, $fileUser);
+		// 	}
+		// }
 	}
 }

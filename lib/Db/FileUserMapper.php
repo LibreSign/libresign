@@ -76,21 +76,16 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	/**
-	 * @param array<IIdentifyMethod> $identifyMethods
-	 */
-	public function getByIdentifyMethodAndFileId(array $identifyMethods, int $fileId): \OCP\AppFramework\Db\Entity {
-		foreach ($identifyMethods as $identifyMethod) {
-			$qb = $this->db->getQueryBuilder();
-			$qb->select('fu.*')
-				->from($this->getTableName(), 'fu')
-				->join('fu', 'libresign_identify_method', 'im', 'fu.file_id = im.file_user_id')
-				->where($qb->expr()->eq('im.method', $qb->createNamedParameter($identifyMethod->getEntity()->getMethod())))
-				->andWhere($qb->expr()->eq('im.identifier_key', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierKey())))
-				->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierValue())))
-				->andWhere($qb->expr()->eq('fu.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
-			return $this->findEntity($qb);
-		}
+	public function getByIdentifyMethodAndFileId(IIdentifyMethod $identifyMethod, int $fileId): \OCP\AppFramework\Db\Entity {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('fu.*')
+			->from($this->getTableName(), 'fu')
+			->join('fu', 'libresign_identify_method', 'im', 'fu.file_id = im.file_user_id')
+			->where($qb->expr()->eq('im.method', $qb->createNamedParameter($identifyMethod->getEntity()->getMethod())))
+			->andWhere($qb->expr()->eq('im.identifier_key', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierKey())))
+			->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierValue())))
+			->andWhere($qb->expr()->eq('fu.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
+		return $this->findEntity($qb);
 	}
 
 	/**
