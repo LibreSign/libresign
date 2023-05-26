@@ -203,8 +203,10 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And there should be 1 emails in my inbox
-    And I should see an email with subject "LibreSign: There is a file for you to sign"
+    And user signer1 has the following notifications
+      | app       | object_type | object_id | subject                         |
+      | libresign | sign        | pdf       | There is a file for you to sign |
+    And there should be 0 emails in my inbox
 
   Scenario: Request to sign with success using email as identifier
     Given as user "admin"
@@ -216,7 +218,7 @@ Feature: request-signature
       | name | document |
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
-    And I should see an email with subject "LibreSign: There is a file for you to sign"
+    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
   Scenario: Request to sign with success using multiple users
     Given as user "admin"
