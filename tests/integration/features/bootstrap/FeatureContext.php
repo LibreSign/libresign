@@ -33,7 +33,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function theSignerHaveAFileToSign(string $signer): void {
 		$this->setCurrentUser($signer);
-		$this->sendRequest('get', '/apps/libresign/api/v1/file/list');
+		$this->sendOCSRequest('get', '/apps/libresign/api/v1/file/list');
 		$response = json_decode($this->response->getBody()->getContents(), true);
 		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
 		$this->signer = [];
