@@ -132,11 +132,6 @@ class IdentifyMethodService {
 			?? IdentifyMethodService::IDENTIFY_ACCOUNT;
 	}
 
-	public function getDefaultEntity(): IdentifyMethod {
-		$identifyMethodName = $this->getDefaultIdentifyMethodName();
-		return $this->getIdentifyMethod($identifyMethodName)->getEntity();
-	}
-
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
 		$default = array_filter($identifyMethods, function (IdentifyMethod $current): bool {
@@ -153,12 +148,12 @@ class IdentifyMethodService {
 	}
 
 	/**
-	 * @return array<IIdentifyMethod>
+	 * @return array<string,array<IIdentifyMethod>>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
 		foreach ($entities as $entity) {
-			$identifyMethod = $this->getIdentifyMethod($entity->getMethod());
+			$identifyMethod = $this->newInstanceOfIdentifyMethod($entity->getMethod());
 			$identifyMethod->setEntity($entity);
 		}
 		return $this->identifyMethods;
