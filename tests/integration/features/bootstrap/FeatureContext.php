@@ -20,7 +20,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public static function beforeSuite(): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
-		$command = 'runuser -u ' . $owner['name'] . ' php ' . $console . ' libresign:developer:reset';
+		$command = 'runuser -u ' . $owner['name'] . ' -- php ' . $console . ' libresign:developer:reset --all';
 		exec($command, $output);
 	}
 
@@ -33,7 +33,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function theSignerHaveAFileToSign(string $signer): void {
 		$this->setCurrentUser($signer);
-		$this->sendRequest('get', '/apps/libresign/api/v1/file/list');
+		$this->sendOCSRequest('get', '/apps/libresign/api/v1/file/list');
 		$response = json_decode($this->response->getBody()->getContents(), true);
 		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
 		$this->signer = [];
@@ -107,7 +107,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
 				$actual = json_encode($actual);
 			}
-			Assert::assertEquals($value['value'], $actual);
+			Assert::assertEquals($value['value'], $actual, sprintf('The actual value of key "%s" is different of expected', $value['key']));
 		}
 	}
 
