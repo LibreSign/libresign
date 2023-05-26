@@ -52,17 +52,11 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Request signature
 	 *
 	 * Request that a file be signed by a group of people
-	 *
-	 * @param array $file
-	 * @param array $users
-	 * @param string $name
-	 * @param string|null $callback
-	 * @return JSONResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1) {
+	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1): JSONResponse {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
@@ -96,15 +90,10 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
-	/**
-	 * @param string $uuid
-	 * @param array $users
-	 * @return JSONResponse
-	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null) {
+	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null): JSONResponse {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
@@ -145,7 +134,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId) {
+	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId): JSONResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -176,7 +165,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function deleteAllRequestSignatureUsingFileId(int $fileId) {
+	public function deleteAllRequestSignatureUsingFileId(int $fileId): JSONResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
