@@ -107,7 +107,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
 				$actual = json_encode($actual);
 			}
-			Assert::assertEquals($value['value'], $actual);
+			Assert::assertEquals($value['value'], $actual, sprintf('The actual value of key "%s" is different of expected', $value['key']));
 		}
 	}
 
