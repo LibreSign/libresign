@@ -174,16 +174,17 @@ class AccountService {
 		$newUser->setDisplayName($fileUser->getDisplayName());
 		$newUser->setSystemEMailAddress($email);
 
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		foreach ($identifyMethods as $name => $identifyMethod) {
-			if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-				$entity = $identifyMethod->getEntity();
-				if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-					$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
-					$this->identifyMethodService->save($fileUser, false);
-				}
-			}
-		}
+		// @todo implement this logic, the follow code is complex and dont work
+		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		// foreach ($identifyMethods as $name => $identifyMethod) {
+		// 	if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+		// 		$entity = $identifyMethod->getEntity();
+		// 		if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+		// 			$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
+		// 			$this->identifyMethodService->save($fileUser, false);
+		// 		}
+		// 	}
+		// }
 
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
