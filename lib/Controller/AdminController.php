@@ -120,7 +120,7 @@ class AdminController extends Controller {
 	}
 
 	#[NoAdminRequired]
-	public function downloadStatus(): dataResponse {
+	public function downloadStatus(): DataResponse {
 		$return = $this->installService->getTotalSize();
 		return new DataResponse($return);
 	}
