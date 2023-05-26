@@ -30,9 +30,9 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUser as FileUserEntity;
 use OCA\Libresign\Db\FileUserMapper;
-use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClientService;
@@ -136,7 +136,7 @@ class RequestSignatureService {
 			foreach ($data['users'] as $user) {
 				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
 				$fileUser = $this->getFileUserByIdentifyMethod(
-					$identifyMethods,
+					current($identifyMethods),
 					$fileId
 				);
 				$this->setDataToUser($fileUser, $user, $fileId);
@@ -213,12 +213,9 @@ class RequestSignatureService {
 		}
 	}
 
-	/**
-	 * @param array<IdentifyMethod> $identifyMethods
-	 */
-	private function getFileUserByIdentifyMethod(array $identifyMethods, int $fileId): FileUserEntity {
+	private function getFileUserByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): FileUserEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethods, $fileId);
+			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
 		} catch (DoesNotExistException $e) {
 			$fileUser = new FileUserEntity();
 		}
