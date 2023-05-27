@@ -18,10 +18,14 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeSuite
 	 */
 	public static function beforeSuite(): void {
+		self::runCommand('libresign:developer:reset --all');
+	}
+
+	public static function runCommand($command): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
-		$command = 'runuser -u ' . $owner['name'] . ' -- php ' . $console . ' libresign:developer:reset --all';
-		exec($command, $output);
+		$fullCommand = 'runuser -u ' . $owner['name'] . ' -- php ' . $console . ' ' . $command;
+		exec($fullCommand, $output);
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
@@ -124,6 +128,13 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 
 		$this->sendRequest('get', '/apps/libresign/p/sign/' . $matches['uuid']);
+	}
+
+	/**
+	 * @When reset notifications of user :user
+	 */
+	public function resetNotifications($user): void {
+		self::runCommand('libresign:developer:reset --notifications=' . $user);
 	}
 
 	/**
