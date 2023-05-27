@@ -250,12 +250,6 @@
     "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User created!" : "사용자가 생성되었습니다!",
     "Password created!" : "암호가 생성되었습니다!",
-    "Open in LibreSign" : "LibreSign으로 열기",
-    "File type: %s. Inform URL or base64 or fileID." : "파일 형식: %s URL 또는 base64 또는 fileID를 알려주십시오.",
-    "Select authorized groups." : "권한 있는 그룹을 선택하십시오.",
-    "Country (C)" : "국가 (C)",
-    "Organization (O)" : "조직 (O)",
-    "Organization Unit (OU)" : "조직 단위 (OU)",
-    "To validate signature of the documents" : "문서의 서명을 확인하기 위해"
+    "Open in LibreSign" : "LibreSign으로 열기"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

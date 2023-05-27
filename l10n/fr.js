@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "Utilisateur créé !",
     "Password created!" : "Mot de passe créé !",
     "Open in LibreSign" : "Ouvrir dans LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Type de fichier: %s. Renseignez l'URL, l'équivalent Base64 ou l'identifiant de fichier.",
-    "Allowed to sign document" : "Autorisé à signer le document",
-    "Select authorized groups." : "Sélectionner les groupes autorisés.",
-    "Tip" : "Astuce",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Exécutables nécessaires au fonctionnement. La taille de téléchargement peut être proche de 340 Mo, merci de patienter un moment.",
-    "Country (C)" : "Pays (C)",
-    "Organization (O)" : "Organisation (O)",
-    "Organization Unit (OU)" : "Unité d'organisation (UO)",
-    "To validate signature of the documents" : "Pour valider la signature des documents",
     "Collect signers metadata when sign a document" : "Collecter les métadonnées sur les signataires lors de la signature d'un document.",
     "Collect signers metadata" : "Collecter les métadonnées des signataires",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "En activant cette fonctionnalité, chaque fois qu'un utilisateur signe un document, LibreSign enregistrera l'adresse IP et l'agent utilisateur du signataire."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "En activant cette fonctionnalité, chaque fois qu'un utilisateur signe un document, LibreSign enregistrera l'adresse IP et l'agent utilisateur du signataire.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Exécutables nécessaires au fonctionnement. La taille de téléchargement peut être proche de 340 Mo, merci de patienter un moment."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -27,10 +27,6 @@
     "No date" : "ရက်စွဲမပါ",
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
     "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
-    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
-    "Select authorized groups." : "ခွင့်ပြုချက်ရှိ အဖွဲ့များရွေးပါ။",
-    "Country (C)" : "နိုင်ငံ (C)",
-    "Organization (O)" : "အဖွဲ့အစည်း (O)",
-    "Organization Unit (OU)" : "အဖွဲ့အစည်း ယူနစ် (OU)"
+    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

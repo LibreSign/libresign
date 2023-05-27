@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "Benutzer erstellt!",
     "Password created!" : "Passwort erstellt",
     "Open in LibreSign" : "In LibreSign öffnen",
-    "File type: %s. Inform URL or base64 or fileID." : "Dateityp: %s. Inform-URL oder Base64 oder fileID.",
-    "Allowed to sign document" : "Signierung des Dokumentes erlaubt",
-    "Select authorized groups." : "Autorisierte Gruppen wählen",
-    "Tip" : "Tipp",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte warte einen Moment.",
-    "Country (C)" : "Land (C)",
-    "Organization (O)" : "Organisation (O)",
-    "Organization Unit (OU)" : "Organisationseinheit (OU)",
-    "To validate signature of the documents" : "Um die Signatur der Dokumente zu validieren, ",
     "Collect signers metadata when sign a document" : "Metadaten von Unterzeichnern beim Signieren von Dokumenten sammeln",
     "Collect signers metadata" : "Matadaten der Unterzeichner sammeln",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ist diese Funktion aktiviert, speichert LibreSign jedes Mal, wenn ein Dokument signiert wird, die IP und den Benutzeragenten des Unterzeichners."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ist diese Funktion aktiviert, speichert LibreSign jedes Mal, wenn ein Dokument signiert wird, die IP und den Benutzeragenten des Unterzeichners.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte warte einen Moment."
 },
 "nplurals=2; plural=(n != 1);");

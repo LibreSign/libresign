@@ -307,17 +307,9 @@
     "User created!" : "使用者已建立！",
     "Password created!" : "已建立密碼！",
     "Open in LibreSign" : "在 LibreSign 中開啟",
-    "File type: %s. Inform URL or base64 or fileID." : "檔案類型：%s。通知 URL 或 base64 或 fileID。",
-    "Allowed to sign document" : "允許簽署文件",
-    "Select authorized groups." : "選取已授權的群組。",
-    "Tip" : "訣竅",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。",
-    "Country (C)" : "國家 (C)",
-    "Organization (O)" : "組織 (O)",
-    "Organization Unit (OU)" : "組織部門 (OU)",
-    "To validate signature of the documents" : "驗證文件簽章",
     "Collect signers metadata when sign a document" : "簽署文件時蒐集簽署者的詮釋資料",
     "Collect signers metadata" : "蒐集簽署者的詮釋資料",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "若啟用此功能，LibreSign 將在簽署文件時儲存簽署者的 IP 與使用者代理字串。"
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "若啟用此功能，LibreSign 將在簽署文件時儲存簽署者的 IP 與使用者代理字串。",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

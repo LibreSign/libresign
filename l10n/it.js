@@ -269,12 +269,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Devi creare un account per firmare questo file.",
     "User created!" : "Utente creato!",
     "Password created!" : "Password creato!",
-    "Open in LibreSign" : "Apri in LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Tipo di file: %s. Informa URL o base64 o fileID.",
-    "Select authorized groups." : "Seleziona gruppi autorizzati.",
-    "Country (C)" : "Nazione (C)",
-    "Organization (O)" : "Organizzazione (O)",
-    "Organization Unit (OU)" : "Unità organizzativa (OU)",
-    "To validate signature of the documents" : "Per convalidare la firma dei documenti"
+    "Open in LibreSign" : "Apri in LibreSign"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -289,14 +289,6 @@ OC.L10N.register(
     "User created!" : "Erabiltzailea sortuta!",
     "Password created!" : "Pasahitza sortu da!",
     "Open in LibreSign" : "Ireki LibreSign-en",
-    "File type: %s. Inform URL or base64 or fileID." : "Fitxategi mota: %s. Idatzi URL edo base64 edo fileID.",
-    "Allowed to sign document" : "Dokumentua sinatzeko baimenduta",
-    "Select authorized groups." : "Hautatu baimendutako taldeak.",
-    "Tip" : "Argibidea",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez.",
-    "Country (C)" : "Herrialdea (C)",
-    "Organization (O)" : "Erakundea (O)",
-    "Organization Unit (OU)" : "Erakunde Atala (OU)",
-    "To validate signature of the documents" : "Dokumentuen sinadura egiaztatzeko"
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez."
 },
 "nplurals=2; plural=(n != 1);");

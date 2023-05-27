@@ -83,7 +83,6 @@ OC.L10N.register(
     "Validate Subscription." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!",
-    "Country (C)" : "Χώρα (Χ)"
+    "User created!" : "Ο χρήστης δημιουργήθηκε!"
 },
 "nplurals=2; plural=(n != 1);");
