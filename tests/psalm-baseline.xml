@@ -90,6 +90,12 @@
       <code>private</code>
     </MissingDependency>
   </file>
+  <file src="lib/Service/IdentifyMethod/Account.php">
+    <MissingDependency occurrences="2">
+      <code>$this-&gt;rootFolder</code>
+      <code>private</code>
+    </MissingDependency>
+  </file>
   <file src="lib/Service/InstallService.php">
     <MissingDependency occurrences="3">
       <code>$this-&gt;rootFolder</code>
