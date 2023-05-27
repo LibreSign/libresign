@@ -17,6 +17,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -512,6 +513,33 @@ class ValidateHelper {
 			$this->fileMapper->getByUuid($data['uuid']);
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('Invalid UUID file'));
+		}
+	}
+
+	public function validateSigner(string $uuid, ?IUser $user = null): void {
+		$this->validateSignerUuidExists($uuid);
+		$this->validateIdentifyMethod($uuid, $user);
+	}
+
+	public function validateIdentifyMethod(string $uuid, ?IUser $user = null): void {
+		$fileUser = $this->fileUserMapper->getByUuid($uuid);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		foreach ($identifyMethods as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$identifyMethod->validateToSign($user);
+			}
+		}
+	}
+
+	private function validateSignerUuidExists(string $uuid): void {
+		try {
+			$fileUser = $this->fileUserMapper->getByUuid($uuid);
+			$this->fileMapper->getById($fileUser->getFileId());
+		} catch (DoesNotExistException $e) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]));
 		}
 	}
 
