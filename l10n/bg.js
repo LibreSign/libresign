@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "Потребителят е създаден!",
     "Password created!" : "Паролата е създадена! ",
     "Open in LibreSign" : "Отваряне в LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Тип на файла: %s. Информирайте URL или base64 или идентификатор на файла.",
-    "Allowed to sign document" : "Подписването на документа е разрешено",
-    "Select authorized groups." : "Избор на оторизирани групи.",
-    "Tip" : "Пояснение",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко.",
-    "Country (C)" : "Държава (C)",
-    "Organization (O)" : "Организация (O)",
-    "Organization Unit (OU)" : "Отдел в организацията (OU)",
-    "To validate signature of the documents" : "За проверка на подписа на документите",
     "Collect signers metadata when sign a document" : "Събиране на метаданни на подписващите при подписване на документ",
     "Collect signers metadata" : "Събиране на метаданни на подписващите",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко."
 },
 "nplurals=2; plural=(n != 1);");

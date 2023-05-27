@@ -265,12 +265,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
     "User created!" : "Gebruiker aangemaakt!",
     "Password created!" : "Wachtwoord gecreëerd!",
-    "Open in LibreSign" : "Openen in LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Bestandstype: %s. Informeer URL of base64 of fileID.",
-    "Select authorized groups." : "Selecteer geautoriseerde groepen.",
-    "Country (C)" : "Land (C)",
-    "Organization (O)" : "Organisatie (O)",
-    "Organization Unit (OU)" : "Organization Unit (OU)",
-    "To validate signature of the documents" : "Om handtekening van documenten te valideren"
+    "Open in LibreSign" : "Openen in LibreSign"
 },
 "nplurals=2; plural=(n != 1);");

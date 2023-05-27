@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "用戶創建了！",
     "Password created!" : "密碼創建了！",
     "Open in LibreSign" : "在 LibreSign 中打開",
-    "File type: %s. Inform URL or base64 or fileID." : "檔案類型：%s。通知 URL 或 base64 或 fileID。",
-    "Allowed to sign document" : "允許簽署文件",
-    "Select authorized groups." : "選擇已授權的群組。",
-    "Tip" : "提議",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。",
-    "Country (C)" : "國家（C）",
-    "Organization (O)" : "組織（O）",
-    "Organization Unit (OU)" : "組織部門（OU）",
-    "To validate signature of the documents" : "驗證文件簽名",
     "Collect signers metadata when sign a document" : "簽署文件時收集簽名者元數據",
     "Collect signers metadata" : "收集簽名者元數據",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "如果啟用此功能，LibreSign 將在簽署文件時存儲簽名者的 IP 和用戶代理。"
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "如果啟用此功能，LibreSign 將在簽署文件時存儲簽名者的 IP 和用戶代理。",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。"
 },
 "nplurals=1; plural=0;");

@@ -307,17 +307,9 @@
     "User created!" : "Kullanıcı eklendi!",
     "Password created!" : "Parola oluşturuldu!",
     "Open in LibreSign" : "LibreSign ile aç",
-    "File type: %s. Inform URL or base64 or fileID." : "Dosya türü: %s. Bilgilendirme adresi ya da base64 ya da dosya kodu.",
-    "Allowed to sign document" : "Belge imzalamasına izin verilenler",
-    "Select authorized groups." : "İzin verilen grupları seçin.",
-    "Tip" : "İpucu",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin.",
-    "Country (C)" : "Ülke (C)",
-    "Organization (O)" : "Kuruluş (O)",
-    "Organization Unit (OU)" : "Kuruluş birimi (OU)",
-    "To validate signature of the documents" : "Belgelerin imzalarını doğrulamak için",
     "Collect signers metadata when sign a document" : "Bir belge imzalanırken imzalayanın üst verileri alınsın",
     "Collect signers metadata" : "İmzalayanın üst verileri alınsın",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Bu seçenek etkinleştirildiğinde, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Bu seçenek etkinleştirildiğinde, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

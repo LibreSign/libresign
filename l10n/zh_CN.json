@@ -254,12 +254,6 @@
     "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
     "User created!" : "用户已创建！",
     "Password created!" : "已创建密码！",
-    "Open in LibreSign" : "在 LibreSign 中打开",
-    "File type: %s. Inform URL or base64 or fileID." : "文件类型：%s。告知 URL 或 base64 或 fileID",
-    "Select authorized groups." : "选择授权组",
-    "Country (C)" : "国家 (C)",
-    "Organization (O)" : "组织 (O)",
-    "Organization Unit (OU)" : "组织单位 (OU)",
-    "To validate signature of the documents" : "用于验证文档的签名"
+    "Open in LibreSign" : "在 LibreSign 中打开"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

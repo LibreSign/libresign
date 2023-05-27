@@ -307,17 +307,9 @@
     "User created!" : "User created!",
     "Password created!" : "Password created!",
     "Open in LibreSign" : "Open in LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "File type: %s. Inform URL or base64 or fileID.",
-    "Allowed to sign document" : "Allowed to sign document",
-    "Select authorized groups." : "Select authorised groups.",
-    "Tip" : "Tip",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binaries required to work. Could be near by 340Mb to download, wait a moment.",
-    "Country (C)" : "Country (C)",
-    "Organization (O)" : "Organization (O)",
-    "Organization Unit (OU)" : "Organization Unit (OU)",
-    "To validate signature of the documents" : "To validate signature of the documents",
     "Collect signers metadata when sign a document" : "Collect signers metadata when signing a document",
     "Collect signers metadata" : "Collect signers metadata",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "If this feature is enabled, LibreSign will store the IP and user agent of the signer when signing a document."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "If this feature is enabled, LibreSign will store the IP and user agent of the signer when signing a document.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binaries required to work. Could be near by 340Mb to download, wait a moment."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
