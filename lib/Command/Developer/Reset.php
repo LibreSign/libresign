@@ -56,7 +56,7 @@ class Reset extends Base {
 			)
 			->addOption('notifications',
 				null,
-				InputOption::VALUE_NONE,
+				InputOption::VALUE_OPTIONAL,
 				'Reset notifications'
 			)
 			->addOption('identify',
@@ -83,7 +83,7 @@ class Reset extends Base {
 		try {
 			$all = $input->getOption('all');
 			if ($input->getOption('notifications') || $all) {
-				$this->resetNotifications();
+				$this->resetNotifications((string) $input->getOption('notifications'));
 				$ok = true;
 			}
 			if ($input->getOption('identify') || $all) {
@@ -112,12 +112,15 @@ class Reset extends Base {
 		return 0;
 	}
 
-	private function resetNotifications(): void {
+	private function resetNotifications(string $user): void {
 		try {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('notifications')
-				->where($delete->expr()->eq('app', $delete->createNamedParameter(Application::APP_ID)))
-				->executeStatement();
+				->where($delete->expr()->eq('app', $delete->createNamedParameter(Application::APP_ID)));
+			if ($user) {
+				$delete->andWhere($delete->expr()->eq('user', $delete->createNamedParameter($user)));
+			}
+			$delete->executeStatement();
 		} catch (\Throwable $e) {
 		}
 	}
