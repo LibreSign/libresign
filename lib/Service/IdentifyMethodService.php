@@ -74,7 +74,7 @@ class IdentifyMethodService {
 	}
 
 	private function setEntityData(string $method, string $identifyValue): void {
-		// @todo Replace bv enum when PHP 8.1 is the minimum version acceptable
+		// @todo Replace by enum when PHP 8.1 is the minimum version acceptable
 		// at server. Check file lib/versioncheck.php of server repository
 		if (!in_array($method, IdentifyMethodService::IDENTIFY_METHODS)) {
 			// TRANSLATORS When is requested to a person to sign a file, is
@@ -89,7 +89,7 @@ class IdentifyMethodService {
 		$entity->setIdentifierValue($identifyValue);
 		$entity->setMandatory($this->isMandatoryMethod($method) ? 1 : 0);
 		$entity->setMethod($method);
-		$identifyMethod->validate();
+		$identifyMethod->validateToRequest();
 	}
 
 	public function setAllEntityData(array $user): void {
@@ -125,11 +125,6 @@ class IdentifyMethodService {
 			}
 		}
 		return $return;
-	}
-
-	public function getDefaultIdentifyMethodName(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'identify_method', IdentifyMethodService::IDENTIFY_ACCOUNT)
-			?? IdentifyMethodService::IDENTIFY_ACCOUNT;
 	}
 
 	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
