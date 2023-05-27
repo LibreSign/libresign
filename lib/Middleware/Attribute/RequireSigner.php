@@ -27,5 +27,5 @@ namespace OCA\Libresign\Middleware\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class RequireManager {
+class RequireSigner {
 }
