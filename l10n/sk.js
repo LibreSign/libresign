@@ -281,14 +281,6 @@ OC.L10N.register(
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
     "Open in LibreSign" : "Otvoriť v LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Typ súboru: %s. Inform URL alebo base64 alebo fileID.",
-    "Allowed to sign document" : "Povolené podpísať dokument",
-    "Select authorized groups." : "Vyberte povolené skupiny.",
-    "Tip" : "Tip",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu.",
-    "Country (C)" : "Krajina (C)",
-    "Organization (O)" : "Organizácia (O)",
-    "Organization Unit (OU)" : "Organizačná jednotka (OU)",
-    "To validate signature of the documents" : "Pre overenie podpisu dokumentov"
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu."
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

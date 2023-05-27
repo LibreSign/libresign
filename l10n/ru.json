@@ -225,12 +225,6 @@
     "You need to create an account to sign this file." : "Вам необходимо создать учетную запись, чтобы подписать этот файл.",
     "User created!" : "Пользователь создан",
     "Password created!" : "Пароль создан!",
-    "Open in LibreSign" : "Открыть в LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Тип файла: %s. Сообщите URL base64 или fileID.",
-    "Select authorized groups." : "Выберите авторизованные группы.",
-    "Country (C)" : "Страна (C)",
-    "Organization (O)" : "Организация (О)",
-    "Organization Unit (OU)" : "Подразделение (OU)",
-    "To validate signature of the documents" : "Для проверки подписи документов"
+    "Open in LibreSign" : "Открыть в LibreSign"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }

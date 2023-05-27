@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "Felhasználó létrehozva.",
     "Password created!" : "Jelszó létrehozva.",
     "Open in LibreSign" : "Megnyitás a LibreSignban",
-    "File type: %s. Inform URL or base64 or fileID." : "Fájltípus: %s. Egy URL-t, egy base64 karakterláncot vagy egy fájlazonosítót adjon meg.",
-    "Allowed to sign document" : "Aláírhatja a dokumentumot",
-    "Select authorized groups." : "Válassza ki az engedélyezett csoportokat.",
-    "Tip" : "Tip",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit.",
-    "Country (C)" : "Ország (C)",
-    "Organization (O)" : "Szervezet (O)",
-    "Organization Unit (OU)" : "Szervezeti egység (OU)",
-    "To validate signature of the documents" : "A dokumentumok aláírásának ellenőrzéséhez",
     "Collect signers metadata when sign a document" : "Az aláírók metaadatainak begyűjtése a dokumentum aláírásakor",
     "Collect signers metadata" : "Aláírók metaadatainak begyűjtése",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ha engedélyezi a funkciót, akkor a LibreSign eltárolja az aláíró IP-címét és felhasználói ügynökét, amikor dokumentumot ír alá. "
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ha engedélyezi a funkciót, akkor a LibreSign eltárolja az aláíró IP-címét és felhasználói ügynökét, amikor dokumentumot ír alá. ",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit."
 },
 "nplurals=2; plural=(n != 1);");

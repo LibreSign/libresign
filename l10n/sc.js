@@ -163,11 +163,6 @@ OC.L10N.register(
     "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
-    "Open in LibreSign" : "Aberi in LibreSign",
-    "Select authorized groups." : "Seletziona grupos autorizados.",
-    "Country (C)" : "Natzione (C)",
-    "Organization (O)" : "Organizatzione (O)",
-    "Organization Unit (OU)" : "Unidade organizativa (OU)",
-    "To validate signature of the documents" : "Para convalidar la firma de is documentos"
+    "Open in LibreSign" : "Aberi in LibreSign"
 },
 "nplurals=2; plural=(n != 1);");

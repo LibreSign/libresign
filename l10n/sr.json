@@ -307,17 +307,9 @@
     "User created!" : "Корисник је креиран!",
     "Password created!" : "Лозинка је креирана!",
     "Open in LibreSign" : "Отвори у LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Тип фајла: %s. Inform URL или base64 или fileID.",
-    "Allowed to sign document" : "Смеју да потпишу документ",
-    "Select authorized groups." : "Изаберите одобрене групе.",
-    "Tip" : "Савет",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Неопходни су бинарни фајлови за рад. Величина преузимања може бити скоро 340Mb, причекајте мало.",
-    "Country (C)" : "Земља (C)",
-    "Organization (O)" : "Организација (O)",
-    "Organization Unit (OU)" : "Организациона јединица (OU)",
-    "To validate signature of the documents" : "Да потврдите потпис докумената",
     "Collect signers metadata when sign a document" : "Сакупи метаподатке потписника када потписују овај документ",
     "Collect signers metadata" : "Прикупи метаподатке потписника",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Када се ова могућност укључи, сваки пут када се документ потписује, LibreSign ће сачувати IP адресу и кориснички агент потписника."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Када се ова могућност укључи, сваки пут када се документ потписује, LibreSign ће сачувати IP адресу и кориснички агент потписника.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Неопходни су бинарни фајлови за рад. Величина преузимања може бити скоро 340Mb, причекајте мало."
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

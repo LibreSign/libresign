@@ -104,8 +104,6 @@ OC.L10N.register(
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
-    "User created!" : "Utilizaire creat !",
-    "Country (C)" : "País (C)",
-    "Organization (O)" : "Organizacion (O)"
+    "User created!" : "Utilizaire creat !"
 },
 "nplurals=2; plural=(n > 1);");

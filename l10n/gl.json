@@ -307,17 +307,9 @@
     "User created!" : "Usuario creado!",
     "Password created!" : "Contrasinal creado!",
     "Open in LibreSign" : "Abrir en LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Tipo de ficheiro: %s. Informe URL ou base64 ou fileID.",
-    "Allowed to sign document" : "Permítese asinar o documento",
-    "Select authorized groups." : "Seleccione grupos autorizados.",
-    "Tip" : "Consello",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Os binarios son necesarios para funcionar. É necesario descargar preto de 340 Mb, agarda un momento.",
-    "Country (C)" : "País (C)",
-    "Organization (O)" : "Organización (O)",
-    "Organization Unit (OU)" : "Unidade organizativa (OU)",
-    "To validate signature of the documents" : "Para validar a sinatura dos documentos",
     "Collect signers metadata when sign a document" : "Recolle metadatos dos asinantes ao asinar un documento",
     "Collect signers metadata" : "Recoller metadatos dos asinantes",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ao activar esta función, cada vez que asine un documento, LibreSign almacenará a IP e o axente de usuario do asinante."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ao activar esta función, cada vez que asine un documento, LibreSign almacenará a IP e o axente de usuario do asinante.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Os binarios son necesarios para funcionar. É necesario descargar preto de 340 Mb, agarda un momento."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

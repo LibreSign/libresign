@@ -309,17 +309,9 @@ OC.L10N.register(
     "User created!" : "Uživatel vytvořen!",
     "Password created!" : "Heslo vytvořeno!",
     "Open in LibreSign" : "Otevřít v LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Typ souboru: %s. Informační URL nebo base64 nebo identif. souboru.",
-    "Allowed to sign document" : "Kdo může podepisovat dokumenty",
-    "Select authorized groups." : "Vybrat oprávněné skupiny.",
-    "Tip" : "Tip",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli.",
-    "Country (C)" : "Země (C)",
-    "Organization (O)" : "Organizace (O)",
-    "Organization Unit (OU)" : "Organizační jednotka (OU)",
-    "To validate signature of the documents" : "K ověření podpisu dokumentů",
     "Collect signers metadata when sign a document" : "Shromáždit při podepisování metadata o podepisujících",
     "Collect signers metadata" : "Shromáždit metadata o podepisujících",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli."
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

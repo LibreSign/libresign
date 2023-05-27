@@ -306,17 +306,9 @@
     "User created!" : "Usuari creat!",
     "Password created!" : "Contrasenya creada!",
     "Open in LibreSign" : "Obre a LibreSign",
-    "File type: %s. Inform URL or base64 or fileID." : "Tipus de fitxer: %s. Informeu l'URL o base64 o ID de fitxer.",
-    "Allowed to sign document" : "Permès signar document",
-    "Select authorized groups." : "Seleccioneu grups autoritzats.",
-    "Tip" : "Consell",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Els binaris necessaris per funcionar. Podria ser a prop de 340 Mb per baixar, espera un moment.",
-    "Country (C)" : "País (C)",
-    "Organization (O)" : "Organització (O)",
-    "Organization Unit (OU)" : "Unitat organitzativa (OU)",
-    "To validate signature of the documents" : "Per validar la signatura dels documents",
     "Collect signers metadata when sign a document" : "Recolliu metadades dels signants quan signeu un document",
     "Collect signers metadata" : "Recolliu metadades dels signants",
-    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Si activeu aquesta funció, cada vegada que signeu un document, LibreSign emmagatzemarà la IP i l'agent d'usuari del signant."
+    "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Si activeu aquesta funció, cada vegada que signeu un document, LibreSign emmagatzemarà la IP i l'agent d'usuari del signant.",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Els binaris necessaris per funcionar. Podria ser a prop de 340 Mb per baixar, espera un moment."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
