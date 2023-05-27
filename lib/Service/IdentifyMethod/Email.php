@@ -52,7 +52,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->mail->notifySignDataUpdated($fileUser, $this->getEntity()->getIdentifierValue());
 	}
 
-	public function validate(): void {
+	public function validateToRequest(): void {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}

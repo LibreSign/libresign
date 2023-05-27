@@ -64,7 +64,6 @@ class SignFileService {
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
 		private SignMethodService $signMethod,
-		private IdentifyMethodService $identifyMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager
 	) {
@@ -395,19 +394,8 @@ class SignFileService {
 		if (!$uuid) {
 			return $return;
 		}
-		try {
-			$fileUser = $this->fileUserMapper->getByUuid($uuid);
-			$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
-		} catch (DoesNotExistException $e) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			]));
-		}
-		$this->trhowIfCantIdentifyUser($uuid, $user, $fileUser);
-		$this->throwIfUserIsNotSigner($user, $fileUser);
-		$this->throwIfAlreadySigned($fileEntity, $fileUser);
-		$this->throwIfInvalidUser($uuid, $fileUser, $user);
+		$fileUser = $this->fileUserMapper->getByUuid($uuid);
+		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
 		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
 		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
 		if (count($fileToSign) < 1) {
@@ -461,28 +449,6 @@ class SignFileService {
 		return $return;
 	}
 
-	private function throwIfInvalidUser(string $uuid, FileUserEntity $fileUser, ?IUser $user): void {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$accountIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
-			return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT;
-		});
-		if (!count($accountIdentifyMethod)) {
-			return;
-		}
-		if (!$user) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
-				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.page.sign',
-						['uuid' => $uuid]
-					),
-				]),
-			]));
-		}
-	}
-
 	private function throwIfAlreadySigned(FileEntity $fileEntity, ?FileUserEntity $fileUser = null): void {
 		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
 			|| (!is_null($fileUser) && $fileUser->getSigned())
@@ -491,94 +457,6 @@ class SignFileService {
 				'action' => JSActions::ACTION_SHOW_ERROR,
 				'errors' => [$this->l10n->t('File already signed.')],
 				'uuid' => $fileEntity->getUuid(),
-			]));
-		}
-	}
-
-	/**
-	 * @todo validate here if is possible identify the user by identification methods
-	 */
-	private function trhowIfCantIdentifyUser(string $uuid, ?IUser $user, ?FileUserEntity $fileUser): void {
-		// @todo complex code, check if is necessary and what's the best implementation
-		// $identifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		// $maxAttempts = (int) $this->config->getAppValue(Application::APP_ID, 'max_attempts', 5);
-		// foreach ($identifyMethods as $identifyMethod) {
-		// 	$entity = $identifyMethod->getEntity();
-		// 	if ($entity->getIdentifiedAtDate()) {
-		// 		continue;
-		// 	}
-		// 	if ($entity->getAttempts() > $maxAttempts) {
-		// 		throw new LibresignException(json_encode([
-		// 			'action' => JSActions::ACTION_DO_NOTHING,
-		// 			'errors' => [$this->l10n->t('Exceeded identification attempts')],
-		// 		]));
-		// 	}
-		// 	/** @todo Validate identify method here if necessary */
-		// 	// $identifyMethod->validateContextBeforeSign($user, $fileUser);
-		// }
-		// if ($fileUser instanceof FileUserEntity) {
-		// 	$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		// 	$accountIdentifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod): bool {
-		// 		return $identifyMethod->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT;
-		// 	});
-		// 	if (count($accountIdentifyMethod)) {
-		// 		return;
-		// 	}
-		// }
-		// if ($user) {
-		// 	throw new LibresignException(json_encode([
-		// 		'action' => JSActions::ACTION_DO_NOTHING,
-		// 		'errors' => [$this->l10n->t('This is not your file')],
-		// 	]));
-		// }
-		// $identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		// $email = array_reduce($identifyMethods, function (string $carry, IdentifyMethod $identifyMethod): string {
-		// 	/**
-		// 	 * @todo go-horse to make working with implementation when is necessary to have an email
-		// 	 */
-		// 	if ($identifyMethod->getIdentifierKey() === 'uid') {
-		// 		return $identifyMethod->getIdentifierValue();
-		// 	} elseif ($identifyMethod->getIdentifierKey() === 'email') {
-		// 		return $identifyMethod->getIdentifierValue();
-		// 	}
-		// 	return $carry;
-		// }, '');
-		// if ($email && $this->userManager->getByEmail($email)) {
-		// 	throw new LibresignException(json_encode([
-		// 		'action' => JSActions::ACTION_REDIRECT,
-		// 		'errors' => [$this->l10n->t('User already exists. Please login.')],
-		// 		'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-		// 			'redirect_url' => $this->urlGenerator->linkToRoute(
-		// 				'libresign.page.sign',
-		// 				['uuid' => $uuid]
-		// 			),
-		// 		]),
-		// 	]));
-		// }
-		// throw new LibresignException(json_encode([
-		// 	'action' => JSActions::ACTION_CREATE_USER,
-		// 	'settings' => ['accountHash' => md5($email)],
-		// ]));
-	}
-
-	/**
-	 * @todo use the validation of identify methods
-	 */
-	private function throwIfUserIsNotSigner(?IUser $user, FileUserEntity $fileUser): void {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		$uid = array_reduce($identifyMethods, function (string $carry, IdentifyMethod $identifyMethod): string {
-			/**
-			 * @todo go-horse to make working with implementation when is necessary to have an email
-			 */
-			if ($identifyMethod->getIdentifierKey() === 'uid') {
-				return $identifyMethod->getIdentifierValue();
-			}
-			return $carry;
-		}, '');
-		if ($user && $uid !== $user->getUID()) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid user')],
 			]));
 		}
 	}
@@ -594,7 +472,7 @@ class SignFileService {
 			$return['sign']['description'] = $fileUser->getDescription();
 			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
 				return [
-					'default' => $identifyMethod->getDefault(),
+					'mandatory' => $identifyMethod->getMandatory(),
 					'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
 					'method' => $identifyMethod->getMethod(),
 				];

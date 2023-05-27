@@ -3,8 +3,8 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\AccountService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -21,7 +21,7 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
 
-class PageController extends Controller {
+class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
 		IRequest $request,
 		private IUserSession $userSession,
@@ -58,6 +58,7 @@ class PageController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireSigner]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
