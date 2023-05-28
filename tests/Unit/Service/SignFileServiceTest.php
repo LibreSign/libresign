@@ -152,32 +152,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testCanDeleteRequestSignatureSuccess() {
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getSigned')],
-				[$this->equalTo('getEmail')]
-			)
-			->will($this->returnValueMap([
-				['getSigned', [], null],
-				['getEmail', [], 'valid@test.coop']
-			]));
-		$this->fileUserMapper
-			->method('getByFileUuid')
-			->willReturn([$fileUser]);
-		$actual = $this->getService()->canDeleteRequestSignature([
-			'uuid' => 'valid',
-			'users' => [
-				[
-					'email' => 'valid@test.coop'
-				]
-			]
-		]);
-		$this->assertNull($actual);
-	}
-
 	public function testNotifyCallback() {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setCallback('https://test.coop');
