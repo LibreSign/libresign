@@ -134,6 +134,9 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
+				if (!array_key_exists('identify', $user)) {
+					throw new \Exception('Identify key not found');
+				}
 				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
 				$fileUser = $this->getFileUserByIdentifyMethod(
 					current($identifyMethods),

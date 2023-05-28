@@ -78,16 +78,12 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		foreach ($data['user'] as $value) {
-			foreach ($identifyMethods as $identifyMethod) {
-				if ($identifyMethod->getEntity()->getIdentifierValue() !== $value) {
-					throw new LibresignException($this->l10n->t('This is not your file'), 1);
-				}
-				if ($identifyMethod->getEntity()->getIdentifierKey() === 'email') {
-					if ($this->userManager->userExists($value)) {
-						throw new LibresignException($this->l10n->t('User already exists'), 1);
-					}
-				}
+		foreach ($data['user']['identify'] as $method => $value) {
+			if (!array_key_exists($method, $identifyMethods)) {
+				throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+			}
+			foreach ($identifyMethods[$method] as $identifyMethod) {
+				$identifyMethod->validateToCreateAccount($value);
 			}
 		}
 		if (empty($data['password'])) {
