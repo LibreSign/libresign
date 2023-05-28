@@ -22,7 +22,7 @@ Feature: request-signature
       | name | |
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key      | value                                                                      |
+      | key      | value               |
       | message  | "Name is mandatory" |
 
   Scenario: Request to sign with success using account as identifier
