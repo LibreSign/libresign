@@ -76,7 +76,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
-		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
@@ -101,7 +100,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->eventDispatcher,
 			$this->urlGenerator,
 			$this->signMethod,
-			$this->identifyMethod,
 			$this->identifyMethodMapper,
 			$this->tempManager
 		);
