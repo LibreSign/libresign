@@ -28,9 +28,11 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
@@ -38,6 +40,7 @@ class Email extends AbstractIdentifyMethod {
 		private MailService $mail,
 		private FileUserMapper $fileUserMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
+		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator
 	) {
 		parent::__construct($identifyMethodMapper);
@@ -55,6 +58,21 @@ class Email extends AbstractIdentifyMethod {
 	public function validateToRequest(): void {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
+		}
+	}
+
+	public function validateToCreateAccount(string $value): void {
+		if ($this->userManager->userExists($value)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('User already exists')],
+			]));
+		}
+		if ($this->getEntity()->getIdentifierValue() !== $value) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('This is not your file')],
+			]));
 		}
 	}
 
