@@ -27,6 +27,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCP\IUser;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
@@ -51,7 +52,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function notify(bool $isNew): void {
 	}
 
-	public function validate(): void {
+	public function validateToRequest(): void {
+	}
+
+	public function validateToCreateAccount(string $value): void {
+	}
+
+	public function validateToSign(?IUser $user = null): void {
 	}
 
 	public function getSettings(): array {

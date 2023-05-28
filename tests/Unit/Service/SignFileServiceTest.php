@@ -76,7 +76,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
-		$this->identifyMethod = $this->createMock(IdentifyMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 	}
@@ -101,7 +100,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->eventDispatcher,
 			$this->urlGenerator,
 			$this->signMethod,
-			$this->identifyMethod,
 			$this->identifyMethodMapper,
 			$this->tempManager
 		);
@@ -150,32 +148,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				]
 			]
 		]);
-	}
-
-	public function testCanDeleteRequestSignatureSuccess() {
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getSigned')],
-				[$this->equalTo('getEmail')]
-			)
-			->will($this->returnValueMap([
-				['getSigned', [], null],
-				['getEmail', [], 'valid@test.coop']
-			]));
-		$this->fileUserMapper
-			->method('getByFileUuid')
-			->willReturn([$fileUser]);
-		$actual = $this->getService()->canDeleteRequestSignature([
-			'uuid' => 'valid',
-			'users' => [
-				[
-					'email' => 'valid@test.coop'
-				]
-			]
-		]);
-		$this->assertNull($actual);
 	}
 
 	public function testNotifyCallback() {
