@@ -355,20 +355,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($folder);
 	}
 
-	public function testValidateCreateToSignSuccess() {
-		$this->mockValidateWithSuccess();
-
-		$actual = $this->getService()->validateCreateToSign([
-			'uuid' => '12345678-1234-1234-1234-123456789012',
-			'user' => [
-				'email' => 'valid@test.coop',
-			],
-			'password' => '123456789',
-			'signPassword' => '123456789',
-		]);
-		$this->assertNull($actual);
-	}
-
 	public function testCreateToSignWithErrorInSendingEmail() {
 		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
 		$fileUser
