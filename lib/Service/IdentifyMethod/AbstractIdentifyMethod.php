@@ -55,6 +55,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function validateToRequest(): void {
 	}
 
+	public function validateToCreateAccount(string $value): void {
+	}
+
 	public function validateToSign(?IUser $user = null): void {
 	}
 
