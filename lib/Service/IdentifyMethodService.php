@@ -66,9 +66,24 @@ class IdentifyMethodService {
 	) {
 	}
 
-	private function newInstanceOfIdentifyMethod(string $name): IIdentifyMethod {
+	private function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
+		if ($identifyValue && isset($this->identifyMethods[$name])) {
+			foreach ($this->identifyMethods[$name] as $identifyMethod) {
+				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
+					return $identifyMethod;
+				}
+			}
+		}
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
 		$identifyMethod = \OC::$server->get($className);
+
+		$entity = $identifyMethod->getEntity();
+		$entity->setIdentifierKey($name);
+		$entity->setIdentifierValue($identifyValue);
+		$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+		$entity->setMethod($name);
+		$identifyMethod->validateToRequest();
+
 		$this->identifyMethods[$name][] = $identifyMethod;
 		return $identifyMethod;
 	}
@@ -83,12 +98,7 @@ class IdentifyMethodService {
 			// flow.
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
-		$identifyMethod = $this->newInstanceOfIdentifyMethod($method);
-		$entity = $identifyMethod->getEntity();
-		$entity->setIdentifierKey($method);
-		$entity->setIdentifierValue($identifyValue);
-		$entity->setMandatory($this->isMandatoryMethod($method) ? 1 : 0);
-		$entity->setMethod($method);
+		$identifyMethod = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
 		$identifyMethod->validateToRequest();
 	}
 
@@ -113,16 +123,8 @@ class IdentifyMethodService {
 	 */
 	public function getByUserData(array $data) {
 		$return = [];
-		foreach ($this->identifyMethods as $methods) {
-			foreach ($methods as $method) {
-				foreach ($data as $key => $value) {
-					if ($method->getEntity()->getIdentifierKey() === $key) {
-						if ($method->getEntity()->getIdentifierValue() === $value) {
-							$return[] = $method;
-						}
-					}
-				}
-			}
+		foreach ($data as $method => $identifyValue) {
+			$return[] = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
 		}
 		return $return;
 	}
@@ -148,7 +150,7 @@ class IdentifyMethodService {
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
 		foreach ($entities as $entity) {
-			$identifyMethod = $this->newInstanceOfIdentifyMethod($entity->getMethod());
+			$identifyMethod = $this->getInstanceOfIdentifyMethod($entity->getMethod());
 			$identifyMethod->setEntity($entity);
 		}
 		return $this->identifyMethods;
