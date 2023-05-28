@@ -82,7 +82,9 @@ class IdentifyMethodService {
 		$entity->setIdentifierValue($identifyValue);
 		$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
 		$entity->setMethod($name);
-		$identifyMethod->validateToRequest();
+		if ($identifyValue) {
+			$identifyMethod->validateToRequest();
+		}
 
 		$this->identifyMethods[$name][] = $identifyMethod;
 		return $identifyMethod;

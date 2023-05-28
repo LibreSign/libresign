@@ -33,6 +33,7 @@ interface IIdentifyMethod {
 	public function getEntity(): IdentifyMethod;
 	public function notify(bool $isNew): void;
 	public function validateToRequest(): void;
+	public function validateToCreateAccount(string $value): void;
 	public function validateToSign(?IUser $user = null): void;
 	public function save(): void;
 }
