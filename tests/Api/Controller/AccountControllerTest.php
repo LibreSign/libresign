@@ -57,8 +57,10 @@ final class AccountControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'guest-user@test.coop'
-				]
+					'identify' => [
+						'email' => 'guest-user@test.coop',
+					],
+				],
 			],
 			'userManager' => $user
 		]);
