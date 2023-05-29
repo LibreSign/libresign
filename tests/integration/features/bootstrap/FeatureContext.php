@@ -21,6 +21,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		self::runCommand('libresign:developer:reset --all');
 	}
 
+	/**
+	 * @When run the command :command
+	 */
 	public static function runCommand($command): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
