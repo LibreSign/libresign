@@ -4551,16 +4551,16 @@
     "packages-dev": [
         {
             "name": "libresign/behat-builtin-extension",
-            "version": "v0.5.0",
+            "version": "v0.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/behat-builtin-extension.git",
-                "reference": "b7f5e3ba198129a2ca625463a06b18165996c622"
+                "reference": "d98b6fc2545f4204c39272a93e785fe277c2aa00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/b7f5e3ba198129a2ca625463a06b18165996c622",
-                "reference": "b7f5e3ba198129a2ca625463a06b18165996c622",
+                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/d98b6fc2545f4204c39272a93e785fe277c2aa00",
+                "reference": "d98b6fc2545f4204c39272a93e785fe277c2aa00",
                 "shasum": ""
             },
             "require": {
@@ -4591,9 +4591,9 @@
             "description": "Behat extension to run php built-in web server",
             "support": {
                 "issues": "https://github.com/LibreSign/behat-builtin-extension/issues",
-                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.5.0"
+                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.5.1"
             },
-            "time": "2023-05-28T21:11:11+00:00"
+            "time": "2023-05-29T20:17:03+00:00"
         },
         {
             "name": "libresign/nextcloud-behat",
