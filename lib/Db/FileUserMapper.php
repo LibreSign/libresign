@@ -367,17 +367,14 @@ class FileUserMapper extends QBMapper {
 			);
 
 		$countQueryBuilderModifier = function (IQueryBuilder &$qb) use ($userId, $email): void {
-			$query = $qb->getConnection()->getQueryBuilder();
-			$subQuery = $qb->getConnection()->getQueryBuilder();
-			$subQuery->resetQueryParts(['select', 'groupBy']);
-			$subQuery->select('f.id')
+			/** @todo improve this to don't do two queries */
+			$qb->select('f.id')
 				->groupBy('f.id');
+			$cursor = $qb->executeQuery();
+			$ids = $cursor->fetchAll();
 
-			$query->setParameters($subQuery->getParameters());
-			$query->selectAlias($query->func()->count(), 'total_results')
-				->from('libresign_file', 'f')
-				->where($query->expr()->in('f.id', $query->createFunction($subQuery->getSQL())));
-			$qb = $query;
+			$qb->resetQueryParts();
+			$qb->selectAlias($qb->createNamedParameter(count($ids)), 'total');
 		};
 
 		$pagination = new Pagination($qb, $countQueryBuilderModifier);
