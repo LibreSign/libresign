@@ -63,16 +63,10 @@ class Email extends AbstractIdentifyMethod {
 
 	public function validateToCreateAccount(string $value): void {
 		if ($this->userManager->userExists($value)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('User already exists')],
-			]));
+			throw new LibresignException($this->l10n->t('User already exists'));
 		}
 		if ($this->getEntity()->getIdentifierValue() !== $value) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('This is not your file')],
-			]));
+			throw new LibresignException($this->l10n->t('This is not your file'));
 		}
 	}
 
