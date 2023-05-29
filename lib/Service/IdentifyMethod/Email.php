@@ -28,7 +28,6 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
 use OCP\IL10N;
 use OCP\IURLGenerator;
