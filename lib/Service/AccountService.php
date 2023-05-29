@@ -78,6 +78,9 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		if (!array_key_exists('identify', $data['user'])) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+		}
 		foreach ($data['user']['identify'] as $method => $value) {
 			if (!array_key_exists($method, $identifyMethods)) {
 				throw new LibresignException($this->l10n->t('Invalid identification method'), 1);

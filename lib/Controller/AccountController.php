@@ -52,7 +52,9 @@ class AccountController extends ApiController {
 			$data = [
 				'uuid' => $uuid,
 				'user' => [
-					'email' => $email,
+					'identify' => [
+						'email' => $email,
+					]
 				],
 				'password' => $password,
 				'signPassword' => $signPassword
