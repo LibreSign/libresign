@@ -91,10 +91,21 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		];
 		$replacements = [
 			$this->signer['sign_uuid'] ?? null,
-			$this->file['uuid'] ?? null,
+			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
 		];
 		$text = preg_replace($patterns, $replacements, $text);
 		return $text;
+	}
+
+	private function getFileUuidFromText(string $text): ?string {
+		if (!$this->isJson($text)) {
+			return '';
+		}
+		$json = json_decode($text, true);
+		if (isset($json['sign']['uuid']) && $json['sign']['uuid']) {
+			return $this->file['uuid'] = $json['sign']['uuid'];
+		}
+		return '';
 	}
 
 	/**
@@ -119,7 +130,22 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @Then follow the link on opened email
+	 * @When I fetch the signer UUID from opened email
+	 */
+	public function iFetchTheLinkOnOpenedEmail(): void {
+		if (!$this->openedEmailStorage->hasOpenedEmail()) {
+			throw new RuntimeException('No email opened, unable to do something!');
+		}
+
+		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
+		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
+		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
+		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		$this->signer['sign_uuid'] = $matches['uuid'];
+	}
+
+	/**
+	 * @When follow the link on opened email
 	 */
 	public function iDoSomethingWithTheOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
