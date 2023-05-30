@@ -61,6 +61,7 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToCreateAccount(string $value): void {
+		$this->validateToRequest();
 		if ($this->userManager->userExists($value)) {
 			throw new LibresignException($this->l10n->t('User already exists'));
 		}
