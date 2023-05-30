@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
 use OC\Files\Filesystem;
@@ -112,7 +113,7 @@ class InstallService {
 
 	private function runAsync(): void {
 		$resource = $this->resource;
-		$process = new Process(['./occ', 'libresign:install', '--' . $resource]);
+		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
