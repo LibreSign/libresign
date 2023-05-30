@@ -60,9 +60,6 @@ class AccountController extends ApiController {
 				'signPassword' => $signPassword
 			];
 			$this->accountService->validateCreateToSign($data);
-			if ($signPassword) {
-				$this->accountService->validateCertificateData($data);
-			}
 
 			$fileToSign = $this->accountService->getFileByUuid($uuid);
 			$fileUser = $this->accountService->getFileUserByUuid($uuid);
