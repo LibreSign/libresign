@@ -67,7 +67,6 @@ export default {
 	}),
 	mounted() {
 		const url = loadState('libresign', 'socket_url')
-		console.log(url)
 		this.socket = new WebSocket(url)
 		this.socket.onmessage = (event) => {
 			// Vue data binding means you don't need any extra work to
