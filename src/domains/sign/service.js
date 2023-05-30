@@ -91,20 +91,6 @@ const buildService = (http) => {
 
 			return data
 		},
-		async createRegister({ users, name, fileId, status }) {
-			const url = generateOcsUrl('/apps/libresign/api/v1/request-signature')
-
-			const body = {
-				users,
-				name,
-				status,
-				file: { fileId },
-			}
-
-			const { data } = await http.post(url, body)
-
-			return data
-		},
 		/**
 		 * update sign document register
 		 *
