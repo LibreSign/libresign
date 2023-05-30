@@ -49,19 +49,6 @@
 				</button>
 			</div>
 
-			<!-- <Sign v-show="signShow"
-				ref="sign"
-				:disabled="disabledSign"
-				:pfx="hasPfx"
-				:has-loading="loadingInput"
-				@sign:document="signDocument">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('sign')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Sign> -->
-
 			<Request v-show="requestShow"
 				ref="request"
 				:fileinfo="fileInfo"
@@ -91,9 +78,6 @@
 									</span>
 								</div>
 								<div v-if="showDivButtons(signer)" class="container-dot container-btn">
-									<!-- <button v-if="showSignButton(signer)" class="primary" @click="changeToSign">
-										{{ t('libresign', 'Sign') }}
-									</button> -->
 									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
 										{{ t('libresign', 'Send reminder') }}
 									</button>
@@ -118,7 +102,7 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
-import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { showResponseError } from '../../helpers/errors.js'
 import store from '../../store/index.js'
 import Request from '../../Components/Request/index.js'
@@ -365,7 +349,7 @@ export default {
 			}
 		},
 
-		async updateRegister(users, fileInfo) {
+		async updateRegister(users) {
 			const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 				file: {
 					fileId: this.fileInfo.id,
@@ -379,23 +363,18 @@ export default {
 			return showSuccess(response.data.message)
 		},
 
-		async createRegister(users, fileInfo) {
+		async createRegister(users) {
 			let needElements = false
 			if (this.settings.canPreviewPageAsImage) {
 				needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
 			}
 
-			const status = needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN
-
-			const [name] = this.fileInfo.name.split('.pdf')
-			const params = {
-				name,
+			const { message, data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+				name: this.fileInfo.name.split('.pdf'),
 				users,
-				status,
+				status: needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN,
 				fileId: this.fileInfo.id,
-			}
-
-			const { message, data } = await signService.createRegister(params)
+			})
 
 			showSuccess(message)
 
@@ -411,14 +390,14 @@ export default {
 				.then(() => this.getInfo())
 		},
 
-		async requestSignatures(users, fileInfo) {
+		async requestSignatures(users) {
 			try {
 				if (this.haveRequest) {
-					await this.updateRegister(users, fileInfo)
+					await this.updateRegister(users)
 					return
 				}
 
-				await this.createRegister(users, fileInfo)
+				await this.createRegister(users)
 
 			} catch (err) {
 				return showResponseError(get(err, ['response'], err))
