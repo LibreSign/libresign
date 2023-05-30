@@ -49,10 +49,12 @@ final class FileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
@@ -82,10 +84,12 @@ final class FileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
