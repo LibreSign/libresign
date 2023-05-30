@@ -62,7 +62,7 @@ final class AccountControllerTest extends ApiTestCase {
 					],
 				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$this->deleteUserIfExists('guest-user@test.coop');
 

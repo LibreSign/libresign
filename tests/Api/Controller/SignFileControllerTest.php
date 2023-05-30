@@ -66,10 +66,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$file['users'][0]->setSigned(time());
 		$fileUser = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
@@ -105,10 +107,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$folderService = \OC::$server->get(\OCA\Libresign\Service\FolderService::class);
 		$libresignFolder = $folderService->getFolder();
@@ -144,10 +148,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
@@ -194,10 +200,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$pkcs12Handler->generateCertificate(
@@ -252,10 +260,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$pkcs12Handler->generateCertificate(
@@ -340,9 +350,11 @@ final class SignFileControllerTest extends ApiTestCase {
 				],
 				'users' => [
 					[
-						'email' => 'user@test.coop'
-					]
-				]
+						'identify' => [
+							'email' => 'user@test.coop',
+						],
+					],
+				],
 			]);
 
 		$response = $this->assertRequest();
@@ -392,10 +404,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
@@ -409,9 +423,11 @@ final class SignFileControllerTest extends ApiTestCase {
 				'uuid' => $file['uuid'],
 				'users' => [
 					[
-						'email' => 'user@test.coop'
-					]
-				]
+						'identify' => [
+							'email' => 'user@test.coop',
+						],
+					],
+				],
 			]);
 
 		$response = $this->assertRequest();
@@ -496,10 +512,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->mockConfig([
@@ -545,10 +563,12 @@ final class SignFileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->mockConfig([
