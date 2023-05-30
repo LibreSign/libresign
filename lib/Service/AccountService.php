@@ -92,6 +92,9 @@ class AccountService {
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
 		}
+		if (empty($data['signPassword'])) {
+			throw new LibresignException($this->l10n->t('Password to sign is mandatory'), 1);
+		}
 		$file = $this->getFileByUuid($data['uuid']);
 		if (empty($file['fileToSign'])) {
 			throw new LibresignException($this->l10n->t('File not found'));
