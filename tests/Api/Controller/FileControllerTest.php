@@ -72,6 +72,7 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testValidateWithSuccessUsingSigner() {
 		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
 		$this->mockConfig([
 			'libresign' => [
 				'identify_method' => 'account',
