@@ -20,10 +20,12 @@ final class FileElementControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$file['users'][0]->setSigned(time());
 
