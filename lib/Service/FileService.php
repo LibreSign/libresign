@@ -157,9 +157,6 @@ class FileService {
 			return $this->signers;
 		}
 		$signers = $this->fileUserMapper->getByFileId($this->file->getId());
-		if ($this->me) {
-			$uid = $this->me->getUID();
-		}
 		foreach ($signers as $signer) {
 			$signatureToShow = [
 				'signed' => $signer->getSigned(),
@@ -169,39 +166,38 @@ class FileService {
 				'fileUserId' => $signer->getId()
 			];
 			// @todo refactor this code
-			// if (!empty($uid)) {
-			// 	$identifyMethodServices = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId());
-			// 	if ($uid === $this->file->getUserId()) {
-			// 		$email = array_reduce($identifyMethodServices, function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
-			// 			if ($identifyMethod->getEntity()->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-			// 				$carry = $identifyMethod->getEntity()->getIdentifierValue();
-			// 			}
-			// 			return $carry;
-			// 		});
-			// 		$signatureToShow['email'] = $email;
-			// 		$user = $this->userManager->getByEmail($email);
-			// 		if ($user) {
-			// 			$signatureToShow['uid'] = $user[0]->getUID();
-			// 		}
-			// 	}
-			// 	$accountIdentifyMethod = array_reduce($identifyMethodServices, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod): ?IIdentifyMethod {
-			// 		if ($identifyMethod->getEntity()->getMethod() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-			// 			$carry = $identifyMethod;
-			// 		}
-			// 		return $carry;
-			// 	});
-			// 	if ($accountIdentifyMethod) {
-			// 		$entity = $accountIdentifyMethod->getEntity();
-			// 		$signatureToShow['me'] = false;
-			// 		if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-			// 			$signatureToShow['me'] = $this->me->getEMailAddress() === $entity->getIdentifierValue();
-			// 			if (!$signer->getSigned()) {
-			// 				$this->settings['canSign'] = true;
-			// 				$this->settings['signerFileUuid'] = $signer->getUuid();
-			// 			}
-			// 		}
-			// 	}
-			// }
+			if ($this->me) {
+				$identifyMethodServices = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId());
+				// Identifi if I'm file owner
+				if ($this->me?->getUID() === $this->file->getUserId()) {
+					$email = array_reduce($identifyMethodServices[IdentifyMethodService::IDENTIFY_EMAIL] ?? [], function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
+						if ($identifyMethod->getEntity()->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+							$carry = $identifyMethod->getEntity()->getIdentifierValue();
+						}
+						return $carry;
+					});
+					$signatureToShow['email'] = $email;
+					$user = $this->userManager->getByEmail($email);
+					if ($user && count($user) === 1) {
+						$signatureToShow['uid'] = $user[0]->getUID();
+					}
+				}
+				// Identify if I'm signer
+				foreach ($identifyMethodServices as $methods) {
+					foreach ($methods as $identifyMethod) {
+						$entity = $identifyMethod->getEntity();
+						$signatureToShow['me'] =
+							$this->me->getEMailAddress() === $entity->getIdentifierValue()
+							|| $this->me->getUID() === $entity->getIdentifierValue();
+						if ($signatureToShow['me']) {
+							if (!$signer->getSigned()) {
+								$this->settings['canSign'] = true;
+								$this->settings['signerFileUuid'] = $signer->getUuid();
+							}
+						}
+					}
+				}
+			}
 			$this->signers[] = $signatureToShow;
 		}
 		return $this->signers;
