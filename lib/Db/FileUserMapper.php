@@ -325,7 +325,7 @@ class FileUserMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, string $email): Pagination {
+	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?string $email): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'f.id',
@@ -342,19 +342,6 @@ class FileUserMapper extends QBMapper {
 			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('fu.id', 'im.file_user_id'))
 			->join('f', 'users', 'u', 'f.user_id = u.uid')
-			->where(
-				$qb->expr()->orX(
-					$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
-					$qb->expr()->andX(
-						$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_ACCOUNT)),
-						$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
-					),
-					$qb->expr()->andX(
-						$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_EMAIL)),
-						$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($email))
-					)
-				)
-			)
 			->groupBy(
 				'f.id',
 				'f.uuid',
@@ -366,7 +353,22 @@ class FileUserMapper extends QBMapper {
 				'u.displayname'
 			);
 
-		$countQueryBuilderModifier = function (IQueryBuilder &$qb) use ($userId, $email): void {
+		$or = [
+			$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
+			$qb->expr()->andX(
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_ACCOUNT)),
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
+			)
+		];
+		if ($email) {
+			$or[] = $qb->expr()->andX(
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter(IdentifyMethodService::IDENTIFY_EMAIL)),
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($email))
+			);
+		}
+		$qb->where($qb->expr()->orX(...$or));
+
+		$countQueryBuilderModifier = function (IQueryBuilder &$qb): void {
 			/** @todo improve this to don't do two queries */
 			$qb->select('f.id')
 				->groupBy('f.id');
