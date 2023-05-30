@@ -49,10 +49,12 @@ final class NotifyControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 		$this->request
 			->withMethod('POST')
