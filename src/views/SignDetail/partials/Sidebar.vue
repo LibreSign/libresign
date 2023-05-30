@@ -1,4 +1,3 @@
-
 <script>
 import Signer from './SignerRow.vue'
 
