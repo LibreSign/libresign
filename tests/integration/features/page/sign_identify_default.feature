@@ -100,7 +100,7 @@ Feature: page/sign_identify_default
           "filename": "document",
           "description": null,
           "pdf": {
-            "url": "\/index.php\/apps\/libresign\/pdf\/user\/<SIGN_UUID>"
+            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
           }
         },
         "user": {
