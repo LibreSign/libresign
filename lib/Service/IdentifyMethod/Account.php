@@ -58,7 +58,10 @@ class Account extends AbstractIdentifyMethod {
 		private IRootFolder $rootFolder,
 		private MailService $mail
 	) {
-		parent::__construct($identifyMethodMapper);
+		parent::__construct(
+			$identifyMethodMapper,
+			$config
+		);
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
 
@@ -218,12 +221,15 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function getSettings(): array {
-		$settings = parent::getSettings();
-		$settings['signature_method'] = 'password';
-		$settings['can_create_account'] = $this->canCreateAccount;
-		$settings['allowed_signature_methods'] = [
-			'password',
-		];
+		$settings = $this->getSettingsFromDatabase(
+			default: [
+				'signature_method' => 'password',
+				'can_create_account' => $this->canCreateAccount,
+				'allowed_signature_methods' => [
+					'password',
+				],
+			]
+		);
 		return $settings;
 	}
 }

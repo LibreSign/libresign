@@ -29,12 +29,14 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\MailService;
+use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
+		private IConfig $config,
 		private IL10N $l10n,
 		private MailService $mail,
 		private FileUserMapper $fileUserMapper,
@@ -42,7 +44,10 @@ class Email extends AbstractIdentifyMethod {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator
 	) {
-		parent::__construct($identifyMethodMapper);
+		parent::__construct(
+			$identifyMethodMapper,
+			$config
+		);
 	}
 
 	public function notify(bool $isNew): void {
@@ -71,8 +76,11 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function getSettings(): array {
-		$settings = parent::getSettings();
-		$settings['test_url'] = $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail');
+		$settings = parent::getSettingsFromDatabase(
+			immutable: [
+				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
+			]
+		);
 		return $settings;
 	}
 }
