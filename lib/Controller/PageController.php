@@ -52,6 +52,18 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function indexF(): TemplateResponse {
+		return $this->index();
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function indexFPath(): TemplateResponse {
+		return $this->index();
+	}
+
 	/**
 	 * Show signature page
 	 */
