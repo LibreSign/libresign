@@ -5,6 +5,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -27,6 +28,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IUserSession $userSession,
 		private IInitialState $initialState,
 		private AccountService $accountService,
+		private IdentifyMethodService $identifyMethodService,
 		private IURLGenerator $url
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -44,6 +46,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->userSession->getUser(),
 			'url'
 		));
+		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
