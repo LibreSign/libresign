@@ -212,33 +212,7 @@ class AccountService {
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
 	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
-		/**
-		 * @todo WIP, don't merge. Necessary identify how will get this info to send to web client
-		 */
 		try {
-			// $this->fsm->setPayload($typeOfUuid, $uuid, $user, $formatOfPdfOnSign);
-
-			// if (!$this->isValidUrl()) {
-			// 	// next state: do nothing
-			// 	// Message: invalid data
-			// 	return [];
-			// }
-			// if ($this->identifyMethodService->haveSession()) {
-			// 	if (!$this->identifyMethodService->isMyDocument()) {
-			// 		// next state: do nothing
-			// 		// Message: haven't access
-			// 		return [];
-			// 	}
-			// 	if (!$this->identifyMethodService->iCanSign()) {
-			// 		// next state: do nothing
-			// 		// Message: get the reason
-			// 		return [];
-			// 	}
-			// 	// next state: show document
-			// 	return [];
-			// }
-			// return $this->identifyMethodService->nextState();
-
 			if ($typeOfUuid === 'file_user_uuid') {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
 			} else {
