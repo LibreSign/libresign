@@ -1,24 +1,20 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
-		<NcCheckboxRadioSwitch
-			type="switch"
-			@update:checked="saveAccount"
-			:checked.sync="useUser">
+		<NcCheckboxRadioSwitch type="switch"
+			:checked.sync="useUser"
+			@update:checked="saveAccount">
 			{{ t('libresign', 'User') }}
 		</NcCheckboxRadioSwitch>
 		<div v-if="useUser">
-
 			<div class="container-checkbox">
-				<NcActionCheckbox 
-					@change="saveAccount()"
-					:checked.sync="requiredUser">
+				<NcActionCheckbox :checked.sync="requiredUser"
+					@change="saveAccount()">
 					{{ t('libresign', 'Make this method required') }}
 				</NcActionCheckbox>
 			</div>
 			<div class="container-checkbox">
-				<NcActionCheckbox 
-				@change="saveAccount()"
-				:checked.sync="allowedInviteUser">
+				<NcActionCheckbox :checked.sync="allowedInviteUser"
+					@change="saveAccount()">
 					{{ t('libresign', 'Allow account creation for new users') }}
 				</NcActionCheckbox>
 
@@ -34,16 +30,15 @@
 		</div>
 		<hr>
 
-		<NcCheckboxRadioSwitch
-			type="switch"
-			@update:checked="saveEmail"
-			:checked.sync="useEmail">
+		<NcCheckboxRadioSwitch type="switch"
+			:checked.sync="useEmail"
+			@update:checked="saveEmail">
 			{{ t('libresign', 'Email') }}
 		</NcCheckboxRadioSwitch>
 		<div v-if="useEmail">
 			<div class="container-checkbox">
 				<NcActionCheckbox :checked.sync="requiredEmail"
-				@change="saveEmail()">
+					@change="saveEmail()">
 					{{ t('libresign', 'Make this method required') }}
 				</NcActionCheckbox>
 			</div>
@@ -51,15 +46,14 @@
 		<hr>
 
 		<NcCheckboxRadioSwitch type="switch"
-			@update:checked="saveTelegram"
-			:checked.sync="useTelegram">
+			:checked.sync="useTelegram"
+			@update:checked="saveTelegram">
 			{{ t('libresign', 'Telegram') }}
 		</NcCheckboxRadioSwitch>
 		<div v-if="useTelegram">
 			<div class="container-checkbox">
-				<NcActionCheckbox 
-				@change="saveTelegram()"
-				:checked.sync="requiredTelegram">
+				<NcActionCheckbox :checked.sync="requiredTelegram"
+					@change="saveTelegram()">
 					{{ t('libresign', 'Make this method required') }}
 				</NcActionCheckbox>
 			</div>
@@ -67,29 +61,28 @@
 		<hr>
 
 		<NcCheckboxRadioSwitch type="switch"
-			@update:checked="saveSMS"
-			:checked.sync="useSMS">
+			:checked.sync="useSMS"
+			@update:checked="saveSMS">
 			{{ t('libresign', 'SMS') }}
 		</NcCheckboxRadioSwitch>
 		<div v-if="useSMS">
 			<div class="container-checkbox">
-				<NcActionCheckbox @change="saveSMS()" :checked.sync="requiredSMS">
+				<NcActionCheckbox :checked.sync="requiredSMS" @change="saveSMS()">
 					{{ t('libresign', 'Make this method required') }}
 				</NcActionCheckbox>
 			</div>
 		</div>
 		<hr>
 
-		<NcCheckboxRadioSwitch
-		@update:checked="saveSignal"
-		 type="switch"
-			:checked.sync="useSignal">
+		<NcCheckboxRadioSwitch type="switch"
+			:checked.sync="useSignal"
+			@update:checked="saveSignal">
 			{{ t('libresign', 'Signal') }}
 		</NcCheckboxRadioSwitch>
 
 		<div v-if="useSignal">
 			<div class="container-checkbox">
-				<NcActionCheckbox  @change="saveSignal()" :checked.sync="requiredSignal">
+				<NcActionCheckbox :checked.sync="requiredSignal" @change="saveSignal()">
 					{{ t('libresign', 'Make this method required') }}
 				</NcActionCheckbox>
 			</div>
@@ -104,7 +97,6 @@ import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import { loadState } from '@nextcloud/initial-state'
 
-
 export default {
 	name: 'IdentifierFactor',
 	components: {
@@ -115,11 +107,11 @@ export default {
 	},
 	data() {
 		const identifyMethod = loadState('libresign', 'identify_methods')
-		const account = identifyMethod.find((item) =>  item.name === 'account');
-		const email = identifyMethod.find((item) =>  item.name === 'email');
-		const sms = identifyMethod.find((item) =>  item.name === 'sms');
-		const telegram = identifyMethod.find((item) =>  item.name === 'telegram');
-		const signal = identifyMethod.find((item) =>  item.name === 'signal');
+		const account = identifyMethod.find((item) => item.name === 'account')
+		const email = identifyMethod.find((item) => item.name === 'email')
+		const sms = identifyMethod.find((item) => item.name === 'sms')
+		const telegram = identifyMethod.find((item) => item.name === 'telegram')
+		const signal = identifyMethod.find((item) => item.name === 'signal')
 
 		return {
 			title: t('Identify factors'),
@@ -127,16 +119,16 @@ export default {
 			selectedDefaultIdentification: account?.signature_method,
 			options: account?.allowed_signature_methods,
 			useUser: account?.enabled,
-			requiredUser: account?.mandatory,			
+			requiredUser: account?.mandatory,
 			allowedInviteUser: account?.can_create_account,
 
 			useTelegram: telegram?.enabled,
 			requiredTelegram: telegram?.mandatory,
-			
+
 			useSMS: sms?.enabled,
 			requiredSMS: sms?.mandatory,
 
-			useEmail: email?.enabled, 
+			useEmail: email?.enabled,
 			requiredEmail: email?.mandatory,
 
 			useSignal: signal?.enabled,
@@ -148,57 +140,56 @@ export default {
 	methods: {
 		saveEmail() {
 			// TODO: verify useEmail is false checked
-			this.optionsSave = [...this.optionsSave.filter(item => item.name !== "email"), {
-				"name":"email",
-				"enabled": !this.useEmail,
-				"mandatory": this.requiredEmail,
-				"can_be_used": !this.useEmail,
-			}];
+			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'email'), {
+				name: 'email',
+				enabled: !this.useEmail,
+				mandatory: this.requiredEmail,
+				can_be_used: !this.useEmail,
+			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 		saveAccount() {
 			// TODO: verify useAccount is false checked
-			this.optionsSave = [...this.optionsSave.filter(item => item.name !== "account"), {
-				"name":"account",
-				"enabled": !this.useAccount,
-				"mandatory": this.requiredUser,
-				"can_be_used": !this.useAccount,
-				"can_create_account": this.allowedInviteUser,
-				"signature_method": this.selectedDefaultIdentification,
-			}];
+			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'account'), {
+				name: 'account',
+				enabled: !this.useAccount,
+				mandatory: this.requiredUser,
+				can_be_used: !this.useAccount,
+				can_create_account: this.allowedInviteUser,
+				signature_method: this.selectedDefaultIdentification,
+			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 		saveSMS() {
 			// TODO: verify useSMS is false checked
-			this.optionsSave = [...this.optionsSave.filter(item => item.name !== "sms"), {
-				"name":"sms",
-				"enabled": !this.useSMS,
-				"mandatory": this.requiredSMS,
-				"can_be_used": !this.useSMS,
-			}];
-			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
-		},
-		
-		saveTelegram() {
-			// TODO: verify useTelegram is false checked
-			this.optionsSave = [...this.optionsSave.filter(item => item.name !== "telegram"), {
-				"name":"telegram",
-				"enabled": !this.useTelegram,
-				"mandatory": this.requiredTelegram,
-				"can_be_used": !this.useTelegram,
-			}];
+			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'sms'), {
+				name: 'sms',
+				enabled: !this.useSMS,
+				mandatory: this.requiredSMS,
+				can_be_used: !this.useSMS,
+			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 
+		saveTelegram() {
+			// TODO: verify useTelegram is false checked
+			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'telegram'), {
+				name: 'telegram',
+				enabled: !this.useTelegram,
+				mandatory: this.requiredTelegram,
+				can_be_used: !this.useTelegram,
+			}]
+			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
+		},
 
 		saveSignal() {
 			// TODO: verify useSignal is false checked
-			this.optionsSave = [...this.optionsSave.filter(item => item.name !== "signal"), {
-				"name":"signal",
-				"enabled": !this.useSignal,
-				"mandatory": this.requiredSignal,
-				"can_be_used": !this.useSignal,
-			}];
+			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'signal'), {
+				name: 'signal',
+				enabled: !this.useSignal,
+				mandatory: this.requiredSignal,
+				can_be_used: !this.useSignal,
+			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 	},
