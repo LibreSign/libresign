@@ -25,8 +25,8 @@ import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
 
 const libresignVar = loadState('libresign', 'config')
-const isCompleteAdminConfig = libresignVar?.settings?.certificateOk;
-const initUrl =  isCompleteAdminConfig ? 'requestFiles' : 'incomplete';
+const isCompleteAdminConfig = libresignVar?.settings?.certificateOk
+const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
 
 const routes = [
 	{
