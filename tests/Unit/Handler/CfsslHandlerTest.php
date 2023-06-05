@@ -4,7 +4,7 @@ namespace OCA\Libresign\Tests\Unit\Handler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
-use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use Psr\Http\Message\ResponseInterface;
 
 /**
