@@ -2,8 +2,10 @@
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCP\IConfig;
 
 /**
  * Class AbstractHandler
@@ -34,16 +36,21 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
 abstract class AbstractHandler {
 	use MagicGetterSetterTrait;
 
-	protected $commonName;
-	protected $hosts = [];
-	protected $friendlyName;
-	protected $country;
-	protected $state;
-	protected $locality;
-	protected $organization;
-	protected $organizationUnit;
-	protected $password;
-	protected $configPath;
+	protected string $commonName;
+	protected array $hosts = [];
+	protected string $friendlyName;
+	protected string $country;
+	protected string $state;
+	protected string $locality;
+	protected string $organization;
+	protected string $organizationUnit;
+	protected string $password;
+	protected string $configPath;
+
+	public function __construct(
+		protected IConfig $config
+	) {
+	}
 
 	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
@@ -93,5 +100,13 @@ abstract class AbstractHandler {
 				return 'OrganizationUnit';
 		}
 		return '';
+	}
+
+	protected function setEngine(string $engine): void {
+		$this->config->setAppValue(Application::APP_ID, 'certificate_engine', $engine);
+	}
+
+	protected function setConfigPath(string $configPath): void {
+		$this->config->setAppValue(Application::APP_ID, 'config_path', $configPath);
 	}
 }
