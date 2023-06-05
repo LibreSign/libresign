@@ -67,6 +67,10 @@ class Cfssl extends Base {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		if (!$this->installService->isCfsslBinInstalled()) {
+			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
+			return 1;
+		}
 		$names = [];
 		if (!$commonName = $input->getOption('cn')) {
 			throw new InvalidArgumentException('Invalid Comon Name');
@@ -86,27 +90,27 @@ class Cfssl extends Base {
 		if ($input->getOption('st')) {
 			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
 		}
-		if ($this->installService->isCfsslBinInstalled()) {
-			if (PHP_OS_FAMILY === 'Windows') {
-				throw new InvalidArgumentException('Incompatible with Windows');
-			}
-			if ($cfsslUri = $input->getOption('cfssl-uri')) {
-				if (!filter_var($cfsslUri, FILTER_VALIDATE_URL)) {
-					throw new InvalidArgumentException('Invalid CFSSL API URI');
-				}
-			} else if (!$cfsslUri = $input->getOption('cfssl-uri')) {
-				throw new InvalidArgumentException('Config path is not necessary');
-			}
-			$configPath = $this->installService->getConfigPath();
-		} else {
-			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
-			return 1;
+
+		if (PHP_OS_FAMILY === 'Windows') {
+			throw new InvalidArgumentException('Incompatible with Windows');
 		}
+		if ($cfsslUri = $input->getOption('cfssl-uri')) {
+			if (!filter_var($cfsslUri, FILTER_VALIDATE_URL)) {
+				throw new InvalidArgumentException('Invalid CFSSL API URI');
+			}
+		} else if (!$cfsslUri = $input->getOption('cfssl-uri')) {
+			throw new InvalidArgumentException('Config path is not necessary');
+		}
+
+		$configPath = $this->installService->getConfigPath();
+
 		$this->installService->generate(
 			$commonName,
 			$names,
-			$configPath,
-			$cfsslUri,
+			[
+				'configPath' => $configPath,
+				'cfsslUri' => $cfsslUri,
+			]
 		);
 		return 0;
 	}
