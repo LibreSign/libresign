@@ -40,8 +40,10 @@ class AdminController extends Controller {
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
 				$rootCert['names'],
-				trim($configPath),
-				trim($cfsslUri)
+				[
+					'configPath' => trim($configPath),
+					'cfsslUri' => trim($cfsslUri),
+				],
 			);
 
 			return new DataResponse([
