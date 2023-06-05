@@ -542,25 +542,24 @@ class InstallService {
 	public function generate(
 		string $commonName,
 		array $names = [],
-		string $configPath = '',
-		string $cfsslUri = '',
+		array $properties = [],
 	): void {
-		if (!$configPath) {
-			$configPath = $this->getConfigPath();
+		if (empty($properties['configPath'])) {
+			$properties['configPath'] = $this->getConfigPath();
 		}
 
 		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
 
 		switch ($engine) {
 			case 'cfssl':
-				if ($cfsslUri) {
-					$this->cfsslHandler->setCfsslUri($cfsslUri);
+				if (!empty($properties['cfsslUri'])) {
+					$this->cfsslHandler->setCfsslUri($properties['cfsslUri']);
 				}
 
 				$privateKey = $this->cfsslHandler->generateRootCert(
 					$commonName,
 					$names,
-					$configPath,
+					$properties['configPath'],
 				);
 				break;
 
@@ -568,7 +567,7 @@ class InstallService {
 				$privateKey = $this->openSslHandler->generateRootCert(
 					$commonName,
 					$names,
-					$configPath,
+					$properties['configPath'],
 				);
 				break;
 
@@ -581,7 +580,7 @@ class InstallService {
 			'names' => $names
 		]));
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $privateKey);
-		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
+		$this->config->setAppValue(Application::APP_ID, 'configPath', $properties['configPath']);
 		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
 }
