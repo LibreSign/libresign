@@ -182,27 +182,10 @@ class IdentifyMethodService {
 		if ($this->identifyMethodsSettings) {
 			return $this->identifyMethodsSettings;
 		}
-		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
-		$config = json_decode($config, true);
 		$this->identifyMethodsSettings = [
-			array_merge(
-				$this->account->getSettings(),
-				$this->getMethodFromConfig('account', $config)
-			),
-			array_merge(
-				$this->email->getSettings(),
-				$this->getMethodFromConfig('email', $config)
-			),
+			$this->account->getSettings(),
+			$this->email->getSettings(),
 		];
 		return $this->identifyMethodsSettings;
-	}
-
-	private function getMethodFromConfig(string $name, array $config): array {
-		foreach ($config as $current) {
-			if ($current['name'] === $name) {
-				return $current;
-			}
-		}
-		return [];
 	}
 }
