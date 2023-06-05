@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Base;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -68,8 +67,7 @@ class Cfssl extends Base {
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->installService->isCfsslBinInstalled()) {
-			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
-			return 1;
+			throw new InvalidArgumentException('CFSSL binary not found! run libresign:istall --cfssl first.');
 		}
 		$names = [];
 		if (!$commonName = $input->getOption('cn')) {
@@ -98,16 +96,17 @@ class Cfssl extends Base {
 			if (!filter_var($cfsslUri, FILTER_VALIDATE_URL)) {
 				throw new InvalidArgumentException('Invalid CFSSL API URI');
 			}
-		} else if (!$cfsslUri = $input->getOption('cfssl-uri')) {
-			throw new InvalidArgumentException('Config path is not necessary');
+			if ($input->getOption('config-path')) {
+				throw new InvalidArgumentException('Config path is not necessary');
+			}
 		}
-
-		$configPath = $this->installService->getConfigPath();
+		$configPath = $input->getOption('config-path');
 
 		$this->installService->generate(
 			$commonName,
 			$names,
 			[
+				'engine' => 'cfssl',
 				'configPath' => $configPath,
 				'cfsslUri' => $cfsslUri,
 			]
