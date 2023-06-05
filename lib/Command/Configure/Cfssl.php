@@ -86,7 +86,7 @@ class Cfssl extends Base {
 		if ($input->getOption('st')) {
 			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
 		}
-		if ($this->installService->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
+		if ($this->installService->isCfsslBinInstalled()) {
 			if (PHP_OS_FAMILY === 'Windows') {
 				throw new InvalidArgumentException('Incompatible with Windows');
 			}
