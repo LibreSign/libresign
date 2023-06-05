@@ -11,8 +11,8 @@ use OC\Files\Filesystem;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\CfsslServerHandler;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
+use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -46,8 +46,8 @@ class InstallService {
 	public function __construct(
 		ICacheFactory $cacheFactory,
 		private IClientService $clientService,
-		private CfsslServerHandler $cfsslServerHandler,
 		private CfsslHandler $cfsslHandler,
+		private OpenSslHandler $openSslHandler,
 		private IConfig $config,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger
@@ -103,12 +103,11 @@ class InstallService {
 
 	/**
 	 * Return the config path, create if not exist.
-	 *
-	 * @return string Full config path
 	 */
 	public function getConfigPath(): string {
-		$this->getFolder('cfssl_config');
-		return $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
+		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+		$this->getFolder($engine . '_config');
+		return $this->getFullPath() . DIRECTORY_SEPARATOR . $engine . '_config' . DIRECTORY_SEPARATOR;
 	}
 
 	private function runAsync(): void {
@@ -537,65 +536,51 @@ class InstallService {
 		return $matches['hash'];
 	}
 
+	/**
+	 * @todo Use an custom array for engine options
+	 */
 	public function generate(
 		string $commonName,
 		array $names = [],
 		string $configPath = '',
 		string $cfsslUri = '',
-		string $binary = ''
 	): void {
-		$key = bin2hex(random_bytes(16));
-
 		if (!$configPath) {
 			$configPath = $this->getConfigPath();
 		}
-		$this->cfsslHandler->setConfigPath($configPath);
-		$this->cfsslServerHandler->createConfigServer(
-			$commonName,
-			$names,
-			$key,
-			$configPath
-		);
-		if (!$cfsslUri) {
-			$cfsslUri = CfsslHandler::CFSSL_URI;
-			if (!$binary) {
-				$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-				if ($binary && !file_exists($binary)) {
-					$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
-					$binary = '';
+
+		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+
+		switch ($engine) {
+			case 'cfssl':
+				if ($cfsslUri) {
+					$this->cfsslHandler->setCfsslUri($cfsslUri);
 				}
-				if (!$binary) {
-					/**
-					 * @todo Suggestion: run this in a background proccess
-					 * to make more fast the setup and, maybe, implement a new endpoint
-					 * to start downloading of all binaries files in a background process
-					 * and return the status progress of download.
-					 */
-					$this->installCfssl();
-					$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-				}
-			}
-		}
-		$this->cfsslHandler->setCfsslUri($cfsslUri);
-		if ($binary) {
-			$this->cfsslHandler->setBinary($binary);
-			$this->cfsslHandler->genkey();
-		}
-		for ($i = 1; $i <= 4; $i++) {
-			if ($this->cfsslHandler->health($cfsslUri)) {
+
+				$privateKey = $this->cfsslHandler->generateRootCert(
+					$commonName,
+					$names,
+					$configPath,
+				);
 				break;
-			}
-			// @codeCoverageIgnoreStart
-			sleep(2);
-			// @codeCoverageIgnoreEnd
+
+			case 'openssl':
+				$privateKey = $this->openSslHandler->generateRootCert(
+					$commonName,
+					$names,
+					$configPath,
+				);
+				break;
+
+			default:
+				throw new LibresignException('Certificate engine not found: ' . $engine);
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
 			'commonName' => $commonName,
 			'names' => $names
 		]));
-		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
-		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
+		$this->config->setAppValue(Application::APP_ID, 'authkey', $privateKey);
 		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
 		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
 	}
