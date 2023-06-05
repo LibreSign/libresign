@@ -90,22 +90,17 @@ class Cfssl extends Base {
 			if (PHP_OS_FAMILY === 'Windows') {
 				throw new InvalidArgumentException('Incompatible with Windows');
 			}
-			if ($input->getOption('config-path')) {
+			if ($cfsslUri = $input->getOption('cfssl-uri')) {
+				if (!filter_var($cfsslUri, FILTER_VALIDATE_URL)) {
+					throw new InvalidArgumentException('Invalid CFSSL API URI');
+				}
+			} else if (!$cfsslUri = $input->getOption('cfssl-uri')) {
 				throw new InvalidArgumentException('Config path is not necessary');
 			}
-			if ($input->getOption('cfssl-uri')) {
-				throw new InvalidArgumentException('CFSSL URI is not necessary');
-			}
 			$configPath = $this->installService->getConfigPath();
-			$cfsslUri = '';
 		} else {
 			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
-			if (!$configPath = $input->getOption('config-path')) {
-				throw new InvalidArgumentException('Invalid config path');
-			}
-			if (!$cfsslUri = $input->getOption('cfssl-uri')) {
-				throw new InvalidArgumentException('Invalid CFSSL API URI');
-			}
+			return 1;
 		}
 		$this->installService->generate(
 			$commonName,
