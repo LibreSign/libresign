@@ -208,7 +208,7 @@ class CfsslHandler extends AbstractHandler {
 	}
 
 	public function setCfsslUri($uri): void {
-		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
+		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $uri);
 		$this->cfsslUri = $uri;
 	}
 
