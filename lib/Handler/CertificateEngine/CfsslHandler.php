@@ -25,11 +25,13 @@ class CfsslHandler extends AbstractHandler {
 	/** @var Client */
 	protected $client;
 	protected $cfsslUri;
+	private string $binary = '';
 
 	public function __construct(
+		protected IConfig $config,
 		private CfsslServerHandler $cfsslServerHandler,
-		private IConfig $config,
 	) {
+		parent::__construct($config);
 	}
 
 	public function getClient(): Client {
@@ -89,20 +91,17 @@ class CfsslHandler extends AbstractHandler {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
-	public function health(?string $cfsslUri = self::CFSSL_URI): array {
+	public function health(): array {
 		try {
-			if (!$this->getCfsslUri()) {
-				$this->setCfsslUri($cfsslUri);
-			}
 			$client = $this->getClient();
-			if (!$this->portOpen($cfsslUri)) {
+			if (!$this->portOpen()) {
 				throw new LibresignException('CFSSL server is down', 500);
 			}
 			$response = $client
 				->request('get',
 					'health',
 					[
-						'base_uri' => $cfsslUri
+						'base_uri' => $this->getCfsslUri()
 					]
 				)
 			;
@@ -127,17 +126,10 @@ class CfsslHandler extends AbstractHandler {
 	}
 
 	private function wakeUp(): void {
-		$cfsslUri = $this->getCfsslUri() ?? self::CFSSL_URI;
-		if ($this->portOpen($cfsslUri)) {
+		if ($this->portOpen()) {
 			return;
 		}
 		$binary = $this->getBinary();
-		if (!$binary) {
-			return;
-		}
-		if (!file_exists($binary)) {
-			throw new LibresignException('Binary of CFSSL not found');
-		}
 		$configPath = $this->getConfigPath();
 		if (!$configPath) {
 			throw new LibresignException('CFSSL not configured.');
@@ -148,15 +140,15 @@ class CfsslHandler extends AbstractHandler {
 			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
-		while (!$this->portOpen($cfsslUri) && $loops <= 4) {
+		while (!$this->portOpen() && $loops <= 4) {
 			sleep(1);
 			$loops++;
 		}
 	}
 
-	private function portOpen(string $uri): bool {
-		$host = parse_url($uri, PHP_URL_HOST);
-		$port = parse_url($uri, PHP_URL_PORT);
+	private function portOpen(): bool {
+		$host = parse_url($this->getCfsslUri(), PHP_URL_HOST);
+		$port = parse_url($this->getCfsslUri(), PHP_URL_PORT);
 		try {
 			$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
 		} catch (\Throwable $th) {
@@ -169,11 +161,17 @@ class CfsslHandler extends AbstractHandler {
 	}
 
 	private function getBinary(): string {
-		$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-		
-		if ($binary && !file_exists($binary)) {
-			$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
-			$binary = '';
+		if ($this->binary) {
+			return $this->binary;
+		}
+
+		$appKeys = $this->config->getAppKeys(Application::APP_ID);
+		if (in_array('cfssl_bin', $appKeys)) {
+			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+			if (!file_exists($binary)) {
+				$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
+				$binary = '';
+			}
 		}
 	
 		if (!$binary) {
@@ -181,29 +179,28 @@ class CfsslHandler extends AbstractHandler {
 		}
 
 		if (PHP_OS_FAMILY === 'Windows') {
-			$binary .= '.exe';
+			throw new LibresignException('Incompatible with Windows');
 		}
 	
 		return $binary;
 	}
 
 	private function getCfsslUri(): string {
-		$uri = $this->cfsslUri;
-		if ($uri) {
-			return $uri;
+		if ($this->cfsslUri) {
+			return $this->cfsslUri;
 		}
 
-		$uri = $this->config->getAppValue(Application::APP_ID, 'cfssl_uri');
-		if ($uri) {
-			return $uri;
+		$appKeys = $this->config->getAppKeys(Application::APP_ID);
+		if (in_array('cfssl_uri', $appKeys)) {
+			if ($uri = $this->config->getAppValue(Application::APP_ID, 'cfssl_uri')) {
+				return $uri;
+			}
+			// In case config is an empty string
+			$this->config->deleteAppValue(Application::APP_ID, 'cfssl_uri');
 		}
 
-		// In case config is an empty string
-		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_uri');
-
-		// Binary is necessary for local Cfssl server
-		$this->getBinary();
-		return self::CFSSL_URI;
+		$this->cfsslUri = self::CFSSL_URI;
+		return $this->cfsslUri;
 	}
 
 	public function setCfsslUri($uri): void {
@@ -211,11 +208,8 @@ class CfsslHandler extends AbstractHandler {
 		$this->cfsslUri = $uri;
 	}
 
-	public function genkey(): void {
+	private function genkey(): void {
 		$binary = $this->getBinary();
-		if (!$binary) {
-			return;
-		}
 		$configPath = $this->getConfigPath();
 		$cmd = $binary . ' genkey ' .
 			'-initca=true ' . $configPath . 'csr_server.json | ' .
@@ -228,9 +222,9 @@ class CfsslHandler extends AbstractHandler {
 		array $names = [],
 		string $configPath = '',
 	): string {
+		$this->setEngine('cfssl');
 		$key = bin2hex(random_bytes(16));
 
-		$this->setConfigPath($configPath);
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
@@ -238,6 +232,7 @@ class CfsslHandler extends AbstractHandler {
 			$configPath
 		);
 
+		$this->setConfigPath($configPath);
 		$this->genkey();
 
 		for ($i = 1; $i <= 4; $i++) {
