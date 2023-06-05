@@ -15,7 +15,6 @@ use OCP\IConfig;
  *
  * @package OCA\Libresign\Handler
  *
- * @method string getCfsslUri()
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
