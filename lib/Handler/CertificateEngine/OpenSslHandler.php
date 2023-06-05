@@ -7,7 +7,6 @@ namespace OCA\Libresign\Handler\CertificateEngine;
  *
  * @package OCA\Libresign\Handler
  *
- * @method string getCfsslUri()
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
@@ -18,6 +17,9 @@ class OpenSslHandler extends AbstractHandler {
 		array $names = [],
 		string $configPath = '',
 	): string {
+		$this->setEngine('openssl');
+		$this->setConfigPath($configPath);
+
 		$privkey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,

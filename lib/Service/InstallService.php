@@ -104,8 +104,7 @@ class InstallService {
 	/**
 	 * Return the config path, create if not exist.
 	 */
-	public function getConfigPath(): string {
-		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+	private function getConfigPath(string $engine): string {
 		$this->getFolder($engine . '_config');
 		return $this->getFullPath() . DIRECTORY_SEPARATOR . $engine . '_config' . DIRECTORY_SEPARATOR;
 	}
@@ -544,19 +543,7 @@ class InstallService {
 		array $names = [],
 		array $properties = [],
 	): void {
-		if (empty($properties['configPath'])) {
-			$properties['configPath'] = $this->getConfigPath();
-		}
-		if (!is_dir($properties['configPath']) || !is_writable($properties['configPath'])) {
-			throw new LibresignException(sprintf(
-				'The path %s need to be a writtable directory',
-				$properties['configPath']
-			));
-		}
-
-		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
-
-		switch ($engine) {
+		switch ($properties['engine']) {
 			case 'cfssl':
 				if (!empty($properties['cfsslUri'])) {
 					$this->cfsslHandler->setCfsslUri($properties['cfsslUri']);
@@ -565,7 +552,7 @@ class InstallService {
 				$privateKey = $this->cfsslHandler->generateRootCert(
 					$commonName,
 					$names,
-					$properties['configPath'],
+					$properties['configPath'] ?? $this->getConfigPath('cfssl'),
 				);
 				break;
 
@@ -573,12 +560,12 @@ class InstallService {
 				$privateKey = $this->openSslHandler->generateRootCert(
 					$commonName,
 					$names,
-					$properties['configPath'],
+					$properties['configPath'] ?? $this->getConfigPath('openssl'),
 				);
 				break;
 
 			default:
-				throw new LibresignException('Certificate engine not found: ' . $engine);
+				throw new LibresignException('Certificate engine not found: ' . $properties['engine']);
 		}
 
 		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
