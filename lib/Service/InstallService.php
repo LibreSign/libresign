@@ -547,6 +547,12 @@ class InstallService {
 		if (empty($properties['configPath'])) {
 			$properties['configPath'] = $this->getConfigPath();
 		}
+		if (!is_dir($properties['configPath']) || !is_writable($properties['configPath'])) {
+			throw new LibresignException(sprintf(
+				'The path %s need to be a writtable directory',
+				$properties['configPath']
+			));
+		}
 
 		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
 
