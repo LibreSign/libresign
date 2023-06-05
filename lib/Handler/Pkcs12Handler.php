@@ -13,6 +13,7 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IConfig;
@@ -262,21 +263,8 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$this->cfsslHandler->getCommonName()) {
 			$this->cfsslHandler->setCommonName($rootCert['commonName']);
 		}
-		if (!$this->cfsslHandler->getCfsslUri()) {
-			$cfsslUri = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
-			if (!$cfsslUri) {
-				$cfsslUri = CfsslHandler::CFSSL_URI;
-			}
-			$this->cfsslHandler->setCfsslUri($cfsslUri);
-		}
 		if (!$this->cfsslHandler->getConfigPath()) {
 			$this->cfsslHandler->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
-		}
-		if (!$this->cfsslHandler->getBinary()) {
-			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-			if ($binary) {
-				$this->cfsslHandler->setBinary($binary);
-			}
 		}
 		return $this->cfsslHandler;
 	}

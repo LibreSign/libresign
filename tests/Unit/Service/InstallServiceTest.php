@@ -23,7 +23,7 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CfsslServerHandler;
 use OCA\Libresign\Service\InstallService;
 use OCP\Files\IRootFolder;

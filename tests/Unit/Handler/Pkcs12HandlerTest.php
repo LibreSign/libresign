@@ -1,7 +1,7 @@
 <?php
 
 use OC\SystemConfig;
-use OCA\Libresign\Handler\CfsslHandler;
+use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
 use OCP\IConfig;

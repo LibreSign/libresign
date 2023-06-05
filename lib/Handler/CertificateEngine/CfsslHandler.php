@@ -1,59 +1,37 @@
 <?php
 
-namespace OCA\Libresign\Handler;
+namespace OCA\Libresign\Handler\CertificateEngine;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCA\Libresign\Handler\CfsslServerHandler;
+use OCP\IConfig;
 
 /**
- * Class FileMapper
+ * Class CfsslHandler
  *
  * @package OCA\Libresign\Handler
  *
- * @method CfsslHandler setPassword(string $password)
- * @method string getPassword()
- * @method CfsslHandler setCommonName(string $commonName)
- * @method string getCommonName()
- * @method CfsslHandler setHosts(array $hosts)
- * @method array getHosts()
- * @method CfsslHandler setFriendlyName(string $friendlyName)
- * @method string getFriendlyName()
- * @method CfsslHandler setCountry(string $country)
- * @method string getCountry()
- * @method CfsslHandler setState(string $state)
- * @method string getState()
- * @method CfsslHandler setLocality(string $locality)
- * @method string getLocality()
- * @method CfsslHandler setOrganization(string $organization)
- * @method string getOrganization()
- * @method CfsslHandler setOrganizationUnit(string $organizationUnit)
- * @method string getOrganizationUnit()
- * @method CfsslHandler setCfsslUri(string $cfsslUri)
  * @method string getCfsslUri()
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
-class CfsslHandler {
-	use MagicGetterSetterTrait;
+class CfsslHandler extends AbstractHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
-	private $commonName;
-	private $hosts = [];
-	private $friendlyName;
-	private $country;
-	private $state;
-	private $locality;
-	private $organization;
-	private $organizationUnit;
-	private $cfsslUri;
-	private $password;
-	private $configPath;
-	private $binary;
+
 	/** @var Client */
-	private $client;
+	protected $client;
+	protected $cfsslUri;
+
+	public function __construct(
+		private CfsslServerHandler $cfsslServerHandler,
+		private IConfig $config,
+	) {
+	}
 
 	public function getClient(): Client {
 		if (!$this->client) {
@@ -61,56 +39,6 @@ class CfsslHandler {
 		}
 		$this->wakeUp();
 		return $this->client;
-	}
-
-	public function generateCertificate(): string {
-		$certKeys = $this->newCert();
-		$certContent = null;
-		try {
-			openssl_pkcs12_export(
-				$certKeys['certificate'],
-				$certContent,
-				$certKeys['private_key'],
-				$this->getPassword(),
-				['friendly_name' => $this->getFriendlyName()],
-			);
-		} catch (\Throwable $th) {
-			throw new LibresignException('Error while creating certificate file', 500);
-		}
-
-		return $certContent;
-	}
-
-	public function translateToLong($name): string {
-		switch ($name) {
-			case 'CN':
-				return 'CommonName';
-			case 'C':
-				return 'Country';
-			case 'ST':
-				return 'State';
-			case 'L':
-				return 'Locality';
-			case 'O':
-				return 'Organization';
-			case 'OU':
-				return 'OrganizationUnit';
-		}
-		return '';
-	}
-
-	public function getNames(): array {
-		$names = [
-			'C' => $this->getCountry(),
-			'ST' => $this->getState(),
-			'L' => $this->getLocality(),
-			'O' => $this->getOrganization(),
-			'OU' => $this->getOrganizationUnit(),
-		];
-		$names = array_filter($names, function ($v) {
-			return !empty($v);
-		});
-		return $names;
 	}
 
 	/**
@@ -241,24 +169,47 @@ class CfsslHandler {
 		return false;
 	}
 
-	public function getBinary(): string {
-		if (!$this->binary) {
-			return '';
+	private function getBinary(): string {
+		$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+		
+		if ($binary && !file_exists($binary)) {
+			$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
+			$binary = '';
 		}
+	
+		if (!$binary) {
+			throw new LibresignException('Binary of CFSSL not found. Install binaries.');
+		}
+
 		if (PHP_OS_FAMILY === 'Windows') {
-			return $this->binary . '.exe';
+			$binary .= '.exe';
 		}
-		return $this->binary;
+	
+		return $binary;
 	}
 
-	public function setBinary(string $binary): self {
-		if ($binary) {
-			if (!file_exists($binary)) {
-				throw new LibresignException('Binary of CFSSL not found. Install binaries.');
-			}
-			$this->binary = $binary;
+	private function getCfsslUri(): string {
+		$uri = $this->cfsslUri;
+		if ($uri) {
+			return $uri;
 		}
-		return $this;
+
+		$uri = $this->config->getAppValue(Application::APP_ID, 'cfssl_uri');
+		if ($uri) {
+			return $uri;
+		}
+
+		// In case config is an empty string
+		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_uri');
+
+		// Binary is necessary for local Cfssl server
+		$this->getBinary();
+		return self::CFSSL_URI;
+	}
+
+	public function setCfsslUri($uri): void {
+		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
+		$this->cfsslUri = $uri;
 	}
 
 	public function genkey(): void {
@@ -271,5 +222,32 @@ class CfsslHandler {
 			'-initca=true ' . $configPath . 'csr_server.json | ' .
 			$binary . 'json -bare ' . $configPath . 'ca;';
 		shell_exec($cmd);
+	}
+
+	public function generateRootCert(
+		string $commonName,
+		array $names = [],
+		string $configPath = '',
+	): string {
+		$key = bin2hex(random_bytes(16));
+
+		$this->setConfigPath($configPath);
+		$this->cfsslServerHandler->createConfigServer(
+			$commonName,
+			$names,
+			$key,
+			$configPath
+		);
+
+		$this->genkey();
+
+		for ($i = 1; $i <= 4; $i++) {
+			if ($this->health($this->getCfsslUri())) {
+				break;
+			}
+			sleep(2);
+		}
+
+		return $key;
 	}
 }
