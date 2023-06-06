@@ -543,6 +543,9 @@ class InstallService {
 		array $names = [],
 		array $properties = [],
 	): void {
+		if (empty($properties['engine'])) {
+			$properties['engine'] = $this->config->getAppValue(Application::APP_ID, 'certificate_engine');
+		}
 		switch ($properties['engine']) {
 			case 'cfssl':
 				if (!empty($properties['cfsslUri'])) {

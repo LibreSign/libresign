@@ -8,32 +8,28 @@ use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCP\IConfig;
 
 /**
- * Class AbstractHandler
- *
- * @package OCA\Libresign\Handler
- *
- * @method CfsslHandler setPassword(string $password)
+ * @method ICertificateEngineHandler setPassword(string $password)
  * @method string getPassword()
- * @method CfsslHandler setCommonName(string $commonName)
+ * @method ICertificateEngineHandler setCommonName(string $commonName)
  * @method string getCommonName()
- * @method CfsslHandler setHosts(array $hosts)
+ * @method ICertificateEngineHandler setHosts(array $hosts)
  * @method array getHosts()
- * @method CfsslHandler setFriendlyName(string $friendlyName)
+ * @method ICertificateEngineHandler setFriendlyName(string $friendlyName)
  * @method string getFriendlyName()
- * @method CfsslHandler setCountry(string $country)
+ * @method ICertificateEngineHandler setCountry(string $country)
  * @method string getCountry()
- * @method CfsslHandler setState(string $state)
+ * @method ICertificateEngineHandler setState(string $state)
  * @method string getState()
- * @method CfsslHandler setLocality(string $locality)
+ * @method ICertificateEngineHandler setLocality(string $locality)
  * @method string getLocality()
- * @method CfsslHandler setOrganization(string $organization)
+ * @method ICertificateEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method CfsslHandler setOrganizationUnit(string $organizationUnit)
+ * @method ICertificateEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
- * @method CfsslHandler setConfigPath()
+ * @method ICertificateEngineHandler setConfigPath()
  */
-abstract class AbstractHandler {
+abstract class AbstractHandler implements ICertificateEngineHandler {
 	use MagicGetterSetterTrait;
 
 	protected string $commonName;
@@ -46,6 +42,7 @@ abstract class AbstractHandler {
 	protected string $organizationUnit;
 	protected string $password;
 	protected string $configPath;
+	protected string $engine;
 
 	public function __construct(
 		protected IConfig $config
@@ -70,21 +67,25 @@ abstract class AbstractHandler {
 		return $certContent;
 	}
 
-	public function getNames(): array {
-		$names = [
-			'C' => $this->getCountry(),
-			'ST' => $this->getState(),
-			'L' => $this->getLocality(),
-			'O' => $this->getOrganization(),
-			'OU' => $this->getOrganizationUnit(),
-		];
-		$names = array_filter($names, function ($v) {
-			return !empty($v);
-		});
-		return $names;
+	public function getInstance(): ICertificateEngineHandler {
+		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = json_decode($rootCert, true);
+		if (!empty($rootCert['names'])) {
+			foreach ($rootCert['names'] as $id => $customName) {
+				$longCustomName = $this->translateToLong($id);
+				$this->{'set' . ucfirst($longCustomName)}($customName['value']);
+			}
+		}
+		if (!$this->getCommonName()) {
+			$this->setCommonName($rootCert['commonName']);
+		}
+		if (!$this->getConfigPath()) {
+			$this->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
+		}
+		return $this;
 	}
 
-	public function translateToLong($name): string {
+	protected function translateToLong($name): string {
 		switch ($name) {
 			case 'CN':
 				return 'CommonName';
@@ -104,6 +105,7 @@ abstract class AbstractHandler {
 
 	protected function setEngine(string $engine): void {
 		$this->config->setAppValue(Application::APP_ID, 'certificate_engine', $engine);
+		$this->engine = $engine;
 	}
 
 	protected function setConfigPath(string $configPath): void {
