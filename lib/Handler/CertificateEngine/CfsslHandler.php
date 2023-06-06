@@ -17,7 +17,6 @@ use OCP\IConfig;
  *
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
- * @method CfsslHandler setConfigPath()
  */
 class CfsslHandler extends AbstractHandler implements ICertificateEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';

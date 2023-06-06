@@ -10,6 +10,11 @@
       <code>Base</code>
     </MissingDependency>
   </file>
+  <file src="lib/Command/Configure/OpenSsl.php">
+    <MissingDependency occurrences="1">
+      <code>Base</code>
+    </MissingDependency>
+  </file>
   <file src="lib/Command/Install.php">
     <MissingDependency occurrences="1">
       <code>Base</code>
