@@ -13,8 +13,8 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
-use OCA\Libresign\Handler\CertificateEngine\ICertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
@@ -37,7 +37,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private SystemConfig $systemConfig,
 		private CfsslHandler $cfsslHandler,
 		private OpenSslHandler $openSslHandler,
-		private ICertificateEngineHandler $certificateEngineHandler,
+		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n
 	) {
 	}
