@@ -2,6 +2,8 @@
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\AppInfo\Application;
+
 /**
  * Class FileMapper
  *
@@ -11,7 +13,7 @@ namespace OCA\Libresign\Handler\CertificateEngine;
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
-class OpenSslHandler extends AbstractHandler {
+class OpenSslHandler extends AbstractHandler implements ICertificateEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -42,5 +44,9 @@ class OpenSslHandler extends AbstractHandler {
 		file_put_contents($configPath . 'ca-key.pem', $pkeyout);
 
 		return $pkeyout;
+	}
+
+	public function isOk(): bool {
+		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
 	}
 }
