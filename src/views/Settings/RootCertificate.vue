@@ -136,11 +136,11 @@
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<input type="button"
-				class="primary"
-				:value="submitLabel"
+			<NcButton
 				:disabled="formDisabled || !savePossible"
 				@click="generateCertificate">
+				{{ submitLabel }}
+			</NcButton>
 		</div>
 	</NcSettingsSection>
 </template>
