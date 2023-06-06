@@ -24,10 +24,10 @@
     <repository type="git">https://github.com/LibreSign/libresign</repository>
     <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png</screenshot>
     <dependencies>
+        <lib>openssl</lib>
         <nextcloud min-version="27" max-version="28"/>
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
-        <lib>openssl</lib>
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
