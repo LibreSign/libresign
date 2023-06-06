@@ -19,7 +19,7 @@ use OCP\IConfig;
  * @method string getConfigPath()
  * @method CfsslHandler setConfigPath()
  */
-class CfsslHandler extends AbstractHandler {
+class CfsslHandler extends AbstractHandler implements ICertificateEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 
 	/** @var Client */
@@ -34,7 +34,7 @@ class CfsslHandler extends AbstractHandler {
 		parent::__construct($config);
 	}
 
-	public function getClient(): Client {
+	private function getClient(): Client {
 		if (!$this->client) {
 			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
 		}
@@ -88,10 +88,7 @@ class CfsslHandler extends AbstractHandler {
 		return $responseDecoded['result'];
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	public function health(): array {
+	private function isUp(): bool {
 		try {
 			$client = $this->getClient();
 			if (!$this->portOpen()) {
@@ -122,7 +119,11 @@ class CfsslHandler extends AbstractHandler {
 			throw new LibresignException('Error while check cfssl API health!', 500);
 		}
 
-		return $responseDecoded['result'];
+		if (empty($responseDecoded['result']) || empty($responseDecoded['result']['healthy'])) {
+			return false;
+		}
+
+		return (bool) $responseDecoded['result']['healthy'];
 	}
 
 	private function wakeUp(): void {
@@ -236,12 +237,21 @@ class CfsslHandler extends AbstractHandler {
 		$this->genkey();
 
 		for ($i = 1; $i <= 4; $i++) {
-			if ($this->health($this->getCfsslUri())) {
+			if ($this->isUp($this->getCfsslUri())) {
 				break;
 			}
 			sleep(2);
 		}
 
 		return $key;
+	}
+
+	public function isOk(): bool {
+		try {
+			$this->getClient();
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
 	}
 }
