@@ -11,7 +11,6 @@ use OCA\Libresign\AppInfo\Application;
  *
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
- * @method CfsslHandler setConfigPath()
  */
 class OpenSslHandler extends AbstractHandler implements ICertificateEngineHandler {
 	public function generateRootCert(
