@@ -19,6 +19,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public static function beforeSuite(): void {
 		self::runCommand('libresign:developer:reset --all');
+		self::runCommand('app:enable --force notifications');
 	}
 
 	/**
