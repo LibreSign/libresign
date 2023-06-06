@@ -72,6 +72,16 @@
 		</div>
 		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
+				<label for="certificateEngine" class="form-heading--required">{{ t('libresign', 'Certificate engine') }}</label>
+				<NcMultiselect id="certificateEngine"
+					:options="certificateEngines"
+					track-by="id"
+					label="label"
+					v-model="certificateEngine"
+					:placeholder="t('libresign', 'Select the certificate engine to generate the root certificate')"
+					@change="onEngineChange" />
+			</div>
+			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
 					ref="commonName"
@@ -153,6 +163,7 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
@@ -225,6 +236,11 @@ export default {
 			formDisabled: false,
 			loading: true,
 			customNamesOptions: [],
+			certificateEngine: loadState('libresign', 'certificate_engine'),
+			certificateEngines: [
+				{id:'cfssl', label:'cfssl'},
+				{id:'openssl', label:'OpenSSL'}
+			],
 		}
 	},
 	computed: {
@@ -266,6 +282,9 @@ export default {
 		},
 		getCustomNamesOptionsById(id) {
 			return this.rootCertDataset[id].label
+		},
+		async onEngineChange(selected) {
+			console.log(selected.id)
 		},
 		async onOptionalAttributeSelect(selected) {
 			if (Object.hasOwn(this.certificate.rootCert.names, selected.id)) {
