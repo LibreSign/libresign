@@ -27,6 +27,7 @@
         <nextcloud min-version="27" max-version="28"/>
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
+        <lib>openssl</lib>
     </dependencies>
     <commands>
         <command>OCA\Libresign\Command\Configure\Check</command>
