@@ -69,7 +69,17 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else-if="cfsslBinariesOk" id="formRootCertificateCfssl" class="form-libresign">
+		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
+			<div class="form-group">
+				<label for="certificateEngine" class="form-heading--required">{{ t('libresign', 'Certificate engine') }}</label>
+				<NcMultiselect id="certificateEngine"
+					v-model="certificateEngine"
+					:options="certificateEngines"
+					track-by="id"
+					label="label"
+					:placeholder="t('libresign', 'Select the certificate engine to generate the root certificate')"
+					@change="onEngineChange" />
+			</div>
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
@@ -241,6 +251,11 @@ export default {
 			formDisabled: false,
 			loading: true,
 			customNamesOptions: [],
+			certificateEngine: loadState('libresign', 'certificate_engine'),
+			certificateEngines: [
+				{ id: 'cfssl', label: 'cfssl' },
+				{ id: 'openssl', label: 'OpenSSL' },
+			],
 		}
 	},
 	computed: {
