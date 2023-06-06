@@ -27,7 +27,6 @@ use OCP\IConfig;
  * @method ICertificateEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
- * @method ICertificateEngineHandler setConfigPath()
  */
 abstract class AbstractHandler implements ICertificateEngineHandler {
 	use MagicGetterSetterTrait;
