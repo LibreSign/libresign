@@ -6,13 +6,15 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IConfig;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
 class Admin implements ISettings {
 	public function __construct(
 		private IInitialState $initialState,
-		private IdentifyMethodService $identifyMethodService
+		private IdentifyMethodService $identifyMethodService,
+		private IConfig $config
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -20,6 +22,10 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState(
 			'identify_methods',
 			$this->identifyMethodService->getIdentifyMethodsSettings()
+		);
+		$this->initialState->provideInitialState(
+			'certificate_engine',
+			$this->config->getAppValue(Application::APP_ID, 'certificate_engine')
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
