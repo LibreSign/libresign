@@ -27,7 +27,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public static function runCommand($command): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
-		$fullCommand = 'runuser -u ' . $owner['name'] . ' -- php ' . $console . ' ' . $command;
+		$fullCommand = 'php ' . $console . ' ' . $command;
+		if (get_current_user() !== $owner['name']) {
+			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
+		}
 		exec($fullCommand, $output);
 	}
 
