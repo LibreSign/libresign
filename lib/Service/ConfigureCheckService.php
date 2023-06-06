@@ -26,7 +26,7 @@ class ConfigureCheckService {
 		$result = [];
 		$result = array_merge($result, $this->checkSign());
 		$result = array_merge($result, $this->canPreview());
-		$result = array_merge($result, $this->checkCfssl());
+		$result = array_merge($result, $this->checkCertificate());
 		return $result;
 	}
 
@@ -219,6 +219,37 @@ class ConfigureCheckService {
 		return empty($error);
 	}
 
+
+	/**
+	 * Check all requirements to use certificate
+	 *
+	 * @return ConfigureCheckHelper[]
+	 */
+	public function checkCertificate(): array {
+		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine');
+		switch ($engine) {
+			case 'cfssl':
+				$return = $this->checkCfssl();
+				break;
+			case 'openssl':
+				$return = $this->checkOpenSsl();
+				break;
+			default:
+				$return = [
+					(new ConfigureCheckHelper())
+						->setErrorMessage('Define the certificate engine to use')
+						->setResource('certificate-engine')
+						->setTip('Run occ libresign:configure:openssl --help or occ libresign:configure:cfssl --help'),
+				];
+				break;
+		}
+		return $return;
+	}
+
+	public function checkOpenSsl(): array {
+		return $this->checkOpenSslConfigure();
+	}
+
 	/**
 	 * Check all requirements to use CFSSL
 	 *
@@ -296,5 +327,18 @@ class ConfigureCheckService {
 			->setErrorMessage('CFSSL (root certificate) not configured.')
 			->setResource('cfssl-configure')
 			->setTip('Run occ libresign:configure:cfssl --help')];
+	}
+
+	public function checkOpenSslConfigure(): array {
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			return [(new ConfigureCheckHelper())
+				->setSuccessMessage('Root certificate config files found.')
+				->setResource('openssl-configure')];
+		}
+		return [(new ConfigureCheckHelper())
+			->setErrorMessage('OpenSSL (root certificate) not configured.')
+			->setResource('openssl-configure')
+			->setTip('Run occ libresign:configure:openssl --help')];
 	}
 }
