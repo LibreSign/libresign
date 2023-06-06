@@ -28,7 +28,7 @@ use OCP\IConfig;
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
  */
-abstract class AbstractHandler implements ICertificateEngineHandler {
+class CertificateEngineHandler implements ICertificateEngineHandler {
 	use MagicGetterSetterTrait;
 
 	protected string $commonName;
@@ -46,6 +46,18 @@ abstract class AbstractHandler implements ICertificateEngineHandler {
 	public function __construct(
 		protected IConfig $config
 	) {
+	}
+
+	public function generateRootCert(
+		string $commonName,
+		array $names = [],
+		string $configPath = '',
+	): string {
+		return '';
+	}
+
+	public function isOk(): bool {
+		return false;
 	}
 
 	public function generateCertificate(): string {
