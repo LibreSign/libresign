@@ -74,10 +74,10 @@
 			<div class="form-group">
 				<label for="certificateEngine" class="form-heading--required">{{ t('libresign', 'Certificate engine') }}</label>
 				<NcMultiselect id="certificateEngine"
+					v-model="certificateEngine"
 					:options="certificateEngines"
 					track-by="id"
 					label="label"
-					v-model="certificateEngine"
 					:placeholder="t('libresign', 'Select the certificate engine to generate the root certificate')"
 					@change="onEngineChange" />
 			</div>
@@ -94,33 +94,46 @@
 			</div>
 			<div class="form-group">
 				<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
-				<NcMultiselect id="optionalAttribute"
-					:options="customNamesOptions"
-					track-by="id"
-					label="label"
-					:placeholder="t('libresign', 'Select a custom name')"
-					@change="onOptionalAttributeSelect" />
-			</div>
-			<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
-				<label :for="customName.id" class="form-heading--required">
-					{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
-				</label>
-				<div class="item">
-					<NcTextField v-if="customName"
-						:id="customName.id"
-						:value.sync="customName.value"
-						:success="typeof customName.error === 'boolean' && !customName.error"
-						:error="customName.error"
-						:maxlength="customName.maxlength"
-						:helper-text="customName.helperText"
-						:disabled="formDisabled"
-						@update:value="validate(customName.id)" />
-					<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
-						@click="removeOptionalAttribute(key)">
-						<template #icon>
-							<Delete :size="20" />
-						</template>
-					</NcButton>
+				<NcPopover container="body" :popper-hide-triggers="(triggers) => [...triggers, 'click']">
+					<template #trigger>
+						<NcButton :disabled="customNamesOptions.length === 0">
+							{{ t('libresign', 'Select a custom name') }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul style="width: 350px;">
+							<div v-for="option in customNamesOptions" :key="option.id">
+								<NcListItem :title="option.label"
+									@click="onOptionalAttributeSelect(option)">
+									<template #subname>
+										{{ option.label }}
+									</template>
+								</NcListItem>
+						  </div>
+						</ul>
+					</template>
+				</NcPopover>
+				<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
+					<label :for="customName.id" class="form-heading--required">
+						{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
+					</label>
+					<div class="item">
+						<NcTextField v-if="customName"
+							:id="customName.id"
+							:value.sync="customName.value"
+							:success="typeof customName.error === 'boolean' && !customName.error"
+							:error="customName.error"
+							:maxlength="customName.maxlength"
+							:helper-text="customName.helperText"
+							:disabled="formDisabled"
+							@update:value="validate(customName.id)" />
+						<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
+							@click="removeOptionalAttribute(key)">
+							<template #icon>
+								<Delete :size="20" />
+							</template>
+						</NcButton>
+					</div>
 				</div>
 			</div>
 			<div>
@@ -146,8 +159,7 @@
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<NcButton
-				:disabled="formDisabled || !savePossible"
+			<NcButton :disabled="formDisabled || !savePossible"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>
@@ -162,6 +174,8 @@ import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect.js'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
+import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -178,6 +192,8 @@ export default {
 		NcModal,
 		NcButton,
 		NcTextField,
+		NcPopover,
+		NcListItem,
 		Delete,
 	},
 	data() {
@@ -238,8 +254,8 @@ export default {
 			customNamesOptions: [],
 			certificateEngine: loadState('libresign', 'certificate_engine'),
 			certificateEngines: [
-				{id:'cfssl', label:'cfssl'},
-				{id:'openssl', label:'OpenSSL'}
+				{ id: 'cfssl', label: 'cfssl' },
+				{ id: 'openssl', label: 'OpenSSL' },
 			],
 		}
 	},
@@ -308,8 +324,10 @@ export default {
 			}
 		},
 		async removeOptionalAttribute(key) {
-			this.customNamesOptions.push(this.rootCertDataset[key])
-			delete this.certificate.rootCert.names[key]
+			//this.customNamesOptions.push(this.rootCertDataset[key])
+			console.log(this.certificate.rootCert.names)
+//	<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
+			//this.certificate.rootCert.names = this.certificate.rootCert.names.filter(item => item.id !== key)
 		},
 		showModal() {
 			this.modal = true
@@ -321,6 +339,7 @@ export default {
 			this.customNamesOptions = []
 			Object.keys(this.rootCertDataset).forEach(key => {
 				const item = this.rootCertDataset[key]
+				// TODO: remove  use array push 
 				this.customNamesOptions.push(item)
 			})
 			this.certificate.rootCert.commonName = ''
