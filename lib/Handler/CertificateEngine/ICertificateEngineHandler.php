@@ -44,7 +44,6 @@ namespace OCA\Libresign\Handler\CertificateEngine;
  * @method ICertificateEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
- * @method ICertificateEngineHandler setConfigPath()
  */
 interface ICertificateEngineHandler {
 	public function generateRootCert(
