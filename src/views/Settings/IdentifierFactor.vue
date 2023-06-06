@@ -97,6 +97,13 @@ import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import { loadState } from '@nextcloud/initial-state'
 
+function getBoolean(isTrue) {
+	if (isTrue) {
+		return true;
+	}
+	return false;
+}
+
 export default {
 	name: 'IdentifierFactor',
 	components: {
@@ -118,77 +125,103 @@ export default {
 			description: t('Identify factors'),
 			selectedDefaultIdentification: account?.signature_method,
 			options: account?.allowed_signature_methods,
-			useUser: account?.enabled,
-			requiredUser: account?.mandatory,
-			allowedInviteUser: account?.can_create_account,
+			useUser: getBoolean(account?.enabled),
+			requiredUser: getBoolean(account?.mandatory),
+			allowedInviteUser: getBoolean(account?.can_create_account),
 
-			useTelegram: telegram?.enabled,
-			requiredTelegram: telegram?.mandatory,
+			useTelegram: getBoolean(telegram?.enabled),
+			requiredTelegram: getBoolean(telegram?.mandatory),
 
-			useSMS: sms?.enabled,
-			requiredSMS: sms?.mandatory,
+			useSMS: getBoolean(sms?.enabled),
+			requiredSMS: getBoolean(sms?.mandatory),
 
-			useEmail: email?.enabled,
-			requiredEmail: email?.mandatory,
+			useEmail: getBoolean(email?.enabled),
+			requiredEmail: getBoolean(email?.mandatory),
 
-			useSignal: signal?.enabled,
-			requiredSignal: signal?.mandatory,
+			useSignal: getBoolean(signal?.enabled),
+			requiredSignal: getBoolean(signal?.mandatory),
 
 			optionsSave: [],
 		}
 	},
 	methods: {
+		isDefaultValue() {
+			if (this.useUser === false) {
+				if (!this.useSMS &&
+						!this.useSignal &&
+						!this.useTelegram &&
+						!this.useEmail) {
+					this.useUser = true;
+					return true;
+				}
+			 }
+			return false
+		},
 		saveEmail() {
-			// TODO: verify useEmail is false checked
+			if (this.isDefaultValue()) {
+				return;
+			}
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'email'), {
 				name: 'email',
-				enabled: !this.useEmail,
+				enabled: this.useEmail,
 				mandatory: this.requiredEmail,
-				can_be_used: !this.useEmail,
+				can_be_used: this.useEmail,
 			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 		saveAccount() {
-			// TODO: verify useAccount is false checked
+			if (this.isDefaultValue()) {
+				return;
+			}
+
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'account'), {
 				name: 'account',
-				enabled: !this.useAccount,
+				enabled: this.useUser,
 				mandatory: this.requiredUser,
-				can_be_used: !this.useAccount,
+				can_be_used: this.useUser,
 				can_create_account: this.allowedInviteUser,
 				signature_method: this.selectedDefaultIdentification,
 			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 		saveSMS() {
-			// TODO: verify useSMS is false checked
+			if (this.isDefaultValue()) {
+				return;
+			}
+
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'sms'), {
 				name: 'sms',
-				enabled: !this.useSMS,
+				enabled: this.useSMS,
 				mandatory: this.requiredSMS,
-				can_be_used: !this.useSMS,
+				can_be_used: this.useSMS,
 			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 
 		saveTelegram() {
-			// TODO: verify useTelegram is false checked
+			if (this.isDefaultValue()) {
+				return;
+			}
+
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'telegram'), {
 				name: 'telegram',
-				enabled: !this.useTelegram,
+				enabled: this.useTelegram,
 				mandatory: this.requiredTelegram,
-				can_be_used: !this.useTelegram,
+				can_be_used: this.useTelegram,
 			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
 
 		saveSignal() {
-			// TODO: verify useSignal is false checked
+			if (this.isDefaultValue()) {
+				return;
+			}
+
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'signal'), {
 				name: 'signal',
-				enabled: !this.useSignal,
+				enabled: this.useSignal,
 				mandatory: this.requiredSignal,
-				can_be_used: !this.useSignal,
+				can_be_used: this.useSignal,
 			}]
 			OCP.AppConfig.setValue('libresign', 'identify_methods', JSON.stringify(this.optionsSave))
 		},
