@@ -30,17 +30,17 @@ use OCP\IConfig;
 class CertificateEngineHandler implements ICertificateEngineHandler {
 	use MagicGetterSetterTrait;
 
-	protected string $commonName;
+	protected string $commonName = '';
 	protected array $hosts = [];
-	protected string $friendlyName;
-	protected string $country;
-	protected string $state;
-	protected string $locality;
-	protected string $organization;
-	protected string $organizationUnit;
-	protected string $password;
-	protected string $configPath;
-	protected string $engine;
+	protected string $friendlyName = '';
+	protected string $country = '';
+	protected string $state = '';
+	protected string $locality = '';
+	protected string $organization = '';
+	protected string $organizationUnit = '';
+	protected string $password = '';
+	protected string $configPath = '';
+	protected string $engine = '';
 
 	public function __construct(
 		protected IConfig $config
