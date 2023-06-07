@@ -11,8 +11,7 @@ use OC\Files\Filesystem;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
-use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -46,8 +45,7 @@ class InstallService {
 	public function __construct(
 		ICacheFactory $cacheFactory,
 		private IClientService $clientService,
-		private CfsslHandler $cfsslHandler,
-		private OpenSslHandler $openSslHandler,
+		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger
@@ -546,30 +544,24 @@ class InstallService {
 		if (empty($properties['engine'])) {
 			$properties['engine'] = $this->config->getAppValue(Application::APP_ID, 'certificate_engine');
 		}
+		$engine = $this->certificateEngineHandler->getEngine();
 		switch ($properties['engine']) {
 			case 'cfssl':
 				if (!empty($properties['cfsslUri'])) {
-					$this->cfsslHandler->setCfsslUri($properties['cfsslUri']);
+					$engine->setCfsslUri($properties['cfsslUri']);
 				}
-
-				$privateKey = $this->cfsslHandler->generateRootCert(
-					$commonName,
-					$names,
-					$properties['configPath'] ?? $this->getConfigPath('cfssl'),
-				);
-				break;
-
+				// no break
 			case 'openssl':
-				$privateKey = $this->openSslHandler->generateRootCert(
-					$commonName,
-					$names,
-					$properties['configPath'] ?? $this->getConfigPath('openssl'),
-				);
 				break;
-
 			default:
 				throw new LibresignException('Certificate engine not found: ' . $properties['engine']);
 		}
+
+		$privateKey = $engine->generateRootCert(
+			$commonName,
+			$names,
+			$properties['configPath'] ?? $this->getConfigPath('cfssl'),
+		);
 
 		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
 			'commonName' => $commonName,

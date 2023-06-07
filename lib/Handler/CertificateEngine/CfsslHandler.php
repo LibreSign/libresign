@@ -18,7 +18,7 @@ use OCP\IConfig;
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  */
-class CfsslHandler extends CertificateEngineHandler implements ICertificateEngineHandler {
+class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public const CFSSL_URI = 'http://127.0.0.1:8888/api/v1/cfssl/';
 
 	/** @var Client */
@@ -41,25 +41,7 @@ class CfsslHandler extends CertificateEngineHandler implements ICertificateEngin
 		return $this->client;
 	}
 
-	public function generateCertificate(): string {
-		$certKeys = $this->newCert();
-		$certContent = null;
-		try {
-			openssl_pkcs12_export(
-				$certKeys['certificate'],
-				$certContent,
-				$certKeys['private_key'],
-				$this->getPassword(),
-				['friendly_name' => $this->getFriendlyName()],
-			);
-		} catch (\Throwable $th) {
-			throw new LibresignException('Error while creating certificate file', 500);
-		}
-
-		return $certContent;
-	}
-
-	public function getNames(): array {
+	private function getNames(): array {
 		$names = [
 			'C' => $this->getCountry(),
 			'ST' => $this->getState(),

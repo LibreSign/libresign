@@ -25,27 +25,27 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 /**
- * @method ICertificateEngineHandler setPassword(string $password)
+ * @method IEngineHandler setPassword(string $password)
  * @method string getPassword()
- * @method ICertificateEngineHandler setCommonName(string $commonName)
+ * @method IEngineHandler setCommonName(string $commonName)
  * @method string getCommonName()
- * @method ICertificateEngineHandler setHosts(array $hosts)
+ * @method IEngineHandler setHosts(array $hosts)
  * @method array getHosts()
- * @method ICertificateEngineHandler setFriendlyName(string $friendlyName)
+ * @method IEngineHandler setFriendlyName(string $friendlyName)
  * @method string getFriendlyName()
- * @method ICertificateEngineHandler setCountry(string $country)
+ * @method IEngineHandler setCountry(string $country)
  * @method string getCountry()
- * @method ICertificateEngineHandler setState(string $state)
+ * @method IEngineHandler setState(string $state)
  * @method string getState()
- * @method ICertificateEngineHandler setLocality(string $locality)
+ * @method IEngineHandler setLocality(string $locality)
  * @method string getLocality()
- * @method ICertificateEngineHandler setOrganization(string $organization)
+ * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method ICertificateEngineHandler setOrganizationUnit(string $organizationUnit)
+ * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
  */
-interface ICertificateEngineHandler {
+interface IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -56,5 +56,5 @@ interface ICertificateEngineHandler {
 
 	public function isOk(): bool;
 
-	public function getInstance(): ICertificateEngineHandler;
+	public function setConfigPath(string $configPath): void;
 }

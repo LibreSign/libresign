@@ -12,7 +12,7 @@ use OCA\Libresign\AppInfo\Application;
  * @method CfsslHandler setClient(Client $client)
  * @method string getConfigPath()
  */
-class OpenSslHandler extends CertificateEngineHandler implements ICertificateEngineHandler {
+class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
