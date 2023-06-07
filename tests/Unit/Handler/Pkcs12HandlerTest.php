@@ -21,6 +21,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N|MockObject $l10n;
 	private OpenSslHandler|MockObject $openSslHandler;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
+	private array $cfsslHandlerBuffer = [];
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
