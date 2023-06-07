@@ -45,7 +45,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $pkeyout;
 	}
 
-	public function isOk(): bool {
+	public function isSetupOk(): bool {
 		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
 	}
 }
