@@ -36,7 +36,7 @@ class Handler {
 	) {
 	}
 
-	public function getEngine(string $engineName = ''):  CfsslHandler|OpenSslHandler {
+	public function getEngine(string $engineName = ''): CfsslHandler|OpenSslHandler {
 		if (!$engineName) {
 			$engineName = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
 		}
