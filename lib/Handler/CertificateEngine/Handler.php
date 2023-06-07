@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
 
 class Handler {
@@ -35,12 +36,16 @@ class Handler {
 	) {
 	}
 
-	public function getEngine():  CfsslHandler|OpenSslHandler {
-		$engineName = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+	public function getEngine(string $engineName = ''):  CfsslHandler|OpenSslHandler {
+		if (!$engineName) {
+			$engineName = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+		}
 		if ($engineName === 'openssl') {
 			$engine = $this->openSslHandler;
-		} else {
+		} elseif ($engineName === 'cfssl') {
 			$engine = $this->cfsslHandler;
+		} else {
+			throw new LibresignException('Certificate engine not found: ' . $engineName);
 		}
 		$engine->populateInstance();
 		return $engine;
