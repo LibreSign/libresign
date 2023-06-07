@@ -48,14 +48,13 @@ class AEngineHandler {
 	) {
 	}
 
-	public function generateCertificate(): string {
-		$certKeys = $this->newCert();
+	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
 		$certContent = null;
 		try {
 			openssl_pkcs12_export(
-				$certKeys['certificate'],
+				$certificate,
 				$certContent,
-				$certKeys['private_key'],
+				$privateKey,
 				$this->getPassword(),
 				['friendly_name' => $this->getFriendlyName()],
 			);
@@ -89,7 +88,7 @@ class AEngineHandler {
 		$this->engine = $engine;
 	}
 
-	protected function populateInstance(IEngineHandler $engine): IEngineHandler {
+	public function populateInstance(): self {
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (!$rootCert) {
@@ -98,16 +97,16 @@ class AEngineHandler {
 		if (!empty($rootCert['names'])) {
 			foreach ($rootCert['names'] as $id => $customName) {
 				$longCustomName = $this->translateToLong($id);
-				$engine->{'set' . ucfirst($longCustomName)}($customName['value']);
+				$this->{'set' . ucfirst($longCustomName)}($customName['value']);
 			}
 		}
-		if (!$engine->getCommonName()) {
-			$engine->setCommonName($rootCert['commonName']);
+		if (!$this->getCommonName()) {
+			$this->setCommonName($rootCert['commonName']);
 		}
-		if (!$engine->getConfigPath()) {
-			$engine->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
+		if (!$this->getConfigPath()) {
+			$this->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
 		}
-		return $engine;
+		return $this;
 	}
 
 	public function setConfigPath(string $configPath): void {
