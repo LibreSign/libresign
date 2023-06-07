@@ -326,7 +326,7 @@ export default {
 		async removeOptionalAttribute(key) {
 			// this.customNamesOptions.push(this.rootCertDataset[key])
 			console.log(this.certificate.rootCert.names)
-			//	<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
+			// <div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
 			// this.certificate.rootCert.names = this.certificate.rootCert.names.filter(item => item.id !== key)
 		},
 		showModal() {
