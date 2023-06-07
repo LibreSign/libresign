@@ -88,6 +88,11 @@ class AEngineHandler {
 		$this->engine = $engine;
 	}
 
+	protected function getEngine(): string {
+		$this->engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+		return $this->engine;
+	}
+
 	public function populateInstance(): self {
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
@@ -95,8 +100,8 @@ class AEngineHandler {
 			throw new LibresignException('Invalid or empty root certificate', 500);
 		}
 		if (!empty($rootCert['names'])) {
-			foreach ($rootCert['names'] as $id => $customName) {
-				$longCustomName = $this->translateToLong($id);
+			foreach ($rootCert['names'] as $customName) {
+				$longCustomName = $this->translateToLong($customName['id']);
 				$this->{'set' . ucfirst($longCustomName)}($customName['value']);
 			}
 		}
