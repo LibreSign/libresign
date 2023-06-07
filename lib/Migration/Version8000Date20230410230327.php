@@ -35,16 +35,12 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version8000Date20230410230327 extends SimpleMigrationStep {
-	protected IConfig $config;
-	protected IAppDataFactory $appDataFactory;
 	protected IAppData $appData;
 
 	public function __construct(
-		IConfig $config,
-		IAppDataFactory $appDataFactory
+		protected IConfig $config,
+		protected IAppDataFactory $appDataFactory
 	) {
-		$this->config = $config;
-		$this->appDataFactory = $appDataFactory;
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
