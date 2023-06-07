@@ -55,7 +55,7 @@ interface IEngineHandler {
 
 	public function generateCertificate(): string;
 
-	public function isOk(): bool;
+	public function isSetupOk(): bool;
 
 	public function setConfigPath(string $configPath): void;
 }
