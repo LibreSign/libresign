@@ -41,6 +41,38 @@ class CfsslHandler extends CertificateEngineHandler implements ICertificateEngin
 		return $this->client;
 	}
 
+	public function generateCertificate(): string {
+		$certKeys = $this->newCert();
+		$certContent = null;
+		try {
+			openssl_pkcs12_export(
+				$certKeys['certificate'],
+				$certContent,
+				$certKeys['private_key'],
+				$this->getPassword(),
+				['friendly_name' => $this->getFriendlyName()],
+			);
+		} catch (\Throwable $th) {
+			throw new LibresignException('Error while creating certificate file', 500);
+		}
+
+		return $certContent;
+	}
+
+	public function getNames(): array {
+		$names = [
+			'C' => $this->getCountry(),
+			'ST' => $this->getState(),
+			'L' => $this->getLocality(),
+			'O' => $this->getOrganization(),
+			'OU' => $this->getOrganizationUnit(),
+		];
+		$names = array_filter($names, function ($v) {
+			return !empty($v);
+		});
+		return $names;
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
@@ -166,11 +198,11 @@ class CfsslHandler extends CertificateEngineHandler implements ICertificateEngin
 		}
 
 		$appKeys = $this->config->getAppKeys(Application::APP_ID);
+		$binary = '';
 		if (in_array('cfssl_bin', $appKeys)) {
 			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
 			if (!file_exists($binary)) {
 				$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
-				$binary = '';
 			}
 		}
 	
