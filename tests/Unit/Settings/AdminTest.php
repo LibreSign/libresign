@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Services\IInitialState;
@@ -16,14 +17,17 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Admin $admin;
 	private IInitialState|MockObject $initialState;
 	private IdentifyMethodService|MockObject $identifyMethodService;
+	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private IConfig|MockObject $config;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->admin = new Admin(
 			$this->initialState,
 			$this->identifyMethodService,
+			$this->certificateEngineHandler,
 			$this->config
 		);
 	}
