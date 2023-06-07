@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCP\IConfig;
 
@@ -61,21 +60,7 @@ class CertificateEngineHandler implements ICertificateEngineHandler {
 	}
 
 	public function generateCertificate(): string {
-		$certKeys = $this->newCert();
-		$certContent = null;
-		try {
-			openssl_pkcs12_export(
-				$certKeys['certificate'],
-				$certContent,
-				$certKeys['private_key'],
-				$this->getPassword(),
-				['friendly_name' => $this->getFriendlyName()],
-			);
-		} catch (\Throwable $th) {
-			throw new LibresignException('Error while creating certificate file', 500);
-		}
-
-		return $certContent;
+		return '';
 	}
 
 	public function getInstance(): ICertificateEngineHandler {

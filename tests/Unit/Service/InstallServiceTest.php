@@ -24,7 +24,7 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
-use OCA\Libresign\Handler\CfsslServerHandler;
+use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Service\InstallService;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -38,7 +38,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ICacheFactory|MockObject $cacheFactory;
 	private IClientService|MockObject $clientService;
-	private CfsslServerHandler|MockObject $cfsslServerHandler;
+	private OpenSslHandler|MockObject $openSslHandler;
 	private CfsslHandler|MockObject $cfsslHandler;
 	private IConfig|MockObject $config;
 	private IRootFolder|MockObject $rootFolder;
@@ -51,7 +51,7 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected function getInstallService(): InstallService {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->clientService = $this->createMock(IClientService::class);
-		$this->cfsslServerHandler = $this->createMock(CfsslServerHandler::class);
+		$this->openSslHandler = $this->createMock(OpenSslHandler::class);
 		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
@@ -59,8 +59,8 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return new InstallService(
 			$this->cacheFactory,
 			$this->clientService,
-			$this->cfsslServerHandler,
 			$this->cfsslHandler,
+			$this->openSslHandler,
 			$this->config,
 			$this->rootFolder,
 			$this->logger

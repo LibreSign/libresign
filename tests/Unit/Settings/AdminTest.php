@@ -6,6 +6,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Settings\Admin;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -15,12 +16,15 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Admin $admin;
 	private IInitialState|MockObject $initialState;
 	private IdentifyMethodService|MockObject $identifyMethodService;
+	private IConfig|MockObject $config;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->config = $this->createMock(IConfig::class);
 		$this->admin = new Admin(
 			$this->initialState,
-			$this->identifyMethodService
+			$this->identifyMethodService,
+			$this->config
 		);
 	}
 
