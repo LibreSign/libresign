@@ -252,7 +252,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function isHandlerOk(): bool {
-		return $this->certificateEngineHandler->getEngine()->isOk();
+		return $this->certificateEngineHandler->getEngine()->isSetupOk();
 	}
 
 	/**
