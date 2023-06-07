@@ -55,6 +55,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $names;
 	}
 
+	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+		$certKeys = $this->newCert();
+		return parent::generateCertificate($certKeys['certificate'], $certKeys['private_key']);
+	}
+
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */

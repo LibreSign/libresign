@@ -1,8 +1,8 @@
 <?php
 
 use OC\SystemConfig;
-use OCA\Libresign\Handler\CertificateEngine\CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
@@ -28,8 +28,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
-		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
-		$this->openSslHandler = $this->createMock(OpenSslHandler::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->l10n
@@ -40,8 +38,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->urlGenerator,
 			$this->systemConfig,
-			$this->cfsslHandler,
-			$this->openSslHandler,
 			$this->certificateEngineHandler,
 			$this->l10n
 		);
@@ -99,8 +95,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->urlGenerator,
 			$this->systemConfig,
-			$this->cfsslHandler,
-			$this->openSslHandler,
 			$this->certificateEngineHandler,
 			$this->l10n
 		);
@@ -125,8 +119,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->urlGenerator,
 			$this->systemConfig,
-			$this->cfsslHandler,
-			$this->openSslHandler,
 			$this->certificateEngineHandler,
 			$this->l10n
 		);
