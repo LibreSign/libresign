@@ -5,6 +5,7 @@ namespace OCA\Libresign\Service;
 use ImagickException;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IConfig;
@@ -13,7 +14,8 @@ class ConfigureCheckService {
 	public function __construct(
 		private IConfig $config,
 		private SystemConfig $systemConfig,
-		private JSignPdfHandler $jSignPdfHandler
+		private JSignPdfHandler $jSignPdfHandler,
+		private CertificateEngine $certificateEngine
 	) {
 	}
 
@@ -226,22 +228,20 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkCertificate(): array {
-		$engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine');
-		switch ($engine) {
-			case 'cfssl':
+		try {
+			$name = $this->certificateEngine->getEngine()->getName();
+			if ($name === 'cfssl') {
 				$return = $this->checkCfssl();
-				break;
-			case 'openssl':
+			} else {
 				$return = $this->checkOpenSsl();
-				break;
-			default:
-				$return = [
-					(new ConfigureCheckHelper())
-						->setErrorMessage('Define the certificate engine to use')
-						->setResource('certificate-engine')
-						->setTip('Run occ libresign:configure:openssl --help or occ libresign:configure:cfssl --help'),
-				];
-				break;
+			}
+		} catch (\Throwable $th) {
+			$return = [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('Define the certificate engine to use')
+					->setResource('certificate-engine')
+					->setTip('Run occ libresign:configure:openssl --help or occ libresign:configure:cfssl --help'),
+			];
 		}
 		return $return;
 	}
