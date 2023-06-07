@@ -13,9 +13,7 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CertificateEngine\CertificateEngineHandler;
-use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
-use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IConfig;
@@ -35,8 +33,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IConfig $config,
 		private IURLGenerator $urlGenerator,
 		private SystemConfig $systemConfig,
-		private CfsslHandler $cfsslHandler,
-		private OpenSslHandler $openSslHandler,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n
 	) {
@@ -256,7 +252,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function isHandlerOk(): bool {
-		return $this->certificateEngineHandler->getInstance()->isOk();
+		return $this->certificateEngineHandler->getEngine()->isOk();
 	}
 
 	/**
@@ -268,7 +264,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @param bool $isTempFile
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
-		$content = $this->certificateEngineHandler->getInstance()
+		$content = $this->certificateEngineHandler->getEngine()
 			->setHosts([$user['email']])
 			->setCommonName($user['name'])
 			->setFriendlyName($uid)
