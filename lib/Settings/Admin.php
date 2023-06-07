@@ -3,7 +3,7 @@
 namespace OCA\Libresign\Settings;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
@@ -15,7 +15,7 @@ class Admin implements ISettings {
 	public function __construct(
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
-		private CertificateEngine $certificateEngine,
+		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config
 	) {
 	}
@@ -27,7 +27,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'certificate_engine',
-			$this->certificateEngine->getEngine()->getName()
+			$this->certificateEngineHandler->getEngine()->getName()
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
