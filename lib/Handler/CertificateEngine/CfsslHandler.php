@@ -25,6 +25,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	protected $client;
 	protected $cfsslUri;
 	private string $binary = '';
+	protected string $engine = 'cfssl';
 
 	public function __construct(
 		protected IConfig $config,
@@ -241,7 +242,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		array $names = [],
 		string $configPath = '',
 	): string {
-		$this->setEngine('cfssl');
 		$key = bin2hex(random_bytes(16));
 
 		$this->cfsslServerHandler->createConfigServer(

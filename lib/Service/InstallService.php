@@ -541,20 +541,11 @@ class InstallService {
 		array $names = [],
 		array $properties = [],
 	): void {
-		if (empty($properties['engine'])) {
-			$properties['engine'] = $this->config->getAppValue(Application::APP_ID, 'certificate_engine');
-		}
-		$engine = $this->certificateEngineHandler->getEngine();
-		switch ($properties['engine']) {
-			case 'cfssl':
-				if (!empty($properties['cfsslUri'])) {
-					$engine->setCfsslUri($properties['cfsslUri']);
-				}
-				// no break
-			case 'openssl':
-				break;
-			default:
-				throw new LibresignException('Certificate engine not found: ' . $properties['engine']);
+		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '');
+		if ($engine->getEngine() === 'cfssl') {
+			if (!empty($properties['cfsslUri'])) {
+				$engine->setCfsslUri($properties['cfsslUri']);
+			}
 		}
 
 		$privateKey = $engine->generateRootCert(
