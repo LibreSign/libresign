@@ -109,7 +109,7 @@
 										{{ option.label }}
 									</template>
 								</NcListItem>
-						  </div>
+							</div>
 						</ul>
 					</template>
 				</NcPopover>
@@ -324,10 +324,10 @@ export default {
 			}
 		},
 		async removeOptionalAttribute(key) {
-			//this.customNamesOptions.push(this.rootCertDataset[key])
+			// this.customNamesOptions.push(this.rootCertDataset[key])
 			console.log(this.certificate.rootCert.names)
-//	<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
-			//this.certificate.rootCert.names = this.certificate.rootCert.names.filter(item => item.id !== key)
+			//	<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
+			// this.certificate.rootCert.names = this.certificate.rootCert.names.filter(item => item.id !== key)
 		},
 		showModal() {
 			this.modal = true
@@ -339,7 +339,7 @@ export default {
 			this.customNamesOptions = []
 			Object.keys(this.rootCertDataset).forEach(key => {
 				const item = this.rootCertDataset[key]
-				// TODO: remove  use array push 
+				// TODO: remove  use array push
 				this.customNamesOptions.push(item)
 			})
 			this.certificate.rootCert.commonName = ''
