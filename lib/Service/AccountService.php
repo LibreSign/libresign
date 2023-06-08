@@ -13,6 +13,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
@@ -53,6 +54,7 @@ class AccountService {
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
 		private SignatureService $signatureService,
+		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
@@ -222,7 +224,7 @@ class AccountService {
 			$info = json_decode($e->getMessage(), true);
 		}
 		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
-		$info['settings']['certificateOk'] = $this->signatureService->hasRootCert() && $this->pkcs12Handler->isHandlerOk();
+		$info['settings']['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['settings']['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
