@@ -169,7 +169,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testApprovalListWithSuccess() {
-		$this->createUser('username', 'password');
+		$this->createUser('allowapprove', 'password', 'testGroup');
 
 		$this->mockConfig([
 			'libresign' => [
@@ -180,7 +180,7 @@ final class AccountControllerTest extends ApiTestCase {
 		$this->request
 			->withPath('/account/files/approval/list')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
+				'Authorization' => 'Basic ' . base64_encode('allowapprove:password')
 			]);
 
 		$this->assertRequest();
