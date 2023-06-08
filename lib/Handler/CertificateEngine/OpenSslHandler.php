@@ -19,6 +19,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		string $configPath = '',
 	): string {
 		$this->setConfigPath($configPath);
+		$configPath = $this->getConfigPath();
 
 		$privkey = openssl_pkey_new([
 			'private_key_bits' => 2048,
