@@ -37,7 +37,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testNotifySignersWithSuccess() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]',
@@ -59,7 +59,7 @@ final class NotifyControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
