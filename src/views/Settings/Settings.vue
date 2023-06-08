@@ -23,6 +23,7 @@
 
 <template>
 	<NcSettingsSection :title="title">
+		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
 		<RootCertificate />
@@ -38,6 +39,7 @@
 
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import CertificateEngine from './CertificateEngine.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import RootCertificate from './RootCertificate.vue'
@@ -53,6 +55,7 @@ export default {
 	name: 'Settings',
 	components: {
 		NcSettingsSection,
+		CertificateEngine,
 		DownloadBinaries,
 		ConfigureCheck,
 		RootCertificate,
