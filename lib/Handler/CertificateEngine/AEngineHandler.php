@@ -6,6 +6,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCP\IConfig;
+use ReflectionClass;
 
 /**
  * @method IEngineHandler setPassword(string $password)
@@ -27,6 +28,7 @@ use OCP\IConfig;
  * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
  * @method string getConfigPath()
+ * @method string getName()
  */
 class AEngineHandler {
 	use MagicGetterSetterTrait;
@@ -116,5 +118,12 @@ class AEngineHandler {
 
 	public function setConfigPath(string $configPath): void {
 		$this->config->setAppValue(Application::APP_ID, 'config_path', $configPath);
+	}
+
+	public function getName(): string {
+		$reflect = new ReflectionClass($this);
+		$className = $reflect->getShortName();
+		$name = strtolower(substr($className, 0, -7));
+		return $name;
 	}
 }

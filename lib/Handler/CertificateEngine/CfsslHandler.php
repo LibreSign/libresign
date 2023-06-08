@@ -25,7 +25,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	protected $client;
 	protected $cfsslUri;
 	private string $binary = '';
-	protected string $engine = 'cfssl';
 
 	public function __construct(
 		protected IConfig $config,
