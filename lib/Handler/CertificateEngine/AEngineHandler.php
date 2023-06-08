@@ -163,30 +163,34 @@ class AEngineHandler {
 		return $name;
 	}
 
+	private function getNames(): array {
+		$names = [
+			'C' => $this->getCountry(),
+			'ST' => $this->getState(),
+			'L' => $this->getLocality(),
+			'O' => $this->getOrganization(),
+			'OU' => $this->getOrganizationUnit(),
+		];
+		$names = array_filter($names, function ($v) {
+			return !empty($v);
+		});
+		return $names;
+	}
+
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),
 			'rootCert' => [
+				'commonName' => $this->getCommonName(),
 				'names' => [],
 			],
 		];
-		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
-		$rootCert = json_decode($rootCert, true);
-		$hasCustomName = false;
-		if (is_array($rootCert)) {
-			foreach ($rootCert as $key => $value) {
-				if ($key === 'names') {
-					$hasCustomName = true;
-					foreach ($value as $name => $customName) {
-						$return['rootCert']['names'][$name]['id'] = $name;
-						$return['rootCert']['names'][$name]['value'] = $customName['value'];
-					}
-				} else {
-					$return['rootCert'][$key] = $value;
-				}
-			}
+		$names = $this->getNames();
+		foreach ($names as $name => $value) {
+			$return['rootCert']['names'][$name]['id'] = $name;
+			$return['rootCert']['names'][$name]['value'] = $value;
 		}
-		if (!$hasCustomName) {
+		if (empty($return['rootCert']['names'])) {
 			$return['rootCert']['names'] = new \stdClass;
 		}
 		return $return;
