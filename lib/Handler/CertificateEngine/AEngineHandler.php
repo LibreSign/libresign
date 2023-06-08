@@ -121,7 +121,7 @@ class AEngineHandler {
 		return $this;
 	}
 
-	public function getConfigPath(): string {
+	protected function getConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
