@@ -102,9 +102,7 @@
     </MissingDependency>
   </file>
   <file src="lib/Service/InstallService.php">
-    <MissingDependency occurrences="3">
-      <code>$this-&gt;rootFolder</code>
-      <code>$this-&gt;rootFolder</code>
+    <MissingDependency occurrences="1">
       <code>private</code>
     </MissingDependency>
     <UndefinedClass occurrences="1">
