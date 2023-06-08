@@ -89,7 +89,9 @@ Feature: page/sign_identify_default
       | email | |
       | me | true |
       | identifyMethods | [{"method":"account","mandatory":1,"identifiedAtDate":null}] |
-    When as user "signer1"
+    When as user "admin"
+    And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/authkey"
+    And as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should contain the initial state "libresign-config" with the following values:
       """
