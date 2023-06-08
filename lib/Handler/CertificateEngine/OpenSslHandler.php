@@ -13,7 +13,6 @@ use OCA\Libresign\AppInfo\Application;
  * @method string getConfigPath()
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
-	protected string $engine = 'cfssl';
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
