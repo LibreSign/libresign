@@ -82,7 +82,7 @@ class TestCase extends \Test\TestCase {
 	 * @param string $password
 	 * @return \OC\User\User
 	 */
-	public function createUser($username, $password, $group = 'testGroup') {
+	public function createUser($username, $password, $groupName = 'testGroup') {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [
@@ -97,9 +97,9 @@ class TestCase extends \Test\TestCase {
 		if (!$user) {
 			$user = $userManager->createUser($username, $password);
 		}
-		$group = $groupManager->get($group);
+		$group = $groupManager->get($groupName);
 		if (!$group) {
-			$group = $groupManager->createGroup($group);
+			$group = $groupManager->createGroup($groupName);
 		}
 
 		if ($group && $user) {
