@@ -31,39 +31,27 @@ class AdminController extends Controller {
 		string $cfsslUri = '',
 		string $configPath = ''
 	): DataResponse {
-		try {
-			foreach ($rootCert['names'] as $key => $name) {
-				$rootCert['names'][$key]['value'] = $this->trimAndThrowIfEmpty($key, $rootCert['names'][$key]['value']);
-			}
-			$this->installService->generate(
-				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$rootCert['names'] ?? [],
-				[
-					'engine' => 'cfssl',
-					'configPath' => trim($configPath),
-					'cfsslUri' => trim($cfsslUri),
-				],
-			);
-
-			return new DataResponse([
-				'success' => true,
-				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
-			]);
-		} catch (\Exception $exception) {
-			return new DataResponse(
-				[
-					'success' => false,
-					'message' => $exception->getMessage()
-				],
-				Http::STATUS_UNAUTHORIZED
-			);
-		}
+		return $this->generateCertificate($rootCert, [
+			'engine' => 'cfssl',
+			'configPath' => trim($configPath),
+			'cfsslUri' => trim($cfsslUri),
+		]);
 	}
 
 	#[NoCSRFRequired]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
 		string $configPath = ''
+	): DataResponse {
+		return $this->generateCertificate($rootCert, [
+			'engine' => 'openssl',
+			'configPath' => trim($configPath),
+		]);
+	}
+
+	private function generateCertificate(
+		array $rootCert,
+		array $properties = [],
 	): DataResponse {
 		try {
 			foreach ($rootCert['names'] as $key => $name) {
@@ -72,10 +60,7 @@ class AdminController extends Controller {
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
 				$rootCert['names'] ?? [],
-				[
-					'engine' => 'openssl',
-					'configPath' => trim($configPath),
-				],
+				$properties,
 			);
 
 			return new DataResponse([
