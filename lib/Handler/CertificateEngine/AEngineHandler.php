@@ -99,7 +99,7 @@ class AEngineHandler {
 		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (!$rootCert) {
-			throw new LibresignException('Invalid or empty root certificate', 500);
+			return $this;
 		}
 		if (!empty($rootCert['names'])) {
 			foreach ($rootCert['names'] as $id => $customName) {
