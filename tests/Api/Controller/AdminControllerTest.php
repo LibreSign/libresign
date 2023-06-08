@@ -14,10 +14,9 @@ final class AdminControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testLoadCertificate() {
-		$this->createUser('username', 'password');
 		$this->request
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
+				'Authorization' => 'Basic ' . base64_encode('admin:admin')
 			])
 			->withPath('/admin/certificate');
 
@@ -30,7 +29,6 @@ final class AdminControllerTest extends ApiTestCase {
 	public function testGenerateCertificateWithSuccess() {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
 		// Mock data
-		$this->createUser('username', 'password');
 		vfsStream::setup('home');
 		self::$server->setResponseOfPath('/api/v1/cfssl/health', new Response(
 			'{"success":true,"result":{"healthy":true},"errors":[],"messages":[]}'
@@ -56,7 +54,7 @@ final class AdminControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('admin:admin'),
 				'Content-Type' => 'application/json'
 			])
 			->withPath('/admin/certificate/cfssl')
@@ -89,14 +87,11 @@ final class AdminControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testGenerateCertificateWithFailure() {
-		// Mock data
-		$this->createUser('username', 'password');
-
 		// Configure request
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('admin:admin'),
 				'Content-Type' => 'application/json'
 			])
 			->withPath('/admin/certificate/cfssl')
