@@ -58,4 +58,6 @@ interface IEngineHandler {
 	public function isSetupOk(): bool;
 
 	public function setConfigPath(string $configPath): void;
+
+	public function configureCheck(): array;
 }

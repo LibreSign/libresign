@@ -4,6 +4,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCA\Libresign\Service\AdminSignatureService;
 use OCA\Libresign\Service\ConfigureCheckService;
@@ -21,7 +22,8 @@ class AdminController extends Controller {
 		IRequest $request,
 		private AdminSignatureService $adminSignatureService,
 		private ConfigureCheckService $configureCheckService,
-		private InstallService $installService
+		private InstallService $installService,
+		private CertificateEngineHandler $certificateEngineHandler
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -97,15 +99,16 @@ class AdminController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function loadCertificate(): DataResponse {
+		$engine = $this->certificateEngineHandler->getEngine();
 		$certificate = $this->adminSignatureService->loadKeys();
-		$cfssl = $this->configureCheckService->checkCfsslConfigure();
+		$configureResult = $engine->configureCheck();
 		$success = array_filter(
-			$cfssl,
+			$configureResult,
 			function (ConfigureCheckHelper $config) {
 				return $config->getStatus() === 'success';
 			}
 		);
-		$certificate['generated'] = count($success) === count($cfssl);
+		$certificate['generated'] = count($success) === count($configureResult);
 
 		return new DataResponse($certificate);
 	}
