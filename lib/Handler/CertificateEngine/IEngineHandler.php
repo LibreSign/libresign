@@ -60,4 +60,6 @@ interface IEngineHandler {
 	public function setConfigPath(string $configPath): void;
 
 	public function configureCheck(): array;
+
+	public function toArray(): array;
 }
