@@ -91,7 +91,7 @@ class AEngineHandler {
 	}
 
 	protected function getEngine(): string {
-		$this->engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+		$this->engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'openssl');
 		return $this->engine;
 	}
 
