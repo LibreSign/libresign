@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
 
 /**
  * Class FileMapper
@@ -47,5 +48,17 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function isSetupOk(): bool {
 		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
+	}
+
+	public function configureCheck(): array {
+		if ($this->isSetupOk()) {
+			return [(new ConfigureCheckHelper())
+				->setSuccessMessage('Root certificate setup is working fine.')
+				->setResource('openssl-configure')];
+		}
+		return [(new ConfigureCheckHelper())
+			->setErrorMessage('OpenSSL (root certificate) not configured.')
+			->setResource('openssl-configure')
+			->setTip('Run occ libresign:configure:openssl --help')];
 	}
 }

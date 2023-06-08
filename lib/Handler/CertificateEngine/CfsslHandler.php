@@ -5,9 +5,12 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
+use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\Service\InstallService;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
 
@@ -29,6 +32,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function __construct(
 		protected IConfig $config,
+		private SystemConfig $systemConfig,
 		private CfsslServerHandler $cfsslServerHandler,
 		protected IAppDataFactory $appDataFactory,
 	) {
@@ -273,5 +277,79 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		} catch (\Throwable $th) {
 		}
 		return false;
+	}
+
+	public function configureCheck(): array {
+		$return = $this->checkBinaries();
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		if (is_dir($configPath)) {
+			return array_merge(
+				$return,
+				[(new ConfigureCheckHelper())
+					->setSuccessMessage('Root certificate config files found.')
+					->setResource('cfssl-configure')]
+			);
+		}
+		return array_merge(
+			$return,
+			[(new ConfigureCheckHelper())
+			->setErrorMessage('CFSSL (root certificate) not configured.')
+			->setResource('cfssl-configure')
+			->setTip('Run occ libresign:configure:cfssl --help')]
+		);
+	}
+
+	private function checkBinaries(): array {
+		if (PHP_OS_FAMILY === 'Windows') {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('CFSSL is incompatible with Windows')
+					->setResource('cfssl'),
+			];
+		}
+		$cfsslInstalled = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
+		if (!$cfsslInstalled) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('CFSSL not installed.')
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl'),
+			];
+		}
+
+		$instanceId = $this->systemConfig->getValue('instanceid', null);
+		$binary = $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/') . DIRECTORY_SEPARATOR .
+			'appdata_' . $instanceId . DIRECTORY_SEPARATOR .
+			Application::APP_ID . DIRECTORY_SEPARATOR .
+			'cfssl';
+		if (!file_exists($binary)) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('CFSSL not found.')
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl'),
+			];
+		}
+		$return = [];
+		$version = str_replace("\n", ', ', trim(`$binary version`));
+		if (strpos($version, InstallService::CFSSL_VERSION) === false) {
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage(sprintf(
+						'Invalid version. Expected: %s, actual: %s',
+						InstallService::CFSSL_VERSION,
+						$version
+					))
+					->setResource('cfssl')
+					->setTip('Run occ libresign:install --cfssl')
+			];
+		}
+		$return[] = (new ConfigureCheckHelper())
+			->setSuccessMessage('CFSSL binary path: ' . $binary)
+			->setResource('cfssl');
+		$return[] = (new ConfigureCheckHelper())
+			->setSuccessMessage('CFSSL: ' . $version)
+			->setResource('cfssl');
+		return $return;
 	}
 }
