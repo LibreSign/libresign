@@ -339,6 +339,9 @@ class InstallService {
 	}
 
 	public function installCfssl(?bool $async = false): void {
+		if ($this->certificateEngineHandler->getEngine()->getName() !== 'cfssl') {
+			return;
+		}
 		$this->setResource('cfssl');
 		if ($async) {
 			$this->runAsync();
