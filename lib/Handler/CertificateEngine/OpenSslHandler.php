@@ -29,7 +29,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 		$dn['commonName'] = $commonName;
 		foreach ($names as $key => $value) {
-			$dn[$this->translateToLong($key)] = $value;
+			$dn[$key] = $value['value'];
 		}
 
 		$csr = openssl_csr_new($dn, $privkey, array('digest_alg' => 'sha256'));
