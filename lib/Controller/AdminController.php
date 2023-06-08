@@ -11,7 +11,6 @@ use OCA\Libresign\Service\ConfigureCheckService;
 use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
@@ -96,7 +95,6 @@ class AdminController extends Controller {
 		}
 	}
 
-	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
@@ -157,13 +155,11 @@ class AdminController extends Controller {
 		}
 	}
 
-	#[NoAdminRequired]
 	public function downloadStatus(): DataResponse {
 		$return = $this->installService->getTotalSize();
 		return new DataResponse($return);
 	}
 
-	#[NoAdminRequired]
 	public function configureCheck(): DataResponse {
 		return new DataResponse(
 			$this->configureCheckService->checkAll()
