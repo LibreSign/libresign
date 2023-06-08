@@ -4597,16 +4597,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.8.5",
+            "version": "v0.8.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "83f9fbe5c75d55fabcb79b61d7505b52a38ec548"
+                "reference": "844f912d50dfe731af72bdc371893bdf576b73af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/83f9fbe5c75d55fabcb79b61d7505b52a38ec548",
-                "reference": "83f9fbe5c75d55fabcb79b61d7505b52a38ec548",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/844f912d50dfe731af72bdc371893bdf576b73af",
+                "reference": "844f912d50dfe731af72bdc371893bdf576b73af",
                 "shasum": ""
             },
             "require": {
@@ -4621,6 +4621,12 @@
                 "donatj/mock-webserver": "^2.6"
             },
             "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Libresign\\NextcloudBehat\\": "src/"
@@ -4644,9 +4650,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.8.5"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.8.6"
             },
-            "time": "2023-05-29T14:26:55+00:00"
+            "time": "2023-06-08T16:45:30+00:00"
         }
     ],
     "aliases": [],
