@@ -358,7 +358,7 @@ export default {
 			this.submitLabel = t('libresign', 'Generating certificate.')
 			try {
 				const response = await axios.post(
-					generateOcsUrl('/apps/libresign/api/v1/admin/certificate'),
+					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/cfssl'),
 					this.getDataToSave()
 				)
 

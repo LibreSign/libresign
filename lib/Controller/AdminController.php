@@ -26,9 +26,8 @@ class AdminController extends Controller {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
-	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function generateCertificate(
+	public function generateCertificateCfssl(
 		array $rootCert,
 		string $cfsslUri = '',
 		string $configPath = ''
@@ -41,8 +40,42 @@ class AdminController extends Controller {
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
 				$rootCert['names'],
 				[
+					'engine' => 'cfssl',
 					'configPath' => trim($configPath),
 					'cfsslUri' => trim($cfsslUri),
+				],
+			);
+
+			return new DataResponse([
+				'success' => true,
+				'data' => $this->adminSignatureService->loadKeys(),
+			]);
+		} catch (\Exception $exception) {
+			return new DataResponse(
+				[
+					'success' => false,
+					'message' => $exception->getMessage()
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+	}
+
+	#[NoCSRFRequired]
+	public function generateCertificateOpenSsl(
+		array $rootCert,
+		string $configPath = ''
+	): DataResponse {
+		try {
+			foreach ($rootCert['names'] as $key => $name) {
+				$rootCert['names'][$key]['value'] = $this->trimAndThrowIfEmpty($key, $rootCert['names'][$key]['value']);
+			}
+			$this->installService->generate(
+				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
+				$rootCert['names'],
+				[
+					'engine' => 'openssl',
+					'configPath' => trim($configPath),
 				],
 			);
 
