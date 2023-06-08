@@ -327,7 +327,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostRegisterWithSuccess() {
-		$this->createUser('username', 'password');
+		$this->createUser('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockConfig([
 			'libresign' => [
@@ -340,7 +340,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withMethod('POST')
 			->withPath('/request-signature')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
@@ -389,7 +389,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPatchRegisterWithSuccess() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockConfig([
 			'libresign' => [
@@ -416,7 +416,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withMethod('PATCH')
 			->withPath('/request-signature')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
@@ -507,7 +507,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteSignFileIdFileUserIdWithSuccess() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
@@ -530,7 +530,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('DELETE')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
 			->withPath('/sign/file_id/' . $file['nodeId'] . '/' . $file['users'][0]->getId());
 
@@ -558,7 +558,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteUsingSignFileIdWithSuccess() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
@@ -581,7 +581,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->request
 			->withMethod('DELETE')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password')
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
 			->withPath('/sign/file_id/' . $file['nodeId']);
 
