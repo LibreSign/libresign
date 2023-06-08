@@ -11,7 +11,6 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
  * @package OCA\Libresign\Handler
  *
  * @method CfsslHandler setClient(Client $client)
- * @method string getConfigPath()
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
