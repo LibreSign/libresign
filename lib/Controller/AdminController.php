@@ -6,7 +6,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCA\Libresign\Service\AdminSignatureService;
 use OCA\Libresign\Service\ConfigureCheckService;
 use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Controller;
@@ -19,7 +18,6 @@ use OCP\IRequest;
 class AdminController extends Controller {
 	public function __construct(
 		IRequest $request,
-		private AdminSignatureService $adminSignatureService,
 		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler
@@ -39,7 +37,7 @@ class AdminController extends Controller {
 			}
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$rootCert['names'],
+				$rootCert['names'] ?? [],
 				[
 					'engine' => 'cfssl',
 					'configPath' => trim($configPath),
@@ -49,7 +47,7 @@ class AdminController extends Controller {
 
 			return new DataResponse([
 				'success' => true,
-				'data' => $this->adminSignatureService->loadKeys(),
+				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
@@ -73,7 +71,7 @@ class AdminController extends Controller {
 			}
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$rootCert['names'],
+				$rootCert['names'] ?? [],
 				[
 					'engine' => 'openssl',
 					'configPath' => trim($configPath),
@@ -82,7 +80,7 @@ class AdminController extends Controller {
 
 			return new DataResponse([
 				'success' => true,
-				'data' => $this->adminSignatureService->loadKeys(),
+				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
@@ -98,7 +96,7 @@ class AdminController extends Controller {
 	#[NoCSRFRequired]
 	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
-		$certificate = $this->adminSignatureService->loadKeys();
+		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();
 		$success = array_filter(
 			$configureResult,

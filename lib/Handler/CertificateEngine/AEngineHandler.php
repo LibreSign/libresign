@@ -162,4 +162,33 @@ class AEngineHandler {
 		$name = strtolower(substr($className, 0, -7));
 		return $name;
 	}
+
+	public function toArray(): array {
+		$return = [
+			'configPath' => $this->getConfigPath(),
+			'rootCert' => [
+				'names' => [],
+			],
+		];
+		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = json_decode($rootCert, true);
+		$hasCustomName = false;
+		if (is_array($rootCert)) {
+			foreach ($rootCert as $key => $value) {
+				if ($key === 'names') {
+					$hasCustomName = true;
+					foreach ($value as $name => $customName) {
+						$return['rootCert']['names'][$name]['id'] = $name;
+						$return['rootCert']['names'][$name]['value'] = $customName['value'];
+					}
+				} else {
+					$return['rootCert'][$key] = $value;
+				}
+			}
+		}
+		if (!$hasCustomName) {
+			$return['rootCert']['names'] = new \stdClass;
+		}
+		return $return;
+	}
 }
