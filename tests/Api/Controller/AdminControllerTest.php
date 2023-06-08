@@ -41,8 +41,8 @@ final class AdminControllerTest extends ApiTestCase {
 					'ST' => ['value' => 'RJ'],
 					'L' => ['value' => 'Rio de Janeiro'],
 					'O' => ['value' => 'LibreCode Coop'],
-					'OU' => ['value' => 'LibreSign']
-				]
+					'OU' => ['value' => 'LibreSign'],
+				],
 			]),
 			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 			'configPath' => 'vfs://home/'
@@ -94,19 +94,14 @@ final class AdminControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('admin:admin'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/admin/certificate/cfssl')
+			->withPath('/admin/certificate/openssl')
 			->withRequestBody([
 				'rootCert' => [
 					'commonName' => 'CommonName',
 					'names' => [
-						'C' => ['value' => 'BR'],
-						'ST' => ['value' => 'RJ'],
-						'L' => ['value' => 'Rio de Janeiro'],
-						'O' => ['value' => 'LibreCode Coop'],
-						'OU' => ['value' => 'LibreSign']
-					]
+						'Invalid' => ['value' => 'BR'],
+					],
 				],
-				'cfsslUri' => 'invalidUri',
 				'configPath' => ''
 			])
 			->assertResponseCode(401);
