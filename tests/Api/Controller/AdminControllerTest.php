@@ -59,7 +59,7 @@ final class AdminControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/admin/certificate')
+			->withPath('/admin/certificate/cfssl')
 			->withRequestBody($cfsslConfig);
 
 		// Make and test request mach with schema
@@ -99,7 +99,7 @@ final class AdminControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/admin/certificate')
+			->withPath('/admin/certificate/cfssl')
 			->withRequestBody([
 				'rootCert' => [
 					'commonName' => 'CommonName',

@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\RequestException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CfsslServerHandler;
+use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
 
 /**
@@ -29,8 +30,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function __construct(
 		protected IConfig $config,
 		private CfsslServerHandler $cfsslServerHandler,
+		protected IAppDataFactory $appDataFactory,
 	) {
-		parent::__construct($config);
+		parent::__construct($config, $appDataFactory);
 	}
 
 	private function getClient(): Client {
@@ -243,6 +245,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	): string {
 		$key = bin2hex(random_bytes(16));
 
+		$this->setConfigPath($configPath);
+		$configPath = $this->getConfigPath();
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
 			$names,
@@ -250,7 +254,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$configPath
 		);
 
-		$this->setConfigPath($configPath);
 		$this->genkey();
 
 		for ($i = 1; $i <= 4; $i++) {

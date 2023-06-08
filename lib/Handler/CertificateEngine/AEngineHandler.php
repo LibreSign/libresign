@@ -5,6 +5,9 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use ReflectionClass;
 
@@ -27,7 +30,6 @@ use ReflectionClass;
  * @method string getOrganization()
  * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
  * @method string getOrganizationUnit()
- * @method string getConfigPath()
  * @method string getName()
  */
 class AEngineHandler {
@@ -44,10 +46,13 @@ class AEngineHandler {
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
+	protected IAppData $appData;
 
 	public function __construct(
-		protected IConfig $config
+		protected IConfig $config,
+		protected IAppDataFactory $appDataFactory,
 	) {
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
@@ -116,8 +121,39 @@ class AEngineHandler {
 		return $this;
 	}
 
+	public function getConfigPath(): string {
+		if ($this->configPath) {
+			return $this->configPath;
+		}
+		try {
+			$folder = $this->appData->getFolder($this->getName() . '_config');
+		} catch (\Throwable $th) {
+			$folder = $this->appData->newFolder($this->getName() . '_config');
+		}
+		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
+		$this->configPath = $dataDir . '/' . $this->getInternalPathOfFolder($folder);
+		return $this->configPath;
+	}
+
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		$folder = $reflectionProperty->getValue($node);
+		$path = $folder->getInternalPath();
+		return $path;
+	}
+
 	public function setConfigPath(string $configPath): void {
-		$this->config->setAppValue(Application::APP_ID, 'config_path', $configPath);
+		if (!$configPath) {
+			$this->config->deleteAppValue(Application::APP_ID, 'config_path');
+		} else {
+			$this->config->setAppValue(Application::APP_ID, 'config_path', $configPath);
+		}
+		$this->configPath = $configPath;
 	}
 
 	public function getName(): string {
