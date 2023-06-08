@@ -352,4 +352,12 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			->setResource('cfssl');
 		return $return;
 	}
+
+	public function toArray(): array {
+		$return = parent::toArray();
+		if (!empty($return['configPath'])) {
+			$return['cfsslUri'] = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
+		}
+		return $return;
+	}
 }
