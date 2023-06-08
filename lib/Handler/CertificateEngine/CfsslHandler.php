@@ -46,20 +46,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return $this->client;
 	}
 
-	private function getNames(): array {
-		$names = [
-			'C' => $this->getCountry(),
-			'ST' => $this->getState(),
-			'L' => $this->getLocality(),
-			'O' => $this->getOrganization(),
-			'OU' => $this->getOrganizationUnit(),
-		];
-		$names = array_filter($names, function ($v) {
-			return !empty($v);
-		});
-		return $names;
-	}
-
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
 		$certKeys = $this->newCert();
 		return parent::generateCertificate($certKeys['certificate'], $certKeys['private_key']);
