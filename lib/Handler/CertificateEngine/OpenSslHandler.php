@@ -15,9 +15,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-		string $configPath = '',
 	): string {
-		$this->setConfigPath($configPath);
 		$configPath = $this->getConfigPath();
 
 		$privkey = openssl_pkey_new([

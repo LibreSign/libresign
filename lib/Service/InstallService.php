@@ -106,14 +106,6 @@ class InstallService {
 		return $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 	}
 
-	/**
-	 * Return the config path, create if not exist.
-	 */
-	private function getConfigPath(string $engine): string {
-		$this->getFolder($engine . '_config');
-		return $this->getFullPath() . DIRECTORY_SEPARATOR . $engine . '_config' . DIRECTORY_SEPARATOR;
-	}
-
 	private function runAsync(): void {
 		$resource = $this->resource;
 		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
@@ -549,10 +541,13 @@ class InstallService {
 			}
 		}
 
+		if (!empty($properties['configPath'])) {
+			$engine->setConfigPath($properties['configPath']);
+		}
+
 		$privateKey = $engine->generateRootCert(
 			$commonName,
-			$names,
-			$properties['configPath'] ?? $this->getConfigPath('cfssl'),
+			$names
 		);
 
 		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([

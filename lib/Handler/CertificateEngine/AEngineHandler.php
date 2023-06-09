@@ -65,6 +65,9 @@ class AEngineHandler {
 				$this->getPassword(),
 				['friendly_name' => $this->getFriendlyName()],
 			);
+			if (!$certContent) {
+				throw new \Exception();
+			}
 		} catch (\Throwable $th) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
@@ -127,6 +130,9 @@ class AEngineHandler {
 		}
 		try {
 			$folder = $this->appData->getFolder($this->getName() . '_config');
+			if (!$folder->fileExists('/')) {
+				throw new \Exception();
+			}
 		} catch (\Throwable $th) {
 			$folder = $this->appData->newFolder($this->getName() . '_config');
 		}
