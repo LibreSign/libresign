@@ -12,6 +12,13 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
  * @method CfsslHandler setClient(Client $client)
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
+	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+		$configPath = $this->getConfigPath();
+		$certificate = file_get_contents($configPath . '/ca.pem');
+		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		return parent::generateCertificate($certificate, $privateKey);
+	}
+
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -35,9 +42,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privkey, $pkeyout);
 
-		file_put_contents($configPath . 'ca.csr', $csrout);
-		file_put_contents($configPath . 'ca.pem', $certout);
-		file_put_contents($configPath . 'ca-key.pem', $pkeyout);
+		file_put_contents($configPath . '/ca.csr', $csrout);
+		file_put_contents($configPath . '/ca.pem', $certout);
+		file_put_contents($configPath . '/ca-key.pem', $pkeyout);
 
 		return $pkeyout;
 	}
