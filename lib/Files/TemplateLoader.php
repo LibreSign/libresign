@@ -23,8 +23,8 @@
 namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\AccountService;
-use OCA\Libresign\Service\SignatureService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -38,10 +38,8 @@ class TemplateLoader implements IEventListener {
 		private IUserSession $userSession,
 		private AccountService $accountService,
 		private IInitialState $initialState,
-		private SignatureService $signatureService,
+		private CertificateEngineHandler $certificateEngineHandler,
 	) {
-		$this->initialState = $initialState;
-		$this->signatureService = $signatureService;
 	}
 
 	public static function register(IEventDispatcher $dispatcher): void {
@@ -54,7 +52,7 @@ class TemplateLoader implements IEventListener {
 		}
 		$this->initialState->provideInitialState(
 			'certificate_ok',
-			$this->signatureService->hasRootCert()
+			$this->certificateEngineHandler->getEngine()->isSetupOk()
 		);
 
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
