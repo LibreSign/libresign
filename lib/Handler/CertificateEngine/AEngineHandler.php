@@ -118,13 +118,14 @@ class AEngineHandler {
 		if (!$this->getCommonName()) {
 			$this->setCommonName($rootCert['commonName']);
 		}
-		if (!$this->getConfigPath()) {
-			$this->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
-		}
 		return $this;
 	}
 
 	protected function getConfigPath(): string {
+		if ($this->configPath) {
+			return $this->configPath;
+		}
+		$this->configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
 		if ($this->configPath) {
 			return $this->configPath;
 		}
@@ -138,6 +139,9 @@ class AEngineHandler {
 		}
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		$this->configPath = $dataDir . '/' . $this->getInternalPathOfFolder($folder);
+		if (!is_dir($this->configPath)) {
+			exec('mkdir -p "' . $this->configPath . '"');
+		}
 		return $this->configPath;
 	}
 
