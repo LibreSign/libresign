@@ -42,8 +42,7 @@
     "vue-router": "^3.6.5",
     "vuelidate": "^0.7.7",
     "vuex": "^3.6.2",
-    "vuex-router-sync": "^5.0.0",
-    "webpack-merge": "^5.9.0"
+    "vuex-router-sync": "^5.0.0"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
