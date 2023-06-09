@@ -18,7 +18,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
-use OCA\Libresign\Service\SignatureService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -57,7 +56,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ClientService $clientService;
 	private TimeFactory|MockObject $timeFactory;
 	private RequestSignatureService|MockObject $requestSignatureService;
-	private SignatureService|MockObject $signatureService;
 	private Pkcs12Handler|MockObject $pkcs12Handler;
 
 	public function setUp(): void {
@@ -75,7 +73,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->signFile = $this->createMock(SignFileService::class);
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
-		$this->signatureService = $this->createMock(SignatureService::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
@@ -103,7 +100,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->accountFileMapper,
 			$this->signFile,
 			$this->requestSignatureService,
-			$this->signatureService,
 			$this->certificateEngineHandler,
 			$this->config,
 			$this->newUserMail,

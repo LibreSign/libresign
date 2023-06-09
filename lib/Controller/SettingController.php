@@ -3,7 +3,7 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Service\SignatureService;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -13,7 +13,7 @@ use OCP\IRequest;
 class SettingController extends Controller {
 	public function __construct(
 		IRequest $request,
-		private SignatureService $signatureService
+		private CertificateEngineHandler $certificateEngineHandler
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -22,7 +22,7 @@ class SettingController extends Controller {
 	#[NoCSRFRequired]
 	public function hasRootCert(): DataResponse {
 		$checkData = [
-			'hasRootCert' => $this->signatureService->hasRootCert()
+			'hasRootCert' => $this->certificateEngineHandler->getEngine()->isSetupOk()
 		];
 
 		return new DataResponse($checkData);

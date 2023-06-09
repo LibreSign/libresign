@@ -253,6 +253,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
+		if (!parent::isSetupOk()) {
+			return false;
+		};
 		try {
 			$this->getClient();
 			return true;
