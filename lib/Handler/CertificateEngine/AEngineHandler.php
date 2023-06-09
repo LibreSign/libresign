@@ -177,6 +177,10 @@ class AEngineHandler {
 		return $names;
 	}
 
+	public function isSetupOk(): bool {
+		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
+	}
+
 	public function toArray(): array {
 		$return = [
 			'configPath' => $this->getConfigPath(),

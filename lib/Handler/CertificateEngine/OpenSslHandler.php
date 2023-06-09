@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 
 /**
@@ -43,10 +42,6 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		file_put_contents($configPath . 'ca-key.pem', $pkeyout);
 
 		return $pkeyout;
-	}
-
-	public function isSetupOk(): bool {
-		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
 	}
 
 	public function configureCheck(): array {

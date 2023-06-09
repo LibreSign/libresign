@@ -53,7 +53,6 @@ class AccountService {
 		private AccountFileMapper $accountFileMapper,
 		private SignFileService $signFileService,
 		private RequestSignatureService $requestSignatureService,
-		private SignatureService $signatureService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config,
 		private NewUserMailHelper $newUserMail,
