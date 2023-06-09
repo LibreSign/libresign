@@ -49,7 +49,6 @@ interface IEngineHandler {
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
-		string $configPath = '',
 	): string;
 
 	public function generateCertificate(): string;

@@ -226,12 +226,10 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function generateRootCert(
 		string $commonName,
-		array $names = [],
-		string $configPath = '',
+		array $names = []
 	): string {
 		$key = bin2hex(random_bytes(16));
 
-		$this->setConfigPath($configPath);
 		$configPath = $this->getConfigPath();
 		$this->cfsslServerHandler->createConfigServer(
 			$commonName,
