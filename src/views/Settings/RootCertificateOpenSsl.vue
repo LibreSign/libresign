@@ -22,11 +22,11 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="cfsslConfigureOk || cfsslBinariesOk"
+	<NcSettingsSection v-if="isThisEngine"
 		:title="title"
 		:description="description"
 		:doc-url="docUrl">
-		<div v-if="cfsslConfigureOk" id="tableRootCertificate" class="form-libresign">
+		<div v-if="configureOk" id="tableRootCertificateOpenSsl" class="form-libresign">
 			<table class="grid">
 				<tbody>
 					<tr>
@@ -38,21 +38,15 @@
 						<td>{{ customName.value }}</td>
 					</tr>
 					<tr>
-						<td>{{ t('libresign', 'CFSSL API URI') }}</td>
-						<td>{{ certificate.cfsslUri }}</td>
-					</tr>
-					<tr>
 						<td>{{ t('libresign', 'Config path') }}</td>
 						<td>{{ certificate.configPath }}</td>
 					</tr>
 				</tbody>
 			</table>
-			<NcButton v-if="cfsslBinariesOk"
-				@click="showModal">
+			<NcButton @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcModal v-if="modal"
-				title="Title inside modal"
 				@close="closeModal">
 				<div class="modal__content">
 					<h2>{{ t('libresign', 'Confirm') }}</h2>
@@ -70,7 +64,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
+		<div v-else id="formRootCertificateOpenSsl" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
@@ -127,21 +121,13 @@
 				</div>
 			</div>
 			<div>
-				<NcCheckboxRadioSwitch v-if="!customCfsslData || !formDisabled"
+				<NcCheckboxRadioSwitch v-if="!customData || !formDisabled"
 					type="switch"
-					:checked.sync="customCfsslData">
-					{{ t('libresign', 'Define custom values to use CFSSL') }}
+					:checked.sync="customData">
+					{{ t('libresign', 'Define custom values to use {engine}', {engine: 'OpenSSL'}) }}
 				</NcCheckboxRadioSwitch>
 			</div>
-			<div v-if="customCfsslData" class="form-group">
-				<label for="cfsslUri">{{ t('libresign', 'CFSSL API URI') }}</label>
-				<NcTextField id="cfsslUri"
-					:value.sync="certificate.cfsslUri"
-					:label-outside="true"
-					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
-					:disabled="formDisabled" />
-			</div>
-			<div v-if="customCfsslData" class="form-group">
+			<div v-if="customData" class="form-group">
 				<label for="configPath">{{ t('libresign', 'Config path') }}</label>
 				<NcTextField id="configPath"
 					:value.sync="certificate.configPath"
@@ -170,9 +156,11 @@ import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
+import { subscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
-	name: 'RootCertificate',
+	name: 'RootCertificateOpenSsl',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
@@ -185,15 +173,14 @@ export default {
 	},
 	data() {
 		return {
-			cfsslBinariesOk: false,
-			cfsslConfigureOk: false,
+			configureOk: false,
+			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
 			certificate: {
 				rootCert: {
 					commonName: '',
 					names: {},
 				},
-				cfsslUri: '',
 				configPath: '',
 			},
 			rootCertDataset: {
@@ -231,7 +218,7 @@ export default {
 				},
 			},
 			error: false,
-			customCfsslData: false,
+			customData: false,
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate.'),
@@ -254,15 +241,23 @@ export default {
 		},
 	},
 	async mounted() {
+		if (this.isThisEngine) {
+			this.loadRootCertificate()
+		}
 		this.loading = false
-		this.loadRootCertificate()
+		subscribe('libresign:certificate-engine:changed', this.changeEngine)
 		this.$root.$on('after-config-check', data => {
-			this.cfsslBinariesOk = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
-			this.cfsslConfigureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
+			this.configureOk = data.filter((o) => o.resource === 'openssl-configure' && o.status === 'error').length === 0
 		})
 	},
 
 	methods: {
+		changeEngine(engine) {
+			this.isThisEngine = engine === 'openssl'
+			if (this.isThisEngine) {
+				this.loadRootCertificate()
+			}
+		},
 		validate(id) {
 			const dataset = this.rootCertDataset[id]
 			const item = this.certificate.rootCert.names[id]
@@ -323,11 +318,10 @@ export default {
 			})
 			this.certificate.rootCert.commonName = ''
 			this.certificate.rootCert.names = {}
-			this.certificate.cfsslUri = ''
 			this.certificate.configPath = ''
 			this.certificate.generated = false
-			this.customCfsslData = false
-			this.cfsslConfigureOk = false
+			this.customData = false
+			this.configureOk = false
 			this.formDisabled = false
 			this.modal = false
 			this.submitLabel = t('libresign', 'Generate root certificate.')
@@ -337,7 +331,7 @@ export default {
 			this.submitLabel = t('libresign', 'Generating certificate.')
 			try {
 				const response = await axios.post(
-					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/cfssl'),
+					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/openssl'),
 					this.getDataToSave()
 				)
 
@@ -397,8 +391,8 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
-				this.cfsslConfigureOk = this.certificate.generated
-				this.customCfsslData = this.certificate.cfsslUri.length > 0 || this.certificate.configPath.length > 0
+				this.configureOk = this.certificate.generated
+				this.customData = this.certificate.configPath.length > 0
 				if (!Object.hasOwn(this.certificate.rootCert, 'commonName')) {
 					this.$set(this.certificate.rootCert, 'commonName', '')
 				}
@@ -414,7 +408,7 @@ export default {
 				&& response.data.country
 				&& response.data.organization
 				&& response.data.organizationUnit
-				&& this.cfsslConfigureOk
+				&& this.configureOk
 				) {
 					this.afterCertificateGenerated()
 					return
@@ -434,7 +428,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-#formRootCertificate{
+#formRootCertificateOpenSsl{
 	text-align: left;
 	margin: 20px;
 }
@@ -475,7 +469,7 @@ export default {
 }
 
 @media screen and (max-width: 500px){
-	#formRootCertificate{
+	#formRootCertificateOpenSsl{
 		width: 100%;
 	}
 }
