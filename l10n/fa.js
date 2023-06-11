@@ -48,6 +48,7 @@ OC.L10N.register(
     "Remove" : "حذف",
     "Previous" : "قبلی",
     "Loading …" : "بارگذاری …",
+    "View" : "نمایش",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n > 1);");
