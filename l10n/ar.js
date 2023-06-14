@@ -36,6 +36,7 @@ OC.L10N.register(
     "Next" : "التالي",
     "Yes" : "نعم",
     "No" : "لا",
+    "Page not found" : "الصفحة غير موجودة",
     "Pending" : "معلّق",
     "Choose from Files" : "اختر من الملفات",
     "Add users" : "اضافة اعضاء",
