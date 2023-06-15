@@ -76,50 +76,7 @@
 					:error="certificate.rootCert.commonName === ''"
 					:disabled="formDisabled" />
 			</div>
-			<div class="form-group">
-				<label for="optionalAttribute">{{ t('libresign', 'Optional attributes') }}</label>
-				<NcPopover container="body" :popper-hide-triggers="(triggers) => [...triggers, 'click']">
-					<template #trigger>
-						<NcButton :disabled="customNamesOptions.length === 0">
-							{{ t('libresign', 'Select a custom name') }}
-						</NcButton>
-					</template>
-					<template #default>
-						<ul style="width: 350px;">
-							<div v-for="option in customNamesOptions" :key="option.id">
-								<NcListItem :title="option.label"
-									@click="onOptionalAttributeSelect(option)">
-									<template #subname>
-										{{ option.label }}
-									</template>
-								</NcListItem>
-							</div>
-						</ul>
-					</template>
-				</NcPopover>
-				<div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
-					<label :for="customName.id" class="form-heading--required">
-						{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})
-					</label>
-					<div class="item">
-						<NcTextField v-if="customName"
-							:id="customName.id"
-							:value.sync="customName.value"
-							:success="typeof customName.error === 'boolean' && !customName.error"
-							:error="customName.error"
-							:maxlength="customName.maxlength"
-							:helper-text="customName.helperText"
-							:disabled="formDisabled"
-							@update:value="validate(customName.id)" />
-						<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
-							@click="removeOptionalAttribute(key)">
-							<template #icon>
-								<Delete :size="20" />
-							</template>
-						</NcButton>
-					</div>
-				</div>
-			</div>
+			<CertificateCustonOptions :certifiacteToSave.sync="certificateToSave" />
 			<div>
 				<NcCheckboxRadioSwitch v-if="!customData || !formDisabled"
 					type="switch"
@@ -135,7 +92,7 @@
 					:placeholder="t('libresign', 'Not mandatory, don\'t fill to use default value.')"
 					:disabled="formDisabled" />
 			</div>
-			<NcButton :disabled="formDisabled || !savePossible"
+			<NcButton :disabled="formDisabled"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>
@@ -149,15 +106,13 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
-import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
-import Delete from 'vue-material-design-icons/Delete.vue'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import CertificateCustonOptions from './CertificateCustonOptions.vue'
 
 export default {
 	name: 'RootCertificateOpenSsl',
@@ -167,55 +122,19 @@ export default {
 		NcModal,
 		NcButton,
 		NcTextField,
-		NcPopover,
-		NcListItem,
-		Delete,
+		CertificateCustonOptions,
 	},
 	data() {
 		return {
 			configureOk: false,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'openssl',
 			modal: false,
+			certificateToSave: [],
 			certificate: {
 				rootCert: {
 					commonName: '',
-					names: {},
 				},
 				configPath: '',
-			},
-			rootCertDataset: {
-				C: {
-					id: 'C',
-					label: 'Country',
-					min: 2,
-					max: 2,
-					minHelper: t('libresign', 'Two-letter ISO 3166 country code'),
-					defaultHelper: t('libresign', 'Two-letter ISO 3166 country code'),
-				},
-				ST: {
-					id: 'ST',
-					label: 'State',
-					min: 1,
-					defaultHelper: t('libresign', 'Full name of states or provinces'),
-				},
-				L: {
-					id: 'L',
-					label: 'Locality',
-					min: 1,
-					defaultHelper: t('libresign', 'Name of a locality or place, such as a city, county, or other geographic region'),
-				},
-				O: {
-					id: 'O',
-					label: 'Organization',
-					min: 1,
-					defaultHelper: t('libresign', 'Name of an organization'),
-				},
-				OU: {
-					id: 'OU',
-					label: 'OrganizationalUnit',
-					min: 1,
-					defaultHelper: t('libresign', 'Name of an organizational unit'),
-				},
 			},
 			error: false,
 			customData: false,
@@ -227,18 +146,6 @@ export default {
 			loading: true,
 			customNamesOptions: [],
 		}
-	},
-	computed: {
-		savePossible() {
-			const emptyNames = Object.keys(this.certificate.rootCert.names).filter(key => {
-				const item = this.certificate.rootCert.names[key]
-				return item.value === ''
-			})
-			return (
-				this.certificate.rootCert.commonName !== ''
-				&& emptyNames.length === 0
-			)
-		},
 	},
 	async mounted() {
 		if (this.isThisEngine) {
@@ -258,51 +165,6 @@ export default {
 				this.loadRootCertificate()
 			}
 		},
-		validate(id) {
-			const dataset = this.rootCertDataset[id]
-			const item = this.certificate.rootCert.names[id]
-			if (Object.hasOwn(dataset, 'min')) {
-				if (item.value.length < dataset.min) {
-					item.helperText = Object.hasOwn(dataset, 'minHelper') ? dataset.minHelper : ''
-					item.error = true
-				} else {
-					item.helperText = Object.hasOwn(this.rootCertDataset[id], 'defaultHelper')
-						? this.rootCertDataset[id].defaultHelper
-						: ''
-					item.error = false
-				}
-			}
-		},
-		getCustomNamesOptionsById(id) {
-			return this.rootCertDataset[id].label
-		},
-		async onOptionalAttributeSelect(selected) {
-			if (Object.hasOwn(this.certificate.rootCert.names, selected.id)) {
-				return
-			}
-			this.$set(this.certificate.rootCert.names, selected.id, {
-				id: selected.id,
-				value: '',
-				maxlength: Object.hasOwn(this.rootCertDataset[selected.id], 'max')
-					? this.rootCertDataset[selected.id].max
-					: '',
-				helperText: Object.hasOwn(this.rootCertDataset[selected.id], 'defaultHelper')
-					? this.rootCertDataset[selected.id].defaultHelper
-					: '',
-			})
-			for (let i = 0; i < this.customNamesOptions.length; i++) {
-				if (this.customNamesOptions[i].id === selected.id) {
-					this.customNamesOptions.splice(i, 1)
-					break
-				}
-			}
-		},
-		async removeOptionalAttribute(key) {
-			// this.customNamesOptions.push(this.rootCertDataset[key])
-			console.log(this.certificate.rootCert.names)
-			// <div v-for="(customName, key) in certificate.rootCert.names" :key="customName.id" class="customNames">
-			// this.certificate.rootCert.names = this.certificate.rootCert.names.filter(item => item.id !== key)
-		},
 		showModal() {
 			this.modal = true
 		},
@@ -310,14 +172,8 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.customNamesOptions = []
-			Object.keys(this.rootCertDataset).forEach(key => {
-				const item = this.rootCertDataset[key]
-				// TODO: remove  use array push
-				this.customNamesOptions.push(item)
-			})
+			this.certificateToSave = []
 			this.certificate.rootCert.commonName = ''
-			this.certificate.rootCert.names = {}
 			this.certificate.configPath = ''
 			this.certificate.generated = false
 			this.customData = false
@@ -355,32 +211,15 @@ export default {
 			this.formDisabled = false
 		},
 		getDataToSave() {
-			const data = {}
-			Object.keys(this.certificate).forEach(rootProperty => {
-				if (!Object.hasOwn(data, rootProperty)) {
-					data[rootProperty] = {}
-				}
-				if (rootProperty === 'rootCert') {
-					Object.keys(this.certificate[rootProperty]).forEach(level2 => {
-						if (level2 === 'names') {
-							if (!Object.hasOwn(data[rootProperty], 'names')) {
-								data[rootProperty].names = {}
-							}
-							Object.keys(this.certificate[rootProperty].names).forEach(name => {
-								data[rootProperty].names[name] = {}
-								data[rootProperty].names[name].value = this.certificate[rootProperty].names[name].value
-							})
-						} else {
-							data[rootProperty][level2] = this.certificate[rootProperty][level2]
-						}
-					})
-				} else {
-					data[rootProperty] = this.certificate[rootProperty]
-				}
-			})
+			const data = {
+				...this.certificate,
+				rootCert: {
+					...this.certificate.rootCert,
+					names: this.certificateToSave,
+				},
+			}
 			return data
 		},
-
 		async loadRootCertificate() {
 			this.formDisabled = true
 			try {

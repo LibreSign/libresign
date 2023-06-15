@@ -96,13 +96,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import { loadState } from '@nextcloud/initial-state'
-
-function getBoolean(isTrue) {
-	if (isTrue) {
-		return true;
-	}
-	return false;
-}
+import { getBoolean } from '../../helpers/helperTypes.js'
 
 export default {
 	name: 'IdentifierFactor',
@@ -147,19 +141,19 @@ export default {
 	methods: {
 		isDefaultValue() {
 			if (this.useUser === false) {
-				if (!this.useSMS &&
-						!this.useSignal &&
-						!this.useTelegram &&
-						!this.useEmail) {
-					this.useUser = true;
-					return true;
+				if (!this.useSMS
+						&& !this.useSignal
+						&& !this.useTelegram
+						&& !this.useEmail) {
+					this.useUser = true
+					return true
 				}
 			 }
 			return false
 		},
 		saveEmail() {
 			if (this.isDefaultValue()) {
-				return;
+				return
 			}
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'email'), {
 				name: 'email',
@@ -171,7 +165,7 @@ export default {
 		},
 		saveAccount() {
 			if (this.isDefaultValue()) {
-				return;
+				return
 			}
 
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'account'), {
@@ -186,7 +180,7 @@ export default {
 		},
 		saveSMS() {
 			if (this.isDefaultValue()) {
-				return;
+				return
 			}
 
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'sms'), {
@@ -200,7 +194,7 @@ export default {
 
 		saveTelegram() {
 			if (this.isDefaultValue()) {
-				return;
+				return
 			}
 
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'telegram'), {
@@ -214,7 +208,7 @@ export default {
 
 		saveSignal() {
 			if (this.isDefaultValue()) {
-				return;
+				return
 			}
 
 			this.optionsSave = [...this.optionsSave.filter(item => item.name !== 'signal'), {
