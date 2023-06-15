@@ -12,12 +12,13 @@
     "lint:fix": "eslint --ext .js,.vue src --fix",
     "stylelint": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue",
     "stylelint:fix": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue --fix",
-    "test:unit": "jest",
-    "test:unit:watch": "jest --watch",
-    "test:coverage": "jest --collect-coverage"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@fontsource/dancing-script": "^5.0.8",
+    "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.1.0",
     "@nextcloud/axios": "^2.4.0",
     "@nextcloud/dialogs": "^4.2.1",
@@ -53,6 +54,7 @@
     "npm": "^9.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.22.5",
     "@nextcloud/babel-config": "^1.0.0",
     "@nextcloud/browserslist-config": "^3.0.0",
     "@nextcloud/eslint-config": "^8.2.1",
