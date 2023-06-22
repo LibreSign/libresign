@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "نجاح",
     "Settings saved" : "تم حفظ الإعدادات",
     "deleted" : "خذفت",
+    "User already exists" : "أنت موجودٌ مُسبقاً",
     "File not found" : "تعذر العثور على الملف",
     "File already exists" : "الملف موجود مسبقاً",
     "Invalid user" : "مستخدم غير صالح",
