@@ -123,6 +123,7 @@ OC.L10N.register(
     "Confirm" : "확인",
     "Incorrect password!" : "잘못된 암호",
     "Text" : "텍스트",
+    "Draw" : "그리기",
     "Upload" : "업로드",
     "Colors:" : "색:",
     "Apply" : "적용",
