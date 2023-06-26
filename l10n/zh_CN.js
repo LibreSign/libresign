@@ -125,6 +125,7 @@ OC.L10N.register(
     "Confirm" : "确认",
     "Incorrect password!" : "密码不正确！",
     "Text" : "文本 ",
+    "Draw" : "画",
     "Upload" : "上传",
     "Colors:" : "颜色：",
     "Apply" : "应用",

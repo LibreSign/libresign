@@ -46,6 +46,7 @@ OC.L10N.register(
     "Repeat password" : "أعد كتابة الكلمة السرية",
     "Message" : "الرسالة",
     "Resource" : "مصدر",
+    "Dependencies" : "التبعيّات",
     "Root certificate data." : "بيانات شهادة الجذر",
     "Generate root certificate." : "تكوين شهادة جذر",
     "Generated certificate!" : "شهادة مُكوّنة",

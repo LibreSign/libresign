@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Settings saved" : "Parametrlər yaddaşa verildi",
     "Invalid user" : "İstifadəçi adı yalnışdır",
     "Files" : "Fayllar",
     "Settings" : "Quraşdırmalar",
