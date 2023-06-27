@@ -163,7 +163,7 @@ OC.L10N.register(
     "Not sent yet" : "Aínda non enviado",
     "Not defined yet" : "Aínda non está definido",
     "Select a file" : "Seleccione un ficheiro",
-    "Impossible to get file entry" : "Imposible obter a entrada do ficheiro",
+    "Impossible to get file entry" : "Non foi posíbel obter a entrada do ficheiro",
     "File was sent." : "Enviouse o ficheiro.",
     "File was deleted." : "Eliminouse o ficheiro.",
     "Your profile documents" : "Os teus documentos de perfil",
