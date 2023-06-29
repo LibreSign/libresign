@@ -7,6 +7,7 @@ OC.L10N.register(
     "User already exists" : "أنت موجودٌ مُسبقاً",
     "File not found" : "تعذر العثور على الملف",
     "File already exists" : "الملف موجود مسبقاً",
+    "Empty file" : "ملفٌ فارغٌ",
     "Invalid user" : "مستخدم غير صالح",
     "Files" : "الملفات",
     "Settings" : "الإعدادات",
