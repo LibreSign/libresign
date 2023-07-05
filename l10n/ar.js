@@ -16,6 +16,7 @@ OC.L10N.register(
     "Password" : "كلمة السر",
     "Confirm" : "تأكيد",
     "Text" : "نص",
+    "Draw" : "إرسم",
     "Upload" : "تحميل",
     "Apply" : "حفظ",
     "Cancel" : "إلغاء",
