@@ -5,7 +5,6 @@ namespace OCA\Libresign\Helper;
 use JsonSerializable;
 
 /**
- * @method
  * @method ConfigureCheckHelper setStatus(string $value)
  * @method string getStatus()
  * @method ConfigureCheckHelper setMessage(string $value)
