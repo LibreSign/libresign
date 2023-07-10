@@ -276,7 +276,7 @@ OC.L10N.register(
     "Request signatures?" : "Solicitar sinaturas?",
     "Element created" : "Elemento creado",
     "Select each signer to define their signature positions" : "Seleccione cada asinante para definir a súa posición de sinatura",
-    "Remove" : "Quitar",
+    "Remove" : "Retirar",
     "Previous" : "Anterior",
     "Document not available for signature." : "Documento non dispoñíbel para sinatura.",
     "Sign with your email." : "Asine co seu correo-e.",
