@@ -28,6 +28,7 @@ OC.L10N.register(
     "New password" : "Awal uffir amaynut",
     "Message" : "Izen",
     "Remove" : "Kkes",
-    "Previous" : "Ɣer deffir"
+    "Previous" : "Ɣer deffir",
+    "Loading …" : "Asali ..."
 },
 "nplurals=2; plural=(n != 1);");
