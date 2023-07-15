@@ -125,7 +125,7 @@ OC.L10N.register(
     "Settings" : "Axustes",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicación de sinatura dixital para Nextcloud.",
     "Authentication required" : "É necesaria a autenticación",
-    "This action requires you to confirm your password" : "Esta acción require que confirme o seu contrasinal",
+    "This action requires you to confirm your password" : "Esta acción precisa que confirme o seu contrasinal",
     "Password" : "Contrasinal",
     "Confirm" : "Confirmar",
     "Incorrect password!" : "Contrasinal incorrecto!",
