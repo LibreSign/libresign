@@ -4,8 +4,10 @@ OC.L10N.register(
     "Success" : "Éxito",
     "Settings saved" : "Se han guardado las configuraciones ",
     "deleted" : "Borrado",
+    "User already exists" : "El usuario ya existe",
     "File not found" : "Archivo no encontrado",
     "File already exists" : "El archivo ya existe",
+    "Empty file" : "Archivo vacío",
     "Invalid user" : "Usuario inválido",
     "Files" : "Archivos",
     "Settings" : "Ajustes",
@@ -25,6 +27,7 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Details" : "Detalles",
     "Reset password" : "Restablecer contraseña",
+    "Select a file" : "Seleccionar un archivo",
     "Type" : "Tipo",
     "Status" : "Estatus",
     "Actions" : "Acciones",
@@ -46,6 +49,7 @@ OC.L10N.register(
     "Remove" : "Eliminar",
     "Previous" : "Previo",
     "Loading …" : "Loading …",
+    "View" : "Ver",
     "No date" : "Sin fecha"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
