@@ -56,7 +56,7 @@
     "No user data" : "Non hai datos de usuario",
     "User not found." : "Usuario non atopado.",
     "User %s has no email address." : "O usuario %s non ten enderezo de correo-e.",
-    "Email required" : "É obrigatorio o correo-e",
+    "Email required" : "Precisase o correo-e",
     "Invalid email" : "Correo-e non válido",
     "Invalid identification method" : "Método de identificación non válido",
     "File not loaded" : "Non se cargou o ficheiro",
@@ -122,7 +122,7 @@
     "Documents Validation" : "Validación de Documentos",
     "Settings" : "Axustes",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicación de sinatura dixital para Nextcloud.",
-    "Authentication required" : "É necesaria a autenticación",
+    "Authentication required" : "Precisase autenticación",
     "This action requires you to confirm your password" : "Esta acción precisa que confirme o seu contrasinal",
     "Password" : "Contrasinal",
     "Confirm" : "Confirmar",
@@ -196,7 +196,7 @@
     "Congratulations, you have created your account. Please wait, we will redirect you to the requested signature file." : "Parabéns, creou a súa conta. Agarde, redirixirémolo ao ficheiro de sinatura solicitado.",
     "The email entered is not the same as the email in the invitation" : "O correo-e introducido non é o mesmo que o correo-e do convite",
     "Page not found" : "Non se atopou a páxina",
-    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe, a páxina que busca non existe, eliminouse, moveuse ou non está dispoñíbel temporalmente.",
+    "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Desculpe, a páxina que busca non existe, foi retirada, movida ou non está dispoñíbel temporalmente.",
     "See Document Validation" : "Consulte Validación de documentos",
     "Congratulations you have digitally signed a document using LibreSign" : "Parabéns por asinar dixitalmente un documento mediante LibreSign",
     "Nothing to do" : "Non hai nada que facer",
@@ -233,7 +233,7 @@
     "Customize default user folder" : "Personalizar o cartafol de usuario predeterminado",
     "Name of the folder that will contain the user's digital certificate, visible signature images, and other files related to LibreSign." : "Nome do cartafol que conterá o certificado dixital do usuario, as imaxes de sinatura visíbeis e outros ficheiros relacionados con LibreSign.",
     "Dependencies" : "Dependencias",
-    "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Binarios necesarios para funcionar. O tamaño da descarga pode ser de case 340 MB, agarde un chisco.",
+    "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Precísanse os binarios para funcionar. O tamaño da descarga pode ser de case 340 MB, agarde un chisco.",
     "Download binaries" : "Descargar binarios",
     "Could not download binaries." : "Non foi posíbel descargar os binarios.",
     "Downloading binaries" : "Descargando binarios",
@@ -310,6 +310,6 @@
     "Collect signers metadata when sign a document" : "Recoller metadatos dos asinantes ao asinar un documento",
     "Collect signers metadata" : "Recoller metadatos dos asinantes",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ao activar esta función, cada vez que asine un documento, LibreSign almacenará a IP e o axente de usuario do asinante.",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarios son necesarios para funcionar. É necesario descargar preto de 340 Mb, agarde un chisco."
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Precísanse os binarios para funcionar. É necesario descargar preto de 340 Mb, agarde un chisco."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
