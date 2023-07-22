@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use TCPDF_PARSER;
@@ -11,9 +12,12 @@ trait TFile {
 	private $mimetype = null;
 	protected IClientService $client;
 
-	public function getNodeFromData(array $data): \OCP\Files\Node {
+	public function getNodeFromData(array $data): Node {
 		if (!$this->folderService->getUserId()) {
 			$this->folderService->setUserId($data['userManager']->getUID());
+		}
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			return $data['file']['fileNode'];
 		}
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);

@@ -8,8 +8,7 @@ use OCP\Files\File;
 abstract class SignEngineHandler implements ISignEngineHandler {
 	/** @var File */
 	private $inputFile;
-	/** @var File */
-	private $certificate;
+	private string $certificate;
 	/** @var string */
 	private $password;
 	/** @var VisibleElementAssoc[] */
@@ -30,12 +29,12 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	/**
 	 * @return static
 	 */
-	public function setCertificate(File $certificate): self {
+	public function setCertificate(string $certificate): self {
 		$this->certificate = $certificate;
 		return $this;
 	}
 
-	public function getCertificate(): File {
+	public function getCertificate(): string {
 		return $this->certificate;
 	}
 

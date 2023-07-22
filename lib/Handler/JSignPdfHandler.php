@@ -61,7 +61,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	 */
 	public function sign(): string {
 		$param = $this->getJSignParam()
-			->setCertificate($this->getCertificate()->getContent())
+			->setCertificate($this->getCertificate())
 			->setPdf($this->getInputFile()->getContent())
 			->setPassword($this->getPassword());
 

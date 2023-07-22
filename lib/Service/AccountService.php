@@ -198,11 +198,11 @@ class AccountService {
 		if ($signPassword) {
 			$this->pkcs12Handler->generateCertificate(
 				[
-					'email' => $newUser->getPrimaryEMailAddress(),
+					'identify' => $newUser->getPrimaryEMailAddress(),
 					'name' => $newUser->getDisplayName()
 				],
 				$signPassword,
-				$newUser->getUID()
+				$newUser->getDisplayName()
 			);
 		}
 	}

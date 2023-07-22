@@ -116,7 +116,7 @@ class AccountController extends ApiController {
 			$signaturePath = $this->pkcs12Handler->generateCertificate(
 				$data['user'],
 				$data['signPassword'],
-				$data['userId']
+				$this->userSession->getUser()->getDisplayName()
 			);
 
 			return new JSONResponse([

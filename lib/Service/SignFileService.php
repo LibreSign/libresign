@@ -23,6 +23,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -44,6 +45,9 @@ class SignFileService {
 	private $elements = [];
 	/** @var bool */
 	private $signWithoutPassword = false;
+	private ?Node $fileToSign = null;
+	private string $userUniqueIdentifier = '';
+	private string $friendlyName = '';
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -129,6 +133,23 @@ class SignFileService {
 	 */
 	public function setLibreSignFile(FileEntity $libreSignFile): self {
 		$this->libreSignFile = $libreSignFile;
+		return $this;
+	}
+
+	public function setLibreSignFileFromNode(Node $node): self {
+		$libreSignFile = $this->getLibresignFile($node->getId());
+		$this->setLibreSignFile($libreSignFile);
+		$this->setFileToSign($node);
+		return $this;
+	}
+
+	public function setUserUniqueIdentifier(string $identifier): self {
+		$this->userUniqueIdentifier = $identifier;
+		return $this;
+	}
+
+	public function setFriendlyName(string $friendlyName): self {
+		$this->friendlyName = $friendlyName;
 		return $this;
 	}
 
@@ -255,18 +276,22 @@ class SignFileService {
 		return false;
 	}
 
-	private function getPfxFile(): \OCP\Files\Node {
+	private function getPfxFile(): string {
 		if ($this->signWithoutPassword) {
 			$tempPassword = sha1(time());
 			$this->setPassword($tempPassword);
 			return $this->pkcs12Handler->generateCertificate(
-				['email' => $this->fileUser->getEmail()],
+				['identify' => $this->userUniqueIdentifier, 'name' => $this->friendlyName],
 				$tempPassword,
-				$this->fileUser->getUserId(),
+				$this->friendlyName,
 				true
 			);
 		}
 		return $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
+	}
+
+	private function setFileToSign(Node $file): void {
+		$this->fileToSign = $file;
 	}
 
 	/**
@@ -275,19 +300,23 @@ class SignFileService {
 	 * @throws LibresignException
 	 */
 	public function getFileToSing(FileEntity $libresignFile): \OCP\Files\Node {
-		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-		$originalFile = $userFolder->getById($libresignFile->getNodeId());
-		if (count($originalFile) < 1) {
-			throw new LibresignException($this->l10n->t('File not found'));
+		if ($this->fileToSign) {
+			$originalFile = $this->fileToSign;
+		} else {
+			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
+			$originalFile = $userFolder->getById($libresignFile->getNodeId());
+			if (count($originalFile) < 1) {
+				throw new LibresignException($this->l10n->t('File not found'));
+			}
+			$originalFile = $originalFile[0];
 		}
-		$originalFile = $originalFile[0];
 		if ($originalFile->getExtension() === 'pdf') {
 			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
 		return $userFolder->get($originalFile);
 	}
 
-	public function getLibresignFile(?int $fileId, ?string $fileUserUuid): FileEntity {
+	public function getLibresignFile(?int $fileId, ?string $fileUserUuid = null): FileEntity {
 		try {
 			if ($fileId) {
 				$libresignFile = $this->fileMapper->getByFileId($fileId);
