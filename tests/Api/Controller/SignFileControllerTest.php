@@ -210,7 +210,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$pkcs12Handler->generateCertificate(
 			[
-				'email' => 'person@test.coop',
+				'identify' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
@@ -270,7 +270,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$pkcs12Handler->generateCertificate(
 			[
-				'email' => 'person@test.coop',
+				'identify' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',

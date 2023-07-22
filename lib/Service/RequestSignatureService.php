@@ -35,6 +35,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\IMimeTypeDetector;
+use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use OCP\IL10N;
 use OCP\IUser;
@@ -82,9 +83,15 @@ class RequestSignatureService {
 		if (!empty($data['uuid'])) {
 			return $this->fileMapper->getByUuid($data['uuid']);
 		}
-		if (!empty($data['file']['fileId'])) {
+		$fileId = null;
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			$fileId = $data['file']['fileNode']->getId();
+		} elseif (!empty($data['file']['fileId'])) {
+			$fileId = $data['file']['fileId'];
+		}
+		if (!is_null($fileId)) {
 			try {
-				$file = $this->fileMapper->getByFileId($data['file']['fileId']);
+				$file = $this->fileMapper->getByFileId($fileId);
 				if (!empty($data['status']) && $data['status'] > $file->getStatus()) {
 					$file->setStatus($data['status']);
 					return $this->fileMapper->update($file);
@@ -137,7 +144,7 @@ class RequestSignatureService {
 				if (!array_key_exists('identify', $user)) {
 					throw new \Exception('Identify key not found');
 				}
-				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
+				$identifyMethods = $this->identifyMethod->getByUserData($user['identify'], $fileId);
 				$fileUser = $this->getFileUserByIdentifyMethod(
 					current($identifyMethods),
 					$fileId

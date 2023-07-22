@@ -7,8 +7,8 @@ use OCP\Files\File;
 interface ISignEngineHandler {
 	public function setInputFile(File $inputFile): self;
 	public function getInputFile(): File;
-	public function setCertificate(File $certificate): self;
-	public function getCertificate(): File;
+	public function setCertificate(string $certificate): self;
+	public function getCertificate(): string;
 	public function setPassword(string $password): self;
 	public function getPassword(): string;
 	/**

@@ -34,20 +34,12 @@ class Pkcs12Handler extends SignEngineHandler {
 		private IURLGenerator $urlGenerator,
 		private SystemConfig $systemConfig,
 		private CertificateEngineHandler $certificateEngineHandler,
-		private IL10N $l10n
+		private IL10N $l10n,
+		private JSignPdfHandler $jSignPdfHandler
 	) {
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uid
-	 * @param string $content
-	 * @return File
-	 */
-	public function savePfx(string $uid, string $content, bool $isTempFile = false): File {
-		if ($isTempFile) {
-			$this->pfxFilename = 'temp.pfx';
-		}
+	public function savePfx(string $uid, string $content): string {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
@@ -61,15 +53,13 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		$file = $folder->newFile($this->pfxFilename);
 		$file->putContent($content);
-		return $file;
+		return $content;
 	}
 
 	/**
-	 * Get pfx file
-	 *
-	 * @psalm-suppress MixedReturnStatement
+	 * Get content of pfx file
 	 */
-	public function getPfx($uid): \OCP\Files\File {
+	public function getPfx($uid): string {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
@@ -80,15 +70,15 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$node->getContent()) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		return $node;
+		return $node->conten;
 	}
 
 	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
-		if (!property_exists($this, $sign_engine . 'Handler')) {
+		$property = lcfirst($sign_engine) . 'Handler';
+		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
-		$property = $sign_engine . 'Handler';
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
 		if (!$this->$property instanceof $classHandler) {
 			$this->$property = \OC::$server->get($classHandler);
@@ -258,21 +248,24 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * Generate certificate
 	 *
-	 * @param array $user Example: ['email' => '', 'name' => '']
+	 * @param array $user Example: ['identify' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
-	 * @param string $uid User id
+	 * @param string $friendlyName Friendly name
 	 * @param bool $isTempFile
 	 */
-	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName, bool $isTempFile = false): string {
 		$content = $this->certificateEngineHandler->getEngine()
-			->setHosts([$user['email']])
+			->setHosts([$user['identify']])
 			->setCommonName($user['name'])
-			->setFriendlyName($uid)
+			->setFriendlyName($friendlyName)
 			->setPassword($signPassword)
 			->generateCertificate();
 		if (!$content) {
 			throw new LibresignException('Failure on generate certificate', 1);
 		}
-		return $this->savePfx($uid, $content, $isTempFile);
+		if ($isTempFile) {
+			return $content;
+		}
+		return $this->savePfx($user['identify'], $content);
 	}
 }

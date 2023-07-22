@@ -18,7 +18,7 @@ class Pkcs7Handler extends SignEngineHandler {
 	 */
 	public function sign(): File {
 		$p7sFile = $this->getP7sFile();
-		openssl_pkcs12_read($this->getCertificate()->getContent(), $certificateData, $this->getPassword());
+		openssl_pkcs12_read($this->getCertificate(), $certificateData, $this->getPassword());
 		openssl_pkcs7_sign(
 			$this->getInputFile()->getInternalPath(),
 			$p7sFile->getInternalPath(),

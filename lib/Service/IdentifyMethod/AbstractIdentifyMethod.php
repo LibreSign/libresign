@@ -123,12 +123,33 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function save(): void {
+		$this->refreshIdFromDatabaseIfNecessary();
 		if ($this->getEntity()->getId()) {
 			$this->identifyMethodMapper->update($this->getEntity());
 			$this->notify(false);
 		} else {
-			$this->identifyMethodMapper->insert($this->getEntity());
+			$this->identifyMethodMapper->insertOrUpdate($this->getEntity());
 			$this->notify(true);
 		}
+	}
+
+	private function refreshIdFromDatabaseIfNecessary(): void {
+		$entity = $this->getEntity();
+		if ($entity->getId()) {
+			return;
+		}
+		if (!$entity->getFileUserId() || !$entity->getMethod()) {
+			return;
+		}
+
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($entity->getFileUserId());
+		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($entity): bool {
+			return $current->getMethod() === $entity->getMethod();
+		});
+		if (!$exists) {
+			return;
+		}
+		$exists = current($exists);
+		$entity->setId($exists->getId());
 	}
 }
