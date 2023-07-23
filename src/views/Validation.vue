@@ -62,7 +62,7 @@
 						</div>
 					</div>
 					<NcButton type="primary"
-						@click.prevent="changeInfo">
+						@click.prevent="goBack">
 						{{ t('libresign', 'Return') }}
 					</NcButton>
 				</div>
@@ -76,10 +76,11 @@ import axios from '@nextcloud/axios'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import { loadState } from '@nextcloud/initial-state'
 import BackgroundImage from '../assets/images/bg.png'
 import iconA from '../../img/info-circle-solid.svg'
 import iconB from '../../img/file-signature-solid.svg'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { fromUnixTime } from 'date-fns'
@@ -103,6 +104,7 @@ export default {
 	},
 
 	data() {
+		const fileInfo = loadState('libresign', 'file_info') ?? {}
 		return {
 			image: BackgroundImage,
 			infoDocument: t('libresign', 'Document Informations'),
@@ -113,9 +115,9 @@ export default {
 			buttonTitle: t('libresign', 'Validation'),
 			noDateMessage: t('libresign', 'No date'),
 			myUuid: this.uuid ? this.uuid : '',
-			hasInfo: false,
+			hasInfo: Object.keys(fileInfo).length > 0,
 			hasLoading: false,
-			document: {},
+			document: fileInfo,
 			documentUuid: '',
 			legalInformation: '',
 		}
@@ -133,6 +135,10 @@ export default {
 	},
 	methods: {
 		validate(id) {
+			if (id === this.document?.uuid) {
+				showSuccess(t('libresign', 'This document is valid'))
+				return
+			}
 			if (id.length >= 8) {
 				this.validateByUUID(id)
 			} else {
@@ -167,8 +173,7 @@ export default {
 			}
 		},
 		async getData() {
-			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/legal_information', {})
-			this.legalInformation = response.data.ocs.data.data
+			this.legalInformation = loadState('libresign', 'legal_information')
 		},
 		getName(user) {
 			if (user.fullName) {
@@ -184,7 +189,20 @@ export default {
 		viewDocument(val) {
 			window.open(`${val}?_t=${Date.now()}`)
 		},
-		changeInfo() {
+		goBack() {
+			// Redirect if have path to go back
+			const urlParams = new URLSearchParams(window.location.search)
+			if (urlParams.has('path')) {
+				try {
+					const redirectPath = window.atob(urlParams.get('path')).toString()
+					if (redirectPath.startsWith('/apps')) {
+						window.location = generateUrl(redirectPath)
+						return
+					}
+				} catch (error) {
+					console.log(error)
+				}
+			}
 			this.hasInfo = !this.hasInfo
 			this.myUuid = this.uuid
 		},
