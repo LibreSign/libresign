@@ -5,6 +5,7 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -16,6 +17,7 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -29,6 +31,8 @@ class PageController extends AEnvironmentPageAwareController {
 		private IInitialState $initialState,
 		private AccountService $accountService,
 		private IdentifyMethodService $identifyMethodService,
+		private IAppConfig $appConfig,
+		private FileService $fileService,
 		private IURLGenerator $url
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -230,6 +234,13 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->userSession->getUser(),
 			'url'
 		));
+
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
+
+		$this->fileService
+			->setFileByType('uuid', $uuid)
+			->showSigners();
+		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
