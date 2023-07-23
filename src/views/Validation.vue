@@ -55,7 +55,9 @@
 								class="scroll">
 								<div class="subscriber">
 									<span><b>{{ getName(item) }}</b></span>
-									<span v-if="item.signed" class="data-signed">{{ formatData(item.signed) }} </span>
+									<span v-if="item.signed" class="data-signed">
+										<Moment :timestamp="item.signed" />
+									</span>
 									<span v-else>{{ noDateMessage }}</span>
 								</div>
 							</div>
@@ -83,13 +85,14 @@ import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { fromUnixTime } from 'date-fns'
+import Moment from './../Components/Moment.vue'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
 	name: 'ViewValidation',
 
 	components: {
+		Moment,
 		NcContent,
 		NcButton,
 		NcLoadingIcon,
