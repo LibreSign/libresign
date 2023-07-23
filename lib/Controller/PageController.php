@@ -225,7 +225,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
-			'file_user_uuid',
+			'file_uuid',
 			$uuid,
 			$this->userSession->getUser(),
 			'url'
