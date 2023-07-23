@@ -19,6 +19,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -55,6 +56,7 @@ class AccountService {
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config,
+		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
 		private ValidateHelper $validateHelper,
@@ -257,18 +259,28 @@ class AccountService {
 	 * @throws Throwable
 	 * @return \OCP\Files\File
 	 */
-	public function getPdfByUuid(string $uuid) {
+	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
-		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
+		$cache = $this->mountProviderCollection->getMountCache();
 		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
-			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
+			$nodeId = $fileData->getSignedNodeId();
 		} else {
-			$file = $userFolder->getById($fileData->getNodeId())[0];
+			$nodeId = $fileData->getNodeId();
 		}
-		if (empty($file)) {
+		$mounts = $cache->getMountsForFileId($nodeId);
+		foreach ($mounts as $mount) {
+			$owner = $mount->getUser()->getUID();
+			$ownerFolder = $this->root->getUserFolder($owner);
+			$nodes = $ownerFolder->getById($nodeId);
+			if ($nodes) {
+				break;
+			}
+		}
+		if (empty($nodes)) {
 			throw new DoesNotExistException('Not found');
 		}
+		$file = current($nodes);
 		return $file;
 	}
 
