@@ -31,6 +31,7 @@ use OCP\IUser;
 interface IIdentifyMethod {
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
+	public function willNotifyUser(bool $willNotify): void;
 	public function notify(bool $isNew): void;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;

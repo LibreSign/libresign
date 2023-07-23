@@ -66,6 +66,9 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function notify(bool $isNew): void {
+		if (!$this->willNotify) {
+			return;
+		}
 		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(

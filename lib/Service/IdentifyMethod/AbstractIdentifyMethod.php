@@ -35,6 +35,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected array $customConfig = [];
+	protected bool $willNotify = true;
 	public function __construct(
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IConfig $config
@@ -54,6 +55,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function notify(bool $isNew): void {
+	}
+
+	public function willNotifyUser(bool $willNotify): void {
+		$this->willNotify = $willNotify;
 	}
 
 	public function validateToRequest(): void {
