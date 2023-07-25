@@ -20,6 +20,7 @@ use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IMountProviderCollection;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -49,6 +50,7 @@ class AccountService {
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
 		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
 		private AccountFileMapper $accountFileMapper,
@@ -105,11 +107,16 @@ class AccountService {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
-			$userId = $this->fileData->getUserId();
-			$userFolder = $this->root->getUserFolder($userId);
-			$fileToSign = $userFolder->getById($this->fileData->getNodeId());
+
+			$nodeId = $this->fileData->getNodeId();
+
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$fileToSign = $this->root->getById($nodeId);
 			if (count($fileToSign)) {
-				$this->fileToSign = $fileToSign[0];
+				$this->fileToSign = current($fileToSign);
 			}
 		}
 		return [
@@ -262,21 +269,16 @@ class AccountService {
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 
-		$cache = $this->mountProviderCollection->getMountCache();
 		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
 			$nodeId = $fileData->getSignedNodeId();
 		} else {
 			$nodeId = $fileData->getNodeId();
 		}
-		$mounts = $cache->getMountsForFileId($nodeId);
-		foreach ($mounts as $mount) {
-			$owner = $mount->getUser()->getUID();
-			$ownerFolder = $this->root->getUserFolder($owner);
-			$nodes = $ownerFolder->getById($nodeId);
-			if ($nodes) {
-				break;
-			}
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$nodes = $this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 		}
+		$nodes = $this->root->getById($nodeId);
 		if (empty($nodes)) {
 			throw new DoesNotExistException('Not found');
 		}

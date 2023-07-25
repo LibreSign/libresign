@@ -35,6 +35,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -55,7 +56,8 @@ class Account extends AbstractIdentifyMethod {
 		private FileMapper $fileMapper,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
-		private IRootFolder $rootFolder,
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 		private MailService $mail
 	) {
 		parent::__construct(
@@ -128,8 +130,14 @@ class Account extends AbstractIdentifyMethod {
 	private function throwIfFileNotFound(): void {
 		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
 		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
-		$userFolder = $this->rootFolder->getUserFolder($fileEntity->getUserId());
-		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
+
+		$nodeId = $fileEntity->getNodeId();
+
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$fileToSign = $this->root->getById($nodeId);
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
