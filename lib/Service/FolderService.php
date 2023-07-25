@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -14,6 +15,7 @@ use OCP\IUser;
 class FolderService {
 	public function __construct(
 		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 		private IConfig $config,
 		private IL10N $l10n,
 		private ?string $userId
@@ -38,8 +40,11 @@ class FolderService {
 	 */
 	public function getFolder(int $nodeId = null): Folder {
 		if ($nodeId) {
-			$userFolder = $this->root->getUserFolder($this->getUserId());
-			$node = $userFolder->getById($nodeId);
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$node = $this->root->getById($nodeId);
 			if (!$node) {
 				throw new \Exception('Invalid node');
 			}

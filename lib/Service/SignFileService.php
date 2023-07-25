@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -21,6 +22,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
@@ -33,6 +35,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
+use TypeError;
 
 class SignFileService {
 	/** @var FileUserEntity */
@@ -63,6 +66,7 @@ class SignFileService {
 		private IConfig $config,
 		protected ValidateHelper $validateHelper,
 		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
@@ -196,8 +200,14 @@ class SignFileService {
 				]);
 			}
 			try {
+				$nodeId = $userElement->getFileId();
+
+				$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+				foreach ($mountsContainingFile as $fileInfo) {
+					$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+				}
 				/** @var \OCP\Files\File[] */
-				$node = $this->root->getById($userElement->getFileId());
+				$node = $this->root->getById($nodeId);
 				if (!$node) {
 					throw new \Exception('empty');
 				}
@@ -280,12 +290,20 @@ class SignFileService {
 		if ($this->signWithoutPassword) {
 			$tempPassword = sha1(time());
 			$this->setPassword($tempPassword);
-			return $this->pkcs12Handler->generateCertificate(
-				['identify' => $this->userUniqueIdentifier, 'name' => $this->friendlyName],
-				$tempPassword,
-				$this->friendlyName,
-				true
-			);
+			try {
+				return $this->pkcs12Handler->generateCertificate(
+					['identify' => $this->userUniqueIdentifier, 'name' => $this->friendlyName],
+					$tempPassword,
+					$this->friendlyName,
+					true
+				);
+			} catch (TypeError $e) {
+				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
+			} catch (InvalidArgumentException $e) {
+				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
+			} catch (\Throwable $th) {
+				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
+			}
 		}
 		return $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
 	}
@@ -303,17 +321,23 @@ class SignFileService {
 		if ($this->fileToSign) {
 			$originalFile = $this->fileToSign;
 		} else {
-			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-			$originalFile = $userFolder->getById($libresignFile->getNodeId());
+
+			$nodeId = $libresignFile->getNodeId();
+
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$originalFile = $this->root->getById($nodeId);
 			if (count($originalFile) < 1) {
 				throw new LibresignException($this->l10n->t('File not found'));
 			}
-			$originalFile = $originalFile[0];
+			$originalFile = current($originalFile);
 		}
 		if ($originalFile->getExtension() === 'pdf') {
 			return $this->getPdfToSign($libresignFile, $originalFile);
 		}
-		return $userFolder->get($originalFile);
+		return $originalFile;
 	}
 
 	public function getLibresignFile(?int $fileId, ?string $fileUserUuid = null): FileEntity {
@@ -393,8 +417,16 @@ class SignFileService {
 	 */
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
 		if ($fileData->getSignedNodeId()) {
+
+			$nodeId = $fileData->getSignedNodeId();
+
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$fileToSign = $this->root->getById($nodeId);
 			/** @var \OCP\Files\File */
-			$fileToSign = $this->root->getById($fileData->getSignedNodeId())[0];
+			$fileToSign = current($fileToSign);
 		} else {
 			$signedFilePath = preg_replace(
 				'/' . $originalFile->getExtension() . '$/',
@@ -425,8 +457,14 @@ class SignFileService {
 		}
 		$fileUser = $this->fileUserMapper->getByUuid($uuid);
 		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
-		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
-		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
+
+		$nodeId = $fileEntity->getNodeId();
+
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$fileToSign = $this->root->getById($nodeId);
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -463,8 +501,14 @@ class SignFileService {
 				'errors' => [$e->getMessage()],
 			]));
 		}
-		$userFolder = $this->root->getUserFolder($fileEntity->getUserId());
-		$fileToSign = $userFolder->getById($fileEntity->getNodeId());
+
+		$nodeId = $fileEntity->getNodeId();
+
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$fileToSign = $this->root->getById($nodeId);
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
@@ -472,7 +516,7 @@ class SignFileService {
 			]));
 		}
 		/** @var File */
-		$fileToSign = $fileToSign[0];
+		$fileToSign = current($fileToSign);
 		$return = $this->getFileData($fileEntity, $user);
 		$return['sign']['pdf'] = $this->getFileUrl($formatOfPdfOnSign, $fileEntity, $fileToSign, $uuid);
 		return $return;

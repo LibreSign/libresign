@@ -18,6 +18,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -56,7 +57,8 @@ class ValidateHelper {
 		private IConfig $config,
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
-		private IRootFolder $root
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 	) {
 	}
 	public function validateNewFile(array $data): void {
@@ -301,6 +303,10 @@ class ValidateHelper {
 	}
 
 	public function validateIfNodeIdExists(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
 		try {
 			$file = $this->root->getById($nodeId);
 			$file = $file[0] ?? null;
@@ -313,6 +319,10 @@ class ValidateHelper {
 	}
 
 	public function validateMimeTypeAcceptedByNodeId(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
 		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
