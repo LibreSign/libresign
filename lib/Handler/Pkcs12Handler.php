@@ -20,6 +20,7 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use TCPDI;
+use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
 	/** @var string */
@@ -261,7 +262,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			->setPassword($signPassword)
 			->generateCertificate();
 		if (!$content) {
-			throw new LibresignException('Failure on generate certificate', 1);
+			throw new TypeError();
 		}
 		if ($isTempFile) {
 			return $content;
