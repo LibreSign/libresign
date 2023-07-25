@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
@@ -56,6 +57,9 @@ class AEngineHandler {
 	}
 
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+		if (empty($certificate) || empty($privateKey)) {
+			throw new InvalidArgumentException();
+		}
 		$certContent = null;
 		try {
 			openssl_pkcs12_export(
