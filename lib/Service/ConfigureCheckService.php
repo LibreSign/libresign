@@ -40,6 +40,7 @@ class ConfigureCheckService {
 	public function checkSign(): array {
 		$return = [];
 		$return = array_merge($return, $this->checkJava());
+		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		return $return;
 	}
@@ -147,6 +148,35 @@ class ConfigureCheckService {
 				->setErrorMessage('JSignPdf not found')
 				->setResource('jsignpdf')
 				->setTip('Run occ libresign:install --jsignpdf'),
+		];
+	}
+
+	/**
+	 * Check all requirements to use PDFtk
+	 *
+	 * @return ConfigureCheckHelper[]
+	 */
+	public function checkPdftk(): array {
+		$pdftkPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+		if ($pdftkPath) {
+			if (file_exists($pdftkPath)) {
+				\exec($pdftkPath . " --version 2>&1", $version);
+				if (!shell_exec(escapeshellarg($pdftkPath))) {
+
+				}
+			}
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('PDFtk binary not found: ' . $pdftkPath)
+					->setResource('pdftk')
+					->setTip('Run occ libresign:install --pdftk'),
+			];
+		}
+		return [
+			(new ConfigureCheckHelper())
+				->setErrorMessage('PDFtk not found')
+				->setResource('pdftk')
+				->setTip('Run occ libresign:install --pdftk'),
 		];
 	}
 
