@@ -107,6 +107,7 @@ class AdminController extends Controller {
 			$async = \function_exists('proc_open');
 			$this->installService->installJava($async);
 			$this->installService->installJSignPdf($async);
+			$this->installService->installPdftk($async);
 			$this->installService->installCfssl($async);
 			$previous = [];
 			do {

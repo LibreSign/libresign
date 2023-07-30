@@ -31,6 +31,7 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
 	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
+	private const PDFTK_VERSION = 'v3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
 	 */
@@ -89,10 +90,17 @@ class InstallService {
 	 */
 	private function getInternalPathOfFile(ISimpleFile $node): string {
 		$reflection = new \ReflectionClass($node);
-		$reflectionProperty = $reflection->getProperty('parentFolder');
-		$reflectionProperty->setAccessible(true);
-		$folder = $reflectionProperty->getValue($node);
-		$path = $folder->getInternalPath() . DIRECTORY_SEPARATOR . $node->getName();
+		if ($reflection->hasProperty('parentFolder')) {
+			$reflectionProperty = $reflection->getProperty('parentFolder');
+			$reflectionProperty->setAccessible(true);
+			$folder = $reflectionProperty->getValue($node);
+			$path = $folder->getInternalPath() . DIRECTORY_SEPARATOR . $node->getName();
+		} elseif ($reflection->hasProperty('file')) {
+			$reflectionProperty = $reflection->getProperty('file');
+			$reflectionProperty->setAccessible(true);
+			$file = $reflectionProperty->getValue($node);
+			$path = $file->getPath();
+		}
 		return $path;
 	}
 
@@ -186,6 +194,7 @@ class InstallService {
 		$resources = [
 			'java',
 			'jsignpdf',
+			'pdftk',
 			'cfssl'
 		];
 		$return = [];
@@ -328,6 +337,48 @@ class InstallService {
 		} catch (NotFoundException $e) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
+	}
+
+	public function installPdftk(?bool $async = false): void {
+		$this->setResource('pdftk');
+		if ($async) {
+			$this->runAsync();
+			return;
+		}
+
+		try {
+			$file = $this->getFolder()->getFile('pdftk');
+		} catch (\Throwable $th) {
+			$file = $this->getFolder()->newFile('pdftk');
+		}
+		$fullPath = realpath($this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file));
+		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/' . self::PDFTK_VERSION . '/pdftk';
+		/** WHEN UPDATE version: generate this hash handmade and update here */
+		$hash = 'dc5abe9885b26c616821ba1f24f03195';
+
+		$this->download($url, 'pdftk', $fullPath, $hash);
+
+		chmod($fullPath, 0700);
+
+		$this->config->setAppValue(Application::APP_ID, 'pdftk_path', $fullPath);
+		$this->removeDownloadProgress();
+	}
+
+	public function uninstallPdftk(): void {
+		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+		if (!$jsignpdJarPath) {
+			return;
+		}
+		$appFolder = $this->appData->getFolder('/');
+		$name = $appFolder->getName();
+		// Remove prefix
+		$path = explode($name, $jsignpdJarPath)[1];
+		try {
+			$file = $appFolder->getFile($path);
+			$file->delete();
+		} catch (NotFoundException $e) {
+		}
+		$this->config->deleteAppValue(Application::APP_ID, 'pdftk_path');
 	}
 
 	public function installCfssl(?bool $async = false): void {

@@ -23,6 +23,11 @@ class Install extends Base {
 				InputOption::VALUE_NONE,
 				'JSignPdf'
 			)
+			->addOption('pdftk',
+				null,
+				InputOption::VALUE_NONE,
+				'PDFtk'
+			)
 			->addOption('cfssl',
 				null,
 				InputOption::VALUE_NONE,
@@ -47,6 +52,10 @@ class Install extends Base {
 			}
 			if ($input->getOption('jsignpdf') || $all) {
 				$this->installService->installJSignPdf();
+				$ok = true;
+			}
+			if ($input->getOption('pdftk') || $all) {
+				$this->installService->installPdftk();
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {

@@ -23,6 +23,11 @@ class Uninstall extends Base {
 				InputOption::VALUE_NONE,
 				'JSignPdf'
 			)
+			->addOption('pdftk',
+				null,
+				InputOption::VALUE_NONE,
+				'PDFtk'
+			)
 			->addOption('cfssl',
 				null,
 				InputOption::VALUE_NONE,
@@ -46,6 +51,10 @@ class Uninstall extends Base {
 			}
 			if ($input->getOption('jsignpdf') || $all) {
 				$this->installService->uninstallJSignPdf();
+				$ok = true;
+			}
+			if ($input->getOption('pdftk') || $all) {
+				$this->installService->uninstallPdftk();
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {
