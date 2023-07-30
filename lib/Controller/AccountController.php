@@ -106,6 +106,7 @@ class AccountController extends ApiController {
 		try {
 			$data = [
 				'user' => [
+					'identify' => $this->userSession->getUser()->getUID(),
 					'email' => $this->userSession->getUser()->getEMailAddress(),
 					'name' => $this->userSession->getUser()->getDisplayName(),
 				],
@@ -113,7 +114,7 @@ class AccountController extends ApiController {
 				'userId' => $this->userSession->getUser()->getUID()
 			];
 			$this->accountService->validateCertificateData($data);
-			$signaturePath = $this->pkcs12Handler->generateCertificate(
+			$this->pkcs12Handler->generateCertificate(
 				$data['user'],
 				$data['signPassword'],
 				$this->userSession->getUser()->getDisplayName()
@@ -121,7 +122,6 @@ class AccountController extends ApiController {
 
 			return new JSONResponse([
 				'success' => true,
-				'signature' => $signaturePath->getPath()
 			], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$this->logger->error($exception->getMessage());

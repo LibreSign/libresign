@@ -15,6 +15,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
+use OCA\Libresign\Exception\EmptyRootCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
@@ -299,6 +300,8 @@ class SignFileService {
 				);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
+			} catch (EmptyRootCertificateException $e) {
+				throw new LibresignException($this->l10n->t('Empty root certificate data'));
 			} catch (InvalidArgumentException $e) {
 				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
 			} catch (\Throwable $th) {
