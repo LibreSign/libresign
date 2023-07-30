@@ -101,7 +101,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
-	public function writeFooter(File $file, string $uuid): string {
+	public function getFooter(File $file, string $uuid): string {
 		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
 		if (!$add_footer) {
 			return '';
@@ -118,7 +118,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		$dimensions = null;
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-			$templateId = $pdf->importPage($pageNo);
+			$pdf->importPage($pageNo);
 
 			// Define dimensions of page
 			$tpl = $pdf->tpls[$pageNo];
@@ -137,8 +137,6 @@ class Pkcs12Handler extends SignEngineHandler {
 				$dimensions[$box]['ury'] = $tpl['w'];
 			}
 			$pdf->AddPage($dimensions['or'], $dimensions);
-
-			$pdf->useTemplate($templateId);
 
 			$pdf->SetFont('Helvetica');
 			$pdf->SetFontSize(8);
