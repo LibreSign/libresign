@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
+use mikehaertl\pdftk\Command;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -17,6 +18,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\EmptyRootCertificateException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
@@ -438,8 +440,23 @@ class SignFileService {
 			);
 
 			/** @var \OCP\Files\File */
-			$buffer = $this->pkcs12Handler->writeFooter($originalFile, $fileData->getUuid());
-			if (!$buffer) {
+			$footer = $this->pkcs12Handler->getFooter($originalFile, $fileData->getUuid());
+			if ($footer) {
+				$background = $this->tempManager->getTemporaryFile('signed.pdf');
+				file_put_contents($background, $footer);
+
+				$dest = $this->tempManager->getTemporaryFile('signed.pdf');
+				file_put_contents($dest, $originalFile->getContent());
+
+				$pdftkPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+				$pdf = new Pdf();
+				$command = new Command();
+				$command->setCommand($pdftkPath);
+				$pdf->setCommand($command);
+				$pdf->addFile($dest);
+				$buffer = $pdf->stamp($background)
+					->toString($dest);
+			} else {
 				$buffer = $originalFile->getContent($originalFile);
 			}
 			/** @var \OCP\Files\File */
