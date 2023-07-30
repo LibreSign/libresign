@@ -326,7 +326,6 @@ class SignFileService {
 		if ($this->fileToSign) {
 			$originalFile = $this->fileToSign;
 		} else {
-
 			$nodeId = $libresignFile->getNodeId();
 
 			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
@@ -422,7 +421,6 @@ class SignFileService {
 	 */
 	private function getPdfToSign(FileEntity $fileData, File $originalFile): File {
 		if ($fileData->getSignedNodeId()) {
-
 			$nodeId = $fileData->getSignedNodeId();
 
 			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
