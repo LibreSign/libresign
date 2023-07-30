@@ -137,10 +137,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$resp = new FileDisplayResponse($file);
 		$resp->addHeader('Content-Type', 'application/pdf');
 
-		$csp = new ContentSecurityPolicy();
-		$csp->allowInlineScript(true);
-		$resp->setContentSecurityPolicy($csp);
-
 		return $resp;
 	}
 
@@ -163,10 +159,6 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 		$resp = new FileDisplayResponse($config['sign']['pdf']['file']);
 		$resp->addHeader('Content-Type', 'application/pdf');
-
-		$csp = new ContentSecurityPolicy();
-		$csp->allowInlineScript(true);
-		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
 	}
