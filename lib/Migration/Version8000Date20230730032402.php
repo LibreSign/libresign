@@ -33,7 +33,7 @@ use OCP\Migration\SimpleMigrationStep;
 
 class Version8000Date20230730032402 extends SimpleMigrationStep {
 	public function __construct(
-		protected InstallService $installService
+		protected InstallService $installService,
 	) {
 	}
 
