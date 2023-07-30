@@ -31,7 +31,7 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
 	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
-	private const PDFTK_VERSION = 'v3.3.3';
+	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
 	 */
@@ -352,7 +352,7 @@ class InstallService {
 			$file = $this->getFolder()->newFile('pdftk');
 		}
 		$fullPath = realpath($this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file));
-		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/' . self::PDFTK_VERSION . '/pdftk';
+		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
 		$hash = 'dc5abe9885b26c616821ba1f24f03195';
 

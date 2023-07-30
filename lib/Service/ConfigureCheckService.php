@@ -161,9 +161,31 @@ class ConfigureCheckService {
 		if ($pdftkPath) {
 			if (file_exists($pdftkPath)) {
 				\exec($pdftkPath . " --version 2>&1", $version);
-				if (!shell_exec(escapeshellarg($pdftkPath))) {
-
+				if (isset($version[0])) {
+					preg_match('/pdftk port to java (?<version>.*) a Handy Tool/', $version[0], $matches);
+					if (isset($matches['version'])) {
+						if ($matches['version'] === InstallService::PDFTK_VERSION) {
+							$return[] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
+									->setResource('pdftk');
+							$return[] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk path: ' . $pdftkPath)
+									->setResource('pdftk');
+							return $return;
+						}
+						$message = 'Necessary install the version ' . InstallService::PDFTK_VERSION;
+						$return[] = (new ConfigureCheckHelper())
+							->setErrorMessage($message)
+							->setResource('jsignpdf')
+							->setTip('Run occ libresign:install --jsignpdf');
+					}
 				}
+				return [
+					(new ConfigureCheckHelper())
+						->setErrorMessage('PDFtk binary is invalid: ' . $pdftkPath)
+						->setResource('pdftk')
+						->setTip('Run occ libresign:install --pdftk'),
+				];
 			}
 			return [
 				(new ConfigureCheckHelper())
