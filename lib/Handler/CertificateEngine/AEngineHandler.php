@@ -2,8 +2,8 @@
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\EmptyRootCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCP\Files\AppData\IAppDataFactory;
@@ -56,9 +56,9 @@ class AEngineHandler {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+	public function generateCertificate(string $certificate, string $privateKey): string {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new InvalidArgumentException();
+			throw new EmptyRootCertificateException();
 		}
 		$certContent = null;
 		try {

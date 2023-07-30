@@ -49,7 +49,7 @@ class Pkcs12Handler extends SignEngineHandler {
 				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
 			$file->putContent($content);
-			return $file;
+			return $content;
 		}
 
 		$file = $folder->newFile($this->pfxFilename);
