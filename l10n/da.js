@@ -40,6 +40,7 @@ OC.L10N.register(
     "Page not found" : "Siden blev ikke fundet",
     "Pending" : "Afventer",
     "Choose from Files" : "Vælg fra Filer",
+    "Add users" : "Tilføj brugere",
     "Password reset" : "Nulstil adgangskode",
     "New password" : "Ny adgangskode",
     "Repeat password" : "Gentag adgangskode",
