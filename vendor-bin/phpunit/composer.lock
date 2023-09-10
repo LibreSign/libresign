@@ -216,16 +216,16 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.6.2",
+            "version": "v2.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "f6328328bf2952e66b5057e6d676e0c6c593a039"
+                "reference": "0e22d8dc8b2879dc973edd5780ace614009046e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/f6328328bf2952e66b5057e6d676e0c6c593a039",
-                "reference": "f6328328bf2952e66b5057e6d676e0c6c593a039",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/0e22d8dc8b2879dc973edd5780ace614009046e9",
+                "reference": "0e22d8dc8b2879dc973edd5780ace614009046e9",
                 "shasum": ""
             },
             "require": {
@@ -235,7 +235,7 @@
                 "ralouphie/getallheaders": "~2.0 || ~3.0"
             },
             "require-dev": {
-                "corpus/coding-standard": "^0.6.0",
+                "corpus/coding-standard": "^0.6.0 || ^0.7.0",
                 "donatj/drop": "^1.0",
                 "ext-curl": "*",
                 "friendsofphp/php-cs-fixer": "^3.1",
@@ -263,7 +263,7 @@
             "description": "Simple mock web server for unit testing",
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.6.2"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.7.0"
             },
             "funding": [
                 {
@@ -275,7 +275,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-07-03T16:01:39+00:00"
+            "time": "2023-09-07T02:18:50+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
