@@ -86,6 +86,7 @@ import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import Moment from './../Components/Moment.vue'
+import { fromUnixTime } from 'date-fns'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
