@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\FolderService;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -14,12 +15,16 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$root
 			->method('getUserFolder')
 			->willReturn($folder);
-
+		$userMountCache = $this->createMock(IUserMountCache::class);
+		$userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$config = $this->createMock(IConfig::class);
 		$l10n = $this->createMock(IL10N::class);
 
 		$service = new FolderService(
 			$root,
+			$userMountCache,
 			$config,
 			$l10n,
 			171
@@ -29,23 +34,24 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFolderWithValidNodeId() {
-		$node = $this->createMock(\OCP\Files\Folder::class);
-		$node->method('getParent')
-			->willReturn($node);
-		$node->method('getById')
-			->willReturn([$node]);
+		$userMountCache = $this->createMock(IUserMountCache::class);
+		$userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$root = $this->createMock(IRootFolder::class);
-		$root->method('getUserFolder')
-			->willReturn($node);
+		$root->method('getById')
+			->willReturn([]);
 		$config = $this->createMock(IConfig::class);
 		$l10n = $this->createMock(IL10N::class);
 
 		$service = new FolderService(
 			$root,
+			$userMountCache,
 			$config,
 			$l10n,
 			1
 		);
+		$this->getExpectedExceptionMessage('Invalid node');
 		$actual = $service->getFolder(171);
 		$this->assertInstanceOf(\OCP\Files\Folder::class, $actual);
 	}

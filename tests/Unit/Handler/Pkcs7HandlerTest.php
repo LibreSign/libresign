@@ -38,19 +38,16 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($fileToSIgnTempNam);
 		$handler->setInputFile($fileToSign);
 
-		$certificate = $this->createMock(\OCP\Files\File::class);
 		$certKeys = json_decode(file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json'), true);
 		$certKeys = $certKeys['result'];
 		openssl_pkcs12_export($certKeys['certificate'], $certContent, $certKeys['private_key'], 'password');
-		$certificate
-			->method('getContent')
-			->willReturn($certContent);
-		$handler->setCertificate($certificate);
+		$handler->setCertificate($certContent);
 
 		$handler->setPassword('password');
 
 		$actual = $handler->sign();
 		$signedFile = $actual->getInternalPath();
 		$this->assertStringContainsString($content, file_get_contents($signedFile));
+		$this->assertGreaterThan($content, file_get_contents($signedFile));
 	}
 }

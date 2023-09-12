@@ -4,8 +4,10 @@ namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -21,6 +23,8 @@ final class PageControllerTest extends TestCase {
 	private IInitialState|MockObject $initialState;
 	private AccountService|MockObject $accountService;
 	private IdentifyMethodService|MockObject $identifyMethodService;
+	private IAppConfig|MockObject $appConfig;
+	private FileService|MockObject $fileService;
 	private IURLGenerator|MockObject $url;
 	private PageController $controller;
 
@@ -30,6 +34,8 @@ final class PageControllerTest extends TestCase {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->fileService = $this->createMock(FileService::class);
 		$this->url = $this->createMock(IURLGenerator::class);
 		$this->controller = new PageController(
 			$this->request,
@@ -37,6 +43,8 @@ final class PageControllerTest extends TestCase {
 			$this->initialState,
 			$this->accountService,
 			$this->identifyMethodService,
+			$this->appConfig,
+			$this->fileService,
 			$this->url
 		);
 	}

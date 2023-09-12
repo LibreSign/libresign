@@ -18,7 +18,7 @@ class FolderService {
 		private IUserMountCache $userMountCache,
 		private IConfig $config,
 		private IL10N $l10n,
-		private ?string $userId
+		private ?string $userId,
 	) {
 		$this->userId = $userId;
 	}

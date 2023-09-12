@@ -36,7 +36,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private SystemConfig $systemConfig,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n,
-		private JSignPdfHandler $jSignPdfHandler
+		private JSignPdfHandler $jSignPdfHandler,
 	) {
 	}
 
@@ -71,7 +71,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		if (!$node->getContent()) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		return $node->conten;
+		return $node->getContent();
 	}
 
 	private function getHandler(): SignEngineHandler {
