@@ -69,7 +69,7 @@ class AccountService {
 		private UserElementMapper $userElementMapper,
 		private FolderService $folderService,
 		private IClientService $clientService,
-		private TimeFactory $timeFactory
+		private TimeFactory $timeFactory,
 	) {
 	}
 
