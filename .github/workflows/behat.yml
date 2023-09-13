@@ -44,7 +44,7 @@ jobs:
           POSTGRES_DB: nextcloud
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
       mysql:
-        image: mariadb
+        image: ghcr.io/nextcloud/continuous-integration-mariadb-10.6:latest
         ports:
           - 4444:3306/tcp
         env:
