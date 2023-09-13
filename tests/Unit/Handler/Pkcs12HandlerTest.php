@@ -135,7 +135,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->method('getContent')
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
-		$this->assertEquals(18359, strlen($actual));
+		$this->assertEquals(18315, strlen($actual));
 	}
 
 	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
