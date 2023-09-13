@@ -34,7 +34,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
-		$this->expectErrorMessageMatches($errorMessage);
+		$this->expectExceptionMessageMatches($errorMessage);
 		$file = $this->createMock(File::class);
 		if (file_exists($path)) {
 			$file->method('getContent')

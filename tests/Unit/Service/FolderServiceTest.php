@@ -29,7 +29,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$l10n,
 			171
 		);
-		$this->expectErrorMessage('Invalid node');
+		$this->expectExceptionMessage('Invalid node');
 		$service->getFolder(171);
 	}
 
@@ -51,7 +51,6 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$l10n,
 			1
 		);
-		$this->getExpectedExceptionMessage('Invalid node');
 		$actual = $service->getFolder(171);
 		$this->assertInstanceOf(\OCP\Files\Folder::class, $actual);
 	}
