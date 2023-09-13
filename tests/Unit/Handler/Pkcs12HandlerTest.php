@@ -53,7 +53,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$node->method('get')->will($this->returnValue($node));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
 
-		$this->expectErrorMessage('path signature.pfx already exists and is not a file!');
+		$this->expectExceptionMessage('path signature.pfx already exists and is not a file!');
 		$this->pkcs12Handler->savePfx('userId', 'content');
 	}
 
@@ -72,7 +72,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$node = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('nodeExists')->will($this->returnValue(false));
 		$this->folderService->method('getFolder')->will($this->returnValue($node));
-		$this->expectErrorMessage('Password to sign not defined. Create a password to sign');
+		$this->expectExceptionMessage('Password to sign not defined. Create a password to sign');
 		$this->expectExceptionCode(400);
 		$this->pkcs12Handler->getPfx('userId');
 	}

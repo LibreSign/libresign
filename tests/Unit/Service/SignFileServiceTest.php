@@ -119,7 +119,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getSigned', [], '2021-01-01 01:01:01'],
 			]));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
-		$this->expectErrorMessage('Document already signed');
+		$this->expectExceptionMessage('Document already signed');
 		$this->getService()->canDeleteRequestSignature(['uuid' => 'valid']);
 	}
 
@@ -139,7 +139,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getEmail', [], 'otheremail@test.coop']
 			]));
 		$this->fileUserMapper->method('getByFileUuid')->will($this->returnValue([$fileUser]));
-		$this->expectErrorMessage('No signature was requested to %');
+		$this->expectExceptionMessage('No signature was requested to %');
 		$this->getService()->canDeleteRequestSignature([
 			'uuid' => 'valid',
 			'users' => [
@@ -161,7 +161,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSignWithFileNotFound() {
-		$this->expectErrorMessage('File not found');
+		$this->expectExceptionMessage('File not found');
 
 		$this->createUser('username', 'password');
 
