@@ -16,6 +16,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignMethodService;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -44,6 +45,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
 	private ValidateHelper|MockObject $validateHelper;
 	private IRootFolder|MockObject $root;
+	private IUserMountCache|MockObject $userMountCache;
 	private FileElementMapper|MockObject $fileElementMapper;
 	private UserElementMapper|MockObject $userElementMapper;
 	private IEventDispatcher|MockObject $eventDispatcher;
@@ -71,6 +73,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
@@ -95,6 +98,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->validateHelper,
 			$this->root,
+			$this->userMountCache,
 			$this->fileElementMapper,
 			$this->userElementMapper,
 			$this->eventDispatcher,
@@ -168,12 +172,11 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file = new \OCA\Libresign\Db\File();
 		$file->setUserId('username');
 
-		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder
-			->method('getById')
+		$this->root->method('getById')
 			->willReturn([]);
-		$this->root->method('getUserFolder')
-			->willReturn($folder);
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->wilLReturn([]);
 
 		$fileUser = new \OCA\Libresign\Db\FileUser();
 		$this->getService()
