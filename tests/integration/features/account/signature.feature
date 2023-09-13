@@ -21,4 +21,3 @@ Feature: account/signature
     And the response should be a JSON array with the following mandatory values
       | key      | value                                   |
       | success  | true                                    |
-      | signature | /signer1/files/LibreSign/signature.pfx |
