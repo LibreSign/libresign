@@ -40,7 +40,7 @@ class IdentifyMethodMapper extends QBMapper {
 	 * @return array<IdentifyMethod>
 	 */
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
-		if (array_key_exists($fileUserId, $this->methodsByFileUser)) {
+		if (!empty($this->methodsByFileUser[$fileUserId])) {
 			return $this->methodsByFileUser[$fileUserId];
 		}
 		$qb = $this->db->getQueryBuilder();
