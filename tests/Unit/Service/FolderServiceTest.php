@@ -38,9 +38,13 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$userMountCache
 			->method('getMountsForFileId')
 			->willreturn([]);
+		$node = $this->createMock(\OCP\Files\File::class);
+		$folder = $this->createMock(\OCP\Files\Folder::class);
+		$node->method('getParent')
+			->willReturn($folder);
 		$root = $this->createMock(IRootFolder::class);
 		$root->method('getById')
-			->willReturn([]);
+			->willReturn([$node]);
 		$config = $this->createMock(IConfig::class);
 		$l10n = $this->createMock(IL10N::class);
 
