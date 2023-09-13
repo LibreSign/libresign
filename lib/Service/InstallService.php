@@ -351,7 +351,7 @@ class InstallService {
 		} catch (\Throwable $th) {
 			$file = $this->getFolder()->newFile('pdftk');
 		}
-		$fullPath = realpath($this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file));
+		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
 		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
 		$hash = 'dc5abe9885b26c616821ba1f24f03195';
