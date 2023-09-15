@@ -108,7 +108,7 @@ export default {
 					value: certificate.value,
 				}))
 				if (listToSave) {
-				 this.$emit('update:certificateToSave', listToSave)
+					this.$emit('update:certificateToSave', listToSave)
 				}
 			}
 		},
