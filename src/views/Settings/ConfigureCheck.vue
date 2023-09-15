@@ -27,6 +27,7 @@ import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { subscribe } from '@nextcloud/event-bus'
 
 export default {
 	name: 'ConfigureCheck',
@@ -43,6 +44,7 @@ export default {
 		this.$root.$on('config-check', data => {
 			this.checkSetup()
 		})
+		subscribe('libresign:certificate-engine:changed', this.checkSetup)
 	},
 	methods: {
 		async checkSetup() {
