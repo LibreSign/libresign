@@ -54,12 +54,13 @@ class AdminController extends Controller {
 		array $properties = [],
 	): DataResponse {
 		try {
-			foreach ($rootCert['names'] as $key => $name) {
-				$rootCert['names'][$key]['value'] = $this->trimAndThrowIfEmpty($key, $rootCert['names'][$key]['value']);
+			$names = [];
+			foreach ($rootCert['names'] as $item) {
+				$names[$item['id']]['value'] = $this->trimAndThrowIfEmpty($item['id'], $item['value']);
 			}
 			$this->installService->generate(
 				$this->trimAndThrowIfEmpty('commonName', $rootCert['commonName']),
-				$rootCert['names'] ?? [],
+				$names ?? [],
 				$properties,
 			);
 

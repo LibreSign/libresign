@@ -585,7 +585,11 @@ class InstallService {
 		array $names = [],
 		array $properties = [],
 	): void {
-		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '');
+		$rootCert = [
+			'commonName' => $commonName,
+			'names' => $names
+		];
+		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '', $rootCert);
 		if ($engine->getEngine() === 'cfssl') {
 			if (!empty($properties['cfsslUri'])) {
 				$engine->setCfsslUri($properties['cfsslUri']);
@@ -601,10 +605,7 @@ class InstallService {
 			$names
 		);
 
-		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
-			'commonName' => $commonName,
-			'names' => $names
-		]));
+		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode($rootCert));
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $privateKey);
 		$this->config->setAppValue(Application::APP_ID, 'configPath', $properties['configPath']);
 		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
