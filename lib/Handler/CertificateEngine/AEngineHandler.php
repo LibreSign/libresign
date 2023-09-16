@@ -207,11 +207,10 @@ class AEngineHandler {
 		];
 		$names = $this->getNames();
 		foreach ($names as $name => $value) {
-			$return['rootCert']['names'][$name]['id'] = $name;
-			$return['rootCert']['names'][$name]['value'] = $value;
-		}
-		if (empty($return['rootCert']['names'])) {
-			$return['rootCert']['names'] = new \stdClass;
+			$return['rootCert']['names'][] = [
+				'id' => $name,
+				'value' => $value,
+			];
 		}
 		return $return;
 	}
