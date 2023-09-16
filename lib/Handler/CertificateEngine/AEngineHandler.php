@@ -107,9 +107,11 @@ class AEngineHandler {
 		return $this->engine;
 	}
 
-	public function populateInstance(): self {
-		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
-		$rootCert = json_decode($rootCert, true);
+	public function populateInstance(array $rootCert): self {
+		if (empty($rootCert)) {
+			$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+			$rootCert = json_decode($rootCert, true);
+		}
 		if (!$rootCert) {
 			return $this;
 		}
