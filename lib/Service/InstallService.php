@@ -591,9 +591,7 @@ class InstallService {
 		];
 		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '', $rootCert);
 		if ($engine->getEngine() === 'cfssl') {
-			if (!empty($properties['cfsslUri'])) {
-				$engine->setCfsslUri($properties['cfsslUri']);
-			}
+			$engine->setCfsslUri($properties['cfsslUri']);
 		}
 
 		if (!empty($properties['configPath'])) {
