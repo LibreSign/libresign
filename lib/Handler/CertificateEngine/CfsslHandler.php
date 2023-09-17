@@ -211,7 +211,11 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	}
 
 	public function setCfsslUri($uri): void {
-		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $uri);
+		if ($uri) {
+			$this->config->setAppValue(Application::APP_ID, 'cfssl_uri', $uri);
+		} else {
+			$this->config->deleteAppValue(Application::APP_ID, 'cfssl_uri');
+		}
 		$this->cfsslUri = $uri;
 	}
 
@@ -264,7 +268,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function configureCheck(): array {
 		$return = $this->checkBinaries();
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		$configPath = $this->config->getAppValue(Application::APP_ID, 'config_path');
 		if (is_dir($configPath)) {
 			return array_merge(
 				$return,
@@ -339,7 +343,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	public function toArray(): array {
 		$return = parent::toArray();
 		if (!empty($return['configPath'])) {
-			$return['cfsslUri'] = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
+			$return['cfsslUri'] = $this->config->getAppValue(Application::APP_ID, 'cfssl_uri');
 		}
 		return $return;
 	}

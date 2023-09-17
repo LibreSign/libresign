@@ -109,7 +109,7 @@ class AEngineHandler {
 
 	public function populateInstance(array $rootCert): self {
 		if (empty($rootCert)) {
-			$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+			$rootCert = $this->config->getAppValue(Application::APP_ID, 'root_cert');
 			$rootCert = json_decode($rootCert, true);
 		}
 		if (!$rootCert) {
@@ -131,7 +131,7 @@ class AEngineHandler {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
-		$this->configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
+		$this->configPath = $this->config->getAppValue(Application::APP_ID, 'config_path');
 		if ($this->configPath) {
 			return $this->configPath;
 		}
