@@ -30,7 +30,7 @@ use OCP\Security\IHasher;
 
 class ValidateHelper {
 	/** @var \OCP\Files\File[] */
-	private $file;
+	private $file = [];
 
 	public const TYPE_TO_SIGN = 1;
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
@@ -358,14 +358,15 @@ class ValidateHelper {
 	 * @psalm-return \OCP\Files\Node|array<empty, empty>
 	 */
 	private function getLibreSignFileByNodeId(int $nodeId) {
-		if (empty($this->file[$nodeId])) {
-			$libresignFile = $this->fileMapper->getByFileId($nodeId);
+		if (isset($this->file[$nodeId])) {
+			return $this->file[$nodeId];
+		}
+		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
-			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-			$this->file[$nodeId] = $userFolder->getById($nodeId);
-			if (!empty($this->file[$nodeId])) {
-				$this->file[$nodeId] = $this->file[$nodeId][0];
-			}
+		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
+		$this->file[$nodeId] = $userFolder->getById($nodeId);
+		if (!empty($this->file[$nodeId])) {
+			$this->file[$nodeId] = $this->file[$nodeId][0];
 		}
 		return $this->file[$nodeId];
 	}
