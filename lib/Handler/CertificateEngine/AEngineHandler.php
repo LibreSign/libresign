@@ -97,12 +97,12 @@ class AEngineHandler {
 		return '';
 	}
 
-	protected function setEngine(string $engine): void {
+	public function setEngine(string $engine): void {
 		$this->config->setAppValue(Application::APP_ID, 'certificate_engine', $engine);
 		$this->engine = $engine;
 	}
 
-	protected function getEngine(): string {
+	public function getEngine(): string {
 		$this->engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'openssl');
 		return $this->engine;
 	}
@@ -127,7 +127,7 @@ class AEngineHandler {
 		return $this;
 	}
 
-	protected function getConfigPath(): string {
+	public function getConfigPath(): string {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
