@@ -46,8 +46,8 @@ final class AdminControllerTest extends ApiTestCase {
 					'OU' => ['value' => 'LibreSign'],
 				],
 			]),
-			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-			'configPath' => 'vfs://home/'
+			'cfssl_uri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
+			'config_path' => 'vfs://home/'
 		];
 		$this->mockConfig(['libresign' => $cfsslConfig]);
 		$cfsslConfig['rootCert'] = json_decode($cfsslConfig['rootCert'], true);
@@ -66,8 +66,8 @@ final class AdminControllerTest extends ApiTestCase {
 		$this->assertRequest();
 
 		// Test if settings has been saved
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'cfsslUri'), $cfsslConfig['cfsslUri']);
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'configPath'), $cfsslConfig['configPath']);
+		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'cfssl_uri'), $cfsslConfig['cfsslUri']);
+		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'config_path'), $cfsslConfig['configPath']);
 		$rootCert = \OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
 		$this->assertEqualsCanonicalizing(
 			$cfsslConfig['rootCert'],
