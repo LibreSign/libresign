@@ -132,7 +132,7 @@ class AEngineHandler {
 			return $this->configPath;
 		}
 		$this->configPath = $this->config->getAppValue(Application::APP_ID, 'config_path');
-		if ($this->configPath) {
+		if ($this->configPath && str_ends_with($this->configPath, $this->getName() . '_config')) {
 			return $this->configPath;
 		}
 		try {
@@ -148,6 +148,7 @@ class AEngineHandler {
 		if (!is_dir($this->configPath)) {
 			exec('mkdir -p "' . $this->configPath . '"');
 		}
+		$this->setConfigPath($this->configPath);
 		return $this->configPath;
 	}
 

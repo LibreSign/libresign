@@ -594,9 +594,7 @@ class InstallService {
 			$engine->setCfsslUri($properties['cfsslUri']);
 		}
 
-		if (!empty($properties['configPath'])) {
-			$engine->setConfigPath($properties['configPath']);
-		}
+		$engine->setConfigPath($properties['configPath']);
 
 		$privateKey = $engine->generateRootCert(
 			$commonName,

@@ -268,7 +268,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function configureCheck(): array {
 		$return = $this->checkBinaries();
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'config_path');
+		$configPath = $this->getConfigPath();
 		if (is_dir($configPath)) {
 			return array_merge(
 				$return,
