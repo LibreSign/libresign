@@ -605,9 +605,9 @@ class InstallService {
 			$names
 		);
 
-		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode($rootCert));
+		$this->config->setAppValue(Application::APP_ID, 'root_cert', json_encode($rootCert));
 		$this->config->setAppValue(Application::APP_ID, 'authkey', $privateKey);
-		$this->config->setAppValue(Application::APP_ID, 'configPath', $properties['configPath']);
-		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
+		$this->config->setAppValue(Application::APP_ID, 'config_path', $engine->getConfigPath());
+		$this->config->setAppValue(Application::APP_ID, 'notify_unsigned_user', 1);
 	}
 }
