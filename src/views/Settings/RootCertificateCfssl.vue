@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && (configureOk || cfsslBinariesOk)"
+	<NcSettingsSection v-if="isThisEngine && loaded"
 		:title="title"
 		:description="description"
 		:doc-url="docUrl">
@@ -34,7 +34,7 @@
 						<td>{{ certificate.rootCert.commonName }}</td>
 					</tr>
 					<tr v-for="(customName) in certificate.rootCert.names" :key="customName.id" class="customNames">
-						<td>{{ getCustomNamesOptionsById(customName.id) }} ({{ customName.id }})</td>
+						<td>{{ getLabelFromId(customName.id) }} ({{ customName.id }})</td>
 						<td>{{ customName.value }}</td>
 					</tr>
 					<tr>
@@ -69,17 +69,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else-if="cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
-			<div class="form-group">
-				<label for="certificateEngine" class="form-heading--required">{{ t('libresign', 'Certificate engine') }}</label>
-				<NcMultiselect id="certificateEngine"
-					v-model="certificateEngine"
-					:options="certificateEngines"
-					track-by="id"
-					label="label"
-					:placeholder="t('libresign', 'Select the certificate engine to generate the root certificate')"
-					@change="onEngineChange" />
-			</div>
+		<div v-else-if="!configureOk && cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
@@ -91,7 +81,7 @@
 					:error="certificate.rootCert.commonName === ''"
 					:disabled="formDisabled" />
 			</div>
-			<CertificateCustonOptions :certifiacteToSave.sync="certificateToSave" />
+			<CertificateCustonOptions :names.sync="certificate.rootCert.names" />
 			<div>
 				<NcCheckboxRadioSwitch v-if="!customData || !formDisabled"
 					type="switch"
@@ -136,6 +126,7 @@ import { translate as t } from '@nextcloud/l10n'
 import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
+import { selectCustonOption } from '../../helpers/certification.js'
 
 export default {
 	name: 'RootCertificateCfssl',
@@ -150,13 +141,14 @@ export default {
 	data() {
 		return {
 			cfsslBinariesOk: false,
+			loaded: false,
 			configureOk: false,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'cfssl',
 			modal: false,
-			certificateToSave: [],
 			certificate: {
 				rootCert: {
 					commonName: '',
+					names: [],
 				},
 				cfsslUri: '',
 				configPath: '',
@@ -168,33 +160,30 @@ export default {
 			submitLabel: t('libresign', 'Generate root certificate.'),
 			docUrl: 'https://github.com/LibreSign/libresign/issues/1120',
 			formDisabled: false,
-			loading: true,
-			customNamesOptions: [],
-			certificateEngine: loadState('libresign', 'certificate_engine'),
-			certificateEngines: [
-				{ id: 'cfssl', label: 'cfssl' },
-				{ id: 'openssl', label: 'OpenSSL' },
-			],
 		}
 	},
 	async mounted() {
-		if (this.isThisEngine) {
-			this.loadRootCertificate()
-		}
-		this.loading = false
+		this.loadRootCertificate()
 		subscribe('libresign:certificate-engine:changed', this.changeEngine)
+		subscribe('libresign:update:certificateToSave', this.updateNames)
 		this.$root.$on('after-config-check', data => {
 			this.cfsslBinariesOk = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
 			this.configureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
+			this.loaded = true
 		})
 	},
 
 	methods: {
+		updateNames(names) {
+			this.certificate.rootCert.names = names
+		},
+		getLabelFromId(id) {
+			const item = selectCustonOption(id).unwrap()
+			return item.label
+		},
 		changeEngine(engine) {
 			this.isThisEngine = engine === 'cfssl'
-			if (this.isThisEngine) {
-				this.loadRootCertificate()
-			}
+			this.loadRootCertificate()
 		},
 		showModal() {
 			this.modal = true
@@ -203,10 +192,10 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.certificateToSave = []
+			this.certificate.rootCert.commonName = ''
+			this.certificate.rootCert.names = []
 			this.certificate.cfsslUri = ''
 			this.certificate.configPath = ''
-			this.certificate.generated = false
 			this.customData = false
 			this.configureOk = false
 			this.formDisabled = false
@@ -242,17 +231,16 @@ export default {
 			this.formDisabled = false
 		},
 		getDataToSave() {
-			const data = {
-				...this.certificate,
-				rootCert: {
-					...this.certificate.rootCert,
-					names: this.certificateToSave,
-				},
+			if (!this.customData) {
+				this.certificate.configPath = ''
+				this.certificate.cfsslUri = ''
 			}
-			return data
+			return this.certificate
 		},
-
 		async loadRootCertificate() {
+			if (!this.isThisEngine) {
+				return
+			}
 			this.formDisabled = true
 			try {
 				const response = await axios.get(
@@ -264,15 +252,7 @@ export default {
 				this.certificate = response.data
 				this.configureOk = this.certificate.generated
 				this.customData = this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0
-				if (!Object.hasOwn(this.certificate.rootCert, 'commonName')) {
-					this.$set(this.certificate.rootCert, 'commonName', '')
-				}
-				if (response.data.rootCert.commonName
-				&& response.data.country
-				&& response.data.organization
-				&& response.data.organizationUnit
-				&& this.configureOk
-				) {
+				if (this.configureOk) {
 					this.afterCertificateGenerated()
 					return
 				}
@@ -285,7 +265,6 @@ export default {
 		afterCertificateGenerated() {
 			this.submitLabel = t('libresign', 'Generated certificate!')
 			this.description = ''
-			this.certificate.generated = true
 		},
 	},
 }

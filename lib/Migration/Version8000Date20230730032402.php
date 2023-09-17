@@ -46,7 +46,7 @@ class Version8000Date20230730032402 extends SimpleMigrationStep {
 			$this->config->deleteAppValue(Application::APP_ID, 'rootCert');
 			$this->config->setAppValue(Application::APP_ID, 'root_cert', $rootCert);
 		}
-		if ($notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', null)) {
+		if ($notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notifyUnsignedUser', '')) {
 			$this->config->setAppValue(Application::APP_ID, 'notify_unsigned_user', $notifyUnsignedUser);
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'notifyUnsignedUser');

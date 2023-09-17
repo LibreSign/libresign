@@ -34,6 +34,7 @@
 						:success="typeof certificate.error === 'boolean' && !certificate.error"
 						:error="certificate.error"
 						:maxlength="certificate.max ? certificate.max : undefined"
+						:label="certificate.label"
 						:helper-text="certificate.helperText"
 						@update:value="validate(certificate.id)" />
 					<NcButton :aria-label="t('settings', 'Remove custom name entry from root certificate')"
@@ -53,6 +54,7 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcPopover from '@nextcloud/vue/dist/Components/NcPopover.js'
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
+import { emit } from '@nextcloud/event-bus'
 
 import Delete from 'vue-material-design-icons/Delete.vue'
 
@@ -67,7 +69,12 @@ export default {
 		NcListItem,
 		Delete,
 	},
-	props: 'certificateToSave',
+	props: {
+		names: {
+			type: Array,
+			required: true,
+		},
+	},
 	data() {
 		return {
 			customNamesOptions: options,
@@ -75,15 +82,13 @@ export default {
 			options,
 		}
 	},
-	computed: {
-	},
 	methods: {
 		validateMin(item) {
 			return item.value.length >= item.min
 		},
 		validateMax(item) {
 			// eslint-disable-next-line no-use-before-define
-			if (item.hasOwnProperty('max')) {
+			if (item.hasOwn('max')) {
 				return item.value.length <= item.max
 			}
 			return true
@@ -92,24 +97,16 @@ export default {
 			const custonOption = selectCustonOption(id)
 			if (custonOption.isSome()) {
 				const item = custonOption.unwrap()
-				if (this.validateMin(item) || this.validateMax(item)) {
+				if (this.validateMin(item) && this.validateMax(item)) {
 					item.error = false
 				} else {
 					item.error = true
 				}
-				this.certificateList = this.certificateList.map(_item => {
-					if (_item.id !== item.id) {
-						return item
-					}
-					return _item
-				})
 				const listToSave = this.certificateList.map(certificate => ({
 					id: certificate.id,
 					value: certificate.value,
 				}))
-				if (listToSave) {
-					this.$emit('update:certificateToSave', listToSave)
-				}
+				emit('libresign:update:certificateToSave', listToSave)
 			}
 		},
 		async removeOptionalAttribute(id) {
