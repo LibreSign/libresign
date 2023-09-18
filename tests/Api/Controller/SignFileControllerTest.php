@@ -51,7 +51,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['errors'][0]);
+		$this->assertEquals('Invalid UUID', $body['errors'][0]);
 	}
 
 	/**
@@ -91,7 +91,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File already signed by you', $body['errors'][0]);
+		$this->assertEquals('File already signed.', $body['errors'][0]);
 	}
 
 	/**
