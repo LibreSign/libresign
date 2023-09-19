@@ -45,13 +45,11 @@ class FileElementController extends Controller {
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [
 				'fileElementId' => $fileElement->getId(),
-				'success' => true,
 			];
 			$statusCode = Http::STATUS_OK;
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			$return = [
-				'success' => false,
 				'errors' => [$th->getMessage()]
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
@@ -80,7 +78,6 @@ class FileElementController extends Controller {
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			$return = [
-				'success' => false,
 				'errors' => [$th->getMessage()]
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;

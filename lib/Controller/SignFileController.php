@@ -76,7 +76,6 @@ class SignFileController extends ApiController {
 
 			return new JSONResponse(
 				[
-					'success' => true,
 					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed'),
 					'file' => [
@@ -88,7 +87,6 @@ class SignFileController extends ApiController {
 		} catch (LibresignException $e) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [$e->getMessage()]
 				],
@@ -114,7 +112,6 @@ class SignFileController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => false,
 				'action' => $action,
 				'errors' => [$message]
 			],
@@ -151,21 +148,17 @@ class SignFileController extends ApiController {
 			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode($fileUser, $user);
-			$success = true;
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
-			$success = false;
 			// There was an error when to send SMS code to user.
 			$message = $this->l10n->t('Failed to send code.');
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		} catch (\Throwable $th) {
-			$success = false;
 			$message = $th->getMessage();
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
 		return new JSONResponse(
 			[
-				'success' => $success,
 				'message' => [$message],
 			],
 			$statusCode,

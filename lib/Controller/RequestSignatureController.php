@@ -155,7 +155,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
@@ -185,7 +184,6 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'message' => $this->l10n->t('Success')
 			],
 			Http::STATUS_OK
