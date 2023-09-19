@@ -6,8 +6,8 @@ Feature: admin/initial_state
     Then the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":true,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -20,8 +20,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":true,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -34,8 +34,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":true,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -48,8 +48,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":true,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -62,8 +62,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":true,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -75,7 +75,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","enabled":true,"mandatory":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]},
-        {"name":"email","enabled":false,"mandatory":false,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":false,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
