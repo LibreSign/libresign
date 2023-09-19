@@ -29,6 +29,10 @@ class Admin implements ISettings {
 			'certificate_engine',
 			$this->certificateEngineHandler->getEngine()->getName()
 		);
+		$this->initialState->provideInitialState(
+			'config_path',
+			$this->config->getAppValue(Application::APP_ID, 'config_path')
+		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}
 

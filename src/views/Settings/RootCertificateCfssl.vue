@@ -248,7 +248,7 @@ export default {
 				}
 				this.certificate = response.data
 				this.configureOk = this.certificate.generated
-				this.customData = this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0
+				this.customData = loadState('libresign', 'config_path').length > 0 && (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
 				if (this.configureOk) {
 					this.afterCertificateGenerated()
 					return
