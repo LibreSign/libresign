@@ -124,7 +124,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'enabled' => true,
 				'mandatory' => true,
-				'can_be_used' => true,
 			],
 			$default
 		);
