@@ -24,8 +24,7 @@
 <template>
 	<NcSettingsSection v-if="isThisEngine && loaded && cfsslBinariesOk"
 		:title="title"
-		:description="description"
-		:doc-url="docUrl">
+		:description="description">
 		<div v-if="configureOk" id="tableRootCertificateCfssl" class="form-libresign">
 			<table class="grid">
 				<tbody>
