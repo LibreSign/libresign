@@ -2,6 +2,7 @@
 
 namespace OCA\Libresign\Helper;
 
+use OC\AppFramework\Http;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
@@ -374,11 +375,23 @@ class ValidateHelper {
 	public function canRequestSign(IUser $user): void {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized) || !is_array($authorized)) {
-			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException(
+				json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+				]),
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!array_intersect($userGroups, $authorized)) {
-			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException(
+				json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+				]),
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
 		}
 	}
 
