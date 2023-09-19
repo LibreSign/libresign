@@ -326,7 +326,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['message']);
+		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
 	}
 
 	/**
@@ -388,7 +388,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['message']);
+		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
 	}
 
 	/**
