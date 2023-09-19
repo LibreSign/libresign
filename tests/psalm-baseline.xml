@@ -100,10 +100,20 @@
       <code>private</code>
     </MissingDependency>
   </file>
-  <file src="lib/Service/IdentifyMethod/Account.php">
+  <file src="lib/Service/IdentifyMethod/AbstractIdentifyMethod.php">
     <MissingDependency occurrences="3">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/Account.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/Email.php">
+    <MissingDependency occurrences="1">
       <code>private</code>
     </MissingDependency>
   </file>
