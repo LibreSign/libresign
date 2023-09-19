@@ -148,7 +148,6 @@ class AEngineHandler {
 		if (!is_dir($this->configPath)) {
 			exec('mkdir -p "' . $this->configPath . '"');
 		}
-		$this->setConfigPath($this->configPath);
 		return $this->configPath;
 	}
 
