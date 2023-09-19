@@ -15,6 +15,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -224,12 +225,20 @@ class AccountService {
 	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		try {
 			if ($typeOfUuid === 'file_user_uuid') {
+				if ($uuid) {
+					$this->validateHelper->validateSigner($uuid, $user);
+				}
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
 			} else {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
 			}
 		} catch (LibresignException $e) {
-			$info = json_decode($e->getMessage(), true);
+			return json_decode($e->getMessage(), true);
+		} catch (DoesNotExistException $e) {
+			return [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			];
 		}
 		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
 		$info['settings']['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
