@@ -3,7 +3,6 @@
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -77,7 +76,6 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSigner]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
