@@ -52,6 +52,8 @@ class Email extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 	) {
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
+		$this->friendlyName = $this->l10n->t('Email');
 		parent::__construct(
 			$config,
 			$l10n,

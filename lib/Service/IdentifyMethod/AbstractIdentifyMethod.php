@@ -42,6 +42,7 @@ use OCP\IUser;
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	protected string $name;
+	protected string $friendlyName;
 	protected array $customConfig = [];
 	protected bool $willNotify = true;
 	public function __construct(
@@ -122,6 +123,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$default = array_merge(
 			[
 				'name' => $this->name,
+				'friendly_name' => $this->friendlyName,
 				'enabled' => true,
 				'mandatory' => true,
 			],

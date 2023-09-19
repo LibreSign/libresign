@@ -59,6 +59,8 @@ class Account extends AbstractIdentifyMethod {
 		private IUserMountCache $userMountCache,
 		private MailService $mail
 	) {
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Nextcloud acccount
+		$this->friendlyName = $this->l10n->t('Account');
 		parent::__construct(
 			$config,
 			$l10n,
