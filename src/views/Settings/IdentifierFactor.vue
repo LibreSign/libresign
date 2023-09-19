@@ -2,7 +2,7 @@
 	<NcSettingsSection :title="title" :description="description">
 		<div v-for="(option, index) in options"
 			:key="index">
-			<hr v-if="index != 0"/>
+			<hr v-if="index != 0">
 			<div v-if="option.name === 'account' && option.enabled">
 				<NcCheckboxRadioSwitch type="switch"
 					:checked.sync="option.enabled"
