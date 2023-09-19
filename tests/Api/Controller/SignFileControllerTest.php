@@ -14,11 +14,17 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithInvalidFileToSign() {
-		$this->createUser('username', 'password');
+		$this->createUser('allowrequestsign', 'password', 'testGroup');
+		$this->mockConfig([
+			'libresign' => [
+				'webhook_authorized' => '["admin","testGroup"]',
+				'notifyUnsignedUser' => 0
+			]
+		]);
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json'
 			])
 			->withPath('/sign/file_id/171')
