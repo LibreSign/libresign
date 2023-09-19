@@ -46,8 +46,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<NcButton
-				@click="showModal">
+			<NcButton @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcModal v-if="modal"
