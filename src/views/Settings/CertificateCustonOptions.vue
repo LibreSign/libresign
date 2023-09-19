@@ -87,8 +87,8 @@ export default {
 			return item.value.length >= item.min
 		},
 		validateMax(item) {
-			// eslint-disable-next-line no-use-before-define
-			if (item.hasOwn('max')) {
+			// eslint-disable-next-line no-prototype-builtins
+			if (item.hasOwnProperty('max')) {
 				return item.value.length <= item.max
 			}
 			return true
