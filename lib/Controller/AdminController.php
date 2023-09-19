@@ -65,13 +65,11 @@ class AdminController extends Controller {
 			);
 
 			return new DataResponse([
-				'success' => true,
 				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
 				[
-					'success' => false,
 					'message' => $exception->getMessage()
 				],
 				Http::STATUS_UNAUTHORIZED
@@ -124,15 +122,10 @@ class AdminController extends Controller {
 				sleep(1);
 			} while (true);
 
-			return new DataResponse(
-				[
-					'success' => true,
-				],
-			);
+			return new DataResponse([]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
 				[
-					'success' => false,
 					'message' => $exception->getMessage()
 				],
 				Http::STATUS_UNAUTHORIZED

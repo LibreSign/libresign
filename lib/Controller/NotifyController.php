@@ -29,7 +29,6 @@ class NotifyController extends Controller {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'messages' => [
 						[
 							'type' => 'danger',
@@ -41,7 +40,6 @@ class NotifyController extends Controller {
 			);
 		}
 		return new JSONResponse([
-			'success' => true,
 			'message' => $this->l10n->t('Notification sent with success.')
 		], Http::STATUS_OK);
 	}

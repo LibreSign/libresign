@@ -48,12 +48,11 @@ class FileController extends Controller {
 	private function validate(string $type, $identifier): JSONResponse {
 		try {
 			$this->fileService->setFileByType($type, $identifier);
-			$return['success'] = true;
+			$return = [];
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
 			$message = $this->l10n->t($e->getMessage());
 			$return = [
-				'success' => false,
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];
@@ -62,7 +61,6 @@ class FileController extends Controller {
 			$message = $this->l10n->t($th->getMessage());
 			$this->logger->error($message);
 			$return = [
-				'success' => false,
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$message]
 			];
@@ -106,7 +104,6 @@ class FileController extends Controller {
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			$return = [
-				'success' => false,
 				'errors' => [$th->getMessage()]
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;

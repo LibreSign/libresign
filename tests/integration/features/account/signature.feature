@@ -18,6 +18,3 @@ Feature: account/signature
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     Then the response should have a status code 200
-    And the response should be a JSON array with the following mandatory values
-      | key      | value                                   |
-      | success  | true                                    |

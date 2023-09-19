@@ -66,7 +66,6 @@ class AccountController extends ApiController {
 
 			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
-				'success' => true,
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
@@ -85,7 +84,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage(),
 					'action' => JSActions::ACTION_DO_NOTHING
 				],
@@ -120,14 +118,11 @@ class AccountController extends ApiController {
 				$this->userSession->getUser()->getDisplayName()
 			);
 
-			return new JSONResponse([
-				'success' => true,
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$this->logger->error($exception->getMessage());
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $exception->getMessage()
 				],
 				Http::STATUS_UNAUTHORIZED
@@ -140,9 +135,7 @@ class AccountController extends ApiController {
 	public function addFiles(array $files): JSONResponse {
 		try {
 			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
-			return new JSONResponse([
-				'success' => true
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -160,7 +153,6 @@ class AccountController extends ApiController {
 			}
 			return new JSONResponse(
 				[
-					'success' => false,
 					'messages' => [
 						$message
 					]
@@ -175,13 +167,10 @@ class AccountController extends ApiController {
 	public function deleteFile(int $nodeId): JSONResponse {
 		try {
 			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
-			return new JSONResponse([
-				'success' => true
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'messages' => [
 						$exception->getMessage(),
 					],
@@ -233,7 +222,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage()
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
@@ -241,7 +229,6 @@ class AccountController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'message' => $this->l10n->n(
 					'Element created with success',
 					'Elements created with success',
@@ -307,7 +294,6 @@ class AccountController extends ApiController {
 			$this->accountService->saveVisibleElement($element, $this->userSession->getUser());
 			return new JSONResponse(
 				[
-					'success' => true,
 					'message' => $this->l10n->t('Element updated with success')
 				],
 				Http::STATUS_OK
@@ -315,7 +301,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage()
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
@@ -398,7 +383,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_NOT_FOUND
@@ -406,7 +390,6 @@ class AccountController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'data' => [
 					'userId' => $user->getUID(),
 					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),
