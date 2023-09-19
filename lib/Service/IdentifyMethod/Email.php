@@ -128,6 +128,9 @@ class Email extends AbstractIdentifyMethod {
 
 	public function getSettings(): array {
 		$settings = parent::getSettingsFromDatabase(
+			default: [
+				'enabled' => false,
+			],
 			immutable: [
 				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
