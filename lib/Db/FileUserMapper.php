@@ -51,18 +51,21 @@ class FileUserMapper extends QBMapper {
 	 * @throws DoesNotExistException
 	 */
 	public function getByUuid(string $uuid): FileUser {
-		if (!isset($this->signers['fileUserUuid'][$uuid])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
-				);
-
-			$this->signers['fileUserUuid'][$uuid] = $this->findEntity($qb);
+		foreach ($this->signers as $fileUser) {
+			if ($fileUser->getUuid() === $uuid) {
+				return $fileUser;
+			}
 		}
-		return $this->signers['fileUserUuid'][$uuid];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
+			);
+		$fileUser = $this->findEntity($qb);
+		$this->signers[] = $fileUser;
+		return $fileUser;
 	}
 
 	public function getByEmailAndFileId(string $email, int $fileId): \OCP\AppFramework\Db\Entity {
@@ -95,39 +98,43 @@ class FileUserMapper extends QBMapper {
 	/**
 	 * Get all signers by fileId
 	 *
-	 * @return FileUser|FileUser[]
-	 * @psalm-return FileUser|array<int, FileUser>
+	 * @return FileUser[]
 	 */
-	public function getByFileId(int $fileId) {
-		if (!isset($this->signers['fileId'][$fileId])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
-				);
-			$signers = $this->findEntities($qb);
-			$this->signers['fileId'][$fileId] = [];
-			foreach ($signers as $signer) {
-				$this->signers['fileId'][$fileId][$signer->getId()] = $signer;
-			}
+	public function getByFileId(int $fileId): array {
+		$signers = array_filter($this->signers, fn ($f) => $f->getFileId() === $fileId);
+		if (!empty($signers)) {
+			return $signers;
 		}
-		return $this->signers['fileId'][$fileId];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+			);
+		$signers = $this->findEntities($qb);
+		foreach ($signers as $signer) {
+			$this->signers[] = $signer;
+		}
+		return $signers;
 	}
 
 	public function getById(int $fileUserId): FileUser {
-		if (!isset($this->signers['id'][$fileUserId])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_INT))
-				);
-			$this->signers['id'][$fileUserId] = $this->findEntity($qb);
+		foreach ($this->signers as $fileUser) {
+			if ($fileUser->getFileId() === $fileUserId) {
+				return $fileUser;
+			}
 		}
-		return $this->signers['id'][$fileUserId];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_INT))
+			);
+		$fileUser = $this->findEntity($qb);
+		$this->signers[] = $fileUser;
+		return $fileUser;
 	}
 
 	/**
@@ -153,19 +160,17 @@ class FileUserMapper extends QBMapper {
 	 * @return FileUser[]
 	 */
 	public function getByNodeId(int $nodeId) {
-		if (!isset($this->signers['nodeId'][$nodeId])) {
-			$qb = $this->db->getQueryBuilder();
+		$qb = $this->db->getQueryBuilder();
 
-			$qb->select('fu.*')
-				->from($this->getTableName(), 'fu')
-				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
-				->where(
-					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId))
-				);
+		$qb->select('fu.*')
+			->from($this->getTableName(), 'fu')
+			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
+			->where(
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId))
+			);
 
-			$this->signers['nodeId'][$nodeId] = $this->findEntities($qb);
-		}
-		return $this->signers['nodeId'][$nodeId];
+		$signers = $this->findEntities($qb);
+		return $signers;
 	}
 
 	/**
@@ -175,37 +180,44 @@ class FileUserMapper extends QBMapper {
 	 * @return FileUser[]
 	 */
 	public function getByFileUuid(string $uuid) {
-		if (!isset($this->signers['fileUuid'][$uuid])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('fu.*')
-				->from($this->getTableName(), 'fu')
-				->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
-				->where(
-					$qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid))
-				);
-
-			$this->signers['fileUuid'][$uuid] = $this->findEntities($qb);
+		$signers = array_filter($this->signers, fn ($f) => $f->getUuid() === $uuid);
+		if (count($signers)) {
+			return $signers;
 		}
-		return $this->signers['fileUuid'][$uuid];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('fu.*')
+			->from($this->getTableName(), 'fu')
+			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
+			->where(
+				$qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid))
+			);
+
+		$signers = $this->findEntities($qb);
+		$this->signers = array_merge($this->signers, $signers);
+		return $signers;
 	}
 
 	public function getByUuidAndUserId(string $uuid, string $userId): FileUser {
-		if (!isset($this->signers['fileUserUuid'][$uuid])) {
-			$qb = $this->db->getQueryBuilder();
+		$qb = $this->db->getQueryBuilder();
 
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
-				)
-				->andWhere(
-					$qb->expr()->eq('user_id', $qb->createNamedParameter($userId))
-				);
+		$qb->select('*')
+			->from($this->getTableName(), 'fu')
+			->leftJoin('fu', 'libresign_identify_method', 'im', $qb->expr()->andX(
+				$qb->expr()->eq('fu.id', 'im.file_user_id'),
+				$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+			))
+			->where(
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
+			)
+			->andWhere(
+				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId))
+			);
 
-			$this->signers['fileUserUuid'][$uuid] = $this->findEntity($qb);
-		}
-		return $this->signers['fileUserUuid'][$uuid];
+		$fileUser = $this->findEntity($qb);
+		$this->signers[] = $fileUser;
+		return $fileUser;
 	}
 
 	public function getByFileIdAndUserId(string $file_id, string $userId): FileUser {
