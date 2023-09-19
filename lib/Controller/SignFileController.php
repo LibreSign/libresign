@@ -8,10 +8,11 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
-use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -21,7 +22,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class SignFileController extends ApiController {
+class SignFileController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
@@ -38,12 +39,14 @@ class SignFileController extends ApiController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireManager]
 	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, $fileId, null, $elements, $code);
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSigner]
 	public function signUsingUuid(string $uuid, string $password = null, array $elements = [], string $code = null): JSONResponse {
 		return $this->sign($password, null, $uuid, $elements, $code);
 	}
@@ -127,6 +130,7 @@ class SignFileController extends ApiController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSigner]
 	public function getCodeUsingFileId(string $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);
 	}

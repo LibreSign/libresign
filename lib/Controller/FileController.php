@@ -6,6 +6,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\FileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -113,6 +114,7 @@ class FileController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireManager]
 	public function save(string $name, array $file, array $settings = []): JSONResponse {
 		try {
 			if (empty($name)) {
