@@ -143,7 +143,6 @@ export default {
 			title: t('libresign', 'Root certificate data.'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate.'),
-			docUrl: 'https://github.com/LibreSign/libresign/issues/1120',
 			formDisabled: false,
 		}
 	},
