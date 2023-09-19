@@ -91,7 +91,7 @@ class InjectionMiddleware extends Middleware {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->validateSigner($uuid, $user);
 		} catch (LibresignException $e) {
-			throw new PageException($e->getMessage());
+			throw new LibresignException($e->getMessage());
 		}
 	}
 
@@ -105,10 +105,15 @@ class InjectionMiddleware extends Middleware {
 	public function afterException($controller, $methodName, \Exception $exception): Response {
 		switch (true) {
 			case $exception instanceof LibresignException:
-				return new JSONResponse(
-					[
+				if ($this->isJson($exception->getMessage())) {
+					$body = json_decode($exception->getMessage());
+				} else {
+					$body = [
 						'message' => $exception->getMessage(),
-					],
+					];
+				}
+				return new JSONResponse(
+					$body,
 					$exception->getCode() === 0
 						? AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
 						: $exception->getCode()
@@ -126,5 +131,10 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		throw $exception;
+	}
+
+	protected function isJson(string $string): bool {
+		json_decode($string);
+		return json_last_error() === JSON_ERROR_NONE;
 	}
 }
