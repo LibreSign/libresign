@@ -25,13 +25,18 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
+use OCP\Files\Config\IUserMountCache;
+use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserManager;
 
 class Email extends AbstractIdentifyMethod {
@@ -41,12 +46,20 @@ class Email extends AbstractIdentifyMethod {
 		private MailService $mail,
 		private FileUserMapper $fileUserMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
+		private FileMapper $fileMapper,
 		private IUserManager $userManager,
-		private IURLGenerator $urlGenerator
+		private IURLGenerator $urlGenerator,
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 	) {
 		parent::__construct(
+			$config,
+			$l10n,
 			$identifyMethodMapper,
-			$config
+			$fileUserMapper,
+			$fileMapper,
+			$root,
+			$userMountCache,
 		);
 	}
 
@@ -63,6 +76,42 @@ class Email extends AbstractIdentifyMethod {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
+	}
+
+	public function validateToSign(?IUser $user = null): void {
+		if ($user instanceof IUser) {
+			$this->validateWithEmail($user);
+		}
+	}
+
+	private function validateWithEmail(IUser $user): void {
+		$signer = $this->getSignerFromEmail($user);
+		$this->throwIfAlreadySigned();
+		$this->throwIfFileNotFound();
+	}
+
+	private function getSignerFromEmail(IUser $user): ?IUser {
+		$email = $this->entity->getIdentifierValue();
+		$signer = $this->userManager->getByEmail($email);
+		if (!$signer) {
+			return null;
+		}
+		foreach ($signer as $s) {
+			if ($s->getUID() === $user->getUID()) {
+				return $s;
+			}
+		}
+		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_REDIRECT,
+			'errors' => [$this->l10n->t('User already exists. Please login.')],
+			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
+				'redirect_url' => $this->urlGenerator->linkToRoute(
+					'libresign.page.sign',
+					['uuid' => $fileUser->getUuid()]
+				),
+			]),
+		]));
 	}
 
 	public function validateToCreateAccount(string $value): void {

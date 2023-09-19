@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -61,8 +60,13 @@ class Account extends AbstractIdentifyMethod {
 		private MailService $mail
 	) {
 		parent::__construct(
+			$config,
+			$l10n,
 			$identifyMethodMapper,
-			$config
+			$fileUserMapper,
+			$fileMapper,
+			$root,
+			$userMountCache,
 		);
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
@@ -125,39 +129,6 @@ class Account extends AbstractIdentifyMethod {
 		$this->authenticatedUserIsTheSigner($user, $signer);
 		$this->throwIfAlreadySigned();
 		$this->throwIfFileNotFound();
-	}
-
-	private function throwIfFileNotFound(): void {
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
-		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
-
-		$nodeId = $fileEntity->getNodeId();
-
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-		}
-		$fileToSign = $this->root->getById($nodeId);
-		if (count($fileToSign) < 1) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('File not found')],
-			]));
-		}
-	}
-
-	private function throwIfAlreadySigned(): void {
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
-		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
-		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
-			|| (!is_null($fileUser) && $fileUser->getSigned())
-		) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('File already signed.')],
-				'uuid' => $fileEntity->getUuid(),
-			]));
-		}
 	}
 
 	private function getSignerFromAccount(): IUser {
