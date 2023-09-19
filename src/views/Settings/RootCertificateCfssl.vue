@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && loaded"
+	<NcSettingsSection v-if="isThisEngine && loaded && cfsslBinariesOk"
 		:title="title"
 		:description="description"
 		:doc-url="docUrl">
@@ -47,7 +47,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<NcButton v-if="cfsslBinariesOk"
+			<NcButton
 				@click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
@@ -69,7 +69,7 @@
 				</div>
 			</NcModal>
 		</div>
-		<div v-else-if="!configureOk && cfsslBinariesOk" id="formRootCertificate" class="form-libresign">
+		<div v-else-if="!configureOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
 				<label for="commonName" class="form-heading--required">{{ t('libresign', 'Name (CN)') }}</label>
 				<NcTextField id="commonName"
