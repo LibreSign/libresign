@@ -71,7 +71,9 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->userSession->getUser(),
 			'url'
 		));
+		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
+		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 
