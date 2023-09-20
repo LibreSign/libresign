@@ -211,6 +211,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
+		$this->config
+			->method('getAppValue')
+			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->getValidateHelper()->canRequestSign($user);
 	}
