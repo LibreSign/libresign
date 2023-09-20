@@ -326,9 +326,9 @@ class InstallService {
 			$compressedFile = $this->getFolder()->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
-		$url = 'https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%20' . JSignPdfHandler::VERSION . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
-		$hash = '327182016506f57109270d4875851784';
+		$hash = '7c66f5a9f5e7e35b601725414491a867';
 
 		$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
 
