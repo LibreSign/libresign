@@ -50,6 +50,8 @@ import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
@@ -101,14 +103,21 @@ export default {
 		...mapActions({
 			resetSidebarStatus: 'sidebar/RESET',
 			setSidebarStatus: 'sidebar/setStatus',
-			requestNewSign: 'request-signature',
 			resetValidateFile: 'validate/RESET',
 			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
 		async send(users) {
 			try {
-				const name = this.file.name.split('.pdf')[0]
-				this.requestNewSign({ fileId: this.file.id, name, users })
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+					file: {fileId: this.file.id},
+					name: this.file.name.split('.pdf')[0],
+					users: users.map((u) => ({
+						identify: {
+							email: u.email,
+							description: u.description,
+						}
+					}))
+				})
 				this.clear()
 			} catch {
 				console.error('error')
