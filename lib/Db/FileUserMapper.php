@@ -54,7 +54,7 @@ class FileUserMapper extends QBMapper {
 	 */
 	public function update(Entity $entity): Entity {
 		$fileUser = parent::update($entity);
-		$filtered = array_filter($this->signers, fn($e) => $e->getId() === $fileUser->getId());
+		$filtered = array_filter($this->signers, fn ($e) => $e->getId() === $fileUser->getId());
 		if (!empty($filtered)) {
 			$this->signers[key($filtered)] = $fileUser;
 		} else {
