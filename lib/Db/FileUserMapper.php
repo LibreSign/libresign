@@ -28,6 +28,7 @@ use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -46,6 +47,20 @@ class FileUserMapper extends QBMapper {
 
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_file_user');
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function update(Entity $entity): Entity {
+		$fileUser = parent::update($entity);
+		$filtered = array_filter($this->signers, fn($e) => $e->getId() === $fileUser->getId());
+		if (!empty($filtered)) {
+			$this->signers[key($filtered)] = $fileUser;
+		} else {
+			$this->signers[] = $fileUser;
+		}
+		return $fileUser;
 	}
 
 	/**
