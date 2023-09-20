@@ -114,9 +114,12 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturnCallback(function ($appid, $key, $default) {
 				switch ($key) {
-					case 'add_footer': return true;
+					case 'add_footer': return 1;
 					case 'validation_site': return 'http://test.coop';
-					case 'write_qrcode_on_footer': return true;
+					case 'write_qrcode_on_footer': return 1;
+					case 'footer_link_to_site': return 'https://libresign.coop';
+					case 'footer_first_row': return 'Digital signed by LibreSign.';
+					case 'footer_second_row': return 'Validate in %s.';
 				}
 			});
 		$this->pkcs12Handler = new Pkcs12Handler(
@@ -135,7 +138,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$file->method('getContent')
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
 		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
-		$this->assertEquals(18315, strlen($actual));
+		$this->assertEquals(18615, strlen($actual));
 	}
 
 	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
