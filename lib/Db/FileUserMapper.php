@@ -537,11 +537,11 @@ class FileUserMapper extends QBMapper {
 			'displayName' => $row['requested_by_dislpayname']
 		];
 		$row['request_date'] = (new \DateTime())
-			->setTimestamp($row['request_date'])
+			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
 		if (!empty($row['status_date'])) {
 			$row['status_date'] = (new \DateTime())
-				->setTimestamp($row['status_date'])
+				->setTimestamp((int) $row['status_date'])
 				->format('Y-m-d H:i:s');
 		}
 		$row['file'] = [
