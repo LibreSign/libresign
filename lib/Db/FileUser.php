@@ -36,10 +36,10 @@ use OCP\DB\Types;
  * @method string getUuid()
  * @method void setDescription(string $description)
  * @method string getDescription()
- * @method void setCreatedAt(string $createdAt)
- * @method string getCreatedAt()
- * @method void setSigned(string $signed)
- * @method string getSigned()
+ * @method void setCreatedAt(int $createdAt)
+ * @method int getCreatedAt()
+ * @method void setSigned(int $signed)
+ * @method int getSigned()
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
  * @method void setFullName(string $fullName)
@@ -72,10 +72,10 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $description;
 
-	/** @var string */
+	/** @var int */
 	protected $createdAt;
 
-	/** @var string */
+	/** @var int */
 	protected $signed;
 
 	/** @var string */
@@ -91,8 +91,8 @@ class FileUser extends Entity {
 		$this->addType('displayName', 'string');
 		$this->addType('fullName', 'string');
 		$this->addType('description', 'string');
-		$this->addType('createdAt', 'string');
-		$this->addType('signed', 'string');
+		$this->addType('createdAt', 'integer');
+		$this->addType('signed', 'integer');
 		$this->addType('code', 'string');
 		$this->addType('metadata', Types::JSON);
 	}
