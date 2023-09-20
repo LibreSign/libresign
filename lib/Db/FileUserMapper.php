@@ -30,7 +30,6 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\IUser;
 
