@@ -153,7 +153,7 @@ class SignFileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
-	public function getCodeUsingFileId(string $fileId): JSONResponse {
+	public function getCodeUsingFileId(int $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);
 	}
 

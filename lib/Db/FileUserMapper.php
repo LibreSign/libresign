@@ -30,6 +30,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\IUser;
 
@@ -188,7 +189,7 @@ class FileUserMapper extends QBMapper {
 			->from($this->getTableName(), 'fu')
 			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId))
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
 		$signers = $this->findEntities($qb);
@@ -242,7 +243,7 @@ class FileUserMapper extends QBMapper {
 		return $fileUser;
 	}
 
-	public function getByFileIdAndUserId(string $file_id, string $userId): FileUser {
+	public function getByFileIdAndUserId(int $file_id, string $userId): FileUser {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('fu.*')
@@ -257,7 +258,7 @@ class FileUserMapper extends QBMapper {
 			))
 			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id))
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_INT))
 			)
 			->where(
 				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
@@ -266,14 +267,14 @@ class FileUserMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function getByFileIdAndEmail(string $file_id, string $email): FileUser {
+	public function getByFileIdAndEmail(int $file_id, string $email): FileUser {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('fu.*')
 			->from($this->getTableName(), 'fu')
 			->join('fu', 'libresign_file', 'f', 'fu.file_id = f.id')
 			->where(
-				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id))
+				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_INT))
 			)
 			->andWhere(
 				$qb->expr()->eq('fu.email', $qb->createNamedParameter($email))
