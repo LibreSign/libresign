@@ -313,7 +313,7 @@ class SignFileService {
 
 	private function getPfxFile(): string {
 		if ($this->signWithoutPassword) {
-			$tempPassword = sha1(time());
+			$tempPassword = sha1((string) time());
 			$this->setPassword($tempPassword);
 			try {
 				return $this->pkcs12Handler->generateCertificate(
