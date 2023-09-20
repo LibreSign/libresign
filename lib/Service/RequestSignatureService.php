@@ -218,6 +218,9 @@ class RequestSignatureService {
 		if (!empty($user['displayName'])) {
 			$fileUser->setDisplayName($user['displayName']);
 		}
+		if (!empty($user['description'])) {
+			$fileUser->setDescription($user['description']);
+		}
 		if (!$fileUser->getId()) {
 			$fileUser->setCreatedAt(time());
 		}

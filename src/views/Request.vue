@@ -114,8 +114,8 @@ export default {
 					users: users.map((u) => ({
 						identify: {
 							email: u.email,
-							description: u.description,
 						},
+						description: u.description,
 					})),
 				})
 				this.clear()
