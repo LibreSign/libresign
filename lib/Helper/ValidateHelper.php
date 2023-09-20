@@ -250,7 +250,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElementsRelation(array $list, FileUser $fileUser): void {
+	public function validateVisibleElementsRelation(array $list, FileUser $fileUser, IUser $user): void {
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
@@ -258,18 +258,18 @@ class ValidateHelper {
 			if (!array_key_exists('profileElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
 			}
-			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $fileUser->getUserId());
+			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $user->getUID());
 			try {
-				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $fileUser->getUserId()]);
+				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
 		}
-		$this->validateUserHasNecessaryElements($fileUser, $list);
+		$this->validateUserHasNecessaryElements($fileUser, $user, $list);
 	}
 
-	private function validateUserHasNecessaryElements(FileUser $fileUser, array $list = []): void {
-		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $fileUser->getUserId());
+	private function validateUserHasNecessaryElements(FileUser $fileUser, IUser $user, array $list = []): void {
+		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $user->getUID());
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $fileUser): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();
