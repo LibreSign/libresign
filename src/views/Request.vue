@@ -9,7 +9,7 @@
 				<File v-show="!isEmptyFile"
 					:file="file"
 					status="0"
-					status-text="none"
+					statusText="none"
 					@sidebar="setSidebarStatus(true)" />
 				<button class="icon icon-folder" @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
