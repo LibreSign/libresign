@@ -430,7 +430,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutGroups() {
 		$this->config
 			->method('getAppValue')
-			->willReturn(null);
+			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$actual = $this->getService()->canRequestSign($user);
 		$this->assertFalse($actual);
