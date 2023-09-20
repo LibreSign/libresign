@@ -32,7 +32,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUserId(string $userId)
  * @method string getUserId()
  * @method void setFileId(int $fileId)
- * @method string getFileId()
+ * @method int getFileId()
  */
 class AccountFile extends Entity {
 	/** @var string */
