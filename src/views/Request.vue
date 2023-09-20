@@ -109,14 +109,14 @@ export default {
 		async send(users) {
 			try {
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-					file: {fileId: this.file.id},
+					file: { fileId: this.file.id },
 					name: this.file.name.split('.pdf')[0],
 					users: users.map((u) => ({
 						identify: {
 							email: u.email,
 							description: u.description,
-						}
-					}))
+						},
+					})),
 				})
 				this.clear()
 			} catch {
