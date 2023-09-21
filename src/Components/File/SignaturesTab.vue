@@ -91,9 +91,8 @@ export default {
 		hasStatus(item) {
 			if (item.sign_date) {
 				return item.sign_date ? 'signed' : 'pending'
-			} else {
-				return 'pending'
 			}
+			return 'pending'
 		},
 		update() {
 			this.$emit('update')
