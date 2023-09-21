@@ -351,10 +351,14 @@ export default {
 
 		async updateRegister(users) {
 			const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-				file: {
-					fileId: this.fileInfo.id,
-				},
-				users,
+				file: { fileId: this.fileInfo.id },
+				name: this.fileInfo.name.split('.pdf')[0],
+				users: users.map((u) => ({
+					identify: {
+						email: u.email,
+					},
+					description: u.description,
+				})),
 			})
 			this.option('request')
 			this.clearRequestList()
@@ -370,10 +374,15 @@ export default {
 			}
 
 			const { message, data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-				name: this.fileInfo.name.split('.pdf'),
-				users,
+				file: { fileId: this.fileInfo.id },
+				name: this.fileInfo.name.split('.pdf')[0],
+				users: users.map((u) => ({
+					identify: {
+						email: u.email,
+					},
+					description: u.description,
+				})),
 				status: needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN,
-				fileId: this.fileInfo.id,
 			})
 
 			showSuccess(message)
