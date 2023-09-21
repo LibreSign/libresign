@@ -88,6 +88,7 @@ class File extends Entity {
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('nodeId', 'integer');
+		$this->addType('signedNodeId', 'integer');
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
 		$this->addType('createdAt', 'string');
