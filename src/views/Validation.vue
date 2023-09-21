@@ -141,6 +141,7 @@ export default {
 		validate(id) {
 			if (id === this.document?.uuid) {
 				showSuccess(t('libresign', 'This document is valid'))
+				this.hasInfo = true
 				return
 			}
 			if (id.length >= 8) {
@@ -151,7 +152,6 @@ export default {
 		},
 		async validateByUUID(uuid) {
 			this.hasLoading = true
-
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uuid}`))
 				showSuccess(t('libresign', 'This document is valid'))
