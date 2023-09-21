@@ -38,7 +38,7 @@
 			</li>
 		</ul>
 
-		<router-link v-if="isRequester"
+		<router-link v-if="isRequester && !isSigned"
 			tag="button"
 			:to="{name: 'f.sign.detail', params: { uuid }}"
 			class="primary">
@@ -86,6 +86,9 @@ export default {
 		uuid() {
 			return get(this.currentFile, 'uuid', '')
 		},
+		isSigned() {
+			return get(this.currentFile, 'status') === 1
+		}
 	},
 	methods: {
 		hasStatus(item) {
