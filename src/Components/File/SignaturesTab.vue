@@ -88,7 +88,7 @@ export default {
 		},
 		isSigned() {
 			return get(this.currentFile, 'status') === 1
-		}
+		},
 	},
 	methods: {
 		hasStatus(item) {

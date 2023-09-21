@@ -23,6 +23,10 @@ const config = {
           },
         },
       },
+      {
+        resourceQuery: /raw/,
+        type: 'asset/source',
+      },
     ],
   }
 }

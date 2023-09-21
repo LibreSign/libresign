@@ -26,6 +26,7 @@ import Vuex from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import LibresignTab from './views/FilesTab/LibresignTab.vue'
+import './actions/openInLibreSignAction.js'
 
 import './style/icons.scss'
 
@@ -58,23 +59,6 @@ const View = Vue.extend(LibresignTab)
 let TabInstance = null
 
 window.addEventListener('DOMContentLoaded', () => {
-	/**
-	 * Adds an entry to the menu in file options.
-	 */
-	if (OCA.Files && OCA.Files.fileActions && loadState('libresign', 'certificate_ok')) {
-		OCA.Files.fileActions.registerAction({
-			name: 'libresign',
-			displayName: t('libresign', 'Open in LibreSign'),
-			mime: 'application/pdf',
-			permissions: OC.PERMISSION_READ,
-			iconClass: 'icon-libresign',
-			actionHandler(fileName, context) {
-				OCA.Files.Sidebar.setActiveTab('libresign')
-				OCA.Files.Sidebar.open(context.dir + '/' + fileName)
-			},
-		})
-	}
-
 	/**
 	 * Register a new tab in the sidebar
 	 */
