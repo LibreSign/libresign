@@ -43,8 +43,30 @@ Feature: page/sign_identify_default
     Then the response should contain the initial state "libresign-config" with the following values:
       """
       {
-        "action":200,
-        "errors":["Invalid user"]
+        "action": 200,
+        "errors": [
+          "Invalid user"
+        ],
+        "settings": {
+          "identifyMethods": [
+            {
+              "identifiedAtDate": null,
+              "mandatory": 1,
+              "method": "account"
+            }
+          ]
+        },
+        "sign": {
+          "description": null,
+          "filename": "document",
+          "pdf": {
+            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
+          },
+          "uuid": "<FILE_UUID>"
+        },
+        "user": {
+          "name": ""
+        }
       }
       """
     # unauthenticated user
@@ -55,7 +77,27 @@ Feature: page/sign_identify_default
       {
         "action":100,
         "errors":["You are not logged in. Please log in."],
-        "redirect":"/index.php/login?redirect_url=/index.php/apps/libresign/p/sign/<SIGN_UUID>"
+        "redirect":"/index.php/login?redirect_url=/index.php/apps/libresign/p/sign/<SIGN_UUID>",
+        "settings": {
+          "identifyMethods": [
+            {
+              "identifiedAtDate": null,
+              "mandatory": 1,
+              "method": "account"
+            }
+          ]
+        },
+        "sign": {
+          "description": null,
+          "filename": "document",
+          "pdf": {
+            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
+          },
+          "uuid": "<FILE_UUID>"
+        },
+        "user": {
+          "name": ""
+        }
       }
       """
 
