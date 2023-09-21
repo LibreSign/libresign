@@ -17,7 +17,7 @@
 					:key="file.uuid"
 					class="file-details"
 					:status="file.status"
-					:statusText="file.status_text"
+					:status-text="file.status_text"
 					:file="file"
 					@sidebar="setSidebar" />
 			</ul>
