@@ -627,7 +627,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateCredentials(FileUser $fileUser, array $params): void {
+	public function validateCredentials(FileUser $fileUser, IUser $user, array $params): void {
 		$params = array_filter($params, function ($value): bool {
 			return !empty($value);
 		});
@@ -639,33 +639,14 @@ class ValidateHelper {
 		}
 
 		$currentIdentifyMethod = key($params);
-		if ($currentIdentifyMethod === IdentifyMethodService::IDENTIFY_PASSWORD) {
-			$currentIdentifyMethod = IdentifyMethodService::IDENTIFY_ACCOUNT;
-		}
 		$this->validateIdentifyMethods([$currentIdentifyMethod]);
-		$default = $this->identifyMethodService->getDefaultIdentiyMethod($fileUser->getId());
-		if ($default->getIdentifiedAtDate() || $default->getMethod() !== $currentIdentifyMethod) {
+		$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($currentIdentifyMethod, current($params));
+		if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
-
-		// @todo implement this logic to validate the identify method, the follow code is complex and dont work
-		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-		// $identifyMethod = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($currentIdentifyMethod): bool {
-		// 	return $identifyMethod->getMethod() === $currentIdentifyMethod;
-		// });
-		// if (!$identifyMethod) {
-		// 	throw new LibresignException($this->l10n->t('Invalid identification method'));
-		// }
-		// $identifyMethod = current($identifyMethod);
-
-		// switch ($identifyMethod->getEntity->getMethod()) {
-		// 	case IdentifyMethodService::IDENTIFY_SMS:
-		// 	case IdentifyMethodService::IDENTIFY_TELEGRAM:
-		// 	case IdentifyMethodService::IDENTIFY_SIGNAL:
-		// 	case IdentifyMethodService::IDENTIFY_EMAIL:
-		// 		$this->valdateCode($fileUser, $params);
-		// 		break;
-		// }
+		$identifyMethod->getEntity()->setFileUserId($fileUser->getId());
+		$identifyMethod->getEntity()->setIdentifierValue(current($params));
+		$identifyMethod->validateToSign($user);
 	}
 
 	public function validateIdentifyMethods(array $identifyMethods): void {

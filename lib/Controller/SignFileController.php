@@ -83,7 +83,7 @@ class SignFileController extends AEnvironmentAwareController {
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
 			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser, $user);
-			$this->validateHelper->validateCredentials($fileUser, [
+			$this->validateHelper->validateCredentials($fileUser, $user, [
 				'password' => $password,
 				'code' => $code,
 			]);

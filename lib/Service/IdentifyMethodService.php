@@ -65,7 +65,7 @@ class IdentifyMethodService {
 	) {
 	}
 
-	private function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
+	public function getInstanceOfIdentifyMethod(string $name, ?string $identifyValue = null): IIdentifyMethod {
 		if ($identifyValue && isset($this->identifyMethods[$name])) {
 			foreach ($this->identifyMethods[$name] as $identifyMethod) {
 				if ($identifyMethod->getEntity()->getIdentifierValue() === $identifyValue) {
@@ -128,21 +128,6 @@ class IdentifyMethodService {
 			$return[] = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
 		}
 		return $return;
-	}
-
-	public function getDefaultIdentiyMethod(int $fileUserId): IdentifyMethod {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
-		$default = array_filter($identifyMethods, function (IdentifyMethod $current): bool {
-			return $current->getDefault() === 1;
-		});
-		if (!$default) {
-			$identifyMethod = new IdentifyMethod();
-			$identifyMethod->setMethod(
-				$this->config->getAppValue(Application::APP_ID, 'identify_method', self::IDENTIFY_ACCOUNT) ?? self::IDENTIFY_ACCOUNT
-			);
-			return $identifyMethod;
-		}
-		return current($default);
 	}
 
 	/**
