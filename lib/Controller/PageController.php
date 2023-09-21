@@ -181,6 +181,9 @@ class PageController extends AEnvironmentPageAwareController {
 		}
 		$resp = new FileDisplayResponse($config['sign']['pdf']['file']);
 		$resp->addHeader('Content-Type', 'application/pdf');
+		$csp = new ContentSecurityPolicy();
+		$csp->addAllowedFrameDomain('\'self\'');
+		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
 	}
