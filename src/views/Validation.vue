@@ -90,7 +90,7 @@ import { fromUnixTime } from 'date-fns'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
-	name: 'ViewValidation',
+	name: 'Validation',
 
 	components: {
 		Moment,
