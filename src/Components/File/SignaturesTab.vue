@@ -294,7 +294,6 @@ export default {
 					font-size: 14px;
 					font-weight: normal;
 					text-align: center;
-					color: rgba(0,0,0,.7);
 					cursor: inherit;
 					margin-left: 5px;
 				}
