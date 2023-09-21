@@ -87,6 +87,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import Moment from './../Components/Moment.vue'
 import { fromUnixTime } from 'date-fns'
+import logger from '../logger.js'
 
 export default {
 	// eslint-disable-next-line vue/match-component-file-name
@@ -204,7 +205,7 @@ export default {
 						return
 					}
 				} catch (error) {
-					console.log(error)
+					logger.error('Failed going back', { error })
 				}
 			}
 			this.hasInfo = !this.hasInfo
