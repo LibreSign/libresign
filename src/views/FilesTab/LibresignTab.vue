@@ -172,17 +172,6 @@ export default {
 		fileInfo(newVal, oldVal) {
 			this.getInfo()
 			this.getMe()
-			this.signShow = false
-			this.requestShow = false
-			this.signaturesShow = false
-
-			if (newVal.name.indexOf('.signed.') !== -1 || newVal.name.indexOf('.assinado.') !== -1) {
-				this.showRequest = false
-				this.showValidation = true
-			} else {
-				this.showRequest = true
-				this.showValidation = false
-			}
 		},
 
 		signers() {
@@ -261,6 +250,14 @@ export default {
 				this.canSign = response.data.settings.canSign
 				this.uuid = response.data.uuid
 				this.settings = { ...response.data.settings }
+
+				if (response.data.status === 2 || response.data.status === 3) {
+					this.showRequest = false
+					this.showValidation = true
+				} else {
+					this.showRequest = true
+					this.showValidation = false
+				}
 
 				if (response.data.signers) {
 					this.haveRequest = true
@@ -439,7 +436,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
+			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.uuid}`)
 		},
 	},
 }
