@@ -245,16 +245,17 @@ class AccountService {
 	 */
 	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		try {
+			$info = [];
 			if ($typeOfUuid === 'file_user_uuid') {
+				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
 				if ($uuid) {
 					$this->validateHelper->validateSigner($uuid, $user);
 				}
-				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
 			} else {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
 			}
 		} catch (LibresignException $e) {
-			return json_decode($e->getMessage(), true);
+			return array_merge($info, json_decode($e->getMessage(), true));
 		} catch (DoesNotExistException $e) {
 			return [
 				'action' => JSActions::ACTION_DO_NOTHING,
