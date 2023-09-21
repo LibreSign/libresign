@@ -50,6 +50,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	/** @var QrCode */
 	private $qrCode;
 	private const MIN_QRCODE_SIZE = 100;
+	private string $pfxContent = '';
 
 	public function __construct(
 		private FolderService $folderService,
@@ -82,7 +83,10 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * Get content of pfx file
 	 */
-	public function getPfx($uid): string {
+	public function getPfx(?string $uid = null): string {
+		if (!empty($this->pfxContent) || empty($uid)) {
+			return $this->pfxContent;
+		}
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
@@ -90,10 +94,11 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		/** @var \OCP\Files\File */
 		$node = $folder->get($this->pfxFilename);
-		if (!$node->getContent()) {
+		$this->pfxContent = $node->getContent();
+		if (empty($this->pfxContent)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		return $node->getContent();
+		return $this->pfxContent;
 	}
 
 	private function getHandler(): SignEngineHandler {

@@ -210,7 +210,7 @@ class SignFileService {
 	 * @return static
 	 */
 	public function setVisibleElements(array $list): self {
-		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($this->fileUser->getFileId(), $this->fileUser->getUserId());
+		$fileElements = $this->fileElementMapper->getByFileIdAndFileUserId($this->fileUser->getFileId(), $this->fileUser->getId());
 		foreach ($fileElements as $fileElement) {
 			$element = array_filter($list, function (array $element) use ($fileElement): bool {
 				return $element['documentElementId'] === $fileElement->getId();
@@ -332,7 +332,7 @@ class SignFileService {
 				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 			}
 		}
-		return $this->pkcs12Handler->getPfx($this->fileUser->getUserId());
+		return $this->pkcs12Handler->getPfx();
 	}
 
 	private function setFileToSign(Node $file): void {
