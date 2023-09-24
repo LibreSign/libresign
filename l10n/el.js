@@ -35,6 +35,7 @@ OC.L10N.register(
     "Confirm" : "Επιβεβαίωση",
     "Incorrect password!" : "Εσφαλμένο συνθηματικό!",
     "Text" : "Κείμενο",
+    "Draw" : "Σχεδίαση",
     "Upload" : "Μεταφόρτωση",
     "Apply" : "Εφαρμογή",
     "Cancel" : "Ακύρωση",
