@@ -57,7 +57,7 @@
     "@nextcloud/webpack-vue-config": "^6.0.0",
     "@vue/cli-plugin-unit-jest": "^5.0.8",
     "@vue/test-utils": "^1.3.6",
-    "eslint": "^8.49.0",
+    "eslint": "^8.50.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-import-resolver-webpack": "^0.13.7",
     "eslint-plugin-risxss": "^2.1.0",
