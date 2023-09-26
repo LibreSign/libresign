@@ -548,9 +548,6 @@ class ValidateHelper {
 			return;
 		}
 		$firstSigner = array_values($exists)[0];
-		if ($firstSigner->getDisplayName()) {
-			throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
-		}
 		throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 	}
 
