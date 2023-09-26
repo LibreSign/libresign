@@ -74,6 +74,16 @@ class Reset extends Base {
 				InputOption::VALUE_NONE,
 				'Reset file'
 			)
+			->addOption('fileelement',
+				null,
+				InputOption::VALUE_NONE,
+				'Reset file element'
+			)
+			->addOption('userelement',
+				null,
+				InputOption::VALUE_NONE,
+				'Reset user element'
+			)
 		;
 	}
 
@@ -96,6 +106,14 @@ class Reset extends Base {
 			}
 			if ($input->getOption('file') || $all) {
 				$this->resetFile();
+				$ok = true;
+			}
+			if ($input->getOption('fileelement') || $all) {
+				$this->resetFileElement();
+				$ok = true;
+			}
+			if ($input->getOption('userelement') || $all) {
+				$this->resetUserElement();
 				$ok = true;
 			}
 		} catch (\Exception $e) {
@@ -147,6 +165,24 @@ class Reset extends Base {
 		try {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_file')
+				->executeStatement();
+		} catch (\Throwable $e) {
+		}
+	}
+
+	private function resetFileElement(): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('libresign_file_element')
+				->executeStatement();
+		} catch (\Throwable $e) {
+		}
+	}
+
+	private function resetUserElement(): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('libresign_user_element')
 				->executeStatement();
 		} catch (\Throwable $e) {
 		}
