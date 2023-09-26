@@ -25,6 +25,7 @@ namespace OCA\Libresign\Command\Developer;
 
 use OC\Core\Command\Base;
 use OCA\Libresign\AppInfo\Application;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
@@ -84,6 +85,11 @@ class Reset extends Base {
 				InputOption::VALUE_NONE,
 				'Reset user element'
 			)
+			->addOption('config',
+				null,
+				InputOption::VALUE_NONE,
+				'Reset config'
+			)
 		;
 	}
 
@@ -114,6 +120,10 @@ class Reset extends Base {
 			}
 			if ($input->getOption('userelement') || $all) {
 				$this->resetUserElement();
+				$ok = true;
+			}
+			if ($input->getOption('config') || $all) {
+				$this->resetConfig();
 				$ok = true;
 			}
 		} catch (\Exception $e) {
@@ -183,6 +193,17 @@ class Reset extends Base {
 		try {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_user_element')
+				->executeStatement();
+		} catch (\Throwable $e) {
+		}
+	}
+
+	private function resetConfig(): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('appconfig')
+				->where($delete->expr()->eq('appid', $delete->createNamedParameter(Application::APP_ID)))
+				->andWhere($delete->expr()->notIn('configkey', $delete->createNamedParameter(['enabled', 'installed_version'], IQueryBuilder::PARAM_STR_ARRAY)))
 				->executeStatement();
 		} catch (\Throwable $e) {
 		}
