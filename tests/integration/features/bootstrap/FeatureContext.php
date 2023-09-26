@@ -182,9 +182,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
 		Assert::arrayHasKey($realResponseArray, 'data');
 		Assert::assertCount(count($expectedArray['data']), $realResponseArray['data']);
-		foreach ($expectedArray['data'] as $fileFey =>  $file) {
+		foreach ($expectedArray['data'] as $fileFey => $file) {
 			Assert::assertCount(count($file['signers']), $realResponseArray['data'][$fileFey]['signers']);
-			foreach($file['signers'] as $signerKey => $signer) {
+			foreach ($file['signers'] as $signerKey => $signer) {
 				Assert::assertCount(count($signer['identifyMethods']), $realResponseArray['data'][$fileFey]['signers'][$signerKey]['identifyMethods']);
 			}
 		}
@@ -196,8 +196,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public function deleteSignerFromFileOfPreviousListing(int $signerSequence, int $fileSequence): void {
 		$this->response->getBody()->seek(0);
 		$responseArray = json_decode($this->response->getBody()->getContents(), true);
-		$fileId = $responseArray['data'][$fileSequence -1]['file']['nodeId'];
-		$fileUserId = $responseArray['data'][$fileSequence -1]['signers'][$signerSequence - 1]['fileUserId'];
+		$fileId = $responseArray['data'][$fileSequence - 1]['file']['nodeId'];
+		$fileUserId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['fileUserId'];
 		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $fileUserId);
 	}
 
