@@ -456,7 +456,13 @@ class FileUserMapper extends QBMapper {
 							return $carry;
 						}, ''),
 						'description' => $signer->getDescription(),
-						'displayName' => $signer->getDisplayName(),
+						'displayName' =>
+							array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
+								if (!$carry && $identifyMethod->getMandatory()) {
+									return $identifyMethod->getIdentifierValue();
+								}
+								return $carry;
+							}, $signer->getDisplayName()),
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
