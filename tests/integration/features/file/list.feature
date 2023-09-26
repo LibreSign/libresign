@@ -36,7 +36,7 @@ Feature: request-signature
               {
                 "email": "signer1@domain.test",
                 "description": null,
-                "displayName": "",
+                "displayName": "signer1@domain.test",
                 "request_sign_date": "<IGNORED>",
                 "sign_date": null,
                 "uid": "",
@@ -53,7 +53,61 @@ Feature: request-signature
               {
                 "email": "",
                 "description": null,
-                "displayName": "",
+                "displayName": "signer2",
+                "request_sign_date": "<IGNORED>",
+                "sign_date": null,
+                "uid": "signer2",
+                "fileUserId": "<IGNORED>",
+                "me": false,
+                "identifyMethods": [
+                  {
+                    "method": "account",
+                    "mandatory": 1,
+                    "identifiedAtDate": null
+                  }
+                ]
+              }
+            ],
+            "status": 2,
+            "status_text": "pending"
+          }
+        ],
+        "pagination": {
+          "total": 1,
+          "current": null,
+          "next": null,
+          "prev": null,
+          "last": null,
+          "first": null
+        }
+      }
+      """
+    When delete signer 1 from file 1 of previous listing
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response of file list match with:
+      """
+      {
+        "data": [
+          {
+            "uuid": "<IGNORED>",
+            "name": "document",
+            "callback": null,
+            "request_date": "<IGNORED>",
+            "status_date": null,
+            "requested_by": {
+              "uid": "admin",
+              "displayName": null
+            },
+            "file": {
+              "type": "pdf",
+              "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
+              "nodeId": "<IGNORED>"
+            },
+            "signers": [
+              {
+                "email": "",
+                "description": null,
+                "displayName": "signer2",
                 "request_sign_date": "<IGNORED>",
                 "sign_date": null,
                 "uid": "signer2",

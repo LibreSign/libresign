@@ -32,6 +32,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IL10N;
 use OCP\IUser;
 
 /**
@@ -45,7 +46,10 @@ class FileUserMapper extends QBMapper {
 	 */
 	private $signers = [];
 
-	public function __construct(IDBConnection $db) {
+	public function __construct(
+		IDBConnection $db,
+		protected IL10N $l10n,
+	) {
 		parent::__construct($db, 'libresign_file_user');
 	}
 
@@ -518,13 +522,13 @@ class FileUserMapper extends QBMapper {
 			if (empty($files[$key]['signers'])) {
 				$files[$key]['signers'] = [];
 				$files[$key]['status'] = 0;
-				$files[$key]['status_text'] = 'no signers';
+				$files[$key]['status_text'] = $this->l10n->t('no signers');
 			} elseif ($totalSigned === count($files[$key]['signers'])) {
 				$files[$key]['status'] = 1;
-				$files[$key]['status_text'] = 'signed';
+				$files[$key]['status_text'] = $this->l10n->t('signed');
 			} else {
 				$files[$key]['status'] = 2;
-				$files[$key]['status_text'] = 'pending';
+				$files[$key]['status_text'] = $this->l10n->t('pending');
 			}
 			unset($files[$key]['id']);
 		}
