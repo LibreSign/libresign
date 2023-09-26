@@ -2,10 +2,7 @@
 	<ul>
 		<Signer v-for="signer in signers"
 			:key="signer.id"
-			:name="signer.name"
-			:fileUserId="signer.fileUserId"
-			:identifyMethods=signer.identify>
-		</Signer>
+			:signer="signer" />
 	</ul>
 </template>
 <script>

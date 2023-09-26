@@ -1,17 +1,15 @@
 <template>
 	<div>
-		<NcListItem
-			:title="name"
-			:forceDisplayActions="true">
+		<NcListItem :title="signer.displayName"
+			:force-display-actions="true">
 			<template #icon>
-				<NcAvatar :size="44" display-name="displayName" />
+				<NcAvatar :size="44" display-name="signer.displayName" />
 			</template>
 			<template #subtitle>
 				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
 			</template>
 			<template #actions>
-				<NcActionButton
-					ariaLabel="Delete"
+				<NcActionButton aria-label="Delete"
 					@click="deleteItem">
 					<template #icon>
 						<Delete :size="20" />
@@ -27,6 +25,7 @@ import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Bullet from '../Bullet/Bullet.vue'
+import { emit } from '@nextcloud/event-bus'
 
 export default {
 	name: 'Signer',
@@ -38,29 +37,20 @@ export default {
 		Bullet,
 	},
 	props: {
-		displayName: {
-			type: String,
-			required: true,
-		},
-		fileUserId: {
-			type: Number,
-			required: true,
-
-		},
-		identifyMethods: {
-			type: Array,
+		signer: {
+			type: Object,
 			required: true,
 		},
 	},
 	computed: {
 		identifyMethodsNames() {
-			return this.identifyMethods.map(method => Object.keys(method)[0])
-		}
+			return this.signer.identifyMethods.map(method => method.method)
+		},
 	},
 	methods: {
 		deleteItem() {
-			
-		}
+			emit('libresign:delete-signer', this.signer.fileUserId)
+		},
 	},
 }
 </script>
