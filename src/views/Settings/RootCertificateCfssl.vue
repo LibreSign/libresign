@@ -205,7 +205,7 @@ export default {
 			try {
 				const response = await axios.post(
 					generateOcsUrl('/apps/libresign/api/v1/admin/certificate/cfssl'),
-					this.getDataToSave()
+					this.getDataToSave(),
 				)
 
 				if (!response.data || response.data.message) {

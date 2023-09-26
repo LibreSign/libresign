@@ -47,7 +47,7 @@ describe('FilesService', () => {
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledTimes(1)
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uid}`)
+			generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${uid}`),
 		)
 		mockAxios.mockResponse(response)
 		expect(mockAxios.get).toHaveReturnedTimes(1)

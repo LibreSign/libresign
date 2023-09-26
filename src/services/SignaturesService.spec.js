@@ -28,7 +28,7 @@ describe('SignaturesService', () => {
 
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements'),
 		)
 
 		mockAxios.mockResponse(response)
@@ -60,7 +60,7 @@ describe('SignaturesService', () => {
 				_data: expect.objectContaining({
 					status: 200,
 				}),
-			})
+			}),
 		)
 	})
 
@@ -76,7 +76,7 @@ describe('SignaturesService', () => {
 		expect(mockAxios.get).toHaveBeenCalled()
 		expect(mockAxios.get).toHaveBeenCalledTimes(1)
 		expect(mockAxios.get).toHaveBeenCalledWith(
-			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5'),
 		)
 		mockAxios.mockResponse(response)
 		expect(mockAxios.get).toHaveReturned()
@@ -102,7 +102,7 @@ describe('SignaturesService', () => {
 				file: {
 					base64: 'base64',
 				},
-			})
+			}),
 		)
 		mockAxios.mockResponse(response)
 		expect(mockAxios.patch).toHaveReturned()
@@ -112,7 +112,7 @@ describe('SignaturesService', () => {
 				_data: expect.objectContaining({
 					status: 200,
 				}),
-			})
+			}),
 		)
 	})
 
@@ -121,7 +121,7 @@ describe('SignaturesService', () => {
 		expect(mockAxios.delete).toHaveBeenCalled()
 		expect(mockAxios.delete).toHaveBeenCalledTimes(1)
 		expect(mockAxios.delete).toHaveBeenCalledWith(
-			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5')
+			generateOcsUrl('/apps/libresign/api/v1/account/signatures/elements/5'),
 		)
 		expect(mockAxios.delete).toHaveReturned()
 		expect(mockAxios.delete).toHaveReturnedTimes(1)

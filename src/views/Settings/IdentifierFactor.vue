@@ -94,8 +94,8 @@ export default {
 			this.flagAccountIfAllDisabled()
 			OCP.AppConfig.setValue('libresign', 'identify_methods',
 				JSON.stringify(
-					this.options.filter(item => item.enabled)
-				)
+					this.options.filter(item => item.enabled),
+				),
 			)
 		},
 	},

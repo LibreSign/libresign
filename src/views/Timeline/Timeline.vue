@@ -64,7 +64,6 @@ export default {
 		...mapState({
 			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
-			// file: state => state.files,
 		}),
 		...mapGetters({
 			pendingFilter: 'files/pendingFilter',
@@ -78,7 +77,7 @@ export default {
 					return this.orderFiles
 				}
 				return this.fileFilter.slice().sort(
-					(a, b) => (a.request_date < b.request_date) ? 1 : -1
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1,
 				)
 			},
 			set(value) {

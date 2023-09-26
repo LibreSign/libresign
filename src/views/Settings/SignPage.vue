@@ -61,19 +61,19 @@ export default {
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/add_footer', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/add_footer', {},
 			)
 			this.addFooter = !!response.data.ocs.data.data
 		},
 		async getWriteQrcodeOnFooter() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/write_qrcode_on_footer', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/write_qrcode_on_footer', {},
 			)
 			this.writeQrcodeOnFooter = !!response.data.ocs.data.data
 		},
 		async getValidationUrlData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/validation_site', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/validation_site', {},
 			)
 			this.placeHolderValidationUrl(response.data.ocs.data.data)
 		},

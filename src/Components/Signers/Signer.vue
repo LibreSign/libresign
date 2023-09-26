@@ -24,8 +24,8 @@
 <script>
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import Delete from 'vue-material-design-icons/Delete'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import Delete from 'vue-material-design-icons/Delete.vue'
 import Bullet from '../Bullet/Bullet.vue'
 
 export default {

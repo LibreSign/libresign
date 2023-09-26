@@ -49,7 +49,7 @@ export default {
 	methods: {
 		async checkSetup() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check')
+				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
 			)
 			this.items = response.data
 			this.$root.$emit('after-config-check', response.data)

@@ -73,7 +73,7 @@ export default {
 		},
 		hasSign() {
 			return this.file.signers.filter(
-				signer => signer.me !== false && signer.sign_date === null
+				signer => signer.me !== false && signer.sign_date === null,
 			).length > 0
 		},
 		viewOnFiles() {

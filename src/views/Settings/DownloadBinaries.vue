@@ -84,7 +84,7 @@ export default {
 			this.changeState('in progress')
 			try {
 				axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries')
+					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
 				)
 					.then(() => {
 						this.changeState('waiting check')
@@ -98,7 +98,7 @@ export default {
 		},
 		async pooling() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/download-status')
+				generateOcsUrl('/apps/libresign/api/v1/admin/download-status'),
 			)
 			this.downloadStatus = response.data
 			if (!this.downloadInProgress) {

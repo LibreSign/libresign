@@ -83,7 +83,7 @@ export default {
 			try {
 				const response = await axios.post(
 					generateOcsUrl('/apps/libresign/api/v1/account/signature'),
-					this.signature
+					this.signature,
 				)
 				if (!response.data || !response.data.signature) {
 					throw new Error(response.data)
