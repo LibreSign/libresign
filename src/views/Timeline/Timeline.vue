@@ -43,6 +43,9 @@ import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../../Components/File/File.vue'
 import Sidebar from '../../Components/File/Sidebar.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { subscribe } from '@nextcloud/event-bus'
 
 export default {
 	name: 'Timeline',
@@ -91,6 +94,9 @@ export default {
 	created() {
 		this.getAllFiles()
 	},
+	async mounted() {
+		subscribe('libresign:delete-signer', this.deleteSigner)
+	},
 
 	methods: {
 		...mapActions({
@@ -119,6 +125,21 @@ export default {
 		setSidebar(objectFile) {
 			this.$store.dispatch('files/SET_FILE', objectFile)
 			this.setSidebarStatus(true)
+		},
+		async deleteSigner(fileUserId) {
+			for (const fileKey in this.filterFile) {
+				for (const signerKey in this.filterFile[fileKey].signers) {
+					if (this.filterFile[fileKey].signers[signerKey].fileUserId === fileUserId) {
+						const fileId = this.filterFile[fileKey].file.nodeId
+						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + fileUserId))
+						this.filterFile[fileKey].signers.splice(signerKey, 1)
+						if (this.filterFile[fileKey].signers.length === 0) {
+							this.filterFile[fileKey].file.status_text = t('libresign', 'no signers')
+						}
+						return
+					}
+				}
+			}
 		},
 	},
 }
