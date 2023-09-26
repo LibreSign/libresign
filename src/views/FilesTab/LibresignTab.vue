@@ -26,78 +26,14 @@
 		<NcAppSidebarTab id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
-			<div v-show="showButtons" class="lb-ls-buttons">
-				<NcEmptyContent v-if="!hasSign && !canRequestSign && !haveRequest && !showValidation"
-					:title="t('libresign', 'Nothing to do')" />
-				<button v-if="hasSign" class="primary" @click="gotoSign">
-					{{ t('libresign', 'Sign') }}
-				</button>
-				<button v-if="canRequestSign"
-					v-show="showRequest"
-					class="primary"
-					@click="option('request')">
-					{{ t('libresign', 'Request') }}
-				</button>
-				<button v-if="haveRequest" @click="option('signatures')">
-					{{ t('libresign', 'Status') }}
-				</button>
-				<button v-if="haveRequest" @click="gotoDetails(uuid)">
-					{{ t('libresign', 'Details') }}
-				</button>
-				<button v-if="showValidation" @click="redirectToValidation">
-					{{ t('libresign', 'Validate Document') }}
-				</button>
-			</div>
-
-			<Request v-show="requestShow"
-				ref="request"
-				:fileinfo="fileInfo"
-				@request:signatures="requestSignatures">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('request')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Request>
-
-			<div v-if="signaturesShow" id="signers" class="container-signers">
-				<div class="content-signers">
-					<ul>
-						<li v-for="signer in signers" :key="signer.uid">
-							<div class="signer-content">
-								<div class="container-dot">
-									<div class="icon-signer icon-user" />
-									<span>
-										{{ getName(signer) }}
-									</span>
-								</div>
-								<div class="container-dot">
-									<div :class="'dot ' + (signer.signed === null ? 'pending' : 'signed')" />
-									<span>
-										{{ signer.signed === null ? t('libresign', 'Pending') : t('libresign','Signed') }}
-									</span>
-								</div>
-								<div v-if="showDivButtons(signer)" class="container-dot container-btn">
-									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
-										{{ t('libresign', 'Send reminder') }}
-									</button>
-									<NcActions v-if="showDelete(signer)">
-										<NcActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
-									</NcActions>
-								</div>
-							</div>
-						</li>
-					</ul>
-					<button class="lb-ls-return-button" @click="option('signatures')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</div>
-			</div>
+			<RequestSignature />
 		</NcAppSidebarTab>
 	</NcAppSidebar>
 </template>
 
 <script>
+import RequestSignature from '../../Components/Request/RequestSignature.vue'
+
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
@@ -105,23 +41,16 @@ import { get } from 'lodash-es'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { showResponseError } from '../../helpers/errors.js'
 import store from '../../store/index.js'
-import Request from '../../Components/Request/index.js'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 
 export default {
 	name: 'LibresignTab',
 	store,
 	components: {
+		RequestSignature,
 		NcAppSidebar,
-		NcActions,
-		NcActionButton,
 		NcAppSidebarTab,
-		NcEmptyContent,
-		Request,
 	},
 
 	data() {

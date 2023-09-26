@@ -9,11 +9,6 @@
 		name="sidebar"
 		@update:active="updateActive"
 		@close="closesidebar">
-		<div class="actions">
-			<button class="secondary" @click="validateFile">
-				{{ t('libresign', 'Validate File') }}
-			</button>
-		</div>
 		<NcAppSidebarTab id="signantures"
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"

@@ -1,68 +1,24 @@
 <template>
 	<div class="container-signatures-tab">
-		<ul>
-			<li v-for="sign in signers" :key="sign.uid">
-				<div class="user-name">
-					<div class="icon-sign icon-user" />
-					<span class="name">
-						{{ getName(sign) }}
-					</span>
-				</div>
-				<div class="content-status">
-					<div class="container-dot">
-						<div :class="'dot ' + hasStatus(sign)" />
-						<span class="statusDot">{{ uppercaseString(hasStatus(sign)) }}</span>
-					</div>
-					<div class="container-dot">
-						<div class="icon icon-calendar-dark" />
-						<span v-if="sign.sign_date">{{ timestampsToDate(sign.sign_date) }}</span>
-					</div>
-					<div v-if="showDivButtons(sign)" class="container-actions">
-						<div v-if="showSignButton(sign)" class="container-dot container-btn">
-							<button class="primary" @click="goToSign(sign)">
-								{{ t('libresign', 'Sign') }}
-							</button>
-						</div>
-						<div v-show="showNotifyButton(sign)" class="container-dot container-btn">
-							<button :class="!disableBtn ? 'secondary' : 'loading'" :disabled="disableBtn" @click="sendNotify(sign.email)">
-								{{ t('libresign', 'Send reminder') }}
-							</button>
-						</div>
-						<div>
-							<NcActions v-if="showDelete(sign)">
-								<NcActionButton icon="icon-delete" @click="deleteUserRequest(sign)" />
-							</NcActions>
-						</div>
-					</div>
-				</div>
-			</li>
-		</ul>
-
-		<router-link v-if="isRequester && !isSigned"
-			tag="button"
-			:to="{name: 'f.sign.detail', params: { uuid }}"
-			class="primary">
-			{{ t('libresign', 'Add visible signatures') }}
-		</router-link>
+		<RequestSignature :signers="signers" />
 	</div>
 </template>
 
 <script>
+import RequestSignature from '../Request/RequestSignature.vue'
+
 import axios from '@nextcloud/axios'
 import { format } from 'date-fns'
 import { mapGetters } from 'vuex'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { getCurrentUser } from '@nextcloud/auth'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import { get } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
 	components: {
-		NcActions,
-		NcActionButton,
+		RequestSignature,
 	},
 	data() {
 		return {
