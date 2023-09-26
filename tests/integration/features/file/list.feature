@@ -1,4 +1,4 @@
-Feature: request-signature
+Feature: file-list
   Background: Create users
     Given user "signer1" exists
     Given user "signer2" exists
