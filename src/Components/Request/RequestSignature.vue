@@ -3,8 +3,7 @@
 		<NcButton v-if="canAddSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="signers">
-		</Signers>
+		<Signers :signers="signers" />
 	</div>
 </template>
 <script>
