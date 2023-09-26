@@ -1,5 +1,6 @@
 <?php
 
+use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Libresign\NextcloudBehat\NextcloudApiContext;
 use PHPUnit\Framework\Assert;
@@ -168,6 +169,25 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function resetNotifications($user): void {
 		self::runCommand('libresign:developer:reset --notifications=' . $user);
+	}
+
+	/**
+	 * @When the response of file list match with:
+	 */
+	public function theResponseOfFileListMatchWith(PyStringNode $expected): void {
+		$this->response->getBody()->seek(0);
+		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
+		$expectedArray = json_decode($expected, true);
+		Assert::arrayHasKey($realResponseArray, 'pagination', 'The response have not pagination');
+		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
+		Assert::arrayHasKey($realResponseArray, 'data');
+		Assert::assertCount(count($expectedArray['data']), $realResponseArray['data']);
+		foreach ($expectedArray['data'] as $fileFey =>  $file) {
+			Assert::assertCount(count($file['signers']), $realResponseArray['data'][$fileFey]['signers']);
+			foreach($file['signers'] as $signerKey => $signer) {
+				Assert::assertCount(count($signer['identifyMethods']), $realResponseArray['data'][$fileFey]['signers'][$signerKey]['identifyMethods']);
+			}
+		}
 	}
 
 	/**
