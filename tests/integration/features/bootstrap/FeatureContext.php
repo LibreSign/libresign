@@ -2,6 +2,7 @@
 
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 use Libresign\NextcloudBehat\NextcloudApiContext;
 use PHPUnit\Framework\Assert;
 use rpkamp\Behat\MailhogExtension\Context\OpenedEmailStorageAwareContext;
@@ -14,6 +15,14 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private array $signer = [];
 	private array $file = [];
 	private OpenedEmailStorage $openedEmailStorage;
+
+	/**
+	 * @BeforeSuite
+	 */
+	public static function beforeSuite(BeforeSuiteScope $scope)
+	{
+		exec('php ../../../../occ system:set debug 1', $output);
+	}
 
 	/**
 	 * @BeforeFeature
