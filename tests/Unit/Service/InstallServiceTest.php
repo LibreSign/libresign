@@ -23,31 +23,26 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\CfsslServerHandler;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\InstallService;
+use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var ICacheFactory|MockObject */
-	private $cacheFactory;
-	/** @var IClientService|MockObject */
-	private $clientService;
-	/** @var CfsslServerHandler|MockObject */
-	private $cfsslServerHandler;
-	/** @var CfsslHandler|MockObject */
-	private $cfsslHandler;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var IRootFolder|MockObject */
-	private $rootFolder;
-	/** @var LoggerInterface */
+	private ICacheFactory|MockObject $cacheFactory;
+	private IClientService|MockObject $clientService;
+	private CertificateEngineHandler|MockObject $certificateEngineHandler;
+	private IConfig|MockObject $config;
+	private IRootFolder|MockObject $rootFolder;
+	private LoggerInterface|MockObject $logger;
+	private IAppDataFactory|MockObject $appDataFactory;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -56,19 +51,19 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected function getInstallService(): InstallService {
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->clientService = $this->createMock(IClientService::class);
-		$this->cfsslServerHandler = $this->createMock(CfsslServerHandler::class);
-		$this->cfsslHandler = $this->createMock(CfsslHandler::class);
+		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->rootFolder = $this->createMock(IRootFolder::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
 		return new InstallService(
 			$this->cacheFactory,
 			$this->clientService,
-			$this->cfsslServerHandler,
-			$this->cfsslHandler,
+			$this->certificateEngineHandler,
 			$this->config,
 			$this->rootFolder,
-			$this->logger
+			$this->logger,
+			$this->appDataFactory
 		);
 	}
 

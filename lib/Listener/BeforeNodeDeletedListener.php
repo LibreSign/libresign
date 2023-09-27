@@ -1,9 +1,31 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Service\SignFileService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -12,21 +34,11 @@ use OCP\Files\File;
 use OCP\IDBConnection;
 
 class BeforeNodeDeletedListener implements IEventListener {
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var SignFileService */
-	private $signFileService;
-	/** @var IDBConnection */
-	private $db;
-
 	public function __construct(
-		FileMapper $fileMapper,
-		SignFileService $signFileService,
-		IDBConnection $db
+		private FileMapper $fileMapper,
+		private RequestSignatureService $requestSignatureService,
+		private IDBConnection $db
 	) {
-		$this->fileMapper = $fileMapper;
-		$this->signFileService = $signFileService;
-		$this->db = $db;
 	}
 
 	public function handle(Event $event): void {
@@ -45,7 +57,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 			case 'signed_file':
 				$file = $this->fileMapper->getByFileId($nodeId);
 				$nodeId = $file->getNodeId();
-				$this->signFileService->deleteSignRequest(['file' => ['fileId' => $nodeId]]);
+				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'file':
 				$libresignFile = $this->fileMapper->getByFileId($nodeId);
@@ -54,7 +66,7 @@ class BeforeNodeDeletedListener implements IEventListener {
 					$this->fileMapper->update($libresignFile);
 					break;
 				}
-				$this->signFileService->deleteSignRequest(['file' => ['fileId' => $nodeId]]);
+				$this->requestSignatureService->deleteRequestSignature(['file' => ['fileId' => $nodeId]]);
 				break;
 			case 'user_element':
 			case 'file_element':

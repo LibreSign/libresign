@@ -11,10 +11,8 @@ use PHPUnit\Framework\MockObject\MockObject;
  * @internal
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var JSignPdfHandler */
-	private $class;
-	/** @var IConfig|MockObject */
-	private $config;
+	private JSignPdfHandler $class;
+	private IConfig|MockObject $config;
 	public function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
 		$this->class = new JSignPdfHandler(
@@ -24,12 +22,11 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function testSignExistingFileSuccess() {
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
-		$certificate = $this->createMock(\OC\Files\Node\File::class);
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
 		$this->class->setJSignPdf($mock);
 		$this->class->setInputFile($inputFile);
-		$this->class->setCertificate($certificate);
+		$this->class->setCertificate('');
 		$this->class->setPassword('password');
 		$actual = $this->class->sign();
 		$this->assertEquals('content', $actual);

@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Controller;
 
 use OC\Authentication\Login\Chain;
@@ -13,6 +35,11 @@ use OCA\Libresign\Service\AccountService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\CORS;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -21,82 +48,46 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class AccountController extends ApiController {
-	/** @var IL10N */
-	private $l10n;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var AccountService */
-	private $accountService;
-	/** @var AccountFileService */
-	private $accountFileService;
-	/** @var pkcs12Handler */
-	private $pkcs12Handler;
-	/** @var Chain */
-	private $loginChain;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var ValidateHelper */
-	private $validateHelper;
-
 	public function __construct(
 		IRequest $request,
-		IL10N $l10n,
-		IAccountManager $accountManager,
-		AccountService $accountService,
-		AccountFileService $accountFileService,
-		Pkcs12Handler $pkcs12Handler,
-		Chain $loginChain,
-		IURLGenerator $urlGenerator,
-		LoggerInterface $logger,
-		IUserSession $userSession,
-		ValidateHelper $validateHelper
+		private IL10N $l10n,
+		private IAccountManager $accountManager,
+		private AccountService $accountService,
+		private AccountFileService $accountFileService,
+		private Pkcs12Handler $pkcs12Handler,
+		private Chain $loginChain,
+		private IURLGenerator $urlGenerator,
+		private LoggerInterface $logger,
+		private IUserSession $userSession,
+		private ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
-		$this->l10n = $l10n;
-		$this->accountManager = $accountManager;
-		$this->accountService = $accountService;
-		$this->accountFileService = $accountFileService;
-		$this->pkcs12Handler = $pkcs12Handler;
-		$this->loginChain = $loginChain;
-		$this->urlGenerator = $urlGenerator;
-		$this->logger = $logger;
-		$this->userSession = $userSession;
-		$this->validateHelper = $validateHelper;
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @PublicPage
-	 * @UseSession
-	 * @return JSONResponse
-	 */
-	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword) {
+	#[NoAdminRequired]
+	#[CORS]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[UseSession]
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): JSONResponse {
 		try {
 			$data = [
 				'uuid' => $uuid,
 				'user' => [
-					'email' => $email,
+					'identify' => [
+						'email' => $email,
+					]
 				],
 				'password' => $password,
 				'signPassword' => $signPassword
 			];
 			$this->accountService->validateCreateToSign($data);
-			if ($signPassword) {
-				$this->accountService->validateCertificateData($data);
-			}
 
 			$fileToSign = $this->accountService->getFileByUuid($uuid);
 			$fileUser = $this->accountService->getFileUserByUuid($uuid);
 
 			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
-				'success' => true,
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
@@ -115,7 +106,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage(),
 					'action' => JSActions::ACTION_DO_NOTHING
 				],
@@ -128,16 +118,15 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function signatureGenerate(
 		string $signPassword
 	): JSONResponse {
 		try {
 			$data = [
 				'user' => [
+					'identify' => $this->userSession->getUser()->getUID(),
 					'email' => $this->userSession->getUser()->getEMailAddress(),
 					'name' => $this->userSession->getUser()->getDisplayName(),
 				],
@@ -145,21 +134,17 @@ class AccountController extends ApiController {
 				'userId' => $this->userSession->getUser()->getUID()
 			];
 			$this->accountService->validateCertificateData($data);
-			$signaturePath = $this->pkcs12Handler->generateCertificate(
+			$this->pkcs12Handler->generateCertificate(
 				$data['user'],
 				$data['signPassword'],
-				$data['userId']
+				$this->userSession->getUser()->getDisplayName()
 			);
 
-			return new JSONResponse([
-				'success' => true,
-				'signature' => $signaturePath->getPath()
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$this->logger->error($exception->getMessage());
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $exception->getMessage()
 				],
 				Http::STATUS_UNAUTHORIZED
@@ -167,16 +152,12 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function addFiles(array $files): JSONResponse {
 		try {
 			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
-			return new JSONResponse([
-				'success' => true
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -194,7 +175,6 @@ class AccountController extends ApiController {
 			}
 			return new JSONResponse(
 				[
-					'success' => false,
 					'messages' => [
 						$message
 					]
@@ -204,20 +184,15 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function deleteFile(int $nodeId): JSONResponse {
 		try {
 			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
-			return new JSONResponse([
-				'success' => true
-			], Http::STATUS_OK);
+			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'messages' => [
 						$exception->getMessage(),
 					],
@@ -231,14 +206,12 @@ class AccountController extends ApiController {
 	 * Who am I.
 	 *
 	 * Validates API access data and returns the authenticated user's data.
-	 *
-	 * @NoAdminRequired
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @PublicPage
-	 * @return JSONResponse
 	 */
-	public function me() {
+	#[NoAdminRequired]
+	#[CORS]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	public function me(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new JSONResponse(
@@ -262,11 +235,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function createSignatureElement(array $elements): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
@@ -274,7 +244,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage()
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
@@ -282,7 +251,6 @@ class AccountController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'message' => $this->l10n->n(
 					'Element created with success',
 					'Elements created with success',
@@ -293,11 +261,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getSignatureElements(): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -317,11 +282,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -339,11 +301,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function patchSignatureElement($elementId, string $type = '', array $file = []): JSONResponse {
 		try {
 			$element['elementId'] = $elementId;
@@ -357,7 +316,6 @@ class AccountController extends ApiController {
 			$this->accountService->saveVisibleElement($element, $this->userSession->getUser());
 			return new JSONResponse(
 				[
-					'success' => true,
 					'message' => $this->l10n->t('Element updated with success')
 				],
 				Http::STATUS_OK
@@ -365,7 +323,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage()
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
@@ -373,11 +330,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 *
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function deleteSignatureElement($elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
@@ -398,10 +352,8 @@ class AccountController extends ApiController {
 		);
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function accountFileListToOwner(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$filter['userId'] = $this->userSession->getUser()->getUID();
@@ -417,10 +369,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function accountFileListToApproval(array $filter = [], $page = null, $length = null): JSONResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
@@ -436,10 +386,8 @@ class AccountController extends ApiController {
 		}
 	}
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
-	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function updateSettings(?string $phone = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -457,7 +405,6 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'success' => false,
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_NOT_FOUND
@@ -465,7 +412,6 @@ class AccountController extends ApiController {
 		}
 		return new JSONResponse(
 			[
-				'success' => true,
 				'data' => [
 					'userId' => $user->getUID(),
 					'phone' => $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue(),

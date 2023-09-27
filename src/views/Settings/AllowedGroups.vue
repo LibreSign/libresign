@@ -34,8 +34,8 @@
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
-import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -62,7 +62,7 @@ export default {
 	methods: {
 		async getData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {}
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {},
 			)
 			if (response.data.ocs.data.data !== '') {
 				this.groupsSelected = JSON.parse(response.data.ocs.data.data)

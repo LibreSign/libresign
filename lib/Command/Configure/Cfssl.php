@@ -1,29 +1,36 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace OCA\Libresign\Command\Configure;
 
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Command\Base;
-use OCA\Libresign\Service\InstallService;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
-	public function __construct(
-		InstallService $installService,
-		LoggerInterface $logger
-	) {
-		parent::__construct(
-			$installService,
-			$logger
-		);
-	}
-
 	protected function configure(): void {
 		$this
 			->setName('libresign:configure:cfssl')
@@ -79,6 +86,9 @@ class Cfssl extends Base {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		if (!$this->installService->isCfsslBinInstalled()) {
+			throw new InvalidArgumentException('CFSSL binary not found! run libresign:istall --cfssl first.');
+		}
 		$names = [];
 		if (!$commonName = $input->getOption('cn')) {
 			throw new InvalidArgumentException('Invalid Comon Name');
@@ -98,33 +108,28 @@ class Cfssl extends Base {
 		if ($input->getOption('st')) {
 			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
 		}
-		if ($binary = $this->installService->config->getAppValue(Application::APP_ID, 'cfssl_bin')) {
-			if (PHP_OS_FAMILY === 'Windows') {
-				throw new InvalidArgumentException('Incompatible with Windows');
+
+		if (PHP_OS_FAMILY === 'Windows') {
+			throw new InvalidArgumentException('Incompatible with Windows');
+		}
+		if ($cfsslUri = $input->getOption('cfssl-uri')) {
+			if (!filter_var($cfsslUri, FILTER_VALIDATE_URL)) {
+				throw new InvalidArgumentException('Invalid CFSSL API URI');
 			}
 			if ($input->getOption('config-path')) {
 				throw new InvalidArgumentException('Config path is not necessary');
 			}
-			if ($input->getOption('cfssl-uri')) {
-				throw new InvalidArgumentException('CFSSL URI is not necessary');
-			}
-			$configPath = $this->installService->getConfigPath();
-			$cfsslUri = '';
-		} else {
-			$output->writeln('<info>CFSSL binary not found! run libresign:istall --cfssl first.</info>');
-			if (!$configPath = $input->getOption('config-path')) {
-				throw new InvalidArgumentException('Invalid config path');
-			}
-			if (!$cfsslUri = $input->getOption('cfssl-uri')) {
-				throw new InvalidArgumentException('Invalid CFSSL API URI');
-			}
 		}
+		$configPath = $input->getOption('config-path');
+
 		$this->installService->generate(
 			$commonName,
 			$names,
-			$configPath,
-			$cfsslUri,
-			$binary
+			[
+				'engine' => 'cfssl',
+				'configPath' => $configPath,
+				'cfsslUri' => $cfsslUri,
+			]
 		);
 		return 0;
 	}

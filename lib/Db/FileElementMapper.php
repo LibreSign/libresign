@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\QBMapper;
@@ -15,15 +37,11 @@ class FileElementMapper extends QBMapper {
 	/** @var FileElement[][] */
 	private $cache = [];
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_file_element');
 	}
 
 	/**
-	 * @param integer $fileId
 	 * @return FileElement[]
 	 */
 	public function getByFileId(int $fileId): array {
@@ -39,8 +57,6 @@ class FileElementMapper extends QBMapper {
 	}
 
 	/**
-	 * @param integer $fileId
-	 * @param string $userId
 	 * @return FileElement[]
 	 */
 	public function getByFileIdAndUserId(int $fileId, string $userId): array {
@@ -49,12 +65,16 @@ class FileElementMapper extends QBMapper {
 
 			$qb->select('fe.*')
 				->from($this->getTableName(), 'fe')
-				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
+				->leftJoin('fe', 'libresign_identify_method', 'im', $qb->expr()->andX(
+					$qb->expr()->eq('fe.file_user_id', 'im.file_user_id'),
+					$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
+					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+				))
 				->where(
 					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
 				)
 				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
+					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 				);
 
 			$this->cache['fileId'][$fileId][$userId] = $this->findEntities($qb);
@@ -62,23 +82,22 @@ class FileElementMapper extends QBMapper {
 		return $this->cache['fileId'][$fileId][$userId];
 	}
 
-	public function getByDocumentElementIdAndFileUserId(int $documentElementId, string $userId): FileElement {
-		if (!isset($this->cache['documentElementId'][$documentElementId])) {
-			$qb = $this->db->getQueryBuilder();
+	/**
+	 * @return FileElement[]
+	 */
+	public function getByFileIdAndFileUserId(int $fileId, int $fileUserId): array {
+		$qb = $this->db->getQueryBuilder();
 
-			$qb->select('fe.*')
-				->from($this->getTableName(), 'fe')
-				->join('fe', 'libresign_file_user', 'fu', 'fu.id = fe.file_user_id')
-				->where(
-					$qb->expr()->eq('fe.id', $qb->createNamedParameter($documentElementId, IQueryBuilder::PARAM_INT))
-				)
-				->andWhere(
-					$qb->expr()->eq('fu.user_id', $qb->createNamedParameter($userId))
-				);
+		$qb->select('fe.*')
+			->from($this->getTableName(), 'fe')
+			->where(
+				$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
+			)
+			->andWhere(
+				$qb->expr()->eq('fe.file_user_id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_INT))
+			);
 
-			$this->cache['documentElementId'][$documentElementId] = $this->findEntity($qb);
-		}
-		return $this->cache['documentElementId'][$documentElementId];
+		return $this->findEntities($qb);
 	}
 
 	public function getById(int $id): FileElement {

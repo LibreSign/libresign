@@ -10,6 +10,11 @@
       <code>Base</code>
     </MissingDependency>
   </file>
+  <file src="lib/Command/Configure/OpenSsl.php">
+    <MissingDependency occurrences="1">
+      <code>Base</code>
+    </MissingDependency>
+  </file>
   <file src="lib/Command/Install.php">
     <MissingDependency occurrences="1">
       <code>Base</code>
@@ -41,12 +46,13 @@
     </UndefinedClass>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
-    <MissingDependency occurrences="5">
+    <MissingDependency occurrences="6">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>private</code>
     </MissingDependency>
   </file>
   <file src="lib/Listener/LoadSidebarListener.php">
@@ -62,64 +68,90 @@
     </MissingDependency>
   </file>
   <file src="lib/Service/AccountService.php">
-    <MissingDependency occurrences="4">
+    <MissingDependency occurrences="5">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>private</code>
     </MissingDependency>
-    <UndefinedClass occurrences="3">
-      <code>NewUserMailHelper</code>
+    <UndefinedClass occurrences="5">
+      <code>$this-&gt;newUserMail</code>
+      <code>$this-&gt;newUserMail</code>
       <code>UUIDUtil</code>
       <code>UUIDUtil</code>
+      <code>private</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="4">
-      <code>$this-&gt;newUserMail</code>
-      <code>$this-&gt;newUserMail</code>
-      <code>NewUserMailHelper</code>
+    <UndefinedDocblockClass occurrences="1">
       <code>\OCA\Files\Node\File</code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/FileService.php">
-    <MissingDependency occurrences="3">
+    <MissingDependency occurrences="2">
       <code>$this-&gt;rootFolder</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>private</code>
     </MissingDependency>
   </file>
   <file src="lib/Service/FolderService.php">
     <MissingDependency occurrences="4">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>$this-&gt;root</code>
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/AbstractIdentifyMethod.php">
+    <MissingDependency occurrences="3">
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/Account.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/Email.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/Password.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
     </MissingDependency>
   </file>
   <file src="lib/Service/InstallService.php">
-    <MissingDependency occurrences="4">
-      <code>$this-&gt;rootFolder</code>
-      <code>$this-&gt;rootFolder</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+    <MissingDependency occurrences="1">
+      <code>private</code>
     </MissingDependency>
     <UndefinedClass occurrences="1">
       <code>Process</code>
     </UndefinedClass>
   </file>
+  <file src="lib/Service/RequestSignatureService.php">
+    <UndefinedClass occurrences="2">
+      <code>UUIDUtil</code>
+      <code>UUIDUtil</code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Service/SignFileService.php">
-    <MissingDependency occurrences="8">
+    <MissingDependency occurrences="12">
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
+      <code>private</code>
     </MissingDependency>
-    <UndefinedClass occurrences="3">
-      <code>UUIDUtil</code>
-      <code>UUIDUtil</code>
+    <UndefinedClass occurrences="1">
       <code>UUIDUtil</code>
     </UndefinedClass>
   </file>

@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Handler;
 
 use BaconQrCode\Encoder\Encoder;
@@ -13,60 +35,35 @@ use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
 use OCP\Files\File;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use TCPDI;
+use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
 	/** @var string */
 	private $pfxFilename = 'signature.pfx';
-	/** @var FolderService */
-	private $folderService;
-	/** @var JSignPdfHandler|null */
-	private $JSignPdfHandler;
-	/** @var IConfig */
-	private $config;
-	/** @var SystemConfig */
-	private $systemConfig;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var CfsslHandler */
-	private $cfsslHandler;
-	/** @var IL10N */
-	private $l10n;
 	/** @var QrCode */
 	private $qrCode;
 	private const MIN_QRCODE_SIZE = 100;
+	private string $pfxContent = '';
 
 	public function __construct(
-		FolderService $folderService,
-		IConfig $config,
-		IURLGenerator $urlGenerator,
-		SystemConfig $systemConfig,
-		CfsslHandler $cfsslHandler,
-		IL10N $l10n
+		private FolderService $folderService,
+		private IConfig $config,
+		private IURLGenerator $urlGenerator,
+		private SystemConfig $systemConfig,
+		private CertificateEngineHandler $certificateEngineHandler,
+		private IL10N $l10n,
+		private JSignPdfHandler $jSignPdfHandler,
 	) {
-		$this->folderService = $folderService;
-		$this->config = $config;
-		$this->urlGenerator = $urlGenerator;
-		$this->systemConfig = $systemConfig;
-		$this->cfsslHandler = $cfsslHandler;
-		$this->l10n = $l10n;
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uid
-	 * @param string $content
-	 * @return File
-	 */
-	public function savePfx(string $uid, string $content, bool $isTempFile = false): File {
-		if ($isTempFile) {
-			$this->pfxFilename = 'temp.pfx';
-		}
+	public function savePfx(string $uid, string $content): string {
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if ($folder->nodeExists($this->pfxFilename)) {
@@ -75,22 +72,21 @@ class Pkcs12Handler extends SignEngineHandler {
 				throw new LibresignException("path {$this->pfxFilename} already exists and is not a file!", 400);
 			}
 			$file->putContent($content);
-			return $file;
+			return $content;
 		}
 
 		$file = $folder->newFile($this->pfxFilename);
 		$file->putContent($content);
-		return $file;
+		return $content;
 	}
 
 	/**
-	 * Get pfx file
-	 *
-	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uid user id
-	 * @return \OCP\Files\File
+	 * Get content of pfx file
 	 */
-	public function getPfx($uid): \OCP\Files\File {
+	public function getPfx(?string $uid = null): string {
+		if (!empty($this->pfxContent) || empty($uid)) {
+			return $this->pfxContent;
+		}
 		$this->folderService->setUserId($uid);
 		$folder = $this->folderService->getFolder();
 		if (!$folder->nodeExists($this->pfxFilename)) {
@@ -98,18 +94,19 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		/** @var \OCP\Files\File */
 		$node = $folder->get($this->pfxFilename);
-		if (!$node->getContent()) {
+		$this->pfxContent = $node->getContent();
+		if (empty($this->pfxContent)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
 		}
-		return $node;
+		return $this->pfxContent;
 	}
 
 	private function getHandler(): SignEngineHandler {
 		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
-		if (!property_exists($this, $sign_engine . 'Handler')) {
+		$property = lcfirst($sign_engine) . 'Handler';
+		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
-		$property = $sign_engine . 'Handler';
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
 		if (!$this->$property instanceof $classHandler) {
 			$this->$property = \OC::$server->get($classHandler);
@@ -130,11 +127,8 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @param File $file
-	 * @param string $uuid
-	 * @return string
 	 */
-	public function writeFooter(File $file, string $uuid): string {
+	public function getFooter(File $file, string $uuid): string {
 		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
 		if (!$add_footer) {
 			return '';
@@ -151,7 +145,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 		$dimensions = null;
 		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-			$templateId = $pdf->importPage($pageNo);
+			$pdf->importPage($pageNo);
 
 			// Define dimensions of page
 			$tpl = $pdf->tpls[$pageNo];
@@ -170,8 +164,6 @@ class Pkcs12Handler extends SignEngineHandler {
 				$dimensions[$box]['ury'] = $tpl['w'];
 			}
 			$pdf->AddPage($dimensions['or'], $dimensions);
-
-			$pdf->useTemplate($templateId);
 
 			$pdf->SetFont('Helvetica');
 			$pdf->SetFontSize(8);
@@ -275,65 +267,31 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $blockValues;
 	}
 
-	public function getCertificateHandler(): CfsslHandler {
-		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
-		$rootCert = json_decode($rootCert, true);
-		if (!empty($rootCert['names'])) {
-			foreach ($rootCert['names'] as $id => $customName) {
-				$longCustomName = $this->cfsslHandler->translateToLong($id);
-				$this->cfsslHandler->{'set' . ucfirst($longCustomName)}($customName['value']);
-			}
-		}
-		if (!$this->cfsslHandler->getCommonName()) {
-			$this->cfsslHandler->setCommonName($rootCert['commonName']);
-		}
-		if (!$this->cfsslHandler->getCfsslUri()) {
-			$cfsslUri = $this->config->getAppValue(Application::APP_ID, 'cfsslUri');
-			if (!$cfsslUri) {
-				$cfsslUri = CfsslHandler::CFSSL_URI;
-			}
-			$this->cfsslHandler->setCfsslUri($cfsslUri);
-		}
-		if (!$this->cfsslHandler->getConfigPath()) {
-			$this->cfsslHandler->setConfigPath($this->config->getAppValue(Application::APP_ID, 'configPath'));
-		}
-		if (!$this->cfsslHandler->getBinary()) {
-			$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-			if ($binary) {
-				$this->cfsslHandler->setBinary($binary);
-			}
-		}
-		return $this->cfsslHandler;
-	}
-
 	public function isHandlerOk(): bool {
-		try {
-			$this->getCertificateHandler()->getClient();
-			return true;
-		} catch (\Throwable $th) {
-		}
-		return false;
+		return $this->certificateEngineHandler->getEngine()->isSetupOk();
 	}
 
 	/**
 	 * Generate certificate
 	 *
-	 * @param array $user Example: ['email' => '', 'name' => '']
+	 * @param array $user Example: ['identify' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
-	 * @param string $uid User id
+	 * @param string $friendlyName Friendly name
 	 * @param bool $isTempFile
-	 * @return File
 	 */
-	public function generateCertificate(array $user, string $signPassword, string $uid, bool $isTempFile = false): File {
-		$content = $this->getCertificateHandler()
-			->setHosts([$user['email']])
+	public function generateCertificate(array $user, string $signPassword, string $friendlyName, bool $isTempFile = false): string {
+		$content = $this->certificateEngineHandler->getEngine()
+			->setHosts([$user['identify']])
 			->setCommonName($user['name'])
-			->setFriendlyName($uid)
+			->setFriendlyName($friendlyName)
 			->setPassword($signPassword)
 			->generateCertificate();
 		if (!$content) {
-			throw new LibresignException('Failure on generate certificate', 1);
+			throw new TypeError();
 		}
-		return $this->savePfx($uid, $content, $isTempFile);
+		if ($isTempFile) {
+			return $content;
+		}
+		return $this->savePfx($user['identify'], $content);
 	}
 }

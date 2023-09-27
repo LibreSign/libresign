@@ -3,12 +3,12 @@ const path = require('path')
 const webpackConfig = require('@nextcloud/webpack-vue-config')
 
 const config = {
-	entry: {
-		tab: path.resolve(path.join('src', 'tab.js')),
-		settings: path.resolve(path.join('src', 'settings.js')),
-		external: path.resolve(path.join('src', 'external.js')),
-		validation: path.resolve(path.join('src', 'validation.js')),
-	},
+  entry: {
+    tab: path.resolve(path.join('src', 'tab.js')),
+    settings: path.resolve(path.join('src', 'settings.js')),
+    external: path.resolve(path.join('src', 'external.js')),
+    validation: path.resolve(path.join('src', 'validation.js')),
+  },
   optimization: process.env.NODE_ENV === 'production'
     ? { chunkIds: 'deterministic' }
     : {},
@@ -23,8 +23,12 @@ const config = {
           },
         },
       },
+      {
+        resourceQuery: /raw/,
+        type: 'asset/source',
+      },
     ],
-  },
+  }
 }
 
 module.exports = merge(webpackConfig, config)

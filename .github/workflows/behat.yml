@@ -44,7 +44,7 @@ jobs:
           POSTGRES_DB: nextcloud
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
       mysql:
-        image: mariadb
+        image: ghcr.io/nextcloud/continuous-integration-mariadb-10.6:latest
         ports:
           - 4444:3306/tcp
         env:
@@ -114,6 +114,8 @@ jobs:
             --admin-user=admin \
             --admin-pass=admin
           ./occ app:enable ${{ env.APP_NAME }}
+          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
+          ./occ app:enable --force notifications
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set mail_smtphost --value mailhog
 
@@ -121,4 +123,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
           BEHAT_ROOT_DIR: ../../../../
-        run: vendor/bin/behat -f junit -f pretty --colors
+        run: |
+          export BEHAT_RUN_AS=$(ls -ld behat.yml | awk '{print $3}')
+          export BEHAT_VERBOSE="$RUNNER_DEBUG"
+          vendor/bin/behat -f junit -f pretty --colors

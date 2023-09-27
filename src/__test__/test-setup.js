@@ -1,3 +1,4 @@
+// eslint-disable-next-line n/no-missing-import
 import 'regenerator-runtime/runtime'
 import Vue from 'vue'
 

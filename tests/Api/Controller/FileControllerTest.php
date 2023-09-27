@@ -49,10 +49,12 @@ final class FileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
@@ -70,6 +72,12 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testValidateWithSuccessUsingSigner() {
 		$user = $this->createUser('username', 'password');
+		$user->setEMailAddress('person@test.coop');
+		$this->mockConfig([
+			'libresign' => [
+				'identify_method' => 'account',
+			]
+		]);
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -77,10 +85,12 @@ final class FileControllerTest extends ApiTestCase {
 			'name' => 'test',
 			'users' => [
 				[
-					'email' => 'person@test.coop'
-				]
+					'identify' => [
+						'email' => 'person@test.coop',
+					],
+				],
 			],
-			'userManager' => $user
+			'userManager' => $user,
 		]);
 
 		$this->request
@@ -116,7 +126,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSendNewFile() {
-		$this->createUser('username', 'password');
+		$this->createUser('allowrequestsign', 'password');
 		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]',
@@ -124,7 +134,7 @@ final class FileControllerTest extends ApiTestCase {
 		]);
 		$this->request
 			->withRequestHeader([
-				'Authorization' => 'Basic ' . base64_encode('username:password'),
+				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password'),
 				'Content-Type' => 'application/json',
 			])
 			->withPath('/file')

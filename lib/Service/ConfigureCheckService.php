@@ -1,27 +1,44 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Service;
 
 use ImagickException;
 use OC\SystemConfig;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 use OCP\IConfig;
 
 class ConfigureCheckService {
-	private IConfig $config;
-	private SystemConfig $systemConfig;
-	private JSignPdfHandler $jSignPdfHandler;
-
 	public function __construct(
-		IConfig $config,
-		SystemConfig $systemConfig,
-		JSignPdfHandler $jSignPdfHandler
+		private IConfig $config,
+		private SystemConfig $systemConfig,
+		private JSignPdfHandler $jSignPdfHandler,
+		private CertificateEngine $certificateEngine
 	) {
-		$this->config = $config;
-		$this->systemConfig = $systemConfig;
-		$this->jSignPdfHandler = $jSignPdfHandler;
 	}
 
 	/**
@@ -33,7 +50,7 @@ class ConfigureCheckService {
 		$result = [];
 		$result = array_merge($result, $this->checkSign());
 		$result = array_merge($result, $this->canPreview());
-		$result = array_merge($result, $this->checkCfssl());
+		$result = array_merge($result, $this->checkCertificate());
 		return $result;
 	}
 
@@ -45,6 +62,7 @@ class ConfigureCheckService {
 	public function checkSign(): array {
 		$return = [];
 		$return = array_merge($return, $this->checkJava());
+		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		return $return;
 	}
@@ -156,6 +174,57 @@ class ConfigureCheckService {
 	}
 
 	/**
+	 * Check all requirements to use PDFtk
+	 *
+	 * @return ConfigureCheckHelper[]
+	 */
+	public function checkPdftk(): array {
+		$pdftkPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+		if ($pdftkPath) {
+			if (file_exists($pdftkPath)) {
+				\exec($pdftkPath . " --version 2>&1", $version);
+				if (isset($version[0])) {
+					preg_match('/pdftk port to java (?<version>.*) a Handy Tool/', $version[0], $matches);
+					if (isset($matches['version'])) {
+						if ($matches['version'] === InstallService::PDFTK_VERSION) {
+							$return[] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk version: ' . InstallService::PDFTK_VERSION)
+									->setResource('pdftk');
+							$return[] = (new ConfigureCheckHelper())
+									->setSuccessMessage('PDFtk path: ' . $pdftkPath)
+									->setResource('pdftk');
+							return $return;
+						}
+						$message = 'Necessary install the version ' . InstallService::PDFTK_VERSION;
+						$return[] = (new ConfigureCheckHelper())
+							->setErrorMessage($message)
+							->setResource('jsignpdf')
+							->setTip('Run occ libresign:install --jsignpdf');
+					}
+				}
+				return [
+					(new ConfigureCheckHelper())
+						->setErrorMessage('PDFtk binary is invalid: ' . $pdftkPath)
+						->setResource('pdftk')
+						->setTip('Run occ libresign:install --pdftk'),
+				];
+			}
+			return [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('PDFtk binary not found: ' . $pdftkPath)
+					->setResource('pdftk')
+					->setTip('Run occ libresign:install --pdftk'),
+			];
+		}
+		return [
+			(new ConfigureCheckHelper())
+				->setErrorMessage('PDFtk not found')
+				->setResource('pdftk')
+				->setTip('Run occ libresign:install --pdftk'),
+		];
+	}
+
+	/**
 	 * Check all requirements to use Java
 	 *
 	 * @return ConfigureCheckHelper[]
@@ -226,82 +295,23 @@ class ConfigureCheckService {
 		return empty($error);
 	}
 
+
 	/**
-	 * Check all requirements to use CFSSL
+	 * Check all requirements to use certificate
 	 *
 	 * @return ConfigureCheckHelper[]
 	 */
-	public function checkCfssl(): array {
-		$return = [];
-		$return = array_merge($return, $this->checkCfsslBinaries());
-		$return = array_merge($return, $this->checkCfsslConfigure());
+	public function checkCertificate(): array {
+		try {
+			$return = $this->certificateEngine->getEngine()->configureCheck();
+		} catch (\Throwable $th) {
+			$return = [
+				(new ConfigureCheckHelper())
+					->setErrorMessage('Define the certificate engine to use')
+					->setResource('certificate-engine')
+					->setTip('Run occ libresign:configure:openssl --help or occ libresign:configure:cfssl --help'),
+			];
+		}
 		return $return;
-	}
-
-	public function checkCfsslBinaries(): array {
-		if (PHP_OS_FAMILY === 'Windows') {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('CFSSL is incompatible with Windows')
-					->setResource('cfssl'),
-			];
-		}
-		$cfsslInstalled = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-		if (!$cfsslInstalled) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('CFSSL not installed.')
-					->setResource('cfssl')
-					->setTip('Run occ libresign:install --cfssl'),
-			];
-		}
-
-		$instanceId = $this->systemConfig->getValue('instanceid', null);
-		$binary = $this->systemConfig->getValue('datadirectory', \OC::$SERVERROOT . '/data/') . DIRECTORY_SEPARATOR .
-			'appdata_' . $instanceId . DIRECTORY_SEPARATOR .
-			Application::APP_ID . DIRECTORY_SEPARATOR .
-			'cfssl';
-		if (!file_exists($binary)) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('CFSSL not found.')
-					->setResource('cfssl')
-					->setTip('Run occ libresign:install --cfssl'),
-			];
-		}
-		$return = [];
-		$version = str_replace("\n", ', ', trim(`$binary version`));
-		if (strpos($version, InstallService::CFSSL_VERSION) === false) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage(sprintf(
-						'Invalid version. Expected: %s, actual: %s',
-						InstallService::CFSSL_VERSION,
-						$version
-					))
-					->setResource('cfssl')
-					->setTip('Run occ libresign:install --cfssl')
-			];
-		}
-		$return[] = (new ConfigureCheckHelper())
-			->setSuccessMessage('CFSSL binary path: ' . $binary)
-			->setResource('cfssl');
-		$return[] = (new ConfigureCheckHelper())
-			->setSuccessMessage('CFSSL: ' . $version)
-			->setResource('cfssl');
-		return $return;
-	}
-
-	public function checkCfsslConfigure(): array {
-		$configPath = $this->config->getAppValue(Application::APP_ID, 'configPath');
-		if (is_dir($configPath)) {
-			return [(new ConfigureCheckHelper())
-				->setSuccessMessage('Root certificate config files found.')
-				->setResource('cfssl-configure')];
-		}
-		return [(new ConfigureCheckHelper())
-			->setErrorMessage('CFSSL (root certificate) not configured.')
-			->setResource('cfssl-configure')
-			->setTip('Run occ libresign:configure:cfssl --help')];
 	}
 }

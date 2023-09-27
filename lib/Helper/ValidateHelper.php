@@ -1,7 +1,30 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Helper;
 
+use OC\AppFramework\Http;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
@@ -11,10 +34,14 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -25,34 +52,8 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 
 class ValidateHelper {
-	/** @var IL10N */
-	private $l10n;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var IHasher */
-	private $hasher;
-	/** @var IConfig */
-	private $config;
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IRootFolder */
-	private $root;
 	/** @var \OCP\Files\File[] */
-	private $file;
+	private $file = [];
 
 	public const TYPE_TO_SIGN = 1;
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
@@ -65,33 +66,23 @@ class ValidateHelper {
 	public const STATUS_DELETED = 4;
 
 	public function __construct(
-		IL10N $l10n,
-		FileUserMapper $fileUserMapper,
-		FileMapper $fileMapper,
-		FileTypeMapper $fileTypeMapper,
-		FileElementMapper $fileElementMapper,
-		AccountFileMapper $accountFileMapper,
-		UserElementMapper $userElementMapper,
-		IMimeTypeDetector $mimeTypeDetector,
-		IHasher $hasher,
-		IConfig $config,
-		IGroupManager $groupManager,
-		IUserManager $userManager,
-		IRootFolder $root
+		private IL10N $l10n,
+		private FileUserMapper $fileUserMapper,
+		private FileMapper $fileMapper,
+		private FileTypeMapper $fileTypeMapper,
+		private FileElementMapper $fileElementMapper,
+		private AccountFileMapper $accountFileMapper,
+		private UserElementMapper $userElementMapper,
+		private IdentifyMethodMapper $identifyMethodMapper,
+		private IdentifyMethodService $identifyMethodService,
+		private IMimeTypeDetector $mimeTypeDetector,
+		private IHasher $hasher,
+		private IConfig $config,
+		private IGroupManager $groupManager,
+		private IUserManager $userManager,
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
 	) {
-		$this->l10n = $l10n;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileMapper = $fileMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->accountFileMapper = $accountFileMapper;
-		$this->userElementMapper = $userElementMapper;
-		$this->mimeTypeDetector = $mimeTypeDetector;
-		$this->hasher = $hasher;
-		$this->config = $config;
-		$this->groupManager = $groupManager;
-		$this->userManager = $userManager;
-		$this->root = $root;
 	}
 	public function validateNewFile(array $data): void {
 		$this->validateFile($data, self::TYPE_TO_SIGN);
@@ -103,8 +94,6 @@ class ValidateHelper {
 	/**
 	 * @property array $data
 	 * @property int $type to_sign|visible_element
-	 *
-	 * @return void
 	 */
 	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN): void {
 		if (empty($data['file'])) {
@@ -261,7 +250,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElementsRelation(array $list, FileUser $fileUser): void {
+	public function validateVisibleElementsRelation(array $list, FileUser $fileUser, IUser $user): void {
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
@@ -269,18 +258,18 @@ class ValidateHelper {
 			if (!array_key_exists('profileElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
 			}
-			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $fileUser->getUserId());
+			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $user->getUID());
 			try {
-				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $fileUser->getUserId()]);
+				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
 		}
-		$this->validateUserHasNecessaryElements($fileUser, $list);
+		$this->validateUserHasNecessaryElements($fileUser, $user, $list);
 	}
 
-	private function validateUserHasNecessaryElements(FileUser $fileUser, array $list = []): void {
-		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $fileUser->getUserId());
+	private function validateUserHasNecessaryElements(FileUser $fileUser, IUser $user, array $list = []): void {
+		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $user->getUID());
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $fileUser): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();
@@ -305,8 +294,14 @@ class ValidateHelper {
 
 	public function validateUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
 		try {
-			$this->fileElementMapper->getByDocumentElementIdAndFileUserId($documentElementId, $uid);
+			$documentElement = $this->fileElementMapper->getById($documentElementId);
+			$fileUser = $this->fileUserMapper->getById($documentElement->getFileUserId());
+			$file = $this->fileMapper->getById($fileUser->getFileId());
+			if ($file->getUserId() !== $uid) {
+				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
+			}
 		} catch (\Throwable $th) {
+			($fileUser->getFileId());
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
 		}
 	}
@@ -331,6 +326,10 @@ class ValidateHelper {
 	}
 
 	public function validateIfNodeIdExists(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
 		try {
 			$file = $this->root->getById($nodeId);
 			$file = $file[0] ?? null;
@@ -343,6 +342,10 @@ class ValidateHelper {
 	}
 
 	public function validateMimeTypeAcceptedByNodeId(int $nodeId, int $type = self::TYPE_TO_SIGN): void {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
 		$file = $this->root->getById($nodeId);
 		$file = $file[0];
 		$this->validateMimeTypeAcceptedByMime($file->getMimeType(), $type);
@@ -374,22 +377,19 @@ class ValidateHelper {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 *
-	 * @param integer $nodeId
-	 *
 	 * @return \OCP\Files\Node|array
-	 *
 	 * @psalm-return \OCP\Files\Node|array<empty, empty>
 	 */
 	private function getLibreSignFileByNodeId(int $nodeId) {
-		if (empty($this->file[$nodeId])) {
-			$libresignFile = $this->fileMapper->getByFileId($nodeId);
+		if (isset($this->file[$nodeId])) {
+			return $this->file[$nodeId];
+		}
+		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
-			$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-			$this->file[$nodeId] = $userFolder->getById($nodeId);
-			if (!empty($this->file[$nodeId])) {
-				$this->file[$nodeId] = $this->file[$nodeId][0];
-			}
+		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
+		$this->file[$nodeId] = $userFolder->getById($nodeId);
+		if (!empty($this->file[$nodeId])) {
+			$this->file[$nodeId] = $this->file[$nodeId][0];
 		}
 		return $this->file[$nodeId];
 	}
@@ -397,11 +397,23 @@ class ValidateHelper {
 	public function canRequestSign(IUser $user): void {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
 		if (empty($authorized) || !is_array($authorized)) {
-			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException(
+				json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+				]),
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
 		}
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 		if (!array_intersect($userGroups, $authorized)) {
-			throw new LibresignException($this->l10n->t('You are not allowed to request signing'));
+			throw new LibresignException(
+				json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('You are not allowed to request signing')],
+				]),
+				Http::STATUS_UNPROCESSABLE_ENTITY,
+			);
 		}
 	}
 
@@ -485,16 +497,6 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIdentifyMethod(string $identify): void {
-		if (!in_array($identify, IdentifyMethodService::IDENTIFY_METHODS)) {
-			// TRANSLATORS When is requested to a person to sign a file, is
-			// necessary identify what is the identification method. The
-			// identification method is used to define how will be the sign
-			// flow.
-			throw new LibresignException($this->l10n->t('Invalid identification method'));
-		}
-	}
-
 	public function signerWasAssociated(array $signer): void {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
@@ -502,7 +504,18 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email']);
+		$exists = array_filter($signatures, function (FileUser $fileUser) use ($signer): bool {
+			$key = key($signer);
+			$value = current($signer);
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
+				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
+					return true;
+				}
+				return false;
+			});
+			return count($found) > 0;
+		});
 		if (!$exists) {
 			throw new LibresignException($this->l10n->t('No signature was requested to %s', $signer['email']));
 		}
@@ -515,14 +528,26 @@ class ValidateHelper {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->fileUserMapper->getByFileUuid($libresignFile->getUuid());
-		$exists = array_filter($signatures, fn ($s) => $s->getEmail() === $signer['email'] && $s->getSigned());
+
+		$exists = array_filter($signatures, function (FileUser $fileUser) use ($signer): bool {
+			$key = key($signer);
+			$value = current($signer);
+			$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($key, $value) {
+				if ($identifyMethod->getIdentifierKey() === $key && $identifyMethod->getIdentifierValue() === $value) {
+					return true;
+				}
+				return false;
+			});
+			if (count($found) > 0) {
+				return $fileUser->getSigned() !== null;
+			}
+			return false;
+		});
 		if (!$exists) {
 			return;
 		}
 		$firstSigner = array_values($exists)[0];
-		if ($firstSigner->getDisplayName()) {
-			throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
-		}
 		throw new LibresignException($this->l10n->t('%s already signed this file', $firstSigner->getDisplayName()));
 	}
 
@@ -531,6 +556,33 @@ class ValidateHelper {
 			$this->fileMapper->getByUuid($data['uuid']);
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('Invalid UUID file'));
+		}
+	}
+
+	public function validateSigner(string $uuid, ?IUser $user = null): void {
+		$this->validateSignerUuidExists($uuid);
+		$this->validateIdentifyMethod($uuid, $user);
+	}
+
+	public function validateIdentifyMethod(string $uuid, ?IUser $user = null): void {
+		$fileUser = $this->fileUserMapper->getByUuid($uuid);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		foreach ($identifyMethods as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$identifyMethod->validateToSign($user);
+			}
+		}
+	}
+
+	private function validateSignerUuidExists(string $uuid): void {
+		try {
+			$fileUser = $this->fileUserMapper->getByUuid($uuid);
+			$this->fileMapper->getById($fileUser->getFileId());
+		} catch (DoesNotExistException $e) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]));
 		}
 	}
 
@@ -552,9 +604,8 @@ class ValidateHelper {
 		}
 	}
 
-	public function canRequestCode(): bool {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
-		return $signMethod !== 'password';
+	public function canRequestCode(FileUser $fileUser): bool {
+		return $fileUser->getSignMethod() !== 'password';
 	}
 
 	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
@@ -573,17 +624,37 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateCredentials(FileUser $fileUser, array $params): void {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
-		switch ($signMethod) {
-			case 'sms':
-			case 'email':
-				$this->valdateCode($fileUser, $params);
-				break;
-			case 'password':
-				if (isset($params['code'])) {
-					throw new LibresignException($this->l10n->t('Do not use code when signing method is with password.'));
-				}
+	public function validateCredentials(FileUser $fileUser, IUser $user, array $params): void {
+		$params = array_filter($params, function ($value): bool {
+			return !empty($value);
+		});
+		if (count($params) === 0) {
+			throw new LibresignException($this->l10n->t('Empty identify data.'));
+		}
+		if (count($params) > 1) {
+			throw new LibresignException($this->l10n->t('Do not use mixed identify data.'));
+		}
+
+		$currentIdentifyMethod = key($params);
+		$this->validateIdentifyMethods([$currentIdentifyMethod]);
+		$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($currentIdentifyMethod, current($params));
+		if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
+			throw new LibresignException($this->l10n->t('File already signed.'));
+		}
+		$identifyMethod->getEntity()->setFileUserId($fileUser->getId());
+		$identifyMethod->getEntity()->setIdentifierValue(current($params));
+		$identifyMethod->validateToSign($user);
+	}
+
+	public function validateIdentifyMethods(array $identifyMethods): void {
+		foreach ($identifyMethods as $identifyMethod) {
+			if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
+				// TRANSLATORS When is requested to a person to sign a file, is
+				// necessary identify what is the identification method. The
+				// identification method is used to define how will be the sign
+				// flow.
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
 		}
 	}
 

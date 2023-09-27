@@ -25,6 +25,8 @@ import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
 
 const libresignVar = loadState('libresign', 'config')
+const isCompleteAdminConfig = libresignVar?.settings?.certificateOk
+const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
 
 const routes = [
 	{
@@ -77,11 +79,16 @@ const routes = [
 	// internal pages
 	{
 		path: '/f/',
-		redirect: { name: libresignVar.settings.certificateOk ? 'requestFiles' : 'signFiles'},
+		redirect: { name: initUrl },
 	},
 	{
 		path: '/',
-		redirect: { name: libresignVar.settings.certificateOk ? 'requestFiles' : 'signFiles' },
+		redirect: { name: initUrl },
+	},
+	{
+		path: '/f/incomplete',
+		component: () => import('../views/IncompleteCertification.vue'),
+		name: 'incomplete',
 	},
 	{
 		path: '/f/validation',
@@ -110,15 +117,18 @@ const routes = [
 		path: '/f/request',
 		component: () => import('../views/Request.vue'),
 		name: 'requestFiles',
-	}, {
+	},
+	{
 		path: '/f/account',
 		component: () => import('../views/Account/Account.vue'),
 		name: 'Account',
-	}, {
+	},
+	{
 		path: '/f/docs/accounts/validation',
 		component: () => import('../views/Documents/AccountValidation.vue'),
 		name: 'DocsAccountValidation',
-	}, {
+	},
+	{
 		path: '/f/create-password',
 		component: () => import('../views/CreatePassword.vue'),
 		name: 'CreatePassword',

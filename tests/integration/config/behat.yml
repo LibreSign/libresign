@@ -12,7 +12,8 @@ default:
   extensions:
     rpkamp\Behat\MailhogExtension:
       base_url: http://mailhog:8025
-    PhpBuiltin\Server: ~
+    PhpBuiltin\Server:
+      runAs: www-data
     jarnaiz\JUnitFormatter\JUnitFormatterExtension:
       filename: report.xml
       outputDir: '%paths.base%/../output/'

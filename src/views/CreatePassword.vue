@@ -8,7 +8,7 @@
 			<div class="container">
 				<div class="input-group">
 					<label for="password">{{ t('libresign', 'Enter a password') }}</label>
-					<Input v-model="password" type="password" />
+					<NcPasswordField :value.sync="password" />
 				</div>
 				<button :class="hasLoading? 'btn-load loading primary btn-confirm': 'primary btn-confirm'"
 					@click="checkPasswordForConfirm">
@@ -23,16 +23,16 @@
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import Input from '../Components/Input/Input.vue'
+import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'CreatePassword',
 	components: {
 		NcContent,
-		Input,
+		NcPasswordField,
 	},
 	data() {
 		return {
@@ -51,7 +51,7 @@ export default {
 		async send() {
 			this.hasLoading = true
 			try {
-				await axios.post(generateUrl('/apps/libresign/api/0.1/account/signature'), {
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
 					signPassword: this.password,
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))

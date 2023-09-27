@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\QBMapper;
@@ -13,19 +35,13 @@ use OCP\IL10N;
  * @package OCA\Libresign\DB
  */
 class FileMapper extends QBMapper {
-	/** @var IL10N */
-	private $l;
 	/** @var File[] */
-	private $file;
+	private $file = [];
 
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(
 		IDBConnection $db,
-		IL10N $l
+		private IL10N $l
 	) {
-		$this->l = $l;
 		parent::__construct($db, 'libresign_file');
 	}
 
@@ -35,69 +51,78 @@ class FileMapper extends QBMapper {
 	 * @return File Row of table libresign_file
 	 */
 	public function getById(int $id): File {
-		if (empty($this->file['id'][$id])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
-				);
-
-			$this->file['id'][$id] = $this->findEntity($qb);
-			$this->file['uuid'][$this->file['id'][$id]->getUuid()] = $this->file['id'][$id];
+		foreach ($this->file as $file) {
+			if ($file->getId() === $id) {
+				return $file;
+			}
 		}
-		return $this->file['id'][$id];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+			);
+
+		$file = $this->findEntity($qb);
+		$this->file[] = $file;
+		return $file;
 	}
 
 	/**
 	 * Return LibreSign file by UUID
 	 */
 	public function getByUuid(?string $uuid = null): File {
-		if (!$uuid) {
-			return array_values($this->file)[0];
+		if (is_null($uuid) && !empty($this->file)) {
+			return current($this->file);
 		}
-		if (empty($this->file[$uuid]) || ($this->file[$uuid]->getUuid() !== $uuid)) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
-				);
-
-			$this->file[$uuid] = $this->findEntity($qb);
-			$this->file['id'][$this->file[$uuid]->getId()] = $this->file[$uuid];
+		foreach ($this->file as $file) {
+			if ($file->getUuid() === $uuid) {
+				return $file;
+			}
 		}
-		return $this->file[$uuid];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
+			);
+
+		$file = $this->findEntity($qb);
+		$this->file[] = $file;
+		return $file;
 	}
 
 	/**
 	 * Return LibreSign file by fileId
 	 */
 	public function getByFileId(?int $fileId = null): File {
-		if (!$fileId) {
-			return array_values($this->file)[0];
+		if (is_null($fileId) && !empty($this->file)) {
+			return current($this->file);
 		}
-		if (empty($this->file[$fileId]) || ($this->file[$fileId]->getNodeId() !== $fileId)) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('*')
-				->from($this->getTableName())
-				->where(
-					$qb->expr()->orX(
-						$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)),
-						$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
-					)
-				);
-
-			$this->file[$fileId] = $this->findEntity($qb);
+		foreach ($this->file as $file) {
+			if ($file->getNodeId() === $fileId) {
+				return $file;
+			}
 		}
-		return $this->file[$fileId];
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->orX(
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+				)
+			);
+
+		$file = $this->findEntity($qb);
+		$this->file[] = $file;
+		return $file;
 	}
 
 	/**
-	 * @param string $userId
 	 * @return File[]
 	 */
 	public function getFilesOfAccount(string $userId): array {
@@ -113,7 +138,9 @@ class FileMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		$return = [];
 		while ($row = $cursor->fetch()) {
-			$return[] = $this->file[$row['id']] = $this->mapRowToEntity($row);
+			$file = $this->mapRowToEntity($row);
+			$this->file[] = $file;
+			$return[] = $file;
 		}
 		return $return;
 	}

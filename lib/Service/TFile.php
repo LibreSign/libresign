@@ -1,34 +1,45 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Helper\ValidateHelper;
-use OCP\Files\IMimeTypeDetector;
+use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
-use OCP\IL10N;
-use Psr\Log\LoggerInterface;
 use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
 use TCPDF_PARSER;
 
 trait TFile {
-	/** @var FolderService */
-	private $folderService;
-	/** @var IClientService */
-	private $client;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IL10N */
-	private $l10n;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
 	/** @var ?string */
 	private $mimetype = null;
+	protected IClientService $client;
 
-	public function getNodeFromData(array $data): \OCP\Files\Node {
+	public function getNodeFromData(array $data): Node {
 		if (!$this->folderService->getUserId()) {
 			$this->folderService->setUserId($data['userManager']->getUID());
+		}
+		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
+			return $data['file']['fileNode'];
 		}
 		if (isset($data['file']['fileId'])) {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);

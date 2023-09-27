@@ -13,10 +13,8 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var ITempManager */
-	private $tempManager;
-	/** @var LoggerInterface|MockObject */
-	private $loggerInterface;
+	private ITempManager $tempManager;
+	private LoggerInterface|MockObject $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -36,7 +34,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testGetMetadataWithFail(string $path, string $errorMessage): void {
 		$this->expectException(LibresignException::class);
-		$this->expectErrorMessageMatches($errorMessage);
+		$this->expectExceptionMessageMatches($errorMessage);
 		$file = $this->createMock(File::class);
 		if (file_exists($path)) {
 			$file->method('getContent')

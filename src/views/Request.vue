@@ -8,8 +8,8 @@
 			<div class="content-request">
 				<File v-show="!isEmptyFile"
 					:file="file"
-					status=0
-					status_text="none"
+					status="0"
+					status-text="none"
 					@sidebar="setSidebarStatus(true)" />
 				<button class="icon icon-folder" @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
@@ -46,10 +46,12 @@
 	</div>
 </template>
 <script>
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
@@ -101,14 +103,21 @@ export default {
 		...mapActions({
 			resetSidebarStatus: 'sidebar/RESET',
 			setSidebarStatus: 'sidebar/setStatus',
-			requestNewSign: 'sign/REQUEST',
 			resetValidateFile: 'validate/RESET',
 			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
 		async send(users) {
 			try {
-				const name = this.file.name.split('.pdf')[0]
-				this.requestNewSign({ fileId: this.file.id, name, users })
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+					file: { fileId: this.file.id },
+					name: this.file.name.split('.pdf')[0],
+					users: users.map((u) => ({
+						identify: {
+							email: u.email,
+						},
+						description: u.description,
+					})),
+				})
 				this.clear()
 			} catch {
 				console.error('error')

@@ -41,8 +41,8 @@ class ApiTestCase extends TestCase {
 	 */
 	protected static $server;
 
-	/** @var SignFileService */
-	private $signFileService;
+	/** @var RequestSignatureService */
+	private $requestSignatureService;
 
 	public static function setUpBeforeClass(): void {
 		parent::setUpBeforeClass();
@@ -53,7 +53,7 @@ class ApiTestCase extends TestCase {
 	public function setUp(): void {
 		parent::setUp();
 		$data = Yaml::parse(file_get_contents('build/site/site/.vuepress/public/specs/api.yaml'));
-		$data['servers'][] = ['url' => 'http://localhost/apps/libresign/api/0.1'];
+		$data['servers'][] = ['url' => 'http://localhost/ocs/v2.php/apps/libresign/api/v1'];
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
@@ -95,52 +95,6 @@ class ApiTestCase extends TestCase {
 			$this->requester = new ApiRequester();
 		}
 		return $this->requester;
-	}
-
-	/**
-	 * @param string $method The HTTP Method: GET, PUT, DELETE, POST, etc
-	 * @param string $path The REST path call
-	 * @param int $statusExpected
-	 * @param array|null $query
-	 * @param array|null $requestBody
-	 * @param array $requestHeader
-	 * @return mixed
-	 * @throws DefinitionNotFoundException
-	 * @throws GenericSwaggerException
-	 * @throws HttpMethodNotFoundException
-	 * @throws InvalidDefinitionException
-	 * @throws NotMatchedException
-	 * @throws PathNotFoundException
-	 * @throws StatusCodeNotMatchedException
-	 * @throws MessageException
-	 * @deprecated Use assertRequest instead
-	 */
-	protected function makeRequest(
-		$method,
-		$path,
-		$statusExpected = 200,
-		$query = null,
-		$requestBody = null,
-		$requestHeader = []
-	) {
-		$this->checkSchema();
-		$body = $this->requester
-			->withSchema($this->schema)
-			->withMethod($method)
-			->withPath($path)
-			->withQuery($query)
-			->withRequestBody($requestBody)
-			->withRequestHeader($requestHeader)
-			->assertResponseCode($statusExpected)
-			->send();
-
-		// Note:
-		// This code is only reached if the send is successful and
-		// all matches are satisfied. Otherwise an error is throwed before
-		// reach this
-		$this->assertTrue(true);
-
-		return $body;
 	}
 
 	/**
@@ -193,6 +147,7 @@ class ApiTestCase extends TestCase {
 
 		$this->mockConfig([
 			'libresign' => [
+				'identify_method' => 'account',
 				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',
 				'country' => 'Brazil',
@@ -215,17 +170,17 @@ class ApiTestCase extends TestCase {
 				'name' => 'userId'
 			];
 		}
-		$file = $this->getSignFileService()->save($data);
+		$file = $this->getRequestSignatureService()->save($data);
 		return $file;
 	}
 
 	/**
-	 * @return \OCA\Libresign\Service\SignFileService
+	 * @return \OCA\Libresign\Service\RequestSignatureService
 	 */
-	public function getSignFileService(): \OCA\Libresign\Service\SignFileService {
-		if (!$this->signFileService) {
-			$this->signFileService = \OC::$server->get(\OCA\Libresign\Service\SignFileService::class);
+	public function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
+		if (!$this->requestSignatureService) {
+			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
 		}
-		return $this->signFileService;
+		return $this->requestSignatureService;
 	}
 }

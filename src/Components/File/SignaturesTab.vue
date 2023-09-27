@@ -1,68 +1,24 @@
 <template>
 	<div class="container-signatures-tab">
-		<ul>
-			<li v-for="sign in signers" :key="sign.uid">
-				<div class="user-name">
-					<div class="icon-sign icon-user" />
-					<span class="name">
-						{{ getName(sign) }}
-					</span>
-				</div>
-				<div class="content-status">
-					<div class="container-dot">
-						<div :class="'dot ' + hasStatus(sign)" />
-						<span class="statusDot">{{ uppercaseString(hasStatus(sign)) }}</span>
-					</div>
-					<div class="container-dot">
-						<div class="icon icon-calendar-dark" />
-						<span v-if="sign.sign_date">{{ timestampsToDate(sign.sign_date) }}</span>
-					</div>
-					<div v-if="showDivButtons(sign)" class="container-actions">
-						<div v-if="showSignButton(sign)" class="container-dot container-btn">
-							<button class="primary" @click="goToSign(sign)">
-								{{ t('libresign', 'Sign') }}
-							</button>
-						</div>
-						<div v-show="showNotifyButton(sign)" class="container-dot container-btn">
-							<button :class="!disableBtn ? 'secondary' : 'loading'" :disabled="disableBtn" @click="sendNotify(sign.email)">
-								{{ t('libresign', 'Send reminder') }}
-							</button>
-						</div>
-						<div>
-							<NcActions v-if="showDelete(sign)">
-								<NcActionButton icon="icon-delete" @click="deleteUserRequest(sign)" />
-							</NcActions>
-						</div>
-					</div>
-				</div>
-			</li>
-		</ul>
-
-		<router-link v-if="isRequester"
-			tag="button"
-			:to="{name: 'f.sign.detail', params: { uuid }}"
-			class="primary">
-			{{ t('libresign', 'Add visible signatures') }}
-		</router-link>
+		<RequestSignature :signers="signers" />
 	</div>
 </template>
 
 <script>
+import RequestSignature from '../Request/RequestSignature.vue'
+
 import axios from '@nextcloud/axios'
 import { format } from 'date-fns'
 import { mapGetters } from 'vuex'
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { getCurrentUser } from '@nextcloud/auth'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import { get, find } from 'lodash-es'
+import { get } from 'lodash-es'
 
 export default {
 	name: 'SignaturesTab',
 	components: {
-		NcActions,
-		NcActionButton,
+		RequestSignature,
 	},
 	data() {
 		return {
@@ -86,14 +42,16 @@ export default {
 		uuid() {
 			return get(this.currentFile, 'uuid', '')
 		},
+		isSigned() {
+			return get(this.currentFile, 'status') === 1
+		},
 	},
 	methods: {
 		hasStatus(item) {
 			if (item.sign_date) {
 				return item.sign_date ? 'signed' : 'pending'
-			} else {
-				return 'pending'
 			}
+			return 'pending'
 		},
 		update() {
 			this.$emit('update')
@@ -102,7 +60,7 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileId}/${user.fileUserId}`))
+					const response = await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileId}/${user.fileUserId}`))
 
 					this.update()
 					showSuccess(response.data.message)
@@ -114,7 +72,7 @@ export default {
 		async sendNotify(email) {
 			try {
 				this.disableBtn = true
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signers'), {
 					fileId: this.fileId,
 					signers: [
 						{
@@ -292,7 +250,6 @@ export default {
 					font-size: 14px;
 					font-weight: normal;
 					text-align: center;
-					color: rgba(0,0,0,.7);
 					cursor: inherit;
 					margin-left: 5px;
 				}

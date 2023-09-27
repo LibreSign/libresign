@@ -8,9 +8,12 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethodService;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -22,32 +25,22 @@ use OCP\Security\IHasher;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var IL10N\|MockObject */
-	private $l10n;
-	/** @var FileUserMapper|MockObject */
-	private $fileUserMapper;
-	/** @var FileMapper|MockObject */
-	private $fileMapper;
-	/** @var FileTypeMapper|MockObject */
-	private $fileTypeMapper;
-	/** @var FileElementMapper|MockObject */
-	private $fileElementMapper;
-	/** @var AccountFileMapper|MockObject */
-	private $accountFileMapper;
-	/** @var UserElementMapper|MockObject */
-	private $userElementMapper;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var IHasher */
-	private $hasher;
-	/** @var IConfig|MockObject */
-	private $config;
-	/** @var IGroupManager|MockObject */
-	private $groupManager;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IRootFolder|MockObject */
-	private $root;
+	private IL10N|MockObject $l10n;
+	private FileUserMapper|MockObject $fileUserMapper;
+	private FileMapper|MockObject $fileMapper;
+	private FileTypeMapper|MockObject $fileTypeMapper;
+	private FileElementMapper|MockObject $fileElementMapper;
+	private AccountFileMapper|MockObject $accountFileMapper;
+	private UserElementMapper|MockObject $userElementMapper;
+	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private IdentifyMethodService $identifyMethodService;
+	private IMimeTypeDetector $mimeTypeDetector;
+	private IHasher $hasher;
+	private IConfig|MockObject $config;
+	private IGroupManager|MockObject $groupManager;
+	private IUserManager $userManager;
+	private IRootFolder|MockObject $root;
+	private IUserMountCache|MockObject $userMountCache;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -60,12 +53,15 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
+		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
+		$this->userMountCache = $this->createMock(IUserMountCache::class);
 	}
 
 	private function getValidateHelper(): ValidateHelper {
@@ -77,12 +73,15 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->fileElementMapper,
 			$this->accountFileMapper,
 			$this->userElementMapper,
+			$this->identifyMethodMapper,
+			$this->identifyMethodService,
 			$this->mimeTypeDetector,
 			$this->hasher,
 			$this->config,
 			$this->groupManager,
 			$this->userManager,
-			$this->root
+			$this->root,
+			$this->userMountCache,
 		);
 		return $validateHelper;
 	}
@@ -108,6 +107,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root->method('getById')->will($this->returnCallback(function () {
 			throw new \Exception('not found');
 		}));
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$this->getValidateHelper()->validateFile([
 			'file' => ['fileId' => 123],
 			'name' => 'test'
@@ -122,6 +124,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn([$file]);
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$actual = $this->getValidateHelper()->validateNewFile([
 			'file' => ['fileId' => 123],
 			'name' => 'test'
@@ -165,6 +170,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$actual = $this->getValidateHelper()->validateMimeTypeAcceptedByNodeId(171, $destination);
 		if (!$exception) {
 			$this->assertNull($actual);
@@ -203,6 +211,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
+		$this->config
+			->method('getAppValue')
+			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->getValidateHelper()->canRequestSign($user);
 	}
@@ -347,34 +358,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testNotSignedWithError() {
-		$this->expectExceptionMessage('%s already signed this file');
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$libresignFile
-			->method('__call')
-			->willReturn('uuid');
-		$this->fileMapper
-			->method('getByFileId')
-			->willReturn($libresignFile);
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getEmail'), $this->anything()],
-				[$this->equalTo('getSigned'), $this->anything()]
-			)
-			->will($this->returnValueMap([
-				['getEmail', [], 'signed@test.coop'],
-				['getSigned', [], date('Y-m-d H:i:s')]
-			]));
-		$this->fileUserMapper
-			->method('getByFileUuid')
-			->willReturn([$fileUser]);
-		$this->getValidateHelper()->notSigned([
-			'email' => 'signed@test.coop'
-		]);
-	}
-
 	public function testNotSignedWithFileNotLoaded() {
 		$this->expectExceptionMessage('File not loaded');
 		$this->fileMapper
@@ -392,6 +375,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnCallback(function () {
 				throw new \Exception('not found');
 			}));
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
@@ -400,6 +386,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn([0 => null]);
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
@@ -407,6 +396,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->root
 			->method('getById')
 			->willReturn(['file']);
+		$this->userMountCache
+			->method('getMountsForFileId')
+			->willreturn([]);
 		$actual = $this->getValidateHelper()->validateIfNodeIdExists(171);
 		$this->assertNull($actual);
 	}
@@ -615,21 +607,28 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @dataProvider dataValidateIdentifyMethod
+	 * @dataProvider datavalidateIdentifyMethods
 	 */
-	public function testValidateIdentifyMethod(string $identifyMethod, bool $throwException): void {
+	public function testvalidateIdentifyMethods(array $identifyMethods, bool $throwException): void {
 		if ($throwException) {
 			$this->expectException(LibresignException::class);
 		}
-		$return = $this->getValidateHelper()->validateIdentifyMethod($identifyMethod);
+		$return = $this->getValidateHelper()->validateIdentifyMethods($identifyMethods);
 		$this->assertNull($return);
 	}
 
-	public function dataValidateIdentifyMethod(): array {
+	public function datavalidateIdentifyMethods(): array {
 		return [
-			['', true],
-			['invalid', true],
-			['nextcloud', false],
+			[[''], true],
+			[['invalid'], true],
+			[['invalid', 'account'], true],
+			[['account', 'invalid'], true],
+			[['password'], false],
+			[['account'], false],
+			[['email'], false],
+			[['sms'], false],
+			[['signal'], false],
+			[['telegram'], false],
 		];
 	}
 }

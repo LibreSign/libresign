@@ -1,22 +1,43 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace OCA\Libresign\Service;
 
+use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
-use OC\Files\Filesystem;
 use OC\Memcache\NullCache;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\CfsslHandler;
-use OCA\Libresign\Handler\CfsslServerHandler;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
-use OCP\Files\File;
-use OCP\Files\Folder;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Files\SimpleFS\ISimpleFile;
+use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Http\Client\IClientService;
 use OCP\ICache;
 use OCP\ICacheFactory;
@@ -30,69 +51,77 @@ use Symfony\Component\Process\Process;
 class InstallService {
 	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
 	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
+	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
 	 */
 	public const CFSSL_VERSION = '1.6.3';
 	/** @var ICache */
 	private $cache;
-	/** @var IConfig */
-	public $config;
-	/** @var IClientService */
-	private $clientService;
-	/** @var IRootFolder */
-	private $rootFolder;
-	/** @var CfsslServerHandler */
-	private $cfsslServerHandler;
-	/** @var CfsslHandler */
-	private $cfsslHandler;
 	/** @var OutputInterface */
 	private $output;
-	/** @var bool */
 	/** @var string */
 	private $resource = '';
-	/** @var LoggerInterface */
-	private $logger;
+	protected IAppData $appData;
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
-		IClientService $clientService,
-		CfsslServerHandler $cfsslServerHandler,
-		CfsslHandler $cfsslHandler,
-		IConfig $config,
-		IRootFolder $rootFolder,
-		LoggerInterface $logger
+		private IClientService $clientService,
+		private CertificateEngineHandler $certificateEngineHandler,
+		private IConfig $config,
+		private IRootFolder $rootFolder,
+		private LoggerInterface $logger,
+		protected IAppDataFactory $appDataFactory,
 	) {
 		$this->cache = $cacheFactory->createDistributed('libresign-setup');
-		$this->clientService = $clientService;
-		$this->cfsslServerHandler = $cfsslServerHandler;
-		$this->cfsslHandler = $cfsslHandler;
-		$this->config = $config;
-		$this->rootFolder = $rootFolder;
-		$this->logger = $logger;
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function setOutput(OutputInterface $output): void {
 		$this->output = $output;
 	}
 
-	private function getFolder(string $path = ''): Folder {
-		$rootFolder = $this->getAppRootFolder();
-		if ($rootFolder->nodeExists(Application::APP_ID . DIRECTORY_SEPARATOR . $path)) {
-			$folder = $rootFolder->get(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
-		} else {
-			$folder = $rootFolder->newFolder(Application::APP_ID . DIRECTORY_SEPARATOR . $path);
+	private function getFolder(string $path = ''): ISimpleFolder {
+		$folder = $this->appData->getFolder('/');
+		if ($path) {
+			try {
+				$folder = $folder->getFolder($path);
+			} catch (\Throwable $th) {
+				$folder = $folder->newFolder($path);
+			}
 		}
 		return $folder;
 	}
 
-	private function getAppDataFolderName(): string {
-		$instanceId = $this->config->getSystemValue('instanceid', null);
-		if ($instanceId === null) {
-			throw new \RuntimeException('no instance id!');
-		}
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFolder(ISimpleFolder $node): string {
+		$reflection = new \ReflectionClass($node);
+		$reflectionProperty = $reflection->getProperty('folder');
+		$reflectionProperty->setAccessible(true);
+		$folder = $reflectionProperty->getValue($node);
+		$path = $folder->getInternalPath();
+		return $path;
+	}
 
-		return 'appdata_' . $instanceId;
+	/**
+	 * @todo check a best solution to don't use reflection
+	 */
+	private function getInternalPathOfFile(ISimpleFile $node): string {
+		$reflection = new \ReflectionClass($node);
+		if ($reflection->hasProperty('parentFolder')) {
+			$reflectionProperty = $reflection->getProperty('parentFolder');
+			$reflectionProperty->setAccessible(true);
+			$folder = $reflectionProperty->getValue($node);
+			$path = $folder->getInternalPath() . DIRECTORY_SEPARATOR . $node->getName();
+		} elseif ($reflection->hasProperty('file')) {
+			$reflectionProperty = $reflection->getProperty('file');
+			$reflectionProperty->setAccessible(true);
+			$file = $reflectionProperty->getValue($node);
+			$path = $file->getPath();
+		}
+		return $path;
 	}
 
 	private function getDataDir(): string {
@@ -100,37 +129,14 @@ class InstallService {
 		return $dataDir;
 	}
 
-	private function getAppRootFolder(): Folder {
-		$path = $this->getAppDataFolderName();
-		$mount = Filesystem::getMountManager()->find($path);
-		$storage = $mount->getStorage();
-		$internalPath = $mount->getInternalPath($path);
-		if ($storage->file_exists($internalPath)) {
-			$folder = $this->rootFolder->get($path);
-		} else {
-			$folder = $this->rootFolder->newFolder($path);
-		}
-		return $folder;
-	}
-
 	public function getFullPath(): string {
 		$folder = $this->getFolder();
-		return $this->getDataDir() . '/' . $folder->getInternalPath();
-	}
-
-	/**
-	 * Return the config path, create if not exist.
-	 *
-	 * @return string Full config path
-	 */
-	public function getConfigPath(): string {
-		$this->getFolder('cfssl_config');
-		return $this->getFullPath() . DIRECTORY_SEPARATOR . 'cfssl_config' . DIRECTORY_SEPARATOR;
+		return $this->getDataDir() . '/' . $this->getInternalPathOfFolder($folder);
 	}
 
 	private function runAsync(): void {
 		$resource = $this->resource;
-		$process = new Process(['./occ', 'libresign:install', '--' . $resource]);
+		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
@@ -157,16 +163,13 @@ class InstallService {
 	/**
 	 * @param string $key
 	 * @param mixed $value
-	 * @return void
 	 */
 	private function setCache(string $key, $value): void {
 		if ($this->cache instanceof NullCache) {
 			$appFolder = $this->getFolder();
 			try {
-				/** @var File */
-				$file = $appFolder->get('setup-cache.json');
+				$file = $appFolder->getFile('setup-cache.json');
 			} catch (\Throwable $th) {
-				/** @var File */
 				$file = $appFolder->newFile('setup-cache.json', '[]');
 			}
 			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -178,15 +181,13 @@ class InstallService {
 	}
 
 	/**
-	 * @param string $key
 	 * @return mixed
 	 */
 	private function getCache(string $key) {
 		if ($this->cache instanceof NullCache) {
 			$appFolder = $this->getFolder();
 			try {
-				/** @var File */
-				$file = $appFolder->get('setup-cache.json');
+				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
 			} catch (\Throwable $th) {
@@ -200,7 +201,7 @@ class InstallService {
 		if ($this->cache instanceof NullCache) {
 			$appFolder = $this->getFolder();
 			try {
-				$file = $appFolder->get('setup-cache.json');
+				$file = $appFolder->getFile('setup-cache.json');
 				$file->delete();
 			} catch (\Throwable $th) {
 			}
@@ -213,6 +214,7 @@ class InstallService {
 		$resources = [
 			'java',
 			'jsignpdf',
+			'pdftk',
 			'cfssl'
 		];
 		$return = [];
@@ -242,13 +244,7 @@ class InstallService {
 			return;
 		}
 		$extractDir = $this->getFullPath() . DIRECTORY_SEPARATOR . 'java';
-		$appFolder = $this->getFolder();
-		if ($appFolder->nodeExists('java')) {
-			/** @var Folder */
-			$javaFolder = $appFolder->get('java');
-		} else {
-			$javaFolder = $appFolder->newFolder('java');
-		}
+		$javaFolder = $this->getFolder('java');
 
 		/**
 		 * Steps to update:
@@ -274,12 +270,12 @@ class InstallService {
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
 		$hash = $this->getHash($folder, 'java', $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
-		if (!$javaFolder->nodeExists($compressedFileName)) {
+		try {
+			$compressedFile = $javaFolder->getFile($compressedFileName);
+		} catch (NotFoundException $th) {
 			$compressedFile = $javaFolder->newFile($compressedFileName);
-		} else {
-			$compressedFile = $javaFolder->get($compressedFileName);
 		}
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
 
@@ -296,17 +292,18 @@ class InstallService {
 		if (!$javaPath) {
 			return;
 		}
-		$appFolder = $this->getAppRootFolder();
+		$appFolder = $this->getFolder('/');
 		$name = $appFolder->getName();
 		if (!strpos($javaPath, $name)) {
 			return;
 		}
 		if (PHP_OS_FAMILY !== 'Windows') {
-			exec('rm -rf ' . $this->getDataDir() . '/' . $this->getFolder()->getInternalPath() . '/java');
+			exec('rm -rf ' . $this->getDataDir() . '/' . $this->getInternalPathOfFolder($this->getFolder()) . '/java');
 		}
-		if ($appFolder->nodeExists('/libresign/java')) {
-			$javaFolder = $appFolder->get('/libresign/java');
+		try {
+			$javaFolder = $appFolder->getFolder('/libresign/java');
 			$javaFolder->delete();
+		} catch (NotFoundException $th) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
@@ -323,15 +320,15 @@ class InstallService {
 		$extractDir = $this->getFullPath();
 
 		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
-		if (!$this->getFolder()->nodeExists($compressedFileName)) {
+		try {
+			$compressedFile = $this->getFolder()->getFile($compressedFileName);
+		} catch (\Throwable $th) {
 			$compressedFile = $this->getFolder()->newFile($compressedFileName);
-		} else {
-			$compressedFile = $this->getFolder()->get($compressedFileName);
 		}
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
-		$url = 'https://sourceforge.net/projects/jsignpdf/files/stable/JSignPdf%20' . JSignPdfHandler::VERSION . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
+		$url = 'https://github.com/intoolswetrust/jsignpdf/releases/download/JSignPdf_' . str_replace('.', '_', JSignPdfHandler::VERSION) . '/jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
-		$hash = '327182016506f57109270d4875851784';
+		$hash = '7c66f5a9f5e7e35b601725414491a867';
 
 		$this->download($url, 'JSignPdf', $comporessedInternalFileName, $hash);
 
@@ -348,21 +345,66 @@ class InstallService {
 		if (!$jsignpdJarPath) {
 			return;
 		}
-		$appFolder = $this->getAppRootFolder();
+		$appFolder = $this->appData->getFolder('/');
 		$name = $appFolder->getName();
 		// Remove prefix
 		$path = explode($name, $jsignpdJarPath)[1];
 		// Remove sufix
 		$path = trim($path, DIRECTORY_SEPARATOR . 'JSignPdf.jar');
 		try {
-			$folder = $appFolder->get($path);
+			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
 
+	public function installPdftk(?bool $async = false): void {
+		$this->setResource('pdftk');
+		if ($async) {
+			$this->runAsync();
+			return;
+		}
+
+		try {
+			$file = $this->getFolder()->getFile('pdftk');
+		} catch (\Throwable $th) {
+			$file = $this->getFolder()->newFile('pdftk');
+		}
+		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
+		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk';
+		/** WHEN UPDATE version: generate this hash handmade and update here */
+		$hash = 'dc5abe9885b26c616821ba1f24f03195';
+
+		$this->download($url, 'pdftk', $fullPath, $hash);
+
+		chmod($fullPath, 0700);
+
+		$this->config->setAppValue(Application::APP_ID, 'pdftk_path', $fullPath);
+		$this->removeDownloadProgress();
+	}
+
+	public function uninstallPdftk(): void {
+		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+		if (!$jsignpdJarPath) {
+			return;
+		}
+		$appFolder = $this->appData->getFolder('/');
+		$name = $appFolder->getName();
+		// Remove prefix
+		$path = explode($name, $jsignpdJarPath)[1];
+		try {
+			$file = $appFolder->getFile($path);
+			$file->delete();
+		} catch (NotFoundException $e) {
+		}
+		$this->config->deleteAppValue(Application::APP_ID, 'pdftk_path');
+	}
+
 	public function installCfssl(?bool $async = false): void {
+		if ($this->certificateEngineHandler->getEngine()->getName() !== 'cfssl') {
+			return;
+		}
 		$this->setResource('cfssl');
 		if ($async) {
 			$this->runAsync();
@@ -399,7 +441,7 @@ class InstallService {
 			$hash = $this->getHash($folder, 'cfssl', $download['file'], self::CFSSL_VERSION, $checksumUrl);
 
 			$file = $folder->newFile($download['destination']);
-			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $file->getInternalPath();
+			$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
 
 			$this->download($baseUrl . $download['file'], $download['destination'], $fullPath, $hash, 'sha256');
 
@@ -407,30 +449,29 @@ class InstallService {
 		}
 
 		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
-			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
+			$this->getInternalPathOfFolder($this->getFolder()) . DIRECTORY_SEPARATOR .
 			$downloads[0]['destination'];
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 	}
 
 	private function installCfsslArm(): void {
 		$appFolder = $this->getFolder();
-		if ($appFolder->nodeExists('cfssl')) {
-			/** @var Folder */
-			$cfsslFolder = $appFolder->get('cfssl');
-		} else {
+		try {
+			$cfsslFolder = $appFolder->getFolder('cfssl');
+		} catch (NotFoundException $th) {
 			$cfsslFolder = $appFolder->newFolder('cfssl');
 		}
 		$compressedFileName = 'cfssl-' . self::CFSSL_VERSION . '-1-aarch64.pkg.tar.xz';
 		$url = 'http://mirror.archlinuxarm.org/aarch64/community/' . $compressedFileName;
 		// Generated handmade with command sha256sum
 		$hash = '944a6c54e53b0e2ef04c9b22477eb5f637715271c74ccea9bb91d7ac0473b855';
-		if (!$cfsslFolder->nodeExists($compressedFileName)) {
+		try {
+			$compressedFile = $cfsslFolder->getFile($compressedFileName);
+		} catch (NotFoundException $th) {
 			$compressedFile = $cfsslFolder->newFile($compressedFileName);
-		} else {
-			$compressedFile = $cfsslFolder->get($compressedFileName);
 		}
 
-		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $compressedFile->getInternalPath();
+		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
 
 		$this->download($url, 'cfssl', $comporessedInternalFileName, $hash, 'sha256');
 
@@ -443,7 +484,7 @@ class InstallService {
 			throw new \RuntimeException('Error to extract xz file. Install xz. Read more: https://github.com/codemasher/php-ext-xz');
 		}
 		$cfsslBinPath = $this->getDataDir() . DIRECTORY_SEPARATOR .
-			$this->getFolder()->getInternalPath() . DIRECTORY_SEPARATOR .
+			$this->getInternalPathOfFolder($this->getFolder()) . DIRECTORY_SEPARATOR .
 			'cfssl/usr/bin/cfssl';
 		$this->config->setAppValue(Application::APP_ID, 'cfssl_bin', $cfsslBinPath);
 	}
@@ -453,12 +494,12 @@ class InstallService {
 		if (!$cfsslPath) {
 			return;
 		}
-		$appFolder = $this->getAppRootFolder();
+		$appFolder = $this->appData->getFolder('/');
 		$name = $appFolder->getName();
 		// Remove prefix
 		$path = explode($name, $cfsslPath)[1];
 		try {
-			$folder = $appFolder->get($path);
+			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException $e) {
 		}
@@ -534,17 +575,17 @@ class InstallService {
 		}
 	}
 
-	private function getHash(Folder $folder, string $type, string $file, string $version, string $checksumUrl): string {
+	private function getHash(ISimpleFolder $folder, string $type, string $file, string $version, string $checksumUrl): string {
 		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
-		if (!$folder->nodeExists($hashFileName)) {
+		try {
+			$fileObject = $folder->getFile($hashFileName);
+		} catch (NotFoundException $th) {
 			$hashes = file_get_contents($checksumUrl);
 			if (!$hashes) {
 				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
 			}
-			$folder->newFile($hashFileName, $hashes);
+			$fileObject = $folder->newFile($hashFileName, $hashes);
 		}
-		/** @var \OCP\Files\File */
-		$fileObject = $folder->get($hashFileName);
 		$hashes = $fileObject->getContent();
 		if (!$hashes) {
 			throw new LibresignException(
@@ -556,66 +597,33 @@ class InstallService {
 		return $matches['hash'];
 	}
 
+	/**
+	 * @todo Use an custom array for engine options
+	 */
 	public function generate(
 		string $commonName,
 		array $names = [],
-		string $configPath = '',
-		string $cfsslUri = '',
-		string $binary = ''
+		array $properties = [],
 	): void {
-		$key = bin2hex(random_bytes(16));
-
-		if (!$configPath) {
-			$configPath = $this->getConfigPath();
-		}
-		$this->cfsslHandler->setConfigPath($configPath);
-		$this->cfsslServerHandler->createConfigServer(
-			$commonName,
-			$names,
-			$key,
-			$configPath
-		);
-		if (!$cfsslUri) {
-			$cfsslUri = CfsslHandler::CFSSL_URI;
-			if (!$binary) {
-				$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-				if ($binary && !file_exists($binary)) {
-					$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
-					$binary = '';
-				}
-				if (!$binary) {
-					/**
-					 * @todo Suggestion: run this in a background proccess
-					 * to make more fast the setup and, maybe, implement a new endpoint
-					 * to start downloading of all binaries files in a background process
-					 * and return the status progress of download.
-					 */
-					$this->installCfssl();
-					$binary = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-				}
-			}
-		}
-		$this->cfsslHandler->setCfsslUri($cfsslUri);
-		if ($binary) {
-			$this->cfsslHandler->setBinary($binary);
-			$this->cfsslHandler->genkey();
-		}
-		for ($i = 1; $i <= 4; $i++) {
-			if ($this->cfsslHandler->health($cfsslUri)) {
-				break;
-			}
-			// @codeCoverageIgnoreStart
-			sleep(2);
-			// @codeCoverageIgnoreEnd
-		}
-
-		$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode([
+		$rootCert = [
 			'commonName' => $commonName,
 			'names' => $names
-		]));
-		$this->config->setAppValue(Application::APP_ID, 'authkey', $key);
-		$this->config->setAppValue(Application::APP_ID, 'cfsslUri', $cfsslUri);
-		$this->config->setAppValue(Application::APP_ID, 'configPath', $configPath);
-		$this->config->setAppValue(Application::APP_ID, 'notifyUnsignedUser', 1);
+		];
+		$engine = $this->certificateEngineHandler->getEngine($properties['engine'] ?? '', $rootCert);
+		if ($engine->getEngine() === 'cfssl') {
+			$engine->setCfsslUri($properties['cfsslUri']);
+		}
+
+		$engine->setConfigPath($properties['configPath']);
+
+		$privateKey = $engine->generateRootCert(
+			$commonName,
+			$names
+		);
+
+		$this->config->setAppValue(Application::APP_ID, 'root_cert', json_encode($rootCert));
+		$this->config->setAppValue(Application::APP_ID, 'authkey', $privateKey);
+		$this->config->setAppValue(Application::APP_ID, 'config_path', $engine->getConfigPath());
+		$this->config->setAppValue(Application::APP_ID, 'notify_unsigned_user', 1);
 	}
 }

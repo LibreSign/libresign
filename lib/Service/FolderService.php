@@ -1,8 +1,31 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -12,24 +35,13 @@ use OCP\IL10N;
 use OCP\IUser;
 
 class FolderService {
-	/** @var IRootFolder */
-	private $root;
-	/** @var IConfig */
-	private $config;
-	/** @var IL10N */
-	private $l10n;
-	/** @var string|null */
-	private $userId;
-
 	public function __construct(
-		IRootFolder $root,
-		IConfig $config,
-		IL10N $l10n,
-		?string $userId
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
+		private IConfig $config,
+		private IL10N $l10n,
+		private ?string $userId,
 	) {
-		$this->root = $root;
-		$this->config = $config;
-		$this->l10n = $l10n;
 		$this->userId = $userId;
 	}
 
@@ -47,13 +59,14 @@ class FolderService {
 	 * @psalm-suppress MixedReturnStatement
 	 * @psalm-suppress InvalidReturnStatement
 	 * @psalm-suppress MixedMethodCall
-	 * @param int $nodeId
-	 * @return Folder
 	 */
 	public function getFolder(int $nodeId = null): Folder {
 		if ($nodeId) {
-			$userFolder = $this->root->getUserFolder($this->getUserId());
-			$node = $userFolder->getById($nodeId);
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$node = $this->root->getById($nodeId);
 			if (!$node) {
 				throw new \Exception('Invalid node');
 			}
@@ -67,9 +80,6 @@ class FolderService {
 	 * Finds a folder and creates it if non-existent
 	 *
 	 * @psalm-suppress MixedReturnStatement
-	 *
-	 * @return Folder
-	 *
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
@@ -86,7 +96,6 @@ class FolderService {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @return string
 	 */
 	public function getLibreSignDefaultPath(): string {
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');

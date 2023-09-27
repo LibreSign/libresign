@@ -23,9 +23,12 @@
 
 <template>
 	<NcSettingsSection :title="title">
+		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
-		<RootCertificate />
+		<RootCertificateCfssl />
+		<RootCertificateOpenSsl />
+		<IdentifierFactor />
 		<SignPage />
 		<AllowedGroups />
 		<LegalInformation />
@@ -36,24 +39,30 @@
 </template>
 
 <script>
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import CertificateEngine from './CertificateEngine.vue'
 import DownloadBinaries from './DownloadBinaries.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
-import RootCertificate from './RootCertificate.vue'
+import RootCertificateCfssl from './RootCertificateCfssl.vue'
+import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import SignPage from './SignPage.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
+import IdentifierFactor from './IdentifierFactor.vue'
 
 export default {
 	name: 'Settings',
 	components: {
 		NcSettingsSection,
+		CertificateEngine,
 		DownloadBinaries,
 		ConfigureCheck,
-		RootCertificate,
+		RootCertificateCfssl,
+		RootCertificateOpenSsl,
+		IdentifierFactor,
 		SignPage,
 		AllowedGroups,
 		LegalInformation,
@@ -65,7 +74,7 @@ export default {
 		return {
 			title: t('libresign', 'LibreSign'),
 		}
-	}
+	},
 }
 
 </script>

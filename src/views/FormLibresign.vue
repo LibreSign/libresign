@@ -46,10 +46,10 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { translate as t } from '@nextcloud/l10n'
 export default {
 	name: 'FormLibresign',
@@ -82,8 +82,8 @@ export default {
 			this.updating = true
 			try {
 				const response = await axios.post(
-					generateUrl('/apps/libresign/api/0.1/account/signature'),
-					this.signature
+					generateOcsUrl('/apps/libresign/api/v1/account/signature'),
+					this.signature,
 				)
 				if (!response.data || !response.data.signature) {
 					throw new Error(response.data)

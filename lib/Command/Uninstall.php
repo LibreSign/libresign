@@ -1,26 +1,34 @@
 <?php
 
 declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 namespace OCA\Libresign\Command;
 
-use OCA\Libresign\Service\InstallService;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Uninstall extends Base {
-	public function __construct(
-		InstallService $installService,
-		LoggerInterface $logger
-	) {
-		parent::__construct(
-			$installService,
-			$logger
-		);
-	}
-
 	protected function configure(): void {
 		$this
 			->setName('libresign:uninstall')
@@ -34,6 +42,11 @@ class Uninstall extends Base {
 				null,
 				InputOption::VALUE_NONE,
 				'JSignPdf'
+			)
+			->addOption('pdftk',
+				null,
+				InputOption::VALUE_NONE,
+				'PDFtk'
 			)
 			->addOption('cfssl',
 				null,
@@ -58,6 +71,10 @@ class Uninstall extends Base {
 			}
 			if ($input->getOption('jsignpdf') || $all) {
 				$this->installService->uninstallJSignPdf();
+				$ok = true;
+			}
+			if ($input->getOption('pdftk') || $all) {
+				$this->installService->uninstallPdftk();
 				$ok = true;
 			}
 			if ($input->getOption('cfssl') || $all) {

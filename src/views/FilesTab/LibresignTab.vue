@@ -26,120 +26,31 @@
 		<NcAppSidebarTab id="libresign-tab"
 			icon="icon-rename"
 			:name="t('libresign', 'LibreSign')">
-			<div v-show="showButtons" class="lb-ls-buttons">
-				<NcEmptyContent v-if="!hasSign && !canRequestSign && !haveRequest && !showValidation"
-					:title="t('libresign', 'Nothing to do')">
-				</NcEmptyContent>
-				<button v-if="hasSign" class="primary" @click="gotoSign">
-					{{ t('libresign', 'Sign') }}
-				</button>
-				<button v-if="canRequestSign"
-					v-show="showRequest"
-					class="primary"
-					@click="option('request')">
-					{{ t('libresign', 'Request') }}
-				</button>
-				<button v-if="haveRequest" @click="option('signatures')">
-					{{ t('libresign', 'Status') }}
-				</button>
-				<button v-if="haveRequest" @click="gotoDetails(uuid)">
-					{{ t('libresign', 'Details') }}
-				</button>
-				<button v-if="showValidation" @click="redirectToValidation">
-					{{ t('libresign', 'Validate Document') }}
-				</button>
-			</div>
-
-			<!-- <Sign v-show="signShow"
-				ref="sign"
-				:disabled="disabledSign"
-				:pfx="hasPfx"
-				:has-loading="loadingInput"
-				@sign:document="signDocument">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('sign')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Sign> -->
-
-			<Request v-show="requestShow"
-				ref="request"
-				:fileinfo="fileInfo"
-				@request:signatures="requestSignatures">
-				<template slot="actions">
-					<button class="lb-ls-return-button" @click="option('request')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</template>
-			</Request>
-
-			<div v-if="signaturesShow" id="signers" class="container-signers">
-				<div class="content-signers">
-					<ul>
-						<li v-for="signer in signers" :key="signer.uid">
-							<div class="signer-content">
-								<div class="container-dot">
-									<div class="icon-signer icon-user" />
-									<span>
-										{{ getName(signer) }}
-									</span>
-								</div>
-								<div class="container-dot">
-									<div :class="'dot ' + (signer.signed === null ? 'pending' : 'signed')" />
-									<span>
-										{{ signer.signed === null ? t('libresign', 'Pending') : t('libresign','Signed') }}
-									</span>
-								</div>
-								<div v-if="showDivButtons(signer)" class="container-dot container-btn">
-									<!-- <button v-if="showSignButton(signer)" class="primary" @click="changeToSign">
-										{{ t('libresign', 'Sign') }}
-									</button> -->
-									<button v-if="showNotifyButton(signer)" class="primary" @click="resendEmail(signer.email)">
-										{{ t('libresign', 'Send reminder') }}
-									</button>
-									<NcActions v-if="showDelete(signer)">
-										<NcActionButton icon="icon-delete" @click="deleteUserRequest(signer)" />
-									</NcActions>
-								</div>
-							</div>
-						</li>
-					</ul>
-					<button class="lb-ls-return-button" @click="option('signatures')">
-						{{ t('libresign', 'Return') }}
-					</button>
-				</div>
-			</div>
+			<RequestSignature />
 		</NcAppSidebarTab>
 	</NcAppSidebar>
 </template>
 
 <script>
+import RequestSignature from '../../Components/Request/RequestSignature.vue'
+
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { generateUrl } from '@nextcloud/router'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
-import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
-import { getAPPURL } from '../../helpers/path.js'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import { showResponseError } from '../../helpers/errors.js'
 import store from '../../store/index.js'
-import Request from '../../Components/Request/index.js'
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 
 export default {
 	name: 'LibresignTab',
 	store,
 	components: {
+		RequestSignature,
 		NcAppSidebar,
-		NcActions,
-		NcActionButton,
 		NcAppSidebarTab,
-		NcEmptyContent,
-		Request,
 	},
 
 	data() {
@@ -190,17 +101,6 @@ export default {
 		fileInfo(newVal, oldVal) {
 			this.getInfo()
 			this.getMe()
-			this.signShow = false
-			this.requestShow = false
-			this.signaturesShow = false
-
-			if (newVal.name.indexOf('.signed.') !== -1 || newVal.name.indexOf('.assinado.') !== -1) {
-				this.showRequest = false
-				this.showValidation = true
-			} else {
-				this.showRequest = true
-				this.showValidation = false
-			}
 		},
 
 		signers() {
@@ -267,7 +167,7 @@ export default {
 			return t('libresign', 'Account not exist')
 		},
 		async getMe() {
-			const response = await axios.get(generateUrl('/apps/libresign/api/0.1/account/me'))
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			this.hasPfx = response.data.settings.hasSignatureFile
 			this.settings.canPreviewPageAsImage = response.data.settings.canPreviewPageAsImage
 			this.canRequestSign = response.data.settings.canRequestSign
@@ -275,10 +175,18 @@ export default {
 
 		async getInfo() {
 			try {
-				const response = await axios.get(generateUrl(`/apps/libresign/api/0.1/file/validate/file_id/${this.fileInfo.id}`))
+				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.fileInfo.id}`))
 				this.canSign = response.data.settings.canSign
 				this.uuid = response.data.uuid
 				this.settings = { ...response.data.settings }
+
+				if (response.data.status === 2 || response.data.status === 3) {
+					this.showRequest = false
+					this.showValidation = true
+				} else {
+					this.showRequest = true
+					this.showValidation = false
+				}
 
 				if (response.data.signers) {
 					this.haveRequest = true
@@ -298,7 +206,7 @@ export default {
 		gotoSign(e) {
 			// console.log({ x: this })
 			e.preventDefault()
-			const href = getAPPURL(`/p/sign/${this.settings.signerFileUuid}`)
+			const href = generateUrl(`/apps/libresign/p/sign/${this.settings.signerFileUuid}`)
 
 			window.location.href = href
 		},
@@ -313,7 +221,7 @@ export default {
 				this.loadingInput = true
 				this.disabledSign = true
 
-				const response = await axios.post(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}`), {
+				const response = await axios.post(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileInfo.id}`), {
 					password: param,
 				})
 
@@ -326,7 +234,7 @@ export default {
 				return OCA.Files.App.fileList.reload()
 			} catch (err) {
 				if (err.response.data.action === 400) {
-					window.location.href = generateUrl('/apps/libresign/reset-password?redirect=CreatePassword')
+					window.location.href = generateOcsUrl('/apps/libresign/reset-password?redirect=CreatePassword')
 				}
 				this.disabledSign = false
 				this.loadingInput = false
@@ -337,7 +245,7 @@ export default {
 			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
 			if (result === true) {
 				try {
-					const response = await axios.delete(generateUrl(`/apps/libresign/api/0.1/sign/file_id/${this.fileInfo.id}/${user.fileUserId}`))
+					const response = await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileInfo.id}/${user.fileUserId}`))
 					if (this.signers.length <= 0) {
 						this.option('signatures')
 					}
@@ -352,7 +260,7 @@ export default {
 
 		async resendEmail(email) {
 			try {
-				const response = await axios.post(generateUrl('/apps/libresign/api/0.1/notify/signers'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signers'), {
 					fileId: this.fileInfo.id,
 					signers: [
 						{
@@ -367,12 +275,16 @@ export default {
 			}
 		},
 
-		async updateRegister(users, fileInfo) {
-			const response = await axios.patch(generateUrl('/apps/libresign/api/0.1/sign/register'), {
-				file: {
-					fileId: this.fileInfo.id,
-				},
-				users,
+		async updateRegister(users) {
+			const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+				file: { fileId: this.fileInfo.id },
+				name: this.fileInfo.name.split('.pdf')[0],
+				users: users.map((u) => ({
+					identify: {
+						email: u.email,
+					},
+					description: u.description,
+				})),
 			})
 			this.option('request')
 			this.clearRequestList()
@@ -381,23 +293,23 @@ export default {
 			return showSuccess(response.data.message)
 		},
 
-		async createRegister(users, fileInfo) {
-			let needElements = false;
+		async createRegister(users) {
+			let needElements = false
 			if (this.settings.canPreviewPageAsImage) {
 				needElements = confirm(t('libresign', 'Do you want to configure visible elements in this document?'))
 			}
 
-			const status = needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN
-
-			const [name] = this.fileInfo.name.split('.pdf')
-			const params = {
-				name,
-				users,
-				status,
-				fileId: this.fileInfo.id,
-			}
-
-			const { message, data } = await signService.createRegister(params)
+			const { message, data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+				file: { fileId: this.fileInfo.id },
+				name: this.fileInfo.name.split('.pdf')[0],
+				users: users.map((u) => ({
+					identify: {
+						email: u.email,
+					},
+					description: u.description,
+				})),
+				status: needElements ? SIGN_STATUS.DRAFT : SIGN_STATUS.ABLE_TO_SIGN,
+			})
 
 			showSuccess(message)
 
@@ -413,14 +325,14 @@ export default {
 				.then(() => this.getInfo())
 		},
 
-		async requestSignatures(users, fileInfo) {
+		async requestSignatures(users) {
 			try {
 				if (this.haveRequest) {
-					await this.updateRegister(users, fileInfo)
+					await this.updateRegister(users)
 					return
 				}
 
-				await this.createRegister(users, fileInfo)
+				await this.createRegister(users)
 
 			} catch (err) {
 				return showResponseError(get(err, ['response'], err))
@@ -428,7 +340,7 @@ export default {
 		},
 
 		gotoDetails(uuid) {
-			const href = getAPPURL(`/f/sign/${uuid}`)
+			const href = generateUrl(`/apps/libresign/f/sign/${uuid}`)
 
 			window.location.href = href
 		},
@@ -453,7 +365,7 @@ export default {
 			this.$refs.request.clearList()
 		},
 		redirectToValidation() {
-			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.fileInfo.id}`)
+			window.location.href = generateUrl(`/apps/libresign/f/validation/${this.uuid}`)
 		},
 	},
 }
@@ -554,7 +466,6 @@ export default {
 						font-size: 14px;
 						font-weight: normal;
 						text-align: center;
-						color: rgba(0,0,0,.7);
 						cursor: inherit;
 						margin-left: 5px;
 					}

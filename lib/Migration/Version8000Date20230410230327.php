@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 /**
  * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
  *
@@ -35,16 +34,12 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version8000Date20230410230327 extends SimpleMigrationStep {
-	protected IConfig $config;
-	protected IAppDataFactory $appDataFactory;
 	protected IAppData $appData;
 
 	public function __construct(
-		IConfig $config,
-		IAppDataFactory $appDataFactory
+		protected IConfig $config,
+		protected IAppDataFactory $appDataFactory
 	) {
-		$this->config = $config;
-		$this->appDataFactory = $appDataFactory;
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
@@ -60,6 +55,5 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 		} catch (NotFoundException $e) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
-		return;
 	}
 }

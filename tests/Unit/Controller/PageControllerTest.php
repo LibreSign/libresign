@@ -4,40 +4,47 @@ namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Controller\PageController;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @group DB
  */
 final class PageControllerTest extends TestCase {
-	/** @var IRequest|MockObject */
-	private $request;
-	/** @var IUserSession|MockObject */
-	private $userSession;
-	/** @var IInitialState|MockObject */
-	private $initialState;
-	/** @var AccountService|MockObject */
-	private $accountService;
-	/** @var IURLGenerator|MockObject */
-	private $url;
-	/** @var PageController */
-	private $controller;
+	private IRequest|MockObject $request;
+	private IUserSession|MockObject $userSession;
+	private IInitialState|MockObject $initialState;
+	private AccountService|MockObject $accountService;
+	private IdentifyMethodService|MockObject $identifyMethodService;
+	private IAppConfig|MockObject $appConfig;
+	private FileService|MockObject $fileService;
+	private IURLGenerator|MockObject $url;
+	private PageController $controller;
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->fileService = $this->createMock(FileService::class);
 		$this->url = $this->createMock(IURLGenerator::class);
 		$this->controller = new PageController(
 			$this->request,
 			$this->userSession,
 			$this->initialState,
 			$this->accountService,
+			$this->identifyMethodService,
+			$this->appConfig,
+			$this->fileService,
 			$this->url
 		);
 	}
@@ -80,7 +87,6 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testGetPdfNotFound() {
-		$file = $this->createMock(\OCP\Files\File::class);
 		$this->accountService
 			->method('getPdfByUuid')
 			->willThrowException($this->createMock(DoesNotExistException::class));

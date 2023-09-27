@@ -42,7 +42,6 @@ $date-signed-font: .7rem;
 		opacity: 0.8;
 		align-self: center;
 		font-size: 1rem;
-		max-height: 100px;
 		overflow: scroll;
 	}
 }
@@ -110,7 +109,6 @@ button{
 	background-color: #FFF;
 	padding: 20px 60px 20px 20px;
 	border-radius: 8px;
-	width: 700px;
 	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 
 	.infor-content{
@@ -146,7 +144,6 @@ button{
 
 .signed {
 	width: 700px;
-	height: 300px;
 	margin-top: 10px;
 	padding-right: 2px;
 	strong {

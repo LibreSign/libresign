@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Db;
 
 use OCA\Libresign\Helper\Pagination;
@@ -16,29 +38,14 @@ use OCP\IURLGenerator;
  * @package OCA\Libresign\DB
  */
 class AccountFileMapper extends QBMapper {
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
-	/**
-	 * @param IDBConnection $db
-	 */
 	public function __construct(
 		IDBConnection $db,
-		IURLGenerator $urlGenerator,
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
-		FileTypeMapper $fileTypeMapper
+		private IURLGenerator $urlGenerator,
+		private FileMapper $fileMapper,
+		private FileUserMapper $fileUserMapper,
+		private FileTypeMapper $fileTypeMapper
 	) {
 		parent::__construct($db, 'libresign_account_file');
-		$this->urlGenerator = $urlGenerator;
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
 	}
 
 	public function getByUserAndType(string $userId, string $type): AccountFile {
@@ -106,9 +113,6 @@ class AccountFileMapper extends QBMapper {
 		return $return;
 	}
 
-	/**
-	 * @return Pagination
-	 */
 	private function getUserAccountFile(array $filter = [], bool $count = false): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
@@ -229,7 +233,6 @@ class AccountFileMapper extends QBMapper {
 	/**
 	 * @param array $files
 	 * @param FileUser[] $signers
-	 * @return array
 	 */
 	private function assocFileToFileUserAndFormat(array $files, array $signers): array {
 		foreach ($files as $key => $file) {
@@ -247,7 +250,7 @@ class AccountFileMapper extends QBMapper {
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
 						'fileUserId' => $signer->getId(),
-						'identify' => $signer->getIdentifyMethod(),
+						'identifyMethod' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {
 						$data['sign_date'] = (new \DateTime())

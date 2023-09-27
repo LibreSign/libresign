@@ -1,11 +1,32 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
 use OCA\Libresign\AppInfo\Application;
-use OCP\Files\Node;
 use OCP\IConfig;
 
 class JSignPdfHandler extends SignEngineHandler {
@@ -13,14 +34,11 @@ class JSignPdfHandler extends SignEngineHandler {
 	private $jSignPdf;
 	/** @var JSignParam */
 	private $jSignParam;
-	/** @var IConfig */
-	private $config;
-	public const VERSION = '2.2.0';
+	public const VERSION = '2.2.2';
 
 	public function __construct(
-		IConfig $config
+		private IConfig $config
 	) {
-		$this->config = $config;
 	}
 
 	public function setJSignPdf(JSignPDF $jSignPdf): void {
@@ -38,7 +56,6 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @return JSignParam
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
@@ -63,14 +80,10 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	/**
 	 * @psalm-suppress MixedReturnStatement
-	 * @param Node $inputFile
-	 * @param Node $certificate
-	 * @param string $password
-	 * @return string
 	 */
 	public function sign(): string {
 		$param = $this->getJSignParam()
-			->setCertificate($this->getCertificate()->getContent())
+			->setCertificate($this->getCertificate())
 			->setPdf($this->getInputFile()->getContent())
 			->setPassword($this->getPassword());
 

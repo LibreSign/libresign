@@ -36,10 +36,10 @@
 
 <script>
 import FormLibresign from './FormLibresign.vue'
-import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import { generateOcsUrl } from '@nextcloud/router'
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 
 import { showError } from '@nextcloud/dialogs'
 
@@ -65,7 +65,7 @@ export default {
 			this.error = ''
 			try {
 				const response = await axios.get(
-					generateUrl('/apps/libresign/api/0.1/settings/has-root-cert'),
+					generateOcsUrl('/apps/libresign/api/v1/setting/has-root-cert'),
 				)
 				if (!response.data || !response.data.hasRootCert) {
 					this.error = t('libresign', 'Root certificate has not been configured by the Administrator!')

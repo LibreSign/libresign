@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
@@ -10,6 +32,7 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
@@ -25,40 +48,6 @@ use Psr\Log\LoggerInterface;
 class FileService {
 	use TFile;
 
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
-	/** @var FileElementMapper */
-	private $fileElementMapper;
-	/** @var FileElementService */
-	private $fileElementService;
-	/** @var FolderService */
-	private $folderService;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var AccountService */
-	private $accountService;
-	/** @var IUserSession */
-	private $userSession;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var IClientService */
-	private $client;
-	/** @var IConfig */
-	private $config;
-	/** @var IRootFolder */
-	private $rootFolder;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var IMimeTypeDetector */
-	private $mimeTypeDetector;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IL10N */
-	private $l10n;
 	/** @var bool */
 	private $showSigners = false;
 	/** @var bool */
@@ -82,48 +71,31 @@ class FileService {
 		'hasSignatureFile' => false,
 		'signerFileUuid' => null,
 		'phoneNumber' => '',
-		'signMethod' => 'password'
 	];
 	public const IDENTIFICATION_DOCUMENTS_DISABLED = 0;
 	public const IDENTIFICATION_DOCUMENTS_NEED_SEND = 1;
 	public const IDENTIFICATION_DOCUMENTS_NEED_APPROVAL = 2;
 	public const IDENTIFICATION_DOCUMENTS_APPROVED = 3;
 	public function __construct(
-		FileMapper $fileMapper,
-		FileUserMapper $fileUserMapper,
-		FileElementMapper $fileElementMapper,
-		FileElementService $fileElementService,
-		FolderService $folderService,
-		ValidateHelper $validateHelper,
-		AccountService $accountService,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		IAccountManager $accountManager,
-		IClientService $client,
-		IConfig $config,
-		IRootFolder $rootFolder,
-		IURLGenerator $urlGenerator,
-		IMimeTypeDetector $mimeTypeDetector,
-		LoggerInterface $logger,
-		IL10N $l10n
+		protected FileMapper $fileMapper,
+		protected FileUserMapper $fileUserMapper,
+		protected FileElementMapper $fileElementMapper,
+		protected FileElementService $fileElementService,
+		protected FolderService $folderService,
+		protected ValidateHelper $validateHelper,
+		private AccountService $accountService,
+		private IdentifyMethodService $identifyMethodService,
+		private IUserSession $userSession,
+		private IUserManager $userManager,
+		private IAccountManager $accountManager,
+		protected IClientService $client,
+		private IConfig $config,
+		private IRootFolder $rootFolder,
+		private IURLGenerator $urlGenerator,
+		protected IMimeTypeDetector $mimeTypeDetector,
+		protected LoggerInterface $logger,
+		protected IL10N $l10n
 	) {
-		$this->fileMapper = $fileMapper;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->fileElementMapper = $fileElementMapper;
-		$this->fileElementService = $fileElementService;
-		$this->folderService = $folderService;
-		$this->validateHelper = $validateHelper;
-		$this->accountService = $accountService;
-		$this->userSession = $userSession;
-		$this->userManager = $userManager;
-		$this->accountManager = $accountManager;
-		$this->client = $client;
-		$this->config = $config;
-		$this->rootFolder = $rootFolder;
-		$this->urlGenerator = $urlGenerator;
-		$this->mimeTypeDetector = $mimeTypeDetector;
-		$this->logger = $logger;
-		$this->l10n = $l10n;
 	}
 
 	/**
@@ -207,9 +179,6 @@ class FileService {
 			return $this->signers;
 		}
 		$signers = $this->fileUserMapper->getByFileId($this->file->getId());
-		if ($this->me) {
-			$uid = $this->me->getUID();
-		}
 		foreach ($signers as $signer) {
 			$signatureToShow = [
 				'signed' => $signer->getSigned(),
@@ -218,18 +187,37 @@ class FileService {
 				'me' => false,
 				'fileUserId' => $signer->getId()
 			];
-			if (!empty($uid)) {
-				if ($uid === $this->file->getUserId()) {
-					$signatureToShow['email'] = $signer->getEmail();
-					$user = $this->userManager->getByEmail($signer->getEmail());
-					if ($user) {
+			// @todo refactor this code
+			if ($this->me) {
+				$identifyMethodServices = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId());
+				// Identifi if I'm file owner
+				if ($this->me?->getUID() === $this->file->getUserId()) {
+					$email = array_reduce($identifyMethodServices[IdentifyMethodService::IDENTIFY_EMAIL] ?? [], function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
+						if ($identifyMethod->getEntity()->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
+							$carry = $identifyMethod->getEntity()->getIdentifierValue();
+						}
+						return $carry;
+					});
+					$signatureToShow['email'] = $email;
+					$user = $this->userManager->getByEmail($email);
+					if ($user && count($user) === 1) {
 						$signatureToShow['uid'] = $user[0]->getUID();
 					}
 				}
-				$signatureToShow['me'] = $uid === $signer->getUserId();
-				if ($uid === $signer->getUserId() && !$signer->getSigned()) {
-					$this->settings['canSign'] = true;
-					$this->settings['signerFileUuid'] = $signer->getUuid();
+				// Identify if I'm signer
+				foreach ($identifyMethodServices as $methods) {
+					foreach ($methods as $identifyMethod) {
+						$entity = $identifyMethod->getEntity();
+						$signatureToShow['me'] =
+							$this->me->getEMailAddress() === $entity->getIdentifierValue()
+							|| $this->me->getUID() === $entity->getIdentifierValue();
+						if ($signatureToShow['me']) {
+							if (!$signer->getSigned()) {
+								$this->settings['canSign'] = true;
+								$this->settings['signerFileUuid'] = $signer->getUuid();
+							}
+						}
+					}
 				}
 			}
 			$this->signers[] = $signatureToShow;
@@ -255,8 +243,6 @@ class FileService {
 	}
 
 	/**
-	 * @return array
-	 *
 	 * @psalm-return list<array{elementId: int, fileUserId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
 	 */
 	private function getVisibleElements(): array {
@@ -319,7 +305,6 @@ class FileService {
 				$this->settings['identificationDocumentsWaitingApproval'] = true;
 			}
 		}
-		$this->settings['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		return $this->settings;
 	}
 
@@ -349,11 +334,6 @@ class FileService {
 		return self::IDENTIFICATION_DOCUMENTS_APPROVED;
 	}
 
-	/**
-	 * @return array
-	 *
-	 * @psalm-return array{status: int, statusText: mixed, fileId: int, uuid: int, name: string, file: string, signers?: array, pages?: array, visibleElements?: array}|array<empty>
-	 */
 	private function getFile(): array {
 		$return = [];
 		if (!$this->file) {
@@ -471,7 +451,12 @@ class FileService {
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
-		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted($user->getUID(), $url, $page, $length);
+		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted(
+			$user,
+			$url,
+			$page,
+			$length
+		);
 		$data['pagination']->setRootPath('/file/list');
 		return [
 			'data' => $data['data'],

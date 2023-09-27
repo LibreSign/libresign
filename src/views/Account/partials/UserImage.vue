@@ -1,5 +1,5 @@
 <script>
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
+import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 
 export default {
 	name: 'UserImage',

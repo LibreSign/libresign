@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
  * @copyright Copyright (c) 2022 Vitor Mattos <vitor@php.rio>
  *
@@ -23,24 +25,23 @@
 namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
-use OCA\Libresign\Service\SignatureService;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Service\AccountService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IRequest;
+use OCP\IUserSession;
 
 class TemplateLoader implements IEventListener {
-	/** @var IInitialState */
-	private $initialState;
-	/** @var SignatureService */
-	private $signatureService;
-
 	public function __construct(
-		IInitialState $initialState,
-		SignatureService $signatureService
+		private IRequest $request,
+		private IUserSession $userSession,
+		private AccountService $accountService,
+		private IInitialState $initialState,
+		private CertificateEngineHandler $certificateEngineHandler,
 	) {
-		$this->initialState = $initialState;
-		$this->signatureService = $signatureService;
 	}
 
 	public static function register(IEventDispatcher $dispatcher): void {
@@ -53,7 +54,14 @@ class TemplateLoader implements IEventListener {
 		}
 		$this->initialState->provideInitialState(
 			'certificate_ok',
-			$this->signatureService->hasRootCert()
+			$this->certificateEngineHandler->getEngine()->isSetupOk()
 		);
+
+		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
+			'file_user_uuid',
+			$this->request->getParam('uuid'),
+			$this->userSession->getUser(),
+			'url'
+		));
 	}
 }

@@ -10,12 +10,9 @@ use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	/** @var AccountFileService */
-	private $service;
-	/** @var AccountFileMapper|MockObject */
-	private $accountFileMapper;
-	/** @var IConfig */
-	private $config;
+	private AccountFileService $service;
+	private AccountFileMapper|MockObject $accountFileMapper;
+	private IConfig $config;
 
 	public function setUp(): void {
 		$this->accountFileMapper = $this->createMock(AccountFileMapper::class);

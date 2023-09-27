@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
@@ -10,18 +32,14 @@ use OCP\DB\Types;
  * @method int getId()
  * @method void setFileId(int $fileId)
  * @method int getFileId()
- * @method void setUserId(string $userId)
- * @method string getUserId()
- * @method void setEmail(string $email)
- * @method string getEmail()
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setDescription(string $description)
  * @method string getDescription()
- * @method void setCreatedAt(string $createdAt)
- * @method string getCreatedAt()
- * @method void setSigned(string $signed)
- * @method string getSigned()
+ * @method void setCreatedAt(int $createdAt)
+ * @method int getCreatedAt()
+ * @method void setSigned(int $signed)
+ * @method int getSigned()
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
  * @method void setFullName(string $fullName)
@@ -30,8 +48,6 @@ use OCP\DB\Types;
  * @method string getCode()
  * @method void setMetadata(array $metadata)
  * @method string getMetadata()
- * @method void setIdentifyMethod(string $identifyMethod)
- * @method string getIdentifyMethod()
  */
 class FileUser extends Entity {
 	/** @var integer */
@@ -41,13 +57,11 @@ class FileUser extends Entity {
 	protected $fileId;
 
 	/** @var string */
-	protected $userId;
 
 	/** @var string */
 	protected $uuid;
 
 	/** @var string */
-	protected $email;
 
 	/** @var string */
 	protected $displayName;
@@ -58,10 +72,10 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $description;
 
-	/** @var string */
+	/** @var int */
 	protected $createdAt;
 
-	/** @var string */
+	/** @var int */
 	protected $signed;
 
 	/** @var string */
@@ -70,20 +84,15 @@ class FileUser extends Entity {
 	/** @var string */
 	protected $metadata;
 
-	/** @var string */
-	protected $identifyMethod;
-
 	public function __construct() {
 		$this->addType('id', 'integer');
 		$this->addType('fileId', 'integer');
-		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
-		$this->addType('email', 'string');
 		$this->addType('displayName', 'string');
 		$this->addType('fullName', 'string');
 		$this->addType('description', 'string');
-		$this->addType('createdAt', 'string');
-		$this->addType('signed', 'string');
+		$this->addType('createdAt', 'integer');
+		$this->addType('signed', 'integer');
 		$this->addType('code', 'string');
 		$this->addType('metadata', Types::JSON);
 	}

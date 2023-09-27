@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Service;
 
 use OC\AppFramework\Utility\TimeFactory;
@@ -13,11 +35,15 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\Config\IMountProviderCollection;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -31,102 +57,43 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	/** @var IL10N */
-	private $l10n;
-	/** @var FileUserMapper */
-	private $fileUserMapper;
 	/** @var FileUser */
 	private $fileUser;
-	/** @var IUserManager */
-	protected $userManager;
-	/** @var IAccountManager */
-	private $accountManager;
-	/** @var IRootFolder */
-	private $root;
-	/** @var IConfig */
-	private $config;
-	/** @var NewUserMailHelper */
-	private $newUserMail;
-	/** @var ValidateHelper */
-	private $validateHelper;
-	/** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var Pkcs12Handler */
-	private $pkcs12Handler;
-	/** @var FileMapper */
-	private $fileMapper;
-	/** @var FileTypeMapper */
-	private $fileTypeMapper;
-	/** @var AccountFileMapper */
-	private $accountFileMapper;
-	/** @var SignFileService */
-	private $signFileService;
-	/** @var SignatureService */
-	private $signatureService;
 	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
 	private $fileToSign;
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var AccountFileService */
-	private $accountFileService;
-	/** @var UserElementMapper */
-	private $userElementMapper;
-	/** @var FolderService */
-	private $folderService;
-	/** @var IClientService */
-	private $clientService;
-	/** @var TimeFactory */
-	private $timeFactory;
 
 	public const ELEMENT_SIGN_WIDTH = 350;
 	public const ELEMENT_SIGN_HEIGHT = 100;
 
 	public function __construct(
-		IL10N $l10n,
-		FileUserMapper $fileUserMapper,
-		IUserManager $userManager,
-		IAccountManager $accountManager,
-		IRootFolder $root,
-		FileMapper $fileMapper,
-		FileTypeMapper $fileTypeMapper,
-		AccountFileMapper $accountFileMapper,
-		SignFileService $signFileService,
-		SignatureService $signatureService,
-		IConfig $config,
-		NewUserMailHelper $newUserMail,
-		ValidateHelper $validateHelper,
-		IURLGenerator $urlGenerator,
-		Pkcs12Handler $pkcs12Handler,
-		IGroupManager $groupManager,
-		AccountFileService $accountFileService,
-		UserElementMapper $userElementMapper,
-		FolderService $folderService,
-		IClientService $clientService,
-		TimeFactory $timeFactory
+		private IL10N $l10n,
+		private FileUserMapper $fileUserMapper,
+		private IUserManager $userManager,
+		private IAccountManager $accountManager,
+		private IRootFolder $root,
+		private IUserMountCache $userMountCache,
+		private FileMapper $fileMapper,
+		private FileTypeMapper $fileTypeMapper,
+		private AccountFileMapper $accountFileMapper,
+		private SignFileService $signFileService,
+		private RequestSignatureService $requestSignatureService,
+		private CertificateEngineHandler $certificateEngineHandler,
+		private IConfig $config,
+		private IMountProviderCollection $mountProviderCollection,
+		private NewUserMailHelper $newUserMail,
+		private IdentifyMethodService $identifyMethodService,
+		private ValidateHelper $validateHelper,
+		private IURLGenerator $urlGenerator,
+		private Pkcs12Handler $pkcs12Handler,
+		private IGroupManager $groupManager,
+		private AccountFileService $accountFileService,
+		private UserElementMapper $userElementMapper,
+		private FolderService $folderService,
+		private IClientService $clientService,
+		private TimeFactory $timeFactory,
 	) {
-		$this->l10n = $l10n;
-		$this->fileUserMapper = $fileUserMapper;
-		$this->userManager = $userManager;
-		$this->accountManager = $accountManager;
-		$this->root = $root;
-		$this->fileMapper = $fileMapper;
-		$this->fileTypeMapper = $fileTypeMapper;
-		$this->accountFileMapper = $accountFileMapper;
-		$this->signFileService = $signFileService;
-		$this->signatureService = $signatureService;
-		$this->config = $config;
-		$this->newUserMail = $newUserMail;
-		$this->validateHelper = $validateHelper;
-		$this->urlGenerator = $urlGenerator;
-		$this->pkcs12Handler = $pkcs12Handler;
-		$this->groupManager = $groupManager;
-		$this->accountFileService = $accountFileService;
-		$this->userElementMapper = $userElementMapper;
-		$this->folderService = $folderService;
-		$this->clientService = $clientService;
-		$this->timeFactory = $timeFactory;
 	}
 
 	public function validateCreateToSign(array $data): void {
@@ -138,11 +105,17 @@ class AccountService {
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		if ($fileUser->getEmail() !== $data['user']['email']) {
-			throw new LibresignException($this->l10n->t('This is not your file'), 1);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		if (!array_key_exists('identify', $data['user'])) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 		}
-		if ($this->userManager->userExists($data['user']['email'])) {
-			throw new LibresignException($this->l10n->t('User already exists'), 1);
+		foreach ($data['user']['identify'] as $method => $value) {
+			if (!array_key_exists($method, $identifyMethods)) {
+				throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+			}
+			foreach ($identifyMethods[$method] as $identifyMethod) {
+				$identifyMethod->validateToCreateAccount($value);
+			}
 		}
 		if (empty($data['password'])) {
 			throw new LibresignException($this->l10n->t('Password is mandatory'), 1);
@@ -157,11 +130,16 @@ class AccountService {
 		$fileUser = $this->getFileUserByUuid($uuid);
 		if (!$this->fileData) {
 			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
-			$userId = $this->fileData->getUserId();
-			$userFolder = $this->root->getUserFolder($userId);
-			$fileToSign = $userFolder->getById($this->fileData->getNodeId());
+
+			$nodeId = $this->fileData->getNodeId();
+
+			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+			foreach ($mountsContainingFile as $fileInfo) {
+				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			}
+			$fileToSign = $this->root->getById($nodeId);
 			if (count($fileToSign)) {
-				$this->fileToSign = $fileToSign[0];
+				$this->fileToSign = current($fileToSign);
 			}
 		}
 		return [
@@ -213,9 +191,6 @@ class AccountService {
 
 	/**
 	 * Get fileUser by Uuid
-	 *
-	 * @param string $uuid
-	 * @return FileUser
 	 */
 	public function getFileUserByUuid($uuid): FileUser {
 		if (!$this->fileUser) {
@@ -224,18 +199,24 @@ class AccountService {
 		return $this->fileUser;
 	}
 
-	/**
-	 * @param null|string $signPassword
-	 */
-	public function createToSign(string $uuid, string $uid, string $password, ?string $signPassword): void {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
 		$fileUser = $this->getFileUserByUuid($uuid);
 
-		$newUser = $this->userManager->createUser($uid, $password);
+		$newUser = $this->userManager->createUser($email, $password);
 		$newUser->setDisplayName($fileUser->getDisplayName());
-		$newUser->setSystemEMailAddress($fileUser->getEmail());
+		$newUser->setSystemEMailAddress($email);
 
-		$fileUser->setUserId($newUser->getUID());
-		$this->fileUserMapper->update($fileUser);
+		// @todo implement this logic, the follow code is complex and dont work
+		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		// foreach ($identifyMethods as $name => $identifyMethod) {
+		// 	if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+		// 		$entity = $identifyMethod->getEntity();
+		// 		if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
+		// 			$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
+		// 			$this->identifyMethodService->save($fileUser, false);
+		// 		}
+		// 	}
+		// }
 
 		if ($this->config->getAppValue('core', 'newUser.sendEmail', 'yes') === 'yes') {
 			try {
@@ -249,11 +230,11 @@ class AccountService {
 		if ($signPassword) {
 			$this->pkcs12Handler->generateCertificate(
 				[
-					'email' => $newUser->getPrimaryEMailAddress(),
+					'identify' => $newUser->getPrimaryEMailAddress(),
 					'name' => $newUser->getDisplayName()
 				],
 				$signPassword,
-				$newUser->getUID()
+				$newUser->getDisplayName()
 			);
 		}
 	}
@@ -261,23 +242,30 @@ class AccountService {
 	/**
 	 * @param string $formatOfPdfOnSign (base64,url,file)
 	 * @return (array|int|mixed)[]
-	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: mixed, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings: array{accountHash: string, hasSignatureFile: bool}}
 	 */
 	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		try {
+			$info = [];
 			if ($typeOfUuid === 'file_user_uuid') {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
+				if ($uuid) {
+					$this->validateHelper->validateSigner($uuid, $user);
+				}
 			} else {
 				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
 			}
 		} catch (LibresignException $e) {
-			$info = json_decode($e->getMessage(), true);
+			return array_merge($info, json_decode($e->getMessage(), true));
+		} catch (DoesNotExistException $e) {
+			return [
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			];
 		}
 		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
-		$info['settings']['certificateOk'] = $this->signatureService->hasRootCert() && $this->pkcs12Handler->isHandlerOk();
+		$info['settings']['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
-		$info['settings']['signMethod'] = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		$info['settings']['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		return $info;
 	}
@@ -306,22 +294,26 @@ class AccountService {
 	 * Get PDF node by UUID
 	 *
 	 * @psalm-suppress MixedReturnStatement
-	 * @param string $uuid
 	 * @throws Throwable
 	 * @return \OCP\Files\File
 	 */
-	public function getPdfByUuid(string $uuid) {
+	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
-		$userFolder = $this->root->getUserFolder($fileData->getUserId());
 
 		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
-			$file = $userFolder->getById($fileData->getSignedNodeId())[0];
+			$nodeId = $fileData->getSignedNodeId();
 		} else {
-			$file = $userFolder->getById($fileData->getNodeId())[0];
+			$nodeId = $fileData->getNodeId();
 		}
-		if (empty($file)) {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$nodes = $this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$nodes = $this->root->getById($nodeId);
+		if (empty($nodes)) {
 			throw new DoesNotExistException('Not found');
 		}
+		$file = current($nodes);
 		return $file;
 	}
 
@@ -353,7 +345,7 @@ class AccountService {
 			$dataToSave = $fileData;
 			$dataToSave['userManager'] = $user;
 			$dataToSave['name'] = $fileData['name'] ?? $fileData['type'];
-			$file = $this->signFileService->saveFile($dataToSave);
+			$file = $this->requestSignatureService->saveFile($dataToSave);
 
 			$this->accountFileService->addFile($file, $user, $fileData['type']);
 		}
@@ -456,7 +448,7 @@ class AccountService {
 	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
-		foreach ($elements as $key => $element) {
+		foreach ($elements as $element) {
 			$exists = $this->signatureFileExists($element);
 			if (!$exists) {
 				continue;
