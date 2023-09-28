@@ -1,13 +1,14 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "மின்னஞ்சல்",
+    "Password" : "கடவுச்சொல்",
+    "Invalid password" : "Invalid Password",
     "Files" : "கோப்புகள்",
     "Settings" : "அமைப்புகள்",
-    "Password" : "கடவுச்சொல்",
     "Upload" : "பதிவேற்றுக",
     "Cancel" : "இரத்து செய்க",
     "Save" : "சேமிக்க ",
-    "Email" : "மின்னஞ்சல்",
     "Description" : "விவரிப்பு",
     "Add" : "சேர்க்க",
     "Users" : "பயனாளர்",
@@ -19,10 +20,10 @@ OC.L10N.register(
     "Next" : "அடுத்த",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "நிலுவையிலுள்ள",
     "New password" : "புதிய கடவுச்சொல்",
     "Remove" : "அகற்றுக",
     "Previous" : "முன்தைய",
+    "Pending" : "நிலுவையிலுள்ள",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

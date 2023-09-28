@@ -1,15 +1,16 @@
 { "translations": {
     "deleted" : "yettwakkes",
     "File not found" : "Ulac afaylu",
+    "Email" : "Imayl",
+    "Password" : "Awal uffir",
+    "Invalid password" : "Yir awal uffir",
     "Files" : "Ifuyla",
     "Settings" : "Iɣewwaṛen",
     "Authentication required" : "Tlaq tuqqna",
-    "Password" : "Awal uffir",
     "Confirm" : "Serggeg",
     "Upload" : "Sili",
     "Cancel" : "Sefsex",
     "Save" : "Sekles",
-    "Email" : "Imayl",
     "Add" : "Rnu",
     "Users" : "Iseqdacen",
     "Details" : "Talqayt",
@@ -21,12 +22,12 @@
     "Yes" : "Oui",
     "No" : "Uhu",
     "Page not found" : "Ulac asebter",
-    "Pending" : "Yegguni",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
     "Message" : "Izen",
     "Remove" : "Kkes",
     "Previous" : "Ɣer deffir",
-    "Loading …" : "Asali ..."
+    "Loading …" : "Asali ...",
+    "Pending" : "Yegguni"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

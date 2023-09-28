@@ -1,13 +1,13 @@
 { "translations": {
+    "Email" : "Email",
+    "Password" : "Passwuert",
     "Files" : "Fichieren",
     "Settings" : "Astellungen",
     "Authentication required" : "Authentifizéierung néideg",
-    "Password" : "Passwuert",
     "Upload" : "Eroplueden",
     "Apply" : "Uwenden",
     "Cancel" : "Ofbriechen",
     "Save" : "Späicheren",
-    "Email" : "Email",
     "Description" : "Beschreiwung",
     "Add" : "Derbäimaachen",
     "Users" : "Benotzer",
@@ -20,11 +20,11 @@
     "Next" : "Weider",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Ausstoend",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
     "Remove" : "Läschen",
     "Previous" : "Zeréck",
+    "Pending" : "Ausstoend",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
