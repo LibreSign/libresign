@@ -1,11 +1,11 @@
 { "translations": {
+    "Email" : "تورخەت",
+    "Password" : "ئىم",
     "Files" : "ھۆججەتلەر",
     "Settings" : "تەڭشەكلەر",
-    "Password" : "ئىم",
     "Upload" : "يۈكلە",
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",
-    "Email" : "تورخەت",
     "Description" : "چۈشەندۈرۈش",
     "Add" : "قوش",
     "Users" : "ئىشلەتكۈچىلەر",
@@ -16,10 +16,10 @@
     "Next" : "كېيىنكى",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "كۈتۈۋاتىدۇ",
     "New password" : "يېڭى ئىم",
     "Remove" : "چىقىرىۋەت",
     "Previous" : "ئالدىنقى",
+    "Pending" : "كۈتۈۋاتىدۇ",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

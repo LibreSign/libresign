@@ -1,14 +1,14 @@
 { "translations": {
     "File not found" : "ಕಡತ ಕಂಡುಬಂದಿಲ್ಲ",
     "Invalid user" : "﻿ಅಮಾನ್ಯ ಬಳಕೆದಾರ",
+    "Email" : "﻿ಇ-ಅಂಚೆ",
+    "Password" : "ಗುಪ್ತ ಪದ",
     "Files" : "ಕಡತಗಳು",
     "Settings" : "ಆಯ್ಕೆ",
     "Authentication required" : "﻿ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ",
-    "Password" : "ಗುಪ್ತ ಪದ",
     "Upload" : "ವರ್ಗಾಯಿಸಿ",
     "Cancel" : "﻿ರದ್ದು",
     "Save" : "﻿ಉಳಿಸಿ",
-    "Email" : "﻿ಇ-ಅಂಚೆ",
     "Add" : "﻿ಸೇರಿಸಿ",
     "Users" : "﻿ಬಳಕೆದಾರರು",
     "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
@@ -18,9 +18,9 @@
     "Next" : "ಮುಂದೆ",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Remove" : "ತೆಗೆದುಹಾಕಿ",
+    "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

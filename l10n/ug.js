@@ -1,13 +1,13 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "تورخەت",
+    "Password" : "ئىم",
     "Files" : "ھۆججەتلەر",
     "Settings" : "تەڭشەكلەر",
-    "Password" : "ئىم",
     "Upload" : "يۈكلە",
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",
-    "Email" : "تورخەت",
     "Description" : "چۈشەندۈرۈش",
     "Add" : "قوش",
     "Users" : "ئىشلەتكۈچىلەر",
@@ -18,10 +18,10 @@ OC.L10N.register(
     "Next" : "كېيىنكى",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "كۈتۈۋاتىدۇ",
     "New password" : "يېڭى ئىم",
     "Remove" : "چىقىرىۋەت",
     "Previous" : "ئالدىنقى",
+    "Pending" : "كۈتۈۋاتىدۇ",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

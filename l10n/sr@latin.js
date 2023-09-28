@@ -3,13 +3,13 @@ OC.L10N.register(
     {
     "deleted" : "obrisano",
     "File not found" : "Fajl nije nađen",
+    "Email" : "email",
+    "Password" : "Lozinka",
     "Files" : "Фајлови",
     "Settings" : "Поставке",
-    "Password" : "Lozinka",
     "Upload" : "Otpremi",
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",
-    "Email" : "email",
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Details" : "Detalji",
@@ -18,9 +18,9 @@ OC.L10N.register(
     "Enter a password" : "Unesite lozinku",
     "Yes" : "Da",
     "No" : "Ne",
-    "Pending" : "Na čekanju",
     "New password" : "Nova lozinka",
     "Remove" : "Ukloni",
+    "Pending" : "Na čekanju",
     "No date" : "No date"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");
