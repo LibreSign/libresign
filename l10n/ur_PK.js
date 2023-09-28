@@ -1,11 +1,11 @@
 OC.L10N.register(
     "libresign",
     {
-    "Settings" : "سیٹینگز",
+    "Email" : "email",
     "Password" : "پاسورڈ",
+    "Settings" : "سیٹینگز",
     "Cancel" : "منسوخ کریں",
     "Save" : "حفظ",
-    "Email" : "email",
     "Description" : "تصریح",
     "Add" : "شامل کریں",
     "Users" : "صارفین",

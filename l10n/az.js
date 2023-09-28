@@ -3,14 +3,14 @@ OC.L10N.register(
     {
     "Settings saved" : "Parametrlər yaddaşa verildi",
     "Invalid user" : "İstifadəçi adı yalnışdır",
+    "Email" : "Email",
+    "Password" : "Şifrə",
     "Files" : "Fayllar",
     "Settings" : "Quraşdırmalar",
     "Authentication required" : "Qeydiyyat tələb edilir",
-    "Password" : "Şifrə",
     "Upload" : "Serverə yüklə",
     "Cancel" : "Dayandır",
     "Save" : "Saxla",
-    "Email" : "Email",
     "Description" : "Açıqlanma",
     "Add" : "Əlavə etmək",
     "Users" : "İstifadəçilər",
@@ -23,10 +23,10 @@ OC.L10N.register(
     "Next" : "Növbəti",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Gözləmə",
     "New password" : "Yeni şifrə",
     "Remove" : "Sil",
     "Previous" : "Əvvələ",
+    "Pending" : "Gözləmə",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

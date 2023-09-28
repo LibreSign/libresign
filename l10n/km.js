@@ -1,14 +1,14 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "អ៊ីមែល",
+    "Password" : "ពាក្យសម្ងាត់",
     "Files" : "ឯកសារ",
     "Settings" : "ការកំណត់",
-    "Password" : "ពាក្យសម្ងាត់",
     "Upload" : "ផ្ទុក​ឡើង",
     "Apply" : "អនុវត្ត",
     "Cancel" : "បោះបង់",
     "Save" : "រក្សាទុក",
-    "Email" : "អ៊ីមែល",
     "Description" : "ការ​អធិប្បាយ",
     "Add" : "បញ្ចូល",
     "Users" : "អ្នកប្រើ",
@@ -21,10 +21,10 @@ OC.L10N.register(
     "Next" : "បន្ទាប់",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "កំពុង​រង់ចាំ",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Remove" : "ដកចេញ",
     "Previous" : "មុន",
+    "Pending" : "កំពុង​រង់ចាំ",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");

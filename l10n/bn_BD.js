@@ -2,13 +2,13 @@ OC.L10N.register(
     "libresign",
     {
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
+    "Email" : "ইমেইল",
+    "Password" : "কূটশব্দ",
     "Files" : "ফাইল",
     "Settings" : "সেটিংস",
-    "Password" : "কূটশব্দ",
     "Upload" : "আপলোড",
     "Cancel" : "বাতির",
     "Save" : "সংরক্ষণ",
-    "Email" : "ইমেইল",
     "Description" : "বিবরণ",
     "Add" : "যোগ করুন",
     "Users" : "ব্যবহারকারী",
@@ -21,10 +21,10 @@ OC.L10N.register(
     "Next" : "পরবর্তী",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "মুলতুবি",
     "New password" : "নতুন কূটশব্দ",
     "Remove" : "অপসারণ",
     "Previous" : "পূর্ববর্তী",
+    "Pending" : "মুলতুবি",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

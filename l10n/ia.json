@@ -1,16 +1,17 @@
 { "translations": {
     "Settings saved" : "Configurationes salveguardate",
+    "View" : "Vider",
     "Invalid user" : "Usator invalide",
+    "Email" : "E-posta",
+    "Password" : "Contrasigno",
     "Files" : "Files",
     "Settings" : "Configurationes",
     "Authentication required" : "Authentication requirite",
-    "Password" : "Contrasigno",
     "Confirm" : "Confirmar",
     "Upload" : "Incargar",
     "Apply" : "Applicar",
     "Cancel" : "Cancellar",
     "Save" : "Salveguardar",
-    "Email" : "E-posta",
     "Description" : "Description",
     "Add" : "Adder",
     "Users" : "Usatores",
@@ -23,11 +24,10 @@
     "Next" : "Sequente",
     "Yes" : "Si",
     "No" : "No",
-    "Pending" : "Pendente",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Previous" : "Previe",
-    "View" : "Vider",
+    "Pending" : "Pendente",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

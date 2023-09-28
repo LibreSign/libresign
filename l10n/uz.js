@@ -4,11 +4,11 @@ OC.L10N.register(
     "Success" : "Success",
     "Settings saved" : "Settings saved",
     "File not found" : "File not found",
+    "Password" : "Password",
     "Files" : "Files",
     "Settings" : "Settings",
     "Authentication required" : "Authentication required",
     "This action requires you to confirm your password" : "This action requires you to confirm your password",
-    "Password" : "Password",
     "Confirm" : "Confirm",
     "Upload" : "Upload",
     "Cancel" : "Cancel",
@@ -22,9 +22,9 @@ OC.L10N.register(
     "Profile picture" : "Profil rasmi",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Pending",
     "Password reset" : "Password reset",
     "New password" : "New password",
-    "Remove" : "Remove"
+    "Remove" : "Remove",
+    "Pending" : "Pending"
 },
 "nplurals=1; plural=0;");

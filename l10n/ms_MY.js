@@ -1,13 +1,13 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "Email",
+    "Password" : "Kata laluan",
     "Files" : "Fail",
     "Settings" : "Tetapan",
-    "Password" : "Kata laluan",
     "Upload" : "Muat naik",
     "Cancel" : "Batal",
     "Save" : "Simpan",
-    "Email" : "Email",
     "Description" : "Keterangan",
     "Add" : "Tambah",
     "Users" : "Pengguna",
@@ -19,10 +19,10 @@ OC.L10N.register(
     "Next" : "Seterus",
     "Yes" : "Yes",
     "No" : "No",
-    "Pending" : "Dalam proses",
     "New password" : "Kata laluan baru",
     "Remove" : "Buang",
     "Previous" : "Sebelum",
+    "Pending" : "Dalam proses",
     "No date" : "No date"
 },
 "nplurals=1; plural=0;");
