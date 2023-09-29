@@ -34,7 +34,7 @@
     "@nextcloud/vue": "^7.12.5",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.30.0",
-    "dompurify": "^3.0.5",
+    "dompurify": "^3.0.6",
     "linkify-string": "^4.1.1",
     "lodash-es": "^4.17.21",
     "marked": "^9.0.3",
