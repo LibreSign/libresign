@@ -10,6 +10,7 @@ OC.L10N.register(
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
     "Password" : "Contraseña",
+    "Invalid password" : "Contraseña invalida",
     "Files" : "Archivos",
     "Settings" : "Ajustes",
     "Authentication required" : "Autenticación requerida",

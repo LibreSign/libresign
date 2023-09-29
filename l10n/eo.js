@@ -12,6 +12,7 @@ OC.L10N.register(
     "Invalid user" : "Nevalida uzanto",
     "Email" : "Retpoŝtadreso",
     "Password" : "Pasvorto",
+    "Invalid password" : "Nevalida pasvorto",
     "Files" : "Dosieroj",
     "Settings" : "Agordoj",
     "Authentication required" : "Aŭtentiĝo nepras",
