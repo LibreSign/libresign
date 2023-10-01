@@ -14,6 +14,9 @@
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
+        },
+        "platform": {
+          "php": "8.0.30"
         }
     }
 }
