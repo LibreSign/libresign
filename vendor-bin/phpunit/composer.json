@@ -6,5 +6,8 @@
         "byjg/swagger-test": "^3.1",
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "^5.4"
+    },
+    "platform": {
+      "php": "8.0.2"
     }
 }

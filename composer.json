@@ -25,6 +25,9 @@
     "sort-packages": true,
     "allow-plugins": {
       "bamarni/composer-bin-plugin": true
+    },
+    "platform": {
+      "php": "8.0.30"
     }
   },
   "scripts": {
