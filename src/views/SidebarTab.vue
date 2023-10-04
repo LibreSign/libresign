@@ -32,20 +32,20 @@
 </template>
 
 <script>
-import RequestSignature from '../../Components/Request/RequestSignature.vue'
+import RequestSignature from '../Components/Request/RequestSignature.vue'
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { get } from 'lodash-es'
-import { SIGN_STATUS } from '../../domains/sign/enum.js'
-import { showResponseError } from '../../helpers/errors.js'
-import store from '../../store/index.js'
+import { SIGN_STATUS } from '../domains/sign/enum.js'
+import { showResponseError } from '../helpers/errors.js'
+import store from '../store/index.js'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 
 export default {
-	name: 'LibresignTab',
+	name: 'SidebarTab',
 	store,
 	components: {
 		RequestSignature,

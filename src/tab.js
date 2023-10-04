@@ -25,7 +25,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import LibresignTab from './views/FilesTab/LibresignTab.vue'
+import SidebarTab from './views/SidebarTab.vue'
 import './actions/openInLibreSignAction.js'
 
 import './style/icons.scss'
@@ -55,7 +55,7 @@ const isEnabled = function(fileInfo) {
 	return false
 }
 
-const View = Vue.extend(LibresignTab)
+const View = Vue.extend(SidebarTab)
 let TabInstance = null
 
 window.addEventListener('DOMContentLoaded', () => {
