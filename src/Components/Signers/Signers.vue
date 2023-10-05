@@ -15,6 +15,7 @@ export default {
 	props: {
 		signers: {
 			type: Array,
+			default: () => [],
 			required: true,
 		},
 	},

@@ -18,7 +18,8 @@ export default {
 	props: {
 		signers: {
 			type: Array,
-			required: true,
+			default: () => [],
+			required: false,
 		},
 	},
 	data() {
