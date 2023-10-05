@@ -1,7 +1,7 @@
 <script>
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import { fromUnixTime } from 'date-fns'
+import Moment from '@nextcloud/moment'
 
 export default {
 	name: 'SignerRow',
@@ -46,7 +46,7 @@ export default {
 			const { signer } = this
 
 			return signer.signed
-				? fromUnixTime(signer.signed).toLocaleDateString()
+				? Moment(signer.signed, 'YYYY-MM-DD').toDate()
 				: ''
 		},
 		element() {

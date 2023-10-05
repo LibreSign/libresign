@@ -86,7 +86,6 @@ import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import Moment from './../Components/Moment.vue'
-import { fromUnixTime } from 'date-fns'
 import logger from '../logger.js'
 
 export default {
@@ -210,13 +209,6 @@ export default {
 			}
 			this.hasInfo = !this.hasInfo
 			this.myUuid = this.uuid
-		},
-		formatData(data) {
-			try {
-				return fromUnixTime(data).toLocaleDateString()
-			} catch {
-				return this.noDateMessage
-			}
 		},
 	},
 }
