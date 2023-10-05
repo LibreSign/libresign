@@ -30,8 +30,8 @@
 			</NcEmptyContent>
 		</div>
 		<SignaturesTab v-if="haveCurrentFile"
-			:file="currentFile"
-			ref="sidebar" />
+			ref="sidebar"
+			:file="currentFile" />
 	</div>
 </template>
 

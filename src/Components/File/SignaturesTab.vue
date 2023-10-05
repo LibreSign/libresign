@@ -1,6 +1,5 @@
 <template>
-	<NcAppSidebar
-		:title="titleName"
+	<NcAppSidebar :title="titleName"
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
 		<RequestSignature :signers="file?.signers" />
@@ -25,7 +24,7 @@ export default {
 			type: Object,
 			default: () => {},
 			required: false,
-		}
+		},
 	},
 	data() {
 		return {
@@ -48,6 +47,7 @@ export default {
 	methods: {
 		/**
 		 * Load LibreSign data from Nextcloud File info
+		 * @param fileInfo
 		 */
 		async update(fileInfo) {
 			try {
