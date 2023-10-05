@@ -190,12 +190,16 @@
     "Message" : "Сообщение",
     "Resource" : "Ресурс",
     "Dependencies" : "Зависимости",
+    "Binaries required to work. Download size could be nearly 340MB, please wait a moment." : "Бинарники, необходимые для работы. Размер загрузки может составлять около 340 МБ, подождите немного.",
+    "Make this method required" : "Сделать этот метод обязательным",
+    "Allows sending registration email when the user does not have an account." : "Позволяет отправлять регистрационное письмо, когда у пользователя нет учетной записи.",
     "Legal Information" : "Юридическая информация",
     "Legal information" : "Юридическая информация",
     "This information will appear on the validation page" : "Эта информация появится на странице проверки",
     "Name (CN)" : "Имя (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Путь конфигурации",
+    "Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?" : "Повторное создание корневого сертификата приведет к аннулированию всех ключей подписей. Вы подтверждаете это действие?",
     "Root certificate data." : "Данные корневого сертификата.",
     "To generate new signatures, you must first generate the root certificate." : "Чтобы сгенерировать новые подписи, вы должны сначала сгенерировать корневой сертификат.",
     "Generate root certificate." : "Сгенерировать корневой сертификат.",
@@ -207,6 +211,7 @@
     "Remove" : "Удалить",
     "Sign" : "Знак",
     "Previous" : "Назад",
+    "Sign with your email." : "Войти, используя свой адрес эл. почты.",
     "Sign the document." : "Подписать документ",
     "This iframe is not supported in your browser." : "Этот iframe не поддерживается вашим браузером.",
     "Loading …" : "Загрузка …",
@@ -227,6 +232,7 @@
     "Password created!" : "Пароль создан!",
     "Remove duplicated users, email address need to be unique" : "Удалите дублирующихся пользователей, адрес электронной почты должен быть уникальным",
     "Validate File" : "Проверить файл",
-    "Validate Document" : "Проверка документа"
+    "Validate Document" : "Проверка документа",
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Бинарники, необходимые для работы. Может быть около 340 МБ для загрузки, подождите минутку."
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }
