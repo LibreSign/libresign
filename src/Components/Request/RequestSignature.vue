@@ -7,8 +7,7 @@
 		<Signers :signers="signers" />
 	</div>
 	<div v-else>
-		<IdentifySigner
-			@cancel-identify-signer="toggleAddSigner"
+		<IdentifySigner @cancel-identify-signer="toggleAddSigner"
 			@save-identify-signer="toggleAddSigner" />
 	</div>
 </template>
@@ -39,10 +38,11 @@ export default {
 	watch: {
 		/**
 		 * Display list signers when signers list is changed
+		 * @param signers
 		 */
 		signers(signers) {
 			this.listSigners = true
-		}
+		},
 	},
 	methods: {
 		addSigner() {
@@ -50,7 +50,7 @@ export default {
 		},
 		toggleAddSigner() {
 			this.listSigners = !this.listSigners
-		}
+		},
 	},
 }
 </script>
