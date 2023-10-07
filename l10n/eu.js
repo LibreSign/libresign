@@ -135,7 +135,7 @@ OC.L10N.register(
     "Incorrect password!" : "Pasahitz okerra!",
     "Text" : "Testua",
     "Draw" : "Margotu",
-    "Upload" : "Kargatu",
+    "Upload" : "Igo",
     "Colors:" : "Koloreak:",
     "Apply" : "Aplikatu",
     "Cancel" : "Ezeztatu",
