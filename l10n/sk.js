@@ -279,7 +279,7 @@ OC.L10N.register(
     "User created!" : "Užívateľ vytvorený!",
     "Password created!" : "Heslo bolo vytvorené!",
     "Do not use code when signing method is with password." : "Nepoužívajte kód, ak je spôsob podpisovania pomocou hesla.",
-    "Remove duplicated users, email address need to be unique" : "Odstráňte duplikáty užívateľov, email adresy musia byť unikátne",
+    "Remove duplicated users, email address need to be unique" : "Odstráňte duplikáty užívateľov, emailové adresy musia byť unikátne",
     "Validate File" : "Overiť súbor",
     "Add visible signatures" : "Pridať viditeľné podpisy",
     "Validate Document" : "Overiť Dokument",
