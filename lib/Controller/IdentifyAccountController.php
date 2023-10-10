@@ -42,7 +42,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	#[NoAdminRequired]
-	public function search(string $search = '', int $page = 1, int $perPage = 100): DataResponse {
+	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
 		$shareTypes = [
 			IShare::TYPE_USER,
 		];
@@ -54,19 +54,15 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			return new DataResponse([]);
 		}
 
-		// never return more than the max. number of results configured in the config.php
-		$maxResults = 25;
-
-		$limit = min($perPage, $maxResults);
-		$offset = $perPage * ($page - 1);
+		$offset = $limit * ($page - 1);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
-		$return = array_merge($result['exact']['users'], $result['users']);
-		$return = $this->formatForNcSelect($return);
+		$return = $this->formatForNcSelect($result);
 
 		return new DataResponse($return);
 	}
 
 	private function formatForNcSelect(array $list): array {
+		$list = array_merge($list['exact']['users'], $list['users']);
 		foreach ($list as $key => $item) {
 			$list[$key] = [
 				'id' => $item['value']['shareWith'],
