@@ -42,7 +42,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	#[NoAdminRequired]
-	public function search(string $search = '', int $page = 1, int $perPage = 10): DataResponse {
+	public function search(string $search = '', int $page = 1, int $perPage = 100): DataResponse {
 		$shareTypes = [
 			IShare::TYPE_USER,
 		];
