@@ -2,15 +2,15 @@
 	<div id="identify-account">
 		<label for="identify-search-input">{{ t('libresign', 'Search signer by account') }}</label>
 		<NcSelect ref="select"
+			v-model="selectedAccount"
 			input-id="identify-search-input"
 			class="identify-search__input"
 			:loading="loading"
 			:filterable="false"
 			:placeholder="t('libresign', 'Name')"
-			:clear-search-on-blur="() => false"
 			:user-select="true"
-			@search="asyncFind"
-			@option:selected="accountSelected">
+			:options="options"
+			@search="asyncFind">
 			<template #no-options="{ search }">
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
@@ -20,6 +20,8 @@
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 
 export default {
 	name: 'IdentifyAccount',
@@ -30,6 +32,8 @@ export default {
 	data() {
 		return {
 			loading: false,
+			options: [],
+			selectedAccount: null,
 		}
 	},
 	computed: {
@@ -41,8 +45,24 @@ export default {
 		},
 	},
 	methods: {
-		async accountSelected(account) {
-			console.log('Account selected', account)
+		async asyncFind(search, lookup = false) {
+			search = search.trim()
+			this.loading = true
+
+			let request = null
+			try {
+				request = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
+					params: {
+						search,
+					},
+				})
+			} catch (error) {
+				console.error('Error fetching suggestions', error)
+				return
+			}
+
+			this.options = request.data.ocs.data
+			this.loading = false
 		},
 	},
 }
