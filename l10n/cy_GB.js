@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "View" : "Golwg",
     "Account" : "Cyfrif",
     "Email" : "E-bost",
     "Password" : "Cyfrinair",
@@ -21,11 +22,14 @@ OC.L10N.register(
     "Actions" : "Gweithredoedd",
     "Signature" : "Llofnod",
     "Enter a password" : "Enter a password",
+    "Confirm password" : "Cadarnhau'r cyfrinair",
     "Next" : "Nesaf",
     "Yes" : "Iawn",
     "No" : "No",
+    "Page not found" : "Heb ganfod y dudalen",
     "New password" : "Cyfrinair newydd",
     "Resource" : "Adnodd",
+    "Dependencies" : "Dibyniaethau",
     "Remove" : "Gwaredu",
     "Previous" : "Blaenorol",
     "Loading …" : "Yn llwytho …",
