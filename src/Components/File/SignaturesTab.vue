@@ -2,7 +2,7 @@
 	<NcAppSidebar :title="titleName"
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
-		<RequestSignature :signers="file?.signers" />
+		<RequestSignature :signers="getSigners" />
 	</NcAppSidebar>
 </template>
 
@@ -28,6 +28,7 @@ export default {
 	},
 	data() {
 		return {
+			signers: []
 		}
 	},
 	computed: {
@@ -43,6 +44,9 @@ export default {
 		isLibreSignFile() {
 			return Object.keys(this.file ?? {}).length !== 0
 		},
+		getSigners() {
+			return this.file?.signers ?? this.signers
+		}
 	},
 	methods: {
 		/**
@@ -52,9 +56,10 @@ export default {
 		async update(fileInfo) {
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
-				console.log(response)
+				this.signers = response.data.signers
+				console.log('validate/file_id', response)
 			} catch (e) {
-				console.log(e, 'DEU ERROOOO')
+				this.signers = []
 			}
 		},
 	},
