@@ -346,6 +346,10 @@ class FileService {
 		$return['name'] = $this->file->getName();
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
 
+		$return['requested_by'] = [
+			'uid' => $this->file->getUserId(),
+			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
+		];
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}
