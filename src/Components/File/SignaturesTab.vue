@@ -28,7 +28,7 @@ export default {
 	},
 	data() {
 		return {
-			signers: []
+			signers: [],
 		}
 	},
 	computed: {
@@ -46,7 +46,7 @@ export default {
 		},
 		getSigners() {
 			return this.file?.signers ?? this.signers
-		}
+		},
 	},
 	methods: {
 		/**
