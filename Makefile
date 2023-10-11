@@ -66,7 +66,7 @@ stylelint:
 site:
 	@if [ ! -d $(site_build_directory) ]; then \
 		mkdir -p $(site_build_directory) ; \
-		git clone https://github.com/LibreSign/site $(site_build_directory) ; \
+		git clone https://github.com/LibreSign/libresign.github.io $(site_build_directory) ; \
 	fi
 	$(MAKE) npm-install -C $(site_build_directory)
 	$(MAKE) watch-js -C $(site_build_directory)
