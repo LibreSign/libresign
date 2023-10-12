@@ -12,6 +12,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -54,6 +55,9 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIndexScriptsAndTemplate() {
+		$this->userSession
+			->method('getUser')
+			->willReturn($this->createMock(IUser::class));
 		$response = $this->controller->index();
 		$this->assertEquals('main', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
@@ -61,6 +65,9 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIndexReturnStatus() {
+		$this->userSession
+			->method('getUser')
+			->willReturn($this->createMock(IUser::class));
 		$response = $this->controller->index();
 		$this->assertEquals(200, $response->getStatus());
 	}
