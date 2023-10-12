@@ -80,10 +80,18 @@ export default {
 			if (!signer) {
 				return
 			}
-			// Remove before if already exists
+			// Ignore if already exists
 			for (let i = this.signers.length - 1; i >= 0; --i) {
 				if (this.signers[i].identify?.length > 0 && signer.identify?.length > 0 && this.signers[i].identify === signer.identify) {
-					this.signers.splice(i, 1)
+					return
+				}
+			}
+			// Ignore if already exists
+			if (this.file?.signers) {
+				for (let i = this.file.signers.length - 1; i >= 0; --i) {
+					if (this.file.signers[i].fileUserId === signer.identify) {
+						return
+					}
 				}
 			}
 			this.signers.push(signer)

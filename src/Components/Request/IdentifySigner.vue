@@ -85,12 +85,15 @@ export default {
 	beforeMount() {
 		if (Object.keys(this.signerToEdit).length > 0) {
 			this.name = this.signerToEdit.displayName
-			this.identify = this.signerToEdit.identify
+			this.identify = this.signerToEdit.identify ?? this.signerToEdit.fileUserId
 			this.signerToEdit.identifyMethods.forEach(method => {
 				if (method.method === 'email') {
 					this.methods.email.value = method.value
 				} else if (method.method === 'account') {
-					this.methods.account.value = method.value
+					this.methods.account.value = method.value ?? {
+						account: this.signerToEdit.uid,
+						displayName: this.signerToEdit.displayName,
+					}
 				}
 			})
 		}
