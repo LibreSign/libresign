@@ -50,10 +50,10 @@ export default {
 		const methods = loadState('libresign', 'identify_methods')
 		methods.forEach((method) => {
 			if (method.name === 'account') {
-				this.methods.account.enabled = true
+				this.methods.account.enabled = method.enabled
 				this.methods.account.required = method.mandatory
 			} else if (method.name === 'email') {
-				this.methods.email.enabled = true
+				this.methods.email.enabled = method.enabled
 				this.methods.email.required = method.mandatory
 			}
 		})
