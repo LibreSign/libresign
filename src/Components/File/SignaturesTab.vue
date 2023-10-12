@@ -80,6 +80,7 @@ export default {
 			if (!signer) {
 				return
 			}
+			// Remove before if already exists
 			for (let i = this.signers.length - 1; i >= 0; --i) {
 				if (this.signers[i].identify?.length > 0 && signer.identify?.length > 0 && this.signers[i].identify === signer.identify) {
 					this.signers.splice(i, 1)
