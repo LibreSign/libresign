@@ -1,9 +1,11 @@
 <template>
 	<div class="identifySigner">
 		<IdentifyAccount v-if="methods.account.enabled"
-			:required="methods.account.required" />
+			:required="methods.account.required"
+			@update="updateAccount" />
 		<IdentifyEmail v-if="methods.email.enabled"
-			:required="methods.account.required" />
+			:required="methods.account.required"
+			@update="updateEmail" />
 		<div class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="$emit('cancel-identify-signer')">
@@ -38,10 +40,12 @@ export default {
 				account: {
 					enabled: false,
 					required: false,
+					value: '',
 				},
 				email: {
 					enabled: false,
 					required: false,
+					value: '',
 				},
 			},
 		}
@@ -71,7 +75,33 @@ export default {
 	},
 	methods: {
 		saveSigner() {
-			this.$emit('save-identify-signer')
+			let signer = {
+				identifyMethods: []
+			}
+			if (this.methods.account.enabled && this.methods.account.value.length) {
+				signer.identifyMethods.push({
+					method: 'account',
+					value: this.methods.account.value,
+				})
+			}
+			if (this.methods.email.enabled && this.methods.email.value.length) {
+				signer.identifyMethods.push({
+					method: 'email',
+					value: this.methods.email.value,
+				})
+			}
+			this.$emit('save-identify-signer', {
+				name: '',
+				methods: this.methods,
+			})
+		},
+		updateEmail(valid, email) {
+			this.methods.email.value = email
+			console.log('update email', email)
+		},
+		updateAccount(valid, account) {
+			this.methods.account.value = account
+			console.log('update account', account)
 		},
 	},
 }

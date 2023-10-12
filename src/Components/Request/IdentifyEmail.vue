@@ -50,8 +50,14 @@ export default {
 			if (this.validateEmail(email) || (email.length === 0 && !this.required)) {
 				this.helperText = ''
 				this.haveError = false
+				this.$emit('update', false)
 				return
 			}
+			if (this.validateEmail(email)) {
+				this.$emit('update', true, email)
+				return
+			}
+			this.$emit('update', false)
 			this.helperText = t('libresign', 'Please enter an email address.')
 			this.haveError = true
 		},

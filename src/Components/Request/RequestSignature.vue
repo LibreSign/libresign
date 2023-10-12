@@ -41,6 +41,7 @@ export default {
 		 * @param signers
 		 */
 		signers(signers) {
+			console.log('RequestSignature: prop signers changed', signers)
 			this.listSigners = true
 		},
 	},
@@ -48,8 +49,10 @@ export default {
 		addSigner() {
 			this.listSigners = false
 		},
-		toggleAddSigner() {
+		toggleAddSigner(signer) {
+			console.log('signer', signer)
 			this.listSigners = !this.listSigners
+			this.$emit('update-signer', signer)
 		},
 	},
 }

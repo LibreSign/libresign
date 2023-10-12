@@ -2,7 +2,9 @@
 	<NcAppSidebar :title="titleName"
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
-		<RequestSignature :signers="getSigners" />
+		<RequestSignature
+			:signers="getSigners"
+			@update-signer="updateSigner" />
 	</NcAppSidebar>
 </template>
 
@@ -46,6 +48,10 @@ export default {
 		},
 		getSigners() {
 			return this.file?.signers ?? this.signers
+		},
+		updateSigner(signer) {
+			console.log('updateSigner', signer)
+			this.signers = signer
 		},
 	},
 	methods: {

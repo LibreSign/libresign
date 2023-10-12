@@ -47,6 +47,11 @@ export default {
 	watch: {
 		selectedAccount(account) {
 			this.haveError = account === null && this.required
+			if (account === null) {
+				this.$emit('update', false)
+				return;
+			}
+			this.$emit('update', true, account)
 		}
 	},
 	data() {
