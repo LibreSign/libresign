@@ -58,7 +58,7 @@ export default {
 			this.listSigners = false
 		},
 		cancelIdentifySigner() {
-			this.$emit('update-signer')
+			this.$emit('signer:update')
 		},
 		editSigner(signer) {
 			this.signerToEdit = signer
@@ -66,7 +66,7 @@ export default {
 		},
 		toggleAddSigner(signer) {
 			this.listSigners = !this.listSigners
-			this.$emit('update-signer', signer)
+			this.$emit('signer:update', signer)
 		},
 	},
 }

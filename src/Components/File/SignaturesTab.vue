@@ -3,7 +3,7 @@
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
 		<RequestSignature :signers="getSigners"
-			@update-signer="updateSigner" />
+			@signer:update="signerUpdate" />
 	</NcAppSidebar>
 </template>
 
@@ -76,7 +76,7 @@ export default {
 				this.signers = this.signers.filter((i) => i.identify !== signer.identify)
 			}
 		},
-		updateSigner(signer) {
+		signerUpdate(signer) {
 			if (!signer) {
 				return
 			}
