@@ -224,6 +224,9 @@ class Account extends AbstractIdentifyMethod {
 			return true;
 		}
 
+		// Remove not enabled
+		$config = array_filter($config, fn ($i) => $i['enabled']);
+
 		$current = array_reduce($config, function ($carry, $config) {
 			if ($config['name'] === $this->name) {
 				return $config;
