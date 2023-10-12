@@ -2,8 +2,7 @@
 	<NcAppSidebar :title="titleName"
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
-		<RequestSignature
-			:signers="getSigners"
+		<RequestSignature :signers="getSigners"
 			@update-signer="updateSigner" />
 	</NcAppSidebar>
 </template>
@@ -13,6 +12,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import RequestSignature from '../Request/RequestSignature.vue'
+import { subscribe } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
 export default {
@@ -47,12 +47,11 @@ export default {
 			return Object.keys(this.file ?? {}).length !== 0
 		},
 		getSigners() {
-			return this.file?.signers ?? this.signers
+			return (this.signers ?? []).concat(this.file?.signers ?? [])
 		},
-		updateSigner(signer) {
-			console.log('updateSigner', signer)
-			this.signers = signer
-		},
+	},
+	async mounted() {
+		subscribe('libresign:delete-signer', this.deleteSigner)
 	},
 	methods: {
 		/**
@@ -63,10 +62,25 @@ export default {
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
 				this.signers = response.data.signers
-				console.log('validate/file_id', response)
 			} catch (e) {
 				this.signers = []
 			}
+		},
+		deleteSigner(signer) {
+			if (signer.identify) {
+				this.signers = this.signers.filter((i) => i.identify !== signer.identify)
+			}
+		},
+		updateSigner(signer) {
+			if (!signer) {
+				return
+			}
+			for (let i = this.signers.length - 1; i >= 0; --i) {
+				if (this.signers[i].identify?.length > 0 && signer.identify?.length > 0 && this.signers[i].identify === signer.identify) {
+					this.signers.splice(i, 1)
+				}
+			}
+			this.signers.push(signer)
 		},
 	},
 }

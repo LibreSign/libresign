@@ -1,7 +1,8 @@
 <template>
 	<div>
 		<NcListItem :title="signer.displayName"
-			:force-display-actions="true">
+			:force-display-actions="true"
+			@click="editItem">
 			<template #icon>
 				<NcAvatar :size="44" display-name="signer.displayName" />
 			</template>
@@ -49,7 +50,10 @@ export default {
 	},
 	methods: {
 		deleteItem() {
-			emit('libresign:delete-signer', this.signer.fileUserId)
+			emit('libresign:delete-signer', this.signer)
+		},
+		editItem(signer) {
+			emit('libresign:edit-signer', this.signer)
 		},
 	},
 }

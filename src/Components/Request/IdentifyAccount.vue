@@ -43,16 +43,11 @@ export default {
 			default: false,
 			required: false,
 		},
-	},
-	watch: {
-		selectedAccount(account) {
-			this.haveError = account === null && this.required
-			if (account === null) {
-				this.$emit('update', false)
-				return;
-			}
-			this.$emit('update', true, account)
-		}
+		account: {
+			type: Object,
+			default: () => {},
+			required: false,
+		},
 	},
 	data() {
 		return {
@@ -69,6 +64,21 @@ export default {
 			}
 			return t('libesign', 'No elements found.')
 		},
+	},
+	watch: {
+		selectedAccount(account) {
+			this.haveError = account === null && this.required
+			if (account === null) {
+				this.$emit('update:account', false)
+				return
+			}
+			this.$emit('update:account', account)
+		},
+	},
+	mounted() {
+		if (Object.keys(this.account).length > 0) {
+			this.selectedAccount = this.account
+		}
 	},
 	methods: {
 		async asyncFind(search, lookup = false) {

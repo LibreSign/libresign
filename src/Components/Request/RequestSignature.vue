@@ -7,7 +7,8 @@
 		<Signers :signers="signers" />
 	</div>
 	<div v-else>
-		<IdentifySigner @cancel-identify-signer="toggleAddSigner"
+		<IdentifySigner :signer-to-edit="signerToEdit"
+			@cancel-identify-signer="toggleAddSigner"
 			@save-identify-signer="toggleAddSigner" />
 	</div>
 </template>
@@ -15,6 +16,8 @@
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
+import { subscribe } from '@nextcloud/event-bus'
+
 export default {
 	name: 'RequestSignature',
 	components: {
@@ -33,6 +36,7 @@ export default {
 		return {
 			canAddSigner: true,
 			listSigners: true,
+			signerToEdit: {},
 		}
 	},
 	watch: {
@@ -41,16 +45,25 @@ export default {
 		 * @param signers
 		 */
 		signers(signers) {
-			console.log('RequestSignature: prop signers changed', signers)
 			this.listSigners = true
 		},
 	},
+	async mounted() {
+		subscribe('libresign:edit-signer', this.editSigner)
+	},
 	methods: {
 		addSigner() {
+			this.signerToEdit = {}
 			this.listSigners = false
 		},
+		cancelIdentifySigner() {
+			this.$emit('update-signer')
+		},
+		editSigner(signer) {
+			this.signerToEdit = signer
+			this.listSigners = !this.listSigners
+		},
 		toggleAddSigner(signer) {
-			console.log('signer', signer)
 			this.listSigners = !this.listSigners
 			this.$emit('update-signer', signer)
 		},

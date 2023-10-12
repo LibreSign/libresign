@@ -6,8 +6,8 @@
 			autocapitalize="none"
 			autocomplete="off"
 			autocorrect="off"
-			:value.sync="email"
-			:label="t('settings', 'Email')"
+			:value.sync="identifyEmail"
+			:label="t('libresign', 'Email')"
 			:required="true"
 			:error="haveError"
 			:helper-text="helperText"
@@ -36,28 +36,40 @@ export default {
 			default: false,
 			required: false,
 		},
+		email: {
+			type: String,
+			required: false,
+			default: '',
+		},
 	},
 	data() {
 		return {
-			email: '',
+			identifyEmail: '',
 			helperText: '',
 			haveError: this.required,
 		}
 	},
+	mounted() {
+		if (this.email) {
+			this.identifyEmail = this.email
+		}
+	},
 	methods: {
 		onEmailChange() {
-			const email = this.email.trim()
-			if (this.validateEmail(email) || (email.length === 0 && !this.required)) {
+			const email = this.identifyEmail.trim()
+			if (!this.validateEmail(email) || (email.length === 0 && this.required)) {
 				this.helperText = ''
-				this.haveError = false
-				this.$emit('update', false)
+				this.haveError = true
+				this.$emit('update:email', '')
 				return
 			}
 			if (this.validateEmail(email)) {
-				this.$emit('update', true, email)
+				this.helperText = ''
+				this.haveError = false
+				this.$emit('update:email', email)
 				return
 			}
-			this.$emit('update', false)
+			this.$emit('update:email', '')
 			this.helperText = t('libresign', 'Please enter an email address.')
 			this.haveError = true
 		},
