@@ -50,6 +50,11 @@ export default {
 			return (this.signers ?? []).concat(this.file?.signers ?? [])
 		},
 	},
+	watch: {
+		file() {
+			this.signers = []
+		},
+	},
 	async mounted() {
 		subscribe('libresign:delete-signer', this.deleteSigner)
 	},
