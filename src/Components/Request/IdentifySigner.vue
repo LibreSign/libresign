@@ -1,6 +1,9 @@
 <template>
 	<div class="identifySigner">
-		<IdentifyAccount />
+		<IdentifyAccount v-if="methods.account.enabled"
+			:required="methods.account.required" />
+		<IdentifyEmail v-if="methods.email.enabled"
+			:required="methods.account.required" />
 		<div class="identifySigner__footer">
 			<div class="button-group">
 				<NcButton @click="$emit('cancel-identify-signer')">
@@ -17,6 +20,8 @@
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import IdentifyAccount from './IdentifyAccount.vue'
+import IdentifyEmail from './IdentifyEmail.vue'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'IdentifySigner',
@@ -24,11 +29,34 @@ export default {
 		NcButton,
 		NcSelect,
 		IdentifyAccount,
+		IdentifyEmail,
 	},
 	data() {
 		return {
 			id: null,
+			methods: {
+				account: {
+					enabled: false,
+					required: false,
+				},
+				email: {
+					enabled: false,
+					required: false,
+				},
+			},
 		}
+	},
+	beforeMount() {
+		const methods = loadState('libresign', 'identify_methods')
+		methods.forEach((method) => {
+			if (method.name === 'account') {
+				this.methods.account.enabled = true
+				this.methods.account.required = method.mandatory
+			} else if (method.name === 'email') {
+				this.methods.email.enabled = true
+				this.methods.email.required = method.mandatory
+			}
+		})
 	},
 	computed: {
 		isNewSigner() {

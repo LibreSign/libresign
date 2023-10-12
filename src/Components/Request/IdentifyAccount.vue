@@ -15,6 +15,12 @@
 				{{ search ? noResultText : t('libresign', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
+		<p v-if="haveError"
+			id="identify-account-field"
+			class="identify-account__helper-text-message identify-account__helper-text-message--error">
+			<AlertCircle class="identify-account__helper-text-message__icon" :size="18" />
+			{{ t('libresign', 'Account is mandatory') }}
+		</p>
 	</div>
 </template>
 <script>
@@ -22,18 +28,33 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 export default {
 	name: 'IdentifyAccount',
 	components: {
 		NcButton,
 		NcSelect,
+		AlertCircle,
+	},
+	props: {
+		required: {
+			type: Boolean,
+			default: false,
+			required: false,
+		},
+	},
+	watch: {
+		selectedAccount(account) {
+			this.haveError = account === null && this.required
+		}
 	},
 	data() {
 		return {
 			loading: false,
 			options: [],
 			selectedAccount: null,
+			haveError: this.required,
 		}
 	},
 	computed: {
@@ -57,7 +78,7 @@ export default {
 					},
 				})
 			} catch (error) {
-				console.error('Error fetching suggestions', error)
+				this.haveError = true
 				return
 			}
 
@@ -81,6 +102,27 @@ export default {
 	&__input {
 		width: 100%;
 		margin: 10px 0;
+	}
+
+	input {
+		grid-area: 1 / 1;
+		width: 100%;
+	}
+
+	&__helper-text-message {
+		padding: 4px 0;
+		display: flex;
+		align-items: center;
+
+		&__icon {
+			margin-right: 8px;
+			align-self: start;
+			margin-top: 4px;
+		}
+
+		&--error {
+			color: var(--color-error);
+		}
 	}
 }
 </style>
