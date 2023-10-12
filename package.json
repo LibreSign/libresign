@@ -56,7 +56,7 @@
     "npm": "^9.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/core": "^7.23.2",
     "@nextcloud/babel-config": "^1.0.0",
     "@nextcloud/browserslist-config": "^3.0.0",
     "@nextcloud/eslint-config": "^8.2.1",
