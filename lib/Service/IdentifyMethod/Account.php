@@ -206,6 +206,7 @@ class Account extends AbstractIdentifyMethod {
 	public function getSettings(): array {
 		$settings = $this->getSettingsFromDatabase(
 			default: [
+				'enabled' => $this->isEnabledByDefault(),
 				'signature_method' => 'password',
 				'can_create_account' => $this->canCreateAccount,
 				'allowed_signature_methods' => [
@@ -214,5 +215,31 @@ class Account extends AbstractIdentifyMethod {
 			]
 		);
 		return $settings;
+	}
+
+	private function isEnabledByDefault(): bool {
+		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
+		$config = json_decode($config, true);
+		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
+			return true;
+		}
+
+		$current = array_reduce($config, function ($carry, $config) {
+			if ($config['name'] === $this->name) {
+				return $config;
+			}
+			return $carry;
+		}, []);
+
+		$total = count($config);
+
+		if ($total === 0) {
+			return true;
+		}
+
+		if ($total === 1 && !empty($current)) {
+			return true;
+		}
+		return false;
 	}
 }
