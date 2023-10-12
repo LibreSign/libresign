@@ -170,7 +170,10 @@ export default {
 			this.methods.email.value = email
 		},
 		updateAccount(account) {
-			this.methods.account.value = account ?? {}
+			if (typeof account !== 'object') {
+				account = {}
+			}
+			this.methods.account.value = account
 		},
 		updateName(name) {
 			this.name = name
