@@ -1,6 +1,6 @@
 <template>
 	<div v-if="listSigners" class="requestSignature">
-		<NcButton v-if="canAddSigner"
+		<NcButton v-if="canRequestSign"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
@@ -17,6 +17,7 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
 import { subscribe } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'RequestSignature',
@@ -34,7 +35,7 @@ export default {
 	},
 	data() {
 		return {
-			canAddSigner: true,
+			canRequestSign: loadState('libresign', 'can_request_sign'),
 			listSigners: true,
 			signerToEdit: {},
 		}

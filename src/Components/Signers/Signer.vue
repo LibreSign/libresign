@@ -11,6 +11,7 @@
 			</template>
 			<template #actions>
 				<NcActionButton aria-label="Delete"
+					v-if="canRequestSign"
 					@click="deleteItem">
 					<template #icon>
 						<Delete :size="20" />
@@ -27,6 +28,7 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Bullet from '../Bullet/Bullet.vue'
 import { emit } from '@nextcloud/event-bus'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'Signer',
@@ -36,6 +38,11 @@ export default {
 		NcActionButton,
 		Delete,
 		Bullet,
+	},
+	data() {
+		return {
+			canRequestSign: loadState('libresign', 'can_request_sign'),
+		}
 	},
 	props: {
 		signer: {
@@ -53,6 +60,9 @@ export default {
 			emit('libresign:delete-signer', this.signer)
 		},
 		editItem(signer) {
+			if (!this.canRequestSign) {
+				return
+			}
 			emit('libresign:edit-signer', this.signer)
 		},
 	},
