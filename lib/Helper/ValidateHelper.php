@@ -396,7 +396,10 @@ class ValidateHelper {
 
 	public function canRequestSign(IUser $user): void {
 		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
-		if (empty($authorized) || !is_array($authorized)) {
+		if (empty($authorized)) {
+			$authorized = ['admin'];
+		}
+		if (!is_array($authorized)) {
 			throw new LibresignException(
 				json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
