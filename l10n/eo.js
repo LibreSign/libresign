@@ -23,6 +23,8 @@ OC.L10N.register(
     "Apply" : "Validigi",
     "Cancel" : "Nuligi",
     "Save" : "Konservi",
+    "Name" : "Nomo",
+    "Update" : "Ĝisdatigi",
     "Description" : "Priskribo",
     "Add" : "Aldoni",
     "Users" : "Uzantoj",

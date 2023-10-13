@@ -19,6 +19,8 @@ OC.L10N.register(
     "Apply" : "Terapkan",
     "Cancel" : "Membatalkan",
     "Save" : "Simpan",
+    "Name" : "Nama",
+    "Update" : "Perbarui",
     "Description" : "Deskrisi",
     "Add" : "Masukkan",
     "Users" : "Pengguna",

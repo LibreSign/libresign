@@ -8,6 +8,8 @@ OC.L10N.register(
     "Upload" : "Muat naik",
     "Cancel" : "Batal",
     "Save" : "Simpan",
+    "Name" : "Nama",
+    "Update" : "Kemaskini",
     "Description" : "Keterangan",
     "Add" : "Tambah",
     "Users" : "Pengguna",
