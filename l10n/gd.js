@@ -10,6 +10,7 @@ OC.L10N.register(
     "Upload" : "Luchdaich suas",
     "Cancel" : "Sguir dheth",
     "Save" : "Sàbhail",
+    "Name" : "Ainm",
     "Details" : "Mion-fhiosrachadh",
     "Type" : "Seòrsa",
     "Enter a password" : "Cuir a-steach facal-faire",

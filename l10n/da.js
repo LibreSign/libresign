@@ -24,6 +24,7 @@ OC.L10N.register(
     "Apply" : "Anvend",
     "Cancel" : "Annuller",
     "Save" : "Gem",
+    "Searching …" : "Søger …",
     "Description" : "Beskrivelse",
     "Add" : "Tilføj",
     "Users" : "Brugere",

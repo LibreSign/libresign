@@ -10,6 +10,7 @@ OC.L10N.register(
     "Upload" : "Otpremi",
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",
+    "Name" : "Ime",
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Details" : "Detalji",

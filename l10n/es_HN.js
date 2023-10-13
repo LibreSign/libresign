@@ -20,6 +20,7 @@ OC.L10N.register(
     "Apply" : "Aplicar",
     "Cancel" : "Cancelar",
     "Save" : "Guardar",
+    "Name" : "Nombre",
     "Description" : "Descripción",
     "Add" : "Agregar",
     "Users" : "Usuarios",

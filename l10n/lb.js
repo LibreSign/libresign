@@ -10,6 +10,8 @@ OC.L10N.register(
     "Apply" : "Uwenden",
     "Cancel" : "Ofbriechen",
     "Save" : "Späicheren",
+    "Name" : "Numm",
+    "Update" : "Update",
     "Description" : "Beschreiwung",
     "Add" : "Derbäimaachen",
     "Users" : "Benotzer",

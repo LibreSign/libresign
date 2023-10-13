@@ -15,6 +15,7 @@ OC.L10N.register(
     "Apply" : "хэрэглэх",
     "Cancel" : "болиулах",
     "Save" : "Хадгалах",
+    "Name" : "Нэр",
     "Description" : "Тайлбар",
     "Add" : "нэмэх",
     "Users" : "хэрэглэгч",

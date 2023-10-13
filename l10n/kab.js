@@ -13,6 +13,7 @@ OC.L10N.register(
     "Upload" : "Sili",
     "Cancel" : "Sefsex",
     "Save" : "Sekles",
+    "Name" : "Nom",
     "Add" : "Rnu",
     "Users" : "Iseqdacen",
     "Details" : "Talqayt",

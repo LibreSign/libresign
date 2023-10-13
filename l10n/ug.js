@@ -8,6 +8,8 @@ OC.L10N.register(
     "Upload" : "يۈكلە",
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",
+    "Name" : "ئاتى",
+    "Update" : "يېڭىلا",
     "Description" : "چۈشەندۈرۈش",
     "Add" : "قوش",
     "Users" : "ئىشلەتكۈچىلەر",

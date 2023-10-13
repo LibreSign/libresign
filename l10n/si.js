@@ -14,6 +14,8 @@ OC.L10N.register(
     "Upload" : "උඩුගත",
     "Cancel" : "අවලංගු කරන්න",
     "Save" : "සුරකින්න",
+    "Name" : "නම",
+    "Update" : "යාවත්කාල",
     "Description" : "විස්තරය",
     "Add" : "එකතු කරන්න",
     "Users" : "පරිශීලකයින්",

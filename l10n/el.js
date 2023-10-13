@@ -46,6 +46,7 @@ OC.L10N.register(
     "Cancel" : "Ακύρωση",
     "Save" : "Αποθήκευση",
     "Signatures" : "Υπογραφές",
+    "Searching …" : "Αναζήτηση ...",
     "Description" : "Περιγραφή",
     "Add" : "Προσθήκη",
     "Users" : "Χρήστες",
