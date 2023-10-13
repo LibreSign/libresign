@@ -18,6 +18,9 @@
 					</template>
 				</NcActionButton>
 			</template>
+			<template #indicator>
+				<CheckboxBlankCircle :size="16" :fill-color="statusColor" />
+			</template>
 		</NcListItem>
 	</div>
 </template>
@@ -25,6 +28,7 @@
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import Bullet from '../Bullet/Bullet.vue'
 import { emit } from '@nextcloud/event-bus'
@@ -36,6 +40,7 @@ export default {
 		NcListItem,
 		NcAvatar,
 		NcActionButton,
+		CheckboxBlankCircle,
 		Delete,
 		Bullet,
 	},
@@ -53,6 +58,17 @@ export default {
 	computed: {
 		identifyMethodsNames() {
 			return this.signer.identifyMethods.map(method => method.method)
+		},
+		statusColor() {
+			if (this.signer.sign_date) {
+				return '#008000'
+			}
+			// Pending
+			if (this.signer.fileUserId) {
+				return '#d67335'
+			}
+			// Draft, not saved
+			return '#dbdbdb'
 		},
 	},
 	methods: {
