@@ -30,12 +30,14 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUserSession;
 use OCP\Share\IShare;
 
 class IdentifyAccountController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
+		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -57,6 +59,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$offset = $limit * ($page - 1);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
 		$return = $this->formatForNcSelect($result);
+		$return = $this->addHerself($return, $search);
 
 		return new DataResponse($return);
 	}
@@ -72,5 +75,19 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			];
 		}
 		return $list;
+	}
+
+	private function addHerself(array $return, string $search): array {
+		$user = $this->userSession->getUser();
+		if (!str_contains($user->getUID(), $search) && !str_contains($user->getDisplayName(), $search)) {
+			return $return;
+		}
+		$return[] = [
+			'id' => $user->getUID(),
+			'isNoUser' => false,
+			'displayName' => $user->getDisplayName(),
+			'subname' => $user->getDisplayName(),
+		];
+		return $return;
 	}
 }
