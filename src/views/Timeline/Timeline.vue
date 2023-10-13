@@ -19,7 +19,7 @@
 					:status="file.status"
 					:status-text="file.status_text"
 					:file="file"
-					@sidebar="setSidebar" />
+					@sidebar="setCurrentFile" />
 			</ul>
 			<NcEmptyContent v-else>
 				<template #desc>
@@ -29,29 +29,26 @@
 				</template>
 			</NcEmptyContent>
 		</div>
-		<Sidebar v-if="statusSidebar"
+		<SignaturesTab v-if="haveCurrentFile"
 			ref="sidebar"
-			:loading="loading"
-			:views-in-files="true"
-			@update="getAllFiles"
-			@closesidebar="setSidebarStatus(false)" />
+			:file="currentFile" />
 	</div>
 </template>
 
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
 import File from '../../Components/File/File.vue'
-import Sidebar from '../../Components/File/Sidebar.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe } from '@nextcloud/event-bus'
+import SignaturesTab from './../../Components/File/SignaturesTab.vue'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
-		Sidebar,
+		SignaturesTab,
 		NcEmptyContent,
 	},
 	data() {
@@ -60,6 +57,7 @@ export default {
 			loading: false,
 			fileFilter: this.files,
 			filterActive: 3,
+			currentFile: {},
 		}
 	},
 
@@ -89,6 +87,9 @@ export default {
 		},
 		emptyContentFile() {
 			return this.filterFile.length <= 0
+		},
+		haveCurrentFile() {
+			return Object.keys(this.currentFile).length !== 0
 		},
 	},
 	created() {
@@ -122,16 +123,15 @@ export default {
 				break
 			}
 		},
-		setSidebar(objectFile) {
-			this.$store.dispatch('files/SET_FILE', objectFile)
-			this.setSidebarStatus(true)
+		setCurrentFile(file) {
+			this.currentFile = file
 		},
-		async deleteSigner(fileUserId) {
+		async deleteSigner(signer) {
 			for (const fileKey in this.filterFile) {
 				for (const signerKey in this.filterFile[fileKey].signers) {
-					if (this.filterFile[fileKey].signers[signerKey].fileUserId === fileUserId) {
+					if (this.filterFile[fileKey].signers[signerKey].fileUserId === signer.fileUserId) {
 						const fileId = this.filterFile[fileKey].file.nodeId
-						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + fileUserId))
+						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + signer.fileUserId))
 						this.filterFile[fileKey].signers.splice(signerKey, 1)
 						if (this.filterFile[fileKey].signers.length === 0) {
 							this.filterFile[fileKey].file.status_text = t('libresign', 'no signers')

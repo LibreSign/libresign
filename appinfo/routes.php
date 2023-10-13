@@ -18,6 +18,7 @@ return array_merge_recursive(
 	include(__DIR__ . '/routes/routesAdminController.php'),
 	include(__DIR__ . '/routes/routesFileController.php'),
 	include(__DIR__ . '/routes/routesFileElementsController.php'),
+	include(__DIR__ . '/routes/routesIdentifyAccountController.php'),
 	include(__DIR__ . '/routes/routesNotifyController.php'),
 	include(__DIR__ . '/routes/routesPageController.php'),
 	include(__DIR__ . '/routes/routesRequestSignatureController.php'),

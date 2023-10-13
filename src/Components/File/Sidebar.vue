@@ -24,8 +24,7 @@ import { generateUrl } from '@nextcloud/router'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import SignaturesTab from './SignaturesTab.vue'
-// eslint-disable-next-line n/no-missing-import
-import format from 'date-fns/format'
+import Moment from '@nextcloud/moment'
 
 export default {
 	name: 'Sidebar',
@@ -63,7 +62,7 @@ export default {
 				name: this.file.requested_by.uid
 					? this.file.requested_by.uid
 					: '',
-				date: format(new Date(this.file.request_date), 'dd/MM/yyyy'),
+				date: Moment(this.file.request_date, 'YYYY-MM-DD').toDate(),
 			})
 		},
 		hasSign() {

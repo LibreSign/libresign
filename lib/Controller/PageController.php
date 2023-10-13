@@ -25,6 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -54,6 +56,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
+		private ValidateHelper $validateHelper,
 		private IURLGenerator $url
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -71,6 +74,14 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->userSession->getUser(),
 			'url'
 		));
+
+		try {
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->initialState->provideInitialState('can_request_sign', true);
+		} catch (LibresignException $th) {
+			$this->initialState->provideInitialState('can_request_sign', false);
+		}
+
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));

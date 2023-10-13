@@ -1,266 +1,147 @@
 <template>
-	<div class="container-signatures-tab">
-		<RequestSignature :signers="signers" />
-	</div>
+	<NcAppSidebar :title="titleName"
+		:subtitle="subTitle"
+		:empty="!isLibreSignFile">
+		<RequestSignature :signers="getSigners"
+			@signer:save="signerSave"
+			@signer:update="signerUpdate" />
+	</NcAppSidebar>
 </template>
 
 <script>
-import RequestSignature from '../Request/RequestSignature.vue'
-
 import axios from '@nextcloud/axios'
-import { format } from 'date-fns'
-import { mapGetters } from 'vuex'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { getCurrentUser } from '@nextcloud/auth'
-import { get } from 'lodash-es'
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import RequestSignature from '../Request/RequestSignature.vue'
+import { subscribe } from '@nextcloud/event-bus'
+import Moment from '@nextcloud/moment'
 
 export default {
 	name: 'SignaturesTab',
 	components: {
+		NcAppSidebar,
 		RequestSignature,
+	},
+	props: {
+		file: {
+			type: Object,
+			default: () => {},
+			required: false,
+		},
 	},
 	data() {
 		return {
-			disableBtn: false,
+			signers: [],
+			fileInfo: {},
 		}
 	},
 	computed: {
-		...mapGetters('files', {
-			currentFile: 'getFile',
-		}),
-		isRequester() {
-			const uid = get(this.currentFile, ['requested_by', 'uid'])
-			return getCurrentUser().uid === uid
+		titleName() {
+			return this.file?.name ?? this.fileInfo?.name ?? ''
 		},
-		signers() {
-			return get(this.currentFile, 'signers', [])
+		subTitle() {
+			return t('libresign', 'Requested by {name}, at {date}', {
+				name: this.file?.requested_by?.uid ?? '',
+				date: Moment(Date.parse(this.file?.request_date)).format('LL LTS'),
+			})
 		},
-		fileId() {
-			return get(this.currentFile, 'file.nodeId', 0)
+		isLibreSignFile() {
+			return Object.keys(this.file ?? {}).length !== 0
 		},
-		uuid() {
-			return get(this.currentFile, 'uuid', '')
-		},
-		isSigned() {
-			return get(this.currentFile, 'status') === 1
+		getSigners() {
+			return (this.signers ?? []).concat(this.file?.signers ?? [])
 		},
 	},
+	watch: {
+		file() {
+			this.signers = []
+		},
+	},
+	async mounted() {
+		subscribe('libresign:delete-signer', this.deleteSigner)
+	},
 	methods: {
-		hasStatus(item) {
-			if (item.sign_date) {
-				return item.sign_date ? 'signed' : 'pending'
-			}
-			return 'pending'
-		},
-		update() {
-			this.$emit('update')
-		},
-		async deleteUserRequest(user) {
-			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: user.email }))
-			if (result === true) {
-				try {
-					const response = await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.fileId}/${user.fileUserId}`))
-
-					this.update()
-					showSuccess(response.data.message)
-				} catch (err) {
-					showError(err)
-				}
-			}
-		},
-		async sendNotify(email) {
+		/**
+		 * Load LibreSign data from Nextcloud File info
+		 * @param fileInfo
+		 */
+		async update(fileInfo) {
+			this.fileInfo = fileInfo
 			try {
-				this.disableBtn = true
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signers'), {
-					fileId: this.fileId,
-					signers: [
-						{
-							email,
-						},
-					],
+				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
+				this.signers = response.data.signers
+			} catch (e) {
+				this.signers = []
+			}
+		},
+		deleteSigner(signer) {
+			if (signer.identify) {
+				this.signers = this.signers.filter((i) => i.identify !== signer.identify)
+			}
+		},
+		signerUpdate(signer) {
+			if (!signer) {
+				return
+			}
+			// Ignore if already exists
+			for (let i = this.signers.length - 1; i >= 0; --i) {
+				if (this.signers[i].identify?.length > 0 && signer.identify?.length > 0 && this.signers[i].identify === signer.identify) {
+					return
+				}
+			}
+			// Ignore if already exists
+			if (this.file?.signers) {
+				for (let i = this.file.signers.length - 1; i >= 0; --i) {
+					if (this.file.signers[i].fileUserId === signer.identify) {
+						return
+					}
+				}
+			}
+			this.signers.push(signer)
+		},
+		async signerSave() {
+			const params = {
+				name: this.titleName,
+				users: [],
+			}
+			this.getSigners.forEach(signer => {
+				const user = {
+					displayName: signer.displayName,
+					identify: {},
+				}
+				signer.identifyMethods.forEach(method => {
+					if (method.method === 'account') {
+						user.identify.account = method?.value?.id ?? signer.uid
+					} else if (method.method === 'email') {
+						user.identify.email = method.value
+					}
 				})
-				this.disableBtn = false
-				showSuccess(response.data.message)
-			} catch (err) {
-				this.disableBtn = false
-				showError(err)
-			}
-		},
-		uppercaseString(string) {
-			return string[0].toUpperCase() + string.substr(1)
-		},
-		getName(user) {
-			if (user.displayName) {
-				return user.displayName
-			} else if (user.fullName) {
-				return user.fullName
-			} else if (user.email) {
-				return user.email
-			}
-			return t('libresign', 'Account not exist')
-		},
-		timestampsToDate(date) {
-			return format(new Date(date), 'dd/MM/yyyy')
-		},
-		showButton(signPerson) {
-			return !!(signPerson.me && !signPerson.sign_date)
-		},
-		goToSign(sign) {
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: sign.sign_uuid } })
-			const url = new URL(window.location.toString())
+				params.users.push(user)
+			})
 
-			url.pathname = route.href
-
-			window.open(url.toString())
-		},
-		showSignButton(user) {
-			if (user.me) {
-				if (user.sign_date) {
-					return false
+			if (this.file?.uuid) {
+				params.uuid = this.file.uuid
+				try {
+					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+				} catch (e) {
 				}
-				return true
+				return
 			}
-		},
-		showNotifyButton(user) {
-			if (!user.me) {
-				if (user.sign_date) {
-					return false
-				}
-				return true
+			params.file = {
+				fileId: this.fileInfo.id,
 			}
-			return false
-		},
-		showDelete(user) {
-			if (user.sign_date) {
-				return false
+			try {
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+			} catch (e) {
 			}
-			return true
-		},
-		showDivButtons(user) {
-			return !!(this.showSignButton(user) || this.showNotifyButton(user) || this.showDelete(user))
 		},
 	},
 }
 </script>
 <style lang="scss" scoped>
-.container-signatures-tab{
-
-	ul{
-		display: flex;
-		flex-wrap: wrap;
-		flex-direction: row;
-		padding: 10px;
-		border-radius: 10px;
-
-		li{
-			display: flex;
-			width: 100%;
-			flex-direction: column;
-			border: 1px solid #cecece;
-			margin: 3px;
-			border-radius: 10px;
-			padding: 5px;
-			align-items: flex-start;
-			overflow: hidden;
-			text-overflow: ellipsis;
-
-			.content-status{
-				display: flex;
-				flex-direction: row;
-				align-items: center;
-				flex-wrap: wrap;
-				width: 100%;
-
-				.container-btn {
-					width: 50% !important;
-				}
-
-				.container-actions{
-					display: flex;
-					flex-direction: row;
-					justify-content: space-between;
-					align-items: center;
-					width: 100%;
-					padding: 0 10px;
-				}
-
-				@media screen and (max-width: 1600px) {
-					.container-dot{
-						width: 100%;
-
-						button{
-							width: 100%;
-						}
-					}
-				}
-
-			}
-
-			.icon-sign{
-				margin-right: 8px;
-			}
-
-			.user-name{
-				display: flex;
-				flex-direction: row;
-
-				.name{
-					font-size: 14px;
-					font-style: normal;
-				}
-			}
-
-			.container-dot:first-child{
-				margin-right: 10px;
-			}
-
-			.container-dot{
-				display: flex;
-				flex-direction: row;
-				align-items: center;
-				justify-content: flex-start;
-				width: 32%;
-				margin-bottom: 6px;
-				min-height: 26px;
-				cursor: inherit;
-
-				.dot{
-					width: 10px;
-					height: 10px;
-					border-radius: 50%;
-					margin-right: 10px;
-					margin-left: 3px;
-					cursor: inherit;
-				}
-
-				.signed {
-					background: #008000;
-				}
-
-				.canceled{
-					background: #ff0000;
-				}
-
-				.pending {
-					background: #d85a0b
-				}
-
-				span{
-					font-size: 14px;
-					font-weight: normal;
-					text-align: center;
-					cursor: inherit;
-					margin-left: 5px;
-				}
-
-				button{
-					min-width: 130px;
-				}
-
-			}
-		}
+#tab-libresign {
+	.app-sidebar__close {
+		display: none !important;
 	}
 }
-
 </style>

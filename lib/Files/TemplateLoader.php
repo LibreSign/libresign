@@ -25,8 +25,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Files;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -40,6 +43,8 @@ class TemplateLoader implements IEventListener {
 		private IUserSession $userSession,
 		private AccountService $accountService,
 		private IInitialState $initialState,
+		private ValidateHelper $validateHelper,
+		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
 	) {
 	}
@@ -56,6 +61,18 @@ class TemplateLoader implements IEventListener {
 			'certificate_ok',
 			$this->certificateEngineHandler->getEngine()->isSetupOk()
 		);
+
+		$this->initialState->provideInitialState(
+			'identify_methods',
+			$this->identifyMethodService->getIdentifyMethodsSettings()
+		);
+
+		try {
+			$this->validateHelper->canRequestSign($this->userSession->getUser());
+			$this->initialState->provideInitialState('can_request_sign', true);
+		} catch (LibresignException $th) {
+			$this->initialState->provideInitialState('can_request_sign', false);
+		}
 
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',

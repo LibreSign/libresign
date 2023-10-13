@@ -3,6 +3,7 @@
 namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Controller\PageController;
+use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -11,6 +12,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -25,6 +27,7 @@ final class PageControllerTest extends TestCase {
 	private IdentifyMethodService|MockObject $identifyMethodService;
 	private IAppConfig|MockObject $appConfig;
 	private FileService|MockObject $fileService;
+	private ValidateHelper|MockObject $validateHelper;
 	private IURLGenerator|MockObject $url;
 	private PageController $controller;
 
@@ -36,6 +39,7 @@ final class PageControllerTest extends TestCase {
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->fileService = $this->createMock(FileService::class);
+		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->url = $this->createMock(IURLGenerator::class);
 		$this->controller = new PageController(
 			$this->request,
@@ -45,11 +49,15 @@ final class PageControllerTest extends TestCase {
 			$this->identifyMethodService,
 			$this->appConfig,
 			$this->fileService,
+			$this->validateHelper,
 			$this->url
 		);
 	}
 
 	public function testIndexScriptsAndTemplate() {
+		$this->userSession
+			->method('getUser')
+			->willReturn($this->createMock(IUser::class));
 		$response = $this->controller->index();
 		$this->assertEquals('main', $response->getTemplateName());
 		$scripts = $this->invokePrivate(\OCP\Util::class, 'scripts');
@@ -57,6 +65,9 @@ final class PageControllerTest extends TestCase {
 	}
 
 	public function testIndexReturnStatus() {
+		$this->userSession
+			->method('getUser')
+			->willReturn($this->createMock(IUser::class));
 		$response = $this->controller->index();
 		$this->assertEquals(200, $response->getStatus());
 	}

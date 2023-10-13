@@ -25,7 +25,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { loadState } from '@nextcloud/initial-state'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import SidebarTab from './views/SidebarTab.vue'
+import SignaturesTab from './Components/File/SignaturesTab.vue'
 import './actions/openInLibreSignAction.js'
 
 import './style/icons.scss'
@@ -55,7 +55,7 @@ const isEnabled = function(fileInfo) {
 	return false
 }
 
-const View = Vue.extend(SidebarTab)
+const View = Vue.extend(SignaturesTab)
 let TabInstance = null
 
 window.addEventListener('DOMContentLoaded', () => {
