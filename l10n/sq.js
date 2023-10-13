@@ -22,6 +22,8 @@ OC.L10N.register(
     "Apply" : "Apliko",
     "Cancel" : "Anullo",
     "Save" : "Ruaj",
+    "Name" : "Emër",
+    "Update" : "Përditëso",
     "Description" : "Përshkrim",
     "Add" : "Shto",
     "Users" : "Përdoruesit",

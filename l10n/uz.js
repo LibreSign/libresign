@@ -13,6 +13,8 @@ OC.L10N.register(
     "Upload" : "Upload",
     "Cancel" : "Cancel",
     "Save" : "Save",
+    "Name" : "Name",
+    "Update" : "Update",
     "Add" : "Add",
     "Users" : "Users",
     "Details" : "Details",

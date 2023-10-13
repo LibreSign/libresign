@@ -6,6 +6,7 @@ OC.L10N.register(
     "Settings" : "سیٹینگز",
     "Cancel" : "منسوخ کریں",
     "Save" : "حفظ",
+    "Name" : "اسم",
     "Description" : "تصریح",
     "Add" : "شامل کریں",
     "Users" : "صارفین",

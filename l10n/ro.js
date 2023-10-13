@@ -22,6 +22,8 @@ OC.L10N.register(
     "Apply" : "Aplică",
     "Cancel" : "Anulare",
     "Save" : "Salvează",
+    "Name" : "Nume",
+    "Update" : "Actualizare",
     "Description" : "Descriere",
     "Add" : "Adaugă",
     "Users" : "Utilizatori",

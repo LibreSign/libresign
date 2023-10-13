@@ -14,6 +14,7 @@ OC.L10N.register(
     "Upload" : "ອັບໂຫຼດ",
     "Cancel" : "ຍົກເລີກ",
     "Save" : "ບັນທຶກ",
+    "Name" : "ຊື່",
     "Add" : "ເພີ່ມ",
     "Users" : "ຜູ້ໃຊ້",
     "Details" : "ລາຍລະອຽດ",

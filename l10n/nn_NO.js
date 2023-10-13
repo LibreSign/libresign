@@ -12,6 +12,8 @@ OC.L10N.register(
     "Apply" : "Anvend",
     "Cancel" : "Avbryt",
     "Save" : "Lagre",
+    "Name" : "Namn",
+    "Update" : "Oppdater",
     "Description" : "Skildring",
     "Add" : "Legg til",
     "Users" : "Brukarare",
