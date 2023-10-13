@@ -5,6 +5,10 @@
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
 		<Signers :signers="signers" />
+		<NcButton v-if="canSave"
+			@click="$emit('signer:save')">
+			{{ t('libresign', 'Save') }}
+		</NcButton>
 	</div>
 	<div v-else>
 		<IdentifySigner :signer-to-edit="signerToEdit"
@@ -39,6 +43,11 @@ export default {
 			listSigners: true,
 			signerToEdit: {},
 		}
+	},
+	computed: {
+		canSave() {
+			return this.signers.length > 0
+		},
 	},
 	watch: {
 		/**

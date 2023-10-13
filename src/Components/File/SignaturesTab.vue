@@ -3,6 +3,7 @@
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
 		<RequestSignature :signers="getSigners"
+			@signer:save="signerSave"
 			@signer:update="signerUpdate" />
 	</NcAppSidebar>
 </template>
@@ -31,11 +32,12 @@ export default {
 	data() {
 		return {
 			signers: [],
+			fileInfo: {},
 		}
 	},
 	computed: {
 		titleName() {
-			return this.file?.name ?? ''
+			return this.file?.name ?? this.fileInfo?.name ?? ''
 		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
@@ -64,6 +66,7 @@ export default {
 		 * @param fileInfo
 		 */
 		async update(fileInfo) {
+			this.fileInfo = fileInfo
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
 				this.signers = response.data.signers
@@ -95,6 +98,42 @@ export default {
 				}
 			}
 			this.signers.push(signer)
+		},
+		async signerSave() {
+			const params = {
+				name: this.titleName,
+				users: [],
+			}
+			this.getSigners.forEach(signer => {
+				const user = {
+					displayName: signer.displayName,
+					identify: {},
+				}
+				signer.identifyMethods.forEach(method => {
+					if (method.method === 'account') {
+						user.identify.account = method?.value?.id ?? signer.uid
+					} else if (method.method === 'email') {
+						user.identify.email = method.value
+					}
+				})
+				params.users.push(user)
+			})
+
+			if (this.file?.uuid) {
+				params.uuid = this.file.uuid
+				try {
+					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+				} catch (e) {
+				}
+				return
+			}
+			params.file = {
+				fileId: this.fileInfo.id,
+			}
+			try {
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+			} catch (e) {
+			}
 		},
 	},
 }

@@ -10,8 +10,8 @@
 				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
 			</template>
 			<template #actions>
-				<NcActionButton aria-label="Delete"
-					v-if="canRequestSign"
+				<NcActionButton v-if="canRequestSign"
+					aria-label="Delete"
 					@click="deleteItem">
 					<template #icon>
 						<Delete :size="20" />
@@ -39,16 +39,16 @@ export default {
 		Delete,
 		Bullet,
 	},
-	data() {
-		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
-		}
-	},
 	props: {
 		signer: {
 			type: Object,
 			required: true,
 		},
+	},
+	data() {
+		return {
+			canRequestSign: loadState('libresign', 'can_request_sign'),
+		}
 	},
 	computed: {
 		identifyMethodsNames() {
