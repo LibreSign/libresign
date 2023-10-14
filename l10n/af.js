@@ -19,6 +19,7 @@ OC.L10N.register(
     "Upload" : "Laai op",
     "Cancel" : "Kanselleer",
     "Save" : "Bewaar",
+    "Update" : "Werk by",
     "Description" : "Beskrywing",
     "Add" : "Voeg by",
     "Users" : "Gebruikers",
