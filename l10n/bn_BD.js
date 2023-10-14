@@ -9,6 +9,8 @@ OC.L10N.register(
     "Upload" : "আপলোড",
     "Cancel" : "বাতির",
     "Save" : "সংরক্ষণ",
+    "Name" : "নাম",
+    "Update" : "পরিবর্ধন",
     "Description" : "বিবরণ",
     "Add" : "যোগ করুন",
     "Users" : "ব্যবহারকারী",

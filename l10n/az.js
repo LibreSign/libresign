@@ -11,6 +11,8 @@ OC.L10N.register(
     "Upload" : "Serverə yüklə",
     "Cancel" : "Dayandır",
     "Save" : "Saxla",
+    "Name" : "Ad",
+    "Update" : "Yenilənmə",
     "Description" : "Açıqlanma",
     "Add" : "Əlavə etmək",
     "Users" : "İstifadəçilər",
