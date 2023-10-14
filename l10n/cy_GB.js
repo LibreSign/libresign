@@ -11,6 +11,8 @@ OC.L10N.register(
     "Upload" : "Llwytho i fyny",
     "Cancel" : "Diddymu",
     "Save" : "Cadw",
+    "Name" : "Enw",
+    "Update" : "Diweddaru",
     "Description" : "Disgrifiad",
     "Add" : "Ychwanegu",
     "Users" : "Defnyddwyr",

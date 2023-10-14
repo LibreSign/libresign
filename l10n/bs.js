@@ -11,6 +11,8 @@ OC.L10N.register(
     "Upload" : "Učitaj",
     "Cancel" : "Otkaži",
     "Save" : "Spremi",
+    "Name" : "Ime",
+    "Update" : "Ažuriraj",
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Users" : "Korisnici",
