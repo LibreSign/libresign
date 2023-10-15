@@ -76,6 +76,8 @@
 
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
@@ -123,6 +125,13 @@ export default {
 		NcActionButton,
 		Chip,
 	},
+	props: {
+		uuid: {
+			type: String,
+			default: '',
+			require: false,
+		},
+	},
 	data() {
 		return {
 			signers: [],
@@ -139,7 +148,7 @@ export default {
 	},
 	computed: {
 		uuid() {
-			return this.$route.params.uuid || ''
+			return this.uuid || ''
 		},
 		pageIndex() {
 			return this.currentSigner.element.coordinates.page - 1
@@ -292,7 +301,7 @@ export default {
 		async loadDocument() {
 			try {
 				this.signers = []
-				this.document = await signService.validateByUUID(this.uuid)
+				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.uuid}`))
 				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
 				this.onError(err)
