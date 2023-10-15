@@ -1,3 +1,76 @@
+<template>
+	<NcContent class="view-sign-detail" app-name="libresign">
+		<div class="sign-details">
+			<h2>
+				{{ document.name }}
+				<br>
+				<Chip :state="isDraft ? 'warning' : 'default'">
+					{{ statusLabel }}
+				</Chip>
+			</h2>
+			<p>
+				<small>
+					{{ t('libresign', 'Select each signer to define their signature positions') }}
+				</small>
+			</p>
+			<Sidebar class="view-sign-detail--sidebar"
+				:signers="signers"
+				@select:signer="onSelectSigner">
+				<template #actions="{signer}">
+					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
+						{{ t('libresign', 'Send reminder') }}
+					</NcActionButton>
+					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
+						{{ t('libresign', 'Remove') }}
+					</NcActionButton>
+				</template>
+
+				<button v-if="isDraft" class="primary publish-btn" @click="publish">
+					{{ t('libresign', 'Request') }}
+				</button>
+
+				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
+					{{ t('libresign', 'Sign') }}
+				</button>
+			</Sidebar>
+		</div>
+		<div class="image-page">
+			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
+			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
+				<img :src="page.url">
+			</div> -->
+			<PageNavigation v-model="currentSigner.element.coordinates.page"
+				v-bind="{ pages }"
+				:width="pageDimensions.css.width" />
+			<div class="image-page--main">
+				<div class="image-page--container"
+					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
+					<DragResize v-if="hasSignerSelected"
+						parent-limitation
+						:is-active="true"
+						:is-resizable="true"
+						:w="currentSigner.element.coordinates.width"
+						:h="currentSigner.element.coordinates.height"
+						:x="currentSigner.element.coordinates.left"
+						:y="currentSigner.element.coordinates.top"
+						@resizing="resize"
+						@dragging="resize">
+						<div class="image-page--element">
+							{{ currentSigner.email }}
+						</div>
+						<div class="image-page--action">
+							<button class="primary" @click="saveElement">
+								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
+							</button>
+						</div>
+					</DragResize>
+					<img ref="img" :src="page.url">
+				</div>
+			</div>
+		</div>
+	</NcContent>
+</template>
+
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
@@ -263,79 +336,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcContent class="view-sign-detail" app-name="libresign">
-		<div class="sign-details">
-			<h2>
-				{{ document.name }}
-				<br>
-				<Chip :state="isDraft ? 'warning' : 'default'">
-					{{ statusLabel }}
-				</Chip>
-			</h2>
-			<p>
-				<small>
-					{{ t('libresign', 'Select each signer to define their signature positions') }}
-				</small>
-			</p>
-			<Sidebar class="view-sign-detail--sidebar"
-				:signers="signers"
-				@select:signer="onSelectSigner">
-				<template #actions="{signer}">
-					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
-					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
-						{{ t('libresign', 'Remove') }}
-					</NcActionButton>
-				</template>
-
-				<button v-if="isDraft" class="primary publish-btn" @click="publish">
-					{{ t('libresign', 'Request') }}
-				</button>
-
-				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
-					{{ t('libresign', 'Sign') }}
-				</button>
-			</Sidebar>
-		</div>
-		<div class="image-page">
-			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
-			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
-				<img :src="page.url">
-			</div> -->
-			<PageNavigation v-model="currentSigner.element.coordinates.page"
-				v-bind="{ pages }"
-				:width="pageDimensions.css.width" />
-			<div class="image-page--main">
-				<div class="image-page--container"
-					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
-					<DragResize v-if="hasSignerSelected"
-						parent-limitation
-						:is-active="true"
-						:is-resizable="true"
-						:w="currentSigner.element.coordinates.width"
-						:h="currentSigner.element.coordinates.height"
-						:x="currentSigner.element.coordinates.left"
-						:y="currentSigner.element.coordinates.top"
-						@resizing="resize"
-						@dragging="resize">
-						<div class="image-page--element">
-							{{ currentSigner.email }}
-						</div>
-						<div class="image-page--action">
-							<button class="primary" @click="saveElement">
-								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
-							</button>
-						</div>
-					</DragResize>
-					<img ref="img" :src="page.url">
-				</div>
-			</div>
-		</div>
-	</NcContent>
-</template>
 
 <style lang="scss" scoped>
 .sign-details {
