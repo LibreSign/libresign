@@ -126,10 +126,10 @@ export default {
 		Chip,
 	},
 	props: {
-		uuid: {
-			type: String,
-			default: '',
-			require: false,
+		file: {
+			type: Object,
+			default: () => {},
+			require: true,
 		},
 	},
 	data() {
@@ -147,9 +147,6 @@ export default {
 		}
 	},
 	computed: {
-		uuid() {
-			return this.uuid || ''
-		},
 		pageIndex() {
 			return this.currentSigner.element.coordinates.page - 1
 		},
@@ -301,7 +298,7 @@ export default {
 		async loadDocument() {
 			try {
 				this.signers = []
-				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.uuid}`))
+				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.file.uuid}`))
 				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
 				this.onError(err)

@@ -9,7 +9,7 @@
 			@click="save()">
 			{{ t('libresign', 'Next') }}
 		</NcButton>
-		<VisibleElements />
+		<VisibleElements :file="file" />
 	</div>
 	<div v-else>
 		<IdentifySigner :signer-to-edit="signerToEdit"
@@ -37,6 +37,11 @@ export default {
 		signers: {
 			type: Array,
 			default: () => [],
+			required: false,
+		},
+		file: {
+			type: Object,
+			default: () => {},
 			required: false,
 		},
 	},

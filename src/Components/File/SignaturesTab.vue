@@ -3,6 +3,7 @@
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
 		<RequestSignature :signers="getSigners"
+			:file="getFile"
 			@signer:save="signerSave"
 			@signer:update="signerUpdate" />
 	</NcAppSidebar>
@@ -26,7 +27,7 @@ export default {
 		file: {
 			type: Object,
 			default: () => {},
-			required: false,
+			required: true,
 		},
 	},
 	data() {
@@ -50,6 +51,11 @@ export default {
 		},
 		getSigners() {
 			return (this.signers ?? []).concat(this.file?.signers ?? [])
+		},
+		getFile() {
+			return {
+				uuid: this.file.uuid,
+			}
 		},
 	},
 	watch: {
