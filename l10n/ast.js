@@ -5,6 +5,7 @@ OC.L10N.register(
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
     "Password" : "Contraseña",
     "Settings" : "Configuración",
+    "Draw" : "Dibuxar",
     "Signatures" : "Firmes",
     "Name" : "Nome",
     "Searching …" : "Buscando…",
