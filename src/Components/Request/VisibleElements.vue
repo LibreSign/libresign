@@ -43,7 +43,7 @@
 				<img :src="page.url">
 			</div> -->
 			<PageNavigation v-model="currentSigner.element.coordinates.page"
-				v-bind="{ pages }"
+				:pages="document.pages"
 				:width="pageDimensions.css.width" />
 			<div class="image-page--main">
 				<div class="image-page--container"
@@ -150,9 +150,6 @@ export default {
 		pageIndex() {
 			return this.currentSigner.element.coordinates.page - 1
 		},
-		pages() {
-			return get(this.document, 'pages', [])
-		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
 				return false
@@ -170,7 +167,7 @@ export default {
 			return this.status === SIGN_STATUS.DRAFT
 		},
 		page() {
-			return this.pages[this.pageIndex] || {
+			return this.document.pages[this.pageIndex] || {
 				url: '',
 				resolution: {
 					h: 0,
