@@ -299,6 +299,7 @@ export default {
 			try {
 				this.signers = []
 				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.file.uuid}`))
+				this.document = this.document.data
 				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
 				this.onError(err)
