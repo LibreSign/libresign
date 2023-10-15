@@ -55,9 +55,8 @@ export default {
 	watch: {
 		/**
 		 * Display list signers when signers list is changed
-		 * @param signers
 		 */
-		signers(signers) {
+		signers() {
 			this.listSigners = true
 		},
 	},
