@@ -232,10 +232,15 @@ class FileService {
 	 */
 	private function getPages(): array {
 		$return = [];
+
 		$metadata = json_decode($this->file->getMetadata());
 		for ($page = 1; $page <= $metadata->p; $page++) {
 			$return[] = [
-				'url' => $this->urlGenerator->linkToRoute('libresign.File.getPage', ['uuid' => $this->file->getUuid(), 'page' => $page]),
+				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.File.getPage', [
+					'apiVersion' => 'v1',
+					'uuid' => $this->file->getUuid(),
+					'page' => $page,
+				]),
 				'resolution' => $metadata->d[$page - 1]
 			];
 		}
