@@ -19,7 +19,7 @@
 					:status="file.status"
 					:status-text="file.status_text"
 					:file="file"
-					@sidebar="setCurrentFile" />
+					@file:show-sidebar="setCurrentFile" />
 			</ul>
 			<NcEmptyContent v-else>
 				<template #desc>
