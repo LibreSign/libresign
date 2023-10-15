@@ -1,5 +1,6 @@
 <template>
-	<NcContent class="view-sign-detail" app-name="libresign">
+	<NcModal v-if="modal" @close="closeModal"
+		class="view-sign-detail" app-name="libresign">
 		<div class="sign-details">
 			<h2>
 				{{ document.name }}
@@ -68,14 +69,15 @@
 				</div>
 			</div>
 		</div>
-	</NcContent>
+	</NcModal>
 </template>
 
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import { subscribe } from '@nextcloud/event-bus'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import Sidebar from './SignDetail/partials/Sidebar.vue'
 import PageNavigation from './SignDetail/partials/PageNavigation.vue'
@@ -112,7 +114,7 @@ const deepCopy = val => JSON.parse(JSON.stringify(val))
 export default {
 	name: 'VisibleElements',
 	components: {
-		NcContent,
+		NcModal,
 		DragResize,
 		Sidebar,
 		PageNavigation,
@@ -129,8 +131,13 @@ export default {
 				pages: [],
 				visibleElements: [],
 			},
+			modal: false,
 			currentSigner: emptySignerData(),
 		}
+	},
+	mounted() {
+		subscribe('libresign:show-visible-elements', this.showModal)
+		this.loadDocument()
 	},
 	computed: {
 		uuid() {
@@ -188,11 +195,13 @@ export default {
 			return get(this.document, ['settings', 'signerFileUuid'])
 		},
 	},
-	async mounted() {
-		this.loadDocument()
-		this.$refs.img.setAttribute('draggable', false)
-	},
 	methods: {
+		showModal() {
+			this.modal = true
+		},
+		closeModal() {
+			this.modal = false
+		},
 		onError(err) {
 			if (err.response) {
 				return showResponseError(err.response)
