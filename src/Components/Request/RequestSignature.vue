@@ -7,8 +7,9 @@
 		<Signers :signers="signers" />
 		<NcButton v-if="canSave"
 			@click="$emit('signer:save')">
-			{{ t('libresign', 'Save') }}
+			{{ t('libresign', 'Next') }}
 		</NcButton>
+		<VisibleElements />
 	</div>
 	<div v-else>
 		<IdentifySigner :signer-to-edit="signerToEdit"
@@ -20,6 +21,7 @@
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
+import VisibleElements from './VisibleElements.vue'
 import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -29,6 +31,7 @@ export default {
 		NcButton,
 		Signers,
 		IdentifySigner,
+		VisibleElements,
 	},
 	props: {
 		signers: {

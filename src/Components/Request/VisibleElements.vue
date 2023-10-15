@@ -77,12 +77,12 @@ import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
-import Sidebar from './partials/Sidebar.vue'
-import PageNavigation from './partials/PageNavigation.vue'
+import Sidebar from './SignDetail/partials/Sidebar.vue'
+import PageNavigation from './SignDetail/partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import { SignatureImageDimensions } from '../../Components/Draw/index.js'
-import Chip from '../../Components/Chip.vue'
+import { SignatureImageDimensions } from '../Draw/index.js'
+import Chip from '../Chip.vue'
 
 const emptyElement = () => {
 	return {
@@ -110,7 +110,7 @@ const emptySignerData = () => ({
 const deepCopy = val => JSON.parse(JSON.stringify(val))
 
 export default {
-	name: 'SignDetail',
+	name: 'VisibleElements',
 	components: {
 		NcContent,
 		DragResize,
