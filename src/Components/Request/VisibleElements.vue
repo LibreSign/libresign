@@ -1,6 +1,8 @@
 <template>
-	<NcModal v-if="modal" @close="closeModal"
-		class="view-sign-detail" app-name="libresign">
+	<NcModal v-if="modal"
+		class="view-sign-detail"
+		app-name="libresign"
+		@close="closeModal">
 		<div class="sign-details">
 			<h2>
 				{{ document.name }}
@@ -135,10 +137,6 @@ export default {
 			currentSigner: emptySignerData(),
 		}
 	},
-	mounted() {
-		subscribe('libresign:show-visible-elements', this.showModal)
-		this.loadDocument()
-	},
 	computed: {
 		uuid() {
 			return this.$route.params.uuid || ''
@@ -194,6 +192,10 @@ export default {
 		signerFileUuid() {
 			return get(this.document, ['settings', 'signerFileUuid'])
 		},
+	},
+	mounted() {
+		subscribe('libresign:show-visible-elements', this.showModal)
+		this.loadDocument()
 	},
 	methods: {
 		showModal() {

@@ -82,7 +82,7 @@ export default {
 		save() {
 			emit('libresign:show-visible-elements')
 			this.$emit('signer:save')
-		}
+		},
 	},
 }
 </script>
