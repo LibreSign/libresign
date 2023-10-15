@@ -119,7 +119,7 @@ export default {
 					if (method.method === 'account') {
 						user.identify.account = method?.value?.id ?? signer.uid
 					} else if (method.method === 'email') {
-						user.identify.email = method.value
+						user.identify.email = signer.email
 					}
 				})
 				params.users.push(user)
