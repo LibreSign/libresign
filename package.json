@@ -36,7 +36,7 @@
     "dompurify": "^3.0.6",
     "linkify-string": "^4.1.1",
     "lodash-es": "^4.17.21",
-    "marked": "^9.1.0",
+    "marked": "^9.1.2",
     "style-loader": "^3.3.3",
     "vue": "^2.7.14",
     "vue-advanced-cropper": "^1.11.6",
