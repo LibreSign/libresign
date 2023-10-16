@@ -239,6 +239,12 @@ class RequestSignatureService {
 		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
 		try {
 			$this->fileUserMapper->delete($fileUser);
+			$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			foreach ($groupedIdentifyMethods as $identifyMethods) {
+				foreach ($identifyMethods as $identifyMethod) {
+					$identifyMethod->delete();
+				}
+			}
 			$visibleElements = $this->fileElementMapper->getByFileIdAndUserId($fileId, $fileUser->getUserId());
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
