@@ -14,7 +14,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import RequestSignature from '../Request/RequestSignature.vue'
-import { subscribe } from '@nextcloud/event-bus'
+import { emit, subscribe } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
 export default {
@@ -119,7 +119,7 @@ export default {
 					if (method.method === 'account') {
 						user.identify.account = method?.value?.id ?? signer.uid
 					} else if (method.method === 'email') {
-						user.identify.email = signer.email
+						user.identify.email = method.value ?? signer.email
 					}
 				})
 				params.users.push(user)
@@ -140,6 +140,7 @@ export default {
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
 			} catch (e) {
 			}
+			emit('libresign:show-visible-elements')
 		},
 	},
 }

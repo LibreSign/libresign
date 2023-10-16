@@ -22,7 +22,7 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
 import VisibleElements from './VisibleElements.vue'
-import { emit, subscribe } from '@nextcloud/event-bus'
+import { subscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 
 export default {
@@ -85,7 +85,6 @@ export default {
 			this.$emit('signer:update', signer)
 		},
 		save() {
-			emit('libresign:show-visible-elements')
 			this.$emit('signer:save')
 		},
 	},
