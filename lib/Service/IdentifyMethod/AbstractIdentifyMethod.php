@@ -183,6 +183,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
+	public function delete(): void {
+		if ($this->getEntity()->getId()) {
+			$this->identifyMethodMapper->delete($this->getEntity());
+		}
+	}
+
 	private function refreshIdFromDatabaseIfNecessary(): void {
 		$entity = $this->getEntity();
 		if ($entity->getId()) {
