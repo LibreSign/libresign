@@ -149,7 +149,7 @@ class RequestSignatureService {
 				$this->saveFileUser($fileUser);
 				foreach ($identifyMethods as $identifyMethod) {
 					$identifyMethod->getEntity()->setFileUserId($fileUser->getId());
-					$identifyMethod->willNotifyUser(isset($user['notify']) ? $user['notify'] : true);
+					$identifyMethod->willNotifyUser($user['notify'] ?? true);
 					$identifyMethod->save();
 				}
 				$return[] = $fileUser;
