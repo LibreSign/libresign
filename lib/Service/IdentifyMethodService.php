@@ -142,9 +142,9 @@ class IdentifyMethodService {
 		}
 		return array_filter(
 			$this->identifyMethods,
-			fn($list) => array_filter(
+			fn ($list) => array_filter(
 				$list,
-				fn($method) => $method->getEntity()->getFileUserId() === $fileUserId
+				fn ($method) => $method->getEntity()->getFileUserId() === $fileUserId
 			)
 		);
 	}
