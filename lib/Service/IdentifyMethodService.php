@@ -134,10 +134,19 @@ class IdentifyMethodService {
 	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
 		foreach ($entities as $entity) {
-			$identifyMethod = $this->getInstanceOfIdentifyMethod($entity->getMethod());
+			$identifyMethod = $this->getInstanceOfIdentifyMethod(
+				$entity->getMethod(),
+				$entity->getIdentifierValue(),
+			);
 			$identifyMethod->setEntity($entity);
 		}
-		return $this->identifyMethods;
+		return array_filter(
+			$this->identifyMethods,
+			fn($list) => array_filter(
+				$list,
+				fn($method) => $method->getEntity()->getFileUserId() === $fileUserId
+			)
+		);
 	}
 
 	public function save(FileUser $fileUser, bool $notify = true): void {
