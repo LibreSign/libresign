@@ -30,14 +30,14 @@ jobs:
       # do not stop on another job's failure
       fail-fast: false
       matrix:
-        php-versions: [8.1]
+        php-versions: ['8.0', '8.1', '8.2']
         databases: ['sqlite']
         coverage: ['xdebug']
         testsuite: [unit, api]
         xdebug_mode: ['debug']
         server-versions: ['master']
         include:
-          - php-versions: '8.0'
+          - php-versions: ['8.0', '8.1', '8.2']
             databases: sqlite
             coverage: xdebug
             testsuite: default
