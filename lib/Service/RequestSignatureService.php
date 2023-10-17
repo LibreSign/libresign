@@ -140,7 +140,7 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
-				$identifyMethods = $this->identifyMethod->getByUserData($user['identify'], $fileId);
+				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
 				$fileUser = $this->getFileUserByIdentifyMethod(
 					current($identifyMethods),
 					$fileId
