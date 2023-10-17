@@ -22,6 +22,7 @@ Feature: search
 
   Scenario: Search account by herself with partial name search
     Given as user "admin"
+    And set the email of user "admin" to "admin@email.tld"
     When sending "get" to ocs "/apps/libresign/api/v1/identify-account/search?search=adm"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
