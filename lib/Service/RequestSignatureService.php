@@ -131,6 +131,37 @@ class RequestSignatureService {
 		return $metadata;
 	}
 
+	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
+		$file = $this->fileMapper->getById($fileId);
+		$fileUsers = $this->fileUserMapper->getByFileId($fileId);
+		foreach ($fileUsers as $key => $fileUser) {
+			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			foreach ($identifyMethods as $methodName => $list) {
+				foreach ($list as $method) {
+					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
+					if (!$this->identifyMethodExists($users, $method)) {
+						$this->unassociateToUser($file->getNodeId(), $fileUser->getId());
+						continue 3;
+					}
+				}
+			}
+		}
+	}
+
+	private function identifyMethodExists(array $users, IIdentifyMethod $identifyMethod): bool {
+		foreach ($users as $user) {
+			foreach ($user['identify'] as $method => $value) {
+				if ($identifyMethod->getEntity()->getIdentifierKey() !== $method) {
+					continue;
+				}
+				if ($identifyMethod->getEntity()->getIdentifierValue() === $value) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @return FileUserEntity[]
 	 *
@@ -139,6 +170,7 @@ class RequestSignatureService {
 	private function associateToSigners(array $data, int $fileId): array {
 		$return = [];
 		if (!empty($data['users'])) {
+			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
 			foreach ($data['users'] as $user) {
 				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
 				$fileUser = $this->getFileUserByIdentifyMethod(
