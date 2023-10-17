@@ -27,7 +27,7 @@ export default {
 		file: {
 			type: Object,
 			default: () => {},
-			required: true,
+			required: false,
 		},
 	},
 	data() {
@@ -54,7 +54,7 @@ export default {
 		},
 		getFile() {
 			return {
-				uuid: this.file.uuid,
+				uuid: this.file?.uuid,
 			}
 		},
 	},
