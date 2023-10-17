@@ -82,6 +82,10 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		if (!str_contains($user->getUID(), $search) && !str_contains($user->getDisplayName(), $search)) {
 			return $return;
 		}
+		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
+		if (count($filtered)) {
+			return $return;
+		}
 		$return[] = [
 			'id' => $user->getUID(),
 			'isNoUser' => false,
