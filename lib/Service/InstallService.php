@@ -586,8 +586,11 @@ class InstallService {
 			}
 			$fileObject = $folder->newFile($hashFileName, $hashes);
 		}
-		$hashes = $fileObject->getContent();
-		if (!$hashes) {
+		try {
+			$hashes = $fileObject->getContent();
+		} catch (\Throwable $th) {
+		}
+		if (empty($hashes)) {
 			throw new LibresignException(
 				'Failute to load content of hash file: ' . $hashFileName . '. ' .
 				'File corrupted or not found. Run "occ files:scan-app-data libresign".'
