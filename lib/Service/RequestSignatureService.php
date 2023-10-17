@@ -140,9 +140,6 @@ class RequestSignatureService {
 		$return = [];
 		if (!empty($data['users'])) {
 			foreach ($data['users'] as $user) {
-				if (!array_key_exists('identify', $user)) {
-					throw new \Exception('Identify key not found');
-				}
 				$identifyMethods = $this->identifyMethod->getByUserData($user['identify'], $fileId);
 				$fileUser = $this->getFileUserByIdentifyMethod(
 					current($identifyMethods),
@@ -195,6 +192,9 @@ class RequestSignatureService {
 			throw new \Exception($this->l10n->t('User list needs to be an array'));
 		}
 		foreach ($data['users'] as $user) {
+			if (!array_key_exists('identify', $user)) {
+				throw new \Exception('Identify key not found');
+			}
 			$this->identifyMethod->setAllEntityData($user);
 		}
 	}
