@@ -66,6 +66,9 @@ class Email extends AbstractIdentifyMethod {
 
 	public function notify(bool $isNew): void {
 		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+		if (!$this->willNotify) {
+			return;
+		}
 		if ($isNew) {
 			$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
 			return;
