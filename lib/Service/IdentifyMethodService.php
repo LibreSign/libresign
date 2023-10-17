@@ -140,13 +140,15 @@ class IdentifyMethodService {
 			);
 			$identifyMethod->setEntity($entity);
 		}
-		return array_filter(
-			$this->identifyMethods,
-			fn ($list) => array_filter(
-				$list,
-				fn ($method) => $method->getEntity()->getFileUserId() === $fileUserId
-			)
-		);
+		$return = [];
+		foreach ($this->identifyMethods as $methodName => $list) {
+			foreach ($list as $method) {
+				if ($method->getEntity()->getFileUserId() === $fileUserId) {
+					$return[$methodName][] = $method;
+				}
+			}
+		}
+		return $return;
 	}
 
 	public function save(FileUser $fileUser, bool $notify = true): void {
