@@ -90,7 +90,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'id' => $user->getUID(),
 			'isNoUser' => false,
 			'displayName' => $user->getDisplayName(),
-			'subname' => $user->getDisplayName(),
+			'subname' => $user->getEMailAddress(),
 		];
 		return $return;
 	}
