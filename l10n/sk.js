@@ -151,7 +151,7 @@ OC.L10N.register(
     "Update" : "Aktualizovať",
     "Description" : "Popis",
     "Add" : "Pridať",
-    "Users" : "Užívatelia",
+    "Users" : "Používatelia",
     "Submit Request" : "Odoslať žiadosť",
     "This is not a valid email" : "Toto nie je validný e-mail",
     "Details" : "Podrobnosti",

@@ -10,6 +10,7 @@ OC.L10N.register(
     "Name" : "Nome",
     "Searching …" : "Buscando…",
     "Description" : "Descripción",
+    "Add" : "Amestar",
     "Details" : "Detalles",
     "Actions" : "Aiciones",
     "Signature" : "Firma",
