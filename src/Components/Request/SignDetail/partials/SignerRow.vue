@@ -1,3 +1,22 @@
+<template>
+	<NcListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
+		:title="displayName"
+		:details="signDate"
+		:class="`signer-row signer-row-${status}`"
+		v-on="$listeners">
+		<template #icon>
+			<NcAvatar is-no-user
+				:size="44"
+				:user="signer.email"
+				:display-name="displayName" />
+		</template>
+		<template #subtitle>
+			<span class="signer-status">{{ status }}</span>
+		</template>
+		<slot v-if="$slots.actions" slot="actions" name="actions" />
+	</NcListItem>
+</template>
+
 <script>
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
@@ -58,25 +77,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
-		:title="displayName"
-		:details="signDate"
-		:class="`signer-row signer-row-${status}`"
-		v-on="$listeners">
-		<template #icon>
-			<NcAvatar is-no-user
-				:size="44"
-				:user="signer.email"
-				:display-name="displayName" />
-		</template>
-		<template #subtitle>
-			<span class="signer-status">{{ status }}</span>
-		</template>
-		<slot v-if="$slots.actions" slot="actions" name="actions" />
-	</NcListItem>
-</template>
 
 <style>
 	.signer-row-signed .signer-status {
