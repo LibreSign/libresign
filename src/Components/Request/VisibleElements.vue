@@ -295,7 +295,7 @@ export default {
 		async loadDocument() {
 			try {
 				this.signers = []
-				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/uuid/${this.file.uuid}`))
+				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
 				this.document = this.document.data
 				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
