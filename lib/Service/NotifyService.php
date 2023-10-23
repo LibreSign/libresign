@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -38,6 +39,14 @@ class NotifyService {
 	) {
 	}
 
+	public function signer(int $nodeId, int $fileUserId): void {
+		$this->validateHelper->canRequestSign($this->userSession->getUser());
+		$this->validateHelper->validateLibreSignNodeId($nodeId);
+		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
+		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($nodeId, $fileUserId);
+		$this->notify($fileUser);
+	}
+
 	public function signers(int $nodeId, array $signers): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateLibreSignNodeId($nodeId);
@@ -50,23 +59,31 @@ class NotifyService {
 		// @todo refactor this code
 		$fileUsers = $this->fileUserMapper->getByNodeId($nodeId);
 		foreach ($fileUsers as $fileUser) {
-			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
-			foreach ($identifyMethods as $methodName => $instances) {
-				$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
-					foreach ($signers as $signer) {
-						$key = key($signer);
-						$value = current($signer);
-						$entity = $identifyMethod->getEntity();
-						if ($entity->getIdentifierKey() === $key
-							&& $entity->getIdentifierValue() === $value
-						) {
-							return $identifyMethod;
-						}
+			$this->notify($fileUser, $signers);
+		}
+	}
+
+	private function notify(FileUser $fileUser, array $signers = []): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		foreach ($identifyMethods as $methodName => $instances) {
+			$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
+				foreach ($signers as $signer) {
+					$key = key($signer);
+					$value = current($signer);
+					$entity = $identifyMethod->getEntity();
+					if ($entity->getIdentifierKey() === $key
+						&& $entity->getIdentifierValue() === $value
+					) {
+						return $identifyMethod;
 					}
-					return $carry;
-				});
-				if ($identifyMethod instanceof IIdentifyMethod) {
-					$identifyMethod->notify(true, $fileUser);
+				}
+				return $carry;
+			});
+			if ($identifyMethod instanceof IIdentifyMethod) {
+				$identifyMethod->notify(true, $fileUser);
+			} else {
+				foreach ($instances as $instance) {
+					$instance->notify(true, $fileUser);
 				}
 			}
 		}

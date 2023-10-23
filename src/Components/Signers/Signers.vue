@@ -2,7 +2,9 @@
 	<ul>
 		<Signer v-for="signer in signers"
 			:key="signer.id"
-			:signer="signer" />
+			:signer="signer">
+			<slot v-bind="{signer}" slot="actions" name="actions" />
+		</Signer>
 	</ul>
 </template>
 <script>

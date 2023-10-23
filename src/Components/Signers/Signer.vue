@@ -9,15 +9,7 @@
 			<template #subtitle>
 				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
 			</template>
-			<template #actions>
-				<NcActionButton v-if="canRequestSign"
-					aria-label="Delete"
-					@click="deleteItem">
-					<template #icon>
-						<Delete :size="20" />
-					</template>
-				</NcActionButton>
-			</template>
+			<slot v-if="$slots.actions" slot="actions" name="actions" />
 			<template #indicator>
 				<CheckboxBlankCircle :size="16" :fill-color="statusColor" />
 			</template>
@@ -27,9 +19,7 @@
 <script>
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
 import Bullet from '../Bullet/Bullet.vue'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
@@ -39,9 +29,7 @@ export default {
 	components: {
 		NcListItem,
 		NcAvatar,
-		NcActionButton,
 		CheckboxBlankCircle,
-		Delete,
 		Bullet,
 	},
 	props: {
@@ -72,9 +60,6 @@ export default {
 		},
 	},
 	methods: {
-		deleteItem() {
-			emit('libresign:delete-signer', this.signer)
-		},
 		editItem(signer) {
 			if (!this.canRequestSign) {
 				return
