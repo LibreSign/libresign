@@ -32,7 +32,7 @@
 	<div v-else>
 		<IdentifySigner :signer-to-edit="signerToEdit"
 			@cancel-identify-signer="cancelIdentifySigner"
-			@save-identify-signer="toggleAddSigner" />
+			@save-identify-signer="signerUpdate" />
 	</div>
 </template>
 <script>
@@ -107,15 +107,14 @@ export default {
 			this.listSigners = false
 		},
 		cancelIdentifySigner() {
-			this.listSigners = !this.listSigners
+			this.toggleAddSigner()
 		},
 		editSigner(signer) {
 			this.signerToEdit = signer
-			this.listSigners = !this.listSigners
+			this.toggleAddSigner()
 		},
-		toggleAddSigner(signer) {
+		toggleAddSigner() {
 			this.listSigners = !this.listSigners
-			this.signerUpdate(signer)
 		},
 		async sendNotify(signer) {
 			try {
@@ -169,6 +168,7 @@ export default {
 			emit('libresign:show-visible-elements')
 		},
 		signerUpdate(signer) {
+			this.toggleAddSigner()
 			// generate unique code to new signer to be possible delete or edit
 			if (signer.identify === undefined && signer.fileUserId === undefined) {
 				signer.identify = btoa(JSON.stringify(signer))
