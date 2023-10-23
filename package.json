@@ -30,7 +30,7 @@
     "@nextcloud/moment": "^1.2.1",
     "@nextcloud/password-confirmation": "^4.1.0",
     "@nextcloud/paths": "^2.1.0",
-    "@nextcloud/router": "^2.1.2",
+    "@nextcloud/router": "^2.2.0",
     "@nextcloud/vue": "^7.12.5",
     "crypto-js": "^4.1.1",
     "dompurify": "^3.0.6",
