@@ -53,9 +53,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 	) {
-		$this->entity = new IdentifyMethod();
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
+		$this->cleanEntity();
+	}
+
+	public function cleanEntity(): void {
+		$this->entity = new IdentifyMethod();
 		$this->entity->setIdentifierKey($this->name);
 	}
 

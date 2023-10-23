@@ -28,6 +28,7 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCP\IUser;
 
 interface IIdentifyMethod {
+	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
 	public function willNotifyUser(bool $willNotify): void;

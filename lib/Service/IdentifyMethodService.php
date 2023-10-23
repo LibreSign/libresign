@@ -71,8 +71,7 @@ class IdentifyMethodService {
 				}
 			}
 		}
-		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
-		$identifyMethod = \OC::$server->get($className);
+		$identifyMethod = $this->getNewInstanceOfMethod($name);
 
 		$entity = $identifyMethod->getEntity();
 		$entity->setIdentifierKey($name);
@@ -84,6 +83,13 @@ class IdentifyMethodService {
 		}
 
 		$this->identifyMethods[$name][] = $identifyMethod;
+		return $identifyMethod;
+	}
+
+	private function getNewInstanceOfMethod(string $name): IIdentifyMethod {
+		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
+		$identifyMethod = clone \OC::$server->get($className);
+		$identifyMethod->cleanEntity();
 		return $identifyMethod;
 	}
 
