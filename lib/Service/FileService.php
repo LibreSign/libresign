@@ -221,7 +221,7 @@ class FileService {
 					}
 				}
 			}
-			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function($carry, $list) {
+			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function ($carry, $list) {
 				foreach ($list as $identifyMethod) {
 					$carry[] = [
 						'method' => $identifyMethod->getEntity()->getIdentifierKey(),
