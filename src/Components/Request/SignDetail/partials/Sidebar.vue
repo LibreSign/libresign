@@ -1,10 +1,10 @@
 <script>
-import Signer from './SignerRow.vue'
+import SignerRow from './SignerRow.vue'
 
 export default {
 	name: 'Sidebar',
 	components: {
-		Signer,
+		SignerRow,
 	},
 	props: {
 		signers: {
@@ -23,14 +23,14 @@ export default {
 <template>
 	<div>
 		<ul>
-			<Signer v-for="user in signers"
+			<SignerRow v-for="user in signers"
 				:key="`signature-${user.fileUserId}`"
 				:signer="user"
 				@click="selectSigner(user)">
 				<slot slot="actions"
 					v-bind="{signer: user}"
 					name="actions" />
-			</Signer>
+			</SignerRow>
 		</ul>
 
 		<slot />
