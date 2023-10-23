@@ -4,7 +4,25 @@
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
-		<Signers :signers="signers" />
+		<Signers :signers="dataSigners">
+			<template #actions="{signer}">
+				<NcActionButton v-if="canRequestSign"
+					aria-label="Delete"
+					:close-after-click="true"
+					@click="deleteSigner(signer)">
+					<template #icon>
+						<Delete :size="20" />
+					</template>
+					{{ t('libresign', 'Delete') }}
+				</NcActionButton>
+				<NcActionButton v-if="!signer.signed && signer.fileUserId"
+					icon="icon-comment"
+					:close-after-click="true"
+					@click="sendNotify(signer)">
+					{{ t('libresign', 'Send reminder') }}
+				</NcActionButton>
+			</template>
+		</Signers>
 		<NcButton v-if="canSave"
 			@click="save()">
 			{{ t('libresign', 'Next') }}
@@ -21,7 +39,11 @@
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { emit, subscribe } from '@nextcloud/event-bus'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import Delete from 'vue-material-design-icons/Delete.vue'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showResponseError } from '../../helpers/errors.js'
 import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
 import VisibleElements from './VisibleElements.vue'
@@ -30,7 +52,9 @@ import { loadState } from '@nextcloud/initial-state'
 export default {
 	name: 'RequestSignature',
 	components: {
+		NcActionButton,
 		NcButton,
+		Delete,
 		Signers,
 		IdentifySigner,
 		VisibleElements,
@@ -76,7 +100,6 @@ export default {
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
-		subscribe('libresign:delete-signer', this.deleteSigner)
 	},
 	methods: {
 		addSigner() {
@@ -93,6 +116,23 @@ export default {
 		toggleAddSigner(signer) {
 			this.listSigners = !this.listSigners
 			this.signerUpdate(signer)
+		},
+		async sendNotify(signer) {
+			try {
+				const body = {
+					fileId: this.dataFile.nodeId,
+					fileUserId: signer.fileUserId,
+				}
+
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
+				showSuccess(t('libresign', response.data.message))
+			} catch (err) {
+				if (err.response) {
+					return showResponseError(err.response)
+				}
+				return showError(err.message)
+			}
+
 		},
 		async save() {
 			const params = {

@@ -65,4 +65,27 @@ class NotifyController extends Controller {
 			'message' => $this->l10n->t('Notification sent with success.')
 		], Http::STATUS_OK);
 	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function signer($fileId, $fileUserId): JSONResponse {
+		try {
+			$this->notifyService->signer($fileId, $fileUserId);
+		} catch (\Throwable $th) {
+			return new JSONResponse(
+				[
+					'messages' => [
+						[
+							'type' => 'danger',
+							'message' => $th->getMessage()
+						]
+					]
+				],
+				Http::STATUS_UNAUTHORIZED
+			);
+		}
+		return new JSONResponse([
+			'message' => $this->l10n->t('Notification sent with success.')
+		], Http::STATUS_OK);
+	}
 }
