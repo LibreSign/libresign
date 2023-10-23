@@ -15,19 +15,16 @@
 
 		<label v-if="downloadStatus.java > 0">Java</label>
 		<NcProgressBar v-if="downloadStatus.java > 0"
-			:error="true"
 			size="medium"
 			:value="downloadStatus.java" />
 
 		<label v-if="downloadStatus.cfssl > 0">cfssl</label>
 		<NcProgressBar v-if="downloadStatus.cfssl > 0"
-			:error="true"
 			size="medium"
 			:value="downloadStatus.cfssl" />
 
 		<label v-if="downloadStatus.jsignpdf > 0">jsignpdf</label>
 		<NcProgressBar v-if="downloadStatus.jsignpdf > 0"
-			:error="true"
 			size="medium"
 			:value="downloadStatus.jsignpdf" />
 	</NcSettingsSection>
