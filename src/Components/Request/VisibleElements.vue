@@ -78,6 +78,7 @@
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+import { loadState } from '@nextcloud/initial-state'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
@@ -134,6 +135,7 @@ export default {
 	},
 	data() {
 		return {
+			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
 			document: {
 				id: '',
@@ -201,6 +203,9 @@ export default {
 	},
 	methods: {
 		showModal() {
+			if (!this.canRequestSign) {
+				return
+			}
 			this.modal = true
 			this.loadDocument()
 		},
