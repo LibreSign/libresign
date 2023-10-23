@@ -559,7 +559,8 @@ class FileUserMapper extends QBMapper {
 		$row['file'] = [
 			'type' => 'pdf',
 			'url' => $url . $row['uuid'],
-			'nodeId' => (int) $row['node_id']
+			'nodeId' => (int) $row['node_id'],
+			'uuid' => $row['uuid'],
 		];
 		unset(
 			$row['node_id'],
