@@ -1,10 +1,11 @@
 <template>
-	<NcAppSidebar :title="titleName"
+	<NcAppSidebar :title="file.name"
+		class="teste"
 		:subtitle="subTitle"
 		:empty="!isLibreSignFile">
-		<RequestSignature :signers="getSigners"
-			@signer:save="signerSave"
-			@signer:update="signerUpdate" />
+		<RequestSignature :file="getFile"
+			:signers="getSigners"
+			:name="getName" />
 	</NcAppSidebar>
 </template>
 
@@ -13,7 +14,6 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import RequestSignature from '../Request/RequestSignature.vue'
-import { subscribe } from '@nextcloud/event-bus'
 import Moment from '@nextcloud/moment'
 
 export default {
@@ -23,125 +23,88 @@ export default {
 		RequestSignature,
 	},
 	props: {
-		file: {
+		propName: {
+			type: String,
+			default: '',
+			required: false,
+		},
+		propFile: {
 			type: Object,
 			default: () => {},
+			required: false,
+		},
+		propSigners: {
+			type: Array,
+			default: () => [],
 			required: false,
 		},
 	},
 	data() {
 		return {
+			file: {},
 			signers: [],
-			fileInfo: {},
+			name: '',
 		}
 	},
 	computed: {
-		titleName() {
-			return this.file?.name ?? this.fileInfo?.name ?? ''
+		getFile() {
+			if (this.propFile && Object.keys(this.propFile).length > 0) {
+				return this.propFile
+			}
+			return this.file
+		},
+		getSigners() {
+			if (this.propSigners.length > 0) {
+				return this.propSigners
+			}
+			return this.signers
+		},
+		getName() {
+			if (this.propName.length > 0) {
+				return this.propName
+			}
+			return this.name
 		},
 		subTitle() {
+			if ((this.file.requested_by?.uid ?? '').length === 0) {
+				return ''
+			}
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this.file?.requested_by?.uid ?? '',
-				date: Moment(Date.parse(this.file?.request_date)).format('LL LTS'),
+				name: this.file.requested_by.uid,
+				date: Moment(Date.parse(this.file.request_date)).format('LL LTS'),
 			})
 		},
 		isLibreSignFile() {
 			return Object.keys(this.file ?? {}).length !== 0
 		},
-		getSigners() {
-			return (this.signers ?? []).concat(this.file?.signers ?? [])
-		},
-	},
-	watch: {
-		file() {
-			this.signers = []
-		},
-	},
-	async mounted() {
-		subscribe('libresign:delete-signer', this.deleteSigner)
 	},
 	methods: {
 		/**
 		 * Load LibreSign data from Nextcloud File info
-		 * @param fileInfo
+		 * @param {object} fileInfo file data
 		 */
 		async update(fileInfo) {
-			this.fileInfo = fileInfo
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
 				this.signers = response.data.signers
+				this.file.nodeId = fileInfo.id
+				this.name = response.data.name
+				this.file.uuid = response.data.uuid
 			} catch (e) {
 				this.signers = []
-			}
-		},
-		deleteSigner(signer) {
-			if (signer.identify) {
-				this.signers = this.signers.filter((i) => i.identify !== signer.identify)
-			}
-		},
-		signerUpdate(signer) {
-			if (!signer) {
-				return
-			}
-			// Ignore if already exists
-			for (let i = this.signers.length - 1; i >= 0; --i) {
-				if (this.signers[i].identify?.length > 0 && signer.identify?.length > 0 && this.signers[i].identify === signer.identify) {
-					return
-				}
-			}
-			// Ignore if already exists
-			if (this.file?.signers) {
-				for (let i = this.file.signers.length - 1; i >= 0; --i) {
-					if (this.file.signers[i].fileUserId === signer.identify) {
-						return
-					}
-				}
-			}
-			this.signers.push(signer)
-		},
-		async signerSave() {
-			const params = {
-				name: this.titleName,
-				users: [],
-			}
-			this.getSigners.forEach(signer => {
-				const user = {
-					displayName: signer.displayName,
-					identify: {},
-				}
-				signer.identifyMethods.forEach(method => {
-					if (method.method === 'account') {
-						user.identify.account = method?.value?.id ?? signer.uid
-					} else if (method.method === 'email') {
-						user.identify.email = method.value
-					}
-				})
-				params.users.push(user)
-			})
-
-			if (this.file?.uuid) {
-				params.uuid = this.file.uuid
-				try {
-					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
-				} catch (e) {
-				}
-				return
-			}
-			params.file = {
-				fileId: this.fileInfo.id,
-			}
-			try {
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
-			} catch (e) {
+				this.file.nodeId = fileInfo.id
+				this.name = fileInfo.name
 			}
 		},
 	},
 }
 </script>
 <style lang="scss" scoped>
-#tab-libresign {
-	.app-sidebar__close {
-		display: none !important;
+.app-sidebar {
+	:deep {
+		.app-sidebar-header {
+			display: none !important;
+		}
 	}
 }
 </style>

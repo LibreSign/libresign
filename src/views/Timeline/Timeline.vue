@@ -19,7 +19,7 @@
 					:status="file.status"
 					:status-text="file.status_text"
 					:file="file"
-					@sidebar="setCurrentFile" />
+					@file:show-sidebar="setCurrentFile" />
 			</ul>
 			<NcEmptyContent v-else>
 				<template #desc>
@@ -31,7 +31,9 @@
 		</div>
 		<SignaturesTab v-if="haveCurrentFile"
 			ref="sidebar"
-			:file="currentFile" />
+			:prop-file="currentFile.file"
+			:prop-signers="currentFile.signers"
+			:prop-name="currentFile.name" />
 	</div>
 </template>
 

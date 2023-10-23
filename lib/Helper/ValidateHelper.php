@@ -269,7 +269,7 @@ class ValidateHelper {
 	}
 
 	private function validateUserHasNecessaryElements(FileUser $fileUser, IUser $user, array $list = []): void {
-		$fileElements = $this->fileElementMapper->getByFileIdAndUserId($fileUser->getFileId(), $user->getUID());
+		$fileElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileUser->getFileId(), $fileUser->getId());
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $fileUser): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();

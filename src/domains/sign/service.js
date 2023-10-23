@@ -38,29 +38,6 @@ const buildService = (http) => {
 			return data
 		},
 		/**
-		 * @param   {string}  fileUUID fileUUID
-		 * @param   {object}  body body
-		 *
-		 * @return  {*}
-		 */
-		async addElement(fileUUID, body) {
-			const { data } = await http.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${fileUUID}`), body)
-
-			return data
-		},
-		/**
-		 * @param   {string}  fileUUID fileUUID
-		 * @param   {string}  elementID elementID
-		 * @param   {object}  body body
-		 *
-		 * @return  {*}
-		 */
-		async updateElement(fileUUID, elementID, body) {
-			const { data } = await http.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${fileUUID}/${elementID}`), body)
-
-			return data
-		},
-		/**
 		 * @param   {string}  fileID fileID
 		 * @param   {string}  email email
 		 *

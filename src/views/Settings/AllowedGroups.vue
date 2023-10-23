@@ -36,6 +36,8 @@
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcMultiselect from '@nextcloud/vue/dist/Components/NcMultiselect.js'
+import { confirmPassword } from '@nextcloud/password-confirmation'
+import '@nextcloud/password-confirmation/dist/style.css'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
@@ -69,7 +71,9 @@ export default {
 			}
 		},
 
-		saveGroups() {
+		async saveGroups() {
+			await confirmPassword()
+
 			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected)
 			OCP.AppConfig.setValue('libresign', 'webhook_authorized', listOfInputGroupsSelected)
 			this.idKey += 1

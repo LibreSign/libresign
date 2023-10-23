@@ -24,7 +24,6 @@
 	</div>
 </template>
 <script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -33,7 +32,6 @@ import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 export default {
 	name: 'IdentifyAccount',
 	components: {
-		NcButton,
 		NcSelect,
 		AlertCircle,
 	},

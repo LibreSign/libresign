@@ -38,7 +38,7 @@ export default {
 	},
 	methods: {
 		openSidebar() {
-			this.$emit('sidebar', this.file)
+			this.$emit('file:show-sidebar', this.file)
 		},
 		statusToUppercase(statusText) {
 			return statusText[0].toUpperCase() + statusText.substr(1)

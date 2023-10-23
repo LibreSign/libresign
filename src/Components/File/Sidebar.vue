@@ -2,7 +2,7 @@
 	<NcAppSidebar v-if="file"
 		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
-		:title="titleName"
+		:title="file.name"
 		:subtitle="subTitle"
 		:active="tabId"
 		:header="false"
@@ -54,9 +54,6 @@ export default {
 		...mapGetters({
 			file: 'files/getFile',
 		}),
-		titleName() {
-			return this.file.name ? this.file.name : ''
-		},
 		subTitle() {
 			return t('libresign', 'Requested by {name}, at {date}', {
 				name: this.file.requested_by.uid

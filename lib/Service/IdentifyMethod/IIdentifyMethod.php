@@ -36,4 +36,5 @@ interface IIdentifyMethod {
 	public function validateToCreateAccount(string $value): void;
 	public function validateToSign(?IUser $user = null): void;
 	public function save(): void;
+	public function delete(): void;
 }

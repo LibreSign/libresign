@@ -1,15 +1,95 @@
+<template>
+	<NcModal v-if="modal"
+		class="view-sign-detail"
+		app-name="libresign"
+		@close="closeModal">
+		<div class="sign-details">
+			<h2>
+				{{ document.name }}
+				<br>
+				<Chip :state="isDraft ? 'warning' : 'default'">
+					{{ statusLabel }}
+				</Chip>
+			</h2>
+			<p>
+				<small>
+					{{ t('libresign', 'Select each signer to define their signature positions') }}
+				</small>
+			</p>
+			<Sidebar class="view-sign-detail--sidebar"
+				:signers="signers"
+				@select:signer="onSelectSigner">
+				<template #actions="{signer}">
+					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
+						{{ t('libresign', 'Send reminder') }}
+					</NcActionButton>
+					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
+						{{ t('libresign', 'Remove') }}
+					</NcActionButton>
+				</template>
+
+				<button v-if="isDraft" class="primary publish-btn" @click="publish">
+					{{ t('libresign', 'Request') }}
+				</button>
+
+				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
+					{{ t('libresign', 'Sign') }}
+				</button>
+			</Sidebar>
+		</div>
+		<div class="image-page">
+			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
+			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
+				<img :src="page.url">
+			</div> -->
+			<PageNavigation v-model="currentSigner.element.coordinates.page"
+				:pages="document.pages"
+				:width="pageDimensions.css.width" />
+			<div class="image-page--main">
+				<div class="image-page--container"
+					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
+					<DragResize v-if="hasSignerSelected"
+						parent-limitation
+						:is-active="true"
+						:is-resizable="true"
+						:w="currentSigner.element.coordinates.width"
+						:h="currentSigner.element.coordinates.height"
+						:x="currentSigner.element.coordinates.left"
+						:y="currentSigner.element.coordinates.top"
+						@resizing="resize"
+						@dragging="resize">
+						<div class="image-page--element">
+							{{ currentSigner.email }}
+						</div>
+						<div class="image-page--action">
+							<button class="primary" @click="saveElement">
+								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
+							</button>
+						</div>
+					</DragResize>
+					<img ref="img" :src="page.url">
+				</div>
+			</div>
+		</div>
+	</NcModal>
+</template>
+
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { loadState } from '@nextcloud/initial-state'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import { subscribe } from '@nextcloud/event-bus'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
-import Sidebar from './partials/Sidebar.vue'
-import PageNavigation from './partials/PageNavigation.vue'
+import Sidebar from './SignDetail/partials/Sidebar.vue'
+import PageNavigation from './SignDetail/partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
-import { SignatureImageDimensions } from '../../Components/Draw/index.js'
-import Chip from '../../Components/Chip.vue'
+import { SignatureImageDimensions } from '../Draw/index.js'
+import Chip from '../Chip.vue'
 
 const emptyElement = () => {
 	return {
@@ -37,17 +117,25 @@ const emptySignerData = () => ({
 const deepCopy = val => JSON.parse(JSON.stringify(val))
 
 export default {
-	name: 'SignDetail',
+	name: 'VisibleElements',
 	components: {
-		NcContent,
+		NcModal,
 		DragResize,
 		Sidebar,
 		PageNavigation,
 		NcActionButton,
 		Chip,
 	},
+	props: {
+		file: {
+			type: Object,
+			default: () => {},
+			require: true,
+		},
+	},
 	data() {
 		return {
+			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
 			document: {
 				id: '',
@@ -56,18 +144,13 @@ export default {
 				pages: [],
 				visibleElements: [],
 			},
+			modal: false,
 			currentSigner: emptySignerData(),
 		}
 	},
 	computed: {
-		uuid() {
-			return this.$route.params.uuid || ''
-		},
 		pageIndex() {
 			return this.currentSigner.element.coordinates.page - 1
-		},
-		pages() {
-			return get(this.document, 'pages', [])
 		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
@@ -86,7 +169,7 @@ export default {
 			return this.status === SIGN_STATUS.DRAFT
 		},
 		page() {
-			return this.pages[this.pageIndex] || {
+			return this.document.pages[this.pageIndex] || {
 				url: '',
 				resolution: {
 					h: 0,
@@ -115,11 +198,20 @@ export default {
 			return get(this.document, ['settings', 'signerFileUuid'])
 		},
 	},
-	async mounted() {
-		this.loadDocument()
-		this.$refs.img.setAttribute('draggable', false)
+	mounted() {
+		subscribe('libresign:show-visible-elements', this.showModal)
 	},
 	methods: {
+		showModal() {
+			if (!this.canRequestSign) {
+				return
+			}
+			this.modal = true
+			this.loadDocument()
+		},
+		closeModal() {
+			this.modal = false
+		},
 		onError(err) {
 			if (err.response) {
 				return showResponseError(err.response)
@@ -208,7 +300,8 @@ export default {
 		async loadDocument() {
 			try {
 				this.signers = []
-				this.document = await signService.validateByUUID(this.uuid)
+				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+				this.document = this.document.data
 				this.$nextTick(() => this.updateSigners())
 			} catch (err) {
 				this.onError(err)
@@ -251,8 +344,8 @@ export default {
 
 			try {
 				this.editingElement
-					? await signService.updateElement(this.uuid, element.elementId, payload)
-					: await signService.addElement(this.uuid, payload)
+					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}/${element.elementId}`), payload)
+					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}`), payload)
 				showSuccess(t('libresign', 'Element created'))
 
 				this.$nextTick(() => this.loadDocument())
@@ -263,79 +356,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcContent class="view-sign-detail" app-name="libresign">
-		<div class="sign-details">
-			<h2>
-				{{ document.name }}
-				<br>
-				<Chip :state="isDraft ? 'warning' : 'default'">
-					{{ statusLabel }}
-				</Chip>
-			</h2>
-			<p>
-				<small>
-					{{ t('libresign', 'Select each signer to define their signature positions') }}
-				</small>
-			</p>
-			<Sidebar class="view-sign-detail--sidebar"
-				:signers="signers"
-				@select:signer="onSelectSigner">
-				<template #actions="{signer}">
-					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
-					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
-						{{ t('libresign', 'Remove') }}
-					</NcActionButton>
-				</template>
-
-				<button v-if="isDraft" class="primary publish-btn" @click="publish">
-					{{ t('libresign', 'Request') }}
-				</button>
-
-				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
-					{{ t('libresign', 'Sign') }}
-				</button>
-			</Sidebar>
-		</div>
-		<div class="image-page">
-			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
-			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
-				<img :src="page.url">
-			</div> -->
-			<PageNavigation v-model="currentSigner.element.coordinates.page"
-				v-bind="{ pages }"
-				:width="pageDimensions.css.width" />
-			<div class="image-page--main">
-				<div class="image-page--container"
-					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
-					<DragResize v-if="hasSignerSelected"
-						parent-limitation
-						:is-active="true"
-						:is-resizable="true"
-						:w="currentSigner.element.coordinates.width"
-						:h="currentSigner.element.coordinates.height"
-						:x="currentSigner.element.coordinates.left"
-						:y="currentSigner.element.coordinates.top"
-						@resizing="resize"
-						@dragging="resize">
-						<div class="image-page--element">
-							{{ currentSigner.email }}
-						</div>
-						<div class="image-page--action">
-							<button class="primary" @click="saveElement">
-								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
-							</button>
-						</div>
-					</DragResize>
-					<img ref="img" :src="page.url">
-				</div>
-			</div>
-		</div>
-	</NcContent>
-</template>
 
 <style lang="scss" scoped>
 .sign-details {

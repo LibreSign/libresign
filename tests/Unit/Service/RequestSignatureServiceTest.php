@@ -179,9 +179,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
 			'users' => [
-				[
-					'email' => 'jhondoe@test.coop'
-				]
+				['identify' => ['email' => 'jhondoe@test.coop']]
 			],
 			'userManager' => $this->user
 		]);

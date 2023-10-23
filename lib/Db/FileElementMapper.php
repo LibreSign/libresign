@@ -59,32 +59,6 @@ class FileElementMapper extends QBMapper {
 	/**
 	 * @return FileElement[]
 	 */
-	public function getByFileIdAndUserId(int $fileId, string $userId): array {
-		if (!isset($this->cache['fileId'][$fileId][$userId])) {
-			$qb = $this->db->getQueryBuilder();
-
-			$qb->select('fe.*')
-				->from($this->getTableName(), 'fe')
-				->leftJoin('fe', 'libresign_identify_method', 'im', $qb->expr()->andX(
-					$qb->expr()->eq('fe.file_user_id', 'im.file_user_id'),
-					$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
-					$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
-				))
-				->where(
-					$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
-				)
-				->andWhere(
-					$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
-				);
-
-			$this->cache['fileId'][$fileId][$userId] = $this->findEntities($qb);
-		}
-		return $this->cache['fileId'][$fileId][$userId];
-	}
-
-	/**
-	 * @return FileElement[]
-	 */
 	public function getByFileIdAndFileUserId(int $fileId, int $fileUserId): array {
 		$qb = $this->db->getQueryBuilder();
 

@@ -24,8 +24,6 @@
 </template>
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import IdentifyAccount from './IdentifyAccount.vue'
 import IdentifyEmail from './IdentifyEmail.vue'
 import SignerName from './SignerName.vue'
@@ -35,8 +33,6 @@ export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
-		NcSelect,
-		NcTextField,
 		IdentifyAccount,
 		IdentifyEmail,
 		SignerName,
