@@ -155,13 +155,6 @@ export default {
 				}
 			}
 			if (canSave) {
-				// generate unique code to new signer to be possible delete or edit
-				if (this.identify.length === 0 && this.signerToEdit.fileUserId === undefined) {
-					signer.identify = btoa(JSON.stringify(signer))
-				}
-				if (this.signerToEdit.fileUserId) {
-					signer.identify = this.signerToEdit.fileUserId
-				}
 				this.$emit('save-identify-signer', signer)
 			}
 		},
