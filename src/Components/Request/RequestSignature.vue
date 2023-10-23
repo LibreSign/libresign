@@ -170,11 +170,11 @@ export default {
 		signerUpdate(signer) {
 			this.toggleAddSigner()
 			// generate unique code to new signer to be possible delete or edit
-			if (signer.identify === undefined && signer.fileUserId === undefined) {
+			if ((signer.identify === undefined || signer.identify === '') && signer.fileUserId === undefined) {
 				signer.identify = btoa(JSON.stringify(signer))
 			}
-			if (signer.signerToEdit.fileUserId) {
-				signer.identify = signer.signerToEdit.fileUserId
+			if (signer.fileUserId) {
+				signer.identify = signer.fileUserId
 			}
 			// Ignore if already exists
 			for (let i = this.dataSigners.length - 1; i >= 0; --i) {
