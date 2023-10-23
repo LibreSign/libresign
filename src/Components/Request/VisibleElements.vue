@@ -198,11 +198,11 @@ export default {
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
-		this.loadDocument()
 	},
 	methods: {
 		showModal() {
 			this.modal = true
+			this.loadDocument()
 		},
 		closeModal() {
 			this.modal = false
