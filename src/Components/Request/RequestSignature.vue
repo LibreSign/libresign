@@ -154,24 +154,28 @@ export default {
 				params.users.push(user)
 			})
 
-			if (this.dataFile.uuid) {
-				params.uuid = this.dataFile.uuid
-				try {
-					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
-				} catch (e) {
-				}
-				return
-			}
-			params.file = {
-				fileId: this.dataFile.nodeId,
-			}
 			try {
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+				if (this.dataFile.uuid) {
+					params.uuid = this.dataFile.uuid
+					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+				} else {
+					params.file = {
+						fileId: this.dataFile.nodeId,
+					}
+					await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+				}
 			} catch (e) {
 			}
 			emit('libresign:show-visible-elements')
 		},
 		signerUpdate(signer) {
+			// generate unique code to new signer to be possible delete or edit
+			if (signer.identify === undefined && signer.fileUserId === undefined) {
+				signer.identify = btoa(JSON.stringify(signer))
+			}
+			if (signer.signerToEdit.fileUserId) {
+				signer.identify = signer.signerToEdit.fileUserId
+			}
 			// Ignore if already exists
 			for (let i = this.dataSigners.length - 1; i >= 0; --i) {
 				if (this.dataSigners[i].identify?.length > 0 && signer.identify?.length > 0 && this.dataSigners[i].identify === signer.identify) {
@@ -184,6 +188,13 @@ export default {
 			this.dataSigners.push(signer)
 		},
 		deleteSigner(signer) {
+			// generate unique code to new signer to be possible delete or edit
+			if (signer.identify === undefined && signer.fileUserId === undefined) {
+				signer.identify = btoa(JSON.stringify(signer))
+			}
+			if (signer.fileUserId) {
+				signer.identify = signer.fileUserId
+			}
 			if (signer.identify) {
 				this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
 			}
