@@ -136,6 +136,10 @@ class RequestSignatureService {
 		$fileUsers = $this->fileUserMapper->getByFileId($fileId);
 		foreach ($fileUsers as $key => $fileUser) {
 			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			if (empty($identifyMethods)) {
+				$this->unassociateToUser($file->getNodeId(), $fileUser->getId());
+				continue;
+			}
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
 					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
