@@ -17,8 +17,7 @@
 				</small>
 			</p>
 			<Sidebar class="view-sign-detail--sidebar"
-				:signers="signers"
-				@select:signer="onSelectSigner">
+				:signers="signers">
 				<template #actions="{signer}">
 					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
 						{{ t('libresign', 'Send reminder') }}
@@ -200,6 +199,7 @@ export default {
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
+		subscribe('libresign:visible-elements:select:signer', this.onSelectSigner)
 	},
 	methods: {
 		showModal() {

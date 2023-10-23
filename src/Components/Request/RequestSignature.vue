@@ -91,17 +91,29 @@ export default {
 		},
 	},
 	watch: {
-		/**
-		 * Display list signers when signers list is changed
-		 */
-		signers() {
+		signers(signers) {
+			this.addIdentifier(signers)
 			this.listSigners = true
+		},
+		dataSigners(signers) {
+			this.addIdentifier(signers)
 		},
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
 	},
 	methods: {
+		addIdentifier(signers) {
+			signers.map(signer => {
+				// generate unique code to new signer to be possible delete or edit
+				if ((signer.identify === undefined || signer.identify === '') && signer.fileUserId === undefined) {
+					signer.identify = btoa(JSON.stringify(signer))
+				}
+				if (signer.fileUserId) {
+					signer.identify = signer.fileUserId
+				}
+			})
+		},
 		addSigner() {
 			this.signerToEdit = {}
 			this.listSigners = false
@@ -169,35 +181,22 @@ export default {
 		},
 		signerUpdate(signer) {
 			this.toggleAddSigner()
-			// generate unique code to new signer to be possible delete or edit
-			if ((signer.identify === undefined || signer.identify === '') && signer.fileUserId === undefined) {
-				signer.identify = btoa(JSON.stringify(signer))
-			}
-			if (signer.fileUserId) {
-				signer.identify = signer.fileUserId
-			}
-			// Ignore if already exists
-			for (let i = this.dataSigners.length - 1; i >= 0; --i) {
+			debugger
+			// Remove if already exists
+			for (let i = this.dataSigners.length -1; i >= 0; i--) {
 				if (this.dataSigners[i].identify?.length > 0 && signer.identify?.length > 0 && this.dataSigners[i].identify === signer.identify) {
-					return
+					this.dataSigners.splice(i,1)
+					break
 				}
 				if (this.dataSigners[i].fileUserId === signer.identify) {
-					return
+					this.dataSigners.splice(i,1)
+					break
 				}
 			}
 			this.dataSigners.push(signer)
 		},
 		deleteSigner(signer) {
-			// generate unique code to new signer to be possible delete or edit
-			if (signer.identify === undefined && signer.fileUserId === undefined) {
-				signer.identify = btoa(JSON.stringify(signer))
-			}
-			if (signer.fileUserId) {
-				signer.identify = signer.fileUserId
-			}
-			if (signer.identify) {
-				this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
-			}
+			this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
 		},
 	},
 }
