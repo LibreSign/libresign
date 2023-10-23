@@ -185,11 +185,12 @@ class FileService {
 				'displayName' => $signer->getDisplayName(),
 				'fullName' => $signer->getFullName(),
 				'me' => false,
-				'fileUserId' => $signer->getId()
+				'fileUserId' => $signer->getId(),
+				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId()),
 			];
 			// @todo refactor this code
 			if ($this->me) {
-				$identifyMethodServices = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId());
+				$identifyMethodServices = $signatureToShow['identifyMethods'];
 				// Identifi if I'm file owner
 				if ($this->me?->getUID() === $this->file->getUserId()) {
 					$email = array_reduce($identifyMethodServices[IdentifyMethodService::IDENTIFY_EMAIL] ?? [], function (?string $carry, IIdentifyMethod $identifyMethod): ?string {
@@ -220,6 +221,15 @@ class FileService {
 					}
 				}
 			}
+			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function($carry, $list) {
+				foreach ($list as $identifyMethod) {
+					$carry[] = [
+						'method' => $identifyMethod->getEntity()->getIdentifierKey(),
+						'value' => $identifyMethod->getEntity()->getIdentifierValue(),
+					];
+				}
+				return $carry;
+			}, []);
 			$this->signers[] = $signatureToShow;
 		}
 		return $this->signers;
