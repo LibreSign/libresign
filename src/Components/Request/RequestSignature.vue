@@ -112,6 +112,7 @@ export default {
 				if (signer.fileUserId) {
 					signer.identify = signer.fileUserId
 				}
+				return signer
 			})
 		},
 		addSigner() {
@@ -181,15 +182,14 @@ export default {
 		},
 		signerUpdate(signer) {
 			this.toggleAddSigner()
-			debugger
 			// Remove if already exists
-			for (let i = this.dataSigners.length -1; i >= 0; i--) {
+			for (let i = this.dataSigners.length - 1; i >= 0; i--) {
 				if (this.dataSigners[i].identify?.length > 0 && signer.identify?.length > 0 && this.dataSigners[i].identify === signer.identify) {
-					this.dataSigners.splice(i,1)
+					this.dataSigners.splice(i, 1)
 					break
 				}
 				if (this.dataSigners[i].fileUserId === signer.identify) {
-					this.dataSigners.splice(i,1)
+					this.dataSigners.splice(i, 1)
 					break
 				}
 			}

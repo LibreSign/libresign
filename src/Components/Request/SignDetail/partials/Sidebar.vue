@@ -14,7 +14,7 @@ export default {
 	},
 	methods: {
 		selectSigner(signer) {
-			this.$emit('libresign:visible-elements:select:signer', { ...signer })
+			this.$emit('libresign:visible-elements-select-signer', { ...signer })
 		},
 	},
 }

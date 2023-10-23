@@ -199,7 +199,7 @@ export default {
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
-		subscribe('libresign:visible-elements:select:signer', this.onSelectSigner)
+		subscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
 	},
 	methods: {
 		showModal() {
