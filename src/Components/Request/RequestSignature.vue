@@ -81,7 +81,7 @@ export default {
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			listSigners: true,
 			signerToEdit: {},
-			dataFile: this.file,
+			dataFile: {},
 			dataSigners: this.signers,
 		}
 	},
@@ -93,10 +93,8 @@ export default {
 	watch: {
 		signers(signers) {
 			this.addIdentifier(signers)
+			this.dataSigners = signers
 			this.listSigners = true
-		},
-		dataSigners(signers) {
-			this.addIdentifier(signers)
 		},
 	},
 	async mounted() {

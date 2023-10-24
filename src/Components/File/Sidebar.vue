@@ -13,7 +13,7 @@
 			:name="t('libresign', 'Signatures')"
 			icon="icon-rename"
 			:order="1">
-			<SignaturesTab :items="file.signers" @update="update" @change-sign-tab="changeTab" />
+			<LibresignTab :items="file.signers" @update="update" @change-sign-tab="changeTab" />
 		</NcAppSidebarTab>
 	</NcAppSidebar>
 </template>
@@ -23,7 +23,7 @@ import { mapGetters } from 'vuex'
 import { generateUrl } from '@nextcloud/router'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
-import SignaturesTab from './SignaturesTab.vue'
+import LibresignTab from './LibresignTab.vue'
 import Moment from '@nextcloud/moment'
 
 export default {
@@ -31,7 +31,7 @@ export default {
 	components: {
 		NcAppSidebar,
 		NcAppSidebarTab,
-		SignaturesTab,
+		LibresignTab,
 	},
 	props: {
 		loading: {
