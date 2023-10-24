@@ -24,6 +24,10 @@
     "Description" : "აღწერილობა",
     "Add" : "დამატება",
     "Users" : "მომხმარებლები",
+    "Delete" : "წაშლა",
+    "Next" : "შემდეგი",
+    "Previous" : "წინა",
+    "Remove" : "წაშლა",
     "Details" : "დეტალები",
     "Reset password" : "პაროლის შეცვლა",
     "Select a file" : "Select a file",
@@ -34,7 +38,6 @@
     "Profile picture" : "პროფილის სურათი",
     "Enter a password" : "შეიყვანეთ პაროლი",
     "Confirm password" : "პაროლის დადასტურება",
-    "Next" : "შემდეგი",
     "Yes" : "კი",
     "No" : "არა",
     "Page not found" : "გვერდი არაა ნაპოვნი",
@@ -44,8 +47,6 @@
     "Message" : "წერილი",
     "Resource" : "რესურსი",
     "Dependencies" : "დამოკიდებულებები",
-    "Remove" : "წაშლა",
-    "Previous" : "წინა",
     "Pending" : "მოლოდინში",
     "No date" : "თარიღი არაა"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"

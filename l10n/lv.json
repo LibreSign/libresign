@@ -26,6 +26,10 @@
     "Description" : "Apraksts",
     "Add" : "Pievienot",
     "Users" : "Lietotāji",
+    "Delete" : "Dzēst",
+    "Next" : "Nākamā",
+    "Previous" : "Iepriekšējā",
+    "Remove" : "Noņemt",
     "Details" : "Detaļas",
     "Reset password" : "Mainīt paroli",
     "Select a file" : "Izvēlēties failu",
@@ -35,7 +39,6 @@
     "Signature" : "Paraksts",
     "Profile picture" : "Profila attēls",
     "Enter a password" : "Enter a password",
-    "Next" : "Nākamā",
     "Yes" : "Jā",
     "No" : "Nē",
     "Page not found" : "Lapa nav atrasta",
@@ -44,8 +47,6 @@
     "Repeat password" : "Atkārtojiet paroli",
     "Message" : "Ziņojums",
     "Resource" : "Resurss",
-    "Remove" : "Noņemt",
-    "Previous" : "Iepriekšējā",
     "Pending" : "Gaida",
     "No date" : "No date"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
