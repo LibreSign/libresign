@@ -26,6 +26,10 @@
     "Description" : "Kirjeldus",
     "Add" : "Lisa",
     "Users" : "Kasutajad",
+    "Delete" : "Kustuta",
+    "Next" : "Järgmine",
+    "Previous" : "Eelmine",
+    "Remove" : "Eemalda",
     "Details" : "Üksikasjad",
     "Reset password" : "Lähtesta parool",
     "Select a file" : "Select a file",
@@ -36,7 +40,6 @@
     "Profile picture" : "Profiili pilt",
     "Enter a password" : "Enter a password",
     "Confirm password" : "Kinnita salasõna",
-    "Next" : "Järgmine",
     "Yes" : "Jah",
     "No" : "Ei",
     "Page not found" : "Lehekülge ei leitud",
@@ -45,8 +48,6 @@
     "Message" : "Sõnum",
     "Resource" : "Ressurss",
     "Dependencies" : "Sõltuvused",
-    "Remove" : "Eemalda",
-    "Previous" : "Eelmine",
     "Pending" : "Ootel",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -22,6 +22,10 @@
     "Description" : "Descripción",
     "Add" : "Agregar",
     "Users" : "Usuarios",
+    "Delete" : "Borrar",
+    "Next" : "Siguiente",
+    "Previous" : "Anterior",
+    "Remove" : "Eliminar",
     "Details" : "Detalles",
     "Reset password" : "Restablecer contraseña",
     "Type" : "Tipo",
@@ -31,7 +35,6 @@
     "Profile picture" : "Foto de perfil",
     "Enter a password" : "Ingresa una contraseña",
     "Confirm password" : "Confirmar contraseña",
-    "Next" : "Siguiente",
     "Yes" : "Sí",
     "No" : "No",
     "Page not found" : "Página no encontrada",
@@ -41,8 +44,6 @@
     "Message" : "Mensaje",
     "Resource" : "Recurso",
     "Dependencies" : "Dependencias",
-    "Remove" : "Eliminar",
-    "Previous" : "Anterior",
     "Pending" : "Pendiente",
     "No date" : "Sin fecha"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
