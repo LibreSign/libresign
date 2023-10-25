@@ -10,7 +10,8 @@ But... follow the complete way:
 
 ## To start front and backend development environment
 
-* Start the Nextcloud development. I suggest to use this: https://github.com/LibreCodeCoop/nextcloud-docker-development/
+* Start the Nextcloud development.
+  > **NOTE**: I suggest to use this: https://github.com/LibreCodeCoop/nextcloud-docker-development/ only because is the environment that I use 😅. I also suggest to use https://github.com/juliushaertl/nextcloud-docker-dev but the setup will be a bit different of this tutorial.
 * Wait to be possible access `localhost` in your browser
 * Inside the folder `volumes/nextloud/apps-extra` clone the LibreSign repository
 * open bash in nextcloud container with `docker compose exec -u www-data nextcloud bash`
