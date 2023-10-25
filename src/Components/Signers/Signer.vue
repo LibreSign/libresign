@@ -25,6 +25,7 @@ import CheckboxBlankCircle from 'vue-material-design-icons/CheckboxBlankCircle.v
 import Bullet from '../Bullet/Bullet.vue'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import Moment from '@nextcloud/moment'
 
 export default {
 	name: 'Signer',
@@ -67,7 +68,9 @@ export default {
 		},
 		statusText() {
 			if (this.signer.sign_date) {
-				return t('libresign', 'signed')
+				return t('libresign', 'signed at {date}', {
+					date: Moment(this.signer.request_sign_date).format('LLL'),
+				})
 			}
 			// Pending
 			if (this.signer.fileUserId) {

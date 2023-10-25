@@ -156,7 +156,7 @@ export default {
 				}
 				signer.identifyMethods.forEach(method => {
 					if (method.method === 'account') {
-						user.identify.account = method?.value ?? signer.uid
+						user.identify.account = method?.value?.id ?? method?.value ?? signer.uid
 					} else if (method.method === 'email') {
 						user.identify.email = method?.value ?? signer.email
 					}

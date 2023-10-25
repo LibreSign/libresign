@@ -19,15 +19,6 @@
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				event="libresign:visible-elements-select-signer">
-				<template #actions="{signer}">
-					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
-					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
-						{{ t('libresign', 'Remove') }}
-					</NcActionButton>
-				</template>
-
 				<button v-if="isDraft" class="primary publish-btn" @click="publish">
 					{{ t('libresign', 'Request') }}
 				</button>
@@ -59,7 +50,7 @@
 						@resizing="resize"
 						@dragging="resize">
 						<div class="image-page--element">
-							{{ currentSigner.email }}
+							{{ currentSigner.displayName }}
 						</div>
 						<div class="image-page--action">
 							<button class="primary" @click="saveElement">
@@ -87,7 +78,6 @@ import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js
 import Sidebar from './SignDetail/partials/Sidebar.vue'
 import PageNavigation from './SignDetail/partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 
@@ -123,7 +113,6 @@ export default {
 		DragResize,
 		Sidebar,
 		PageNavigation,
-		NcActionButton,
 		Chip,
 	},
 	props: {
@@ -189,7 +178,7 @@ export default {
 			}
 		},
 		hasSignerSelected() {
-			return !!this.currentSigner.email
+			return this.currentSigner.fileUserId !== 0
 		},
 		editingElement() {
 			return this.currentSigner.element.elementId > 0
@@ -249,15 +238,13 @@ export default {
 				return row
 			})
 
-			this.$nextTick(() => {
-				if (fileUserId === 0) {
-					return
-				}
+			if (fileUserId === 0) {
+				return
+			}
 
-				const current = this.signers.find(signer => signer.fileUserId === fileUserId)
+			const current = this.signers.find(signer => signer.fileUserId === fileUserId)
 
-				this.onSelectSigner({ ...current })
-			})
+			this.onSelectSigner({ ...current })
 		},
 		resize(newRect) {
 			const { coordinates } = this.currentSigner.element
@@ -271,13 +258,11 @@ export default {
 			const page = this.pageIndex + 1
 
 			this.currentSigner = emptySignerData()
-			this.$nextTick(() => {
-				this.currentSigner = cloneDeep(signer)
+			this.currentSigner = cloneDeep(signer)
 
-				if (signer.element.elementId === 0) {
-					this.currentSigner.element.coordinates.page = page
-				}
-			})
+			if (signer.element.elementId === 0) {
+				this.currentSigner.element.coordinates.page = page
+			}
 		},
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
@@ -293,7 +278,7 @@ export default {
 
 			try {
 				await signService.changeRegisterStatus(this.document.fileId, SIGN_STATUS.ABLE_TO_SIGN)
-				this.$nextTick(() => this.loadDocument())
+				this.loadDocument()
 			} catch (err) {
 				this.onError(err)
 			}
@@ -303,30 +288,7 @@ export default {
 				this.signers = []
 				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
 				this.document = this.document.data
-				this.$nextTick(() => this.updateSigners())
-			} catch (err) {
-				this.onError(err)
-			}
-		},
-		async sendNotify(signer) {
-			try {
-				const data = await signService.notifySigner(this.document.fileId, signer.email)
-				showSuccess(t('libresign', data.message))
-			} catch (err) {
-				this.onError(err)
-			}
-
-		},
-		async removeSigner(signer) {
-			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: signer.email }))
-
-			if (result === false) {
-				return
-			}
-
-			try {
-				const data = await signService.removeSigner(this.document.fileId, signer.fileUserId)
-				showSuccess(t('libresign', data.message))
+				this.updateSigners()
 			} catch (err) {
 				this.onError(err)
 			}
@@ -349,7 +311,7 @@ export default {
 					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}`), payload)
 				showSuccess(t('libresign', 'Element created'))
 
-				this.$nextTick(() => this.loadDocument())
+				this.loadDocument()
 			} catch (err) {
 				this.onError(err)
 			}
