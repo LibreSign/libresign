@@ -14,6 +14,7 @@ OC.L10N.register(
     "Description" : "বিবরণ",
     "Add" : "যোগ করুন",
     "Users" : "ব্যবহারকারী",
+    "Delete" : "মুছে",
     "Next" : "পরবর্তী",
     "Previous" : "পূর্ববর্তী",
     "Remove" : "অপসারণ",

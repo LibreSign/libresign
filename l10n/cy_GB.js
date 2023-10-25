@@ -16,6 +16,7 @@ OC.L10N.register(
     "Description" : "Disgrifiad",
     "Add" : "Ychwanegu",
     "Users" : "Defnyddwyr",
+    "Delete" : "Dileu",
     "Next" : "Nesaf",
     "Previous" : "Blaenorol",
     "Remove" : "Gwaredu",
