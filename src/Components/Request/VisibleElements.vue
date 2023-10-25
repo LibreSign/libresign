@@ -50,7 +50,7 @@
 						@resizing="resize"
 						@dragging="resize">
 						<div class="image-page--element">
-							{{ currentSigner.email }}
+							{{ currentSigner.displayName }}
 						</div>
 						<div class="image-page--action">
 							<button class="primary" @click="saveElement">
