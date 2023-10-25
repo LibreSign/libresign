@@ -4,7 +4,7 @@
 			:force-display-actions="true"
 			@click="editItem">
 			<template #icon>
-				<NcAvatar :size="44" display-name="signer.displayName" />
+				<NcAvatar :size="44" :display-name="signer.displayName" />
 			</template>
 			<template #subtitle>
 				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
