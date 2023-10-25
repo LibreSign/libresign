@@ -11,7 +11,9 @@
 			</template>
 			<slot v-if="$slots.actions" slot="actions" name="actions" />
 			<template #indicator>
-				<CheckboxBlankCircle :size="16" :fill-color="statusColor" />
+				<CheckboxBlankCircle :size="16"
+					:fill-color="statusColor"
+					:title="statusText" />
 			</template>
 		</NcListItem>
 	</div>
@@ -57,6 +59,17 @@ export default {
 			}
 			// Draft, not saved
 			return '#dbdbdb'
+		},
+		statusText() {
+			if (this.signer.sign_date) {
+				return t('libresign', 'signed')
+			}
+			// Pending
+			if (this.signer.fileUserId) {
+				return t('libresign', 'pending')
+			}
+			// Draft, not saved
+			return t('libresign', 'draft')
 		},
 	},
 	methods: {
