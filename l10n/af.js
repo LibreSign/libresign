@@ -23,6 +23,7 @@ OC.L10N.register(
     "Description" : "Beskrywing",
     "Add" : "Voeg by",
     "Users" : "Gebruikers",
+    "Delete" : "Skrap",
     "Next" : "Volgende",
     "Previous" : "Vorige",
     "Remove" : "Verwyder",

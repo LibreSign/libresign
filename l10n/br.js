@@ -24,6 +24,7 @@ OC.L10N.register(
     "Description" : "Deskrivadur",
     "Add" : "Ouzhpennañ",
     "Users" : "Implijer",
+    "Delete" : "Lemel",
     "Next" : "Da heul",
     "Remove" : "Lemel",
     "Details" : "Munudoù",
