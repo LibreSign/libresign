@@ -180,7 +180,7 @@ export default {
 			}
 		},
 		hasSignerSelected() {
-			return !!this.currentSigner.email
+			return this.currentSigner.fileUserId !== 0
 		},
 		editingElement() {
 			return this.currentSigner.element.elementId > 0
