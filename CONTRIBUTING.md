@@ -13,9 +13,9 @@ But... follow the complete way:
 * Start the Nextcloud development.
   > **NOTE**: I suggest to use this: https://github.com/LibreCodeCoop/nextcloud-docker-development/ only because is the environment that I use 😅. I also suggest to use https://github.com/juliushaertl/nextcloud-docker-dev but the setup will be a bit different of this tutorial.
 * Wait to be possible access `localhost` in your browser
-* Inside the folder `volumes/nextloud/apps-extra` clone the LibreSign repository
+* Inside the folder of nextcloud environment (the folder that contains the project of previous step), go to `volumes/nextloud/apps-extra` clone the LibreSign repository
 * open bash in nextcloud container with `docker compose exec -u www-data nextcloud bash`
-* Inside bash of Nextcloud, go to `folder apps-extra/libresign`
+* Inside bash of Nextcloud, go to folder `apps-extra/libresign`
 * Run the commands:
   ```bash
   # download composer dependencies
