@@ -178,7 +178,7 @@ export default {
 			}
 			emit('libresign:show-visible-elements')
 		},
-		signerUpdate(signer) {
+		async signerUpdate(signer) {
 			this.toggleAddSigner()
 			// Remove if already exists
 			for (let i = this.dataSigners.length - 1; i >= 0; i--) {
@@ -193,7 +193,10 @@ export default {
 			}
 			this.dataSigners.push(signer)
 		},
-		deleteSigner(signer) {
+		async deleteSigner(signer) {
+			if (!isNaN(this.file?.nodeId) && !isNaN(signer.fileUserId)) {
+				await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.file.nodeId}/${signer.fileUserId}`))
+			}
 			this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
 		},
 	},

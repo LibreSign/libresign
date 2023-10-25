@@ -17,7 +17,7 @@
 				</div>
 				<button :disabled="!hableButton"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
-					@click="checkPasswordForConfirm">
+					@click="send">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
@@ -56,12 +56,9 @@ export default {
 		},
 	},
 	methods: {
-		checkPasswordForConfirm(param) {
-			confirmPassword().then(() => {
-				this.send()
-			})
-		},
 		async send() {
+			await confirmPassword()
+
 			this.hasLoading = true
 			try {
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
