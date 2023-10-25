@@ -84,7 +84,7 @@ export default {
 			this.identify = this.signerToEdit.identify ?? this.signerToEdit.fileUserId
 			this.signerToEdit.identifyMethods.forEach(method => {
 				if (method.method === 'email') {
-					this.methods.email.value = method.value
+					this.methods.email.value = method.value ?? this.signerToEdit.email
 				} else if (method.method === 'account') {
 					this.methods.account.value = method.value ?? {
 						account: this.signerToEdit.uid,
