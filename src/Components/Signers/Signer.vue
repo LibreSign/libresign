@@ -2,7 +2,7 @@
 	<div>
 		<NcListItem :title="signer.displayName"
 			:force-display-actions="true"
-			@click="editItem">
+			@click="signerClickAction">
 			<template #icon>
 				<NcAvatar :size="44" :display-name="signer.displayName" />
 			</template>
@@ -39,6 +39,11 @@ export default {
 			type: Object,
 			required: true,
 		},
+		event: {
+			type: String,
+			required: false,
+			default: '',
+		},
 	},
 	data() {
 		return {
@@ -73,11 +78,14 @@ export default {
 		},
 	},
 	methods: {
-		editItem(signer) {
+		signerClickAction(signer) {
 			if (!this.canRequestSign) {
 				return
 			}
-			emit('libresign:edit-signer', this.signer)
+			if (this.event.length === 0) {
+				return
+			}
+			emit(this.event, this.signer)
 		},
 	},
 }

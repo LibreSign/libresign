@@ -3,7 +3,8 @@
 		:title="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"
-		v-on="$listeners">
+		v-on="$listeners"
+		@click="signerClickAction">
 		<template #icon>
 			<NcAvatar is-no-user
 				:size="44"
@@ -21,6 +22,7 @@
 import NcListItem from '@nextcloud/vue/dist/Components/NcListItem.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import Moment from '@nextcloud/moment'
+import { emit } from '@nextcloud/event-bus'
 
 export default {
 	name: 'SignerRow',
@@ -37,6 +39,11 @@ export default {
 			type: Object,
 			required: false,
 			default: undefined,
+		},
+		event: {
+			type: String,
+			required: false,
+			default: '',
 		},
 	},
 	computed: {
@@ -73,6 +80,11 @@ export default {
 		},
 		hasElement() {
 			return this.element.elementId > 0
+		},
+	},
+	methods: {
+		signerClickAction(signer) {
+			emit(this.event, this.signer)
 		},
 	},
 }
