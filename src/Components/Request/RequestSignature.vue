@@ -81,7 +81,6 @@ export default {
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			listSigners: true,
 			signerToEdit: {},
-			dataFile: this.file,
 			dataSigners: this.signers,
 		}
 	},
@@ -93,10 +92,8 @@ export default {
 	watch: {
 		signers(signers) {
 			this.addIdentifier(signers)
+			this.dataSigners = signers
 			this.listSigners = true
-		},
-		dataSigners(signers) {
-			this.addIdentifier(signers)
 		},
 	},
 	async mounted() {
@@ -132,7 +129,7 @@ export default {
 		async sendNotify(signer) {
 			try {
 				const body = {
-					fileId: this.dataFile.nodeId,
+					fileId: this.file.nodeId,
 					fileUserId: signer.fileUserId,
 				}
 
@@ -167,12 +164,12 @@ export default {
 			})
 
 			try {
-				if (this.dataFile.uuid) {
-					params.uuid = this.dataFile.uuid
+				if (this.file.uuid) {
+					params.uuid = this.file.uuid
 					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
 				} else {
 					params.file = {
-						fileId: this.dataFile.nodeId,
+						fileId: this.file.nodeId,
 					}
 					await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
 				}

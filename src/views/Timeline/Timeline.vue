@@ -29,11 +29,13 @@
 				</template>
 			</NcEmptyContent>
 		</div>
-		<SignaturesTab v-if="haveCurrentFile"
+		<LibresignTab v-if="haveCurrentFile"
 			ref="sidebar"
 			:prop-file="currentFile.file"
 			:prop-signers="currentFile.signers"
-			:prop-name="currentFile.name" />
+			:prop-name="currentFile.name"
+			:prop-requested-by="currentFile.requested_by"
+			:prop-request-date="currentFile.request_date" />
 	</div>
 </template>
 
@@ -44,13 +46,13 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe } from '@nextcloud/event-bus'
-import SignaturesTab from './../../Components/File/SignaturesTab.vue'
+import LibresignTab from '../../Components/File/LibresignTab.vue'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
-		SignaturesTab,
+		LibresignTab,
 		NcEmptyContent,
 	},
 	data() {
