@@ -249,15 +249,13 @@ export default {
 				return row
 			})
 
-			this.$nextTick(() => {
-				if (fileUserId === 0) {
-					return
-				}
+			if (fileUserId === 0) {
+				return
+			}
 
-				const current = this.signers.find(signer => signer.fileUserId === fileUserId)
+			const current = this.signers.find(signer => signer.fileUserId === fileUserId)
 
-				this.onSelectSigner({ ...current })
-			})
+			this.onSelectSigner({ ...current })
 		},
 		resize(newRect) {
 			const { coordinates } = this.currentSigner.element
@@ -271,13 +269,11 @@ export default {
 			const page = this.pageIndex + 1
 
 			this.currentSigner = emptySignerData()
-			this.$nextTick(() => {
-				this.currentSigner = cloneDeep(signer)
+			this.currentSigner = cloneDeep(signer)
 
-				if (signer.element.elementId === 0) {
-					this.currentSigner.element.coordinates.page = page
-				}
-			})
+			if (signer.element.elementId === 0) {
+				this.currentSigner.element.coordinates.page = page
+			}
 		},
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
@@ -293,7 +289,7 @@ export default {
 
 			try {
 				await signService.changeRegisterStatus(this.document.fileId, SIGN_STATUS.ABLE_TO_SIGN)
-				this.$nextTick(() => this.loadDocument())
+				this.loadDocument()
 			} catch (err) {
 				this.onError(err)
 			}
@@ -303,7 +299,7 @@ export default {
 				this.signers = []
 				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
 				this.document = this.document.data
-				this.$nextTick(() => this.updateSigners())
+				this.updateSigners()
 			} catch (err) {
 				this.onError(err)
 			}
@@ -349,7 +345,7 @@ export default {
 					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}`), payload)
 				showSuccess(t('libresign', 'Element created'))
 
-				this.$nextTick(() => this.loadDocument())
+				this.loadDocument()
 			} catch (err) {
 				this.onError(err)
 			}
