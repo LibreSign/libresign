@@ -98,8 +98,9 @@ class FileMapper extends QBMapper {
 	 * Return LibreSign file by fileId
 	 */
 	public function getByFileId(?int $fileId = null): File {
-		if (is_null($fileId) && !empty($this->file)) {
-			return current($this->file);
+		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $fileId || $f->getSignedNodeId() === $fileId);
+		if (!empty($exists)) {
+			return current($exists);
 		}
 		foreach ($this->file as $file) {
 			if ($file->getNodeId() === $fileId) {
