@@ -69,7 +69,7 @@ export default {
 		statusText() {
 			if (this.signer.sign_date) {
 				return t('libresign', 'signed at {date}', {
-					date: Moment(this.signer.request_sign_date).format('LLL')
+					date: Moment(this.signer.request_sign_date).format('LLL'),
 				})
 			}
 			// Pending
