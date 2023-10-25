@@ -1,9 +1,11 @@
 <script>
+import Signer from '../../../Signers/Signer.vue'
 import SignerRow from './SignerRow.vue'
 
 export default {
 	name: 'Sidebar',
 	components: {
+		Signer,
 		SignerRow,
 	},
 	props: {
@@ -11,10 +13,10 @@ export default {
 			type: Array,
 			required: true,
 		},
-	},
-	methods: {
-		selectSigner(signer) {
-			this.$emit('libresign:visible-elements-select-signer', { ...signer })
+		event: {
+			type: String,
+			required: false,
+			default: '',
 		},
 	},
 }
@@ -23,10 +25,16 @@ export default {
 <template>
 	<div>
 		<ul>
+			<Signer v-for="signer in signers"
+				:key="signer.id"
+				:signer="signer"
+				:event="event">
+				<slot v-bind="{signer}" slot="actions" name="actions" />
+			</Signer>
 			<SignerRow v-for="user in signers"
 				:key="`signature-${user.fileUserId}`"
 				:signer="user"
-				@click="selectSigner(user)">
+				:event="event">
 				<slot slot="actions"
 					v-bind="{signer: user}"
 					name="actions" />

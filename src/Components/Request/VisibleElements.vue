@@ -17,7 +17,8 @@
 				</small>
 			</p>
 			<Sidebar class="view-sign-detail--sidebar"
-				:signers="signers">
+				:signers="signers"
+				event="libresign:visible-elements-select-signer">
 				<template #actions="{signer}">
 					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
 						{{ t('libresign', 'Send reminder') }}

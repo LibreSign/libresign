@@ -2,7 +2,8 @@
 	<ul>
 		<Signer v-for="signer in signers"
 			:key="signer.id"
-			:signer="signer">
+			:signer="signer"
+			:event="event">
 			<slot v-bind="{signer}" slot="actions" name="actions" />
 		</Signer>
 	</ul>
@@ -19,6 +20,11 @@ export default {
 			type: Array,
 			default: () => [],
 			required: true,
+		},
+		event: {
+			type: String,
+			required: false,
+			default: '',
 		},
 	},
 }
