@@ -12,6 +12,7 @@ OC.L10N.register(
     "Searching …" : "Buscando…",
     "Description" : "Descripción",
     "Add" : "Amestar",
+    "Delete" : "Desaniciar",
     "Details" : "Detalles",
     "Status" : "Estáu",
     "Actions" : "Aiciones",

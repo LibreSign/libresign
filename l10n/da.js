@@ -32,6 +32,7 @@ OC.L10N.register(
     "Description" : "Beskrivelse",
     "Add" : "Tilføj",
     "Users" : "Brugere",
+    "Delete" : "Slet",
     "Next" : "Næste",
     "Previous" : "Tidligere",
     "Remove" : "Fjern",

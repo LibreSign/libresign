@@ -54,6 +54,7 @@ OC.L10N.register(
     "Description" : "Περιγραφή",
     "Add" : "Προσθήκη",
     "Users" : "Χρήστες",
+    "Delete" : "Διαγραφή",
     "Next" : "Επόμενο",
     "Previous" : "Προηγούμενο",
     "Remove" : "Αφαίρεση",

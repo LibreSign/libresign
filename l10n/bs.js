@@ -16,6 +16,7 @@ OC.L10N.register(
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Users" : "Korisnici",
+    "Delete" : "Obriši",
     "Next" : "Sljedeće",
     "Previous" : "Prethodno",
     "Reset password" : "Resetuj lozinku",

@@ -16,6 +16,7 @@ OC.L10N.register(
     "Description" : "Açıqlanma",
     "Add" : "Əlavə etmək",
     "Users" : "İstifadəçilər",
+    "Delete" : "Sil",
     "Next" : "Növbəti",
     "Previous" : "Əvvələ",
     "Remove" : "Sil",
