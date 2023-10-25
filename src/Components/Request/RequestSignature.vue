@@ -5,7 +5,7 @@
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
 		<Signers :signers="dataSigners"
-			event="libresign:edit-signer">
+			:event="libresign:edit-signer">
 			<template #actions="{signer}">
 				<NcActionButton v-if="canRequestSign"
 					aria-label="Delete"
