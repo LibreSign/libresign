@@ -78,7 +78,6 @@ import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js
 import Sidebar from './SignDetail/partials/Sidebar.vue'
 import PageNavigation from './SignDetail/partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 
@@ -114,7 +113,6 @@ export default {
 		DragResize,
 		Sidebar,
 		PageNavigation,
-		NcActionButton,
 		Chip,
 	},
 	props: {
