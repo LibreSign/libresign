@@ -19,15 +19,6 @@
 			<Sidebar class="view-sign-detail--sidebar"
 				:signers="signers"
 				event="libresign:visible-elements-select-signer">
-				<template #actions="{signer}">
-					<NcActionButton v-if="!signer.signed" icon="icon-comment" @click="sendNotify(signer)">
-						{{ t('libresign', 'Send reminder') }}
-					</NcActionButton>
-					<NcActionButton v-if="!signer.signed" icon="icon-delete" @click="removeSigner(signer)">
-						{{ t('libresign', 'Remove') }}
-					</NcActionButton>
-				</template>
-
 				<button v-if="isDraft" class="primary publish-btn" @click="publish">
 					{{ t('libresign', 'Request') }}
 				</button>
@@ -300,29 +291,6 @@ export default {
 				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
 				this.document = this.document.data
 				this.updateSigners()
-			} catch (err) {
-				this.onError(err)
-			}
-		},
-		async sendNotify(signer) {
-			try {
-				const data = await signService.notifySigner(this.document.fileId, signer.email)
-				showSuccess(t('libresign', data.message))
-			} catch (err) {
-				this.onError(err)
-			}
-
-		},
-		async removeSigner(signer) {
-			const result = confirm(t('libresign', 'Are you sure you want to exclude user {email} from the request?', { email: signer.email }))
-
-			if (result === false) {
-				return
-			}
-
-			try {
-				const data = await signService.removeSigner(this.document.fileId, signer.fileUserId)
-				showSuccess(t('libresign', data.message))
 			} catch (err) {
 				this.onError(err)
 			}
