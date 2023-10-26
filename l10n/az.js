@@ -19,7 +19,6 @@ OC.L10N.register(
     "Delete" : "Sil",
     "Next" : "Növbəti",
     "Previous" : "Əvvələ",
-    "Remove" : "Sil",
     "Details" : "Detallar",
     "Select a file" : "Select a file",
     "Type" : "Type",
@@ -30,6 +29,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "Yeni şifrə",
     "Pending" : "Gözləmə",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Sil"
 },
 "nplurals=2; plural=(n != 1);");

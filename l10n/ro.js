@@ -30,7 +30,6 @@ OC.L10N.register(
     "Delete" : "Șterge",
     "Next" : "Următorul",
     "Previous" : "Precedentul",
-    "Remove" : "Elimină",
     "Details" : "Detalii",
     "Reset password" : "Resetează parola",
     "Select a file" : "Select a file",
@@ -48,6 +47,7 @@ OC.L10N.register(
     "Resource" : "Resursă",
     "Loading …" : "Se încarcă…",
     "Pending" : "În așteptare",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Elimină"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

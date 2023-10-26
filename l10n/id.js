@@ -27,7 +27,6 @@ OC.L10N.register(
     "Delete" : "Hapus",
     "Next" : "Berikutnya",
     "Previous" : "Sebelumnya",
-    "Remove" : "Buang",
     "Details" : "Detail",
     "Reset password" : "Setel ulang kata sandi",
     "Select a file" : "Pilih berkas",
@@ -44,6 +43,7 @@ OC.L10N.register(
     "New password" : "Kata sandi baru",
     "Message" : "Pesan",
     "Pending" : "Tunggu",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Buang"
 },
 "nplurals=1; plural=0;");

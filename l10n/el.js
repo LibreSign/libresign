@@ -57,7 +57,6 @@ OC.L10N.register(
     "Delete" : "Διαγραφή",
     "Next" : "Επόμενο",
     "Previous" : "Προηγούμενο",
-    "Remove" : "Αφαίρεση",
     "Sign" : "Υπογραφή",
     "Details" : "Λεπτομέρειες",
     "Reset password" : "Επαναφορά συνθηματικού",
@@ -97,6 +96,7 @@ OC.L10N.register(
     "Validate Subscription." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!"
+    "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Remove" : "Αφαίρεση"
 },
 "nplurals=2; plural=(n != 1);");

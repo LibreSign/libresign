@@ -31,7 +31,6 @@
     "Delete" : "Forigi",
     "Next" : "Sekva",
     "Previous" : "Antaŭa",
-    "Remove" : "Forigi",
     "Details" : "Detaloj",
     "Reset password" : "Restarigi pasvorton",
     "Select a file" : "Select a file",
@@ -53,6 +52,7 @@
     "Dependencies" : "Dependecoj",
     "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Forigi"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

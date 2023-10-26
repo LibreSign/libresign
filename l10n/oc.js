@@ -78,7 +78,6 @@ OC.L10N.register(
     "Delete" : "Suprimir",
     "Next" : "Seguent",
     "Previous" : "Precedent",
-    "Remove" : "Suprimir",
     "Sign" : "Signar",
     "Details" : "Detalhs",
     "Reset password" : "Reïnicializar senhal",
@@ -109,6 +108,7 @@ OC.L10N.register(
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
-    "User created!" : "Utilizaire creat !"
+    "User created!" : "Utilizaire creat !",
+    "Remove" : "Suprimir"
 },
 "nplurals=2; plural=(n > 1);");

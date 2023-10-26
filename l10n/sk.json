@@ -158,10 +158,8 @@
     "Previous" : "Predchádzajúce",
     "Account not exist" : "Účet neexistuje",
     "Select each signer to define their signature positions" : "Vyberte každého podpisovateľa a definujte jeho podpisové pozície",
-    "Remove" : "Odobrať",
     "Sign" : "Podpísať",
     "Request signatures?" : "Vyžiadať podpisy?",
-    "Are you sure you want to exclude user {email} from the request?" : "Ste si istý že chcete vylúčiť užívateľa {email} zo žiadosti?",
     "Element created" : "Prvok vytvorený",
     "Details" : "Podrobnosti",
     "Password & Security" : "Heslo a Bezpečnosť",
@@ -285,8 +283,10 @@
     "Remove duplicated users, email address need to be unique" : "Odstráňte duplikáty užívateľov, emailové adresy musia byť unikátne",
     "Validate File" : "Overiť súbor",
     "Add visible signatures" : "Pridať viditeľné podpisy",
+    "Are you sure you want to exclude user {email} from the request?" : "Ste si istý že chcete vylúčiť užívateľa {email} zo žiadosti?",
     "Validate Document" : "Overiť Dokument",
     "Do you want to configure visible elements in this document?" : "Chcete v tomto dokumente nakonfigurovať viditeľné prvky?",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu."
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu.",
+    "Remove" : "Odobrať"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
 }

@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "Name des Unterzeichners",
     "Please enter signer name." : "Bitte den Namen des Unterzeichners eingeben",
     "Select each signer to define their signature positions" : "Wählen Sie jeden Unterzeichner aus, um dessen Unterschriftenpositionen zu definieren",
-    "Remove" : "Entfernen",
     "Sign" : "Signieren",
     "Request signatures?" : "Signaturen anfordern?",
-    "Are you sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?",
     "Element created" : "Element erstellt",
     "Details" : "Details",
     "Password & Security" : "Passwort & Sicherheit",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Doppelte Benutzer entfernen, E-Mail muss eindeutig sein.",
     "Validate File" : "Datei überprüfen",
     "Add visible signatures" : "Sichtbare Signaturen hinzufügen",
+    "Are you sure you want to exclude user {email} from the request?" : "Sind Sie sicher, dass Sie den Benutzer {email} von der Anfrage ausschließen möchten?",
     "Nothing to do" : "Nichts zu tun",
     "Validate Document" : "Dokument überprüfen",
     "Do you want to configure visible elements in this document?" : "Möchten Sie sichtbare Elemente in diesem Dokument konfigurieren?",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Metadaten der Unterzeichner sammeln",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ist diese Funktion aktiviert, speichert LibreSign jedes Mal, wenn ein Dokument signiert wird, die IP und den Benutzeragenten des Unterzeichners.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Um zu funktionieren sind Binärdateien erforderlich. Der Download dürfte ca. 340 MB betragen. Bitte warten Sie einen Moment.",
-    "Define custom values to use CFSSL" : "Definieren Sie benutzerdefinierte Werte zur Verwendung von CFSSL"
+    "Define custom values to use CFSSL" : "Definieren Sie benutzerdefinierte Werte zur Verwendung von CFSSL",
+    "Remove" : "Entfernen"
 },
 "nplurals=2; plural=(n != 1);");

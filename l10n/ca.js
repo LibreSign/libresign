@@ -161,10 +161,8 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Account not exist" : "El compte no existeix",
     "Select each signer to define their signature positions" : "Seleccioneu cada signant per definir la seva posició de signatura",
-    "Remove" : "Elimina",
     "Sign" : "Signar",
     "Request signatures?" : "Demanar signatures?",
-    "Are you sure you want to exclude user {email} from the request?" : "Esteu segur que voleu excloure l'usuari {email} de la sol·licitud?",
     "Element created" : "Element creat",
     "Details" : "Detalls",
     "Password & Security" : "Contrasenya i seguretat",
@@ -312,6 +310,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Elimina els usuaris duplicats, l'adreça electrònica ha de ser única",
     "Validate File" : "Valida el fitxer",
     "Add visible signatures" : "Afegiu signatures visibles",
+    "Are you sure you want to exclude user {email} from the request?" : "Esteu segur que voleu excloure l'usuari {email} de la sol·licitud?",
     "Nothing to do" : "Res a fer",
     "Validate Document" : "Validació del document",
     "Do you want to configure visible elements in this document?" : "Voleu configurar elements visibles en aquest document?",
@@ -319,6 +318,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Recolliu metadades dels signants",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Si activeu aquesta funció, cada vegada que signeu un document, LibreSign emmagatzemarà la IP i l'agent d'usuari del signant.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Els binaris necessaris per funcionar. Podria ser a prop de 340 Mb per baixar, espera un moment.",
-    "Define custom values to use CFSSL" : "Definiu valors personalitzats per utilitzar CFSSL"
+    "Define custom values to use CFSSL" : "Definiu valors personalitzats per utilitzar CFSSL",
+    "Remove" : "Elimina"
 },
 "nplurals=2; plural=(n != 1);");

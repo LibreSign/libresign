@@ -26,7 +26,6 @@ OC.L10N.register(
     "Delete" : "Skrap",
     "Next" : "Volgende",
     "Previous" : "Vorige",
-    "Remove" : "Verwyder",
     "Details" : "Besonderhede",
     "Reset password" : "Herstel wagwoord",
     "Type" : "Tipe",
@@ -45,6 +44,7 @@ OC.L10N.register(
     "Dependencies" : "Afhanklikhede",
     "Loading …" : "Laai …",
     "Pending" : "Hangend",
-    "No date" : "Geen datum"
+    "No date" : "Geen datum",
+    "Remove" : "Verwyder"
 },
 "nplurals=2; plural=(n != 1);");

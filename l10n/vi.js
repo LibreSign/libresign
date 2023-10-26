@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "Thành công",
     "Settings saved" : "Cấu hình đã được lưu",
     "deleted" : "đã xóa",
+    "File sharing" : "Chia sẻ file",
     "View" : "Xem",
     "File not found" : "Không tìm thấy tập tin",
     "File already exists" : "Tệp đã tồn tại",
@@ -21,7 +22,9 @@ OC.L10N.register(
     "Cancel" : "Hủy",
     "Save" : "Lưu",
     "Name" : "Tên",
+    "No recommendations. Start typing." : "Không có khuyến nghị. Bắt đầu gõ.",
     "Searching …" : "Đang tìm kiếm ...",
+    "No elements found." : "Không tìm thấy phần tử nào.",
     "Update" : "Cập nhật",
     "Description" : "Mô tả",
     "Add" : "Thêm",
@@ -29,7 +32,6 @@ OC.L10N.register(
     "Delete" : "Xóa",
     "Next" : "Tiếp theo",
     "Previous" : "Trước",
-    "Remove" : "Xoá",
     "Details" : "Chi tiết",
     "Reset password" : "Khôi phục mật khẩu",
     "Select a file" : "Select a file",
@@ -51,6 +53,7 @@ OC.L10N.register(
     "Dependencies" : "Các phụ thuộc",
     "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Xoá"
 },
 "nplurals=1; plural=0;");

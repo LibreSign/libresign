@@ -16,7 +16,6 @@
     "Delete" : "Läschen",
     "Next" : "Weider",
     "Previous" : "Zeréck",
-    "Remove" : "Läschen",
     "Details" : "Detailer",
     "Reset password" : "Passwuert zréck setzen",
     "Select a file" : "Select a file",
@@ -28,6 +27,7 @@
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
     "Pending" : "Ausstoend",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Läschen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

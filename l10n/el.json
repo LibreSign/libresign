@@ -55,7 +55,6 @@
     "Delete" : "Διαγραφή",
     "Next" : "Επόμενο",
     "Previous" : "Προηγούμενο",
-    "Remove" : "Αφαίρεση",
     "Sign" : "Υπογραφή",
     "Details" : "Λεπτομέρειες",
     "Reset password" : "Επαναφορά συνθηματικού",
@@ -95,6 +94,7 @@
     "Validate Subscription." : "Επικύρωση συνδρομής.",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!"
+    "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Remove" : "Αφαίρεση"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

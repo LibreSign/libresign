@@ -32,7 +32,6 @@ OC.L10N.register(
     "Delete" : "ลบ",
     "Next" : "ถัดไป",
     "Previous" : "ก่อนหน้า",
-    "Remove" : "ลบออก",
     "Details" : "รายละเอียด",
     "Reset password" : "ตั้งรหัสผ่านใหม่",
     "Select a file" : "Select a file",
@@ -49,6 +48,7 @@ OC.L10N.register(
     "New password" : "รหัสผ่านใหม่",
     "Resource" : "ทรัพยากร",
     "Pending" : "รอดำเนินการ",
-    "No date" : "ไม่มีวันที่"
+    "No date" : "ไม่มีวันที่",
+    "Remove" : "ลบออก"
 },
 "nplurals=1; plural=0;");

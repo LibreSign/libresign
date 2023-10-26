@@ -32,7 +32,6 @@
     "Delete" : "Eyða",
     "Next" : "Næsta",
     "Previous" : "Fyrra",
-    "Remove" : "Fjarlægja",
     "Details" : "Details",
     "Reset password" : "Endursetja lykilorð",
     "Select a file" : "Veldu skrá",
@@ -54,6 +53,7 @@
     "Dependencies" : "Kerfiskröfur",
     "Loading …" : "Hleð inn …",
     "Pending" : "Í bið",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Remove" : "Fjarlægja"
 },"pluralForm" :"nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);"
 }

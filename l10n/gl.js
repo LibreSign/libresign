@@ -162,10 +162,8 @@ OC.L10N.register(
     "Previous" : "Anterior",
     "Account not exist" : "A conta non existe",
     "Select each signer to define their signature positions" : "Seleccione cada asinante para definir a súa posición de sinatura",
-    "Remove" : "Retirar",
     "Sign" : "Asinar",
     "Request signatures?" : "Solicitar sinaturas?",
-    "Are you sure you want to exclude user {email} from the request?" : "Confirma que quer excluír o usuario {email} da solicitude?",
     "Element created" : "Elemento creado",
     "Details" : "Detalles",
     "Password & Security" : "Contrasinal e seguranza",
@@ -313,6 +311,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Retirar usuarios duplicados, os enderezos de correo deben ser únicos",
     "Validate File" : "Validar o ficheiro",
     "Add visible signatures" : "Engadir sinaturas visíbeis",
+    "Are you sure you want to exclude user {email} from the request?" : "Confirma que quer excluír o usuario {email} da solicitude?",
     "Nothing to do" : "Non hai nada que facer",
     "Validate Document" : "Validar o documento",
     "Do you want to configure visible elements in this document?" : "Quere configurar elementos visíbeis neste documento?",
@@ -320,6 +319,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Recoller metadatos dos asinantes",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ao activar esta función, cada vez que asine un documento, LibreSign almacenará a IP e o axente de usuario do asinante.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Precísanse os binarios para funcionar. É necesario descargar preto de 340 Mb, agarde un chisco.",
-    "Define custom values to use CFSSL" : "Defina valores personalizados para usar CFSSL"
+    "Define custom values to use CFSSL" : "Defina valores personalizados para usar CFSSL",
+    "Remove" : "Retirar"
 },
 "nplurals=2; plural=(n != 1);");

@@ -92,9 +92,7 @@ OC.L10N.register(
     "Next" : "Imbeniente",
     "Previous" : "Pretzedente",
     "Account not exist" : "Su contu non b'est",
-    "Remove" : "Boga",
     "Sign" : "Firma",
-    "Are you sure you want to exclude user {email} from the request?" : "Ses seguru chi nche cheres lassare in foras s'utente {email} dae sa rechesta?",
     "Details" : "Detàllios",
     "Password & Security" : "Crae & Seguresa",
     "Create password key" : "Crea crae",
@@ -171,6 +169,8 @@ OC.L10N.register(
     "User created!" : "Utente creadu!",
     "Password created!" : "Crae creada!",
     "Remove duplicated users, email address need to be unique" : "Boga ·nche is utentes dòpios, is indiritzos de posta eletrònica devet èssere ùnicos",
-    "Validate Document" : "Bàlida documentu"
+    "Are you sure you want to exclude user {email} from the request?" : "Ses seguru chi nche cheres lassare in foras s'utente {email} dae sa rechesta?",
+    "Validate Document" : "Bàlida documentu",
+    "Remove" : "Boga"
 },
 "nplurals=2; plural=(n != 1);");

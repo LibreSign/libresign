@@ -21,7 +21,6 @@ OC.L10N.register(
     "Users" : "පරිශීලකයින්",
     "Next" : "ඊළඟ",
     "Previous" : "පෙර",
-    "Remove" : "ඉවත් කරන්න",
     "Details" : "විස්තර",
     "Actions" : "ක්‍රියාමාර්ග",
     "Signature" : "අත්සන",
@@ -29,6 +28,7 @@ OC.L10N.register(
     "No" : "නැහැ",
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
-    "Loading …" : "පූරණය වෙමින් …"
+    "Loading …" : "පූරණය වෙමින් …",
+    "Remove" : "ඉවත් කරන්න"
 },
 "nplurals=2; plural=(n != 1);");

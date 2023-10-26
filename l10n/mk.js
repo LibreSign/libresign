@@ -39,7 +39,6 @@ OC.L10N.register(
     "Delete" : "Избриши",
     "Next" : "Следна",
     "Previous" : "Предходна",
-    "Remove" : "Отстрани ",
     "Sign" : "Знак",
     "Details" : "Детали",
     "Reset password" : "Ресетирај лозинка",
@@ -62,6 +61,7 @@ OC.L10N.register(
     "Resource" : "Ресурси",
     "Loading …" : "Се вчитува…",
     "Pending" : "Чекање",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Отстрани "
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

@@ -30,7 +30,6 @@
     "Delete" : "ลบ",
     "Next" : "ถัดไป",
     "Previous" : "ก่อนหน้า",
-    "Remove" : "ลบออก",
     "Details" : "รายละเอียด",
     "Reset password" : "ตั้งรหัสผ่านใหม่",
     "Select a file" : "Select a file",
@@ -47,6 +46,7 @@
     "New password" : "รหัสผ่านใหม่",
     "Resource" : "ทรัพยากร",
     "Pending" : "รอดำเนินการ",
-    "No date" : "ไม่มีวันที่"
+    "No date" : "ไม่มีวันที่",
+    "Remove" : "ลบออก"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

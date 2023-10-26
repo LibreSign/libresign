@@ -152,10 +152,8 @@ OC.L10N.register(
     "Previous" : "이전",
     "Account not exist" : "계정을 찾을 수 없습니다.",
     "Select each signer to define their signature positions" : "서명 위치를 정의할 각 서명인을 선택하십시오.",
-    "Remove" : "삭제",
     "Sign" : "서명",
     "Request signatures?" : "서명 요청?",
-    "Are you sure you want to exclude user {email} from the request?" : "요청에서 {email} 사용자를 제외하시겠습니까?",
     "Element created" : "작성된 요소",
     "Details" : "세부사항",
     "Password & Security" : "암호 & 보안",
@@ -260,7 +258,9 @@ OC.L10N.register(
     "Do not use code when signing method is with password." : "서명 방법이 암호로 되어 있을 때는 코드를 사용하지 마세요.",
     "Remove duplicated users, email address need to be unique" : "고유해야 하는 중복된 사용자, 전자 메일 주소를 제거하십시오.",
     "Validate File" : "파일 인증",
+    "Are you sure you want to exclude user {email} from the request?" : "요청에서 {email} 사용자를 제외하시겠습니까?",
     "Validate Document" : "문서 유효성 검사",
-    "Do you want to configure visible elements in this document?" : "이 문서에서 볼 수 있는 요소를 구성하시겠습니까?"
+    "Do you want to configure visible elements in this document?" : "이 문서에서 볼 수 있는 요소를 구성하시겠습니까?",
+    "Remove" : "삭제"
 },
 "nplurals=1; plural=0;");

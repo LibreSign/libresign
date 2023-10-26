@@ -29,7 +29,6 @@ OC.L10N.register(
     "Delete" : "წაშლა",
     "Next" : "შემდეგი",
     "Previous" : "წინა",
-    "Remove" : "წაშლა",
     "Details" : "დეტალები",
     "Reset password" : "პაროლის შეცვლა",
     "Select a file" : "Select a file",
@@ -50,6 +49,7 @@ OC.L10N.register(
     "Resource" : "რესურსი",
     "Dependencies" : "დამოკიდებულებები",
     "Pending" : "მოლოდინში",
-    "No date" : "თარიღი არაა"
+    "No date" : "თარიღი არაა",
+    "Remove" : "წაშლა"
 },
 "nplurals=2; plural=(n!=1);");

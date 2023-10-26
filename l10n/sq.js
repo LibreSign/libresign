@@ -30,7 +30,6 @@ OC.L10N.register(
     "Delete" : "Fshi",
     "Next" : "Tjetër",
     "Previous" : "I mëparshëm",
-    "Remove" : "Hiq",
     "Details" : "Detajet",
     "Reset password" : "Ricaktoni fjalëkalimin",
     "Select a file" : "Zgjidhni një skedar",
@@ -51,6 +50,7 @@ OC.L10N.register(
     "Resource" : "Burim",
     "Dependencies" : "Varësitë",
     "Pending" : "Në Pritje të Konfirmimit",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Hiq"
 },
 "nplurals=2; plural=(n != 1);");

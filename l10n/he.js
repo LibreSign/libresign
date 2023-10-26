@@ -34,7 +34,6 @@ OC.L10N.register(
     "Delete" : "מחיקה",
     "Next" : "הבא",
     "Previous" : "הקודם",
-    "Remove" : "הסרה",
     "Details" : "פרטים",
     "Reset password" : "איפוס ססמה",
     "Select a file" : "Select a file",
@@ -57,6 +56,7 @@ OC.L10N.register(
     "Dependencies" : "תלויות",
     "Loading …" : "בטעינה…",
     "Pending" : "בהמתנה",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "הסרה"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;");

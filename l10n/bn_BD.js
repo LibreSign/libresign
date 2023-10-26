@@ -17,7 +17,6 @@ OC.L10N.register(
     "Delete" : "মুছে",
     "Next" : "পরবর্তী",
     "Previous" : "পূর্ববর্তী",
-    "Remove" : "অপসারণ",
     "Details" : "বিসতারিত",
     "Reset password" : "কূটশব্দ পূনঃনির্ধারণ কর",
     "Select a file" : "Select a file",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "নতুন কূটশব্দ",
     "Pending" : "মুলতুবি",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "অপসারণ"
 },
 "nplurals=2; plural=(n != 1);");
