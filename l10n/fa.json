@@ -159,10 +159,8 @@
     "Previous" : "قبلی",
     "Account not exist" : "Account not exist",
     "Select each signer to define their signature positions" : "Select each signer to define their signature positions",
-    "Remove" : "حذف",
     "Sign" : "Sign",
     "Request signatures?" : "Request signatures?",
-    "Are you sure you want to exclude user {email} from the request?" : "Are you sure you want to exclude user {email} from the request?",
     "Element created" : "Element created",
     "Details" : "جزئیات",
     "Password & Security" : "Password & Security",
@@ -310,6 +308,7 @@
     "Remove duplicated users, email address need to be unique" : "Remove duplicated users, email address need to be unique",
     "Validate File" : "Validate File",
     "Add visible signatures" : "Add visible signatures",
+    "Are you sure you want to exclude user {email} from the request?" : "Are you sure you want to exclude user {email} from the request?",
     "Nothing to do" : "Nothing to do",
     "Validate Document" : "Validate Document",
     "Do you want to configure visible elements in this document?" : "Do you want to configure visible elements in this document?",
@@ -317,6 +316,7 @@
     "Collect signers metadata" : "Collect signers metadata",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binaries required to work. Could be near by 340Mb to download, wait a moment.",
-    "Define custom values to use CFSSL" : "Define custom values to use CFSSL"
+    "Define custom values to use CFSSL" : "Define custom values to use CFSSL",
+    "Remove" : "حذف"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

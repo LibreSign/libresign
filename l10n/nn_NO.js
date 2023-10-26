@@ -20,7 +20,6 @@ OC.L10N.register(
     "Delete" : "Slett",
     "Next" : "Neste",
     "Previous" : "Førre",
-    "Remove" : "Fjern",
     "Details" : "Detaljar",
     "Reset password" : "Nullstill passord",
     "Select a file" : "Select a file",
@@ -38,6 +37,7 @@ OC.L10N.register(
     "New password" : "Nytt passord",
     "Resource" : "Ressurs",
     "Pending" : "Under vegs",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

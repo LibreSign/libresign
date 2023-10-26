@@ -36,7 +36,6 @@ OC.L10N.register(
     "Delete" : "Slett",
     "Next" : "Neste",
     "Previous" : "Forrige",
-    "Remove" : "Fjern",
     "Sign" : "Skilt",
     "Details" : "Detaljer",
     "Reset password" : "Tilbakestill passord",
@@ -59,6 +58,7 @@ OC.L10N.register(
     "Dependencies" : "Avhengigheter",
     "Loading …" : "Laster ...",
     "Pending" : "Venter",
-    "No date" : "Ingen dato"
+    "No date" : "Ingen dato",
+    "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

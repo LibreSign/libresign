@@ -160,10 +160,8 @@ OC.L10N.register(
     "Previous" : "Precedente",
     "Account not exist" : "L'account non esiste",
     "Select each signer to define their signature positions" : "Seleziona ogni firmatario per definire le posizioni della firma",
-    "Remove" : "Rimuovi",
     "Sign" : "Firma",
     "Request signatures?" : "Richiedi firme?",
-    "Are you sure you want to exclude user {email} from the request?" : "Sei sicuro di voler escludere l'utente {email} dalla richiesta?",
     "Element created" : "Elemento creato",
     "Details" : "Dettagli",
     "Password & Security" : "Password e sicurezza",
@@ -277,7 +275,9 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Rimuovi utenti doppi, gli indirizzi email devono essere unici",
     "Validate File" : "Convalida file",
     "Add visible signatures" : "Aggiungi firme visibili",
+    "Are you sure you want to exclude user {email} from the request?" : "Sei sicuro di voler escludere l'utente {email} dalla richiesta?",
     "Validate Document" : "Convalida documento",
-    "Do you want to configure visible elements in this document?" : "Vuoi configurare gli elementi visibili in questo documento?"
+    "Do you want to configure visible elements in this document?" : "Vuoi configurare gli elementi visibili in questo documento?",
+    "Remove" : "Rimuovi"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

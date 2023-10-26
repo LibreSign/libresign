@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "簽署者名稱",
     "Please enter signer name." : "請輸入簽署者名稱。",
     "Select each signer to define their signature positions" : "選擇每個簽名者來定義他們的簽章位置",
-    "Remove" : "移除",
     "Sign" : "簽署",
     "Request signatures?" : "請求簽署？",
-    "Are you sure you want to exclude user {email} from the request?" : "您確定您想要從請求中排除使用者 {email} 嗎？",
     "Element created" : "已建立元素",
     "Details" : "詳細資訊",
     "Password & Security" : "密碼與安全",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "移除重複的使用者，電子郵件必須是獨一無二的",
     "Validate File" : "驗證檔案",
     "Add visible signatures" : "新增可見的簽名",
+    "Are you sure you want to exclude user {email} from the request?" : "您確定您想要從請求中排除使用者 {email} 嗎？",
     "Nothing to do" : "無事可做",
     "Validate Document" : "驗證文件",
     "Do you want to configure visible elements in this document?" : "您想要設定此文件中可見的元素嗎？",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "蒐集簽署者的詮釋資料",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "若啟用此功能，LibreSign 將在簽署文件時儲存簽署者的 IP 與使用者代理字串。",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要可執行檔才能運作。下載大小可能接近 340Mb，請稍候片刻。",
-    "Define custom values to use CFSSL" : "定義自訂值以使用 CFSSL"
+    "Define custom values to use CFSSL" : "定義自訂值以使用 CFSSL",
+    "Remove" : "移除"
 },
 "nplurals=1; plural=0;");

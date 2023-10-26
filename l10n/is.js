@@ -34,7 +34,6 @@ OC.L10N.register(
     "Delete" : "Eyða",
     "Next" : "Næsta",
     "Previous" : "Fyrra",
-    "Remove" : "Fjarlægja",
     "Details" : "Details",
     "Reset password" : "Endursetja lykilorð",
     "Select a file" : "Veldu skrá",
@@ -56,6 +55,7 @@ OC.L10N.register(
     "Dependencies" : "Kerfiskröfur",
     "Loading …" : "Hleð inn …",
     "Pending" : "Í bið",
-    "No date" : "Engin dagsetning"
+    "No date" : "Engin dagsetning",
+    "Remove" : "Fjarlægja"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

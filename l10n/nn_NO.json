@@ -18,7 +18,6 @@
     "Delete" : "Slett",
     "Next" : "Neste",
     "Previous" : "Førre",
-    "Remove" : "Fjern",
     "Details" : "Detaljar",
     "Reset password" : "Nullstill passord",
     "Select a file" : "Select a file",
@@ -36,6 +35,7 @@
     "New password" : "Nytt passord",
     "Resource" : "Ressurs",
     "Pending" : "Under vegs",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Fjern"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

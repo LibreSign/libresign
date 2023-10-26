@@ -17,7 +17,6 @@ OC.L10N.register(
     "Delete" : "நீக்குக",
     "Next" : "அடுத்த",
     "Previous" : "முன்தைய",
-    "Remove" : "அகற்றுக",
     "Details" : "விவரங்கள்",
     "Reset password" : "மீளமைத்த கடவுச்சொல்",
     "Type" : "வகை",
@@ -27,6 +26,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "புதிய கடவுச்சொல்",
     "Pending" : "நிலுவையிலுள்ள",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "அகற்றுக"
 },
 "nplurals=2; plural=(n != 1);");

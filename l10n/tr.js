@@ -153,7 +153,7 @@ OC.L10N.register(
     "Save" : "Kaydet",
     "Select other file" : "Başka bir dosya seçin",
     "Select your signature file." : "İmza dosyanızı seçin.",
-    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Görseli yakınlaştırmak veya uzaklaştırmak için fare tekerleğinizi kullanın ve imzanızın en iyi görünümünü bulun.",
+    "Use your mouse wheel to zoom in or out on the image and find the best view of your signature." : "Görseli yakınlaştırmak veya uzaklaştırmak için farenizin tekerleğini kullanın ve imzanızın en iyi görünümünü bulun.",
     "Enter your Full Name or Initials to create Signature" : "İmza oluşturmak için tam adınızı ya da baş harflerini yazın",
     "Requested by {name}, at {date}" : "{name} tarafından {date} tarihinde istendi",
     "Signatures" : "İmzalar",
@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "İmzalayan adı",
     "Please enter signer name." : "Lütfen imzalayan adını yazın.",
     "Select each signer to define their signature positions" : "İmza konumlarını belirlemek için imzalayanları tek tek seçin",
-    "Remove" : "Kaldır",
     "Sign" : "İmzala",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",
-    "Are you sure you want to exclude user {email} from the request?" : "{email} kullanıcısını istekten çıkarmak istediğinize emin misiniz?",
     "Element created" : "Bileşen eklendi",
     "Details" : "Ayrıntılar",
     "Password & Security" : "Parola ve güvenlik",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Çift kullanıcıları kaldırın. E-posta adresleri eşsiz olmalıdır",
     "Validate File" : "Dosyayı doğrula",
     "Add visible signatures" : "Görülebilir imza ekle",
+    "Are you sure you want to exclude user {email} from the request?" : "{email} kullanıcısını istekten çıkarmak istediğinize emin misiniz?",
     "Nothing to do" : "Yapılabilecek bir şey yok",
     "Validate Document" : "Belgeyi doğrula",
     "Do you want to configure visible elements in this document?" : "Bu belgede görülebilecek bileşenleri yapılandırmak ister misiniz?",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "İmzalayanın üst verileri alınsın",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Bu seçenek etkinleştirildiğinde, LibreSign bir belge imzalanırken imzalayanın IP adresini ve kullandığı uygulamayı kaydeder.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Çalışması için gereken binary dosyaları. Yaklaşık 340 Mb indirilecek, lütfen bekleyin.",
-    "Define custom values to use CFSSL" : "CFSSL kullanacak özel değerleri tanımlayın"
+    "Define custom values to use CFSSL" : "CFSSL kullanacak özel değerleri tanımlayın",
+    "Remove" : "Kaldır"
 },
 "nplurals=2; plural=(n > 1);");

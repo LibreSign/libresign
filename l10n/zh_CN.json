@@ -153,10 +153,8 @@
     "Previous" : "上一个",
     "Account not exist" : "账户不存在",
     "Select each signer to define their signature positions" : "选择每个签名者来定义签名位置",
-    "Remove" : "删除",
     "Sign" : "签名",
     "Request signatures?" : "请求签名？",
-    "Are you sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？",
     "Element created" : "已创建元素",
     "Details" : "详情",
     "Password & Security" : "密码 & 安全性",
@@ -263,7 +261,9 @@
     "Do not use code when signing method is with password." : "当签名方式是密码时不使用代码",
     "Remove duplicated users, email address need to be unique" : "删除重复的用户，电子邮件地址需要是唯一的",
     "Validate File" : "验证文件",
+    "Are you sure you want to exclude user {email} from the request?" : "你确定想把用户 {email} 排除于请求之外吗？",
     "Validate Document" : "验证文档",
-    "Do you want to configure visible elements in this document?" : "是否要配置此文档中的可见元素？"
+    "Do you want to configure visible elements in this document?" : "是否要配置此文档中的可见元素？",
+    "Remove" : "删除"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

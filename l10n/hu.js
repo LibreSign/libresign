@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "Aláíró neve",
     "Please enter signer name." : "Adjon meg aláíró nevet",
     "Select each signer to define their signature positions" : "Válassza ki az összes aláírót, hogy meghatározza az aláírásuk helyzetét",
-    "Remove" : "Eltávolítás",
     "Sign" : "Aláírás",
     "Request signatures?" : "Kéri az aláírásokat?",
-    "Are you sure you want to exclude user {email} from the request?" : "Biztos, hogy kihagyja {email} felhasználót a kérésből?",
     "Element created" : "Az elem létrehozva",
     "Details" : "Részletek",
     "Password & Security" : "Jelszó és biztonság",
@@ -340,6 +338,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Távolítsa el az ismétlődő felhasználókat, az e-mail-címnek egyedinek kell lennie",
     "Validate File" : "Fájl ellenőrzése",
     "Add visible signatures" : "Látható aláírások hozzáadása",
+    "Are you sure you want to exclude user {email} from the request?" : "Biztos, hogy kihagyja {email} felhasználót a kérésből?",
     "Nothing to do" : "Nincs teendő",
     "Validate Document" : "Dokumentum ellenőrzése",
     "Do you want to configure visible elements in this document?" : "Biztos, hogy beállítja a látható elemeket ebben a dokumentumban?",
@@ -347,6 +346,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Aláírók metaadatainak begyűjtése",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ha engedélyezi a funkciót, akkor a LibreSign eltárolja az aláíró IP-címét és felhasználói ügynökét, amikor dokumentumot ír alá. ",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "A működéshez szükséges binárisok. Akár 340 MB is lehet a letöltési méret, várjon egy kicsit.",
-    "Define custom values to use CFSSL" : "Egyéni értékek meghatározása a CFSSL használatához"
+    "Define custom values to use CFSSL" : "Egyéni értékek meghatározása a CFSSL használatához",
+    "Remove" : "Eltávolítás"
 },
 "nplurals=2; plural=(n != 1);");

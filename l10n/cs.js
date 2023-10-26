@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "Jméno podepisujícího",
     "Please enter signer name." : "Zadejte jméno podepisujícího.",
     "Select each signer to define their signature positions" : "Vyberte každého z podepisujících a definujte pozice jejich podpisů.",
-    "Remove" : "Odebrat",
     "Sign" : "Podepsat",
     "Request signatures?" : "Požádat o podpisy?",
-    "Are you sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?",
     "Element created" : "Prvek vytvořen",
     "Details" : "Podrobnosti",
     "Password & Security" : "Heslo a zabezpečení",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Odeberte duplicitní uživatele, e-mailová adresa se nemůže opakovat",
     "Validate File" : "Ověřit soubor",
     "Add visible signatures" : "Přidat viditelné podpisy",
+    "Are you sure you want to exclude user {email} from the request?" : "Opravdu chcete uživatele {email} vynechat z požadavku?",
     "Nothing to do" : "Není co dělat",
     "Validate Document" : "Ověřit dokument",
     "Do you want to configure visible elements in this document?" : "Chcete nastavit viditelné prvky v tomto dokumentu? ",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Shromáždit metadata o podepisujících",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Když je tato funkce zapnutá, pak LibreSign při podepsání uloží IP adresu a identifikátor aplikace (user agent) podepisujícího.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Aby fungovalo, je třeba stáhnout příslušné programy. Mělo by se jednat o téměř 340MB ke stažení – počkejte chvíli.",
-    "Define custom values to use CFSSL" : "Pokud chcete použít CFSSL, je třeba zadat uživatelsky určené hodnoty"
+    "Define custom values to use CFSSL" : "Pokud chcete použít CFSSL, je třeba zadat uživatelsky určené hodnoty",
+    "Remove" : "Odebrat"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

@@ -159,10 +159,8 @@
     "Previous" : "Previo",
     "Account not exist" : "Cuenta inexistente",
     "Select each signer to define their signature positions" : "Selecciona a cada firmante para definir sus posiciones de firma",
-    "Remove" : "Eliminar",
     "Sign" : "Señal",
     "Request signatures?" : "¿Solicitar firmas?",
-    "Are you sure you want to exclude user {email} from the request?" : "¿Estás seguro de que deseas excluir al usuario {email} de la solicitud?",
     "Element created" : "Elemento creado",
     "Details" : "Detalles",
     "Password & Security" : "Contraseña y seguridad",
@@ -310,6 +308,7 @@
     "Remove duplicated users, email address need to be unique" : "Eliminar usuarios duplicados, la dirección de correo electrónico debe ser única",
     "Validate File" : "Validar archivo",
     "Add visible signatures" : "Agregar firmas visibles",
+    "Are you sure you want to exclude user {email} from the request?" : "¿Estás seguro de que deseas excluir al usuario {email} de la solicitud?",
     "Nothing to do" : "Nada que hacer",
     "Validate Document" : "Validar documento",
     "Do you want to configure visible elements in this document?" : "¿Deseas configurar elementos visibles en este documento?",
@@ -317,6 +316,7 @@
     "Collect signers metadata" : "Recopilar metadatos de los firmantes",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Al habilitar esta función, cada vez que un documento se firma, LibreSign almacenará la dirección IP y el agente de usuario del firmante",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarios necesarios para trabajar. La descarga podría ocupar aproximadamente 340 MB, por favor espera un momento.",
-    "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL"
+    "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL",
+    "Remove" : "Eliminar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

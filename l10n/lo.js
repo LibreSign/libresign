@@ -20,7 +20,6 @@ OC.L10N.register(
     "Delete" : "ລຶບ",
     "Next" : "ທັດໄປ",
     "Previous" : "ກ່ອນໜ້າ",
-    "Remove" : "ຍ້າຍອອກ",
     "Details" : "ລາຍລະອຽດ",
     "Reset password" : "ຕັ້ງລະຫັດຄືນໃຫມ່",
     "Type" : "ພິມ",
@@ -31,6 +30,7 @@ OC.L10N.register(
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Loading …" : "ກຳລັງໂຫຼດ",
     "Pending" : "ທີ່ກໍາລັງລໍຖ້າ",
-    "No date" : "ບໍ່ມີວັນທີ"
+    "No date" : "ບໍ່ມີວັນທີ",
+    "Remove" : "ຍ້າຍອອກ"
 },
 "nplurals=1; plural=0;");

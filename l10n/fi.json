@@ -115,7 +115,6 @@
     "Next" : "Seuraava",
     "Previous" : "Edellinen",
     "Account not exist" : "Tiliä ei ole olemassa",
-    "Remove" : "Poista",
     "Sign" : "Allekirjoita",
     "Details" : "Tiedot",
     "Password & Security" : "Salasana ja turvallisuus",
@@ -193,6 +192,7 @@
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Validate File" : "Validoi tiedosto",
-    "Validate Document" : "Validoi asiakirja"
+    "Validate Document" : "Validoi asiakirja",
+    "Remove" : "Poista"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

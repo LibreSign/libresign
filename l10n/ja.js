@@ -46,7 +46,6 @@ OC.L10N.register(
     "Delete" : "削除",
     "Next" : "次へ",
     "Previous" : "前へ",
-    "Remove" : "削除",
     "Details" : "詳細",
     "Reset password" : "パスワードをリセット",
     "Select a file" : "Select a file",
@@ -76,6 +75,7 @@ OC.L10N.register(
     "No date" : "日付なし",
     "Open in LibreSign" : "LibreSignで開く",
     "User created!" : "ユーザーが作成しました！",
-    "Password created!" : "パスワードが作成しました！"
+    "Password created!" : "パスワードが作成しました！",
+    "Remove" : "削除"
 },
 "nplurals=1; plural=0;");

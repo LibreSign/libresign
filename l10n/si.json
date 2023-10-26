@@ -19,7 +19,6 @@
     "Users" : "පරිශීලකයින්",
     "Next" : "ඊළඟ",
     "Previous" : "පෙර",
-    "Remove" : "ඉවත් කරන්න",
     "Details" : "විස්තර",
     "Actions" : "ක්‍රියාමාර්ග",
     "Signature" : "අත්සන",
@@ -27,6 +26,7 @@
     "No" : "නැහැ",
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
-    "Loading …" : "පූරණය වෙමින් …"
+    "Loading …" : "පූරණය වෙමින් …",
+    "Remove" : "ඉවත් කරන්න"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

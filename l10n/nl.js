@@ -160,10 +160,8 @@ OC.L10N.register(
     "Previous" : "Vorige",
     "Account not exist" : "Account bestaat niet",
     "Select each signer to define their signature positions" : "Selecteer elke ondertekenaar om hun handtekeningsposities te definiëren",
-    "Remove" : "Verwijderen",
     "Sign" : "Ondertekenen",
     "Request signatures?" : "Handtekeningen aanvragen?",
-    "Are you sure you want to exclude user {email} from the request?" : "Weet je zeker dat je gebruiker {email} wilt uitsluiten van de aanvraag?",
     "Element created" : "Element aangemaakt",
     "Details" : "Details",
     "Password & Security" : "Wachtwoord & Beveiliging",
@@ -272,8 +270,10 @@ OC.L10N.register(
     "Do not use code when signing method is with password." : "Gebruik code niet wanneer ondertekeningsmethode met wachtwoord is.",
     "Remove duplicated users, email address need to be unique" : "Verwijder dubbele gebruikers, e-mailadres moet uniek zijn",
     "Validate File" : "Valideer Bestand",
+    "Are you sure you want to exclude user {email} from the request?" : "Weet je zeker dat je gebruiker {email} wilt uitsluiten van de aanvraag?",
     "Nothing to do" : "Niets te doen",
     "Validate Document" : "Valideer Document",
-    "Do you want to configure visible elements in this document?" : "Wil je de zichtbare elementen in dit document configureren?"
+    "Do you want to configure visible elements in this document?" : "Wil je de zichtbare elementen in dit document configureren?",
+    "Remove" : "Verwijderen"
 },
 "nplurals=2; plural=(n != 1);");

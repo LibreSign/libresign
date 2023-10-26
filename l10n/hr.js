@@ -141,9 +141,7 @@ OC.L10N.register(
     "Next" : "Dalje",
     "Previous" : "Natrag",
     "Account not exist" : "Račun ne postoji",
-    "Remove" : "Ukloni",
     "Sign" : "Potpiši",
-    "Are you sure you want to exclude user {email} from the request?" : "Jeste li sigurni da želite izuzeti korisnika {email} iz zahtjeva?",
     "Details" : "Pojedinosti",
     "Password & Security" : "Zaporka i sigurnost",
     "Create password key" : "Stvori ključ zaporke",
@@ -233,6 +231,8 @@ OC.L10N.register(
     "Password created!" : "Zaporka je stvorena!",
     "Remove duplicated users, email address need to be unique" : "Uklonite duple korisnike, adresa e-pošte mora biti jedinstvena",
     "Validate File" : "Potvrdi datoteku",
-    "Validate Document" : "Potvrdi dokument"
+    "Are you sure you want to exclude user {email} from the request?" : "Jeste li sigurni da želite izuzeti korisnika {email} iz zahtjeva?",
+    "Validate Document" : "Potvrdi dokument",
+    "Remove" : "Ukloni"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

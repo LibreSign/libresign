@@ -19,7 +19,6 @@ OC.L10N.register(
     "Delete" : "Dileu",
     "Next" : "Nesaf",
     "Previous" : "Blaenorol",
-    "Remove" : "Gwaredu",
     "Details" : "Manylion",
     "Reset password" : "Ailosod cyfrinair",
     "Select a file" : "Select a file",
@@ -37,6 +36,7 @@ OC.L10N.register(
     "Dependencies" : "Dibyniaethau",
     "Loading …" : "Yn llwytho …",
     "Pending" : "I ddod",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Gwaredu"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

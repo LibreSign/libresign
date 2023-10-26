@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "Signer name",
     "Please enter signer name." : "Please enter signer name.",
     "Select each signer to define their signature positions" : "Select each signer to define their signature positions",
-    "Remove" : "Remove",
     "Sign" : "Sign",
     "Request signatures?" : "Request signatures?",
-    "Are you sure you want to exclude user {email} from the request?" : "Are you sure you want to exclude user {email} from the request?",
     "Element created" : "Element created",
     "Details" : "Details",
     "Password & Security" : "Password & Security",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Remove duplicated users, email address need to be unique",
     "Validate File" : "Validate File",
     "Add visible signatures" : "Add visible signatures",
+    "Are you sure you want to exclude user {email} from the request?" : "Are you sure you want to exclude user {email} from the request?",
     "Nothing to do" : "Nothing to do",
     "Validate Document" : "Validate Document",
     "Do you want to configure visible elements in this document?" : "Do you want to configure visible elements in this document?",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Collect signers metadata",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "If this feature is enabled, LibreSign will store the IP and user agent of the signer when signing a document.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binaries required to work. Could be near by 340Mb to download, wait a moment.",
-    "Define custom values to use CFSSL" : "Define custom values to use CFSSL"
+    "Define custom values to use CFSSL" : "Define custom values to use CFSSL",
+    "Remove" : "Remove"
 },
 "nplurals=2; plural=(n != 1);");

@@ -94,6 +94,7 @@ OC.L10N.register(
     "You must not sign this file." : "Vous ne devez pas signer ce document.",
     "Page not found." : "Page non trouvée.",
     "Account" : "Compte",
+    "It is not possible to create new accounts." : "Il n'est pas possible de créer de nouveaux comptes.",
     "User already exists. Please login." : "Cet utilisateur existe déjà. Veuillez vous connecter.",
     "Invalid user" : "Utilisateur incorrect",
     "You are not logged in. Please log in." : "Vous n'êtes pas connecté. Veuillez vous connecter.",
@@ -174,10 +175,8 @@ OC.L10N.register(
     "Signer name" : "Nom du signataire",
     "Please enter signer name." : "Veuillez saisir le nom du signataire.",
     "Select each signer to define their signature positions" : "Sélectionnez chaque signataire afin de définir la position de leur signature.",
-    "Remove" : "Retirer",
     "Sign" : "Signer",
     "Request signatures?" : "Demander une signature ?",
-    "Are you sure you want to exclude user {email} from the request?" : "Etes-vous sûr de vouloir exclure l'utilisateur {email} de la requête ?",
     "Element created" : "Élément créé",
     "Details" : "Détails",
     "Password & Security" : "Mot de passe et sécurité",
@@ -330,6 +329,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Supprimez les utilisateurs en doublon, les adresses e-mail doivent être uniques.",
     "Validate File" : "Valider le fichier",
     "Add visible signatures" : "Ajouter des signatures visibles",
+    "Are you sure you want to exclude user {email} from the request?" : "Etes-vous sûr de vouloir exclure l'utilisateur {email} de la requête ?",
     "Nothing to do" : "Rien à faire",
     "Validate Document" : "Valider le document",
     "Do you want to configure visible elements in this document?" : "Souhaitez-vous configurer les éléments visibles dans ce document ?",
@@ -337,6 +337,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Collecter les métadonnées des signataires",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "En activant cette fonctionnalité, chaque fois qu'un utilisateur signe un document, LibreSign enregistrera l'adresse IP et l'agent utilisateur du signataire.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Exécutables nécessaires au fonctionnement. La taille de téléchargement peut être proche de 340 Mo, merci de patienter un moment.",
-    "Define custom values to use CFSSL" : "Définir des valeurs personnalisées pour l'utilisation de CFSSL"
+    "Define custom values to use CFSSL" : "Définir des valeurs personnalisées pour l'utilisation de CFSSL",
+    "Remove" : "Retirer"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

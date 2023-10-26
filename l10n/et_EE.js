@@ -31,7 +31,6 @@ OC.L10N.register(
     "Delete" : "Kustuta",
     "Next" : "Järgmine",
     "Previous" : "Eelmine",
-    "Remove" : "Eemalda",
     "Details" : "Üksikasjad",
     "Reset password" : "Lähtesta parool",
     "Select a file" : "Select a file",
@@ -51,6 +50,7 @@ OC.L10N.register(
     "Resource" : "Ressurss",
     "Dependencies" : "Sõltuvused",
     "Pending" : "Ootel",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Eemalda"
 },
 "nplurals=2; plural=(n != 1);");

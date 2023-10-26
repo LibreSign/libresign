@@ -22,7 +22,6 @@ OC.L10N.register(
     "Delete" : "Устгах",
     "Next" : "дараагийх",
     "Previous" : "өмнөх",
-    "Remove" : "Устгах",
     "Details" : "Дэлгэрэнгүй",
     "Select a file" : "Select a file",
     "Type" : "Төрөл",
@@ -39,6 +38,7 @@ OC.L10N.register(
     "Resource" : "Нөөц",
     "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Устгах"
 },
 "nplurals=2; plural=(n != 1);");

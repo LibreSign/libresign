@@ -14,7 +14,6 @@
     "Delete" : "ئۆچۈر",
     "Next" : "كېيىنكى",
     "Previous" : "ئالدىنقى",
-    "Remove" : "چىقىرىۋەت",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Actions" : "مەشغۇلاتلار",
@@ -23,6 +22,7 @@
     "No" : "No",
     "New password" : "يېڭى ئىم",
     "Pending" : "كۈتۈۋاتىدۇ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "چىقىرىۋەت"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

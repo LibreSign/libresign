@@ -35,7 +35,6 @@ OC.L10N.register(
     "Delete" : "Eliminar",
     "Next" : "Seguinte",
     "Previous" : "Anterior",
-    "Remove" : "Remover",
     "Details" : "Detalhes",
     "Reset password" : "Repor palavra-passe",
     "Select a file" : "Select a file",
@@ -57,6 +56,7 @@ OC.L10N.register(
     "Dependencies" : "Dependências",
     "Loading …" : "A carregar...",
     "Pending" : "Pendente",
-    "No date" : "Sem data"
+    "No date" : "Sem data",
+    "Remove" : "Remover"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

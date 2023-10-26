@@ -154,9 +154,7 @@ OC.L10N.register(
     "Previous" : "Predhodni",
     "Account not exist" : "Račun ne obstaja",
     "Select each signer to define their signature positions" : "Izbor podpisnikov za določanje položaja podpisa.",
-    "Remove" : "Odstrani",
     "Sign" : "Podpiši",
-    "Are you sure you want to exclude user {email} from the request?" : "Ali ste prepričani, da želite izločiti uporabnika z elektronskim naslovom {email} iz zahteve?",
     "Element created" : "Predmet je ustvarjen.",
     "Details" : "Podrobnosti",
     "Password & Security" : "Geslo in varnost",
@@ -288,9 +286,11 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Odstranite podvojene uporabnike, elektronski naslovi morajo biti enoznačne vrednosti",
     "Validate File" : "Overi datoteko",
     "Add visible signatures" : "Dodaj vidne podpise",
+    "Are you sure you want to exclude user {email} from the request?" : "Ali ste prepričani, da želite izločiti uporabnika z elektronskim naslovom {email} iz zahteve?",
     "Validate Document" : "Overi dokument",
     "Collect signers metadata" : "Zberi metapodatke podpisnikov",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Programske datoteke, nujne za delovanje, zasedejo okoli 340 MB prostora, zato je postopek namestitve lahko dolgotrajen.",
-    "Define custom values to use CFSSL" : "Določilo vrednosti po meri za uporabo protokola CFSSL"
+    "Define custom values to use CFSSL" : "Določilo vrednosti po meri za uporabo protokola CFSSL",
+    "Remove" : "Odstrani"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

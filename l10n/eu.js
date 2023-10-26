@@ -163,10 +163,8 @@ OC.L10N.register(
     "Previous" : "Aurrekoa",
     "Account not exist" : "Kontua ez da existitzen",
     "Select each signer to define their signature positions" : "Hautatu sinatzaile bakoitza bere sinadura-posizioak definitzeko",
-    "Remove" : "Kendu",
     "Sign" : "Sinatu",
     "Request signatures?" : "Sinadurak eskatu?",
-    "Are you sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?",
     "Element created" : "Elementua sortuta",
     "Details" : "Xehetasunak",
     "Password & Security" : "Pasahitza eta segurtasuna",
@@ -314,6 +312,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Kendu erabiltzaile bikoiztuak, e-posta helbideak bakarrak izan behar dira",
     "Validate File" : "Balidatu fitxategia",
     "Add visible signatures" : "Gehitu sinadura ikusgarriak",
+    "Are you sure you want to exclude user {email} from the request?" : "Ziur zaude {email} eskaeratik baztertu nahi duzula?",
     "Nothing to do" : "Ez dago ezer egiteko",
     "Validate Document" : "Balioztatu dokumentua",
     "Do you want to configure visible elements in this document?" : "Elementu ikusgarriak konfiguratu nahi dituzu dokumentu honetan?",
@@ -321,6 +320,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Bildu sinatzailearen metadatuak",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Aukera hau gaituta, dokumentu bat sinatzen den bakoitzean LibreSign-ek sinatzailearen IP helbidea eta erabiltzaile-agentea gordeko ditu.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarioak behar dira funtzionatzeko. Deskargaren tamaina 340Mb-ekoa izan daiteke, itxaron une batez.",
-    "Define custom values to use CFSSL" : "Definitu CFSSL erabiltzeko balio pertsonalizatuak"
+    "Define custom values to use CFSSL" : "Definitu CFSSL erabiltzeko balio pertsonalizatuak",
+    "Remove" : "Kendu"
 },
 "nplurals=2; plural=(n != 1);");

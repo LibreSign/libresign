@@ -19,7 +19,6 @@ OC.L10N.register(
     "Delete" : "Kkes",
     "Next" : "Uḍfir",
     "Previous" : "Ɣer deffir",
-    "Remove" : "Kkes",
     "Details" : "Talqayt",
     "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Type" : "Anaw",
@@ -32,6 +31,7 @@ OC.L10N.register(
     "New password" : "Awal uffir amaynut",
     "Message" : "Izen",
     "Loading …" : "Asali ...",
-    "Pending" : "Yegguni"
+    "Pending" : "Yegguni",
+    "Remove" : "Kkes"
 },
 "nplurals=2; plural=(n != 1);");
