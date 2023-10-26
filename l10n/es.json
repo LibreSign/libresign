@@ -178,10 +178,8 @@
     "Signer name" : "Nombre del firmante",
     "Please enter signer name." : "Por favor, ingrese el nombre del firmante.",
     "Select each signer to define their signature positions" : "Selecciona cada firmante para definir la posición de su firma",
-    "Remove" : "Eliminar",
     "Sign" : "Firmar",
     "Request signatures?" : "¿Solicitar firmas?",
-    "Are you sure you want to exclude user {email} from the request?" : "¿Estás seguro de querer excluir al usuario {email} de la solicitud?",
     "Element created" : "Elemento creado",
     "Details" : "Detalles",
     "Password & Security" : "Contraseña y Seguridad",
@@ -339,6 +337,7 @@
     "Remove duplicated users, email address need to be unique" : "Eliminar usuarios duplicados, las direcciones de email deben ser únicas",
     "Validate File" : "Validar Archivo",
     "Add visible signatures" : "Añadir firmas visibles",
+    "Are you sure you want to exclude user {email} from the request?" : "¿Estás seguro de querer excluir al usuario {email} de la solicitud?",
     "Nothing to do" : "Nada que hacer",
     "Validate Document" : "Validar Documento",
     "Do you want to configure visible elements in this document?" : "¿Quieres configurar los elementos visibles en este documento?",
@@ -346,6 +345,7 @@
     "Collect signers metadata" : "Recolectar metadatos de firmantes",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Al habilitar esta característica, cada vez que se firme un documento, se almacenará la dirección IP y el agente de usuario del firmante.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Binarios requeridos para el funcionamiento. El tamaño de la descarga es cercana a los 340MB, espere un momento.",
-    "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL"
+    "Define custom values to use CFSSL" : "Definir valores personalizados para usar CFSSL",
+    "Remove" : "Eliminar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

@@ -2,6 +2,7 @@
     "Success" : "Thành công",
     "Settings saved" : "Cấu hình đã được lưu",
     "deleted" : "đã xóa",
+    "File sharing" : "Chia sẻ file",
     "View" : "Xem",
     "File not found" : "Không tìm thấy tập tin",
     "File already exists" : "Tệp đã tồn tại",
@@ -19,7 +20,9 @@
     "Cancel" : "Hủy",
     "Save" : "Lưu",
     "Name" : "Tên",
+    "No recommendations. Start typing." : "Không có khuyến nghị. Bắt đầu gõ.",
     "Searching …" : "Đang tìm kiếm ...",
+    "No elements found." : "Không tìm thấy phần tử nào.",
     "Update" : "Cập nhật",
     "Description" : "Mô tả",
     "Add" : "Thêm",
@@ -27,7 +30,6 @@
     "Delete" : "Xóa",
     "Next" : "Tiếp theo",
     "Previous" : "Trước",
-    "Remove" : "Xoá",
     "Details" : "Chi tiết",
     "Reset password" : "Khôi phục mật khẩu",
     "Select a file" : "Select a file",
@@ -49,6 +51,7 @@
     "Dependencies" : "Các phụ thuộc",
     "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Xoá"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -33,7 +33,6 @@ OC.L10N.register(
     "Delete" : "Forigi",
     "Next" : "Sekva",
     "Previous" : "Antaŭa",
-    "Remove" : "Forigi",
     "Details" : "Detaloj",
     "Reset password" : "Restarigi pasvorton",
     "Select a file" : "Select a file",
@@ -55,6 +54,7 @@ OC.L10N.register(
     "Dependencies" : "Dependecoj",
     "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Forigi"
 },
 "nplurals=2; plural=(n != 1);");

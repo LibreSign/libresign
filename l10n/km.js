@@ -17,7 +17,6 @@ OC.L10N.register(
     "Delete" : "លុប",
     "Next" : "បន្ទាប់",
     "Previous" : "មុន",
-    "Remove" : "ដកចេញ",
     "Details" : "ព័ត៌មាន​លម្អិត",
     "Reset password" : "កំណត់​ពាក្យ​សម្ងាត់​ម្ដង​ទៀត",
     "Select a file" : "Select a file",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Pending" : "កំពុង​រង់ចាំ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "ដកចេញ"
 },
 "nplurals=1; plural=0;");

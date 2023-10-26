@@ -17,7 +17,6 @@
     "Delete" : "Sil",
     "Next" : "Növbəti",
     "Previous" : "Əvvələ",
-    "Remove" : "Sil",
     "Details" : "Detallar",
     "Select a file" : "Select a file",
     "Type" : "Type",
@@ -28,6 +27,7 @@
     "No" : "No",
     "New password" : "Yeni şifrə",
     "Pending" : "Gözləmə",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Sil"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

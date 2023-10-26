@@ -178,10 +178,8 @@
     "Signer name" : "簽署者姓名",
     "Please enter signer name." : "請輸入簽署者的姓名",
     "Select each signer to define their signature positions" : "選擇每個簽名者來定義他們的簽名位置",
-    "Remove" : "移除",
     "Sign" : "簽署",
     "Request signatures?" : "請求簽名？",
-    "Are you sure you want to exclude user {email} from the request?" : "您確定要從請求中排除用戶 {email} 嗎？",
     "Element created" : "元素已創建",
     "Details" : "細節",
     "Password & Security" : "密碼與安全",
@@ -339,6 +337,7 @@
     "Remove duplicated users, email address need to be unique" : "刪除重複的用戶，電郵地址必須是唯一的",
     "Validate File" : "驗證檔案",
     "Add visible signatures" : "添加可見簽名",
+    "Are you sure you want to exclude user {email} from the request?" : "您確定要從請求中排除用戶 {email} 嗎？",
     "Nothing to do" : "無事可做",
     "Validate Document" : "驗證文件",
     "Do you want to configure visible elements in this document?" : "您要配置本文件中的可見元素嗎？",
@@ -346,6 +345,7 @@
     "Collect signers metadata" : "收集簽名者元數據",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "如果啟用此功能，LibreSign 將在簽署文件時存儲簽名者的 IP 和用戶代理。",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "需要二進制才能工作。下載大小可能接近340MB，請等待片刻。",
-    "Define custom values to use CFSSL" : "定義自訂值以使用 CFSSL"
+    "Define custom values to use CFSSL" : "定義自訂值以使用 CFSSL",
+    "Remove" : "移除"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -14,7 +14,6 @@
     "Delete" : "Padam",
     "Next" : "Seterus",
     "Previous" : "Sebelum",
-    "Remove" : "Buang",
     "Reset password" : "Penetapan semula kata laluan",
     "Select a file" : "Select a file",
     "Type" : "Jenis",
@@ -24,6 +23,7 @@
     "No" : "No",
     "New password" : "Kata laluan baru",
     "Pending" : "Dalam proses",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Buang"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

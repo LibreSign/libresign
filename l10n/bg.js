@@ -162,10 +162,8 @@ OC.L10N.register(
     "Previous" : "Предишен ",
     "Account not exist" : "Профилът не съществува",
     "Select each signer to define their signature positions" : "Изберете всеки подписващ, за да дефинирате позициите на подписа им",
-    "Remove" : "Премахване",
     "Sign" : "Подпис",
     "Request signatures?" : "Ще заявите ли подписи?",
-    "Are you sure you want to exclude user {email} from the request?" : "Сигурни ли сте, че искате да изключите потребителя {email} от заявката?",
     "Element created" : "Създаден е елемент",
     "Details" : "Подробности",
     "Password & Security" : "Парола и сигурност",
@@ -313,6 +311,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "Премахване на дублирани потребители, имейл адресът трябва да е уникален",
     "Validate File" : "Проверка на файла",
     "Add visible signatures" : "Добавяне на видими подписи",
+    "Are you sure you want to exclude user {email} from the request?" : "Сигурни ли сте, че искате да изключите потребителя {email} от заявката?",
     "Nothing to do" : "Няма задачи",
     "Validate Document" : "Проверка на документ",
     "Do you want to configure visible elements in this document?" : "Искате ли да конфигурирате видими елементи в този документ?",
@@ -320,6 +319,7 @@ OC.L10N.register(
     "Collect signers metadata" : "Събиране на метаданни на подписващите",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Ако активирате тази функция, при всяко подписване на документ LibreSign ще съхрани IP адреса и потребителския агент на подписващия.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Необходими са двоични файлове за работата. Изтеглянето може да е приблизително 340Mb, изчакайте малко.",
-    "Define custom values to use CFSSL" : "Определяне на потребителски стойности за използване на CFSSL"
+    "Define custom values to use CFSSL" : "Определяне на потребителски стойности за използване на CFSSL",
+    "Remove" : "Премахване"
 },
 "nplurals=2; plural=(n != 1);");

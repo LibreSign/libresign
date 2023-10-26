@@ -18,7 +18,6 @@ OC.L10N.register(
     "Delete" : "Läschen",
     "Next" : "Weider",
     "Previous" : "Zeréck",
-    "Remove" : "Läschen",
     "Details" : "Detailer",
     "Reset password" : "Passwuert zréck setzen",
     "Select a file" : "Select a file",
@@ -30,6 +29,7 @@ OC.L10N.register(
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
     "Pending" : "Ausstoend",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Läschen"
 },
 "nplurals=2; plural=(n != 1);");

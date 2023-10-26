@@ -117,7 +117,6 @@ OC.L10N.register(
     "Next" : "Seuraava",
     "Previous" : "Edellinen",
     "Account not exist" : "Tiliä ei ole olemassa",
-    "Remove" : "Poista",
     "Sign" : "Allekirjoita",
     "Details" : "Tiedot",
     "Password & Security" : "Salasana ja turvallisuus",
@@ -195,6 +194,7 @@ OC.L10N.register(
     "User created!" : "Käyttäjä luotu!",
     "Password created!" : "Salasana luotu!",
     "Validate File" : "Validoi tiedosto",
-    "Validate Document" : "Validoi asiakirja"
+    "Validate Document" : "Validoi asiakirja",
+    "Remove" : "Poista"
 },
 "nplurals=2; plural=(n != 1);");

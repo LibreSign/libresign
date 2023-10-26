@@ -141,9 +141,7 @@
     "Next" : "Далее",
     "Previous" : "Назад",
     "Account not exist" : "Учётная запись не существует",
-    "Remove" : "Удалить",
     "Sign" : "Знак",
-    "Are you sure you want to exclude user {email} from the request?" : "Вы уверены, что хотите исключить пользователя {email} из запроса?",
     "Details" : "Свойства",
     "Password & Security" : "Пароль и безопасность",
     "Create password key" : "Создать пароль ключа",
@@ -238,7 +236,9 @@
     "Password created!" : "Пароль создан!",
     "Remove duplicated users, email address need to be unique" : "Удалите дублирующихся пользователей, адрес электронной почты должен быть уникальным",
     "Validate File" : "Проверить файл",
+    "Are you sure you want to exclude user {email} from the request?" : "Вы уверены, что хотите исключить пользователя {email} из запроса?",
     "Validate Document" : "Проверка документа",
-    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Бинарники, необходимые для работы. Может быть около 340 МБ для загрузки, подождите минутку."
+    "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Бинарники, необходимые для работы. Может быть около 340 МБ для загрузки, подождите минутку.",
+    "Remove" : "Удалить"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }

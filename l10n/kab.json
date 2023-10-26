@@ -17,7 +17,6 @@
     "Delete" : "Kkes",
     "Next" : "Uḍfir",
     "Previous" : "Ɣer deffir",
-    "Remove" : "Kkes",
     "Details" : "Talqayt",
     "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Type" : "Anaw",
@@ -30,6 +29,7 @@
     "New password" : "Awal uffir amaynut",
     "Message" : "Izen",
     "Loading …" : "Asali ...",
-    "Pending" : "Yegguni"
+    "Pending" : "Yegguni",
+    "Remove" : "Kkes"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -18,7 +18,6 @@ OC.L10N.register(
     "Add" : "Add",
     "Users" : "Users",
     "Delete" : "Delete",
-    "Remove" : "Remove",
     "Details" : "Details",
     "Reset password" : "Reset password",
     "Status" : "Status",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "No" : "No",
     "Password reset" : "Password reset",
     "New password" : "New password",
-    "Pending" : "Pending"
+    "Pending" : "Pending",
+    "Remove" : "Remove"
 },
 "nplurals=1; plural=0;");

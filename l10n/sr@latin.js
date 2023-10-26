@@ -14,7 +14,6 @@ OC.L10N.register(
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Delete" : "Obriši",
-    "Remove" : "Ukloni",
     "Details" : "Detalji",
     "Select a file" : "Select a file",
     "Type" : "Tip",
@@ -23,6 +22,7 @@ OC.L10N.register(
     "No" : "Ne",
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Ukloni"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

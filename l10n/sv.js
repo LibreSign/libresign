@@ -37,7 +37,6 @@ OC.L10N.register(
     "Delete" : "Radera",
     "Next" : "Nästa",
     "Previous" : "Föregående",
-    "Remove" : "Ta bort",
     "Details" : "Detaljer",
     "Reset password" : "Återställ lösenord",
     "Select a file" : "Välj en fil",
@@ -67,6 +66,7 @@ OC.L10N.register(
     "Binaries downloaded" : "Binärer nedladdade",
     "Loading …" : "Läser in …",
     "Pending" : "Väntande",
-    "No date" : "Inget datum"
+    "No date" : "Inget datum",
+    "Remove" : "Ta bort"
 },
 "nplurals=2; plural=(n != 1);");

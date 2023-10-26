@@ -31,7 +31,6 @@ OC.L10N.register(
     "Delete" : "Dzēst",
     "Next" : "Nākamā",
     "Previous" : "Iepriekšējā",
-    "Remove" : "Noņemt",
     "Details" : "Detaļas",
     "Reset password" : "Mainīt paroli",
     "Select a file" : "Izvēlēties failu",
@@ -50,6 +49,7 @@ OC.L10N.register(
     "Message" : "Ziņojums",
     "Resource" : "Resurss",
     "Pending" : "Gaida",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Noņemt"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

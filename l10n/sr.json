@@ -178,10 +178,8 @@
     "Signer name" : "Име потписивача",
     "Please enter signer name." : "Молимо вас да унесете име потписивача.",
     "Select each signer to define their signature positions" : "Изаберите сваког потписника да дефинишете позицију његовог потписа",
-    "Remove" : "Уклони",
     "Sign" : "Потпис",
     "Request signatures?" : "Захтевај потписе?",
-    "Are you sure you want to exclude user {email} from the request?" : "Да ли сте сигурни да из захтева желите да искључите корисника {email}?",
     "Element created" : "Елемент је креиран",
     "Details" : "Детаљи",
     "Password & Security" : "Лозинка и безбедност",
@@ -339,6 +337,7 @@
     "Remove duplicated users, email address need to be unique" : "Уклоните дуплиране кориснике, и-мејл адреса мора да буде јединствена",
     "Validate File" : "Потврди фајл",
     "Add visible signatures" : "Додај видљиве потписе",
+    "Are you sure you want to exclude user {email} from the request?" : "Да ли сте сигурни да из захтева желите да искључите корисника {email}?",
     "Nothing to do" : "Нема шта да се уради",
     "Validate Document" : "Потврди документ",
     "Do you want to configure visible elements in this document?" : "Да ли желите да подесите видљиве елементе у овом документу?",
@@ -346,6 +345,7 @@
     "Collect signers metadata" : "Прикупи метаподатке потписника",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "Када се ова могућност укључи, сваки пут када се документ потписује, LibreSign ће сачувати IP адресу и кориснички агент потписника.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Неопходни су бинарни фајлови за рад. Величина преузимања може бити скоро 340Mb, причекајте мало.",
-    "Define custom values to use CFSSL" : "Дефиниши произвољне вредности за употребу CFSSL"
+    "Define custom values to use CFSSL" : "Дефиниши произвољне вредности за употребу CFSSL",
+    "Remove" : "Уклони"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

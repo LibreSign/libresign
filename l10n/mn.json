@@ -20,7 +20,6 @@
     "Delete" : "Устгах",
     "Next" : "дараагийх",
     "Previous" : "өмнөх",
-    "Remove" : "Устгах",
     "Details" : "Дэлгэрэнгүй",
     "Select a file" : "Select a file",
     "Type" : "Төрөл",
@@ -37,6 +36,7 @@
     "Resource" : "Нөөц",
     "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Устгах"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

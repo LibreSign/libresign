@@ -16,7 +16,6 @@ OC.L10N.register(
     "Users" : "﻿ಬಳಕೆದಾರರು",
     "Delete" : "﻿ಅಳಿಸಿ",
     "Next" : "ಮುಂದೆ",
-    "Remove" : "ತೆಗೆದುಹಾಕಿ",
     "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
     "Select a file" : "Select a file",
     "Type" : "Type",
@@ -25,6 +24,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "ತೆಗೆದುಹಾಕಿ"
 },
 "nplurals=2; plural=(n > 1);");

@@ -16,7 +16,6 @@ OC.L10N.register(
     "Delete" : "Padam",
     "Next" : "Seterus",
     "Previous" : "Sebelum",
-    "Remove" : "Buang",
     "Reset password" : "Penetapan semula kata laluan",
     "Select a file" : "Select a file",
     "Type" : "Jenis",
@@ -26,6 +25,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "Kata laluan baru",
     "Pending" : "Dalam proses",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "Buang"
 },
 "nplurals=1; plural=0;");

@@ -16,7 +16,6 @@ OC.L10N.register(
     "Delete" : "ئۆچۈر",
     "Next" : "كېيىنكى",
     "Previous" : "ئالدىنقى",
-    "Remove" : "چىقىرىۋەت",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Actions" : "مەشغۇلاتلار",
@@ -25,6 +24,7 @@ OC.L10N.register(
     "No" : "No",
     "New password" : "يېڭى ئىم",
     "Pending" : "كۈتۈۋاتىدۇ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Remove" : "چىقىرىۋەت"
 },
 "nplurals=2; plural=(n != 1);");

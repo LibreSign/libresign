@@ -16,7 +16,6 @@
     "Add" : "Add",
     "Users" : "Users",
     "Delete" : "Delete",
-    "Remove" : "Remove",
     "Details" : "Details",
     "Reset password" : "Reset password",
     "Status" : "Status",
@@ -26,6 +25,7 @@
     "No" : "No",
     "Password reset" : "Password reset",
     "New password" : "New password",
-    "Pending" : "Pending"
+    "Pending" : "Pending",
+    "Remove" : "Remove"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -180,10 +180,8 @@ OC.L10N.register(
     "Signer name" : "اسم صاحب التوقيع",
     "Please enter signer name." : "رجاءً، أدخِل اسم صاحب التوقيع.",
     "Select each signer to define their signature positions" : "حدد كل مُوْقع لتحديد أماكن التوقيع الخاصة بهم",
-    "Remove" : "حذف",
     "Sign" : "وقع",
     "Request signatures?" : "طلب التوقيعات؟",
-    "Are you sure you want to exclude user {email} from the request?" : "هل أنت متأكد أنك تريد استبعاد المستخدم {email} من الطلب؟",
     "Element created" : "تم إنشاء العنصر",
     "Details" : "التفاصيل",
     "Password & Security" : "كلمة المرور والأمان",
@@ -341,6 +339,7 @@ OC.L10N.register(
     "Remove duplicated users, email address need to be unique" : "إزالة أسماء المستخدمين المكررة، يجب أن يكون عنوان البريد الإلكتروني فريدًا",
     "Validate File" : "التحقق من صحة الملف",
     "Add visible signatures" : "إضافة التوقيعات المرئية",
+    "Are you sure you want to exclude user {email} from the request?" : "هل أنت متأكد أنك تريد استبعاد المستخدم {email} من الطلب؟",
     "Nothing to do" : "لا شيء لفعله",
     "Validate Document" : "التحقق من صحة المستند",
     "Do you want to configure visible elements in this document?" : "هل تريد تكوين العناصر المرئية في هذا المستند؟",
@@ -348,6 +347,7 @@ OC.L10N.register(
     "Collect signers metadata" : "جمع البيانات التعريفية بالمُوقِّعِين",
     "Enabling this feature, every when sign a document, LibreSign will store the IP, and user agent of signer." : "عند تمكين هذه الميزة، في كل مرة يتم فيها التوقيع على مستند، يقوم LibreSign بتخزين عنوان IP و وكيل المستخدم الخاص user agent بصاحب التوقيع.",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "ملفات تنفيذية مطلوبة للعمل و يلزم تنزيلها. حجمها في حدود 340 ميغابايت. إنتظر للحظات ...",
-    "Define custom values to use CFSSL" : "تحديد القيم المخصصة لاستعمال CFSSL"
+    "Define custom values to use CFSSL" : "تحديد القيم المخصصة لاستعمال CFSSL",
+    "Remove" : "حذف"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");
