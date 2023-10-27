@@ -54,7 +54,6 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	 * @throws LibresignException
 	 */
 	public function loadFileUuid(string $uuid): void {
-
 	}
 
 	/**

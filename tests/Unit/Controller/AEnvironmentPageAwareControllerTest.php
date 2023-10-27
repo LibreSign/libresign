@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\Unit;
 
-use Closure;
 use OCA\Files_Trashbin\Trash\ITrashManager;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
@@ -32,8 +31,8 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
-use OCP\L10N\IFactory as IL10NFactory;
 use OCP\IRequest;
+use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class MockController extends AEnvironmentPageAwareController {
