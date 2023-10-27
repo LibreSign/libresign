@@ -183,6 +183,7 @@ OC.L10N.register(
     "Sign" : "Sign",
     "Request signatures?" : "Request signatures?",
     "Element created" : "Element created",
+    "signed at {date}" : "signed at {date}",
     "Details" : "Details",
     "Password & Security" : "Password & Security",
     "Create password key" : "Create password key",

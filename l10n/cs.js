@@ -183,6 +183,7 @@ OC.L10N.register(
     "Sign" : "Podepsat",
     "Request signatures?" : "Požádat o podpisy?",
     "Element created" : "Prvek vytvořen",
+    "signed at {date}" : "podepsáno v {date}",
     "Details" : "Podrobnosti",
     "Password & Security" : "Heslo a zabezpečení",
     "Create password key" : "Vytvořit klíč hesla",
