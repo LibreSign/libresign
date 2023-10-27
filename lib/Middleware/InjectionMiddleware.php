@@ -75,6 +75,7 @@ class InjectionMiddleware extends Middleware {
 		switch (true) {
 			case $controller instanceof AEnvironmentAwareController:
 				$apiVersion = $this->request->getParam('apiVersion');
+				/** @var AEnvironmentAwareController $controller */
 				$controller->setAPIVersion((int) substr($apiVersion, 1));
 				break;
 			case $controller instanceof AEnvironmentPageAwareController:
