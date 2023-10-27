@@ -35,7 +35,6 @@ use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -60,7 +59,6 @@ class InjectionMiddleware extends Middleware {
 		private FileUserMapper $fileUserMapper,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
-		private IdentifyMethodService $identifyMethodService,
 		private IL10N $l10n,
 		?string $userId,
 	) {
