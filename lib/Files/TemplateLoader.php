@@ -73,12 +73,5 @@ class TemplateLoader implements IEventListener {
 		} catch (LibresignException $th) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
-
-		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
-			'file_user_uuid',
-			$this->request->getParam('uuid'),
-			$this->userSession->getUser(),
-			'url'
-		));
 	}
 }
