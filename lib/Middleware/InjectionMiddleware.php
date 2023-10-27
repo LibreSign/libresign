@@ -98,8 +98,8 @@ class InjectionMiddleware extends Middleware {
 			$this->requireSigner();
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireFileUuid::class)
-			&& $controller instanceof AEnvironmentPageAwareController)
+		if (!empty($reflectionMethod->getAttributes(RequireFileUuid::class))
+			&& $controller instanceof AEnvironmentPageAwareController
 		) {
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->loadFileUuid(
