@@ -26,6 +26,7 @@ namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
+use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -482,6 +483,37 @@ class SignFileService {
 			$fileToSign = $this->root->newFile($signedFilePath);
 			$fileToSign->putContent($buffer);
 		}
+		return $fileToSign;
+	}
+
+	/**
+	 * @throws DoesNotExistException
+	 */
+	public function getFileUser(string $uuid): FileUserEntity {
+		return $this->fileUserMapper->getByUuid($uuid);
+	}
+
+	/**
+	 * @throws DoesNotExistException
+	 */
+	public function getFile(int $fileUserId): FileEntity {
+		return $this->fileMapper->getById($fileUserId);
+	}
+
+	public function getNextcloudFile(int $nodeId): File {
+		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		foreach ($mountsContainingFile as $fileInfo) {
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+		}
+		$fileToSign = $this->root->getById($nodeId);
+		if (count($fileToSign) < 1) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('File not found')],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+		/** @var File */
+		$fileToSign = $fileToSign[0];
 		return $fileToSign;
 	}
 

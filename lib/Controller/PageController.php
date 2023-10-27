@@ -27,9 +27,12 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireFileUserUuid;
+use OCA\Libresign\Middleware\Attribute\RequireFileUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,6 +45,7 @@ use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
@@ -53,13 +57,19 @@ class PageController extends AEnvironmentPageAwareController {
 		private IUserSession $userSession,
 		private IInitialState $initialState,
 		private AccountService $accountService,
+		protected SignFileService $signFileService,
+		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
 		private IURLGenerator $url
 	) {
-		parent::__construct(Application::APP_ID, $request);
+		parent::__construct(
+			request: $request,
+			signFileService: $signFileService,
+			l10n: $l10n,
+		);
 	}
 
 	/**
@@ -67,6 +77,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireFileUserUuid]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -111,6 +122,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireFileUserUuid]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -134,6 +146,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireFileUuid]
 	public function signAccountFile($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_uuid',
@@ -180,6 +193,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireFileUserUuid]
 	public function getPdfUser($uuid) {
 		$config = $this->accountService->getConfig(
 			'file_user_uuid',
@@ -205,6 +219,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireFileUserUuid]
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
@@ -235,6 +250,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[RequireFileUserUuid]
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',

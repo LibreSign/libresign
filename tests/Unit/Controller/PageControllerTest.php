@@ -1,5 +1,27 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace OCA\Libresign\Tests\Unit;
 
 use OCA\Libresign\Controller\PageController;
@@ -7,9 +29,11 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -24,6 +48,8 @@ final class PageControllerTest extends TestCase {
 	private IUserSession|MockObject $userSession;
 	private IInitialState|MockObject $initialState;
 	private AccountService|MockObject $accountService;
+	private SignFileService|MockObject $signFileService;
+	private IL10N|MockObject $l10n;
 	private IdentifyMethodService|MockObject $identifyMethodService;
 	private IAppConfig|MockObject $appConfig;
 	private FileService|MockObject $fileService;
@@ -36,6 +62,8 @@ final class PageControllerTest extends TestCase {
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->accountService = $this->createMock(AccountService::class);
+		$this->signFileService = $this->createMock(SignFileService::class);
+		$this->l10n = $this->createMock(IL10N::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->fileService = $this->createMock(FileService::class);
@@ -46,6 +74,8 @@ final class PageControllerTest extends TestCase {
 			$this->userSession,
 			$this->initialState,
 			$this->accountService,
+			$this->signFileService,
+			$this->l10n,
 			$this->identifyMethodService,
 			$this->appConfig,
 			$this->fileService,
