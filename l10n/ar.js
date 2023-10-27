@@ -183,6 +183,7 @@ OC.L10N.register(
     "Sign" : "وقع",
     "Request signatures?" : "طلب التوقيعات؟",
     "Element created" : "تم إنشاء العنصر",
+    "signed at {date}" : "تمّ توقيعه بتاريخ: {date}",
     "Details" : "التفاصيل",
     "Password & Security" : "كلمة المرور والأمان",
     "Create password key" : "إنشاء مفتاح كلمة المرور",

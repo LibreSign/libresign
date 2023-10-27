@@ -183,6 +183,7 @@ OC.L10N.register(
     "Sign" : "簽署",
     "Request signatures?" : "請求簽名？",
     "Element created" : "元素已創建",
+    "signed at {date}" : "於 {date} 簽署",
     "Details" : "細節",
     "Password & Security" : "密碼與安全",
     "Create password key" : "創建密碼密鑰",

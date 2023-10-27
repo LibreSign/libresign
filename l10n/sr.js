@@ -183,6 +183,7 @@ OC.L10N.register(
     "Sign" : "Потпис",
     "Request signatures?" : "Захтевај потписе?",
     "Element created" : "Елемент је креиран",
+    "signed at {date}" : "потписано дана {date}",
     "Details" : "Детаљи",
     "Password & Security" : "Лозинка и безбедност",
     "Create password key" : "Креирај кључ лозинке",

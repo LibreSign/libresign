@@ -178,6 +178,7 @@ OC.L10N.register(
     "Sign" : "Signer",
     "Request signatures?" : "Demander une signature ?",
     "Element created" : "Élément créé",
+    "signed at {date}" : "signé le {date}",
     "Details" : "Détails",
     "Password & Security" : "Mot de passe et sécurité",
     "Create password key" : "Créer un mot de passe pour la clé",
