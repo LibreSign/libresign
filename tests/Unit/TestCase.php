@@ -2,9 +2,14 @@
 
 namespace OCA\Libresign\Tests\Unit;
 
+use donatj\MockWebServer\MockWebServer;
+use donatj\MockWebServer\Response as MockWebServerResponse;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 
 class TestCase extends \Test\TestCase {
+	protected static MockWebServer $server;
+	private RequestSignatureService $requestSignatureService;
 	private array $users = [];
 
 	public function mockConfig($config) {
@@ -42,6 +47,12 @@ class TestCase extends \Test\TestCase {
 			return true;
 		}
 		return false;
+	}
+
+	public static function setUpBeforeClass(): void {
+		parent::setUpBeforeClass();
+		self::$server = new MockWebServer();
+		self::$server->start();
 	}
 
 	public function setUp(): void {
@@ -178,5 +189,49 @@ class TestCase extends \Test\TestCase {
 				chmod($newDest, fileperms($item));
 			}
 		}
+	}
+
+	public function requestSignFile($data): array {
+		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new MockWebServerResponse(
+			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
+		));
+
+		$this->mockConfig([
+			'libresign' => [
+				'identify_method' => 'account',
+				'notifyUnsignedUser' => 0,
+				'commonName' => 'CommonName',
+				'country' => 'Brazil',
+				'organization' => 'Organization',
+				'organizationUnit' => 'organizationUnit',
+				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
+			]
+		]);
+
+		if (!isset($data['settings'])) {
+			$data['settings']['separator'] = '_';
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'date',
+				'setting' => 'Y-m-d\TH:i:s.u'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'name'
+			];
+			$data['settings']['folderPatterns'][] = [
+				'name' => 'userId'
+			];
+		}
+		$file = $this->getRequestSignatureService()->save($data);
+		return $file;
+	}
+
+	/**
+	 * @return \OCA\Libresign\Service\RequestSignatureService
+	 */
+	public function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
+		if (!isset($this->requestSignatureService)) {
+			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
+		}
+		return $this->requestSignatureService;
 	}
 }

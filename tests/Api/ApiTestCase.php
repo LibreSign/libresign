@@ -15,8 +15,6 @@ use ByJG\ApiTools\Exception\StatusCodeNotMatchedException;
 use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
-use donatj\MockWebServer\MockWebServer;
-use donatj\MockWebServer\Response as MockWebServerResponse;
 use OCA\Libresign\Tests\Unit\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -35,20 +33,6 @@ class ApiTestCase extends TestCase {
 	 * @var \OCA\Libresign\Tests\Api\ApiRequester
 	 */
 	public $request;
-
-	/**
-	 * @var MockWebServer
-	 */
-	protected static $server;
-
-	/** @var RequestSignatureService */
-	private $requestSignatureService;
-
-	public static function setUpBeforeClass(): void {
-		parent::setUpBeforeClass();
-		self::$server = new MockWebServer();
-		self::$server->start();
-	}
 
 	public function setUp(): void {
 		parent::setUp();
@@ -138,49 +122,5 @@ class ApiTestCase extends TestCase {
 		if (!$this->schema) {
 			throw new GenericSwaggerException('You have to configure a schema for either the request or the testcase');
 		}
-	}
-
-	public function requestSignFile($data): array {
-		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new MockWebServerResponse(
-			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
-		));
-
-		$this->mockConfig([
-			'libresign' => [
-				'identify_method' => 'account',
-				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
-		]);
-
-		if (!isset($data['settings'])) {
-			$data['settings']['separator'] = '_';
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'date',
-				'setting' => 'Y-m-d\TH:i:s.u'
-			];
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'name'
-			];
-			$data['settings']['folderPatterns'][] = [
-				'name' => 'userId'
-			];
-		}
-		$file = $this->getRequestSignatureService()->save($data);
-		return $file;
-	}
-
-	/**
-	 * @return \OCA\Libresign\Service\RequestSignatureService
-	 */
-	public function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
-		if (!$this->requestSignatureService) {
-			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
-		}
-		return $this->requestSignatureService;
 	}
 }
