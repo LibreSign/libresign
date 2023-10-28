@@ -75,8 +75,11 @@ final class FileControllerTest extends ApiTestCase {
 		$user->setEMailAddress('person@test.coop');
 		$this->mockAppConfig([
 			'libresign' => [
-				'identify_method' => 'account',
-			]
+				'identify_methods' => [
+					'name' => 'email',
+					'enabled' => 1,
+				],
+			],
 		]);
 
 		$user->setEMailAddress('person@test.coop');

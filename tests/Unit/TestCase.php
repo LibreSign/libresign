@@ -212,7 +212,10 @@ class TestCase extends \Test\TestCase {
 
 		$this->mockAppConfig([
 			'libresign' => [
-				'identify_method' => 'account',
+				'identify_methods' => [
+					'name' => 'account',
+					'enabled' => 1,
+				],
 				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',
 				'country' => 'Brazil',

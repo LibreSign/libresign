@@ -71,6 +71,13 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 	}
 
 	public function testLoadFileUuidWhenFileNotFound(): void {
+		$this->mockConfig([
+			'identify_methods' => [
+				'name' => 'email',
+				'enabled' => 1,
+			],
+		]);
+
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -79,7 +86,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'users' => [
 				[
 					'identify' => [
-						'email' => 'guest-user@test.coop',
+						'account' => 'username',
 					],
 				],
 			],
