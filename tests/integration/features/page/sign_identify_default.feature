@@ -33,10 +33,11 @@ Feature: page/sign_identify_default
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      """
-      {"action":200,"errors":["Invalid UUID"]}
-      """
+    Then the response should have a status code 404
+    And the response should be a JSON array with the following mandatory values
+      | key      | value             |
+      | action | 200 |
+      | errors | ["Invalid UUID"] |
     # invalid user
     When as user "admin"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
