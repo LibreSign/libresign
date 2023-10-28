@@ -6,13 +6,14 @@ use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
+use OCA\Libresign\Tests\lib\ConfigOverwrite;
 
 class TestCase extends \Test\TestCase {
 	protected static MockWebServer $server;
 	private RequestSignatureService $requestSignatureService;
 	private array $users = [];
 
-	public function mockConfig($config) {
+	public function mockAppConfig($config) {
 		$service = \OC::$server->get(\OC\AppConfig::class);
 		if (is_subclass_of($service, \OC\AppConfig::class)) {
 			foreach ($config as $app => $keys) {
@@ -24,6 +25,19 @@ class TestCase extends \Test\TestCase {
 		}
 		\OC::$server->registerService(\OC\AppConfig::class, function () use ($config) {
 			return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), $config);
+		});
+	}
+
+	public function mockConfig($config) {
+		$service = \OC::$server->get(\OC\Config::class);
+		if (is_subclass_of($service, \OC\Config::class)) {
+			foreach ($config as $key => $value) {
+				$service->setValue($key, $value);
+			}
+			return;
+		}
+		\OC::$server->registerService(\OC\Config::class, function () use ($config) {
+			return new ConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class), $config);
 		});
 	}
 
@@ -95,7 +109,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	public function createUser($username, $password, $groupName = 'testGroup') {
 		$this->users[] = $username;
-		$this->mockConfig([
+		$this->mockAppConfig([
 			'core' => [
 				'newUser.sendEmail' => 'no'
 			]
@@ -196,7 +210,7 @@ class TestCase extends \Test\TestCase {
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockConfig([
+		$this->mockAppConfig([
 			'libresign' => [
 				'identify_method' => 'account',
 				'notifyUnsignedUser' => 0,
