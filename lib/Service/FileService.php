@@ -365,7 +365,9 @@ class FileService {
 			'uid' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
-		$return['request_date'] = $this->file->getCreatedAt();
+		$return['request_date'] = (new \DateTime())
+			->setTimestamp($this->file->getCreatedAt())
+			->format('Y-m-d H:i:s');
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}

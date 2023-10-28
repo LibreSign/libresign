@@ -36,7 +36,7 @@ export default {
 			}
 			return t('libresign', 'Requested by {name}, at {date}', {
 				name: this.requestedBy.uid,
-				date: Moment(parseInt(this.requestDate)).format('LL LTS'),
+				date: Moment(Date.parse(this.requestDate)).format('LL LTS'),
 			})
 		},
 	},
