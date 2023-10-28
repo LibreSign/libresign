@@ -38,7 +38,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUuid(string $uuid)
  * @method string getUuid()
  * @method void setCreatedAt(string $createdAt)
- * @method string getCreatedAt()
+ * @method int getCreatedAt()
  * @method void setName(string $name)
  * @method string getName()
  * @method void setCallback(string $callback)
@@ -64,7 +64,7 @@ class File extends Entity {
 	/** @var string */
 	protected $uuid;
 
-	/** @var string */
+	/** @var integer */
 	protected $createdAt;
 
 	/** @var string */
@@ -91,7 +91,7 @@ class File extends Entity {
 		$this->addType('signedNodeId', 'integer');
 		$this->addType('userId', 'string');
 		$this->addType('uuid', 'string');
-		$this->addType('createdAt', 'string');
+		$this->addType('createdAt', 'integer');
 		$this->addType('name', 'string');
 		$this->addType('callback', 'string');
 		$this->addType('status', 'integer');
