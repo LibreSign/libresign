@@ -181,6 +181,7 @@
     "Sign" : "İmzala",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",
     "Element created" : "Bileşen eklendi",
+    "signed at {date}" : "{date} tarihinde imzalandı",
     "Details" : "Ayrıntılar",
     "Password & Security" : "Parola ve güvenlik",
     "Create password key" : "Parola anahtarı üret",
