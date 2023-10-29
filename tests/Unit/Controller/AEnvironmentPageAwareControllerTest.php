@@ -49,6 +49,16 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
+		$this->mockConfig([
+			'libresign' => [
+				'identify_methods' => [
+					[
+						'name' => 'email',
+						'enabled' => 1,
+					],
+				],
+			],
+		]);
 		$this->signFileService = \OC::$server->get(SignFileService::class);
 		$this->l10n = \OC::$server->get(IL10NFactory::class)->get(Application::APP_ID);
 
@@ -71,13 +81,6 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 	}
 
 	public function testLoadFileUuidWhenFileNotFound(): void {
-		$this->mockConfig([
-			'identify_methods' => [
-				'name' => 'email',
-				'enabled' => 1,
-			],
-		]);
-
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([

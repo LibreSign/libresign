@@ -24,27 +24,28 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\lib;
 
-use OC\Config;
+use OC\AllConfig;
+use OC\SystemConfig;
 
-class ConfigOverwrite extends Config {
+class AllConfigOverwrite extends AllConfig {
 	/** @var string[] */
 	private array $overWrite = [];
 
 	public function __construct(
-		string $configDir,
+		SystemConfig $systemConfig,
 	) {
-		parent::__construct($configDir);
+		parent::__construct($systemConfig);
 	}
 
-	public function getValue($key, $default = null) {
-		if (isset($this->overWrite) && isset($this->overWrite[$key])) {
-			return $this->overWrite[$key];
+	public function getAppValue($appName, $key, $default = '') {
+		if (isset($this->overWrite[$appName]) && isset($this->overWrite[$appName][$key])) {
+			return $this->overWrite[$appName][$key];
 		}
 
-		return parent::getValue($key, $default);
+		return parent::getAppValue($appName, $key, $default);
 	}
 
-	public function setValue($key, $value) {
-		$this->overWrite[$key] = $value;
+	public function setAppValue($appName, $key, $value) {
+		$this->overWrite[$appName][$key] = $value;
 	}
 }

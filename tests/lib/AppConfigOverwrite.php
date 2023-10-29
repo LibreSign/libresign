@@ -28,14 +28,12 @@ use OC\DB\Connection;
 
 class AppConfigOverwrite extends AppConfig {
 	/** @var string[][] */
-	private $overWrite;
+	private $overWrite = [];
 
 	public function __construct(
-		Connection $conn,
-		array $overWrite
+		Connection $conn
 	) {
 		parent::__construct($conn);
-		$this->overWrite = $overWrite;
 	}
 
 	public function getValue($app, $key, $default = null) {
