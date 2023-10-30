@@ -77,7 +77,6 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireFileUserUuid]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig(
 			'file_user_uuid',
