@@ -129,7 +129,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	public function createUser($username, $password, $groupName = 'testGroup') {
 		$this->users[] = $username;
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'core' => [
 				'newUser.sendEmail' => 'no'
 			]
@@ -230,11 +230,13 @@ class TestCase extends \Test\TestCase {
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'identify_methods' => [
-					'name' => 'account',
-					'enabled' => 1,
+					[
+						'name' => 'email',
+						'enabled' => 1,
+					],
 				],
 				'notifyUnsignedUser' => 0,
 				'commonName' => 'CommonName',

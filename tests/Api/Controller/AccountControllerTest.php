@@ -38,7 +38,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 */
 	public function testAccountCreateWithSuccess() {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
 				'rootCert' => json_encode([
@@ -171,7 +171,7 @@ final class AccountControllerTest extends ApiTestCase {
 	public function testApprovalListWithSuccess() {
 		$this->createUser('allowapprove', 'password', 'testGroup');
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'approval_group' => '["testGroup"]'
 			]

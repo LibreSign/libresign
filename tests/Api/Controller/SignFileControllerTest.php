@@ -15,7 +15,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithInvalidFileToSign() {
 		$this->createUser('allowrequestsign', 'password', 'testGroup');
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
@@ -185,7 +185,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithEmptyCertificatePassword() {
 		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
@@ -245,7 +245,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithSuccess() {
 		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
 				'java_path' => __FILE__,
@@ -335,7 +335,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testPostRegisterWithSuccess() {
 		$this->createUser('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
@@ -397,7 +397,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testPatchRegisterWithSuccess() {
 		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
@@ -453,7 +453,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'notifyUnsignedUser' => 0,
 				'rootCert' => json_encode([
@@ -527,7 +527,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]'
 			]
@@ -578,7 +578,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockAppConfig([
+		$this->mockConfig([
 			'libresign' => [
 				'webhook_authorized' => '["admin","testGroup"]'
 			]
