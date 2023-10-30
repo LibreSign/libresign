@@ -27,6 +27,7 @@ namespace OCA\Libresign\Notification;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileUserMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
@@ -74,7 +75,11 @@ class Notifier implements INotifier {
 		bool $update
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
-		$fileUser = $this->fileUserMapper->getById($parameters['fileUser']);
+		try {
+			$fileUser = $this->fileUserMapper->getById($parameters['fileUser']);
+		} catch (DoesNotExistException $th) {
+			throw new \InvalidArgumentException();
+		}
 		$notification
 			->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')))
 			->setLink($this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $fileUser->getUuid()]));

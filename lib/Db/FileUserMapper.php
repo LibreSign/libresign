@@ -160,6 +160,9 @@ class FileUserMapper extends QBMapper {
 		return $signers;
 	}
 
+	/**
+	 * @throws DoesNotExistException
+	 */
 	public function getById(int $fileUserId): FileUser {
 		foreach ($this->signers as $fileUser) {
 			if ($fileUser->getFileId() === $fileUserId) {
