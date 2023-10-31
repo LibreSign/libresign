@@ -120,7 +120,7 @@
     "Sending authorization code not enabled." : "L'envoi des codes de vérification est désactivé.",
     "%s is your LibreSign verification code." : "Votre code de vérification LibreSign est %s",
     "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Signer des documents avec le jeton %s est interdit car la passerelle d'authentification à facteurs multiples de NextCloud est désactivée.",
-    "Gateway %s not configured on Two-Factor Gateway." : "La passerelle %s n'a pas été configurée dans les réglages de la passerelle d'authentification à facteurs multiples.",
+    "Gateway %s not configured on Two-Factor Gateway." : "La passerelle %s n'a pas été configurée dans les paramètres de la passerelle d'authentification à double facteurs.",
     "Invalid PDF" : "PDF invalide",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Application de signature numérique gratuite pour Nextcloud",

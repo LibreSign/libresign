@@ -9,6 +9,7 @@ OC.L10N.register(
     "File not found" : "Không tìm thấy tập tin",
     "File already exists" : "Tệp đã tồn tại",
     "Account" : "Tài khoản",
+    "Invalid user" : "Người dùng không hợp lệ",
     "Email" : "Thư điện tử",
     "Password" : "Mật khẩu",
     "Files" : "Tệp",
