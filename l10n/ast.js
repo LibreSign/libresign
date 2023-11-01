@@ -3,10 +3,13 @@ OC.L10N.register(
     {
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
+    "View" : "Ver",
     "User already exists" : "L'usuariu yá esiste",
     "Password" : "Contraseña",
     "Settings" : "Configuración",
     "Draw" : "Dibuxar",
+    "Cancel" : "Encaboxar",
+    "Save" : "Guardar",
     "Signatures" : "Firmes",
     "Name" : "Nome",
     "Searching …" : "Buscando…",
