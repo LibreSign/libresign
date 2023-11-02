@@ -100,6 +100,8 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'userManager' => $user,
 		]);
 
+		$this->userSession->setUser($user);
+
 		$root = \OC::$server->get(IRootFolder::class);
 		$nextcloudFile = $root->getById($file['nodeId']);
 		$trashManager = \OC::$server->get(ITrashManager::class);
