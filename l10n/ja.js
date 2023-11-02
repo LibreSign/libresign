@@ -19,6 +19,7 @@ OC.L10N.register(
     "Account" : "アカウント",
     "Invalid user" : "無効なユーザー",
     "Email" : "メール",
+    "User already exists" : "ユーザは既に存在する",
     "Password" : "パスワード",
     "Invalid password" : "無効なパスワード",
     "Invalid PDF" : "無効なPDF",
