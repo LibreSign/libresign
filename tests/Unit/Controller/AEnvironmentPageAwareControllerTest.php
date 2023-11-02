@@ -32,6 +32,7 @@ use OCA\Libresign\Service\SignFileService;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -43,8 +44,9 @@ class MockController extends AEnvironmentPageAwareController {
  */
 final class AEnvironmentPageAwareControllerTest extends TestCase {
 	private IRequest|MockObject $request;
-	private SignFileService|MockObject $signFileService;
-	private IL10N|MockObject $l10n;
+	private SignFileService $signFileService;
+	private IL10N $l10n;
+	private IUserSession $userSession;
 	private MockController $controller;
 
 	public function setUp(): void {
@@ -61,11 +63,13 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		]);
 		$this->signFileService = \OC::$server->get(SignFileService::class);
 		$this->l10n = \OC::$server->get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->userSession = \OC::$server->get(IUserSession::class);
 
 		$this->controller = new MockController(
 			$this->request,
 			$this->signFileService,
 			$this->l10n,
+			$this->userSession,
 		);
 		parent::setUp();
 	}

@@ -29,6 +29,7 @@ use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
+use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
@@ -500,6 +501,17 @@ class SignFileService {
 		return $this->fileMapper->getById($fileUserId);
 	}
 
+	/**
+	 * @throws DoesNotExistException
+	 */
+	public function getFileByUuid(string $uuid): FileEntity {
+		return $this->fileMapper->getByUuid($uuid);
+	}
+
+	public function getAccountFileById(int $fileId): AccountFile {
+		return $this->accountFileMapper->getByFileId($fileId);
+	}
+
 	public function getNextcloudFile(int $nodeId): File {
 		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
 		foreach ($mountsContainingFile as $fileInfo) {
@@ -515,6 +527,10 @@ class SignFileService {
 		/** @var File */
 		$fileToSign = $fileToSign[0];
 		return $fileToSign;
+	}
+
+	public function validateSigner($uuid, $user): void {
+		$this->validateHelper->validateSigner($uuid, $user);
 	}
 
 	/**
@@ -605,7 +621,7 @@ class SignFileService {
 		}
 	}
 
-	private function getFileData(FileEntity $fileData, ?IUser $user, ?FileUserEntity $fileUser = null): array {
+	public function getFileData(FileEntity $fileData, ?IUser $user, ?FileUserEntity $fileUser = null): array {
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['sign'] = [
 			'uuid' => $fileData->getUuid(),
@@ -630,7 +646,7 @@ class SignFileService {
 	/**
 	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
 	 */
-	private function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
+	public function getFileUrl(string $format, FileEntity $fileEntity, File $fileToSign, string $uuid): array {
 		$url = [];
 		switch ($format) {
 			case 'base64':

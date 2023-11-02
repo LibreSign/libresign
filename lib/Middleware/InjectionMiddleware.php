@@ -34,7 +34,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireFileUserUuid;
-use OCA\Libresign\Middleware\Attribute\RequireFileUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\SignFileService;
@@ -96,15 +95,6 @@ class InjectionMiddleware extends Middleware {
 
 		if (!empty($reflectionMethod->getAttributes(RequireSigner::class))) {
 			$this->requireSigner();
-		}
-
-		if (!empty($reflectionMethod->getAttributes(RequireFileUuid::class))
-			&& $controller instanceof AEnvironmentPageAwareController
-		) {
-			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadFileUuid(
-				uuid: $this->request->getParam('uuid'),
-			);
 		}
 
 		if (!empty($reflectionMethod->getAttributes(RequireFileUserUuid::class))

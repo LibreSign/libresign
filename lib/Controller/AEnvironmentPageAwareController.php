@@ -36,6 +36,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\File;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 abstract class AEnvironmentPageAwareController extends Controller {
 	private FileUserEntity $fileUserEntity;
@@ -46,14 +47,9 @@ abstract class AEnvironmentPageAwareController extends Controller {
 		IRequest $request,
 		protected SignFileService $signFileService,
 		protected IL10N $l10n,
+		private IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	public function loadFileUuid(string $uuid): void {
 	}
 
 	/**
@@ -71,6 +67,7 @@ abstract class AEnvironmentPageAwareController extends Controller {
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
+		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),
 		);
