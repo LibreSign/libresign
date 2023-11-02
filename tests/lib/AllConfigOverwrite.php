@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2019 Robin Appelman <robin@icewind.nl>
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -18,33 +20,32 @@ declare(strict_types=1);
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 namespace OCA\Libresign\Tests\lib;
 
-use OC\AppConfig;
-use OC\DB\Connection;
+use OC\AllConfig;
+use OC\SystemConfig;
 
-class AppConfigOverwrite extends AppConfig {
-	/** @var string[][] */
-	private $overWrite = [];
+class AllConfigOverwrite extends AllConfig {
+	/** @var string[] */
+	private array $overWrite = [];
 
 	public function __construct(
-		Connection $conn
+		SystemConfig $systemConfig,
 	) {
-		parent::__construct($conn);
+		parent::__construct($systemConfig);
 	}
 
-	public function getValue($app, $key, $default = null) {
-		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
-			return $this->overWrite[$app][$key];
+	public function getAppValue($appName, $key, $default = '') {
+		if (isset($this->overWrite[$appName]) && isset($this->overWrite[$appName][$key])) {
+			return $this->overWrite[$appName][$key];
 		}
 
-		return parent::getValue($app, $key, $default);
+		return parent::getAppValue($appName, $key, $default);
 	}
 
-	public function setValue($app, $key, $value) {
-		$this->overWrite[$app][$key] = $value;
+	public function setAppValue($appName, $key, $value) {
+		$this->overWrite[$appName][$key] = $value;
 	}
 }

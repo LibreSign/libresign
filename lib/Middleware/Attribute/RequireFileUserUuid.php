@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2019 Robin Appelman <robin@icewind.nl>
+ * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ *
+ * @author Vitor Mattos <vitor@php.rio>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -18,33 +20,12 @@ declare(strict_types=1);
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-namespace OCA\Libresign\Tests\lib;
+namespace OCA\Libresign\Middleware\Attribute;
 
-use OC\AppConfig;
-use OC\DB\Connection;
+use Attribute;
 
-class AppConfigOverwrite extends AppConfig {
-	/** @var string[][] */
-	private $overWrite = [];
-
-	public function __construct(
-		Connection $conn
-	) {
-		parent::__construct($conn);
-	}
-
-	public function getValue($app, $key, $default = null) {
-		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
-			return $this->overWrite[$app][$key];
-		}
-
-		return parent::getValue($app, $key, $default);
-	}
-
-	public function setValue($app, $key, $value) {
-		$this->overWrite[$app][$key] = $value;
-	}
+#[Attribute]
+class RequireFileUserUuid {
 }

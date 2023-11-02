@@ -24,7 +24,64 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use OC\AppFramework\Http as AppFrameworkHttp;
+use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
+use OCA\Libresign\Db\FileUser as FileUserEntity;
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Files\File;
+use OCP\IL10N;
+use OCP\IRequest;
+use OCP\IUserSession;
 
 abstract class AEnvironmentPageAwareController extends Controller {
+	private FileUserEntity $fileUserEntity;
+	private FileEntity $fileEntity;
+	private File $nextcloudFile;
+
+	public function __construct(
+		IRequest $request,
+		protected SignFileService $signFileService,
+		protected IL10N $l10n,
+		private IUserSession $userSession,
+	) {
+		parent::__construct(Application::APP_ID, $request);
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	public function loadFileUserUuid(string $uuid): void {
+		try {
+			$this->fileUserEntity = $this->signFileService->getFileUser($uuid);
+			$this->fileEntity = $this->signFileService->getFile(
+				$this->fileUserEntity->getFileId(),
+			);
+		} catch (DoesNotExistException $e) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]), AppFrameworkHttp::STATUS_NOT_FOUND);
+		}
+		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
+			$this->fileEntity->getNodeId(),
+		);
+	}
+
+	public function getFileUserEntity(): ?FileUserEntity {
+		return $this->fileUserEntity;
+	}
+
+	public function getFileEntity(): ?FileEntity {
+		return $this->fileEntity;
+	}
+
+	public function getNextcloudFile(): ?File {
+		return $this->nextcloudFile;
+	}
 }

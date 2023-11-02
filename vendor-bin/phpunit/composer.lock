@@ -199,16 +199,16 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.7.0",
+            "version": "v2.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "0e22d8dc8b2879dc973edd5780ace614009046e9"
+                "reference": "19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/0e22d8dc8b2879dc973edd5780ace614009046e9",
-                "reference": "0e22d8dc8b2879dc973edd5780ace614009046e9",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f",
+                "reference": "19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f",
                 "shasum": ""
             },
             "require": {
@@ -244,9 +244,18 @@
                 }
             ],
             "description": "Simple mock web server for unit testing",
+            "keywords": [
+                "dev",
+                "http",
+                "mock",
+                "phpunit",
+                "testing",
+                "unit testing",
+                "webserver"
+            ],
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.7.0"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.7.1"
             },
             "funding": [
                 {
@@ -256,9 +265,13 @@
                 {
                     "url": "https://github.com/donatj",
                     "type": "github"
+                },
+                {
+                    "url": "https://ko-fi.com/donatj",
+                    "type": "ko_fi"
                 }
             ],
-            "time": "2023-09-07T02:18:50+00:00"
+            "time": "2023-10-30T15:32:10+00:00"
         },
         {
             "name": "guzzlehttp/psr7",

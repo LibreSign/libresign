@@ -33,8 +33,10 @@ use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireFileUserUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
@@ -59,6 +61,7 @@ class InjectionMiddleware extends Middleware {
 		private FileUserMapper $fileUserMapper,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
+		private SignFileService $signFileService,
 		private IL10N $l10n,
 		?string $userId,
 	) {
@@ -75,6 +78,7 @@ class InjectionMiddleware extends Middleware {
 		switch (true) {
 			case $controller instanceof AEnvironmentAwareController:
 				$apiVersion = $this->request->getParam('apiVersion');
+				/** @var AEnvironmentAwareController $controller */
 				$controller->setAPIVersion((int) substr($apiVersion, 1));
 				break;
 			case $controller instanceof AEnvironmentPageAwareController:
@@ -91,6 +95,15 @@ class InjectionMiddleware extends Middleware {
 
 		if (!empty($reflectionMethod->getAttributes(RequireSigner::class))) {
 			$this->requireSigner();
+		}
+
+		if (!empty($reflectionMethod->getAttributes(RequireFileUserUuid::class))
+			&& $controller instanceof AEnvironmentPageAwareController
+		) {
+			/** @var AEnvironmentPageAwareController $controller */
+			$controller->loadFileUserUuid(
+				uuid: $this->request->getParam('uuid'),
+			);
 		}
 	}
 

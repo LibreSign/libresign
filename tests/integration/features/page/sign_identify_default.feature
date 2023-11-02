@@ -33,73 +33,27 @@ Feature: page/sign_identify_default
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      """
-      {"action":200,"errors":["Invalid UUID"]}
-      """
+    Then the response should have a status code 404
+    And the response should be a JSON array with the following mandatory values
+      | key      | value             |
+      | action | 200 |
+      | errors | ["Invalid UUID"] |
     # invalid user
     When as user "admin"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      """
-      {
-        "action": 200,
-        "errors": [
-          "Invalid user"
-        ],
-        "settings": {
-          "identifyMethods": [
-            {
-              "identifiedAtDate": null,
-              "mandatory": 1,
-              "method": "account"
-            }
-          ]
-        },
-        "sign": {
-          "description": null,
-          "filename": "document",
-          "pdf": {
-            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-          },
-          "uuid": "<FILE_UUID>"
-        },
-        "user": {
-          "name": ""
-        }
-      }
-      """
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key      | value             |
+      | action | 200 |
+      | errors | ["Invalid user"] |
     # unauthenticated user
     When as user ""
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
-    Then the response should contain the initial state "libresign-config" with the following values:
-      """
-      {
-        "action":100,
-        "errors":["You are not logged in. Please log in."],
-        "redirect":"/index.php/login?redirect_url=/index.php/apps/libresign/p/sign/<SIGN_UUID>",
-        "settings": {
-          "identifyMethods": [
-            {
-              "identifiedAtDate": null,
-              "mandatory": 1,
-              "method": "account"
-            }
-          ]
-        },
-        "sign": {
-          "description": null,
-          "filename": "document",
-          "pdf": {
-            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-          },
-          "uuid": "<FILE_UUID>"
-        },
-        "user": {
-          "name": ""
-        }
-      }
-      """
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key      | value             |
+      | action | 100 |
+      | errors | ["You are not logged in. Please log in."] |
 
   Scenario: Open sign file with all data valid
     Given user "signer1" exists
@@ -140,9 +94,6 @@ Feature: page/sign_identify_default
       {
         "action": 250,
         "sign": {
-          "uuid": "<FILE_UUID>",
-          "filename": "document",
-          "description": null,
           "pdf": {
             "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
           }
@@ -157,12 +108,7 @@ Feature: page/sign_identify_default
               "identifiedAtDate": null,
               "method": "account"
             }
-          ],
-          "identificationDocumentsFlow": false,
-          "certificateOk": false,
-          "hasSignatureFile": false,
-          "phoneNumber": "",
-          "isApprover": false
+          ]
         }
       }
       """

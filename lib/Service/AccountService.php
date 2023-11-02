@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OC\AppFramework\Utility\TimeFactory;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
@@ -37,11 +36,11 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
@@ -92,7 +91,7 @@ class AccountService {
 		private UserElementMapper $userElementMapper,
 		private FolderService $folderService,
 		private IClientService $clientService,
-		private TimeFactory $timeFactory,
+		private ITimeFactory $timeFactory,
 	) {
 	}
 
@@ -240,28 +239,9 @@ class AccountService {
 	}
 
 	/**
-	 * @param string $formatOfPdfOnSign (base64,url,file)
-	 * @return (array|int|mixed)[]
+	 * @return array[]
 	 */
-	public function getConfig(string $typeOfUuid, ?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
-		try {
-			$info = [];
-			if ($typeOfUuid === 'file_user_uuid') {
-				$info = $this->signFileService->getInfoOfFileToSignUsingFileUserUuid($uuid, $user, $formatOfPdfOnSign);
-				if ($uuid) {
-					$this->validateHelper->validateSigner($uuid, $user);
-				}
-			} else {
-				$info = $this->signFileService->getInfoOfFileToSignUsingFileUuid($uuid, $user, $formatOfPdfOnSign);
-			}
-		} catch (LibresignException $e) {
-			return array_merge($info, json_decode($e->getMessage(), true));
-		} catch (DoesNotExistException $e) {
-			return [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			];
-		}
+	public function getConfig(?IUser $user): array {
 		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
 		$info['settings']['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
 		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);

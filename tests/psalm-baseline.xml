@@ -142,7 +142,9 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/SignFileService.php">
-    <MissingDependency occurrences="12">
+    <MissingDependency occurrences="14">
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>

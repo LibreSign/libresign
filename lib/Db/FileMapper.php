@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -48,6 +49,7 @@ class FileMapper extends QBMapper {
 	/**
 	 * Return LibreSign file by ID
 	 *
+	 * @throws DoesNotExistException
 	 * @return File Row of table libresign_file
 	 */
 	public function getById(int $id): File {

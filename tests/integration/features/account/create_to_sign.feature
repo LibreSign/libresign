@@ -22,9 +22,6 @@ Feature: account/create_to_sign
       {
         "action": 250,
         "sign": {
-          "uuid": "<FILE_UUID>",
-          "filename": "document",
-          "description": null,
           "pdf": {
             "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
           }
@@ -39,12 +36,7 @@ Feature: account/create_to_sign
               "identifiedAtDate": null,
               "method": "email"
             }
-          ],
-          "identificationDocumentsFlow": false,
-          "certificateOk": false,
-          "hasSignatureFile": false,
-          "phoneNumber": "",
-          "isApprover": false
+          ]
         }
       }
       """
@@ -71,9 +63,6 @@ Feature: account/create_to_sign
       {
         "action": 250,
         "sign": {
-          "uuid": "<FILE_UUID>",
-          "filename": "document",
-          "description": null,
           "pdf": {
             "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
           }
@@ -88,12 +77,7 @@ Feature: account/create_to_sign
               "identifiedAtDate": null,
               "method": "email"
             }
-          ],
-          "identificationDocumentsFlow": false,
-          "certificateOk": false,
-          "hasSignatureFile": false,
-          "phoneNumber": "",
-          "isApprover": false
+          ]
         }
       }
       """
