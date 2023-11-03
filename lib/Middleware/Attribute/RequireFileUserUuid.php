@@ -27,5 +27,5 @@ namespace OCA\Libresign\Middleware\Attribute;
 use Attribute;
 
 #[Attribute]
-class RequireFileUserUuid {
+class RequireSignRequestUuid {
 }

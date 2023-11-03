@@ -24,20 +24,20 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Events;
 
-use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\EventDispatcher\Event;
 
 class SendSignNotificationEvent extends Event {
 	public function __construct(
-		private FileUser $fileUser,
+		private SignRequest $signRequest,
 		private IIdentifyMethod $identifyMethod,
 		private bool $isNew
 	) {
 	}
 
-	public function getFileUser(): FileUser {
-		return $this->fileUser;
+	public function getSignRequest(): SignRequest {
+		return $this->signRequest;
 	}
 
 	public function isNew(): bool {

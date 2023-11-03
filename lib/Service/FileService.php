@@ -28,7 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -78,7 +78,7 @@ class FileService {
 	public const IDENTIFICATION_DOCUMENTS_APPROVED = 3;
 	public function __construct(
 		protected FileMapper $fileMapper,
-		protected FileUserMapper $fileUserMapper,
+		protected SignRequestMapper $signRequestMapper,
 		protected FileElementMapper $fileElementMapper,
 		protected FileElementService $fileElementService,
 		protected FolderService $folderService,
@@ -178,15 +178,15 @@ class FileService {
 		if (!$this->file) {
 			return $this->signers;
 		}
-		$signers = $this->fileUserMapper->getByFileId($this->file->getId());
+		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		foreach ($signers as $signer) {
 			$signatureToShow = [
 				'signed' => $signer->getSigned(),
 				'displayName' => $signer->getDisplayName(),
 				'fullName' => $signer->getFullName(),
 				'me' => false,
-				'fileUserId' => $signer->getId(),
-				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromFileUserId($signer->getId()),
+				'signRequestId' => $signer->getId(),
+				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),
 			];
 			// @todo refactor this code
 			if ($this->me) {
@@ -258,7 +258,7 @@ class FileService {
 	}
 
 	/**
-	 * @psalm-return list<array{elementId: int, fileUserId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
+	 * @psalm-return list<array{elementId: int, signRequestId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
 	 */
 	private function getVisibleElements(): array {
 		$return = [];
@@ -270,7 +270,7 @@ class FileService {
 			foreach ($visibleElements as $visibleElement) {
 				$element = [
 					'elementId' => $visibleElement->getId(),
-					'fileUserId' => $visibleElement->getFileUserId(),
+					'signRequestId' => $visibleElement->getSignRequestId(),
 					'type' => $visibleElement->getType(),
 					'coordinates' => [
 						'page' => $visibleElement->getPage(),
@@ -281,12 +281,12 @@ class FileService {
 					]
 				];
 				if (!empty($uid) && $uid === $this->file->getUserId()) {
-					$fileUser = $this->fileUserMapper->getById($visibleElement->getFileUserId());
-					$userAssociatedToVisibleElement = $this->userManager->getByEmail($fileUser->getEmail());
+					$signRequest = $this->signRequestMapper->getById($visibleElement->getSignRequestId());
+					$userAssociatedToVisibleElement = $this->userManager->getByEmail($signRequest->getEmail());
 					if ($userAssociatedToVisibleElement) {
 						$element['uid'] = $userAssociatedToVisibleElement[0]->getUID();
 					}
-					$element['email'] = $fileUser->getEmail();
+					$element['email'] = $signRequest->getEmail();
 				}
 				$element['coordinates'] = array_merge(
 					$element['coordinates'],
@@ -428,7 +428,7 @@ class FileService {
 		$libreSignFile = $this->fileMapper->getByUuid($uuid);
 		$uid = $this->userSession->getUser()->getUID();
 		if ($libreSignFile->getUserId() !== $uid) {
-			$signers = $this->fileUserMapper->getByFileId($libreSignFile->id);
+			$signers = $this->signRequestMapper->getByFileId($libreSignFile->id);
 			if (!$signers) {
 				throw new LibresignException($this->l10n->t('No signers.'));
 			}
@@ -473,7 +473,7 @@ class FileService {
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
-		$data = $this->fileUserMapper->getFilesAssociatedFilesWithMeFormatted(
+		$data = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$user,
 			$url,
 			$page,

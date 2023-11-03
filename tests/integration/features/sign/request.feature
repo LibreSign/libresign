@@ -104,7 +104,7 @@ Feature: request-signature
                 "request_sign_date": "<IGNORED>",
                 "sign_date": null,
                 "uid": "",
-                "fileUserId": "<IGNORED>",
+                "signRequestId": "<IGNORED>",
                 "me": false,
                 "identifyMethods": [
                   {
@@ -121,7 +121,7 @@ Feature: request-signature
                 "request_sign_date": "<IGNORED>",
                 "sign_date": null,
                 "uid": "signer2",
-                "fileUserId": "<IGNORED>",
+                "signRequestId": "<IGNORED>",
                 "me": false,
                 "identifyMethods": [
                   {
@@ -179,7 +179,7 @@ Feature: request-signature
                 "request_sign_date": "<IGNORED>",
                 "sign_date": null,
                 "uid": "",
-                "fileUserId": "<IGNORED>",
+                "signRequestId": "<IGNORED>",
                 "me": false,
                 "identifyMethods": [
                   {

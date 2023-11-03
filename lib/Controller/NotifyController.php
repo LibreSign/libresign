@@ -68,9 +68,9 @@ class NotifyController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function signer($fileId, $fileUserId): JSONResponse {
+	public function signer($fileId, $signRequestId): JSONResponse {
 		try {
-			$this->notifyService->signer($fileId, $fileUserId);
+			$this->notifyService->signer($fileId, $signRequestId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

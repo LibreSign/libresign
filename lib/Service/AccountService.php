@@ -29,8 +29,8 @@ use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\FileTypeMapper;
-use OCA\Libresign\Db\FileUser;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -56,8 +56,8 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	/** @var FileUser */
-	private $fileUser;
+	/** @var SignRequest */
+	private $signRequest;
 	/** @var \OCA\Libresign\Db\File */
 	private $fileData;
 	/** @var \OCA\Files\Node\File */
@@ -68,7 +68,7 @@ class AccountService {
 
 	public function __construct(
 		private IL10N $l10n,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
 		private IRootFolder $root,
@@ -100,11 +100,11 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('Invalid UUID'), 1);
 		}
 		try {
-			$fileUser = $this->getFileUserByUuid($data['uuid']);
+			$signRequest = $this->getSignRequestByUuid($data['uuid']);
 		} catch (\Throwable $th) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (!array_key_exists('identify', $data['user'])) {
 			throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 		}
@@ -126,9 +126,9 @@ class AccountService {
 	}
 
 	public function getFileByUuid(string $uuid): array {
-		$fileUser = $this->getFileUserByUuid($uuid);
+		$signRequest = $this->getSignRequestByUuid($uuid);
 		if (!$this->fileData) {
-			$this->fileData = $this->fileMapper->getById($fileUser->getFileId());
+			$this->fileData = $this->fileMapper->getById($signRequest->getFileId());
 
 			$nodeId = $this->fileData->getNodeId();
 
@@ -189,30 +189,30 @@ class AccountService {
 	}
 
 	/**
-	 * Get fileUser by Uuid
+	 * Get signRequest by Uuid
 	 */
-	public function getFileUserByUuid($uuid): FileUser {
-		if (!$this->fileUser) {
-			$this->fileUser = $this->fileUserMapper->getByUuid($uuid);
+	public function getSignRequestByUuid($uuid): SignRequest {
+		if (!$this->signRequest) {
+			$this->signRequest = $this->signRequestMapper->getByUuid($uuid);
 		}
-		return $this->fileUser;
+		return $this->signRequest;
 	}
 
 	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): void {
-		$fileUser = $this->getFileUserByUuid($uuid);
+		$signRequest = $this->getSignRequestByUuid($uuid);
 
 		$newUser = $this->userManager->createUser($email, $password);
-		$newUser->setDisplayName($fileUser->getDisplayName());
+		$newUser->setDisplayName($signRequest->getDisplayName());
 		$newUser->setSystemEMailAddress($email);
 
 		// @todo implement this logic, the follow code is complex and dont work
-		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		// $identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		// foreach ($identifyMethods as $name => $identifyMethod) {
 		// 	if ($name === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 		// 		$entity = $identifyMethod->getEntity();
 		// 		if ($entity->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 		// 			$identifyMethod->getEntity()->setIdentifierValue($newUser->getUID());
-		// 			$this->identifyMethodService->save($fileUser, false);
+		// 			$this->identifyMethodService->save($signRequest, false);
 		// 		}
 		// 	}
 		// }

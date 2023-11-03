@@ -28,8 +28,8 @@ namespace OCA\Libresign\Db;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * @method void setFileUserId(int $fileUserId)
- * @method int getFileUserId()
+ * @method void setSignRequestId(int $signRequestId)
+ * @method int getSignRequestId()
  * @method void setMethod(string $method)
  * @method string getMethod()
  * @method void setAttempts(int $attempts)
@@ -47,7 +47,7 @@ use OCP\AppFramework\Db\Entity;
  */
 class IdentifyMethod extends Entity {
 	/** @var integer */
-	public $fileUserId;
+	public $signRequestId;
 	/** @var string */
 	public $method;
 	/** @var int */
@@ -66,7 +66,7 @@ class IdentifyMethod extends Entity {
 	public $lastAttemptDate;
 
 	public function __construct() {
-		$this->addType('fileUserId', 'integer');
+		$this->addType('signRequestId', 'integer');
 		$this->addType('method', 'string');
 		$this->addType('mandatory', 'int');
 		$this->addType('code', 'string');

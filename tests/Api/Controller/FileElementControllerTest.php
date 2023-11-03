@@ -46,7 +46,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'page' => 1,
 				],
 				'type' => 'signature',
-				'fileUserId' => $file['users'][0]->getId(),
+				'signRequestId' => $file['users'][0]->getId(),
 			]);
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -79,7 +79,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'page' => 1,
 				],
 				'type' => 'signature',
-				'fileUserId' => $file['users'][0]->getId(),
+				'signRequestId' => $file['users'][0]->getId(),
 			]);
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);

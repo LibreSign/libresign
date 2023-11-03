@@ -27,7 +27,7 @@ namespace OCA\Libresign\Controller;
 use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileUser as FileUserEntity;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\SignFileService;
@@ -39,7 +39,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 abstract class AEnvironmentPageAwareController extends Controller {
-	private FileUserEntity $fileUserEntity;
+	private SignRequestEntity $signRequestEntity;
 	private FileEntity $fileEntity;
 	private File $nextcloudFile;
 
@@ -55,11 +55,11 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	/**
 	 * @throws LibresignException
 	 */
-	public function loadFileUserUuid(string $uuid): void {
+	public function loadSignRequestUuid(string $uuid): void {
 		try {
-			$this->fileUserEntity = $this->signFileService->getFileUser($uuid);
+			$this->signRequestEntity = $this->signFileService->getSignRequest($uuid);
 			$this->fileEntity = $this->signFileService->getFile(
-				$this->fileUserEntity->getFileId(),
+				$this->signRequestEntity->getFileId(),
 			);
 		} catch (DoesNotExistException $e) {
 			throw new LibresignException(json_encode([
@@ -73,8 +73,8 @@ abstract class AEnvironmentPageAwareController extends Controller {
 		);
 	}
 
-	public function getFileUserEntity(): ?FileUserEntity {
-		return $this->fileUserEntity;
+	public function getSignRequestEntity(): ?SignRequestEntity {
+		return $this->signRequestEntity;
 	}
 
 	public function getFileEntity(): ?FileEntity {

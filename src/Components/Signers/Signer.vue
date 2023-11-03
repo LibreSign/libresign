@@ -60,7 +60,7 @@ export default {
 				return '#008000'
 			}
 			// Pending
-			if (this.signer.fileUserId) {
+			if (this.signer.signRequestId) {
 				return '#d67335'
 			}
 			// Draft, not saved
@@ -73,7 +73,7 @@ export default {
 				})
 			}
 			// Pending
-			if (this.signer.fileUserId) {
+			if (this.signer.signRequestId) {
 				return t('libresign', 'pending')
 			}
 			// Draft, not saved

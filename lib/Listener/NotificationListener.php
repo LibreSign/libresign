@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
-use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -46,7 +46,7 @@ class NotificationListener implements IEventListener {
 	public function handle(Event $event): void {
 		if ($event instanceof SendSignNotificationEvent) {
 			$this->sendNewSignNotification(
-				$event->getFileUser(),
+				$event->getSignRequest(),
 				$event->getIdentifyMethod(),
 				$event->isNew()
 			);
@@ -54,7 +54,7 @@ class NotificationListener implements IEventListener {
 	}
 
 	private function sendNewSignNotification(
-		FileUser $fileUser,
+		SignRequest $signRequest,
 		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
@@ -66,11 +66,11 @@ class NotificationListener implements IEventListener {
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		if ($isNew) {
 			$notification->setSubject('new_sign_request', [
-				'fileUser' => $fileUser->getId(),
+				'signRequest' => $signRequest->getId(),
 			]);
 		} else {
 			$notification->setSubject('update_sign_request', [
-				'fileUser' => $fileUser->getId(),
+				'signRequest' => $signRequest->getId(),
 			]);
 		}
 		$this->notificationManager->notify($notification);

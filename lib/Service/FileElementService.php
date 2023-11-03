@@ -64,7 +64,7 @@ class FileElementService {
 			$fileElement->setFileId($properties['fileId']);
 		}
 		$coordinates = $this->translateCoordinatesToInternalNotation($properties, $file);
-		$fileElement->setFileUserId($properties['fileUserId']);
+		$fileElement->setSignRequestId($properties['signRequestId']);
 		$fileElement->setType($properties['type']);
 		$fileElement->setPage($coordinates['page']);
 		$fileElement->setUrx($coordinates['urx']);

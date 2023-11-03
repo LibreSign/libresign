@@ -99,7 +99,7 @@ const emptySignerData = () => ({
 	displayName: '',
 	fullName: null,
 	me: false,
-	fileUserId: 0,
+	signRequestId: 0,
 	email: '',
 	element: emptyElement(),
 })
@@ -178,7 +178,7 @@ export default {
 			}
 		},
 		hasSignerSelected() {
-			return this.currentSigner.fileUserId !== 0
+			return this.currentSigner.signRequestId !== 0
 		},
 		editingElement() {
 			return this.currentSigner.element.elementId > 0
@@ -210,7 +210,7 @@ export default {
 			return showError(err.message)
 		},
 		updateSigners() {
-			const { fileUserId } = this.currentSigner
+			const { signRequestId } = this.currentSigner
 
 			this.currentSigner = emptySignerData()
 
@@ -218,7 +218,7 @@ export default {
 
 			this.signers = map(signers, signer => {
 				const element = find(visibleElements, (el) => {
-					return el.fileUserId === signer.fileUserId
+					return el.signRequestId === signer.signRequestId
 				})
 
 				const row = {
@@ -238,11 +238,11 @@ export default {
 				return row
 			})
 
-			if (fileUserId === 0) {
+			if (signRequestId === 0) {
 				return
 			}
 
-			const current = this.signers.find(signer => signer.fileUserId === fileUserId)
+			const current = this.signers.find(signer => signer.signRequestId === signRequestId)
 
 			this.onSelectSigner({ ...current })
 		},
@@ -294,7 +294,7 @@ export default {
 			}
 		},
 		async saveElement() {
-			const { element, fileUserId } = this.currentSigner
+			const { element, signRequestId } = this.currentSigner
 
 			const payload = {
 				coordinates: {
@@ -302,7 +302,7 @@ export default {
 					page: element.coordinates.page,
 				},
 				type: 'signature',
-				fileUserId,
+				signRequestId,
 			}
 
 			try {

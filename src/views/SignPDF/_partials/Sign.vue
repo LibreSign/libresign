@@ -57,14 +57,14 @@ export default {
 			return this.document?.signers.find(row => row.me) || {}
 		},
 		visibleElements() {
-			const { fileUserId } = this.signer
+			const { signRequestId } = this.signer
 
-			if (!fileUserId) {
+			if (!signRequestId) {
 				return []
 			}
 
 			return (this.document?.visibleElements || [])
-				.filter(row => row.fileUserId === this.signer.fileUserId)
+				.filter(row => row.signRequestId === this.signer.signRequestId)
 		},
 		signature() {
 			return this.userSignatures.find(row => {

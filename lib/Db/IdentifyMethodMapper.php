@@ -30,7 +30,7 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 class IdentifyMethodMapper extends QBMapper {
-	private array $methodsByFileUser = [];
+	private array $methodsBySignRequest = [];
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_identify_method');
 	}
@@ -38,21 +38,21 @@ class IdentifyMethodMapper extends QBMapper {
 	/**
 	 * @return array<IdentifyMethod>
 	 */
-	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
-		if (!empty($this->methodsByFileUser[$fileUserId])) {
-			return $this->methodsByFileUser[$fileUserId];
+	public function getIdentifyMethodsFromSignRequestId(int $signRequestId): array {
+		if (!empty($this->methodsBySignRequest[$signRequestId])) {
+			return $this->methodsBySignRequest[$signRequestId];
 		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('im.*')
 			->from('libresign_identify_method', 'im')
 			->where(
-				$qb->expr()->eq('im.file_user_id', $qb->createNamedParameter($fileUserId, IQueryBuilder::PARAM_INT))
+				$qb->expr()->eq('im.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
 			);
 		$cursor = $qb->executeQuery();
-		$this->methodsByFileUser[$fileUserId] = [];
+		$this->methodsBySignRequest[$signRequestId] = [];
 		while ($row = $cursor->fetch()) {
-			$this->methodsByFileUser[$fileUserId][] = $this->mapRowToEntity($row);
+			$this->methodsBySignRequest[$signRequestId][] = $this->mapRowToEntity($row);
 		}
-		return $this->methodsByFileUser[$fileUserId];
+		return $this->methodsBySignRequest[$signRequestId];
 	}
 }

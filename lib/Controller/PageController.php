@@ -28,7 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Middleware\Attribute\RequireFileUserUuid;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -117,14 +117,14 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireFileUserUuid]
+	#[RequireSignRequestUuid]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
 			$this->signFileService->getFileData(
 				$this->getFileEntity(),
 				$this->userSession->getUser(),
-				$this->getFileUserEntity()
+				$this->getSignRequestEntity()
 			),
 			[
 				'sign' => [
@@ -202,14 +202,14 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireFileUserUuid]
+	#[RequireSignRequestUuid]
 	public function getPdfUser($uuid) {
 		$config = array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
 			$this->signFileService->getFileData(
 				$this->getFileEntity(),
 				$this->userSession->getUser(),
-				$this->getFileUserEntity()
+				$this->getSignRequestEntity()
 			),
 			[
 				'sign' => [
@@ -235,14 +235,14 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireFileUserUuid]
+	#[RequireSignRequestUuid]
 	public function validation(): TemplateResponse {
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
 			$this->signFileService->getFileData(
 				$this->getFileEntity(),
 				$this->userSession->getUser(),
-				$this->getFileUserEntity()
+				$this->getSignRequestEntity()
 			),
 			[
 				'sign' => [
@@ -273,14 +273,14 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireFileUserUuid]
+	#[RequireSignRequestUuid]
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
 			$this->signFileService->getFileData(
 				$this->getFileEntity(),
 				$this->userSession->getUser(),
-				$this->getFileUserEntity()
+				$this->getSignRequestEntity()
 			),
 			[
 				'sign' => [

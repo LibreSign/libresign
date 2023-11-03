@@ -49,7 +49,7 @@ use OCP\DB\Types;
  * @method void setMetadata(array $metadata)
  * @method string getMetadata()
  */
-class FileUser extends Entity {
+class SignRequest extends Entity {
 	/** @var integer */
 	public $id;
 

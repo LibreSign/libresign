@@ -81,7 +81,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'action' => 200,
 			'errors' => ['Invalid UUID'],
 		]));
-		$this->controller->loadFileUserUuid('');
+		$this->controller->loadSignRequestUuid('');
 	}
 
 	public function testLoadFileUuidWhenFileNotFound(): void {
@@ -115,6 +115,6 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'errors' => ['File not found'],
 		]));
 
-		$this->controller->loadFileUserUuid($file['users'][0]->getUuid());
+		$this->controller->loadSignRequestUuid($file['users'][0]->getUuid());
 	}
 }

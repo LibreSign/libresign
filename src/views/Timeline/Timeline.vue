@@ -133,9 +133,9 @@ export default {
 		async deleteSigner(signer) {
 			for (const fileKey in this.filterFile) {
 				for (const signerKey in this.filterFile[fileKey].signers) {
-					if (this.filterFile[fileKey].signers[signerKey].fileUserId === signer.fileUserId) {
+					if (this.filterFile[fileKey].signers[signerKey].signRequestId === signer.signRequestId) {
 						const fileId = this.filterFile[fileKey].file.nodeId
-						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + signer.fileUserId))
+						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + signer.signRequestId))
 						this.filterFile[fileKey].signers.splice(signerKey, 1)
 						if (this.filterFile[fileKey].signers.length === 0) {
 							this.filterFile[fileKey].file.status_text = t('libresign', 'no signers')

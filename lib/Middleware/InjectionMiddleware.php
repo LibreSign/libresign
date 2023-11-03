@@ -29,13 +29,13 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Middleware\Attribute\RequireFileUserUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -58,7 +58,7 @@ class InjectionMiddleware extends Middleware {
 		private IRequest $request,
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
 		private SignFileService $signFileService,
@@ -97,11 +97,11 @@ class InjectionMiddleware extends Middleware {
 			$this->requireSigner();
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireFileUserUuid::class))
+		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))
 			&& $controller instanceof AEnvironmentPageAwareController
 		) {
 			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadFileUserUuid(
+			$controller->loadSignRequestUuid(
 				uuid: $this->request->getParam('uuid'),
 			);
 		}

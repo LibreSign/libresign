@@ -24,8 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Db\FileUser;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
@@ -137,8 +137,8 @@ class IdentifyMethodService {
 	/**
 	 * @return array<string,array<IIdentifyMethod>>
 	 */
-	public function getIdentifyMethodsFromFileUserId(int $fileUserId): array {
-		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUserId);
+	public function getIdentifyMethodsFromSignRequestId(int $signRequestId): array {
+		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($entities as $entity) {
 			$identifyMethod = $this->getInstanceOfIdentifyMethod(
 				$entity->getMethod(),
@@ -149,7 +149,7 @@ class IdentifyMethodService {
 		$return = [];
 		foreach ($this->identifyMethods as $methodName => $list) {
 			foreach ($list as $method) {
-				if ($method->getEntity()->getFileUserId() === $fileUserId) {
+				if ($method->getEntity()->getSignRequestId() === $signRequestId) {
 					$return[$methodName][] = $method;
 				}
 			}
@@ -157,20 +157,20 @@ class IdentifyMethodService {
 		return $return;
 	}
 
-	public function save(FileUser $fileUser, bool $notify = true): void {
+	public function save(SignRequest $signRequest, bool $notify = true): void {
 		foreach ($this->identifyMethods as $methods) {
 			foreach ($methods as $identifyMethod) {
 				$entity = $identifyMethod->getEntity();
-				$entity->setFileUserId($fileUser->getId());
+				$entity->setSignRequestId($signRequest->getId());
 				if ($entity->getId()) {
 					$entity = $this->identifyMethodMapper->update($entity);
 					if ($notify) {
-						$identifyMethod->notify(false, $fileUser);
+						$identifyMethod->notify(false, $signRequest);
 					}
 				} else {
 					$entity = $this->identifyMethodMapper->insert($entity);
 					if ($notify) {
-						$identifyMethod->notify(true, $fileUser);
+						$identifyMethod->notify(true, $signRequest);
 					}
 				}
 			}

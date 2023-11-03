@@ -26,8 +26,8 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -48,7 +48,7 @@ class Account extends AbstractIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private IUserManager $userManager,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IEventDispatcher $eventDispatcher,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private FileMapper $fileMapper,
@@ -64,7 +64,7 @@ class Account extends AbstractIdentifyMethod {
 			$config,
 			$l10n,
 			$identifyMethodMapper,
-			$fileUserMapper,
+			$signRequestMapper,
 			$fileMapper,
 			$root,
 			$userMountCache,
@@ -76,19 +76,19 @@ class Account extends AbstractIdentifyMethod {
 		if (!$this->willNotify) {
 			return;
 		}
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
-				$fileUser,
+				$signRequest,
 				$this,
 				$isNew
 			));
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
 			if ($isNew) {
-				$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
+				$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
 				return;
 			}
-			$this->mail->notifySignDataUpdated($fileUser, $this->getEntity()->getIdentifierValue());
+			$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
 		}
 	}
 
@@ -154,14 +154,14 @@ class Account extends AbstractIdentifyMethod {
 			]));
 		}
 		if (count($signer) > 0) {
-			$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->l10n->t('User already exists. Please login.')],
 				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(
 						'libresign.page.sign',
-						['uuid' => $fileUser->getUuid()]
+						['uuid' => $signRequest->getUuid()]
 					),
 				]),
 			]));
@@ -189,14 +189,14 @@ class Account extends AbstractIdentifyMethod {
 
 	private function requireAuthenticatedUser(?IUser $user = null): void {
 		if (!$user instanceof IUser) {
-			$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
 				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(
 						'libresign.page.sign',
-						['uuid' => $fileUser->getUuid()]
+						['uuid' => $signRequest->getUuid()]
 					),
 				]),
 			]));

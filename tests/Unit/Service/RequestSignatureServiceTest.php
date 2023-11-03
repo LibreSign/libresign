@@ -25,8 +25,8 @@ declare(strict_types=1);
 
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
 use OCA\Libresign\Service\FolderService;
@@ -48,7 +48,7 @@ use Psr\Log\LoggerInterface;
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N|MockObject $l10n;
 	private FileMapper|MockObject $fileMapper;
-	private FileUserMapper|MockObject $fileUserMapper;
+	private SignRequestMapper|MockObject $signRequestMapper;
 	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private IUser|MockObject $user;
 	private IClientService|MockObject $clientService;
@@ -72,7 +72,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->fileMapper = $this->createMock(FileMapper::class);
-		$this->fileUserMapper = $this->createMock(FileUserMapper::class);
+		$this->signRequestMapper = $this->createMock(SignRequestMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->user = $this->createMock(IUser::class);
 		$this->folderService = $this->createMock(FolderService::class);
@@ -96,7 +96,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->l10n,
 			$this->signMethod,
 			$this->identifyMethodService,
-			$this->fileUserMapper,
+			$this->signRequestMapper,
 			$this->userManager,
 			$this->fileMapper,
 			$this->identifyMethodMapper,
@@ -186,23 +186,23 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	public function testSaveFileUserWhenUserExists() {
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
+	public function testSaveSignRequestWhenUserExists() {
+		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
+		$signRequest
 			->method('__call')
 			->with('getId')
 			->willReturn(123);
-		$actual = $this->getService()->saveFileUser($fileUser);
+		$actual = $this->getService()->saveSignRequest($signRequest);
 		$this->assertNull($actual);
 	}
 
-	public function testSaveFileUserWhenUserDontExists() {
-		$fileUser = $this->createMock(\OCA\Libresign\Db\FileUser::class);
-		$fileUser
+	public function testSaveSignRequestWhenUserDontExists() {
+		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
+		$signRequest
 			->method('__call')
 			->with('getId')
 			->willReturn(null);
-		$actual = $this->getService()->saveFileUser($fileUser);
+		$actual = $this->getService()->saveSignRequest($signRequest);
 		$this->assertNull($actual);
 	}
 

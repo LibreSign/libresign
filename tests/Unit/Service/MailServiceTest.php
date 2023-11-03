@@ -5,7 +5,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 use OC\Mail\Mailer;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\MailService;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -48,8 +48,8 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testSuccessNotifyUnsignedUser() {
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUuid'), $this->anything()],
@@ -71,15 +71,15 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->willReturn(true);
-		$actual = $this->service->notifyUnsignedUser($fileUser, 'a@b.coop');
+		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
 
 	public function testFailToSendMailToUnsignedUser() {
 		$this->expectExceptionMessage('Notify unsigned notification mail could not be sent');
 
-		$fileUser = $this->createMock(FileUser::class);
-		$fileUser
+		$signRequest = $this->createMock(SignRequest::class);
+		$signRequest
 			->method('__call')
 			->withConsecutive(
 				[$this->equalTo('getUuid'), $this->anything()],
@@ -106,7 +106,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config
 			->method('getAppValue')
 			->will($this->returnValue(true));
-		$actual = $this->service->notifyUnsignedUser($fileUser, 'a@b.coop');
+		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
 }
