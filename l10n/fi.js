@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Virheellinen UUID",
     "Success" : "Onnistui",
     "Invalid user or password" : "Virheellinen käyttäjä tai salasana",
     "Elements not found" : "Elementtejä ei löydy",
@@ -40,7 +41,6 @@ OC.L10N.register(
     "File not loaded" : "Tiedostoa ei ole ladattu",
     "%s already signed this file" : "%s allekirjoitti jo tämän tiedoston",
     "Invalid UUID file" : "Virheellinen UUID-tiedosto",
-    "Invalid UUID" : "Virheellinen UUID",
     "File already signed." : "Tiedosto on jo allekirjoitettu.",
     "Invalid code." : "Virheellinen koodi.",
     "Invalid file type." : "Virheellinen tiedostotyyppi.",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Ungültige UUID",
     "Success" : "Erfolgreich",
     "Invalid user or password" : "Ungültiger Benutzer oder Passwort",
     "_Element created with success_::_Elements created with success_" : ["Element erfolgreich erstellt","Elemente erfolgreich erstellt"],
@@ -64,7 +65,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Keine Unterschrift wurde zu %s angefragt",
     "%s already signed this file" : "%s hat diese Datei bereits signiert",
     "Invalid UUID file" : "Ungültige UUID Datei",
-    "Invalid UUID" : "Ungültige UUID",
     "Signer not associated to this file" : "Unterzeichner nicht dieser Datei zugeordnet",
     "A file of this type has been associated." : "Eine Datei dieses Typs wurde zugeordnet.",
     "File already signed." : "Datei bereits unterschrieben",

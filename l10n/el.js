@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Μη έγκυρο UUID",
     "Success" : "Επιτυχής",
     "Invalid user or password" : "Μη έγκυρος χρήστης ή συνθηματικό",
     "_Element created with success_::_Elements created with success_" : ["Στοιχεία δημιουργήθηκαν με επιτυχία","Στοιχεία δημιουργήθηκαν με επιτυχία"],
@@ -14,7 +15,6 @@ OC.L10N.register(
     "document to sign" : "Έγγραφο προς υπογραφή ",
     "Invalid email" : "Μη έγκυρο email",
     "File not loaded" : "Το αρχείο δεν φορτώθηκε",
-    "Invalid UUID" : "Μη έγκυρο UUID",
     "File sharing" : "Διαμοιρασμός αρχείων",
     "View" : "Προβολή",
     "UUID not found" : "Δε βρέθηκε το UUID",

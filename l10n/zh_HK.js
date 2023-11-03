@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "無效的 UUID",
     "Success" : "成功",
     "Invalid user or password" : "無效的用戶或密碼",
     "_Element created with success_::_Elements created with success_" : ["成功建立元素"],
@@ -66,7 +67,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "沒有發給 %s 的簽署請求",
     "%s already signed this file" : "%s 已經簽署了此檔案",
     "Invalid UUID file" : "無效的 UUID 檔案",
-    "Invalid UUID" : "無效的 UUID",
     "Signer not associated to this file" : "簽署者與此檔案無關聯",
     "A file of this type has been associated." : "已關聯此類檔案。",
     "Empty identify data." : "空的識別數據。",
