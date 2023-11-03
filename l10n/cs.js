@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Neplatný UUID identifikátro",
     "Success" : "Úspěch",
     "Invalid user or password" : "Neplatný uživatel nebo heslo",
     "_Element created with success_::_Elements created with success_" : ["Prvek úspěšně vytvořen","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny","Prvky úspěšně vytvořeny"],
@@ -66,7 +67,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Pro %s nebyl vyžádán podpis",
     "%s already signed this file" : "%s už tento soubor podepsal(a)",
     "Invalid UUID file" : "Neplatný soubor s UUID identif.",
-    "Invalid UUID" : "Neplatný UUID identifikátro",
     "Signer not associated to this file" : "Podepisující nepřiřazen k tomuto souboru",
     "A file of this type has been associated." : "Soubor tohoto typu byl asociován.",
     "Empty identify data." : "Vyprázdnit identifikační údaje.",

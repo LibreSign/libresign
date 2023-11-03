@@ -1,4 +1,5 @@
 { "translations": {
+    "Invalid UUID" : "UUID غير صالح",
     "Success" : "نجاح",
     "Invalid user or password" : "مستخدم أو كلمة مرور غير صالحة",
     "_Element created with success_::_Elements created with success_" : ["تم إنشاء العناصر بنجاح","تم إنشاء العنصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح"],
@@ -64,7 +65,6 @@
     "No signature was requested to %s" : "لم يتم طلب توقيع لـ %s",
     "%s already signed this file" : "قام %sبالتوقيع بالفعل على هذا الملف",
     "Invalid UUID file" : "ملف UUID غير صالح",
-    "Invalid UUID" : "UUID غير صالح",
     "Signer not associated to this file" : "الموقّع غير مرتبط بهذا الملف",
     "A file of this type has been associated." : "تم إقران ملف من هذا النوع.",
     "Empty identify data." : "محو البيانات التعريفية.",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "UUID no bàlidu",
     "Success" : "In manera curreta",
     "Invalid user or password" : "Utente o crae non bàlidos",
     "Settings saved" : "Impostatziones sarvadas",
@@ -23,7 +24,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Non s'est fata dimanda pro peruna firma %s",
     "%s already signed this file" : "%s archìviu giai firmadu",
     "Invalid UUID file" : "Archìviu UUID non bàlidu",
-    "Invalid UUID" : "UUID no bàlidu",
     "Signer not associated to this file" : "Perunu utente assotziadu pro firmare custu archìviu",
     "A file of this type has been associated." : "S'est assotziadu un'archìviu de custa genia.",
     "File already signed." : "Custu archìviu est giai firmadu.",

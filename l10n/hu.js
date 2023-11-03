@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Érvénytelen UUID",
     "Success" : "Sikeres",
     "Invalid user or password" : "Érvénytelen felhasználó vagy jelszó",
     "_Element created with success_::_Elements created with success_" : ["Elem sikeresen létrehozva","Elemek sikeresen létrehozva"],
@@ -66,7 +67,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Nem kértek aláírást a következőhöz: %s",
     "%s already signed this file" : "%s már aláírta ezt a fájlt",
     "Invalid UUID file" : "Érvénytelen UUID fájl",
-    "Invalid UUID" : "Érvénytelen UUID",
     "Signer not associated to this file" : "Az aláíró nem áll kapcsolatban ezzel a fájllal",
     "A file of this type has been associated." : "Egy ilyen típusú fájl hozzá lett rendelve.",
     "Empty identify data." : "Üres azonosító adat.",
