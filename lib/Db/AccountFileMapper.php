@@ -127,11 +127,11 @@ class AccountFileMapper extends QBMapper {
 			->selectAlias('u.uid_lower', 'account_uid')
 			->selectAlias('u.displayname', 'account_displayname')
 			->selectAlias('f.created_at', 'request_date')
-			->selectAlias($qb->func()->max('fu.signed'), 'status_date')
+			->selectAlias($qb->func()->max('sr.signed'), 'status_date')
 			->from($this->getTableName(), 'af')
 			->join('af', 'libresign_file', 'f', 'f.id = af.file_id')
 			->join('af', 'users', 'u', 'af.user_id = u.uid')
-			->leftJoin('f', 'libresign_sign_request', 'fu', 'fu.file_id = f.id')
+			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->groupBy(
 				'f.id',
 				'f.uuid',
