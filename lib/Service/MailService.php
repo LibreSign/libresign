@@ -27,7 +27,7 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -62,7 +62,7 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifySignDataUpdated(FileUser $data, string $email): void {
+	public function notifySignDataUpdated(SignRequest $data, string $email): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Changes into a file for you to sign'));
 		$emailTemplate->addHeader();
@@ -92,7 +92,7 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifyUnsignedUser(FileUser $data, string $email): void {
+	public function notifyUnsignedUser(SignRequest $data, string $email): void {
 		$notifyUnsignedUser = $this->config->getAppValue(Application::APP_ID, 'notify_unsigned_user', true);
 		if (!$notifyUnsignedUser) {
 			return;
@@ -126,7 +126,7 @@ class MailService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	public function notifyCancelSign(FileUser $data): void {
+	public function notifyCancelSign(SignRequest $data): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Signature request cancelled'));
 		$emailTemplate->addHeader();
@@ -146,17 +146,17 @@ class MailService {
 		}
 	}
 
-	public function sendCodeToSign(FileUser $fileUser, string $code): void {
+	public function sendCodeToSign(SignRequest $signRequest, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addBodyText($this->l10n->t('Use this code to sign the document:'));
 		$emailTemplate->addBodyText($code);
 		$message = $this->mailer->createMessage();
-		if ($fileUser->getDisplayName()) {
-			$message->setTo([$fileUser->getEmail() => $fileUser->getDisplayName()]);
+		if ($signRequest->getDisplayName()) {
+			$message->setTo([$signRequest->getEmail() => $signRequest->getDisplayName()]);
 		} else {
-			$message->setTo([$fileUser->getEmail()]);
+			$message->setTo([$signRequest->getEmail()]);
 		}
 		$message->useTemplate($emailTemplate);
 		try {

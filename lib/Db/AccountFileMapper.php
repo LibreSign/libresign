@@ -42,7 +42,7 @@ class AccountFileMapper extends QBMapper {
 		IDBConnection $db,
 		private IURLGenerator $urlGenerator,
 		private FileMapper $fileMapper,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private FileTypeMapper $fileTypeMapper
 	) {
 		parent::__construct($db, 'libresign_account_file');
@@ -107,8 +107,8 @@ class AccountFileMapper extends QBMapper {
 			$fileIds[] = $row['id'];
 			$data[] = $this->formatListRow($row, $url);
 		}
-		$signers = $this->fileUserMapper->getByMultipleFileId($fileIds);
-		$return['data'] = $this->assocFileToFileUserAndFormat($data, $signers);
+		$signers = $this->signRequestMapper->getByMultipleFileId($fileIds);
+		$return['data'] = $this->assocFileToSignRequestAndFormat($data, $signers);
 		$return['pagination'] = $pagination;
 		return $return;
 	}
@@ -131,7 +131,7 @@ class AccountFileMapper extends QBMapper {
 			->from($this->getTableName(), 'af')
 			->join('af', 'libresign_file', 'f', 'f.id = af.file_id')
 			->join('af', 'users', 'u', 'af.user_id = u.uid')
-			->leftJoin('f', 'libresign_file_user', 'fu', 'fu.file_id = f.id')
+			->leftJoin('f', 'libresign_sign_request', 'fu', 'fu.file_id = f.id')
 			->groupBy(
 				'f.id',
 				'f.uuid',
@@ -232,9 +232,9 @@ class AccountFileMapper extends QBMapper {
 
 	/**
 	 * @param array $files
-	 * @param FileUser[] $signers
+	 * @param SignRequest[] $signers
 	 */
-	private function assocFileToFileUserAndFormat(array $files, array $signers): array {
+	private function assocFileToSignRequestAndFormat(array $files, array $signers): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			$files[$key]['file']['signers'] = [];
@@ -249,7 +249,7 @@ class AccountFileMapper extends QBMapper {
 							->format('Y-m-d H:i:s'),
 						'sign_date' => null,
 						'uid' => $signer->getUserId(),
-						'fileUserId' => $signer->getId(),
+						'signRequestId' => $signer->getId(),
 						'identifyMethod' => $signer->getIdentifyMethod(),
 					];
 					if ($signer->getSigned()) {

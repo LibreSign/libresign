@@ -27,9 +27,9 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCP\Files\Config\IUserMountCache;
@@ -48,7 +48,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
@@ -88,8 +88,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfFileNotFound(): void {
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
-		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
 
 		$nodeId = $fileEntity->getNodeId();
 
@@ -107,10 +107,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfAlreadySigned(): void {
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
-		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
 		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
-			|| (!is_null($fileUser) && $fileUser->getSigned())
+			|| (!is_null($signRequest) && $signRequest->getSigned())
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
@@ -198,11 +198,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($entity->getId()) {
 			return;
 		}
-		if (!$entity->getFileUserId() || !$entity->getMethod()) {
+		if (!$entity->getSignRequestId() || !$entity->getMethod()) {
 			return;
 		}
 
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($entity->getFileUserId());
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($entity->getSignRequestId());
 		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($entity): bool {
 			return $current->getMethod() === $entity->getMethod();
 		});

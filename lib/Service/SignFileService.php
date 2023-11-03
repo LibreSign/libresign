@@ -34,10 +34,10 @@ use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser as FileUserEntity;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\EmptyRootCertificateException;
@@ -65,8 +65,8 @@ use Sabre\DAV\UUIDUtil;
 use TypeError;
 
 class SignFileService {
-	/** @var FileUserEntity */
-	private $fileUser;
+	/** @var SignRequestEntity */
+	private $signRequest;
 	/** @var string */
 	private $password;
 	/** @var FileEntity */
@@ -82,7 +82,7 @@ class SignFileService {
 	public function __construct(
 		protected IL10N $l10n,
 		private FileMapper $fileMapper,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private AccountFileMapper $accountFileMapper,
 		private Pkcs7Handler $pkcs7Handler,
 		private Pkcs12Handler $pkcs12Handler,
@@ -109,9 +109,9 @@ class SignFileService {
 	 */
 	public function canDeleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
-			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+			$signatures = $this->signRequestMapper->getByFileUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
 		} else {
 			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
@@ -187,8 +187,8 @@ class SignFileService {
 	/**
 	 * @return static
 	 */
-	public function setFileUser(FileUserEntity $fileUser): self {
-		$this->fileUser = $fileUser;
+	public function setSignRequest(SignRequestEntity $signRequest): self {
+		$this->signRequest = $signRequest;
 		return $this;
 	}
 
@@ -212,7 +212,7 @@ class SignFileService {
 	 * @return static
 	 */
 	public function setVisibleElements(array $list): self {
-		$fileElements = $this->fileElementMapper->getByFileIdAndFileUserId($this->fileUser->getFileId(), $this->fileUser->getId());
+		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->signRequest->getFileId(), $this->signRequest->getId());
 		foreach ($fileElements as $fileElement) {
 			$element = array_filter($list, function (array $element) use ($fileElement): bool {
 				return $element['documentElementId'] === $fileElement->getId();
@@ -222,7 +222,7 @@ class SignFileService {
 				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
 			} else {
 				$userElement = $this->userElementMapper->findOne([
-					'user_id' => $this->fileUser->getUserId(),
+					'user_id' => $this->signRequest->getUserId(),
 					'type' => $fileElement->getType(),
 				]);
 			}
@@ -274,11 +274,11 @@ class SignFileService {
 					->sign();
 		}
 
-		$this->fileUser->setSigned(time());
-		if ($this->fileUser->getId()) {
-			$this->fileUserMapper->update($this->fileUser);
+		$this->signRequest->setSigned(time());
+		if ($this->signRequest->getId()) {
+			$this->signRequestMapper->update($this->signRequest);
 		} else {
-			$this->fileUserMapper->insert($this->fileUser);
+			$this->signRequestMapper->insert($this->signRequest);
 		}
 
 		$this->libreSignFile->setSignedNodeId($signedFile->getId());
@@ -295,13 +295,13 @@ class SignFileService {
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
-		$this->fileUser->setMetadata($metadata);
-		$this->fileUserMapper->update($this->fileUser);
+		$this->signRequest->setMetadata($metadata);
+		$this->signRequestMapper->update($this->signRequest);
 		return $this;
 	}
 
 	private function updateStatus(): bool {
-		$signers = $this->fileUserMapper->getByFileId($this->fileUser->getFileId());
+		$signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;
 			return $carry;
@@ -368,13 +368,13 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	public function getLibresignFile(?int $fileId, ?string $fileUserUuid = null): FileEntity {
+	public function getLibresignFile(?int $fileId, ?string $signRequestUuid = null): FileEntity {
 		try {
 			if ($fileId) {
 				$libresignFile = $this->fileMapper->getByFileId($fileId);
-			} elseif ($fileUserUuid) {
-				$fileUser = $this->fileUserMapper->getByUuid($fileUserUuid);
-				$libresignFile = $this->fileMapper->getById($fileUser->getFileId());
+			} elseif ($signRequestUuid) {
+				$signRequest = $this->signRequestMapper->getByUuid($signRequestUuid);
+				$libresignFile = $this->fileMapper->getById($signRequest->getFileId());
 			} else {
 				throw new \Exception('Invalid arguments');
 			}
@@ -384,17 +384,17 @@ class SignFileService {
 		return $libresignFile;
 	}
 
-	public function requestCode(FileUserEntity $fileUser, IUser $user): string {
-		return $this->signMethod->requestCode($fileUser, $user);
+	public function requestCode(SignRequestEntity $signRequest, IUser $user): string {
+		return $this->signMethod->requestCode($signRequest, $user);
 	}
 
-	public function getFileUserToSign(FileEntity $libresignFile, IUser $user): FileUserEntity {
+	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
-			$fileUsers = $this->fileUserMapper->getByFileId($libresignFile->getId());
+			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
 
-			$fileUser = array_reduce($fileUsers, function (?FileUserEntity $carry, FileUserEntity $fileUser) use ($user): ?FileUserEntity {
-				$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId());
+			$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
+				$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 				$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
 					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
 						&& (
@@ -412,12 +412,12 @@ class SignFileService {
 					return false;
 				});
 				if (count($found) > 0) {
-					return $fileUser;
+					return $signRequest;
 				}
 				return $carry;
 			});
 
-			if ($fileUser->getSigned()) {
+			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
 		} catch (DoesNotExistException $th) {
@@ -427,15 +427,15 @@ class SignFileService {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
 			$this->validateHelper->userCanApproveValidationDocuments($user);
-			$fileUser = new FileUserEntity();
-			$fileUser->setFileId($libresignFile->getId());
-			$fileUser->setEmail($user->getEMailAddress());
-			$fileUser->setDisplayName($user->getDisplayName());
-			$fileUser->setUserId($user->getUID());
-			$fileUser->setUuid(UUIDUtil::getUUID());
-			$fileUser->setCreatedAt(time());
+			$signRequest = new SignRequestEntity();
+			$signRequest->setFileId($libresignFile->getId());
+			$signRequest->setEmail($user->getEMailAddress());
+			$signRequest->setDisplayName($user->getDisplayName());
+			$signRequest->setUserId($user->getUID());
+			$signRequest->setUuid(UUIDUtil::getUUID());
+			$signRequest->setCreatedAt(time());
 		}
-		return $fileUser;
+		return $signRequest;
 	}
 
 	/**
@@ -490,15 +490,15 @@ class SignFileService {
 	/**
 	 * @throws DoesNotExistException
 	 */
-	public function getFileUser(string $uuid): FileUserEntity {
-		return $this->fileUserMapper->getByUuid($uuid);
+	public function getSignRequest(string $uuid): SignRequestEntity {
+		return $this->signRequestMapper->getByUuid($uuid);
 	}
 
 	/**
 	 * @throws DoesNotExistException
 	 */
-	public function getFile(int $fileUserId): FileEntity {
-		return $this->fileMapper->getById($fileUserId);
+	public function getFile(int $signRequestId): FileEntity {
+		return $this->fileMapper->getById($signRequestId);
 	}
 
 	/**
@@ -537,13 +537,13 @@ class SignFileService {
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
 	 */
-	public function getInfoOfFileToSignUsingFileUserUuid(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
+	public function getInfoOfFileToSignUsingSignRequestUuid(?string $uuid, ?IUser $user, string $formatOfPdfOnSign): array {
 		$return = [];
 		if (!$uuid) {
 			return $return;
 		}
-		$fileUser = $this->fileUserMapper->getByUuid($uuid);
-		$fileEntity = $this->fileMapper->getById($fileUser->getFileId());
+		$signRequest = $this->signRequestMapper->getByUuid($uuid);
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
 
 		$nodeId = $fileEntity->getNodeId();
 
@@ -560,7 +560,7 @@ class SignFileService {
 		}
 		/** @var File */
 		$fileToSign = $fileToSign[0];
-		$return = $this->getFileData($fileEntity, $user, $fileUser);
+		$return = $this->getFileData($fileEntity, $user, $signRequest);
 		$return['sign']['pdf'] = $this->getFileUrl($formatOfPdfOnSign, $fileEntity, $fileToSign, $uuid);
 		return $return;
 	}
@@ -609,9 +609,9 @@ class SignFileService {
 		return $return;
 	}
 
-	private function throwIfAlreadySigned(FileEntity $fileEntity, ?FileUserEntity $fileUser = null): void {
+	private function throwIfAlreadySigned(FileEntity $fileEntity, ?SignRequestEntity $signRequest = null): void {
 		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
-			|| (!is_null($fileUser) && $fileUser->getSigned())
+			|| (!is_null($signRequest) && $signRequest->getSigned())
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
@@ -621,22 +621,22 @@ class SignFileService {
 		}
 	}
 
-	public function getFileData(FileEntity $fileData, ?IUser $user, ?FileUserEntity $fileUser = null): array {
+	public function getFileData(FileEntity $fileData, ?IUser $user, ?SignRequestEntity $signRequest = null): array {
 		$return['action'] = JSActions::ACTION_SIGN;
 		$return['sign'] = [
 			'uuid' => $fileData->getUuid(),
 			'filename' => $fileData->getName()
 		];
-		if ($fileUser) {
-			$return['user']['name'] = $fileUser->getDisplayName();
-			$return['sign']['description'] = $fileUser->getDescription();
+		if ($signRequest) {
+			$return['user']['name'] = $signRequest->getDisplayName();
+			$return['sign']['description'] = $signRequest->getDescription();
 			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
 				return [
 					'mandatory' => $identifyMethod->getMandatory(),
 					'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
 					'method' => $identifyMethod->getMethod(),
 				];
-			}, $this->identifyMethodMapper->getIdentifyMethodsFromFileUserId($fileUser->getId()));
+			}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}

@@ -29,7 +29,7 @@ describe('FilesService', () => {
 				fullName: 'John Doe',
 				me: true,
 				email: 'user@test.coop',
-				fileUserId: 1,
+				signRequestId: 1,
 			}],
 			settings: {
 				canRequestSign: true,

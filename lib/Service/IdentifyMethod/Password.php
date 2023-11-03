@@ -25,8 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\MailService;
@@ -43,7 +43,7 @@ class Password extends AbstractIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private MailService $mail,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private FileMapper $fileMapper,
 		private IUserManager $userManager,
@@ -58,7 +58,7 @@ class Password extends AbstractIdentifyMethod {
 			$config,
 			$l10n,
 			$identifyMethodMapper,
-			$fileUserMapper,
+			$signRequestMapper,
 			$fileMapper,
 			$root,
 			$userMountCache,

@@ -84,7 +84,7 @@ class AccountController extends ApiController {
 			$this->accountService->validateCreateToSign($data);
 
 			$fileToSign = $this->accountService->getFileByUuid($uuid);
-			$fileUser = $this->accountService->getFileUserByUuid($uuid);
+			$signRequest = $this->accountService->getSignRequestByUuid($uuid);
 
 			$this->accountService->createToSign($uuid, $email, $password, $signPassword);
 			$data = [
@@ -94,7 +94,7 @@ class AccountController extends ApiController {
 					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])
 				],
 				'filename' => $fileToSign['fileData']->getName(),
-				'description' => $fileUser->getDescription()
+				'description' => $signRequest->getDescription()
 			];
 
 			$loginData = new LoginData(

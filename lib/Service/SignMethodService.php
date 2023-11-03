@@ -25,8 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\FileUser;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
@@ -46,7 +46,7 @@ class SignMethodService {
 	public const SIGN_EMAIL = 'email';
 
 	public function __construct(
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IAccountManager $accountManager,
 		private IAppManager $appManager,
 		private IConfig $config,
@@ -58,16 +58,16 @@ class SignMethodService {
 	) {
 	}
 
-	public function requestCode(FileUser $fileUser, IUser $user): string {
-		return $this->requestCode($fileUser, $user);
+	public function requestCode(SignRequest $signRequest, IUser $user): string {
+		return $this->requestCode($signRequest, $user);
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
-		$this->sendCode($user, $fileUser, $token);
-		$fileUser->setCode($this->hasher->hash($token));
-		$this->fileUserMapper->update($fileUser);
+		$this->sendCode($user, $signRequest, $token);
+		$signRequest->setCode($this->hasher->hash($token));
+		$this->signRequestMapper->update($signRequest);
 		return $token;
 	}
 
-	private function sendCode(IUser $user, FileUser $fileUser, string $code): void {
+	private function sendCode(IUser $user, SignRequest $signRequest, string $code): void {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
 			case SignMethodService::SIGN_SMS:
@@ -76,7 +76,7 @@ class SignMethodService {
 				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
 			case SignMethodService::SIGN_EMAIL:
-				$this->sendCodeByEmail($fileUser, $code);
+				$this->sendCodeByEmail($signRequest, $code);
 				break;
 			case SignMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
@@ -106,7 +106,7 @@ class SignMethodService {
 		return $gateway;
 	}
 
-	private function sendCodeByEmail(FileUser $fileUser, string $code): void {
-		$this->mail->sendCodeToSign($fileUser, $code);
+	private function sendCodeByEmail(SignRequest $signRequest, string $code): void {
+		$this->mail->sendCodeToSign($signRequest, $code);
 	}
 }

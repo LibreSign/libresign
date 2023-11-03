@@ -65,10 +65,10 @@ class Reset extends Base {
 				InputOption::VALUE_NONE,
 				'Reset identify'
 			)
-			->addOption('fileuser',
+			->addOption('signrequest',
 				null,
 				InputOption::VALUE_NONE,
-				'Reset file user'
+				'Reset sign request'
 			)
 			->addOption('file',
 				null,
@@ -106,8 +106,8 @@ class Reset extends Base {
 				$this->resetIdentifyMethods();
 				$ok = true;
 			}
-			if ($input->getOption('fileuser') || $all) {
-				$this->resetFileUser();
+			if ($input->getOption('signrequest') || $all) {
+				$this->resetSignRequest();
 				$ok = true;
 			}
 			if ($input->getOption('file') || $all) {
@@ -162,10 +162,10 @@ class Reset extends Base {
 		}
 	}
 
-	private function resetFileUser(): void {
+	private function resetSignRequest(): void {
 		try {
 			$delete = $this->db->getQueryBuilder();
-			$delete->delete('libresign_file_user')
+			$delete->delete('libresign_sign_request')
 				->executeStatement();
 		} catch (\Throwable $e) {
 		}

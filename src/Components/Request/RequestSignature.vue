@@ -16,7 +16,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="!signer.signed && signer.fileUserId"
+				<NcActionButton v-if="!signer.signed && signer.signRequestId"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -104,11 +104,11 @@ export default {
 		addIdentifier(signers) {
 			signers.map(signer => {
 				// generate unique code to new signer to be possible delete or edit
-				if ((signer.identify === undefined || signer.identify === '') && signer.fileUserId === undefined) {
+				if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
 					signer.identify = btoa(JSON.stringify(signer))
 				}
-				if (signer.fileUserId) {
-					signer.identify = signer.fileUserId
+				if (signer.signRequestId) {
+					signer.identify = signer.signRequestId
 				}
 				return signer
 			})
@@ -131,7 +131,7 @@ export default {
 			try {
 				const body = {
 					fileId: this.file.nodeId,
-					fileUserId: signer.fileUserId,
+					signRequestId: signer.signRequestId,
 				}
 
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/notify/signer'), body)
@@ -186,7 +186,7 @@ export default {
 					this.dataSigners.splice(i, 1)
 					break
 				}
-				if (this.dataSigners[i].fileUserId === signer.identify) {
+				if (this.dataSigners[i].signRequestId === signer.identify) {
 					this.dataSigners.splice(i, 1)
 					break
 				}
@@ -194,8 +194,8 @@ export default {
 			this.dataSigners.push(signer)
 		},
 		async deleteSigner(signer) {
-			if (!isNaN(this.file?.nodeId) && !isNaN(signer.fileUserId)) {
-				await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.file.nodeId}/${signer.fileUserId}`))
+			if (!isNaN(this.file?.nodeId) && !isNaN(signer.signRequestId)) {
+				await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.file.nodeId}/${signer.signRequestId}`))
 			}
 			this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
 		},

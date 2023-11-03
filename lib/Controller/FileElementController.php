@@ -49,11 +49,11 @@ class FileElementController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function post(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
-			'fileUserId' => $fileUserId,
+			'signRequestId' => $signRequestId,
 			'coordinates' => $coordinates,
 			'metadata' => $metadata,
 			'fileUuid' => $uuid,
@@ -81,8 +81,8 @@ class FileElementController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function patch(string $uuid, int $fileUserId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
-		return $this->post($uuid, $fileUserId, $elementId, $type, $metadata, $coordinates);
+	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 
 	#[NoAdminRequired]

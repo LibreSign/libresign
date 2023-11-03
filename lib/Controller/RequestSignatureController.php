@@ -133,7 +133,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $fileUserId): JSONResponse {
+	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): JSONResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -142,8 +142,8 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				]
 			];
 			$this->validateHelper->validateExistingFile($data);
-			$this->validateHelper->validateIsSignerOfFile($fileUserId, $fileId);
-			$this->requestSignatureService->unassociateToUser($fileId, $fileUserId);
+			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
+			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

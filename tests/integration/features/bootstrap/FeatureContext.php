@@ -231,8 +231,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->response->getBody()->seek(0);
 		$responseArray = json_decode($this->response->getBody()->getContents(), true);
 		$fileId = $responseArray['data'][$fileSequence - 1]['file']['nodeId'];
-		$fileUserId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['fileUserId'];
-		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $fileUserId);
+		$signRequestId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['signRequestId'];
+		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $signRequestId);
 	}
 
 	/**

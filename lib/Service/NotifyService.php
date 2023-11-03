@@ -24,8 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\Db\FileUser;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\IUserSession;
@@ -34,17 +34,17 @@ class NotifyService {
 	public function __construct(
 		private ValidateHelper $validateHelper,
 		private IUserSession $userSession,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService
 	) {
 	}
 
-	public function signer(int $nodeId, int $fileUserId): void {
+	public function signer(int $nodeId, int $signRequestId): void {
 		$this->validateHelper->canRequestSign($this->userSession->getUser());
 		$this->validateHelper->validateLibreSignNodeId($nodeId);
 		$this->validateHelper->iRequestedSignThisFile($this->userSession->getUser(), $nodeId);
-		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($nodeId, $fileUserId);
-		$this->notify($fileUser);
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($nodeId, $signRequestId);
+		$this->notify($signRequest);
 	}
 
 	public function signers(int $nodeId, array $signers): void {
@@ -57,14 +57,14 @@ class NotifyService {
 			$this->validateHelper->notSigned($signer);
 		}
 		// @todo refactor this code
-		$fileUsers = $this->fileUserMapper->getByNodeId($nodeId);
-		foreach ($fileUsers as $fileUser) {
-			$this->notify($fileUser, $signers);
+		$signRequests = $this->signRequestMapper->getByNodeId($nodeId);
+		foreach ($signRequests as $signRequest) {
+			$this->notify($signRequest, $signers);
 		}
 	}
 
-	private function notify(FileUser $fileUser, array $signers = []): void {
-		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromFileUserId($fileUser->getId());
+	private function notify(SignRequest $signRequest, array $signers = []): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		foreach ($identifyMethods as $methodName => $instances) {
 			$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
 				foreach ($signers as $signer) {
@@ -80,10 +80,10 @@ class NotifyService {
 				return $carry;
 			});
 			if ($identifyMethod instanceof IIdentifyMethod) {
-				$identifyMethod->notify(true, $fileUser);
+				$identifyMethod->notify(true, $signRequest);
 			} else {
 				foreach ($instances as $instance) {
-					$instance->notify(true, $fileUser);
+					$instance->notify(true, $signRequest);
 				}
 			}
 		}

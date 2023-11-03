@@ -80,8 +80,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 		$file['users'][0]->setSigned(time());
-		$fileUser = \OC::$server->get(\OCA\Libresign\Db\FileUserMapper::class);
-		$fileUser->update($file['users'][0]);
+		$signRequest = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+		$signRequest->update($file['users'][0]);
 
 		$this->request
 			->withMethod('POST')
@@ -104,7 +104,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithNotFoundFile() {
-		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
+		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -145,7 +145,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithoutPfx() {
-		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
+		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$user = $this->createUser('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -184,7 +184,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithEmptyCertificatePassword() {
-		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
+		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
@@ -244,7 +244,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithSuccess() {
-		$this->markTestSkipped('Neet to assign visible elements to fileuser and not to nextcloud account');
+		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$this->mockConfig([
 			'libresign' => [
 				'cfssl_bin' => '',
@@ -512,7 +512,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdFileUserIdWithSuccess() {
+	public function testDeleteSignFileIdSignRequestIdWithSuccess() {
 		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -546,7 +546,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdFileUserIdWithError() {
+	public function testDeleteSignFileIdSignRequestIdWithError() {
 		$user = $this->createUser('username', 'password');
 
 		$this->request

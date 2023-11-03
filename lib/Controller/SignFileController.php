@@ -26,7 +26,7 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -48,7 +48,7 @@ class SignFileController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
@@ -73,23 +73,23 @@ class SignFileController extends AEnvironmentAwareController {
 		return $this->sign($password, null, $uuid, $elements, $code);
 	}
 
-	public function sign(string $password = null, int $fileId = null, string $fileUserUuid = null, array $elements = [], string $code = null): JSONResponse {
+	public function sign(string $password = null, int $fileId = null, string $signRequestUuid = null, array $elements = [], string $code = null): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
 				$user,
 				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
 			);
-			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $fileUserUuid);
-			$fileUser = $this->signFileService->getFileUserToSign($libreSignFile, $user);
-			$this->validateHelper->validateVisibleElementsRelation($elements, $fileUser, $user);
-			$this->validateHelper->validateCredentials($fileUser, $user, [
+			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
+			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $user);
+			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
+			$this->validateHelper->validateCredentials($signRequest, $user, [
 				'password' => $password,
 				'code' => $code,
 			]);
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
-				->setFileUser($fileUser)
+				->setSignRequest($signRequest)
 				->storeUserMetadata([
 					'user-agent' => $this->request->getHeader('User-Agent'),
 					'remote-address' => $this->request->getRemoteAddress(),
@@ -163,17 +163,17 @@ class SignFileController extends AEnvironmentAwareController {
 			try {
 				$user = $this->userSession->getUser();
 				if ($fileId) {
-					$fileUser = $this->fileUserMapper->getByFileIdAndUserId($fileId, $user->getUID());
+					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId, $user->getUID());
 				} else {
-					$fileUser = $this->fileUserMapper->getByUuidAndUserId($uuid, $user->getUID());
+					$signRequest = $this->signRequestMapper->getByUuidAndUserId($uuid, $user->getUID());
 				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
-			$this->validateHelper->canRequestCode($fileUser);
-			$libreSignFile = $this->fileMapper->getById($fileUser->getFileId());
+			$this->validateHelper->canRequestCode($signRequest);
+			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
-			$this->signFileService->requestCode($fileUser, $user);
+			$this->signFileService->requestCode($signRequest, $user);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
 			// There was an error when to send SMS code to user.

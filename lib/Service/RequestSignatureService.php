@@ -27,9 +27,9 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUser as FileUserEntity;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequest as SignRequestEntity;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -49,7 +49,7 @@ class RequestSignatureService {
 		protected IL10N $l10n,
 		protected SignMethodService $signMethod,
 		protected IdentifyMethodService $identifyMethod,
-		protected FileUserMapper $fileUserMapper,
+		protected SignRequestMapper $signRequestMapper,
 		protected IUserManager $userManager,
 		protected FileMapper $fileMapper,
 		protected IdentifyMethodMapper $identifyMethodMapper,
@@ -133,18 +133,18 @@ class RequestSignatureService {
 
 	private function deleteIdentifyMethodIfNotExits(array $users, int $fileId): void {
 		$file = $this->fileMapper->getById($fileId);
-		$fileUsers = $this->fileUserMapper->getByFileId($fileId);
-		foreach ($fileUsers as $key => $fileUser) {
-			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUser->getId());
+		$signRequests = $this->signRequestMapper->getByFileId($fileId);
+		foreach ($signRequests as $key => $signRequest) {
+			$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 			if (empty($identifyMethods)) {
-				$this->unassociateToUser($file->getNodeId(), $fileUser->getId());
+				$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
 				continue;
 			}
 			foreach ($identifyMethods as $methodName => $list) {
 				foreach ($list as $method) {
 					$exists[$key]['identify'][$methodName] = $method->getEntity()->getIdentifierValue();
 					if (!$this->identifyMethodExists($users, $method)) {
-						$this->unassociateToUser($file->getNodeId(), $fileUser->getId());
+						$this->unassociateToUser($file->getNodeId(), $signRequest->getId());
 						continue 3;
 					}
 				}
@@ -167,9 +167,9 @@ class RequestSignatureService {
 	}
 
 	/**
-	 * @return FileUserEntity[]
+	 * @return SignRequestEntity[]
 	 *
-	 * @psalm-return list<FileUserEntity>
+	 * @psalm-return list<SignRequestEntity>
 	 */
 	private function associateToSigners(array $data, int $fileId): array {
 		$return = [];
@@ -177,18 +177,18 @@ class RequestSignatureService {
 			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
 			foreach ($data['users'] as $user) {
 				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
-				$fileUser = $this->getFileUserByIdentifyMethod(
+				$signRequest = $this->getSignRequestByIdentifyMethod(
 					current($identifyMethods),
 					$fileId
 				);
-				$this->setDataToUser($fileUser, $user, $fileId);
-				$this->saveFileUser($fileUser);
+				$this->setDataToUser($signRequest, $user, $fileId);
+				$this->saveSignRequest($signRequest);
 				foreach ($identifyMethods as $identifyMethod) {
-					$identifyMethod->getEntity()->setFileUserId($fileUser->getId());
+					$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
 					$identifyMethod->willNotifyUser($user['notify'] ?? true);
 					$identifyMethod->save();
 				}
-				$return[] = $fileUser;
+				$return[] = $signRequest;
 			}
 		}
 		return $return;
@@ -235,53 +235,53 @@ class RequestSignatureService {
 		}
 	}
 
-	public function saveFileUser(FileUserEntity $fileUser): void {
-		if ($fileUser->getId()) {
-			$this->fileUserMapper->update($fileUser);
+	public function saveSignRequest(SignRequestEntity $signRequest): void {
+		if ($signRequest->getId()) {
+			$this->signRequestMapper->update($signRequest);
 		} else {
-			$this->fileUserMapper->insert($fileUser);
+			$this->signRequestMapper->insert($signRequest);
 		}
 	}
 
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	private function setDataToUser(FileUserEntity $fileUser, array $user, int $fileId): void {
-		$fileUser->setFileId($fileId);
-		if (!$fileUser->getUuid()) {
-			$fileUser->setUuid(UUIDUtil::getUUID());
+	private function setDataToUser(SignRequestEntity $signRequest, array $user, int $fileId): void {
+		$signRequest->setFileId($fileId);
+		if (!$signRequest->getUuid()) {
+			$signRequest->setUuid(UUIDUtil::getUUID());
 		}
 		if (!empty($user['displayName'])) {
-			$fileUser->setDisplayName($user['displayName']);
+			$signRequest->setDisplayName($user['displayName']);
 		}
 		if (!empty($user['description'])) {
-			$fileUser->setDescription($user['description']);
+			$signRequest->setDescription($user['description']);
 		}
-		if (!$fileUser->getId()) {
-			$fileUser->setCreatedAt(time());
+		if (!$signRequest->getId()) {
+			$signRequest->setCreatedAt(time());
 		}
 	}
 
-	private function getFileUserByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): FileUserEntity {
+	private function getSignRequestByIdentifyMethod(IIdentifyMethod $identifyMethod, int $fileId): SignRequestEntity {
 		try {
-			$fileUser = $this->fileUserMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
+			$signRequest = $this->signRequestMapper->getByIdentifyMethodAndFileId($identifyMethod, $fileId);
 		} catch (DoesNotExistException $e) {
-			$fileUser = new FileUserEntity();
+			$signRequest = new SignRequestEntity();
 		}
-		return $fileUser;
+		return $signRequest;
 	}
 
-	public function unassociateToUser(int $fileId, int $fileUserId): void {
-		$fileUser = $this->fileUserMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
+	public function unassociateToUser(int $fileId, int $signRequestId): void {
+		$signRequest = $this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 		try {
-			$this->fileUserMapper->delete($fileUser);
-			$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromFileUserId($fileUserId);
+			$this->signRequestMapper->delete($signRequest);
+			$groupedIdentifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequestId);
 			foreach ($groupedIdentifyMethods as $identifyMethods) {
 				foreach ($identifyMethods as $identifyMethod) {
 					$identifyMethod->delete();
 				}
 			}
-			$visibleElements = $this->fileElementMapper->getByFileIdAndFileUserId($fileId, $fileUserId);
+			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$this->fileElementMapper->delete($visibleElement);
 			}
@@ -291,16 +291,16 @@ class RequestSignatureService {
 
 	public function deleteRequestSignature(array $data): void {
 		if (!empty($data['uuid'])) {
-			$signatures = $this->fileUserMapper->getByFileUuid($data['uuid']);
+			$signatures = $this->signRequestMapper->getByFileUuid($data['uuid']);
 			$fileData = $this->fileMapper->getByUuid($data['uuid']);
 		} elseif (!empty($data['file']['fileId'])) {
-			$signatures = $this->fileUserMapper->getByNodeId($data['file']['fileId']);
+			$signatures = $this->signRequestMapper->getByNodeId($data['file']['fileId']);
 			$fileData = $this->fileMapper->getByFileId($data['file']['fileId']);
 		} else {
 			throw new \Exception($this->l10n->t('Inform or UUID or a File object'));
 		}
-		foreach ($signatures as $fileUser) {
-			$this->fileUserMapper->delete($fileUser);
+		foreach ($signatures as $signRequest) {
+			$this->signRequestMapper->delete($signRequest);
 		}
 		$this->fileMapper->delete($fileData);
 		$this->fileElementService->deleteVisibleElements($fileData->getId());

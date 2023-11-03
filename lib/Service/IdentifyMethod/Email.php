@@ -25,8 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\FileUserMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
@@ -43,7 +43,7 @@ class Email extends AbstractIdentifyMethod {
 		private IConfig $config,
 		private IL10N $l10n,
 		private MailService $mail,
-		private FileUserMapper $fileUserMapper,
+		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private FileMapper $fileMapper,
 		private IUserManager $userManager,
@@ -57,7 +57,7 @@ class Email extends AbstractIdentifyMethod {
 			$config,
 			$l10n,
 			$identifyMethodMapper,
-			$fileUserMapper,
+			$signRequestMapper,
 			$fileMapper,
 			$root,
 			$userMountCache,
@@ -65,15 +65,15 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function notify(bool $isNew): void {
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if (!$this->willNotify) {
 			return;
 		}
 		if ($isNew) {
-			$this->mail->notifyUnsignedUser($fileUser, $this->getEntity()->getIdentifierValue());
+			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
 			return;
 		}
-		$this->mail->notifySignDataUpdated($fileUser, $this->getEntity()->getIdentifierValue());
+		$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
 	}
 
 	public function validateToRequest(): void {
@@ -105,14 +105,14 @@ class Email extends AbstractIdentifyMethod {
 				return $s;
 			}
 		}
-		$fileUser = $this->fileUserMapper->getById($this->getEntity()->getFileUserId());
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
 			'errors' => [$this->l10n->t('User already exists. Please login.')],
 			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $this->urlGenerator->linkToRoute(
 					'libresign.page.sign',
-					['uuid' => $fileUser->getUuid()]
+					['uuid' => $signRequest->getUuid()]
 				),
 			]),
 		]));
