@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "UUID no vàlid",
     "Success" : "Èxit",
     "Invalid user or password" : "Usuari o contrasenya no vàlids",
     "_Element created with success_::_Elements created with success_" : ["Element creat amb èxit","Elements creats amb èxit"],
@@ -64,7 +65,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "No s'ha sol·licitat cap signatura a %s",
     "%s already signed this file" : "%s ja ha signat aquest fitxer",
     "Invalid UUID file" : "Fitxer UUID no vàlid",
-    "Invalid UUID" : "UUID no vàlid",
     "Signer not associated to this file" : "Signant no associat a aquest fitxer",
     "A file of this type has been associated." : "S'ha associat un fitxer d'aquest tipus.",
     "File already signed." : "Fitxer ja signat.",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "잘못된 UUID",
     "Success" : "성공",
     "Invalid user or password" : "잘못된 사용자 또는 암호",
     "_Element created with success_::_Elements created with success_" : ["성공적으로 생성된 요소"],
@@ -61,7 +62,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "%s에 서명이 요청되지 않았습니다.",
     "%s already signed this file" : "%s은 파일에 이미 서명했습니다.",
     "Invalid UUID file" : "잘못된 UUID 파일",
-    "Invalid UUID" : "잘못된 UUID",
     "Signer not associated to this file" : "서명인이 이 파일과 연결되지 않았습니다.",
     "A file of this type has been associated." : "이 형식의 파일이 연결되었습니다.",
     "File already signed." : "파일이 이미 서명되었습니다.",

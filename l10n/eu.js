@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "UUID baliogabea",
     "Success" : "Arrakasta",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
     "_Element created with success_::_Elements created with success_" : ["Elementua ondo sortu da","Elementuak ondo sortu dira"],
@@ -64,7 +65,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Ez da %s(e)rako sinadura eskatu",
     "%s already signed this file" : "%s.k fitxategi hau sinatu du dagoeneko",
     "Invalid UUID file" : "UUID fitxategi baliogabea",
-    "Invalid UUID" : "UUID baliogabea",
     "Signer not associated to this file" : "Sinatzailea ez dago fitxategi honekin erlazionatuta",
     "A file of this type has been associated." : "Mota honetako fitxategi bat lotu da.",
     "File already signed." : "Fitxategia dagoeneko sinatu da.",

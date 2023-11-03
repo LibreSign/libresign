@@ -1,4 +1,5 @@
 { "translations": {
+    "Invalid UUID" : "Nevažeći UUID",
     "Success" : "Uspjeh",
     "Invalid user or password" : "Nevažeći korisnik ili zaporka",
     "_Element created with success_::_Elements created with success_" : ["Element je uspješno stvoren","Elementi su uspješno stvoreni","Elementi su uspješno stvoreni"],
@@ -56,7 +57,6 @@
     "No signature was requested to %s" : "Nije zatražen potpis od %s",
     "%s already signed this file" : "%s je već potpisao ovu datoteku",
     "Invalid UUID file" : "Nevažeća UUID datoteka",
-    "Invalid UUID" : "Nevažeći UUID",
     "Signer not associated to this file" : "Potpisnik nije povezan s ovom datotekom",
     "A file of this type has been associated." : "Datoteka ove vrste je povezana.",
     "File already signed." : "Datoteka je već potpisana.",

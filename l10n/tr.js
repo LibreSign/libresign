@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "UUID geçersiz",
     "Success" : "Tamamlandı",
     "Invalid user or password" : "Kullanıcı adı ya da parola geçersiz",
     "_Element created with success_::_Elements created with success_" : ["Bileşen oluşturuldu","Bileşen oluşturuldu"],
@@ -66,7 +67,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "%s için imza istenmemiş",
     "%s already signed this file" : "%s bu dosyayı zaten imzalamış",
     "Invalid UUID file" : "UUID dosyası geçersiz",
-    "Invalid UUID" : "UUID geçersiz",
     "Signer not associated to this file" : "İmzalayan bu dosya ile ilişkilendirilmemiş",
     "A file of this type has been associated." : "Bu dosya türü ilişkilendirilmiş.",
     "Empty identify data." : "Kimlik verilerini kaldır.",

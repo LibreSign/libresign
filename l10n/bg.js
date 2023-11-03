@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "Невалиден UUID",
     "Success" : "Успех",
     "Invalid user or password" : "Невалиден потребител или парола",
     "_Element created with success_::_Elements created with success_" : ["Елементите са успешно създадени","Елементите са успешно създадени"],
@@ -64,7 +65,6 @@ OC.L10N.register(
     "No signature was requested to %s" : "Не беше поискан подпис на %s",
     "%s already signed this file" : "%s вече подписа този файл",
     "Invalid UUID file" : "Невалиден UUID файл",
-    "Invalid UUID" : "Невалиден UUID",
     "Signer not associated to this file" : "Подписващият не е свързан с този файл",
     "A file of this type has been associated." : "Файл от този тип е свързан.",
     "File already signed." : "Файлът вече е подписан.",

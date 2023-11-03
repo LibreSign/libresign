@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Invalid UUID" : "UUID invalid",
     "Success" : "Succès",
     "Invalid user or password" : "Nom d’utilizaire o senhal marrit",
     "Elements not found" : "Elements pas trobats",
@@ -24,7 +25,6 @@ OC.L10N.register(
     "Invalid email" : "Email invalid",
     "No signature was requested to %s" : "Cap de signatura èra pas requerida per %s",
     "Invalid UUID file" : "fichièr UUID invalid",
-    "Invalid UUID" : "UUID invalid",
     "File already signed." : "Fichièr ja signat.",
     "Invalid file type." : "Tipe de fichièr invalid.",
     "There is a file for you to sign" : "I a un fichièr per vos de signar",
