@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Set up php
-        uses: shivammathur/setup-php@1a18b2267f80291a81ca1d33e7c851fe09e7dfc4 # v2
+      - name: Set up php8.2
+        uses: shivammathur/setup-php@81cd5ae0920b34eef300e1775313071038a53429 # v2
         with:
-          php-version: 8.1
+          php-version: 8.2
           coverage: none
           ini-file: development
         env:
