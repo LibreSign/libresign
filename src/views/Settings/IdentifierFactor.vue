@@ -69,8 +69,8 @@ export default {
 		const identifyMethod = loadState('libresign', 'identify_methods')
 
 		return {
-			title: t('Identify factors'),
-			description: t('Identify factors'),
+			title: t('libresign', 'Identify factors'),
+			description: t('libresign', 'Ways to identify a person who will sign a document.'),
 			isEmpty: identifyMethod.length === 0,
 			options: identifyMethod,
 		}
