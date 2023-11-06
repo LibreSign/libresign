@@ -153,9 +153,9 @@ export default {
 			},
 			error: false,
 			customData: false,
-			title: t('libresign', 'Root certificate data.'),
+			title: t('libresign', 'Root certificate data'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
-			submitLabel: t('libresign', 'Generate root certificate.'),
+			submitLabel: t('libresign', 'Generate root certificate'),
 			formDisabled: false,
 		}
 	},
@@ -197,7 +197,7 @@ export default {
 			this.configureOk = false
 			this.formDisabled = false
 			this.modal = false
-			this.submitLabel = t('libresign', 'Generate root certificate.')
+			this.submitLabel = t('libresign', 'Generate root certificate')
 		},
 		async generateCertificate() {
 			this.formDisabled = true
@@ -222,7 +222,7 @@ export default {
 				} else {
 					showError(t('libresign', 'Could not generate certificate.'))
 				}
-				this.submitLabel = t('libresign', 'Generate root certificate.')
+				this.submitLabel = t('libresign', 'Generate root certificate')
 
 			}
 			this.formDisabled = false
