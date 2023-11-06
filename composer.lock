@@ -338,16 +338,16 @@
         },
         {
             "name": "mikehaertl/php-pdftk",
-            "version": "0.13.0",
+            "version": "0.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mikehaertl/php-pdftk.git",
-                "reference": "bfe3d0552ca77c1a0d2e9af980a1954259a1a41e"
+                "reference": "3851b08c1027489e48387d7c14c27bc295d98239"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mikehaertl/php-pdftk/zipball/bfe3d0552ca77c1a0d2e9af980a1954259a1a41e",
-                "reference": "bfe3d0552ca77c1a0d2e9af980a1954259a1a41e",
+                "url": "https://api.github.com/repos/mikehaertl/php-pdftk/zipball/3851b08c1027489e48387d7c14c27bc295d98239",
+                "reference": "3851b08c1027489e48387d7c14c27bc295d98239",
                 "shasum": ""
             },
             "require": {
@@ -381,9 +381,9 @@
             ],
             "support": {
                 "issues": "https://github.com/mikehaertl/php-pdftk/issues",
-                "source": "https://github.com/mikehaertl/php-pdftk/tree/0.13.0"
+                "source": "https://github.com/mikehaertl/php-pdftk/tree/0.13.1"
             },
-            "time": "2022-12-21T08:36:14+00:00"
+            "time": "2023-11-03T16:06:08+00:00"
         },
         {
             "name": "mikehaertl/php-shellcommand",
