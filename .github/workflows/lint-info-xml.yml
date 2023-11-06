@@ -5,13 +5,7 @@
 
 name: Lint info.xml
 
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
-      - stable*
+on: pull_request
 
 permissions:
   contents: read
@@ -27,13 +21,13 @@ jobs:
     name: info.xml lint
     steps:
       - name: Checkout
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Download schema
         run: wget https://raw.githubusercontent.com/nextcloud/appstore/master/nextcloudappstore/api/v1/release/info.xsd
 
       - name: Lint info.xml
-        uses: ChristophWurst/xmllint-action@d18a551aab4728e4af449617638600634d7a48cb # v1
+        uses: ChristophWurst/xmllint-action@36f2a302f84f8c83fceea0b9c59e1eb4a616d3c1 # v1.2
         with:
           xml-file: ./appinfo/info.xml
           xml-schema-file: ./info.xsd
