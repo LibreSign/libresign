@@ -53,7 +53,7 @@ class Password extends AbstractIdentifyMethod {
 		private Pkcs12Handler $pkcs12Handler,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by certificate password
-		$this->friendlyName = $this->l10n->t('Password');
+		$this->friendlyName = $this->l10n->t('Certificate with password');
 		parent::__construct(
 			$config,
 			$l10n,
