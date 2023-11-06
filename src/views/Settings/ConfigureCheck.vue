@@ -8,7 +8,7 @@
 					<th>{{ t('libresign', 'Status') }}</th>
 					<th>{{ t('libresign', 'Message') }}</th>
 					<th>{{ t('libresign', 'Resource') }}</th>
-					<th>{{ t('libresign', 'Advice') }}</th>
+					<th>{{ t('libresign', 'Tip') }}</th>
 				</tr>
 				<tr v-for="(row, index) in items" :key="index">
 					<td :class="row.status">
