@@ -3,10 +3,10 @@ OC.L10N.register(
     {
     "File not found" : "Fann ikkje fila",
     "Email" : "Epost",
-    "Password" : "Passord",
     "Invalid password" : "Feil passord",
     "Files" : "Filer",
     "Settings" : "Innstillingar",
+    "Password" : "Passord",
     "Upload" : "Last opp",
     "Colors:" : "Fargar:",
     "Apply" : "Anvend",

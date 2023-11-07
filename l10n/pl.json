@@ -94,7 +94,6 @@
     "Email" : "E-mail",
     "User already exists" : "Użytkownik już istnieje",
     "This is not your file" : "To nie jest Twój plik",
-    "Password" : "Hasło",
     "Invalid password" : "Nieprawidłowe hasło",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Zmiany w pliku do podpisania",
     "File to sign" : "Plik do podpisania",
@@ -126,6 +125,7 @@
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacja do podpisu cyfrowego dla Nextcloud.",
     "Authentication required" : "Wymagane uwierzytelnienie",
     "This action requires you to confirm your password" : "Ta czynność wymaga potwierdzenia hasłem",
+    "Password" : "Hasło",
     "Confirm" : "Potwierdź",
     "Incorrect password!" : "Nieprawidłowe hasło!",
     "Text" : "Tekst",
@@ -222,6 +222,7 @@
     "Repeat password" : "Powtórz hasło",
     "Message" : "Komunikat",
     "Resource" : "Zasób",
+    "Tip" : "Porada",
     "Dependencies" : "Zależności",
     "Legal Information" : "Informacje prawne",
     "Legal information" : "Informacje prawne",
@@ -229,9 +230,8 @@
     "Name (CN)" : "Nazwa (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Ścieżka konfiguracji",
-    "Root certificate data." : "Dane certyfikatu głównego.",
     "To generate new signatures, you must first generate the root certificate." : "Aby wygenerować nowe sygnatury, musisz najpierw wygenerować certyfikat główny.",
-    "Generate root certificate." : "Wygeneruj certyfikat główny.",
+    "Generate root certificate" : "Wygeneruj certyfikat główny",
     "Generating certificate." : "Generowanie certyfikatu.",
     "Could not generate certificate." : "Nie udało się wygenerować certyfikatu.",
     "Generated certificate!" : "Wygenerowano certyfikat!",
@@ -276,6 +276,8 @@
     "Are you sure you want to exclude user {email} from the request?" : "Czy na pewno chcesz wykluczyć użytkownika {email} z prośby?",
     "Validate Document" : "Sprawdź poprawność dokumentu",
     "Do you want to configure visible elements in this document?" : "Czy chcesz skonfigurować widoczne elementy w tym dokumencie?",
+    "Root certificate data." : "Dane certyfikatu głównego.",
+    "Generate root certificate." : "Wygeneruj certyfikat główny.",
     "Remove" : "Usuń"
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

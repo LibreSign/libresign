@@ -3,9 +3,9 @@ OC.L10N.register(
     {
     "File not found" : "Ֆայլը չգտնվեց",
     "Email" : "Էլ․փոստ",
-    "Password" : "Գաղտնաբառ",
     "Files" : "Ֆայլեր",
     "Settings" : "կարգավորումներ",
+    "Password" : "Գաղտնաբառ",
     "Upload" : "Բեռնել",
     "Cancel" : "ընդհատել",
     "Save" : "Պահպանել",

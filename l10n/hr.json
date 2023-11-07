@@ -88,7 +88,6 @@
     "Email" : "E-pošta",
     "User already exists" : "Korisnik već postoji",
     "This is not your file" : "Ovo nije vaša datoteka",
-    "Password" : "Zaporka",
     "Invalid password" : "Netočna zaporka",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: pretvara se u datoteku radi potpisivanja",
     "File to sign" : "Datoteka za potpisivanje",
@@ -112,6 +111,7 @@
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacija za digitalno potpisivanje u Nextcloudu.",
     "Authentication required" : "Potrebna autentifikacija",
     "This action requires you to confirm your password" : "Za izvršavanje ove radnje potvrdite svoju zaporku",
+    "Password" : "Zaporka",
     "Confirm" : "Potvrdi",
     "Incorrect password!" : "Netočna zaporka!",
     "Text" : "Tekst",
@@ -202,9 +202,7 @@
     "Name (CN)" : "Ime (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Put do konfiguracije",
-    "Root certificate data." : "Podaci korijenske vjerodajnice.",
     "To generate new signatures, you must first generate the root certificate." : "Kako biste generirali nove potpise, prvo morate generirati korijensku vjerodajnicu.",
-    "Generate root certificate." : "Generirajte korijensku vjerodajnicu.",
     "Generating certificate." : "Generiranje vjerodajnice.",
     "Could not generate certificate." : "Generiranje vjerodajnice nije uspjelo.",
     "Generated certificate!" : "Vjerodajnica generirana!",
@@ -231,6 +229,8 @@
     "Validate File" : "Potvrdi datoteku",
     "Are you sure you want to exclude user {email} from the request?" : "Jeste li sigurni da želite izuzeti korisnika {email} iz zahtjeva?",
     "Validate Document" : "Potvrdi dokument",
+    "Root certificate data." : "Podaci korijenske vjerodajnice.",
+    "Generate root certificate." : "Generirajte korijensku vjerodajnicu.",
     "Remove" : "Ukloni"
 },"pluralForm" :"nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;"
 }
