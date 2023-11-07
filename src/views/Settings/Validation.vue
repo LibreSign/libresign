@@ -63,6 +63,7 @@ export default {
 			this.$refs.urlInput.blur()
 		},
 		async getData() {
+			this.getMakeValidationUrlPrivate()
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
