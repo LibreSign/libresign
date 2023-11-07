@@ -40,7 +40,7 @@ export default {
 		},
 	},
 	data() {
-		const state = defaultsDeep(loadState('libresign', 'config') || {}, {
+		const state = defaultsDeep(loadState('libresign', 'config', {}), {
 			action: 0,
 			errors: [],
 			user: {

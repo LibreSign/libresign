@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use OC\AppFramework\Middleware\Security\Exceptions\NotLoggedInException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
@@ -183,6 +184,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function getPdf($uuid) {
+		$this->throwIfValidationPageNotAccessible();
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (DoesNotExistException $th) {
@@ -235,8 +237,8 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
 	public function validation(): TemplateResponse {
+		$this->throwIfValidationPageNotAccessible();
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
 			$this->signFileService->getFileData(
@@ -264,6 +266,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function validationFileWithShortUrl(): RedirectResponse {
+		$this->throwIfValidationPageNotAccessible();
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
 	}
 
@@ -302,6 +305,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function validationFile(string $uuid): TemplateResponse {
+		$this->throwIfValidationPageNotAccessible();
 		$config = [];
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
@@ -328,5 +332,15 @@ class PageController extends AEnvironmentPageAwareController {
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
 
 		return $response;
+	}
+
+	private function throwIfValidationPageNotAccessible(): void {
+		$isValidationUrlPrivate = (bool) $this->appConfig->getAppValue('make_validation_url_private', '0');
+		if ($this->userSession->isLoggedIn()) {
+			return;
+		}
+		if ($isValidationUrlPrivate) {
+			throw new NotLoggedInException();
+		}
 	}
 }

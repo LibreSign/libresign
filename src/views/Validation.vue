@@ -108,7 +108,7 @@ export default {
 	},
 
 	data() {
-		const fileInfo = loadState('libresign', 'file_info') ?? {}
+		const fileInfo = loadState('libresign', 'file_info', {})
 		return {
 			image: BackgroundImage,
 			infoDocument: t('libresign', 'Document Informations'),
@@ -177,7 +177,7 @@ export default {
 			}
 		},
 		async getData() {
-			this.legalInformation = loadState('libresign', 'legal_information')
+			this.legalInformation = loadState('libresign', 'legal_information', '')
 		},
 		getName(user) {
 			if (user.fullName) {

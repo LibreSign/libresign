@@ -2,9 +2,9 @@
 	<NcSettingsSection :title="title">
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="addFooter"
-				@update:checked="toggleSetting('make_validation_url_public', addFooter)">
-				{{ t('libresign', 'Make validation URL public') }}
+				:checked.sync="makeValidationUrlPrivate"
+				@update:checked="toggleSetting('make_validation_url_private', makeValidationUrlPrivate)">
+				{{ t('libresign', 'Make validation URL acessible only by authenticated users') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p>
@@ -49,6 +49,7 @@ export default {
 		return {
 			title: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
+			makeValidationUrlPrivate: false,
 			url: null,
 			addFooter: false,
 			writeQrcodeOnFooter: false,
@@ -65,6 +66,12 @@ export default {
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
+		},
+		async getMakeValidationUrlPrivate() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/make_validation_url_private', {},
+			)
+			this.makeValidationUrlPrivate = !!response.data.ocs.data.data
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
