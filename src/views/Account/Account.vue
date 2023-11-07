@@ -11,7 +11,7 @@
 						</div>
 					</div>
 					<div v-if="getCertificateOk" class="user-password">
-						<h3>{{ t('libresign', 'Password & Security') }}</h3>
+						<h3>{{ t('libresign', 'Certificate') }}</h3>
 						<div class="user-display-password icon-password">
 							<button v-if="!getHasPfx" @click="handleModal(true)">
 								{{ t('libresign', 'Create password key') }}
