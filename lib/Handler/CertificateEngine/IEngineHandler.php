@@ -51,7 +51,7 @@ interface IEngineHandler {
 		array $names = [],
 	): string;
 
-	public function generateCertificate(): string;
+	public function generateCertificate(string $certificate = '', string $privateKey = ''): string;
 
 	public function isSetupOk(): bool;
 
