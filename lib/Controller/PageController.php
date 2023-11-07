@@ -36,6 +36,7 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -183,6 +184,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 5, period: 120)]
 	public function getPdf($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		try {
@@ -205,6 +207,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid]
+	#[AnonRateLimit(limit: 5, period: 120)]
 	public function getPdfUser($uuid) {
 		$config = array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
@@ -237,6 +240,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
@@ -269,6 +273,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		$this->throwIfValidationPageNotAccessible();
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
@@ -308,6 +313,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		$config = [];
