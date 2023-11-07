@@ -253,6 +253,8 @@ class PageController extends AEnvironmentPageAwareController {
 					],
 				],
 			));
+		} else {
+			$this->initialState->provideInitialState('config', []);
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
