@@ -3,21 +3,21 @@
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="addFooter"
-				@update:checked="Setting('make_validation_url_public', addFooter)">
+				@update:checked="toggleSetting('make_validation_url_public', addFooter)">
 				{{ t('libresign', 'Make validation URL public') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="addFooter"
-				@update:checked="Setting('add_footer', addFooter)">
+				@update:checked="toggleSetting('add_footer', addFooter)">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="writeQrcodeOnFooter"
-				@update:checked="Setting('write_qrcode_on_footer', writeQrcodeOnFooter)">
+				@update:checked="toggleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
@@ -87,7 +87,7 @@ export default {
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
-		async Setting(setting, value) {
+		async toggleSetting(setting, value) {
 			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		placeHolderValidationUrl(data) {
