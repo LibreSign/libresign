@@ -39,9 +39,9 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 abstract class AEnvironmentPageAwareController extends Controller {
-	private SignRequestEntity $signRequestEntity;
-	private FileEntity $fileEntity;
-	private File $nextcloudFile;
+	private ?SignRequestEntity $signRequestEntity = null;
+	private ?FileEntity $fileEntity = null;
+	private ?File $nextcloudFile = null;
 
 	public function __construct(
 		IRequest $request,

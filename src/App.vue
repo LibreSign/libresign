@@ -83,7 +83,7 @@ import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.v
 import { loadState } from '@nextcloud/initial-state'
 import { defaults } from 'lodash-es'
 
-const libresignState = loadState('libresign', 'config')
+const libresignState = loadState('libresign', 'config', {})
 
 export default {
 	name: 'App',

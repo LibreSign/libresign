@@ -34,7 +34,7 @@ import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Vuex)
 
-const libresignVar = loadState('libresign', 'config')
+const libresignVar = loadState('libresign', 'config', {})
 
 export default new Store({
 

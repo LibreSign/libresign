@@ -2,15 +2,22 @@
 	<NcSettingsSection :title="title">
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
+				:checked.sync="makeValidationUrlPrivate"
+				@update:checked="toggleSetting('make_validation_url_private', makeValidationUrlPrivate)">
+				{{ t('libresign', 'Make validation URL acessible only by authenticated users') }}
+			</NcCheckboxRadioSwitch>
+		</p>
+		<p>
+			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="addFooter"
-				@update:checked="toogleSetting('add_footer', addFooter)">
+				@update:checked="toggleSetting('add_footer', addFooter)">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="writeQrcodeOnFooter"
-				@update:checked="toogleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
+				@update:checked="toggleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
@@ -33,7 +40,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
-	name: 'SignPage',
+	name: 'Validation',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
@@ -42,6 +49,7 @@ export default {
 		return {
 			title: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
+			makeValidationUrlPrivate: false,
 			url: null,
 			addFooter: false,
 			writeQrcodeOnFooter: false,
@@ -55,9 +63,16 @@ export default {
 			this.$refs.urlInput.blur()
 		},
 		async getData() {
+			this.getMakeValidationUrlPrivate()
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
+		},
+		async getMakeValidationUrlPrivate() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/make_validation_url_private', {},
+			)
+			this.makeValidationUrlPrivate = !!response.data.ocs.data.data
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
@@ -80,7 +95,7 @@ export default {
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
-		async toogleSetting(setting, value) {
+		async toggleSetting(setting, value) {
 			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		placeHolderValidationUrl(data) {

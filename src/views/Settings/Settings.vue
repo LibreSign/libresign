@@ -29,7 +29,7 @@
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
 		<IdentifierFactor />
-		<SignPage />
+		<Validation />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
@@ -45,7 +45,7 @@ import DownloadBinaries from './DownloadBinaries.vue'
 import ConfigureCheck from './ConfigureCheck.vue'
 import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
-import SignPage from './SignPage.vue'
+import Validation from './Validation.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
@@ -63,7 +63,7 @@ export default {
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
 		IdentifierFactor,
-		SignPage,
+		Validation,
 		AllowedGroups,
 		LegalInformation,
 		IdentificationDocuments,

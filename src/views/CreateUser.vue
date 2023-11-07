@@ -243,7 +243,7 @@ export default {
 	created() {
 		this.changeSizeAvatar()
 		showError(t('libresign', this.messageToast))
-		this.initial = loadState('libresign', 'config')
+		this.initial = loadState('libresign', 'config', {})
 	},
 
 	methods: {

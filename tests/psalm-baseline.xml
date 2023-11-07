@@ -30,6 +30,11 @@
       <code>Base</code>
     </MissingDependency>
   </file>
+  <file src="lib/Controller/PageController.php">
+    <InvalidThrow occurrences="1">
+      <code>throw new NotLoggedInException();</code>
+    </InvalidThrow>
+  </file>
   <file src="lib/Controller/SignFileController.php">
     <UndefinedClass occurrences="1">
       <code>SmsTransmissionException</code>
