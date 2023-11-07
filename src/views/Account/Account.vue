@@ -13,12 +13,12 @@
 					<div v-if="getCertificateOk" class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
 						<div class="user-display-password icon-password">
-							<button v-if="!getHasPfx" @click="handleModal(true)">
+							<NcButton v-if="!getHasPfx" @click="handleModal(true)">
 								{{ t('libresign', 'Create password key') }}
-							</button>
-							<button v-else @click="handleModal(true)">
+							</NcButton>
+							<NcButton v-else @click="handleModal(true)">
 								{{ t('librsign', 'Reset password') }}
-							</button>
+							</NcButton>
 						</div>
 						<NcModal v-if="modal"
 							class="password-modal"
@@ -42,6 +42,7 @@
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
@@ -54,8 +55,9 @@ export default {
 	name: 'Account',
 
 	components: {
-		NcContent,
 		NcModal,
+		NcContent,
+		NcButton,
 		CreatePassword,
 		ResetPassword,
 		Signatures,
