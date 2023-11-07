@@ -239,19 +239,21 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
-		$this->initialState->provideInitialState('config', array_merge(
-			$this->accountService->getConfig($this->userSession->getUser()),
-			$this->signFileService->getFileData(
-				$this->getFileEntity(),
-				$this->userSession->getUser(),
-				$this->getSignRequestEntity()
-			),
-			[
-				'sign' => [
-					'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid')),
+		if ($this->getFileEntity()) {
+			$this->initialState->provideInitialState('config', array_merge(
+				$this->accountService->getConfig($this->userSession->getUser()),
+				$this->signFileService->getFileData(
+					$this->getFileEntity(),
+					$this->userSession->getUser(),
+					$this->getSignRequestEntity()
+				),
+				[
+					'sign' => [
+						'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid')),
+					],
 				],
-			],
-		));
+			));
+		}
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
 		$response = new TemplateResponse(Application::APP_ID, 'validation', [], TemplateResponse::RENDER_AS_BASE);
