@@ -134,7 +134,7 @@ final class FileControllerTest extends ApiTestCase {
 		$this->createUser('allowrequestsign', 'password');
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]',
+				'groups_request_sign' => '["admin","testGroup"]',
 			]
 		]);
 		$this->request

@@ -40,7 +40,7 @@ final class NotifyControllerTest extends ApiTestCase {
 		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]',
+				'groups_request_sign' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
 			]
 		]);

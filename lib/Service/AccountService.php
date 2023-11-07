@@ -301,7 +301,7 @@ class AccountService {
 		if (!$user) {
 			return false;
 		}
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'groups_request_sign', '["admin"]'));
 		if (empty($authorized)) {
 			return false;
 		}
