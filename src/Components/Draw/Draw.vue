@@ -5,19 +5,19 @@
 				:class="{active: isActive('text')}"
 				@click.prevent="setActive('text')">
 				<img :src="$options.icons.textIcon" :alt="t('libresign', 'Text')">
-				Text
+				{{ t('libresign', 'Text') }}
 			</li>
 			<li v-if="drawEditor"
 				:class="{active: isActive('draw')}"
 				@click.prevent="setActive('draw')">
 				<img :src="$options.icons.drawnIcon" :alt="t('libresign', 'Draw')">
-				Draw
+				{{ t('libresign', 'Draw') }}
 			</li>
 			<li v-if="fileEditor"
 				:class="{active: isActive('upload')}"
 				@click.prevent="setActive('upload')">
 				<img :src="$options.icons.uploadIcon" :alt="t('libresign', 'Upload')">
-				Upload
+				{{ t('libresign', 'Upload') }}
 			</li>
 		</ul>
 
