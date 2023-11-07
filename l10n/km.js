@@ -2,9 +2,9 @@ OC.L10N.register(
     "libresign",
     {
     "Email" : "អ៊ីមែល",
-    "Password" : "ពាក្យសម្ងាត់",
     "Files" : "ឯកសារ",
     "Settings" : "ការកំណត់",
+    "Password" : "ពាក្យសម្ងាត់",
     "Upload" : "ផ្ទុក​ឡើង",
     "Apply" : "អនុវត្ត",
     "Cancel" : "បោះបង់",

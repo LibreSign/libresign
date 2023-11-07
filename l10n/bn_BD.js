@@ -3,9 +3,9 @@ OC.L10N.register(
     {
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
     "Email" : "ইমেইল",
-    "Password" : "কূটশব্দ",
     "Files" : "ফাইল",
     "Settings" : "সেটিংস",
+    "Password" : "কূটশব্দ",
     "Upload" : "আপলোড",
     "Cancel" : "বাতির",
     "Save" : "সংরক্ষণ",

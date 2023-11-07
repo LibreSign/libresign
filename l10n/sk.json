@@ -93,7 +93,6 @@
     "Email" : "Email",
     "User already exists" : "Používateľ už existuje",
     "This is not your file" : "Toto nie je váš súbor",
-    "Password" : "Heslo",
     "Invalid password" : "Neplatné heslo",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Zmeny v súbore k vašemu podpísaniu",
     "File to sign" : "Súbor k podpisu",
@@ -126,6 +125,7 @@
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikácia pre digitálny podpis pre Nextcloud.",
     "Authentication required" : "Vyžaduje sa overenie",
     "This action requires you to confirm your password" : "Táto akcia vyžaduje potvrdenie vášho hesla",
+    "Password" : "Heslo",
     "Confirm" : "Potvrdiť",
     "Incorrect password!" : "Nesprávne heslo!",
     "Text" : "Text",
@@ -222,6 +222,7 @@
     "Repeat password" : "Zopakujte heslo",
     "Message" : "Správa",
     "Resource" : "Zdroj",
+    "Tip" : "Tip",
     "Configuration check" : "Kontrola konfigurácie",
     "Status of setup" : "Stav nastavenia",
     "Dependencies" : "Závislosti",
@@ -236,9 +237,7 @@
     "Name (CN)" : "Názov (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "Cesta ku konfigurácii",
-    "Root certificate data." : "Dáta koreňového certifikátu",
     "To generate new signatures, you must first generate the root certificate." : "Pre vygenerovanie nových podpisov naprv musíte vygenerovať koreňový certifikát.",
-    "Generate root certificate." : "Vygenerovať koreňový certifikát.",
     "Generating certificate." : "Vygenerovať certifikát.",
     "Could not generate certificate." : "Nepodarilo sa vygenerovať certifikát.",
     "Generated certificate!" : "Vygenerovaný certifikát!",
@@ -287,6 +286,8 @@
     "Validate Document" : "Overiť Dokument",
     "Do you want to configure visible elements in this document?" : "Chcete v tomto dokumente nakonfigurovať viditeľné prvky?",
     "Binaries required to work. Could be near by 340Mb to download, wait a moment." : "Pre správne fungovanie sú potrebné binárne súbory. Na stiahnutie môže byť približne 340 Mb, počkajte chvíľu.",
+    "Root certificate data." : "Dáta koreňového certifikátu",
+    "Generate root certificate." : "Vygenerovať koreňový certifikát.",
     "Remove" : "Odobrať"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
 }

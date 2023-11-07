@@ -66,7 +66,6 @@ OC.L10N.register(
     "Email" : "Sähköposti",
     "User already exists" : "Käyttäjä on jo olemassa",
     "This is not your file" : "Tämä ei ole tiedostosi",
-    "Password" : "Salasana",
     "Invalid password" : "Virheellinen salasana",
     "File to sign" : "Allekirjoitettava tiedosto",
     "Changes have been made in a file that you have to sign. Access the link below:" : "Tiedostoon, joka sinun tulee allekirjoittaa, on tehty muutoksia. Linkki alapuolella:",
@@ -87,6 +86,7 @@ OC.L10N.register(
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digitaalisen allekirjoituksen sovellus Nextcloudille.",
     "Authentication required" : "Tunnistautuminen vaaditaan",
     "This action requires you to confirm your password" : "Toiminto vaatii vahvistamista salasanallasi",
+    "Password" : "Salasana",
     "Confirm" : "Vahvista",
     "Incorrect password!" : "Virheellinen salasana!",
     "Text" : "Teksti",
@@ -171,7 +171,6 @@ OC.L10N.register(
     "Legal Information" : "Lainopilliset tiedot",
     "This information will appear on the validation page" : "Tämä tieto näkyy validointisivulla",
     "Name (CN)" : "Nimi (CN)",
-    "Generate root certificate." : "Luo juurivarmenne.",
     "Generating certificate." : "Luodaan varmennetta.",
     "Could not generate certificate." : "Varmennetta ei voitu luoda.",
     "Generated certificate!" : "Varmenne luotu!",
@@ -195,6 +194,7 @@ OC.L10N.register(
     "Password created!" : "Salasana luotu!",
     "Validate File" : "Validoi tiedosto",
     "Validate Document" : "Validoi asiakirja",
+    "Generate root certificate." : "Luo juurivarmenne.",
     "Remove" : "Poista"
 },
 "nplurals=2; plural=(n != 1);");
