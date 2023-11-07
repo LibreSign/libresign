@@ -36,6 +36,10 @@ class NoneHandler extends AEngineHandler implements IEngineHandler {
 		return '';
 	}
 
+	public function isSetupOk(): bool {
+		return true;
+	}
+
 	public function configureCheck(): array {
 		return [];
 	}
