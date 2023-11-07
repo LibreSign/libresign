@@ -56,18 +56,18 @@ class Check extends Base {
 				InputOption::VALUE_NONE,
 				'Check requirements to sign document'
 			)
-			->addOption('cfssl',
+			->addOption('certificate',
 				'c',
 				InputOption::VALUE_NONE,
-				'Check requirements to use CFSSL API'
+				'Check requirements to use root certificate'
 			);
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$preview = $input->getOption('preview');
 		$sign = $input->getOption('sign');
-		$cfssl = $input->getOption('cfssl');
-		$all = (!$preview && !$sign && !$cfssl);
+		$certificate = $input->getOption('certificate');
+		$all = (!$preview && !$sign && !$certificate);
 
 		$result = [];
 		if ($all) {
@@ -79,8 +79,8 @@ class Check extends Base {
 			if ($sign) {
 				$result = array_merge($result, $this->configureCheckService->checkSign());
 			}
-			if ($cfssl) {
-				$result = array_merge($result, $this->configureCheckService->checkCfssl());
+			if ($certificate) {
+				$result = array_merge($result, $this->configureCheckService->checkCertificate());
 			}
 		}
 
