@@ -32,11 +32,15 @@ class Handler {
 	public function __construct(
 		private CfsslHandler $cfsslHandler,
 		private OpenSslHandler $openSslHandler,
+		private NoneHandler $noneHandler,
 		private IConfig $config
 	) {
 	}
 
-	public function getEngine(string $engineName = '', array $rootCert = []): CfsslHandler|OpenSslHandler {
+	/**
+	 * @return CfsslHandler|OpenSslHandler|IEngineHandler
+	 */
+	public function getEngine(string $engineName = '', array $rootCert = []): IEngineHandler {
 		if (!$engineName) {
 			$engineName = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'openssl');
 		}
@@ -44,6 +48,8 @@ class Handler {
 			$engine = $this->openSslHandler;
 		} elseif ($engineName === 'cfssl') {
 			$engine = $this->cfsslHandler;
+		} elseif ($engineName === 'none') {
+			$engine = $this->noneHandler;
 		} else {
 			throw new LibresignException('Certificate engine not found: ' . $engineName);
 		}

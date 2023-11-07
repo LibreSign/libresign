@@ -28,17 +28,26 @@ export default {
 				inputId: 'certificateEngine',
 				placeholder: t('libresign', 'Select the certificate engine to generate the root certificate'),
 				clearable: false,
-				// @todo fix this removing the ternary operator
-				value: {
-					id: loadState('libresign', 'certificate_engine'),
-					label: loadState('libresign', 'certificate_engine') === 'openssl' ? 'OpenSSL' : 'CFSSL',
-				},
+				value: [],
 				options: [
 					{ id: 'cfssl', label: 'CFSSL' },
 					{ id: 'openssl', label: 'OpenSSL' },
+					{ id: 'none', label: t('libresign', 'I will not use root certificate') },
 				],
 			},
 		}
+	},
+	beforeMount() {
+		const currentOption = {}
+		currentOption.id = loadState('libresign', 'certificate_engine')
+		if (currentOption.id === 'openssl') {
+			currentOption.label = 'OpenSSL'
+		} else if (currentOption.id === 'cfssl') {
+			currentOption.label = 'CFSSL'
+		} else {
+			currentOption.label = t('libresign', 'I will not use root certificate')
+		}
+		this.certificateEngines.value = [currentOption]
 	},
 	methods: {
 		saveEngine(selected) {
