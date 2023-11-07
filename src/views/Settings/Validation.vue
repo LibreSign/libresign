@@ -3,14 +3,21 @@
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="addFooter"
-				@update:checked="toogleSetting('add_footer', addFooter)">
+				@update:checked="Setting('make_validation_url_public', addFooter)">
+				{{ t('libresign', 'Make validation URL public') }}
+			</NcCheckboxRadioSwitch>
+		</p>
+		<p>
+			<NcCheckboxRadioSwitch type="switch"
+				:checked.sync="addFooter"
+				@update:checked="Setting('add_footer', addFooter)">
 				{{ t('libresign', 'Add visible footer with signature details') }}
 			</NcCheckboxRadioSwitch>
 		</p>
 		<p v-if="addFooter">
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="writeQrcodeOnFooter"
-				@update:checked="toogleSetting('write_qrcode_on_footer', writeQrcodeOnFooter)">
+				@update:checked="Setting('write_qrcode_on_footer', writeQrcodeOnFooter)">
 				{{ t('libresign', 'Write QR code on footer with validation URL') }}
 			</NcCheckboxRadioSwitch>
 		</p>
@@ -33,7 +40,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadi
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
-	name: 'SignPage',
+	name: 'Validation',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
@@ -80,7 +87,7 @@ export default {
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
-		async toogleSetting(setting, value) {
+		async Setting(setting, value) {
 			OCP.AppConfig.setValue('libresign', setting, value ? 1 : 0)
 		},
 		placeHolderValidationUrl(data) {
