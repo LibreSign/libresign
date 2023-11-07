@@ -82,6 +82,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
+		$this->initialState->provideInitialState('certificate_engine', $this->accountService->getCertificateEngineName());
 
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());

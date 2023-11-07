@@ -238,6 +238,10 @@ class AccountService {
 		}
 	}
 
+	public function getCertificateEngineName(): string {
+		return $this->certificateEngineHandler->getEngine()->getName();
+	}
+
 	/**
 	 * @return array[]
 	 */
