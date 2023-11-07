@@ -64,7 +64,7 @@ export default {
 	methods: {
 		async getData() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'webhook_authorized', {},
+				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps' + '/' + 'libresign' + '/' + 'groups_request_sign', {},
 			)
 			if (response.data.ocs.data.data !== '') {
 				this.groupsSelected = JSON.parse(response.data.ocs.data.data)
@@ -75,7 +75,7 @@ export default {
 			await confirmPassword()
 
 			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected)
-			OCP.AppConfig.setValue('libresign', 'webhook_authorized', listOfInputGroupsSelected)
+			OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
 			this.idKey += 1
 		},
 

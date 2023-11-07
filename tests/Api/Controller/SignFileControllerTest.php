@@ -17,7 +17,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$this->createUser('allowrequestsign', 'password', 'testGroup');
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]',
+				'groups_request_sign' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
 			]
 		]);
@@ -337,7 +337,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]',
+				'groups_request_sign' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
 			]
 		]);
@@ -399,7 +399,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]',
+				'groups_request_sign' => '["admin","testGroup"]',
 				'notifyUnsignedUser' => 0
 			]
 		]);
@@ -529,7 +529,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]'
+				'groups_request_sign' => '["admin","testGroup"]'
 			]
 		]);
 
@@ -580,7 +580,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$this->mockConfig([
 			'libresign' => [
-				'webhook_authorized' => '["admin","testGroup"]'
+				'groups_request_sign' => '["admin","testGroup"]'
 			]
 		]);
 

@@ -395,7 +395,7 @@ class ValidateHelper {
 	}
 
 	public function canRequestSign(IUser $user): void {
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'webhook_authorized', '["admin"]'));
+		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'groups_request_sign', '["admin"]'));
 		if (empty($authorized)) {
 			$authorized = ['admin'];
 		}
