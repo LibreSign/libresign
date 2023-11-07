@@ -43,7 +43,6 @@
     "Email" : "Posta eletrònica",
     "User already exists" : "S'utente b'est giai",
     "This is not your file" : "Custu no est s'archìviu tuo",
-    "Password" : "Crae",
     "Invalid password" : "Crae non bàlida",
     "LibreSign: Changes into a file for you to sign" : "LIbreSign: Càmbios in intro de un archìviu chi depes firmare",
     "File to sign" : "Archìviu de firmare",
@@ -67,6 +66,7 @@
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicatzione pro sa firma digitale pro Nextcloud.",
     "Authentication required" : "Bi cheret s'autenticazione ",
     "This action requires you to confirm your password" : "Pro fàghere custu tocat chi cunfirmes sa crae tua",
+    "Password" : "Crae",
     "Confirm" : "Cunfirma",
     "Incorrect password!" : "Crae non bàlida!",
     "Text" : "Testu",
@@ -142,9 +142,7 @@
     "Name (CN)" : "Nùmene (CN)",
     "CFSSL API URI" : "URI API CFSSL",
     "Config path" : "Percursu config",
-    "Root certificate data." : "Datos tzertificados sorgente.",
     "To generate new signatures, you must first generate the root certificate." : "Pro generare firmas noas, pro prima cosa depes generare su tzertificadu sorgente.",
-    "Generate root certificate." : "Gènera su tzertificadu sorgente.",
     "Generating certificate." : "Generatzione tzertificadu.",
     "Could not generate certificate." : "Generatzione tzertificadu faddida.",
     "Generated certificate!" : "Tzertificadu generadu!",
@@ -169,6 +167,8 @@
     "Remove duplicated users, email address need to be unique" : "Boga ·nche is utentes dòpios, is indiritzos de posta eletrònica devet èssere ùnicos",
     "Are you sure you want to exclude user {email} from the request?" : "Ses seguru chi nche cheres lassare in foras s'utente {email} dae sa rechesta?",
     "Validate Document" : "Bàlida documentu",
+    "Root certificate data." : "Datos tzertificados sorgente.",
+    "Generate root certificate." : "Gènera su tzertificadu sorgente.",
     "Remove" : "Boga"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

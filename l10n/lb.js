@@ -2,10 +2,10 @@ OC.L10N.register(
     "libresign",
     {
     "Email" : "Email",
-    "Password" : "Passwuert",
     "Files" : "Fichieren",
     "Settings" : "Astellungen",
     "Authentication required" : "Authentifizéierung néideg",
+    "Password" : "Passwuert",
     "Upload" : "Eroplueden",
     "Apply" : "Uwenden",
     "Cancel" : "Ofbriechen",

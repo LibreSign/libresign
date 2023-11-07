@@ -91,7 +91,6 @@
     "Email" : "이메일",
     "User already exists" : "사용자가 이미 있습니다.",
     "This is not your file" : "이것은 당신의 파일이 아닙니다.",
-    "Password" : "암호",
     "Invalid password" : "잘못된 암호",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: 사용자가 서명할 파일로 변경합니다.",
     "File to sign" : "서명할 파일",
@@ -121,6 +120,7 @@
     "LibreSign, digital signature app for Nextcloud." : "Nextcloud를 위한 디지털 시그니처 앱, LibreSign.",
     "Authentication required" : "인증 필요",
     "This action requires you to confirm your password" : "이 작업을 수행하려면 암호를 확인해야 합니다.",
+    "Password" : "암호",
     "Confirm" : "확인",
     "Incorrect password!" : "잘못된 암호",
     "Text" : "텍스트",
@@ -215,9 +215,7 @@
     "Name (CN)" : "이름 (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "구성 경로",
-    "Root certificate data." : "루트 인증서 데이터.",
     "To generate new signatures, you must first generate the root certificate." : "새 서명을 생성하려면 먼저 루트 인증서를 생성해야 합니다.",
-    "Generate root certificate." : "루트 인증서를 생성합니다.",
     "Generating certificate." : "인증서를 생성하는 중입니다.",
     "Could not generate certificate." : "인증서를 생성할 수 없습니다.",
     "Generated certificate!" : "인증서를 생성했습니다!",
@@ -259,6 +257,8 @@
     "Are you sure you want to exclude user {email} from the request?" : "요청에서 {email} 사용자를 제외하시겠습니까?",
     "Validate Document" : "문서 유효성 검사",
     "Do you want to configure visible elements in this document?" : "이 문서에서 볼 수 있는 요소를 구성하시겠습니까?",
+    "Root certificate data." : "루트 인증서 데이터.",
+    "Generate root certificate." : "루트 인증서를 생성합니다.",
     "Remove" : "삭제"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

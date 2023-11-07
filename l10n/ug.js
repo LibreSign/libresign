@@ -2,9 +2,9 @@ OC.L10N.register(
     "libresign",
     {
     "Email" : "تورخەت",
-    "Password" : "ئىم",
     "Files" : "ھۆججەتلەر",
     "Settings" : "تەڭشەكلەر",
+    "Password" : "ئىم",
     "Upload" : "يۈكلە",
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",

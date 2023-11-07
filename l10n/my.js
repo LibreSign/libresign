@@ -17,8 +17,6 @@ OC.L10N.register(
     "Name (CN)" : "အမည် (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "ချိန်ညှိမှု path",
-    "Root certificate data." : "Root Certificate အချက်အလက်",
-    "Generate root certificate." : "Root Certificate ဖန်တီးရန်။",
     "Generating certificate." : "Certificate ဖန်တီးနေသည်။",
     "Could not generate certificate." : "Certificate ဖန်တီးမှု မပြုလုပ်နိုင်ပါ။",
     "Generated certificate!" : "Certificate ဖန်တီးပြီး!",
@@ -29,6 +27,8 @@ OC.L10N.register(
     "No date" : "ရက်စွဲမပါ",
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
     "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
-    "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။"
+    "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
+    "Root certificate data." : "Root Certificate အချက်အလက်",
+    "Generate root certificate." : "Root Certificate ဖန်တီးရန်။"
 },
 "nplurals=1; plural=0;");
