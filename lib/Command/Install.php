@@ -83,6 +83,7 @@ class Install extends Base {
 				$ok = true;
 			}
 		} catch (\Exception $e) {
+			$this->installService->saveErrorMessage($e->getMessage());
 			$this->logger->error($e->getMessage());
 			throw $e;
 		}

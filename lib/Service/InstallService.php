@@ -63,6 +63,12 @@ class InstallService {
 	/** @var string */
 	private $resource = '';
 	protected IAppData $appData;
+	private array $availableResources = [
+		'java',
+		'jsignpdf',
+		'pdftk',
+		'cfssl'
+	];
 
 	public function __construct(
 		ICacheFactory $cacheFactory,
@@ -137,6 +143,7 @@ class InstallService {
 	private function runAsync(): void {
 		$resource = $this->resource;
 		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
+		$process->setOptions(['create_new_console' => true]);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
@@ -211,14 +218,8 @@ class InstallService {
 	}
 
 	public function getTotalSize(): array {
-		$resources = [
-			'java',
-			'jsignpdf',
-			'pdftk',
-			'cfssl'
-		];
 		$return = [];
-		foreach ($resources as $resource) {
+		foreach ($this->availableResources as $resource) {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
 			if (array_key_exists('download_size', $progressData)) {
@@ -230,6 +231,42 @@ class InstallService {
 			}
 		}
 		return $return;
+	}
+
+	public function saveErrorMessage(string $message) {
+		$data = $this->getProressData();
+		$data['error'] = $message;
+		$this->setCache($this->resource, $data);
+	}
+
+	public function getErrorMessages(): array {
+		$return = [];
+		foreach ($this->availableResources as $resource) {
+			$this->setResource($resource);
+			$progressData = $this->getProressData();
+			if (array_key_exists('error', $progressData)) {
+				$return[] = $progressData['error'];
+				$this->removeDownloadProgress();
+			}
+		}
+		return $return;
+	}
+
+	public function isDownloadWip(): bool {
+		foreach ($this->availableResources as $resource) {
+			$this->setResource($resource);
+			$progressData = $this->getProressData();
+			if (!count($progressData)) {
+				continue;
+			}
+			exec('ps -p ' . $progressData['pid'], $output, $exitCode);
+			if (count($output) <= 1) {
+				$this->removeDownloadProgress();
+				return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public function setResource(string $resource): self {

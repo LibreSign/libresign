@@ -1,5 +1,10 @@
 <template>
 	<NcSettingsSection :title="title" :description="description">
+		<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
+			<p v-for="error in errors" :key="error">
+				{{ error }}
+			</p>
+		</NcNoteCard>
 		<div class="settings-section">
 			<NcButton class="primary"
 				type="primary"
@@ -34,9 +39,10 @@ import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
 export default {
@@ -45,19 +51,23 @@ export default {
 		NcSettingsSection,
 		NcLoadingIcon,
 		NcButton,
+		NcNoteCard,
 		NcProgressBar,
 	},
-	data: () => ({
-		title: t('libresign', 'Dependencies'),
-		description: t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.'),
-		labelDownloadAllBinaries: t('libresign', 'Download binaries'),
-		downloadInProgress: false,
-		downloadStatus: {
-			java: 0,
-			jsignpdf: 0,
-			cfssl: 0,
-		},
-	}),
+	data() {
+		return {
+			title: t('libresign', 'Dependencies'),
+			description: t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.'),
+			labelDownloadAllBinaries: t('libresign', 'Download binaries'),
+			downloadInProgress: false,
+			errors: [],
+			downloadStatus: {
+				java: 0,
+				jsignpdf: 0,
+				cfssl: 0,
+			},
+		}
+	},
 	mounted() {
 		this.$root.$on('after-config-check', data => {
 			if (this.downloadInProgress) {
@@ -84,31 +94,16 @@ export default {
 					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
 				)
 					.then(() => {
-						this.changeState('waiting check')
-						this.$root.$emit('config-check')
+						this.downloadStatusSse()
 					})
 			} catch (e) {
 				showError(t('libresign', 'Could not download binaries.'))
 				this.changeState('need download')
 			}
-			this.pooling()
-		},
-		async pooling() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/download-status'),
-			)
-			this.downloadStatus = response.data
-			if (!this.downloadInProgress) {
-				return
-			}
-			const waitFor = typeof this.downloadStatus === 'object' ? 1000 : 5000
-			setTimeout(() => {
-				this.pooling()
-			}, waitFor)
-			this.$root.$emit('config-check')
 		},
 		changeState(state) {
 			if (state === 'in progress') {
+				this.errors = []
 				this.downloadInProgress = true
 				this.labelDownloadAllBinaries = t('libresign', 'Downloading binaries')
 				this.description = t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.')
@@ -125,6 +120,23 @@ export default {
 				this.labelDownloadAllBinaries = t('libresign', 'Validate setup')
 				this.description = t('libresign', 'Binaries downloaded')
 			}
+		},
+		downloadStatusSse() {
+			const self = this
+			const updateEventSource = new OC.EventSource(generateUrl('/apps/libresign/api/v1/admin/download-status-sse'))
+			updateEventSource.listen('total_size', function(message) {
+				self.downloadStatus = JSON.parse(message)
+			})
+			updateEventSource.listen('errors', function(message) {
+				self.errors = JSON.parse(message)
+			})
+			updateEventSource.listen('done', function() {
+				self.downloadStatus = {}
+				self.changeState('waiting check')
+				self.$root.$emit('config-check')
+			})
+
+			this.$root.$emit('config-check')
 		},
 	},
 }

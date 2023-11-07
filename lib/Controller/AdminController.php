@@ -35,16 +35,21 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
+use OCP\IEventSource;
+use OCP\IEventSourceFactory;
 use OCP\IRequest;
 
 class AdminController extends Controller {
+	private IEventSource $eventSource;
 	public function __construct(
 		IRequest $request,
 		private ConfigureCheckService $configureCheckService,
 		private InstallService $installService,
-		private CertificateEngineHandler $certificateEngineHandler
+		private CertificateEngineHandler $certificateEngineHandler,
+		private IEventSourceFactory $eventSourceFactory,
 	) {
 		parent::__construct(Application::APP_ID, $request);
+		$this->eventSource = $this->eventSourceFactory->create();
 	}
 
 	#[NoCSRFRequired]
@@ -130,20 +135,6 @@ class AdminController extends Controller {
 			$this->installService->installJSignPdf($async);
 			$this->installService->installPdftk($async);
 			$this->installService->installCfssl($async);
-			$previous = [];
-			do {
-				$totalSize = $this->installService->getTotalSize();
-				if (count($previous) === 10) {
-					// with the same size
-					if (!count($totalSize) || array_sum($previous) / count($previous) === $totalSize) {
-						break;
-					}
-					array_shift($previous);
-				}
-				$previous[] = $totalSize;
-				sleep(1);
-			} while (true);
-
 			return new DataResponse([]);
 		} catch (\Exception $exception) {
 			return new DataResponse(
@@ -164,5 +155,18 @@ class AdminController extends Controller {
 		return new DataResponse(
 			$this->configureCheckService->checkAll()
 		);
+	}
+
+	public function downloadStatusSse(): void {
+		while ($this->installService->isDownloadWip()) {
+			$totalSize = $this->installService->getTotalSize();
+			$this->eventSource->send('total_size', json_encode($totalSize));
+			if ($errors = $this->installService->getErrorMessages()) {
+				$this->eventSource->send('errors', json_encode($errors));
+			}
+			usleep(50000);
+		}
+		$this->eventSource->send('done', '');
+		$this->eventSource->close();
 	}
 }

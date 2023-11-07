@@ -4,6 +4,8 @@ $requirements = [
 	'apiVersion' => 'v1',
 ];
 
+$this->create('adminSse#downloadStatusSse', '/apps/libresign/api/{apiVersion}/admin/download-status-sse', ['file' => __DIR__ . '/../../lib/Controller/AdminSseController.php']);
+
 return [
 	'ocs' => [
 		['name' => 'admin#generateCertificateCfssl',   'url' => '/api/{apiVersion}/admin/certificate/cfssl', 'verb' => 'POST', 'requirements' => $requirements],
