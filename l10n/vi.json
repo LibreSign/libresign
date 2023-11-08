@@ -6,6 +6,7 @@
     "View" : "Xem",
     "File not found" : "Không tìm thấy tập tin",
     "File already exists" : "Tệp đã tồn tại",
+    "File is too big" : "Tệp quá lớn",
     "Account" : "Tài khoản",
     "Invalid user" : "Người dùng không hợp lệ",
     "Email" : "Thư điện tử",
@@ -32,7 +33,7 @@
     "Next" : "Tiếp theo",
     "Previous" : "Trước",
     "Details" : "Chi tiết",
-    "Reset password" : "Khôi phục mật khẩu",
+    "Certificate" : "Chứng chỉ",
     "Select a file" : "Select a file",
     "Type" : "Loại",
     "Status" : "Trạng thái",
@@ -47,12 +48,14 @@
     "Choose from Files" : "Chọn từ Tệp",
     "Add users" : "Thêm người dùng",
     "Password reset" : "Đặt lại mật khẩu",
+    "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
     "Resource" : "Tài nguyên",
     "Dependencies" : "Các phụ thuộc",
     "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
     "No date" : "No date",
+    "Reset password" : "Khôi phục mật khẩu",
     "Remove" : "Xoá"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

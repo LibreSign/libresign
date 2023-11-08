@@ -15,6 +15,7 @@ OC.L10N.register(
     "File not found" : "ファイルが見つかりません",
     "File already exists" : "ファイルが既に存在します",
     "Empty file" : "空白のファイル",
+    "File is too big" : "ファイルが大きすぎます",
     "Page not found." : "ページが見つかりません。",
     "Account" : "アカウント",
     "Invalid user" : "無効なユーザー",
@@ -48,7 +49,8 @@ OC.L10N.register(
     "Next" : "次へ",
     "Previous" : "前へ",
     "Details" : "詳細",
-    "Reset password" : "パスワードをリセット",
+    "Certificate" : "証明",
+    "Change password" : "パスワードを変更",
     "Select a file" : "Select a file",
     "Type" : "タイプ",
     "Status" : "ステータス",
@@ -65,6 +67,7 @@ OC.L10N.register(
     "Add users" : "ユーザーを追加",
     "Select your file" : "あなたのファイルを選択",
     "Password reset" : "パスワードのリセット",
+    "Current password" : "現在のパスワード",
     "New password" : "新たなパスワード",
     "Repeat password" : "パスワードをもう一度入力",
     "Message" : "メッセージ",
@@ -77,6 +80,7 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSignで開く",
     "User created!" : "ユーザーが作成しました！",
     "Password created!" : "パスワードが作成しました！",
+    "Reset password" : "パスワードをリセット",
     "Remove" : "削除"
 },
 "nplurals=1; plural=0;");

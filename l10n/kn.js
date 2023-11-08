@@ -16,15 +16,16 @@ OC.L10N.register(
     "Users" : "﻿ಬಳಕೆದಾರರು",
     "Delete" : "﻿ಅಳಿಸಿ",
     "Next" : "ಮುಂದೆ",
-    "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ",
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "No date" : "No date",
+    "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
     "Remove" : "ತೆಗೆದುಹಾಕಿ"
 },
 "nplurals=2; plural=(n > 1);");

@@ -20,7 +20,6 @@ OC.L10N.register(
     "Next" : "Nesaf",
     "Previous" : "Blaenorol",
     "Details" : "Manylion",
-    "Reset password" : "Ailosod cyfrinair",
     "Select a file" : "Select a file",
     "Type" : "Math",
     "Status" : "Statws",
@@ -37,6 +36,7 @@ OC.L10N.register(
     "Loading …" : "Yn llwytho …",
     "Pending" : "I ddod",
     "No date" : "No date",
+    "Reset password" : "Ailosod cyfrinair",
     "Remove" : "Gwaredu"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

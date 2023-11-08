@@ -8,6 +8,7 @@ OC.L10N.register(
     "View" : "צפייה",
     "File not found" : "קובץ לא נמצא",
     "File already exists" : "הקובץ כבר קיים",
+    "File is too big" : "הקובץ גדול מדי",
     "Account" : "חשבון",
     "Invalid user" : "משתמש שגוי",
     "Email" : "דוא״ל",
@@ -35,7 +36,8 @@ OC.L10N.register(
     "Next" : "הבא",
     "Previous" : "הקודם",
     "Details" : "פרטים",
-    "Reset password" : "איפוס ססמה",
+    "Certificate" : "אישור",
+    "Change password" : "שינוי ססמה",
     "Select a file" : "Select a file",
     "Type" : "סוג",
     "Status" : "מצב",
@@ -49,6 +51,7 @@ OC.L10N.register(
     "Page not found" : "העמוד לא נמצא",
     "Choose from Files" : "בחר מתוך קבצים",
     "Password reset" : "איפוס ססמה",
+    "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",
     "Repeat password" : "חזרה על הססמה",
     "Message" : "הודעה",
@@ -57,6 +60,7 @@ OC.L10N.register(
     "Loading …" : "בטעינה…",
     "Pending" : "בהמתנה",
     "No date" : "No date",
+    "Reset password" : "איפוס ססמה",
     "Remove" : "הסרה"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;");

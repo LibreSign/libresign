@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "ຄວາມສໍາເລັດ",
     "deleted" : "ລຶບແລ້ວ",
     "File not found" : " ບໍ່ພົບຟາຍ",
+    "File is too big" : "ຟາຍໃຫຍ່ໂພດ",
     "Email" : "ອິເມວ",
     "Files" : "ຟາຍ",
     "Settings" : "ການຕັ້ງຄ່າ",
@@ -21,7 +22,6 @@ OC.L10N.register(
     "Next" : "ທັດໄປ",
     "Previous" : "ກ່ອນໜ້າ",
     "Details" : "ລາຍລະອຽດ",
-    "Reset password" : "ຕັ້ງລະຫັດຄືນໃຫມ່",
     "Type" : "ພິມ",
     "Enter a password" : "ໃສ່ລະຫັດຜ່ານ",
     "Yes" : "ແມ່ນແລ້ວ",
@@ -31,6 +31,7 @@ OC.L10N.register(
     "Loading …" : "ກຳລັງໂຫຼດ",
     "Pending" : "ທີ່ກໍາລັງລໍຖ້າ",
     "No date" : "ບໍ່ມີວັນທີ",
+    "Reset password" : "ຕັ້ງລະຫັດຄືນໃຫມ່",
     "Remove" : "ຍ້າຍອອກ"
 },
 "nplurals=1; plural=0;");

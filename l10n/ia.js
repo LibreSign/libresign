@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Settings saved" : "Configurationes salveguardate",
     "View" : "Vider",
+    "File is too big" : "File es troppo grande",
     "Invalid user" : "Usator invalide",
     "Email" : "E-posta",
     "Files" : "Files",
@@ -29,6 +30,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Si",
     "No" : "No",
+    "Current password" : "Contrasigno actual",
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Pending" : "Pendente",

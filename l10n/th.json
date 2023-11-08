@@ -5,6 +5,7 @@
     "File not found" : "ไม่พบไฟล์",
     "File already exists" : "มีไฟล์นี้อยู่แล้ว",
     "Empty file" : "ไฟล์ว่าง",
+    "File is too big" : "ไฟล์ใหญ่เกินไป",
     "Account" : "บัญชี",
     "Invalid user" : "ผู้ใช้ไม่ถูกต้อง",
     "Email" : "อีเมล",
@@ -31,7 +32,7 @@
     "Next" : "ถัดไป",
     "Previous" : "ก่อนหน้า",
     "Details" : "รายละเอียด",
-    "Reset password" : "ตั้งรหัสผ่านใหม่",
+    "Certificate" : "ใบรับรอง",
     "Select a file" : "Select a file",
     "Type" : "ประเภท",
     "Status" : "สถานะ",
@@ -43,10 +44,12 @@
     "No" : "ไม่",
     "Page not found" : "ไม่พบหน้า",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
+    "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",
     "Resource" : "ทรัพยากร",
     "Pending" : "รอดำเนินการ",
     "No date" : "ไม่มีวันที่",
+    "Reset password" : "ตั้งรหัสผ่านใหม่",
     "Remove" : "ลบออก"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

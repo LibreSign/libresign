@@ -18,7 +18,6 @@ OC.L10N.register(
     "Next" : "পরবর্তী",
     "Previous" : "পূর্ববর্তী",
     "Details" : "বিসতারিত",
-    "Reset password" : "কূটশব্দ পূনঃনির্ধারণ কর",
     "Select a file" : "Select a file",
     "Type" : "ধরণ",
     "Actions" : "পদক্ষেপসমূহ",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "New password" : "নতুন কূটশব্দ",
     "Pending" : "মুলতুবি",
     "No date" : "No date",
+    "Reset password" : "কূটশব্দ পূনঃনির্ধারণ কর",
     "Remove" : "অপসারণ"
 },
 "nplurals=2; plural=(n != 1);");

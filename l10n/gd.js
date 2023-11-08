@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "deleted" : "air sguabadh às",
     "File not found" : "Cha deach am faidhle a lorg",
+    "File is too big" : "Tha am faidhle ro mhòr",
     "Email" : "Post-d",
     "Files" : "Faidhlichean",
     "Settings" : "Roghainnean",

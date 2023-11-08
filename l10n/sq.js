@@ -8,6 +8,7 @@ OC.L10N.register(
     "View" : "Shiko",
     "File not found" : "Skedari nuk u gjet",
     "File already exists" : "Skedari ekziston tashmë",
+    "File is too big" : "Skedari është shumë i madh",
     "Account" : "Llogari",
     "Invalid user" : "Përdorues i pavlefshëm",
     "Email" : "Emaili",
@@ -31,7 +32,8 @@ OC.L10N.register(
     "Next" : "Tjetër",
     "Previous" : "I mëparshëm",
     "Details" : "Detajet",
-    "Reset password" : "Ricaktoni fjalëkalimin",
+    "Certificate" : "Çertifikata",
+    "Change password" : "Ndrysho fjalëkalimin",
     "Select a file" : "Zgjidhni një skedar",
     "Type" : "Shtyp",
     "Status" : "Statusi",
@@ -44,6 +46,7 @@ OC.L10N.register(
     "No" : "Jo",
     "Page not found" : "Faqja nuk u gjet ",
     "Password reset" : "Fjalkalimi u rivendos",
+    "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",
     "Repeat password" : "Përsërit Fjalëkalimin",
     "Message" : "Mesazh",
@@ -51,6 +54,7 @@ OC.L10N.register(
     "Dependencies" : "Varësitë",
     "Pending" : "Në Pritje të Konfirmimit",
     "No date" : "No date",
+    "Reset password" : "Ricaktoni fjalëkalimin",
     "Remove" : "Hiq"
 },
 "nplurals=2; plural=(n != 1);");

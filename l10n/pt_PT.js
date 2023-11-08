@@ -9,6 +9,7 @@ OC.L10N.register(
     "File not found" : "Ficheiro não encontrado",
     "File already exists" : "O ficheiro já existe",
     "Empty file" : "Ficheiro vazio",
+    "File is too big" : "O ficheiro é demasiado grande",
     "Account" : "Conta",
     "Invalid user" : "Utilizador inválido",
     "Email" : "E-mail",
@@ -36,7 +37,7 @@ OC.L10N.register(
     "Next" : "Seguinte",
     "Previous" : "Anterior",
     "Details" : "Detalhes",
-    "Reset password" : "Repor palavra-passe",
+    "Certificate" : "Certificado",
     "Select a file" : "Select a file",
     "Type" : "Tipo",
     "Status" : "Estado",
@@ -50,6 +51,7 @@ OC.L10N.register(
     "Page not found" : "Página não encontrada",
     "Choose from Files" : "Escolher a partir dos ficheiros",
     "Password reset" : "Reposição da senha",
+    "Current password" : "Palavra-passe atual",
     "New password" : "Nova palavra-passe",
     "Message" : "Mensagem",
     "Resource" : "Recurso",
@@ -57,6 +59,7 @@ OC.L10N.register(
     "Loading …" : "A carregar...",
     "Pending" : "Pendente",
     "No date" : "Sem data",
+    "Reset password" : "Repor palavra-passe",
     "Remove" : "Remover"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

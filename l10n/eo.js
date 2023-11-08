@@ -8,6 +8,7 @@ OC.L10N.register(
     "File not found" : "Netrovita dosiero",
     "File already exists" : "La dosiero jam ekzistas",
     "Empty file" : "Malplena dosiero",
+    "File is too big" : "Dosiero tro grandas",
     "Account" : "Konto",
     "Invalid user" : "Nevalida uzanto",
     "Email" : "Retpoŝtadreso",
@@ -34,7 +35,6 @@ OC.L10N.register(
     "Next" : "Sekva",
     "Previous" : "Antaŭa",
     "Details" : "Detaloj",
-    "Reset password" : "Restarigi pasvorton",
     "Select a file" : "Select a file",
     "Type" : "Tipo",
     "Status" : "Stato",
@@ -47,6 +47,7 @@ OC.L10N.register(
     "No" : "No",
     "Page not found" : "Paĝo ne trovita",
     "Password reset" : "Restarigi pasvorton",
+    "Current password" : "Nuna pasvorto",
     "New password" : "Nova pasvorto",
     "Repeat password" : "Ripetu la pasvorton",
     "Message" : "Mesaĝo",
@@ -55,6 +56,7 @@ OC.L10N.register(
     "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
     "No date" : "No date",
+    "Reset password" : "Restarigi pasvorton",
     "Remove" : "Forigi"
 },
 "nplurals=2; plural=(n != 1);");

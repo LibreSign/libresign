@@ -16,15 +16,16 @@
     "Next" : "அடுத்த",
     "Previous" : "முன்தைய",
     "Details" : "விவரங்கள்",
-    "Reset password" : "மீளமைத்த கடவுச்சொல்",
     "Type" : "வகை",
     "Actions" : "செயல்கள்",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
     "Pending" : "நிலுவையிலுள்ள",
     "No date" : "No date",
+    "Reset password" : "மீளமைத்த கடவுச்சொல்",
     "Remove" : "அகற்றுக"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
