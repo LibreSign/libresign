@@ -10,34 +10,65 @@
 					:file="file"
 					status="0"
 					status-text="none"
-					@sidebar="setSidebarStatus(true)" />
+					@sidebar="showSidebar = true" />
+				<NcButton @click="showModalUploadFromUrl">
+					{{ t('libresign', 'Upload from URL') }}
+					<template #icon>
+						<LinkIcon :size="20" />
+					</template>
+				</NcButton>
 				<NcButton @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
-						<Folder :size="20" />
+						<FolderIcon :size="20" />
 					</template>
 				</NcButton>
 				<NcButton @click="uploadFile">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
-						<Upload :size="20" />
+						<UploadIcon :size="20" />
 					</template>
 				</NcButton>
 			</div>
 		</div>
-		<LibresignTab v-if="getSidebarStatus"
+		<NcModal v-if="modalUploadFromUrl"
+			@close="closeModalUploadFromUrl">
+			<div class="modal__content">
+				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
+				<div class="form-group">
+					<NcTextField :label="t('libresign', 'URL of a PDF file')"
+						:value.sync="pdfUrl">
+						<LinkIcon :size="20" />
+					</NcTextField>
+				</div>
+				<NcButton :disabled="!canUploadFronUrl"
+					type="primary"
+					@click="uploadUrl">
+					{{ t('libresign', 'Send') }}
+					<template #icon>
+						<CloudUploadIcon :size="20" />
+					</template>
+				</NcButton>
+			</div>
+		</NcModal>
+		<LibresignTab v-if="showSidebar"
 			:prop-file="file"
 			:prop-name="file.name"
-			@close="setSidebarStatus(false)" />
+			@close="showSidebar = false" />
 	</div>
 </template>
 <script>
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl, generateRemoteUrl } from '@nextcloud/router'
+import { getCurrentUser } from '@nextcloud/auth'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import Upload from 'vue-material-design-icons/Upload.vue'
-import Folder from 'vue-material-design-icons/Folder.vue'
+import LinkIcon from 'vue-material-design-icons/Link.vue'
+import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
@@ -57,38 +88,49 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
+		NcModal,
+		NcTextField,
 		NcButton,
-		Upload,
-		Folder,
+		LinkIcon,
+		UploadIcon,
+		CloudUploadIcon,
+		FolderIcon,
 		File,
 		LibresignTab,
 	},
 	data() {
 		return {
+			pdfUrl: '',
+			showSidebar: false,
+			modalUploadFromUrl: false,
 			loading: false,
-			file: {
-				nodeId: 0,
-			},
+			file: {},
 			signers: [],
 		}
 	},
 	computed: {
-		...mapGetters({ getSidebarStatus: 'sidebar/getStatus', fileSigners: 'validate/getSigners' }),
+		...mapGetters({ fileSigners: 'validate/getSigners' }),
 		isEmptyFile() {
 			return Object.keys(this.file).length === 0
 		},
 		canRequest() {
 			return this.signers.length > 0
 		},
+		canUploadFronUrl() {
+			try {
+				// eslint-disable-next-line no-new
+				new URL(this.pdfUrl)
+				return true
+			} catch (e) {
+				return false
+			}
+		},
 	},
 	beforeDestroy() {
-		this.resetSidebarStatus()
 		this.resetValidateFile()
 	},
 	methods: {
 		...mapActions({
-			resetSidebarStatus: 'sidebar/RESET',
-			setSidebarStatus: 'sidebar/setStatus',
 			resetValidateFile: 'validate/RESET',
 			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
@@ -111,8 +153,25 @@ export default {
 		},
 		clear() {
 			this.file = {}
-			this.setSidebarStatus(false)
+			this.showSidebar = false
 			this.$refs.request.clearList()
+		},
+		showModalUploadFromUrl() {
+			this.modalUploadFromUrl = true
+		},
+		closeModalUploadFromUrl() {
+			this.modalUploadFromUrl = false
+		},
+		async uploadUrl() {
+			const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					url: this.pdfUrl,
+				},
+			})
+			this.file.nodeId = response.data.id
+			this.file.name = response.data.name
+			this.showSidebar = true
+			this.closeModalUploadFromUrl()
 		},
 		async upload(file) {
 			try {
@@ -124,12 +183,10 @@ export default {
 
 				const res = await filesService.uploadFile({ name, file: data })
 
-				this.file = {
-					nodeId: res.id,
-					name: res.name,
-				}
+				this.file.nodeId = res.id
+				this.file.name = res.name
 
-				this.setSidebarStatus(true)
+				this.showSidebar = true
 				await this.validateFile(res.id)
 			} catch (err) {
 				onError(err)
@@ -152,43 +209,52 @@ export default {
 
 			input.click()
 		},
-		getFile() {
+		async getFile() {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
+				.allowDirectories(false)
 				.setMimeTypeFilter('application/pdf')
-				.setType(1)
-				.allowDirectories()
 				.build()
+			const path = await picker.pick()
+			console.log('Picked', path)
 
-			return picker.pick()
-				.then(path => {
-					OC.dialogs.filelist.forEach(async file => {
-						try {
-							const indice = path.split('/').indexOf(file.name)
+			if (!path || typeof path !== 'string' || path.trim().length === 0 || path === '/') {
+				console.log('No file has been selected')
+				return
+			}
 
-							if (!path.startsWith('/')) {
-								return
-							}
+			try {
+				// @todo WIP
+				const fileUrl = generateRemoteUrl('dav/files/' + getCurrentUser().uid + path)
+				const response = await axios.get(fileUrl)
+				console.log('response', response)
 
-							if (file.name === path.split('/')[indice]) {
-								this.file = {
-									nodeId: file.id,
-									name: file.name,
-								}
-								await this.validateFile(file.id)
-								this.setSidebarStatus(true)
-							}
-						} catch (err) {
-							onError(err)
-						}
-					})
-				})
+				await this.validateFile(response.id)
+				this.showSidebar = true
+			} catch (err) {
+				onError(err)
+			}
 		},
 	},
 }
 </script>
 
 <style lang="scss" scoped>
+.modal__content {
+	margin: 50px;
+}
+
+.modal__content h2 {
+	text-align: center;
+}
+
+.form-group {
+	margin: calc(var(--default-grid-baseline) * 4) 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
 .container{
 	display: flex;
 	flex-direction: row;
