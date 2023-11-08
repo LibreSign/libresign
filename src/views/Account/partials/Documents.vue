@@ -82,7 +82,6 @@ export default {
 				const fileFullName = await getFilePickerBuilder(t('libresign', 'Select a file'))
 					.setMultiSelect(false)
 					.allowDirectories(false)
-					.setModal(true)
 					.setType(1) // FilePickerType.Choose
 					.setMimeTypeFilter([PDF_MIME_TYPE])
 					.build()
