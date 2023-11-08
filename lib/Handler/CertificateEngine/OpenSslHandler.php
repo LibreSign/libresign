@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
 
 /**
@@ -38,6 +39,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		$configPath = $this->getConfigPath();
 		$certificate = file_get_contents($configPath . '/ca.pem');
 		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		if (empty($certificate) || empty($privateKey)) {
+			throw new LibresignException('Invalid root certificate');
+		}
 		return parent::generateCertificate($certificate, $privateKey);
 	}
 
