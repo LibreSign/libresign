@@ -99,7 +99,7 @@ trait TFile {
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
 			$mimetypeFromHeader = $response->getHeader('Content-Type');
-			$content = $response->getBody();
+			$content = (string) $response->getBody();
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
