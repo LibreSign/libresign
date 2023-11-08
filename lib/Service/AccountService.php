@@ -525,4 +525,8 @@ class AccountService {
 		unlink($file['tmp_name']);
 		$this->pkcs12Handler->savePfx($user->getUID(), $content);
 	}
+
+	public function deletePfx(IUser $user): void {
+		$this->pkcs12Handler->deletePfx($user->getUID());
+	}
 }

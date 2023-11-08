@@ -425,6 +425,17 @@ class AccountController extends ApiController {
 		);
 	}
 
+	public function deletePfx(): JSONResponse {
+		$this->accountService->deletePfx($this->userSession->getUser());
+		return new JSONResponse(
+			[
+				// TRANSLATORS Feedback to user after delete the certificate file that is used to sign documents with success
+				'message' => $this->l10n->t('Certificate file deleted with success.')
+			],
+			Http::STATUS_ACCEPTED
+		);
+	}
+
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function uploadPfx(): JSONResponse {
