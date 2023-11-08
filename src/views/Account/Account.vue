@@ -13,11 +13,17 @@
 					<div v-if="getCertificateOk" class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
 						<div class="user-display-password icon-password">
-							<NcButton v-if="!getHasPfx" @click="handleModal(true)">
-								{{ t('libresign', 'Create password key') }}
+							<NcButton @click="uploadCertificate()">
+								{{ t('libresign', 'Upload certificate') }}
 							</NcButton>
-							<NcButton v-else @click="handleModal(true)">
-								{{ t('librsign', 'Reset password') }}
+							<NcButton v-if="getHasPfx" @click="deleteCertificate()">
+								{{ t('libresign', 'Delete certificate') }}
+							</NcButton>
+							<NcButton v-if="certificateEngine !== 'none' && !getHasPfx" @click="handleModal(true)">
+								{{ t('libresign', 'Create certificate') }}
+							</NcButton>
+							<NcButton v-else-if="getHasPfx" @click="handleModal(true)">
+								{{ t('librsign', 'Change password') }}
 							</NcButton>
 						</div>
 						<NcModal v-if="modal"
@@ -44,6 +50,10 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { getCurrentUser } from '@nextcloud/auth'
+import { loadState } from '@nextcloud/initial-state'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
@@ -69,6 +79,7 @@ export default {
 		return {
 			user: getCurrentUser(),
 			modal: false,
+			certificateEngine: loadState('libresign', 'certificate_engine', ''),
 		}
 	},
 
@@ -79,6 +90,43 @@ export default {
 		}),
 	},
 	methods: {
+		uploadCertificate() {
+			const input = document.createElement('input')
+			// @todo PFX file, didn't worked, wrong code
+			input.accept = 'application/x-pkcs12'
+			input.type = 'file'
+
+			input.onchange = async (ev) => {
+				const file = ev.target.files[0]
+
+				if (file) {
+					this.doUpload(file)
+				}
+
+				input.remove()
+			}
+
+			input.click()
+		},
+		async doUpload(file) {
+			try {
+				const formData = new FormData()
+				formData.append('file', file)
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
+				showSuccess(response.data.message)
+				if (this.$store) {
+					this.$store.commit('setHasPfx', true)
+				}
+			} catch (err) {
+				showError(err.response.data.message)
+			}
+		},
+		async deleteCertificate() {
+			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
+			if (this.$store) {
+				this.$store.commit('setHasPfx', false)
+			}
+		},
 		handleModal(status) {
 			this.modal = status
 		},
@@ -87,15 +135,6 @@ export default {
 </script>
 
 <style lang="scss">
-.password-modal .modal-container{
-	width: 100%;
-	max-width: 600px;
-	max-height: 560px;
-
-	@media screen and (min-width:600px) {
-		width: 60%;
-	}
-}
 
 .container-account{
 	display: flex;
