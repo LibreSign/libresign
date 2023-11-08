@@ -3,7 +3,7 @@
 	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="(e) => e.preventDefault()">
 			<header>
-				<h1>{{ t('libresign', 'Password reset') }}</h1>
+				<h2>{{ t('libresign', 'Password reset') }}</h2>
 				<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
 			</header>
 			<div class="container">
@@ -85,6 +85,7 @@ export default {
 		flex-direction: column;
 		width: 100%;
 		max-width: 100%;
+		margin: 50px;
 		justify-content: center;
 		align-items: center;
 		text-align: center;

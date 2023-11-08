@@ -27,8 +27,6 @@
 							</NcButton>
 						</div>
 						<NcModal v-if="modal"
-							class="password-modal"
-							size="large"
 							@close="handleModal(false)">
 							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
 							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
