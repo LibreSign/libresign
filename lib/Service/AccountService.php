@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
@@ -44,6 +46,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -73,6 +76,7 @@ class AccountService {
 		private IAccountManager $accountManager,
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
+		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
 		private AccountFileMapper $accountFileMapper,
@@ -489,5 +493,36 @@ class AccountService {
 	public function deleteSignatureElement(string $userId, int $elementId): void {
 		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
+	}
+
+	/**
+	 * @throws LibresignException at savePfx
+	 * @throws InvalidArgumentException
+	 */
+	public function uploadPfx(array $file, IUser $user): void {
+		if ($file === null) {
+			throw new InvalidArgumentException($this->l10n->t('No certificate file provided'));
+		}
+		if (
+			$file['error'] !== 0 ||
+			!is_uploaded_file($file['tmp_name']) ||
+			Filesystem::isFileBlacklisted($file['tmp_name'])
+		) {
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		if ($file['size'] > 10 * 1024) {
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+		$content = file_get_contents($file['tmp_name']);
+		$mimetype = $this->mimeTypeDetector->detectString($content);
+		if ($mimetype !== 'application/octet-stream') {
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		if ($extension !== 'pfx') {
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		unlink($file['tmp_name']);
+		$this->pkcs12Handler->savePfx($user->getUID(), $content);
 	}
 }
