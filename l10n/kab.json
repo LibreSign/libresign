@@ -1,6 +1,7 @@
 { "translations": {
     "deleted" : "yettwakkes",
     "File not found" : "Ulac afaylu",
+    "File is too big" : "Afaylu-agi bezzaf meqqer",
     "Email" : "Imayl",
     "Invalid password" : "Yir awal uffir",
     "Files" : "Ifuyla",
@@ -18,7 +19,6 @@
     "Next" : "Uḍfir",
     "Previous" : "Ɣer deffir",
     "Details" : "Talqayt",
-    "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Type" : "Anaw",
     "Status" : "État",
     "Enter a password" : "Sekcem awal n uɛeddi",
@@ -30,6 +30,7 @@
     "Message" : "Izen",
     "Loading …" : "Asali ...",
     "Pending" : "Yegguni",
+    "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Remove" : "Kkes"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -9,6 +9,7 @@ OC.L10N.register(
     "File not found" : "Filen hittades inte",
     "File already exists" : "Filen existerar redan",
     "Empty file" : "Tom fil",
+    "File is too big" : "Filen är för stor",
     "Account" : "Konto",
     "Invalid user" : "Ogiltig användare",
     "Email" : "E-post",
@@ -38,7 +39,7 @@ OC.L10N.register(
     "Next" : "Nästa",
     "Previous" : "Föregående",
     "Details" : "Detaljer",
-    "Reset password" : "Återställ lösenord",
+    "Certificate" : "Certifikat",
     "Select a file" : "Välj en fil",
     "Type" : "Typ",
     "Status" : "Status",
@@ -54,6 +55,7 @@ OC.L10N.register(
     "Choose from Files" : "Välj från Filer",
     "Add users" : "Lägg till användare",
     "Password reset" : "Lösenordsåterställning",
+    "Current password" : "Nuvarande lösenord",
     "New password" : "Nytt lösenord",
     "Repeat password" : "Repetera lösenord",
     "Message" : "Meddelande",
@@ -68,6 +70,7 @@ OC.L10N.register(
     "Loading …" : "Läser in …",
     "Pending" : "Väntande",
     "No date" : "Inget datum",
+    "Reset password" : "Återställ lösenord",
     "Remove" : "Ta bort"
 },
 "nplurals=2; plural=(n != 1);");

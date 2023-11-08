@@ -12,13 +12,13 @@ OC.L10N.register(
     "Users" : "صارفین",
     "Delete" : "حذف کریں",
     "Next" : "اگلا",
-    "Reset password" : "ری سیٹ پاسورڈ",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
     "New password" : "نیا پاسورڈ",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Reset password" : "ری سیٹ پاسورڈ"
 },
 "nplurals=2; plural=(n != 1);");

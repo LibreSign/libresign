@@ -2,6 +2,7 @@
     "Success" : "Success",
     "Settings saved" : "Settings saved",
     "File not found" : "File not found",
+    "File is too big" : "File is too big",
     "Files" : "Files",
     "Settings" : "Settings",
     "Authentication required" : "Authentication required",
@@ -17,15 +18,17 @@
     "Users" : "Users",
     "Delete" : "Delete",
     "Details" : "Details",
-    "Reset password" : "Reset password",
+    "Change password" : "Change password",
     "Status" : "Status",
     "Actions" : "Actions",
     "Profile picture" : "Profil rasmi",
     "Yes" : "Yes",
     "No" : "No",
     "Password reset" : "Password reset",
+    "Current password" : "Current password",
     "New password" : "New password",
     "Pending" : "Pending",
+    "Reset password" : "Reset password",
     "Remove" : "Remove"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

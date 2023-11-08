@@ -9,6 +9,7 @@
     "File not found" : "Датотеката не е пронајдена",
     "File already exists" : "Датотека веќе постои",
     "Empty file" : "Празна датотека",
+    "File is too big" : "Датотеката е премногу голема",
     "Account" : "Сметка",
     "Invalid user" : "Неправилен корисник",
     "Email" : "Е-пошта",
@@ -39,7 +40,8 @@
     "Previous" : "Предходна",
     "Sign" : "Знак",
     "Details" : "Детали",
-    "Reset password" : "Ресетирај лозинка",
+    "Certificate" : "Сертификат",
+    "Change password" : "Смени лозинка",
     "Select a file" : "Select a file",
     "Type" : "Вид",
     "Status" : "Статус",
@@ -54,12 +56,14 @@
     "Choose from Files" : "Избери од датотеките",
     "Add users" : "Додади корисници",
     "Password reset" : "Ресетирај лозинка",
+    "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
     "Message" : "Порака",
     "Resource" : "Ресурси",
     "Loading …" : "Се вчитува…",
     "Pending" : "Чекање",
     "No date" : "No date",
+    "Reset password" : "Ресетирај лозинка",
     "Remove" : "Отстрани "
 },"pluralForm" :"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;"
 }

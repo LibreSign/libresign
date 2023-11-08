@@ -10,6 +10,7 @@ OC.L10N.register(
     "View" : "Skoða",
     "File not found" : "Skrá finnst ekki",
     "File already exists" : "Skrá er þegar til",
+    "File is too big" : "Skrá er of stór",
     "Account" : "Aðgangur",
     "Invalid user" : "Ógildur notandi",
     "Email" : "Tölvupóstur",
@@ -35,7 +36,7 @@ OC.L10N.register(
     "Next" : "Næsta",
     "Previous" : "Fyrra",
     "Details" : "Details",
-    "Reset password" : "Endursetja lykilorð",
+    "Certificate" : "Skilríki",
     "Select a file" : "Veldu skrá",
     "Type" : "Tegund",
     "Status" : "Staða",
@@ -48,6 +49,7 @@ OC.L10N.register(
     "No" : "Nei",
     "Page not found" : "Síða fannst ekki",
     "Password reset" : "Endurstilling lykilorðs",
+    "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",
     "Repeat password" : "Endurtaktu lykilorð",
     "Message" : "Skilaboð",
@@ -56,6 +58,7 @@ OC.L10N.register(
     "Loading …" : "Hleð inn …",
     "Pending" : "Í bið",
     "No date" : "Engin dagsetning",
+    "Reset password" : "Endursetja lykilorð",
     "Remove" : "Fjarlægja"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

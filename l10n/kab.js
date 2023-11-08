@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "deleted" : "yettwakkes",
     "File not found" : "Ulac afaylu",
+    "File is too big" : "Afaylu-agi bezzaf meqqer",
     "Email" : "Imayl",
     "Invalid password" : "Yir awal uffir",
     "Files" : "Ifuyla",
@@ -20,7 +21,6 @@ OC.L10N.register(
     "Next" : "Uḍfir",
     "Previous" : "Ɣer deffir",
     "Details" : "Talqayt",
-    "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Type" : "Anaw",
     "Status" : "État",
     "Enter a password" : "Sekcem awal n uɛeddi",
@@ -32,6 +32,7 @@ OC.L10N.register(
     "Message" : "Izen",
     "Loading …" : "Asali ...",
     "Pending" : "Yegguni",
+    "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Remove" : "Kkes"
 },
 "nplurals=2; plural=(n != 1);");

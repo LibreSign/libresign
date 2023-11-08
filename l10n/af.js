@@ -27,7 +27,6 @@ OC.L10N.register(
     "Next" : "Volgende",
     "Previous" : "Vorige",
     "Details" : "Besonderhede",
-    "Reset password" : "Herstel wagwoord",
     "Type" : "Tipe",
     "Status" : "Status",
     "Actions" : "Aksies",
@@ -45,6 +44,7 @@ OC.L10N.register(
     "Loading …" : "Laai …",
     "Pending" : "Hangend",
     "No date" : "Geen datum",
+    "Reset password" : "Herstel wagwoord",
     "Remove" : "Verwyder"
 },
 "nplurals=2; plural=(n != 1);");

@@ -10,6 +10,7 @@ OC.L10N.register(
     "File not found" : "Файл не знайдено",
     "File already exists" : "Файл вже існує",
     "Empty file" : "Порожній файл",
+    "File is too big" : "Файл занадто великий",
     "Account" : "Обліковий запис",
     "Invalid user" : "Неправильний користувач",
     "Email" : "Електронна пошта",
@@ -39,7 +40,7 @@ OC.L10N.register(
     "Next" : "Далі",
     "Previous" : "Назад",
     "Details" : "Деталі",
-    "Reset password" : "Перевстановити пароль",
+    "Certificate" : "Сертифікат",
     "Select a file" : "Select a file",
     "Type" : "Тип",
     "Status" : "Статус",
@@ -53,6 +54,7 @@ OC.L10N.register(
     "Page not found" : "Сторінку не знайдено",
     "Add users" : "Додати користувачів",
     "Password reset" : "Перевстановлення пароля",
+    "Current password" : "Поточний пароль",
     "New password" : "Новий пароль",
     "Repeat password" : "Повторіть пароль",
     "Message" : "Повідомлення",
@@ -61,6 +63,7 @@ OC.L10N.register(
     "Loading …" : "Завантаження …",
     "Pending" : "Очікування",
     "No date" : "Без дати",
+    "Reset password" : "Перевстановити пароль",
     "Remove" : "Вилучити"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

@@ -5,6 +5,7 @@
     "View" : "Skats",
     "File not found" : "Datne nav atrasta",
     "File already exists" : "Datne jau pastāv",
+    "File is too big" : "Datne ir par lielu",
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
@@ -30,7 +31,7 @@
     "Next" : "Nākamā",
     "Previous" : "Iepriekšējā",
     "Details" : "Detaļas",
-    "Reset password" : "Mainīt paroli",
+    "Certificate" : "Sertifikāts",
     "Select a file" : "Izvēlēties failu",
     "Type" : "Tips",
     "Status" : "Status",
@@ -42,12 +43,14 @@
     "No" : "Nē",
     "Page not found" : "Lapa nav atrasta",
     "Password reset" : "Parole atiestatīta",
+    "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",
     "Repeat password" : "Atkārtojiet paroli",
     "Message" : "Ziņojums",
     "Resource" : "Resurss",
     "Pending" : "Gaida",
     "No date" : "No date",
+    "Reset password" : "Mainīt paroli",
     "Remove" : "Noņemt"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
 }

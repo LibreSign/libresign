@@ -5,6 +5,7 @@
     "File not found" : "Faili ei leitud",
     "File already exists" : "Fail on juba olemas",
     "Empty file" : "Tühi fail",
+    "File is too big" : "Fail on liiga suur",
     "Account" : "Konto",
     "Invalid user" : "Vigane kasutaja",
     "Email" : "Epost",
@@ -30,7 +31,7 @@
     "Next" : "Järgmine",
     "Previous" : "Eelmine",
     "Details" : "Üksikasjad",
-    "Reset password" : "Lähtesta parool",
+    "Certificate" : "Sertifikaat",
     "Select a file" : "Select a file",
     "Type" : "Tüüp",
     "Status" : "Staatus",
@@ -43,12 +44,14 @@
     "No" : "Ei",
     "Page not found" : "Lehekülge ei leitud",
     "Password reset" : "Parooli taastamine ",
+    "Current password" : "Praegune parool",
     "New password" : "Uus parool",
     "Message" : "Sõnum",
     "Resource" : "Ressurss",
     "Dependencies" : "Sõltuvused",
     "Pending" : "Ootel",
     "No date" : "No date",
+    "Reset password" : "Lähtesta parool",
     "Remove" : "Eemalda"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
