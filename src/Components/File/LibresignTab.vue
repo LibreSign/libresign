@@ -62,7 +62,7 @@ export default {
 		closeSidebar() {
 			this.$emit('close')
 		},
-	}
+	},
 }
 </script>
 <style lang="scss" scoped>

@@ -26,13 +26,9 @@
 	</div>
 </template>
 <script>
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import Users from '../Components/Request/index.js'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
@@ -52,10 +48,6 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
-		NcAppSidebar,
-		NcAppSidebarTab,
-		NcEmptyContent,
-		Users,
 		File,
 		LibresignTab,
 	},
@@ -170,7 +162,7 @@ export default {
 							if (file.name === path.split('/')[indice]) {
 								this.file = {
 									nodeId: file.id,
-									name: res.name,
+									name: file.name,
 								}
 								await this.validateFile(file.id)
 								this.setSidebarStatus(true)
