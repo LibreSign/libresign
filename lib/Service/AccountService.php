@@ -509,18 +509,22 @@ class AccountService {
 			!is_uploaded_file($file['tmp_name']) ||
 			Filesystem::isFileBlacklisted($file['tmp_name'])
 		) {
+			// TRANSLATORS Error when the uploaded certificate file is not valid
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
 		}
 		if ($file['size'] > 10 * 1024) {
+			// TRANSLATORS Error when the certificate file is bigger than normal
 			throw new InvalidArgumentException($this->l10n->t('File is too big'));
 		}
 		$content = file_get_contents($file['tmp_name']);
 		$mimetype = $this->mimeTypeDetector->detectString($content);
 		if ($mimetype !== 'application/octet-stream') {
+			// TRANSLATORS Error when the mimetype of uploaded file is not valid
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
 		}
 		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 		if ($extension !== 'pfx') {
+			// TRANSLATORS Error when the certificate file is not a pfx file
 			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
 		}
 		unlink($file['tmp_name']);
