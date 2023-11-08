@@ -121,6 +121,7 @@ export default {
 		},
 		async deleteCertificate() {
 			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
+			showSuccess(response.data.message)
 			if (this.$store) {
 				this.$store.commit('setHasPfx', false)
 			}

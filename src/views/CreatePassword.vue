@@ -11,7 +11,7 @@
 					<NcPasswordField :value.sync="password" />
 				</div>
 				<button :class="hasLoading? 'btn-load loading primary btn-confirm': 'primary btn-confirm'"
-					@click="checkPasswordForConfirm">
+					@click="send">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
@@ -20,7 +20,6 @@
 </template>
 
 <script>
-import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
@@ -43,11 +42,6 @@ export default {
 		}
 	},
 	methods: {
-		checkPasswordForConfirm() {
-			confirmPassword().then(() => {
-				this.send()
-			})
-		},
 		async send() {
 			this.hasLoading = true
 			try {
