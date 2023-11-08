@@ -103,7 +103,6 @@ trait TFile {
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->validateHelper->validateBase64($content);
 			$mimeTypeFromContent = $this->getMimeType($content);
 			if ($mimetypeFromHeader !== $mimeTypeFromContent) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
