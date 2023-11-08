@@ -19,30 +19,10 @@
 				</button>
 			</div>
 		</div>
-		<NcAppSidebar v-if="getSidebarStatus"
-			ref="sidebar"
-			:class="{'app-sidebar--without-background lb-ls-root': 'lb-ls-root'}"
-			:title="file.name"
-			:active="file.name"
-			:subtitle="t('libresign', 'Enter the emails that will receive the request')"
-			:header="false"
-			name="sidebar"
-			icon="icon-rename"
-			@close="setSidebarStatus(false)">
-			<NcEmptyContent v-show="canRequest" class="empty-content">
-				<template #desc>
-					<p>
-						{{ t('libresign', 'Signatures for this document have already been requested') }}
-					</p>
-				</template>
-			</NcEmptyContent>
-			<NcAppSidebarTab v-show="!canRequest"
-				id="request"
-				:name="t('libresign', 'Add users')"
-				icon="icon-rename">
-				<Users ref="request" :fileinfo="file" @request:signatures="send" />
-			</NcAppSidebarTab>
-		</NcAppSidebar>
+		<LibresignTab v-if="getSidebarStatus"
+			:prop-file="file"
+			:prop-name="file.name"
+			@close="setSidebarStatus(false)" />
 	</div>
 </template>
 <script>
@@ -57,6 +37,7 @@ import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
+import LibresignTab from '../Components/File/LibresignTab.vue'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -76,12 +57,13 @@ export default {
 		NcEmptyContent,
 		Users,
 		File,
+		LibresignTab,
 	},
 	data() {
 		return {
 			loading: false,
 			file: {
-				id: 0,
+				nodeId: 0,
 			},
 			signers: [],
 		}
@@ -138,7 +120,10 @@ export default {
 
 				const res = await filesService.uploadFile({ name, file: data })
 
-				this.file = res
+				this.file = {
+					nodeId: res.id,
+					name: res.name,
+				}
 
 				this.setSidebarStatus(true)
 				await this.validateFile(res.id)
@@ -183,7 +168,10 @@ export default {
 							}
 
 							if (file.name === path.split('/')[indice]) {
-								this.file = file
+								this.file = {
+									nodeId: file.id,
+									name: res.name,
+								}
 								await this.validateFile(file.id)
 								this.setSidebarStatus(true)
 							}
@@ -192,9 +180,6 @@ export default {
 						}
 					})
 				})
-		},
-		changeTab(changeId) {
-			this.tabId = changeId
 		},
 	},
 }
