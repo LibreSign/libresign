@@ -2,7 +2,7 @@
 	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="e => e.preventDefault()">
 			<header>
-				<h1>{{ t('libresign', 'Password Creation') }}</h1>
+				<h2>{{ t('libresign', 'Password Creation') }}</h2>
 				<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 			</header>
 			<div class="container">
@@ -11,7 +11,7 @@
 					<NcPasswordField :value.sync="password" />
 				</div>
 				<button :class="hasLoading? 'btn-load loading primary btn-confirm': 'primary btn-confirm'"
-					@click="checkPasswordForConfirm">
+					@click="send">
 					{{ t('libresign', 'Confirm') }}
 				</button>
 			</div>
@@ -20,7 +20,6 @@
 </template>
 
 <script>
-import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
@@ -43,11 +42,6 @@ export default {
 		}
 	},
 	methods: {
-		checkPasswordForConfirm() {
-			confirmPassword().then(() => {
-				this.send()
-			})
-		},
 		async send() {
 			this.hasLoading = true
 			try {
@@ -84,6 +78,7 @@ export default {
 		flex-direction: column;
 		width: 100%;
 		max-width: 100%;
+		margin: 50px;
 		justify-content: center;
 		align-items: center;
 		text-align: center;

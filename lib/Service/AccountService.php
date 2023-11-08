@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
+use OC\Files\Filesystem;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
@@ -33,6 +35,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -44,6 +47,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
+use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
@@ -73,6 +77,7 @@ class AccountService {
 		private IAccountManager $accountManager,
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
+		private IMimeTypeDetector $mimeTypeDetector,
 		private FileMapper $fileMapper,
 		private FileTypeMapper $fileTypeMapper,
 		private AccountFileMapper $accountFileMapper,
@@ -236,6 +241,10 @@ class AccountService {
 				$newUser->getDisplayName()
 			);
 		}
+	}
+
+	public function getCertificateEngineName(): string {
+		return $this->certificateEngineHandler->getEngine()->getName();
 	}
 
 	/**
@@ -485,5 +494,55 @@ class AccountService {
 	public function deleteSignatureElement(string $userId, int $elementId): void {
 		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
+	}
+
+	/**
+	 * @throws LibresignException at savePfx
+	 * @throws InvalidArgumentException
+	 */
+	public function uploadPfx(array $file, IUser $user): void {
+		if ($file === null) {
+			throw new InvalidArgumentException($this->l10n->t('No certificate file provided'));
+		}
+		if (
+			$file['error'] !== 0 ||
+			!is_uploaded_file($file['tmp_name']) ||
+			Filesystem::isFileBlacklisted($file['tmp_name'])
+		) {
+			// TRANSLATORS Error when the uploaded certificate file is not valid
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		if ($file['size'] > 10 * 1024) {
+			// TRANSLATORS Error when the certificate file is bigger than normal
+			throw new InvalidArgumentException($this->l10n->t('File is too big'));
+		}
+		$content = file_get_contents($file['tmp_name']);
+		$mimetype = $this->mimeTypeDetector->detectString($content);
+		if ($mimetype !== 'application/octet-stream') {
+			// TRANSLATORS Error when the mimetype of uploaded file is not valid
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		if ($extension !== 'pfx') {
+			// TRANSLATORS Error when the certificate file is not a pfx file
+			throw new InvalidArgumentException($this->l10n->t('Invalid file provided. Need to be a .pfx file.'));
+		}
+		unlink($file['tmp_name']);
+		$this->pkcs12Handler->savePfx($user->getUID(), $content);
+	}
+
+	public function deletePfx(IUser $user): void {
+		$this->pkcs12Handler->deletePfx($user->getUID());
+	}
+
+	/**
+	 * @throws LibresignException when have not a certificate file
+	 */
+	public function updatePfxPassword(IUser $user, string $current, string $new): void {
+		try {
+			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
+		} catch (InvalidPasswordException $e) {
+			throw new LibresignException($this->l10n->t('Invalid user or password'));
+		}
 	}
 }

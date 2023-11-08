@@ -80,6 +80,26 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $content;
 	}
 
+	public function deletePfx(string $uid): void {
+		$this->folderService->setUserId($uid);
+		$folder = $this->folderService->getFolder();
+		try {
+			$file = $folder->get($this->pfxFilename);
+			$file->delete();
+		} catch (\Throwable $th) {
+		}
+	}
+
+	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
+		$pfx = $this->getPfx($uid);
+		$content = $this->certificateEngineHandler->getEngine()->updatePassword(
+			$pfx,
+			$currentPrivateKey,
+			$newPrivateKey
+		);
+		return $this->savePfx($uid, $content);
+	}
+
 	/**
 	 * Get content of pfx file
 	 */

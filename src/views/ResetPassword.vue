@@ -3,19 +3,23 @@
 	<NcContent app-name="libresign" class="with-sidebar--full">
 		<form @submit="(e) => e.preventDefault()">
 			<header>
-				<h1>{{ t('libresign', 'Password reset') }}</h1>
+				<h2>{{ t('libresign', 'Password reset') }}</h2>
 				<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
 			</header>
 			<div class="container">
 				<div class="input-group">
+					<label for="new-password">{{ t('libresign', 'Current password') }}</label>
+					<NcPasswordField :value.sync="currentPassword" type="password" />
+				</div>
+				<div class="input-group">
 					<label for="new-password">{{ t('libresign', 'New password') }}</label>
-					<NcPasswordField :value.sync="password" type="password" />
+					<NcPasswordField :value.sync="newPassword" type="password" />
 				</div>
 				<div class="input-group">
 					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-					<NcPasswordField :value.sync="rPassword" :has-error="!hasEqualPassword" type="password" />
+					<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
 				</div>
-				<button :disabled="!hableButton"
+				<button :disabled="!canSave"
 					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 					@click="send">
 					{{ t('libresign', 'Confirm') }}
@@ -26,7 +30,6 @@
 </template>
 
 <script>
-import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
@@ -42,29 +45,29 @@ export default {
 	},
 	data() {
 		return {
-			password: '',
+			newPassword: '',
+			currentPassword: '',
 			rPassword: '',
 			hasLoading: false,
 		}
 	},
 	computed: {
-		hableButton() {
-			return !!(this.hasEqualPassword && this.password)
+		canSave() {
+			return this.currentPassword && this.validNewPassord
 		},
-		hasEqualPassword(val) {
-			return this.password === this.rPassword
+		validNewPassord() {
+			return this.newPassword.length > 3 && this.newPassword === this.rPassword
 		},
 	},
 	methods: {
 		async send() {
-			await confirmPassword()
-
 			this.hasLoading = true
 			try {
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
-					signPassword: this.password,
+				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), {
+					current: this.currentPassword,
+					new: this.newPassword,
 				})
-				showSuccess(t('libresign', 'New password to sign documents has been created'))
+				showSuccess(response.data.message)
 				this.hasLoading = false
 				this.$emit('close', true)
 			} catch (err) {
@@ -85,6 +88,7 @@ export default {
 		flex-direction: column;
 		width: 100%;
 		max-width: 100%;
+		margin: 50px;
 		justify-content: center;
 		align-items: center;
 		text-align: center;

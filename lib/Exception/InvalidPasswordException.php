@@ -22,25 +22,7 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\Handler\CertificateEngine;
+namespace OCA\Libresign\Exception;
 
-class NoneHandler extends AEngineHandler implements IEngineHandler {
-	public function generateRootCert(
-		string $commonName,
-		array $names = [],
-	): string {
-		return '';
-	}
-
-	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
-		return '';
-	}
-
-	public function isSetupOk(): bool {
-		return true;
-	}
-
-	public function configureCheck(): array {
-		return [];
-	}
+class InvalidPasswordException extends \Exception {
 }

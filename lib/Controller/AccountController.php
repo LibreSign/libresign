@@ -24,9 +24,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
+use InvalidArgumentException;
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
@@ -420,6 +422,60 @@ class AccountController extends ApiController {
 				],
 			],
 			Http::STATUS_OK
+		);
+	}
+
+	public function deletePfx(): JSONResponse {
+		$this->accountService->deletePfx($this->userSession->getUser());
+		return new JSONResponse(
+			[
+				// TRANSLATORS Feedback to user after delete the certificate file that is used to sign documents with success
+				'message' => $this->l10n->t('Certificate file deleted with success.')
+			],
+			Http::STATUS_ACCEPTED
+		);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function uploadPfx(): JSONResponse {
+		$file = $this->request->getUploadedFile('file');
+		try {
+			$this->accountService->uploadPfx($file, $this->userSession->getUser());
+		} catch (InvalidArgumentException|LibresignException $e) {
+			return new JSONResponse(
+				[
+					'message' => $e->getMessage()
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+		return new JSONResponse(
+			[
+				// TRANSLATORS Feedback to user after upload the certificate file that is used to sign documents with success
+				'message' => $this->l10n->t('Certificate file saved with success.')
+			],
+			Http::STATUS_ACCEPTED
+		);
+	}
+
+	public function updatePfxPassword($current, $new): JSONResponse {
+		try {
+			$this->accountService->updatePfxPassword($this->userSession->getUser(), $current, $new);
+		} catch (LibresignException $e) {
+			return new JSONResponse(
+				[
+					'message' => $e->getMessage()
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+		return new JSONResponse(
+			[
+				// TRANSLATORS Feedback to user after change the certificate file that is used to sign documents with success
+				'message' => $this->l10n->t('New password to sign documents has been created')
+			],
+			Http::STATUS_ACCEPTED
 		);
 	}
 }
