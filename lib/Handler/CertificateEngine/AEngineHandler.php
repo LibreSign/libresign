@@ -26,6 +26,7 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptyRootCertificateException;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
 use OCP\Files\AppData\IAppDataFactory;
@@ -98,6 +99,19 @@ class AEngineHandler {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
 
+		return $certContent;
+	}
+
+	public function updatePassword(string $certificate = '', string $currentPrivateKey, string $newPrivateKey): string {
+		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
+			throw new EmptyRootCertificateException();
+		}
+		openssl_pkcs12_read($certificate, $certContent, $currentPrivateKey);
+		if (empty($certContent)) {
+			throw new InvalidPasswordException();
+		}
+		$this->setPassword($newPrivateKey);
+		$certContent = self::generateCertificate($certContent['cert'], $certContent['pkey']);
 		return $certContent;
 	}
 

@@ -458,4 +458,24 @@ class AccountController extends ApiController {
 			Http::STATUS_ACCEPTED
 		);
 	}
+
+	public function updatePfxPassword($current, $new): JSONResponse {
+		try {
+			$this->accountService->updatePfxPassword($this->userSession->getUser(), $current, $new);
+		} catch (LibresignException $e) {
+			return new JSONResponse(
+				[
+					'message' => $e->getMessage()
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+		return new JSONResponse(
+			[
+				// TRANSLATORS Feedback to user after change the certificate file that is used to sign documents with success
+				'message' => $this->l10n->t('New password to sign documents has been created')
+			],
+			Http::STATUS_ACCEPTED
+		);
+	}
 }

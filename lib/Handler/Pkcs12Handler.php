@@ -90,6 +90,16 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 	}
 
+	public function updatePassword(string $uid, string $currentPrivateKey, string $newPrivateKey): string {
+		$pfx = $this->getPfx($uid);
+		$content = $this->certificateEngineHandler->getEngine()->updatePassword(
+			$pfx,
+			$currentPrivateKey,
+			$newPrivateKey
+		);
+		return $this->savePfx($uid, $content);
+	}
+
 	/**
 	 * Get content of pfx file
 	 */

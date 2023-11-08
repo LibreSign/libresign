@@ -35,6 +35,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElement;
 use OCA\Libresign\Db\UserElementMapper;
+use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -528,5 +529,16 @@ class AccountService {
 
 	public function deletePfx(IUser $user): void {
 		$this->pkcs12Handler->deletePfx($user->getUID());
+	}
+
+	/**
+	 * @throws LibresignException when have not a certificate file
+	 */
+	public function updatePfxPassword(IUser $user, string $current, string $new): void {
+		try {
+			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
+		} catch (InvalidPasswordException $e) {
+			throw new LibresignException($this->l10n->t('Invalid user or password'));
+		}
 	}
 }
