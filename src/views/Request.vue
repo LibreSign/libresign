@@ -11,12 +11,18 @@
 					status="0"
 					status-text="none"
 					@sidebar="setSidebarStatus(true)" />
-				<button class="icon icon-folder" @click="getFile">
+				<NcButton @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
-				</button>
-				<button class="icon icon-upload" @click="uploadFile">
+					<template #icon>
+						<Folder :size="20" />
+					</template>
+				</NcButton>
+				<NcButton @click="uploadFile">
 					{{ t('libresign', 'Upload') }}
-				</button>
+					<template #icon>
+						<Upload :size="20" />
+					</template>
+				</NcButton>
 			</div>
 		</div>
 		<LibresignTab v-if="getSidebarStatus"
@@ -29,6 +35,9 @@
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import Upload from 'vue-material-design-icons/Upload.vue'
+import Folder from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
@@ -48,6 +57,9 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
+		NcButton,
+		Upload,
+		Folder,
 		File,
 		LibresignTab,
 	},
