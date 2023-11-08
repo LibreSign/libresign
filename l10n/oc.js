@@ -37,6 +37,7 @@ OC.L10N.register(
     "File already exists" : "Lo fichièr existís ja",
     "Invalid URL file" : "URL del fichièr invalida",
     "Empty file" : "Fichièr void",
+    "File is too big" : "Fichièr tròp pesuc",
     "You need to sign this document" : "Devètz signar aqueste document",
     "No signers." : "Cap de signaires.",
     "You must not sign this file." : "Devètz pas signar aqueste fichièr.",
@@ -80,7 +81,7 @@ OC.L10N.register(
     "Previous" : "Precedent",
     "Sign" : "Signar",
     "Details" : "Detalhs",
-    "Reset password" : "Reïnicializar senhal",
+    "Certificate" : "Certificat",
     "Select a file" : "Select a file",
     "Type" : "Tipe",
     "Status" : "Estat",
@@ -95,6 +96,7 @@ OC.L10N.register(
     "Page not found" : "Pagina pas trobada",
     "Add users" : "Apondre utilizaires",
     "Password reset" : "Reïnicializacion de senhal",
+    "Current password" : "Senhal actual",
     "New password" : "Senhal novèl",
     "Resource" : "Ressorsa",
     "Name (CN)" : "Nom (CN)",
@@ -109,6 +111,7 @@ OC.L10N.register(
     "This document is valid" : "Aqueste document es valid",
     "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
     "User created!" : "Utilizaire creat !",
+    "Reset password" : "Reïnicializar senhal",
     "Remove" : "Suprimir"
 },
 "nplurals=2; plural=(n > 1);");

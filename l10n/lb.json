@@ -17,17 +17,18 @@
     "Next" : "Weider",
     "Previous" : "Zeréck",
     "Details" : "Detailer",
-    "Reset password" : "Passwuert zréck setzen",
     "Select a file" : "Select a file",
     "Type" : "Typ",
     "Actions" : "Aktiounen",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "Momentan 't Passwuert",
     "New password" : "Neit Passwuert",
     "Resource" : "Ressource",
     "Pending" : "Ausstoend",
     "No date" : "No date",
+    "Reset password" : "Passwuert zréck setzen",
     "Remove" : "Läschen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

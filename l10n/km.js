@@ -18,16 +18,17 @@ OC.L10N.register(
     "Next" : "បន្ទាប់",
     "Previous" : "មុន",
     "Details" : "ព័ត៌មាន​លម្អិត",
-    "Reset password" : "កំណត់​ពាក្យ​សម្ងាត់​ម្ដង​ទៀត",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Profile picture" : "រូបភាព​ប្រវត្តិរូប",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Pending" : "កំពុង​រង់ចាំ",
     "No date" : "No date",
+    "Reset password" : "កំណត់​ពាក្យ​សម្ងាត់​ម្ដង​ទៀត",
     "Remove" : "ដកចេញ"
 },
 "nplurals=1; plural=0;");

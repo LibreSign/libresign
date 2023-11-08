@@ -36,7 +36,7 @@ OC.L10N.register(
     "Next" : "Næste",
     "Previous" : "Tidligere",
     "Details" : "Detaljer",
-    "Reset password" : "Nulstil kodeord",
+    "Change password" : "Skift adgangskode",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Status" : "Status",
@@ -59,6 +59,7 @@ OC.L10N.register(
     "Loading …" : "Loading …",
     "Pending" : "Afventer",
     "No date" : "No date",
+    "Reset password" : "Nulstil kodeord",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

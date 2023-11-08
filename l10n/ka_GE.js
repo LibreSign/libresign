@@ -7,6 +7,7 @@ OC.L10N.register(
     "File sharing" : "ფაილების გაზიარება",
     "File not found" : "ფაილი ვერ იქნა ნაპოვნი",
     "File already exists" : "ფაილი უკვე არსებობს",
+    "File is too big" : "ფაილი ზედმეტად დიდია",
     "Account" : "ანგარიში",
     "Invalid user" : "არასწორი მომხმარებელი",
     "Email" : "ელ-ფოსტა",
@@ -30,7 +31,7 @@ OC.L10N.register(
     "Next" : "შემდეგი",
     "Previous" : "წინა",
     "Details" : "დეტალები",
-    "Reset password" : "პაროლის შეცვლა",
+    "Certificate" : "სერტიფიკატი",
     "Select a file" : "Select a file",
     "Type" : "სახეობა",
     "Status" : "სტატუსი",
@@ -43,6 +44,7 @@ OC.L10N.register(
     "No" : "არა",
     "Page not found" : "გვერდი არაა ნაპოვნი",
     "Password reset" : "პაროლის აღდგენა",
+    "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",
     "Repeat password" : "პაროლის გამეორება",
     "Message" : "წერილი",
@@ -50,6 +52,7 @@ OC.L10N.register(
     "Dependencies" : "დამოკიდებულებები",
     "Pending" : "მოლოდინში",
     "No date" : "თარიღი არაა",
+    "Reset password" : "პაროლის შეცვლა",
     "Remove" : "წაშლა"
 },
 "nplurals=2; plural=(n!=1);");

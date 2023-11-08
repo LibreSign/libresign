@@ -6,6 +6,7 @@
     "View" : "Vizualizare",
     "File not found" : "Fișierul nu a fost găsit",
     "File already exists" : "Fișierul există deja",
+    "File is too big" : "Fișierul este prea mare",
     "Account" : "Cont",
     "Invalid user" : "Utilizator invalid",
     "Email" : "E-mail",
@@ -29,7 +30,7 @@
     "Next" : "Următorul",
     "Previous" : "Precedentul",
     "Details" : "Detalii",
-    "Reset password" : "Resetează parola",
+    "Certificate" : "Certificat",
     "Select a file" : "Select a file",
     "Type" : "Tip",
     "Status" : "Stare",
@@ -41,11 +42,13 @@
     "No" : "Nu",
     "Page not found" : "Pagina nu a fost găsită",
     "Password reset" : "Resetare parolă",
+    "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
     "Resource" : "Resursă",
     "Loading …" : "Se încarcă…",
     "Pending" : "În așteptare",
     "No date" : "No date",
+    "Reset password" : "Resetează parola",
     "Remove" : "Elimină"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"
 }

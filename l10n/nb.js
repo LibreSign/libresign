@@ -9,6 +9,7 @@ OC.L10N.register(
     "File not found" : "Filen ble ikke funnet",
     "File already exists" : "Filen finnes allerede",
     "Empty file" : "Tom fil",
+    "File is too big" : "Filen er for stor",
     "Account" : "Konto",
     "Invalid user" : "Ugyldig bruker",
     "Email" : "E-post",
@@ -38,7 +39,7 @@ OC.L10N.register(
     "Previous" : "Forrige",
     "Sign" : "Skilt",
     "Details" : "Detaljer",
-    "Reset password" : "Tilbakestill passord",
+    "Certificate" : "Sertifikat",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Status" : "Status",
@@ -51,6 +52,7 @@ OC.L10N.register(
     "No" : "Nei",
     "Page not found" : "Siden ble ikke funnet",
     "Password reset" : "Tilbakestilling av passord",
+    "Current password" : "Nåværende passord",
     "New password" : "Nytt passord",
     "Repeat password" : "Gjenta passord",
     "Message" : "Melding",
@@ -59,6 +61,7 @@ OC.L10N.register(
     "Loading …" : "Laster ...",
     "Pending" : "Venter",
     "No date" : "Ingen dato",
+    "Reset password" : "Tilbakestill passord",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

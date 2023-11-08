@@ -59,7 +59,7 @@ OC.L10N.register(
     "Previous" : "Προηγούμενο",
     "Sign" : "Υπογραφή",
     "Details" : "Λεπτομέρειες",
-    "Reset password" : "Επαναφορά συνθηματικού",
+    "Change password" : "Αλλαγή συνθηματικού",
     "Select a file" : "Select a file",
     "Type" : "Τύπος",
     "Status" : "Κατάσταση",
@@ -97,6 +97,7 @@ OC.L10N.register(
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
     "User created!" : "Ο χρήστης δημιουργήθηκε!",
+    "Reset password" : "Επαναφορά συνθηματικού",
     "Remove" : "Αφαίρεση"
 },
 "nplurals=2; plural=(n != 1);");

@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "File not found" : "Fann ikkje fila",
+    "File is too big" : "Fila er for stor",
     "Email" : "Epost",
     "Invalid password" : "Feil passord",
     "Files" : "Filer",
@@ -21,7 +22,7 @@ OC.L10N.register(
     "Next" : "Neste",
     "Previous" : "Førre",
     "Details" : "Detaljar",
-    "Reset password" : "Nullstill passord",
+    "Certificate" : "Sertifikat",
     "Select a file" : "Select a file",
     "Type" : "Type",
     "Status" : "Status",
@@ -34,10 +35,12 @@ OC.L10N.register(
     "No" : "Nei",
     "Page not found" : "Fann ikkje sida",
     "Password reset" : "Passord omstilling",
+    "Current password" : "Passord",
     "New password" : "Nytt passord",
     "Resource" : "Ressurs",
     "Pending" : "Under vegs",
     "No date" : "No date",
+    "Reset password" : "Nullstill passord",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

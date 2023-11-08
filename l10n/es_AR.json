@@ -4,6 +4,7 @@
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
     "File not found" : "Archivo no encontrado",
+    "File is too big" : "El archivo es demasiado grande.",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
@@ -31,7 +32,6 @@
     "Next" : "Siguiente",
     "Previous" : "Anterior",
     "Details" : "Detalles",
-    "Reset password" : "Restablecer contraseña",
     "Select a file" : "Select a file",
     "Type" : "Escribir",
     "Status" : "Estatus",
@@ -44,6 +44,7 @@
     "No" : "No",
     "Page not found" : "Página no encontrada",
     "Password reset" : "Restablecer contraseña",
+    "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",
     "Repeat password" : "Repetir contraseña",
     "Message" : "Mensaje",
@@ -52,6 +53,7 @@
     "Loading …" : "Cargando …",
     "Pending" : "Pendiente",
     "No date" : "Sin fecha",
+    "Reset password" : "Restablecer contraseña",
     "Remove" : "Borrar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

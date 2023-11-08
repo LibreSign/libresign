@@ -16,16 +16,17 @@ OC.L10N.register(
     "Delete" : "Padam",
     "Next" : "Seterus",
     "Previous" : "Sebelum",
-    "Reset password" : "Penetapan semula kata laluan",
     "Select a file" : "Select a file",
     "Type" : "Jenis",
     "Profile picture" : "Gambar profil",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "Kata laluan semasa",
     "New password" : "Kata laluan baru",
     "Pending" : "Dalam proses",
     "No date" : "No date",
+    "Reset password" : "Penetapan semula kata laluan",
     "Remove" : "Buang"
 },
 "nplurals=1; plural=0;");
