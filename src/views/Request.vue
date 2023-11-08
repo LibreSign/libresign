@@ -156,7 +156,6 @@ export default {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
 				.setMimeTypeFilter('application/pdf')
-				.setModal(true)
 				.setType(1)
 				.allowDirectories()
 				.build()
