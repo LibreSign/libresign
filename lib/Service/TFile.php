@@ -107,7 +107,6 @@ trait TFile {
 			if ($mimetypeFromHeader !== $mimeTypeFromContent) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
-			$this->setMimeType($mimeTypeFromContent);
 		} else {
 			$content = $this->getFileFromBase64($data['file']['base64']);
 		}
