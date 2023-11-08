@@ -137,8 +137,13 @@ class FileController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function save(string $name, array $file, array $settings = []): JSONResponse {
+	public function save(array $file, string $name = '', array $settings = []): JSONResponse {
 		try {
+			if (empty($name)) {
+				if (!empty($file['url'])) {
+					$name = rawurldecode(pathinfo($file['url'], PATHINFO_FILENAME));
+				}
+			}
 			if (empty($name)) {
 				// The name of file to sign is mandatory. This phrase is used when we do a request to API sending a file to sign.
 				throw new \Exception($this->l10n->t('Name is mandatory'));
