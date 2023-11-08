@@ -102,7 +102,7 @@ class AEngineHandler {
 		return $certContent;
 	}
 
-	public function updatePassword(string $certificate = '', string $currentPrivateKey, string $newPrivateKey): string {
+	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
 			throw new EmptyRootCertificateException();
 		}

@@ -53,7 +53,7 @@ interface IEngineHandler {
 
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string;
 
-	public function updatePassword(string $certificate = '', string $currentPrivateKey, string $newPrivateKey): string;
+	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string;
 
 	public function isSetupOk(): bool;
 
