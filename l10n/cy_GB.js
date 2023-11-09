@@ -20,6 +20,7 @@ OC.L10N.register(
     "Next" : "Nesaf",
     "Previous" : "Blaenorol",
     "Details" : "Manylion",
+    "Certificate" : "Tystysgrif",
     "Select a file" : "Select a file",
     "Type" : "Math",
     "Status" : "Statws",

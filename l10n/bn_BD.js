@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
+    "File is too big" : "ফাইল খুব বড়",
     "Email" : "ইমেইল",
     "Files" : "ফাইল",
     "Settings" : "সেটিংস",
@@ -24,6 +25,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "বর্তমান কূটশব্দ",
     "New password" : "নতুন কূটশব্দ",
     "Pending" : "মুলতুবি",
     "No date" : "No date",
