@@ -27,6 +27,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Current password" : "Hazırkı şifrə",
     "New password" : "Yeni şifrə",
     "Pending" : "Gözləmə",
     "No date" : "No date",
