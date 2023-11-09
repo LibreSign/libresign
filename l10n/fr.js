@@ -10,6 +10,8 @@ OC.L10N.register(
     "Element updated with success" : "Élément mis à jour avec succès",
     "Visible element deleted" : "Élément visible effacé",
     "Settings saved" : "Paramètres sauvegardés",
+    "Certificate file deleted with success." : "Fichier du certificat supprimé avec succès.",
+    "Certificate file saved with success." : "Fichier du certificat enregistré avec succès.",
     "New password to sign documents has been created" : "Un nouveau mot de passe pour signer des documents a été créé",
     "Name is mandatory" : "Le nom est obligatoire",
     "Notification sent with success." : "Notification envoyée avec succès.",
