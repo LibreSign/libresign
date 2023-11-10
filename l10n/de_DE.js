@@ -93,7 +93,7 @@ OC.L10N.register(
     "Visible element file must be png." : "Angezeigtes Element gelöscht",
     "Empty file" : "Leere Datei",
     "No certificate file provided" : "Keine Zertifikatsdatei bereitgestellt",
-    "Invalid file provided. Need to be a .pfx file." : "Ungültige Datei bereitgestellt. Muss eine PFX-Datei sein.",
+    "Invalid file provided. Need to be a .pfx file." : "Ungültige Datei bereitgestellt. PFX-Datei erforderlich.",
     "File is too big" : "Datei ist zu groß",
     "Invalid data to validate file" : "Ungültige Daten zum Überprüfen der Datei",
     "Invalid file identifier" : "Ungültiger Datei-Identifizierer",
