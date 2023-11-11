@@ -280,6 +280,7 @@ OC.L10N.register(
     "Reset password" : "Ripristina password",
     "Validate Document" : "Convalida documento",
     "Do you want to configure visible elements in this document?" : "Vuoi configurare gli elementi visibili in questo documento?",
+    "Advice" : "Consiglio",
     "Root certificate data." : "Dati certificato radice.",
     "Generate root certificate." : "Genera certificato radice.",
     "Remove" : "Rimuovi"
