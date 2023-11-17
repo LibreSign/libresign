@@ -18,7 +18,7 @@ OC.L10N.register(
     "Sign »%s«" : "Зареєструватися \"%s\"",
     "Files" : "Робота з файлами",
     "Settings" : "Налаштування",
-    "Authentication required" : "Необхідна авторизація",
+    "Authentication required" : "Потрібна авторизація",
     "This action requires you to confirm your password" : "Ця дія потребує підтвердження вашого пароля",
     "Password" : "Пароль",
     "Confirm" : "Підтвердити",
