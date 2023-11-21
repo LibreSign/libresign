@@ -6,12 +6,6 @@ Nextcloud app to sign PDF documents.
 
 <img src="img/LibreSign.png" />
 
-**Table of contents**
-- [Setup](#setup)
-- [Integrations](#integrations)
-- [Full documentation](#full-documentation)
-- [Contributing](#contributing)
-
 ## Setup
 
 After installing LibreSign, go to `Administration Settings > LibreSign` and:
@@ -24,10 +18,11 @@ After installing LibreSign, go to `Administration Settings > LibreSign` and:
 * [GLPI](https://github.com/LibreSign/libresign-glpi): Plugin to sign GLPI tickets
 * [Approval](https://github.com/nextcloud/approval): Approve/reject files based on workflows defined by admins
 
-## Full documentation
-
-[here](https://libresign.github.io/)
-
 ## Contributing
 
-[here](/CONTRIBUTING.md)
+There are many ways to contribute, including writing code, filing issues on GitHub, helping people Overflow, helping to triage, reproduce, or fix bugs that people have filed, adding to our documentation.
+To get more details go to our [contributing guide](CONTRIBUTING.md).
+
+## API Documentation
+
+[API Documentation](https://libresign.github.io/)
