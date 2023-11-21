@@ -7,7 +7,8 @@ Welcome
 We really appreciate everyone who would like to contribute to the LibreSign project!
 There are many ways to contribute, including writing code, filing issues on GitHub,
 helping people, assisting in triaging, reproducing, or fixing bugs that people have filed,
-and enhancing our documentation.
+and enhancing our documentation. Also giving a star to the project is a really good way
+to help.
 
 Before you get started, we encourage you to read our code of conduct, which describes our community norms:
 
