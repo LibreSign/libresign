@@ -462,7 +462,7 @@ class FileService {
 	}
 
 	public function setFileByPath(string $path): self {
-		$node = $this->getFileByPath($path);
+		$node = $this->folderService->getFileByPath($path);
 		$this->setFileByType('FileId', $node->getId());
 		return $this;
 	}

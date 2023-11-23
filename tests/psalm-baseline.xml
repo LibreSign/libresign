@@ -108,9 +108,6 @@
       <code>$this-&gt;rootFolder</code>
       <code>private</code>
     </MissingDependency>
-    <UndefinedMethod occurrences="1">
-      <code>getFileByPath</code>
-    </UndefinedMethod>
   </file>
   <file src="lib/Service/FolderService.php">
     <MissingDependency occurrences="5">
