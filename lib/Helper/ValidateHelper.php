@@ -186,6 +186,7 @@ class ValidateHelper {
 		try {
 			$fileMapper = $this->signRequestMapper->getByNodeId($nodeId);
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 		if (!empty($fileMapper)) {
 			throw new LibresignException($this->l10n->t('Already asked to sign this document'));
@@ -464,7 +465,7 @@ class ValidateHelper {
 				try {
 					$file = $this->fileMapper->getByFileId($data['file']['fileId']);
 				} catch (\Throwable) {
-                    // TODO: Add the exception
+					// TODO: Add the exception
 				}
 			}
 			if (isset($file)) {
@@ -623,6 +624,7 @@ class ValidateHelper {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
 		} catch (\Throwable) {
+            // TODO: Add the exception
 		}
 		if (!empty($exists)) {
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));

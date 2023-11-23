@@ -198,6 +198,7 @@ class InstallService {
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
 			} catch (\Throwable) {
+				// TODO: Add the exception
 			}
 			return;
 		}
@@ -211,6 +212,7 @@ class InstallService {
 				$file = $appFolder->getFile('setup-cache.json');
 				$file->delete();
 			} catch (\Throwable) {
+				// TODO: Add the exception
 			}
 			return;
 		}
@@ -341,6 +343,7 @@ class InstallService {
 			$javaFolder = $appFolder->getFolder('/libresign/java');
 			$javaFolder->delete();
 		} catch (NotFoundException) {
+			// TODO: Add the exception
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
@@ -392,6 +395,7 @@ class InstallService {
 			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException) {
+			// TODO: Add the exception
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
@@ -434,6 +438,7 @@ class InstallService {
 			$file = $appFolder->getFile($path);
 			$file->delete();
 		} catch (NotFoundException) {
+			// TODO: Add the exception
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'pdftk_path');
 	}
@@ -539,6 +544,7 @@ class InstallService {
 			$folder = $appFolder->getFolder($path);
 			$folder->delete();
 		} catch (NotFoundException) {
+			// TODO: Add the exception
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
 	}
@@ -626,6 +632,7 @@ class InstallService {
 		try {
 			$hashes = $fileObject->getContent();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 		if (empty($hashes)) {
 			throw new LibresignException(

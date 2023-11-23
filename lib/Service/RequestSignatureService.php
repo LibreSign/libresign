@@ -97,6 +97,7 @@ class RequestSignatureService {
 				}
 				return $file;
 			} catch (\Throwable) {
+                // TODO: Add the exception
 			}
 		}
 
@@ -286,6 +287,7 @@ class RequestSignatureService {
 				$this->fileElementMapper->delete($visibleElement);
 			}
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 

@@ -181,6 +181,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 		if (isset($socket) && is_resource($socket)) {
 			fclose($socket);
@@ -284,6 +285,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			$this->getClient();
 			return true;
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 		return false;
 	}

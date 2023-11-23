@@ -275,6 +275,7 @@ class AccountService {
 			$this->pkcs12Handler->getPfx($user->getUID());
 			return true;
 		} catch (\Throwable) {
+            // TODO: Add the exception
 		}
 		return false;
 	}

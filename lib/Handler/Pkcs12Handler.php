@@ -87,6 +87,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			$file = $folder->get($this->pfxFilename);
 			$file->delete();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 

@@ -295,6 +295,7 @@ class FileService {
 				$return[] = $element;
 			}
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 		return $return;
 	}

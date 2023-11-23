@@ -150,6 +150,7 @@ class Reset extends Base {
 			}
 			$delete->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -159,6 +160,7 @@ class Reset extends Base {
 			$delete->delete('libresign_identify_method')
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -168,6 +170,7 @@ class Reset extends Base {
 			$delete->delete('libresign_sign_request')
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -177,6 +180,7 @@ class Reset extends Base {
 			$delete->delete('libresign_file')
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -186,6 +190,7 @@ class Reset extends Base {
 			$delete->delete('libresign_file_element')
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -195,6 +200,7 @@ class Reset extends Base {
 			$delete->delete('libresign_user_element')
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 
@@ -206,6 +212,7 @@ class Reset extends Base {
 				->andWhere($delete->expr()->notIn('configkey', $delete->createNamedParameter(['enabled', 'installed_version'], IQueryBuilder::PARAM_STR_ARRAY)))
 				->executeStatement();
 		} catch (\Throwable) {
+			// TODO: Add the exception
 		}
 	}
 }
