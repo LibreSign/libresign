@@ -53,7 +53,7 @@ class Version8000Date20230410230327 extends SimpleMigrationStep {
 			$folder = $appFolder->getFolder('libresign-cli');
 			$folder->delete();
 		} catch (NotFoundException) {
-            // TODO: Add the exception
+			// TODO: Add the exception
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'libresign_cli_path');
 	}

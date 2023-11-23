@@ -97,7 +97,7 @@ class RequestSignatureService {
 				}
 				return $file;
 			} catch (\Throwable) {
-                // TODO: Add the exception
+				// TODO: Add the exception
 			}
 		}
 

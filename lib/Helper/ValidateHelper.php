@@ -624,7 +624,7 @@ class ValidateHelper {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
 		} catch (\Throwable) {
-            // TODO: Add the exception
+			// TODO: Add the exception
 		}
 		if (!empty($exists)) {
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));

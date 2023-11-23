@@ -169,7 +169,7 @@ class TestCase extends \Test\TestCase {
 			try {
 				$user->delete();
 			} catch (\Throwable) {
-                // TODO: Add the exception
+				// TODO: Add the exception
 			}
 		}
 	}
