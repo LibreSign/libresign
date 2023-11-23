@@ -1,6 +1,8 @@
 <template>
 	<NcAppSidebar :title="propName"
-		:subtitle="subTitle">
+		:subtitle="subTitle"
+		:active="propName"
+		@close="closeSidebar">
 		<RequestSignature :file="propFile"
 			:signers="propSigners"
 			:name="propName" />
@@ -47,10 +49,18 @@ export default {
 	},
 	computed: {
 		subTitle() {
-			return t('libresign', 'Requested by {name}, at {date}', {
-				name: this.propRequestedBy.uid,
-				date: Moment(Date.parse(this.propRequestDate)).format('LL LTS'),
-			})
+			if (this.propRequestedBy?.uid) {
+				return t('libresign', 'Requested by {name}, at {date}', {
+					name: this.propRequestedBy.uid,
+					date: Moment(Date.parse(this.propRequestDate)).format('LL LTS'),
+				})
+			}
+			return t('libresign', 'Enter who will receive the request')
+		},
+	},
+	methods: {
+		closeSidebar() {
+			this.$emit('close')
 		},
 	},
 }

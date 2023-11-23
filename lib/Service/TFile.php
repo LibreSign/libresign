@@ -45,6 +45,9 @@ trait TFile {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];
 		}
+		if (isset($data['file']['path'])) {
+			return $this->folderService->getFileByPath($data['file']['path']);
+		}
 
 		$content = $this->getFileRaw($data);
 
@@ -99,16 +102,14 @@ trait TFile {
 			}
 			$response = $this->client->newClient()->get($data['file']['url']);
 			$mimetypeFromHeader = $response->getHeader('Content-Type');
-			$content = $response->getBody();
+			$content = (string) $response->getBody();
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->validateHelper->validateBase64($content);
 			$mimeTypeFromContent = $this->getMimeType($content);
 			if ($mimetypeFromHeader !== $mimeTypeFromContent) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
-			$this->setMimeType($mimeTypeFromContent);
 		} else {
 			$content = $this->getFileFromBase64($data['file']['base64']);
 		}

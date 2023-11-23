@@ -10,53 +10,69 @@
 					:file="file"
 					status="0"
 					status-text="none"
-					@sidebar="setSidebarStatus(true)" />
-				<button class="icon icon-folder" @click="getFile">
+					@sidebar="showSidebar = true" />
+				<NcButton @click="showModalUploadFromUrl">
+					{{ t('libresign', 'Upload from URL') }}
+					<template #icon>
+						<LinkIcon :size="20" />
+					</template>
+				</NcButton>
+				<NcButton @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
-				</button>
-				<button class="icon icon-upload" @click="uploadFile">
+					<template #icon>
+						<FolderIcon :size="20" />
+					</template>
+				</NcButton>
+				<NcButton @click="uploadFile">
 					{{ t('libresign', 'Upload') }}
-				</button>
+					<template #icon>
+						<UploadIcon :size="20" />
+					</template>
+				</NcButton>
 			</div>
 		</div>
-		<NcAppSidebar v-if="getSidebarStatus"
-			ref="sidebar"
-			:class="{'app-sidebar--without-background lb-ls-root': 'lb-ls-root'}"
-			:title="file.name"
-			:active="file.name"
-			:subtitle="t('libresign', 'Enter the emails that will receive the request')"
-			:header="false"
-			name="sidebar"
-			icon="icon-rename"
-			@close="setSidebarStatus(false)">
-			<NcEmptyContent v-show="canRequest" class="empty-content">
-				<template #desc>
-					<p>
-						{{ t('libresign', 'Signatures for this document have already been requested') }}
-					</p>
-				</template>
-			</NcEmptyContent>
-			<NcAppSidebarTab v-show="!canRequest"
-				id="request"
-				:name="t('libresign', 'Add users')"
-				icon="icon-rename">
-				<Users ref="request" :fileinfo="file" @request:signatures="send" />
-			</NcAppSidebarTab>
-		</NcAppSidebar>
+		<NcModal v-if="modalUploadFromUrl"
+			@close="closeModalUploadFromUrl">
+			<div class="modal__content">
+				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
+				<div class="form-group">
+					<NcTextField :label="t('libresign', 'URL of a PDF file')"
+						:value.sync="pdfUrl">
+						<LinkIcon :size="20" />
+					</NcTextField>
+				</div>
+				<NcButton :disabled="!canUploadFronUrl"
+					type="primary"
+					@click="uploadUrl">
+					{{ t('libresign', 'Send') }}
+					<template #icon>
+						<CloudUploadIcon :size="20" />
+					</template>
+				</NcButton>
+			</div>
+		</NcModal>
+		<LibresignTab v-if="showSidebar"
+			:prop-file="file"
+			:prop-name="file.name"
+			@close="showSidebar = false" />
 	</div>
 </template>
 <script>
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import Users from '../Components/Request/index.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import LinkIcon from 'vue-material-design-icons/Link.vue'
+import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
+import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
+import LibresignTab from '../Components/File/LibresignTab.vue'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -71,38 +87,49 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
-		NcAppSidebar,
-		NcAppSidebarTab,
-		NcEmptyContent,
-		Users,
+		NcModal,
+		NcTextField,
+		NcButton,
+		LinkIcon,
+		UploadIcon,
+		CloudUploadIcon,
+		FolderIcon,
 		File,
+		LibresignTab,
 	},
 	data() {
 		return {
+			pdfUrl: '',
+			showSidebar: false,
+			modalUploadFromUrl: false,
 			loading: false,
-			file: {
-				id: 0,
-			},
+			file: {},
 			signers: [],
 		}
 	},
 	computed: {
-		...mapGetters({ getSidebarStatus: 'sidebar/getStatus', fileSigners: 'validate/getSigners' }),
+		...mapGetters({ fileSigners: 'validate/getSigners' }),
 		isEmptyFile() {
 			return Object.keys(this.file).length === 0
 		},
 		canRequest() {
 			return this.signers.length > 0
 		},
+		canUploadFronUrl() {
+			try {
+				// eslint-disable-next-line no-new
+				new URL(this.pdfUrl)
+				return true
+			} catch (e) {
+				return false
+			}
+		},
 	},
 	beforeDestroy() {
-		this.resetSidebarStatus()
 		this.resetValidateFile()
 	},
 	methods: {
 		...mapActions({
-			resetSidebarStatus: 'sidebar/RESET',
-			setSidebarStatus: 'sidebar/setStatus',
 			resetValidateFile: 'validate/RESET',
 			validateFile: 'validate/VALIDATE_BY_ID',
 		}),
@@ -125,8 +152,25 @@ export default {
 		},
 		clear() {
 			this.file = {}
-			this.setSidebarStatus(false)
+			this.showSidebar = false
 			this.$refs.request.clearList()
+		},
+		showModalUploadFromUrl() {
+			this.modalUploadFromUrl = true
+		},
+		closeModalUploadFromUrl() {
+			this.modalUploadFromUrl = false
+		},
+		async uploadUrl() {
+			const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+				file: {
+					url: this.pdfUrl,
+				},
+			})
+			this.file.nodeId = response.data.id
+			this.file.name = response.data.name
+			this.showSidebar = true
+			this.closeModalUploadFromUrl()
 		},
 		async upload(file) {
 			try {
@@ -138,9 +182,10 @@ export default {
 
 				const res = await filesService.uploadFile({ name, file: data })
 
-				this.file = res
+				this.file.nodeId = res.id
+				this.file.name = res.name
 
-				this.setSidebarStatus(true)
+				this.showSidebar = true
 				await this.validateFile(res.id)
 			} catch (err) {
 				onError(err)
@@ -163,44 +208,53 @@ export default {
 
 			input.click()
 		},
-		getFile() {
+		async getFile() {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
 				.setMultiSelect(false)
+				.allowDirectories(false)
 				.setMimeTypeFilter('application/pdf')
-				.setModal(true)
-				.setType(1)
-				.allowDirectories()
 				.build()
+			const path = await picker.pick()
 
-			return picker.pick()
-				.then(path => {
-					OC.dialogs.filelist.forEach(async file => {
-						try {
-							const indice = path.split('/').indexOf(file.name)
+			if (!path || typeof path !== 'string' || path.trim().length === 0 || path === '/') {
+				// No file has been selected
+				return
+			}
 
-							if (!path.startsWith('/')) {
-								return
-							}
-
-							if (file.name === path.split('/')[indice]) {
-								this.file = file
-								await this.validateFile(file.id)
-								this.setSidebarStatus(true)
-							}
-						} catch (err) {
-							onError(err)
-						}
-					})
+			try {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+					file: {
+						path,
+					},
+					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
-		},
-		changeTab(changeId) {
-			this.tabId = changeId
+				this.file.nodeId = response.data.id
+				this.file.name = response.data.name
+				this.showSidebar = true
+			} catch (err) {
+				onError(err)
+			}
 		},
 	},
 }
 </script>
 
 <style lang="scss" scoped>
+.modal__content {
+	margin: 50px;
+}
+
+.modal__content h2 {
+	text-align: center;
+}
+
+.form-group {
+	margin: calc(var(--default-grid-baseline) * 4) 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
 .container{
 	display: flex;
 	flex-direction: row;

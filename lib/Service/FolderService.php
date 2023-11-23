@@ -25,9 +25,11 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IConfig;
@@ -148,5 +150,14 @@ class FolderService {
 			}
 		}
 		return implode($data['settings']['separator'], $folderName);
+	}
+
+	public function getFileByPath(string $path): Node {
+		$userFolder = $this->root->getUserFolder($this->getUserId());
+		try {
+			return $userFolder->get($path);
+		} catch (NotFoundException $e) {
+			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+		}
 	}
 }
