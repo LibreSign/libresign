@@ -44,6 +44,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -88,6 +89,14 @@ class ValidateHelper {
 		$this->validateFile($data, self::TYPE_TO_SIGN);
 		if (!empty($data['file']['fileId'])) {
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
+		} elseif (!empty($data['file']['path'])) {
+			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
+			try {
+				$node = $userFolder->get($data['file']['path']);
+			} catch (NotFoundException $e) {
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+			}
+			$this->validateNotRequestedSign($node->getId());
 		}
 	}
 
@@ -107,23 +116,30 @@ class ValidateHelper {
 			}
 			return;
 		}
-		if (empty($data['file']['url']) && empty($data['file']['base64']) && empty($data['file']['fileId'])) {
-			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a base64 string or a fileID.', [$this->getTypeOfFile($type)]));
-		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a base64 string or a fileID.', [$this->getTypeOfFile($type)]));
 			}
-		}
-		if (!empty($data['file']['fileId'])) {
+		} elseif (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
 				throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 			}
 			$this->validateIfNodeIdExists((int)$data['file']['fileId'], $type);
 			$this->validateMimeTypeAcceptedByNodeId((int)$data['file']['fileId'], $type);
-		}
-		if (!empty($data['file']['base64'])) {
+		} elseif (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
+		} elseif (!empty($data['file']['path'])) {
+			if (!is_a($data['userManager'], IUser::class)) {
+				throw new LibresignException($this->l10n->t('User not found.'));
+			}
+			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
+			try {
+				$userFolder->get($data['file']['path']);
+			} catch (NotFoundException $e) {
+				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
+			}
+		} else {
+			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, base64 string, path or a fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
 

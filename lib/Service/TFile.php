@@ -45,6 +45,9 @@ trait TFile {
 			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
 			return $userFolder->getById($data['file']['fileId'])[0];
 		}
+		if (isset($data['file']['path'])) {
+			return $this->folderService->getFileByPath($data['file']['path']);
+		}
 
 		$content = $this->getFileRaw($data);
 

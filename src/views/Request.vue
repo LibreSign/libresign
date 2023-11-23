@@ -216,20 +216,22 @@ export default {
 				.setMimeTypeFilter('application/pdf')
 				.build()
 			const path = await picker.pick()
-			console.log('Picked', path)
 
 			if (!path || typeof path !== 'string' || path.trim().length === 0 || path === '/') {
-				console.log('No file has been selected')
+				// No file has been selected
 				return
 			}
 
 			try {
-				// @todo WIP
-				const fileUrl = generateRemoteUrl('dav/files/' + getCurrentUser().uid + path)
-				const response = await axios.get(fileUrl)
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+					file: {
+						path
+					},
+					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''
+				})
 				console.log('response', response)
-
-				await this.validateFile(response.id)
+				this.file.nodeId = response.data.id
+				this.file.name = response.data.name
 				this.showSidebar = true
 			} catch (err) {
 				onError(err)
