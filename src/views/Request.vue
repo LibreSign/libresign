@@ -60,8 +60,7 @@
 <script>
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import { generateOcsUrl, generateRemoteUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
+import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
@@ -225,11 +224,10 @@ export default {
 			try {
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
-						path
+						path,
 					},
-					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? ''
+					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
-				console.log('response', response)
 				this.file.nodeId = response.data.id
 				this.file.name = response.data.name
 				this.showSidebar = true
