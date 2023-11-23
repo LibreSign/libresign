@@ -68,9 +68,29 @@ class FileController extends Controller {
 		return $this->validate('FileId', $fileId);
 	}
 
-	private function validate(string $type, $identifier): JSONResponse {
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	public function validate(?string $type = null, $identifier = null): JSONResponse {
 		try {
-			$this->fileService->setFileByType($type, $identifier);
+			if (!empty($type) && !empty($identifier)) {
+				$this->fileService
+					->setFileByType($type, $identifier);
+			} elseif ($this->request->getParam('path')) {
+				$this->fileService
+					->setMe($this->userSession->getUser())
+					->setFileByPath($this->request->getParam('path'));
+			} elseif ($this->request->getParam('fileId')) {
+				$this->fileService->setFileByType(
+					'FileId',
+					$this->request->getParam('fileId')
+				);
+			} elseif ($this->request->getParam('uuid')) {
+				$this->fileService->setFileByType(
+					'Uuid',
+					$this->request->getParam('uuid')
+				);
+			}
 			$return = [];
 			$statusCode = Http::STATUS_OK;
 		} catch (LibresignException $e) {
@@ -137,13 +157,21 @@ class FileController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function save(string $name, array $file, array $settings = []): JSONResponse {
+	public function save(array $file, string $name = '', array $settings = []): JSONResponse {
 		try {
+			if (empty($name)) {
+				if (!empty($file['url'])) {
+					$name = rawurldecode(pathinfo($file['url'], PATHINFO_FILENAME));
+				}
+			}
 			if (empty($name)) {
 				// The name of file to sign is mandatory. This phrase is used when we do a request to API sending a file to sign.
 				throw new \Exception($this->l10n->t('Name is mandatory'));
 			}
-			$this->validateHelper->validateNewFile(['file' => $file]);
+			$this->validateHelper->validateNewFile([
+				'file' => $file,
+				'userManager' => $this->userSession->getUser(),
+			]);
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 
 			$node = $this->fileService->getNodeFromData([

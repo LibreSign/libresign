@@ -1,5 +1,4 @@
 /* eslint-disable valid-jsdoc */
-import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import axios from '@nextcloud/axios'
 import { deburr } from 'lodash-es'
@@ -20,7 +19,6 @@ const slugfy = val =>
  */
 const buildService = (http) => ({
 	async uploadFile({ file, name }) {
-		await confirmPassword()
 		const url = generateOcsUrl('/apps/libresign/api/v1/file')
 
 		const settings = {

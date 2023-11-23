@@ -461,6 +461,12 @@ class FileService {
 		return $imagick->getImageBlob();
 	}
 
+	public function setFileByPath(string $path): self {
+		$node = $this->folderService->getFileByPath($path);
+		$this->setFileByType('FileId', $node->getId());
+		return $this;
+	}
+
 	/**
 	 * @return array[]
 	 *
