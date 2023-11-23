@@ -56,7 +56,9 @@
     </UndefinedClass>
   </file>
   <file src="lib/Helper/ValidateHelper.php">
-    <MissingDependency occurrences="6">
+    <MissingDependency occurrences="8">
+      <code>$this-&gt;root</code>
+      <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
@@ -106,9 +108,13 @@
       <code>$this-&gt;rootFolder</code>
       <code>private</code>
     </MissingDependency>
+    <UndefinedMethod occurrences="1">
+      <code>getFileByPath</code>
+    </UndefinedMethod>
   </file>
   <file src="lib/Service/FolderService.php">
-    <MissingDependency occurrences="4">
+    <MissingDependency occurrences="5">
+      <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
       <code>$this-&gt;root</code>
