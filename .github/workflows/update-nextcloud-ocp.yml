@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - branch: main
-            ocp: master
+            ocp: stable28
 
     name: update-nextcloud-ocp-${{ matrix.ocp }}
 

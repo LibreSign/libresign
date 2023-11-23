@@ -35,14 +35,14 @@ jobs:
         coverage: ['xdebug']
         testsuite: [unit, api]
         xdebug_mode: ['debug']
-        server-versions: ['master']
+        server-versions: ['stable28']
         include:
           - php-versions: '8.0'
             databases: sqlite
             coverage: xdebug
             testsuite: default
             xdebug_mode: debug
-            server-versions: master
+            server-versions: stable28
     name: php${{ matrix.php-versions }}-${{ matrix.databases }}-${{ matrix.server-versions }}-${{ matrix.testsuite }}
 
     steps:
