@@ -127,7 +127,7 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	/**
-     * @param \Exception $exception
+	 * @param \Exception $exception
 	 * @return Response
 	 *@throws \Exception
 	 */

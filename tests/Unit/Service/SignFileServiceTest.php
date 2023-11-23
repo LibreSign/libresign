@@ -12,7 +12,6 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignMethodService;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -51,7 +50,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IEventDispatcher|MockObject $eventDispatcher;
 	private IURLGenerator|MockObject $urlGenerator;
 	private SignMethodService|MockObject $signMethod;
-    private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
 
 	public function setUp(): void {

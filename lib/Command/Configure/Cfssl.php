@@ -28,7 +28,6 @@ use InvalidArgumentException;
 use OCA\Libresign\Command\Base;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class Cfssl extends Base {
 	protected function configure(): void {

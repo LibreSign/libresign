@@ -3,7 +3,6 @@
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
-use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
@@ -21,7 +20,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CfsslHandler|MockObject $cfsslHandler;
 	private IL10N|MockObject $l10n;
 	private JSignPdfHandler|MockObject $jSignPdfHandler;
-    private CertificateEngineHandler|MockObject $certificateEngineHandler;
+	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private array $cfsslHandlerBuffer = [];
 
 	public function setUp(): void {
