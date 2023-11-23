@@ -62,7 +62,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		}
 
 		$csr = openssl_csr_new($dn, $privkey, array('digest_alg' => 'sha256'));
-		$x509 = openssl_csr_sign($csr, null, $privkey, $days = 365 * 5, array('digest_alg' => 'sha256'));
+		$x509 = openssl_csr_sign($csr, null, $privkey, 365 * 5, array('digest_alg' => 'sha256'));
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);

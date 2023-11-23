@@ -89,7 +89,7 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	private function validateWithEmail(IUser $user): void {
-		$signer = $this->getSignerFromEmail($user);
+		$this->getSignerFromEmail($user);
 		$this->throwIfAlreadySigned();
 		$this->throwIfFileNotFound();
 	}

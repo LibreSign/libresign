@@ -167,7 +167,7 @@ class SignFileController extends AEnvironmentAwareController {
 				} else {
 					$signRequest = $this->signRequestMapper->getByUuidAndUserId($uuid, $user->getUID());
 				}
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
 			$this->validateHelper->canRequestCode($signRequest);
@@ -175,7 +175,7 @@ class SignFileController extends AEnvironmentAwareController {
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode($signRequest, $user);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
-		} catch (SmsTransmissionException $e) {
+		} catch (SmsTransmissionException) {
 			// There was an error when to send SMS code to user.
 			$message = $this->l10n->t('Failed to send code.');
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;

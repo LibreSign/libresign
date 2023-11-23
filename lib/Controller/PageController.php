@@ -87,7 +87,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$this->validateHelper->canRequestSign($this->userSession->getUser());
 			$this->initialState->provideInitialState('can_request_sign', true);
-		} catch (LibresignException $th) {
+		} catch (LibresignException) {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
@@ -156,7 +156,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			$config = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],
@@ -190,7 +190,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->throwIfValidationPageNotAccessible();
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
@@ -321,7 +321,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			$config = [
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],

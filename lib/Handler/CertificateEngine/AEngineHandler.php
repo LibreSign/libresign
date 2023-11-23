@@ -95,7 +95,7 @@ class AEngineHandler {
 			if (!$certContent) {
 				throw new \Exception();
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException('Error while creating certificate file', 500);
 		}
 
@@ -176,7 +176,7 @@ class AEngineHandler {
 			if (!$folder->fileExists('/')) {
 				throw new \Exception();
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$folder = $this->appData->newFolder($this->getName() . '_config');
 		}
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');

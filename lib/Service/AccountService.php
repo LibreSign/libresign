@@ -106,7 +106,7 @@ class AccountService {
 		}
 		try {
 			$signRequest = $this->getSignRequestByUuid($data['uuid']);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('UUID not found'), 1);
 		}
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -226,7 +226,7 @@ class AccountService {
 			try {
 				$emailTemplate = $this->newUserMail->generateTemplate($newUser, false);
 				$this->newUserMail->sendMail($newUser, $emailTemplate);
-			} catch (\Exception $e) {
+			} catch (\Exception) {
 				throw new LibresignException('Unable to send the invitation', 1);
 			}
 		}
@@ -274,7 +274,7 @@ class AccountService {
 		try {
 			$this->pkcs12Handler->getPfx($user->getUID());
 			return true;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return false;
 	}
@@ -296,7 +296,7 @@ class AccountService {
 		}
 		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
 		foreach ($mountsContainingFile as $fileInfo) {
-			$nodes = $this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 		}
 		$nodes = $this->root->getById($nodeId);
 		if (empty($nodes)) {
@@ -460,7 +460,7 @@ class AccountService {
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
 			$this->folderService->getFolder($userElement->getFileId());
-		} catch (\Exception $e) {
+		} catch (\Exception) {
 			$this->userElementMapper->delete($userElement);
 			return false;
 		}
@@ -540,8 +540,8 @@ class AccountService {
 	 */
 	public function updatePfxPassword(IUser $user, string $current, string $new): void {
 		try {
-			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
-		} catch (InvalidPasswordException $e) {
+			$this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
+		} catch (InvalidPasswordException) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}

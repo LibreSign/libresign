@@ -164,7 +164,7 @@ class FileService {
 				[$this->fileMapper, 'getBy' . $type],
 				$identifier
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 		}
 		if (!$file) {
@@ -294,7 +294,7 @@ class FileService {
 				);
 				$return[] = $element;
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return $return;
 	}

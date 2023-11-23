@@ -163,12 +163,12 @@ class IdentifyMethodService {
 				$entity = $identifyMethod->getEntity();
 				$entity->setSignRequestId($signRequest->getId());
 				if ($entity->getId()) {
-					$entity = $this->identifyMethodMapper->update($entity);
+					$this->identifyMethodMapper->update($entity);
 					if ($notify) {
 						$identifyMethod->notify(false, $signRequest);
 					}
 				} else {
-					$entity = $this->identifyMethodMapper->insert($entity);
+					$this->identifyMethodMapper->insert($entity);
 					if ($notify) {
 						$identifyMethod->notify(true, $signRequest);
 					}

@@ -547,7 +547,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteSignFileIdSignRequestIdWithError() {
-		$user = $this->createUser('username', 'password');
+		$this->createUser('username', 'password');
 
 		$this->request
 			->withMethod('DELETE')
@@ -598,7 +598,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteUsingSignFileIdWithError() {
-		$user = $this->createUser('username', 'password');
+		$this->createUser('username', 'password');
 
 		$this->request
 			->withMethod('DELETE')

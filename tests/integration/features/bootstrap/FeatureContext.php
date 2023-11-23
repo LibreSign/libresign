@@ -20,7 +20,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeSuite
 	 */
 	public static function beforeSuite(BeforeSuiteScope $scope) {
-		exec('php ../../../../occ config:system:set debug --value true --type boolean', $output);
+		exec('php ../../../../occ config:system:set debug --value true --type boolean');
 	}
 
 	/**
@@ -41,7 +41,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		if (get_current_user() !== $owner['name']) {
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
 		}
-		exec($fullCommand, $output);
+		exec($fullCommand);
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
@@ -180,7 +180,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		}
 		$body = new TableNode($newBody);
 		$this->sendOCSRequest('patch', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
+		json_decode($this->response->getBody()->getContents(), true);
 	}
 
 	/**

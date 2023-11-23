@@ -93,7 +93,7 @@ class ValidateHelper {
 			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
 			try {
 				$node = $userFolder->get($data['file']['path']);
-			} catch (NotFoundException $e) {
+			} catch (NotFoundException) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 			$this->validateNotRequestedSign($node->getId());
@@ -135,7 +135,7 @@ class ValidateHelper {
 			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
 			try {
 				$userFolder->get($data['file']['path']);
-			} catch (NotFoundException $e) {
+			} catch (NotFoundException) {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 		} else {
@@ -185,7 +185,7 @@ class ValidateHelper {
 	public function validateNotRequestedSign(int $nodeId): void {
 		try {
 			$fileMapper = $this->signRequestMapper->getByNodeId($nodeId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (!empty($fileMapper)) {
 			throw new LibresignException($this->l10n->t('Already asked to sign this document'));
@@ -218,7 +218,7 @@ class ValidateHelper {
 		}
 		try {
 			$this->signRequestMapper->getById($element['signRequestId']);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('User not found for element.'));
 		}
 	}
@@ -282,7 +282,7 @@ class ValidateHelper {
 			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $user->getUID());
 			try {
 				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
 		}
@@ -302,7 +302,7 @@ class ValidateHelper {
 						'type' => $fileElement->getType(),
 					]);
 					return true;
-				} catch (\Throwable $th) {
+				} catch (\Throwable) {
 					throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 				}
 			}
@@ -321,7 +321,7 @@ class ValidateHelper {
 			if ($file->getUserId() !== $uid) {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
 			}
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			($signRequest->getFileId());
 			throw new LibresignException($this->l10n->t('Field %s does not belong to user', $documentElementId));
 		}
@@ -330,7 +330,7 @@ class ValidateHelper {
 	public function validateAccountFileIsOwnedByUser(int $nodeId, string $uid): void {
 		try {
 			$this->accountFileMapper->getByUserIdAndNodeId($uid, $nodeId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('This file is not yours'));
 		}
 	}
@@ -354,7 +354,7 @@ class ValidateHelper {
 		try {
 			$file = $this->root->getById($nodeId);
 			$file = $file[0] ?? null;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid fileID.', [$this->getTypeOfFile($type)]));
 		}
 		if (!$file) {
@@ -391,7 +391,7 @@ class ValidateHelper {
 	public function validateLibreSignNodeId(int $nodeId): void {
 		try {
 			$this->getLibreSignFileByNodeId($nodeId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid fileID'));
 		}
 	}
@@ -463,7 +463,8 @@ class ValidateHelper {
 			} elseif (!empty($data['file']['fileId'])) {
 				try {
 					$file = $this->fileMapper->getByFileId($data['file']['fileId']);
-				} catch (\Throwable $th) {
+				} catch (\Throwable) {
+                    // TODO: Add the exception
 				}
 			}
 			if (isset($file)) {
@@ -524,7 +525,7 @@ class ValidateHelper {
 	public function signerWasAssociated(array $signer): void {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->signRequestMapper->getByFileUuid($libresignFile->getUuid());
@@ -548,7 +549,7 @@ class ValidateHelper {
 	public function notSigned(array $signer): void {
 		try {
 			$libresignFile = $this->fileMapper->getByFileId();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('File not loaded'));
 		}
 		$signatures = $this->signRequestMapper->getByFileUuid($libresignFile->getUuid());
@@ -578,7 +579,7 @@ class ValidateHelper {
 	public function validateFileUuid(array $data): void {
 		try {
 			$this->fileMapper->getByUuid($data['uuid']);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Invalid UUID file'));
 		}
 	}
@@ -602,7 +603,7 @@ class ValidateHelper {
 		try {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
 			$this->fileMapper->getById($signRequest->getFileId());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],
@@ -613,7 +614,7 @@ class ValidateHelper {
 	public function validateIsSignerOfFile(int $signRequestId, int $fileId): void {
 		try {
 			$this->signRequestMapper->getByFileIdAndSignRequestId($fileId, $signRequestId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			throw new LibresignException($this->l10n->t('Signer not associated to this file'));
 		}
 	}
@@ -621,7 +622,7 @@ class ValidateHelper {
 	public function validateUserHasNoFileWithThisType(string $uid, string $type): void {
 		try {
 			$exists = $this->accountFileMapper->getByUserAndType($uid, $type);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (!empty($exists)) {
 			throw new LibresignException($this->l10n->t('A file of this type has been associated.'));

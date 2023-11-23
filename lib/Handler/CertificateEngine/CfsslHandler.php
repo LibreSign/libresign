@@ -180,7 +180,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$port = parse_url($this->getCfsslUri(), PHP_URL_PORT);
 		try {
 			$socket = fsockopen($host, $port, $errno, $errstr, 0.1);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (isset($socket) && is_resource($socket)) {
 			fclose($socket);
@@ -283,7 +283,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		try {
 			$this->getClient();
 			return true;
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		return false;
 	}

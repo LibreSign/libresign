@@ -70,7 +70,7 @@ class UserElementMapper extends QBMapper {
 		$qb = $this->getQueryBuilder($data);
 		try {
 			$row = $this->findOneQuery($qb);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$qb->andWhere(
 				$qb->expr()->eq('ue.starred', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
 			);

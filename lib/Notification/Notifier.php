@@ -77,7 +77,7 @@ class Notifier implements INotifier {
 		$parameters = $notification->getSubjectParameters();
 		try {
 			$signRequest = $this->signRequestMapper->getById($parameters['signRequest']);
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			throw new \InvalidArgumentException();
 		}
 		$notification

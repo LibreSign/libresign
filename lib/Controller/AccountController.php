@@ -274,7 +274,7 @@ class AccountController extends ApiController {
 				],
 				Http::STATUS_OK
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Elements not found')
@@ -293,7 +293,7 @@ class AccountController extends ApiController {
 				$this->accountService->getUserElementByElementId($userId, $elementId),
 				Http::STATUS_OK
 			);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
@@ -338,7 +338,7 @@ class AccountController extends ApiController {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			$this->accountService->deleteSignatureElement($userId, $elementId);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Element not found')

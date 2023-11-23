@@ -149,7 +149,7 @@ class Reset extends Base {
 				$delete->andWhere($delete->expr()->eq('user', $delete->createNamedParameter($user)));
 			}
 			$delete->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -158,7 +158,7 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_identify_method')
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -167,7 +167,7 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_sign_request')
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -176,7 +176,7 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_file')
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -185,7 +185,7 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_file_element')
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -194,7 +194,7 @@ class Reset extends Base {
 			$delete = $this->db->getQueryBuilder();
 			$delete->delete('libresign_user_element')
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 
@@ -205,7 +205,7 @@ class Reset extends Base {
 				->where($delete->expr()->eq('appid', $delete->createNamedParameter(Application::APP_ID)))
 				->andWhere($delete->expr()->notIn('configkey', $delete->createNamedParameter(['enabled', 'installed_version'], IQueryBuilder::PARAM_STR_ARRAY)))
 				->executeStatement();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 	}
 }

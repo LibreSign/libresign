@@ -61,7 +61,7 @@ abstract class AEnvironmentPageAwareController extends Controller {
 			$this->fileEntity = $this->signFileService->getFile(
 				$this->signRequestEntity->getFileId(),
 			);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],

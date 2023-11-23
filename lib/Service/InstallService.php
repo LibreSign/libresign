@@ -92,7 +92,7 @@ class InstallService {
 		if ($path) {
 			try {
 				$folder = $folder->getFolder($path);
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				$folder = $folder->newFolder($path);
 			}
 		}
@@ -176,7 +176,7 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				$file = $appFolder->newFile('setup-cache.json', '[]');
 			}
 			$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
@@ -197,7 +197,7 @@ class InstallService {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 			}
 			return;
 		}
@@ -210,7 +210,7 @@ class InstallService {
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
 				$file->delete();
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 			}
 			return;
 		}
@@ -259,7 +259,7 @@ class InstallService {
 			if (!count($progressData)) {
 				continue;
 			}
-			exec('ps -p ' . $progressData['pid'], $output, $exitCode);
+			exec('ps -p ' . $progressData['pid'], $output);
 			if (count($output) <= 1) {
 				$this->removeDownloadProgress();
 				return false;
@@ -309,7 +309,7 @@ class InstallService {
 		$hash = $this->getHash($folder, 'java', $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
 		try {
 			$compressedFile = $javaFolder->getFile($compressedFileName);
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			$compressedFile = $javaFolder->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
@@ -340,7 +340,7 @@ class InstallService {
 		try {
 			$javaFolder = $appFolder->getFolder('/libresign/java');
 			$javaFolder->delete();
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'java_path');
 	}
@@ -359,7 +359,7 @@ class InstallService {
 		$compressedFileName = 'jsignpdf-' . JSignPdfHandler::VERSION . '.zip';
 		try {
 			$compressedFile = $this->getFolder()->getFile($compressedFileName);
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$compressedFile = $this->getFolder()->newFile($compressedFileName);
 		}
 		$comporessedInternalFileName = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($compressedFile);
@@ -391,7 +391,7 @@ class InstallService {
 		try {
 			$folder = $appFolder->getFolder($path);
 			$folder->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'jsignpdf_jar_path');
 	}
@@ -405,7 +405,7 @@ class InstallService {
 
 		try {
 			$file = $this->getFolder()->getFile('pdftk');
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$file = $this->getFolder()->newFile('pdftk');
 		}
 		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
@@ -433,7 +433,7 @@ class InstallService {
 		try {
 			$file = $appFolder->getFile($path);
 			$file->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'pdftk_path');
 	}
@@ -495,7 +495,7 @@ class InstallService {
 		$appFolder = $this->getFolder();
 		try {
 			$cfsslFolder = $appFolder->getFolder('cfssl');
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			$cfsslFolder = $appFolder->newFolder('cfssl');
 		}
 		$compressedFileName = 'cfssl-' . self::CFSSL_VERSION . '-1-aarch64.pkg.tar.xz';
@@ -504,7 +504,7 @@ class InstallService {
 		$hash = '944a6c54e53b0e2ef04c9b22477eb5f637715271c74ccea9bb91d7ac0473b855';
 		try {
 			$compressedFile = $cfsslFolder->getFile($compressedFileName);
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			$compressedFile = $cfsslFolder->newFile($compressedFileName);
 		}
 
@@ -538,7 +538,7 @@ class InstallService {
 		try {
 			$folder = $appFolder->getFolder($path);
 			$folder->delete();
-		} catch (NotFoundException $e) {
+		} catch (NotFoundException) {
 		}
 		$this->config->deleteAppValue(Application::APP_ID, 'cfssl_bin');
 	}
@@ -616,7 +616,7 @@ class InstallService {
 		$hashFileName = 'checksums_' . $type . '_' . $version . '.txt';
 		try {
 			$fileObject = $folder->getFile($hashFileName);
-		} catch (NotFoundException $th) {
+		} catch (NotFoundException) {
 			$hashes = file_get_contents($checksumUrl);
 			if (!$hashes) {
 				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
@@ -625,7 +625,7 @@ class InstallService {
 		}
 		try {
 			$hashes = $fileObject->getContent();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 		}
 		if (empty($hashes)) {
 			throw new LibresignException(

@@ -65,7 +65,7 @@ class NotifyService {
 
 	private function notify(SignRequest $signRequest, array $signers = []): void {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		foreach ($identifyMethods as $methodName => $instances) {
+		foreach ($identifyMethods as $instances) {
 			$identifyMethod = array_reduce($instances, function (?IIdentifyMethod $carry, IIdentifyMethod $identifyMethod) use ($signers): ?IIdentifyMethod {
 				foreach ($signers as $signer) {
 					$key = key($signer);

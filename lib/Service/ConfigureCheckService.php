@@ -304,7 +304,7 @@ class ConfigureCheckService {
 	public function checkCertificate(): array {
 		try {
 			$return = $this->certificateEngine->getEngine()->configureCheck();
-		} catch (\Throwable $th) {
+		} catch (\Throwable) {
 			$return = [
 				(new ConfigureCheckHelper())
 					->setErrorMessage('Define the certificate engine to use')

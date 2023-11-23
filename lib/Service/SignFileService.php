@@ -239,7 +239,7 @@ class SignFileService {
 					throw new \Exception('empty');
 				}
 				$node = $node[0];
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}
 			$tempFile = $this->tempManager->getTemporaryFile('.png');
@@ -324,13 +324,13 @@ class SignFileService {
 					$this->friendlyName,
 					true
 				);
-			} catch (TypeError $e) {
+			} catch (TypeError) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
-			} catch (EmptyRootCertificateException $e) {
+			} catch (EmptyRootCertificateException) {
 				throw new LibresignException($this->l10n->t('Empty root certificate data'));
-			} catch (InvalidArgumentException $e) {
+			} catch (InvalidArgumentException) {
 				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));
-			} catch (\Throwable $th) {
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Failure on generate certificate'));
 			}
 		}
@@ -378,7 +378,7 @@ class SignFileService {
 			} else {
 				throw new \Exception('Invalid arguments');
 			}
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
 		return $libresignFile;
@@ -420,10 +420,10 @@ class SignFileService {
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
-		} catch (DoesNotExistException $th) {
+		} catch (DoesNotExistException) {
 			try {
-				$accountFile = $this->accountFileMapper->getByFileId($libresignFile->getId());
-			} catch (\Throwable $th) {
+				$this->accountFileMapper->getByFileId($libresignFile->getId());
+			} catch (\Throwable) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
 			$this->validateHelper->userCanApproveValidationDocuments($user);
@@ -573,7 +573,7 @@ class SignFileService {
 		try {
 			$fileEntity = $this->fileMapper->getByUuid($uuid);
 			$this->accountFileMapper->getByFileId($fileEntity->getId());
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],
@@ -656,7 +656,7 @@ class SignFileService {
 				try {
 					$this->accountFileMapper->getByFileId($fileEntity->getId());
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
-				} catch (DoesNotExistException $e) {
+				} catch (DoesNotExistException) {
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => $uuid])];
 				}
 				break;
