@@ -19,7 +19,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @BeforeSuite
 	 */
-	public static function beforeSuite(BeforeSuiteScope $scope) {
+	public static function beforeSuite() {
 		exec('php ../../../../occ config:system:set debug --value true --type boolean');
 	}
 

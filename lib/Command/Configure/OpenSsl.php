@@ -79,7 +79,7 @@ class OpenSsl extends Base {
 			);
 	}
 
-	protected function execute(InputInterface $input, OutputInterface $output): int {
+	protected function execute(InputInterface $input): int {
 		$names = [];
 		if (!$commonName = $input->getOption('cn')) {
 			throw new InvalidArgumentException('Invalid Comon Name');

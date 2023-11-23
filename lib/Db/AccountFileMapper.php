@@ -113,7 +113,7 @@ class AccountFileMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getUserAccountFile(array $filter = [], bool $count = false): Pagination {
+	private function getUserAccountFile(array $filter = []): Pagination {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'f.id',

@@ -127,13 +127,11 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	/**
-	 * @param Controller $controller
-	 * @param string $methodName
-	 * @param \Exception $exception
-	 * @throws \Exception
+     * @param \Exception $exception
 	 * @return Response
+	 *@throws \Exception
 	 */
-	public function afterException($controller, $methodName, \Exception $exception): Response {
+	public function afterException(\Exception $exception): Response {
 		switch (true) {
 			case $exception instanceof LibresignException:
 				if ($this->isJson($exception->getMessage())) {

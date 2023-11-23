@@ -51,8 +51,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IEventDispatcher|MockObject $eventDispatcher;
 	private IURLGenerator|MockObject $urlGenerator;
 	private SignMethodService|MockObject $signMethod;
-	private IdentifyMethodService|MockObject $identifyMethod;
-	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+    private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
 
 	public function setUp(): void {

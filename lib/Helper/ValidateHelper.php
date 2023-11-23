@@ -287,10 +287,10 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
 			}
 		}
-		$this->validateUserHasNecessaryElements($signRequest, $user, $list);
+		$this->validateUserHasNecessaryElements($signRequest, $list);
 	}
 
-	private function validateUserHasNecessaryElements(SignRequest $signRequest, IUser $user, array $list = []): void {
+	private function validateUserHasNecessaryElements(SignRequest $signRequest, array $list = []): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $signRequest): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {

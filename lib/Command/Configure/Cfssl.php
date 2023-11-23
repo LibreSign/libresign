@@ -85,7 +85,7 @@ class Cfssl extends Base {
 			);
 	}
 
-	protected function execute(InputInterface $input, OutputInterface $output): int {
+	protected function execute(InputInterface $input): int {
 		if (!$this->installService->isCfsslBinInstalled()) {
 			throw new InvalidArgumentException('CFSSL binary not found! run libresign:istall --cfssl first.');
 		}

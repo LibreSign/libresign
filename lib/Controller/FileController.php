@@ -138,7 +138,7 @@ class FileController extends Controller {
 	#[NoCSRFRequired]
 	public function getPage(string $uuid, int $page) {
 		try {
-			$page = $this->fileService->getPage($uuid, $page, $this->userSession->getUser()->getUID());
+			$page = $this->fileService->getPage($uuid, $page);
 			return new DataDisplayResponse(
 				$page,
 				Http::STATUS_OK,

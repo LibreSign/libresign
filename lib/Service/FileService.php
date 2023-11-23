@@ -425,7 +425,7 @@ class FileService {
 		return $return;
 	}
 
-	public function getPage(string $uuid, int $page, string $uid): string {
+	public function getPage(string $uuid, int $page): string {
 		$libreSignFile = $this->fileMapper->getByUuid($uuid);
 		$uid = $this->userSession->getUser()->getUID();
 		if ($libreSignFile->getUserId() !== $uid) {

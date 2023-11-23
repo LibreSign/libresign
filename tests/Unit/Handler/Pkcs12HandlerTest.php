@@ -21,8 +21,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CfsslHandler|MockObject $cfsslHandler;
 	private IL10N|MockObject $l10n;
 	private JSignPdfHandler|MockObject $jSignPdfHandler;
-	private OpenSslHandler|MockObject $openSslHandler;
-	private CertificateEngineHandler|MockObject $certificateEngineHandler;
+    private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private array $cfsslHandlerBuffer = [];
 
 	public function setUp(): void {
@@ -112,7 +111,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->config
 			->method('getAppValue')
-			->willReturnCallback(function ($appid, $key, $default) {
+			->willReturnCallback(function ($key) {
 				switch ($key) {
 					case 'add_footer': return 1;
 					case 'validation_site': return 'http://test.coop';
