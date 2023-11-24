@@ -44,7 +44,7 @@ OC.L10N.register(
     "Yes" : "a",
     "No" : "Nu",
     "Page not found" : "Pagina nu a fost găsită",
-    "Add users" : "Adaugă utilizatori",
+    "Send" : "Trimite",
     "Password reset" : "Resetare parolă",
     "Current password" : "Parola curentă",
     "New password" : "Noua parolă",
@@ -54,6 +54,7 @@ OC.L10N.register(
     "Pending" : "În așteptare",
     "No date" : "No date",
     "Reset password" : "Resetează parola",
+    "Add users" : "Adaugă utilizatori",
     "Remove" : "Elimină"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

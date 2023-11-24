@@ -45,6 +45,7 @@ OC.L10N.register(
     "Yes" : "Jah",
     "No" : "Ei",
     "Page not found" : "Lehekülge ei leitud",
+    "Send" : "Saada",
     "Password reset" : "Parooli taastamine ",
     "Current password" : "Praegune parool",
     "New password" : "Uus parool",

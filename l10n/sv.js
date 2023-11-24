@@ -53,7 +53,7 @@ OC.L10N.register(
     "No" : "Nej",
     "Page not found" : "Sidan hittades inte",
     "Choose from Files" : "Välj från Filer",
-    "Add users" : "Lägg till användare",
+    "Send" : "Skicka",
     "Password reset" : "Lösenordsåterställning",
     "Current password" : "Nuvarande lösenord",
     "New password" : "Nytt lösenord",
@@ -71,6 +71,7 @@ OC.L10N.register(
     "Pending" : "Väntande",
     "No date" : "Inget datum",
     "Reset password" : "Återställ lösenord",
+    "Add users" : "Lägg till användare",
     "Remove" : "Ta bort"
 },
 "nplurals=2; plural=(n != 1);");

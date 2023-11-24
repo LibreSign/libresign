@@ -44,6 +44,7 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Page not found" : "Lapa nav atrasta",
+    "Send" : "Sūtīt",
     "Password reset" : "Parole atiestatīta",
     "Current password" : "Pašreizējā parole",
     "New password" : "Jauna parole",

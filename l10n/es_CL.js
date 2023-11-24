@@ -42,6 +42,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "No",
     "Page not found" : "Página no encontrada",
+    "Send" : "Enviar",
     "Password reset" : "Restablecer contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Nueva contraseña",

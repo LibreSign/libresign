@@ -26,6 +26,7 @@ OC.L10N.register(
     "Enter a password" : "ໃສ່ລະຫັດຜ່ານ",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",
+    "Send" : "ສົ່ງ",
     "Password reset" : "ປ່ຽນບະຫັດຜ່ານ",
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Loading …" : "ກຳລັງໂຫຼດ",

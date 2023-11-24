@@ -22,6 +22,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "يوللا",
     "Current password" : "نۆۋەتتىكى ئىم",
     "New password" : "يېڭى ئىم",
     "Pending" : "كۈتۈۋاتىدۇ",

@@ -29,6 +29,7 @@ OC.L10N.register(
     "Signature" : "අත්සන",
     "Yes" : "ඔව්",
     "No" : "නැහැ",
+    "Send" : "යවන්න",
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Loading …" : "පූරණය වෙමින් …",

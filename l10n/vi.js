@@ -48,7 +48,7 @@ OC.L10N.register(
     "No" : "Không",
     "Page not found" : "Trang không tìm thấy",
     "Choose from Files" : "Chọn từ Tệp",
-    "Add users" : "Thêm người dùng",
+    "Send" : "Gửi",
     "Password reset" : "Đặt lại mật khẩu",
     "Current password" : "Mật khẩu cũ",
     "New password" : "Mật khẩu mới",
@@ -58,6 +58,7 @@ OC.L10N.register(
     "Pending" : "Đang dừng",
     "No date" : "No date",
     "Reset password" : "Khôi phục mật khẩu",
+    "Add users" : "Thêm người dùng",
     "Remove" : "Xoá"
 },
 "nplurals=1; plural=0;");

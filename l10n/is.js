@@ -48,6 +48,7 @@ OC.L10N.register(
     "Yes" : "Já",
     "No" : "Nei",
     "Page not found" : "Síða fannst ekki",
+    "Send" : "Senda",
     "Password reset" : "Endurstilling lykilorðs",
     "Current password" : "Núverandi lykilorð",
     "New password" : "Nýtt lykilorð",

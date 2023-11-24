@@ -50,6 +50,7 @@ OC.L10N.register(
     "No" : "Não",
     "Page not found" : "Página não encontrada",
     "Choose from Files" : "Escolher a partir dos ficheiros",
+    "Send" : "Enviar",
     "Password reset" : "Reposição da senha",
     "Current password" : "Palavra-passe atual",
     "New password" : "Nova palavra-passe",

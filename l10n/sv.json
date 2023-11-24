@@ -51,7 +51,7 @@
     "No" : "Nej",
     "Page not found" : "Sidan hittades inte",
     "Choose from Files" : "Välj från Filer",
-    "Add users" : "Lägg till användare",
+    "Send" : "Skicka",
     "Password reset" : "Lösenordsåterställning",
     "Current password" : "Nuvarande lösenord",
     "New password" : "Nytt lösenord",
@@ -69,6 +69,7 @@
     "Pending" : "Väntande",
     "No date" : "Inget datum",
     "Reset password" : "Återställ lösenord",
+    "Add users" : "Lägg till användare",
     "Remove" : "Ta bort"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

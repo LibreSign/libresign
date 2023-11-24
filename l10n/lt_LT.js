@@ -85,7 +85,7 @@ OC.L10N.register(
     "Subscription password." : "Prenumeratos slaptažodis.",
     "Could not create signature." : "Nepavyko sukurti parašo.",
     "Choose from Files" : "Pasirinkti iš failų",
-    "Add users" : "Pridėti naudotojus",
+    "Send" : "Siųsti",
     "Password reset" : "Slaptažodžio atstatymas",
     "Current password" : "Dabartinis slaptažodis",
     "New password" : "Naujas slaptažodis",
@@ -103,6 +103,7 @@ OC.L10N.register(
     "Password created!" : "Slaptažodis sukurtas!",
     "Password & Security" : "Slaptažodis ir saugumas",
     "Reset password" : "Atstatyti slaptažodį",
+    "Add users" : "Pridėti naudotojus",
     "Remove" : "Šalinti"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

@@ -17,6 +17,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "بھجیں",
     "New password" : "نیا پاسورڈ",
     "No date" : "No date",
     "Reset password" : "ری سیٹ پاسورڈ"

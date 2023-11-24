@@ -34,6 +34,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Page not found" : "Fann ikkje sida",
+    "Send" : "Send",
     "Password reset" : "Passord omstilling",
     "Current password" : "Passord",
     "New password" : "Nytt passord",

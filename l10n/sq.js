@@ -45,6 +45,7 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "Jo",
     "Page not found" : "Faqja nuk u gjet ",
+    "Send" : "Dërgo",
     "Password reset" : "Fjalkalimi u rivendos",
     "Current password" : "Fjalëkalimi aktual",
     "New password" : "Fjalëkalim i ri",

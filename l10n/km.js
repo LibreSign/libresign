@@ -24,6 +24,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "ផ្ញើ",
     "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
     "New password" : "ពាក្យ​សម្ងាត់​ថ្មី",
     "Pending" : "កំពុង​រង់ចាំ",
