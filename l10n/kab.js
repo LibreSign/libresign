@@ -27,6 +27,7 @@ OC.L10N.register(
     "Yes" : "Oui",
     "No" : "Uhu",
     "Page not found" : "Ulac asebter",
+    "Send" : "Tuzna",
     "Password reset" : "Awennez n wawal uffir",
     "New password" : "Awal uffir amaynut",
     "Message" : "Izen",

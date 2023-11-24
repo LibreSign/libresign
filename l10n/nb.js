@@ -51,6 +51,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Page not found" : "Siden ble ikke funnet",
+    "Send" : "Send",
     "Password reset" : "Tilbakestilling av passord",
     "Current password" : "Nåværende passord",
     "New password" : "Nytt passord",

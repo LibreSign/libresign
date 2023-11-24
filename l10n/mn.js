@@ -35,6 +35,7 @@ OC.L10N.register(
     "Yes" : "Тийм",
     "No" : "Үгүй",
     "Choose from Files" : "Файлаас сонгох",
+    "Send" : "илгээх",
     "Password reset" : "Нууц үг солих",
     "Current password" : "одоогийн нууц үг",
     "New password" : "шинэ нууц үг",

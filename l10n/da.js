@@ -52,7 +52,7 @@ OC.L10N.register(
     "No" : "Nej",
     "Page not found" : "Siden blev ikke fundet",
     "Choose from Files" : "Vælg fra Filer",
-    "Add users" : "Tilføj brugere",
+    "Send" : "Send",
     "Password reset" : "Nulstil adgangskode",
     "Current password" : "Nuværende password",
     "New password" : "Ny adgangskode",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "Pending" : "Afventer",
     "No date" : "No date",
     "Reset password" : "Nulstil kodeord",
+    "Add users" : "Tilføj brugere",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

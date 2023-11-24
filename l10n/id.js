@@ -41,6 +41,7 @@ OC.L10N.register(
     "Yes" : "Ya",
     "No" : "Tidak",
     "Page not found" : "Halaman tidak ditemukan",
+    "Send" : "Kirim",
     "Password reset" : "Setel ulang kata sandi",
     "Current password" : "Kata sandi saat ini",
     "New password" : "Kata sandi baru",

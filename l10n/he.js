@@ -50,6 +50,7 @@ OC.L10N.register(
     "No" : "לא",
     "Page not found" : "העמוד לא נמצא",
     "Choose from Files" : "בחר מתוך קבצים",
+    "Send" : "שליחה",
     "Password reset" : "איפוס ססמה",
     "Current password" : "ססמה נוכחית",
     "New password" : "ססמה חדשה",

@@ -31,6 +31,7 @@ OC.L10N.register(
     "Yes" : "Iawn",
     "No" : "No",
     "Page not found" : "Heb ganfod y dudalen",
+    "Send" : "Anfon",
     "New password" : "Cyfrinair newydd",
     "Resource" : "Adnodd",
     "Dependencies" : "Dibyniaethau",
