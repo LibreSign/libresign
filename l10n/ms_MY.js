@@ -22,6 +22,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "Hantar",
     "Current password" : "Kata laluan semasa",
     "New password" : "Kata laluan baru",
     "Pending" : "Dalam proses",

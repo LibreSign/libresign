@@ -75,7 +75,7 @@
     "Page not found" : "Δεν βρέθηκε η σελίδα",
     "Generate Subscription." : "Δημιουργία συνδρομής.",
     "Choose from Files" : "Επιλέξτε από τα Αρχεία",
-    "Add users" : "Προσθήκη χρηστών",
+    "Send" : "Αποστολή",
     "Select your file" : "Επιλογή αρχείου σας",
     "Password reset" : "Επαναφορά κωδικού",
     "Enter new password and then repeat it" : "Εισάγετε νέο συνθηματικό και μετά επαναλάβετέ το",
@@ -99,6 +99,7 @@
     "No date" : "Καμία ημερομηνία",
     "User created!" : "Ο χρήστης δημιουργήθηκε!",
     "Reset password" : "Επαναφορά συνθηματικού",
+    "Add users" : "Προσθήκη χρηστών",
     "Remove" : "Αφαίρεση"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

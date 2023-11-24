@@ -43,6 +43,7 @@ OC.L10N.register(
     "Yes" : "კი",
     "No" : "არა",
     "Page not found" : "გვერდი არაა ნაპოვნი",
+    "Send" : "გაგზავნა",
     "Password reset" : "პაროლის აღდგენა",
     "Current password" : "ამჟამინდელი პაროლი",
     "New password" : "ახალი პაროლი",

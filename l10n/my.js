@@ -13,7 +13,6 @@ OC.L10N.register(
     "Status" : "အခြေအနေ",
     "Password Creation" : "လျှို့ဝှက်ကုဒ် ဖန်တီးရန်",
     "Enter a password" : "စကားဝှက် ရိုက်ထည့်ပါ။",
-    "Add users" : "အသုံးပြုသူ ထည့်သွင်းရန်",
     "Name (CN)" : "အမည် (CN)",
     "CFSSL API URI" : "CFSSL API URI",
     "Config path" : "ချိန်ညှိမှု path",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
     "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
     "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
+    "Add users" : "အသုံးပြုသူ ထည့်သွင်းရန်",
     "Root certificate data." : "Root Certificate အချက်အလက်",
     "Generate root certificate." : "Root Certificate ဖန်တီးရန်။"
 },

@@ -56,7 +56,7 @@ OC.L10N.register(
     "No" : "Не",
     "Page not found" : "Страницата не е пронајдена",
     "Choose from Files" : "Избери од датотеките",
-    "Add users" : "Додади корисници",
+    "Send" : "Прати",
     "Password reset" : "Ресетирај лозинка",
     "Current password" : "Моментална лозинка",
     "New password" : "Нова лозинка",
@@ -66,6 +66,7 @@ OC.L10N.register(
     "Pending" : "Чекање",
     "No date" : "No date",
     "Reset password" : "Ресетирај лозинка",
+    "Add users" : "Додади корисници",
     "Remove" : "Отстрани "
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

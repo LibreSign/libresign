@@ -5,8 +5,8 @@ OC.L10N.register(
     "Settings saved" : "設定が保存されました",
     "draft" : "下書き",
     "deleted" : "削除しました",
-    "No user data" : "ユーザーデータなし",
     "User not found." : "ユーザーが見つかりません。",
+    "No user data" : "ユーザーデータなし",
     "Invalid email" : "無効なメール",
     "Invalid code." : "無効なコード。",
     "File sharing" : "ファイル共有",
@@ -64,7 +64,7 @@ OC.L10N.register(
     "No" : "いいえ",
     "Page not found" : "ページが見つかりません",
     "Choose from Files" : "ファイルから選択",
-    "Add users" : "ユーザーを追加",
+    "Send" : "送信",
     "Select your file" : "あなたのファイルを選択",
     "Password reset" : "パスワードのリセット",
     "Current password" : "現在のパスワード",
@@ -81,6 +81,7 @@ OC.L10N.register(
     "User created!" : "ユーザーが作成しました！",
     "Password created!" : "パスワードが作成しました！",
     "Reset password" : "パスワードをリセット",
+    "Add users" : "ユーザーを追加",
     "Remove" : "削除"
 },
 "nplurals=1; plural=0;");

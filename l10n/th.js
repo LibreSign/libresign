@@ -45,6 +45,7 @@ OC.L10N.register(
     "Yes" : "ใช่",
     "No" : "ไม่",
     "Page not found" : "ไม่พบหน้า",
+    "Send" : "ส่ง",
     "Password reset" : "ตั้งรหัสผ่านใหม่",
     "Current password" : "รหัสผ่านปัจจุบัน",
     "New password" : "รหัสผ่านใหม่",
