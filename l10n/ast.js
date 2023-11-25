@@ -23,6 +23,7 @@ OC.L10N.register(
     "Signature" : "Firma",
     "Yes" : "Sí",
     "No" : "Non",
+    "Send" : "Unviar",
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",
     "Optional attributes" : "Atributos opcionales",
