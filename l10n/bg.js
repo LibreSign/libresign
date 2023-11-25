@@ -217,6 +217,7 @@ OC.L10N.register(
     "Request Signatures" : "Искане на подписи",
     "Choose the file to request signatures." : "Изберете файла, за да поискате подписи.",
     "Choose from Files" : "Избор от Файлове",
+    "Send" : "Изпращане",
     "Select your file" : "Изберете вашия файл ",
     "Password reset" : "Възстановяване на парола",
     "Enter new password and then repeat it" : "Въведете нова парола и след това я повторете",
