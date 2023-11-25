@@ -39,6 +39,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nee",
     "Page not found" : "Blad nie gevind nie",
+    "Send" : "Stuur",
     "Password reset" : "Wagwoord herstel",
     "Current password" : "Huidige wagwoord",
     "New password" : "Nuwe wagwoord",
