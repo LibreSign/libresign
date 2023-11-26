@@ -68,6 +68,7 @@ OC.L10N.register(
     "Downloading binaries" : "Laddar ned binärer",
     "Binaries downloaded" : "Binärer nedladdade",
     "Loading …" : "Läser in …",
+    "All Files" : "Alla filer",
     "Pending" : "Väntande",
     "No date" : "Inget datum",
     "Reset password" : "Återställ lösenord",
