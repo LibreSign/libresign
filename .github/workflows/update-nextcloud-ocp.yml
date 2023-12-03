@@ -29,10 +29,10 @@ jobs:
           ref: ${{ matrix.branch }}
           submodules: true
 
-      - name: Set up php8.2
+      - name: Set up php8.0
         uses: shivammathur/setup-php@81cd5ae0920b34eef300e1775313071038a53429 # v2
         with:
-          php-version: 8.2
+          php-version: 8.0
           extensions: ctype,curl,dom,fileinfo,gd,intl,json,mbstring,openssl,pdo_sqlite,posix,sqlite,xml,zip
           coverage: none
         env:
