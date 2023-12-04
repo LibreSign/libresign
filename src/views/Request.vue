@@ -5,7 +5,12 @@
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
-			<div class="container-buttons">
+			<div class="container-buttons" v-if="loading">
+				<NcLoadingIcon :size="64" name="Loading" />
+				<p>{{ t('libresign', 'Upload file') }}</p>
+
+			</div>
+			<div class="container-buttons" v-if="!loading">
 				<File v-show="!isEmptyFile"
 					:file="file"
 					status="0"
@@ -70,6 +75,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
@@ -101,6 +107,7 @@ export default {
 		NcButton,
 		NcNoteCard,
 		LinkIcon,
+		NcLoadingIcon,
 		UploadIcon,
 		NcLoadingIcon,
 		CloudUploadIcon,
@@ -150,6 +157,7 @@ export default {
 		}),
 		async send(users) {
 			try {
+				this.loading = true
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					file: { fileId: this.file.id },
 					name: this.file.name.split('.pdf')[0],
@@ -161,8 +169,10 @@ export default {
 					})),
 				})
 				this.clear()
+				this.loading = false
 			} catch {
 				console.error('error')
+				this.loading = false
 			}
 		},
 		clear() {
@@ -193,26 +203,26 @@ export default {
 			}
 			await this.closeModalUploadFromUrl()
 			this.showSidebar = true
+			this.loading = false
 			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
 		async upload(file) {
 			try {
+				this.loading = true
 				const { name: original } = file
-
 				const name = original.split('.').slice(0, -1).join('.')
-
 				const data = await loadFileToBase64(file)
-
 				const res = await filesService.uploadFile({ name, file: data })
-
 				this.file.nodeId = res.id
 				this.file.name = res.name
 
 				this.showSidebar = true
 				await this.validateFile(res.id)
+				this.loading = false
 			} catch (err) {
 				onError(err)
+				this.loading = false
 			}
 		},
 		uploadFile() {
@@ -248,6 +258,7 @@ export default {
 			}
 
 			try {
+				this.loading = true
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
 						path,
@@ -257,8 +268,10 @@ export default {
 				this.file.nodeId = response.data.id
 				this.file.name = response.data.name
 				this.showSidebar = true
+				this.loading = false
 			} catch (err) {
 				onError(err)
+				this.loading = false
 			}
 		},
 	},
