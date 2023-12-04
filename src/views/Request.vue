@@ -5,7 +5,7 @@
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
-			<div class="content-request">
+			<div class="container-buttons">
 				<File v-show="!isEmptyFile"
 					:file="file"
 					status="0"
@@ -46,7 +46,8 @@
 						<LinkIcon :size="20" />
 					</NcTextField>
 				</div>
-				<NcButton :disabled="!canUploadFronUrl"
+				<NcButton
+					:disabled="!canUploadFronUrl"
 					type="primary"
 					@click="uploadUrl">
 					{{ t('libresign', 'Send') }}
@@ -289,10 +290,23 @@ export default {
 	height: 100%;
 }
 
+.container-buttons {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr 1fr 1fr;
+	grid-gap: 10px;
+	justify-content: space-evenly;
+  justify-items: center;
+  align-content: space-evenly;
+  align-items: center;
+}
+
 .container-request {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	margin-left: 10px;
+	margin-right: 10px;
 	justify-content: center;
 	width: 100%;
 	max-width: 100%;
