@@ -15,6 +15,7 @@ OC.L10N.register(
     "Account" : "Aðgangur",
     "Invalid user" : "Ógildur notandi",
     "Email" : "Tölvupóstur",
+    "User already exists" : "Notandi er þegar til",
     "Files" : "Skrár",
     "Settings" : "Stillingar",
     "Authentication required" : "Auðkenningar krafist",
