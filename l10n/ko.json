@@ -21,6 +21,7 @@
     "partially signed" : "부분 서명됨",
     "signed" : "서명됨",
     "deleted" : "삭제됨",
+    "pending" : "보류 중",
     "Password to sign not defined. Create a password to sign." : "서명할 암호가 정의되지 않았습니다. 서명할 암호를 만드십시오.",
     "Invalid Sign engine." : "잘못된 서명 엔진입니다.",
     "Digital signed by LibreSign." : "LibreSign이 디지털 서명했습니다.",
