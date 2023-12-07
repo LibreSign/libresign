@@ -118,7 +118,7 @@ class ValidateHelper {
 		}
 		if (!empty($data['file']['url'])) {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
-				throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a base64 string or a fileID.', [$this->getTypeOfFile($type)]));
+				throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, a Base64 string or a fileID.', [$this->getTypeOfFile($type)]));
 			}
 		} elseif (!empty($data['file']['fileId'])) {
 			if (!is_numeric($data['file']['fileId'])) {
@@ -139,7 +139,7 @@ class ValidateHelper {
 				throw new LibresignException($this->l10n->t('Invalid data to validate file'), 404);
 			}
 		} else {
-			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, base64 string, path or a fileID.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Specify a URL, Base64 string, path or a fileID.', [$this->getTypeOfFile($type)]));
 		}
 	}
 
@@ -159,17 +159,17 @@ class ValidateHelper {
 		if (count($withMime) === 2) {
 			$withMime[0] = explode(';', $withMime[0]);
 			if (count($withMime[0]) !== 2) {
-				throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 			if ($withMime[0][0] !== 'data:application/pdf' || $withMime[0][1] !== 'base64') {
-				throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+				throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 			}
 			$base64 = $withMime[1];
 		}
 		$string = base64_decode($base64);
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
-			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 		}
 
 		$mimeType = $this->mimeTypeDetector->detectString($string);
@@ -178,7 +178,7 @@ class ValidateHelper {
 			($type === self::TYPE_TO_SIGN && $mimeType !== 'application/pdf')
 			|| (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF]) && $mimeType !== 'image/png')
 		) {
-			throw new LibresignException($this->l10n->t('File type: %s. Invalid base64 file.', [$this->getTypeOfFile($type)]));
+			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
 		}
 	}
 

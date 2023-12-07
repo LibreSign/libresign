@@ -241,7 +241,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testValidateInvalidBase64File() {
-		$this->expectExceptionMessage('Invalid base64 file');
+		$this->expectExceptionMessage('Invalid Base64 file');
 
 		$user = $this->createMock(\OCP\IUser::class);
 		$this->getValidateHelper()->validateFile([
@@ -256,7 +256,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	 */
 	public function testValidateBase64($base64, $type, $valid) {
 		if (!$valid) {
-			$this->expectExceptionMessage('Invalid base64 file');
+			$this->expectExceptionMessage('Invalid Base64 file');
 		}
 		$return = $this->getValidateHelper()->validateBase64($base64, $type);
 		$this->assertNull($return);
