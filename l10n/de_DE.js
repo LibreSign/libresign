@@ -38,7 +38,7 @@ OC.L10N.register(
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Dateityp: %s. Eine URL, Base64-Zeichenfolge oder Datei-ID angeben.",
     "File type: %s. Invalid fileID." : "Dateityp: %s. Ungültige Datei-ID.",
     "User not found." : "Konto nicht gefunden.",
-    "File type: %s. Specify a URL, base64 string, path or a fileID." : "Dateityp: %s. Geben Sie eine URL, einen base64 string, Pfad oder eine  fileID an.",
+    "File type: %s. Specify a URL, base64 string, path or a fileID." : "Dateityp: %s. Geben Sie eine URL, einen Base64-String, Pfad oder eine fileID an.",
     "document to sign" : "Dokument zum Signieren",
     "visible element" : "Sichtbares Element",
     "File type: %s. Invalid base64 file." : "Dateityp: %s. Ungültige Base64-Datei.",
