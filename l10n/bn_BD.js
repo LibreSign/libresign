@@ -25,6 +25,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "পাঠাও",
     "Current password" : "বর্তমান কূটশব্দ",
     "New password" : "নতুন কূটশব্দ",
     "Pending" : "মুলতুবি",

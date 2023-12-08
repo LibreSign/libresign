@@ -35,6 +35,7 @@ OC.L10N.register(
     "Enter a password" : "Ebarzhiñ ar ger-tremen",
     "Yes" : "Ya",
     "No" : "Nann",
+    "Send" : "Kas",
     "Password reset" : "Ger-tremen cheñchet",
     "Current password" : "Ger-tremen hiziv",
     "New password" : "Ger-tremen nevez",
