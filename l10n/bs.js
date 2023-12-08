@@ -27,6 +27,7 @@ OC.L10N.register(
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
+    "Send" : "Pošalji",
     "Current password" : "Trenutna lozinka",
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
