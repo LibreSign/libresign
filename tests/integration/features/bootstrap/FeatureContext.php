@@ -294,7 +294,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 					break;
 				}
 			}
-			Assert::assertTrue($found, 'Notifications count does not match');
+			if (!$found) {
+				throw new Exception('Notification not found: ' . json_encode($expected));
+			}
 		}
 	}
 }
