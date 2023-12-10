@@ -38,7 +38,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
 		$fullCommand = 'php ' . $console . ' ' . $command;
-		if (get_current_user() !== $owner['name']) {
+		if (posix_getuid() !== $owner['uid']) {
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
 		}
 		exec($fullCommand, $output);
@@ -93,18 +93,40 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		list($fullUrl, $options) = parent::beforeRequest($fullUrl, $options);
+		$options = $this->parseFormParams($options);
 		$fullUrl = $this->parseText($fullUrl);
 		return [$fullUrl, $options];
+	}
+
+	protected function parseFormParams(array $options): array {
+		if (!empty($options['form_params'])) {
+			$this->parseTextRcursive($options['form_params']);
+		}
+		return $options;
+	}
+
+	private function parseTextRcursive(&$array): array {
+		array_walk_recursive($array, function (&$value) {
+			if (is_string($value)) {
+				$value = $this->parseText($value);
+			} elseif ($value instanceof \stdClass) {
+				$value = (array) $value;
+				$value = json_decode(json_encode($this->parseTextRcursive($value)));
+			}
+		});
+		return $array;
 	}
 
 	protected function parseText(string $text): string {
 		$patterns = [
 			'/<SIGN_UUID>/',
 			'/<FILE_UUID>/',
+			'/<BASE_URL>/',
 		];
 		$replacements = [
 			$this->signer['sign_uuid'] ?? null,
 			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
+			$this->baseUrl . '/index.php',
 		];
 		$text = preg_replace($patterns, $replacements, $text);
 		return $text;
@@ -254,7 +276,27 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			Assert::assertCount(0, $data);
 			return;
 		}
-
-		Assert::assertCount(count($data), $body, 'Notifications count does not match');
+		$expectedValues = $body->getColumnsHash();
+		foreach ($expectedValues as $expected) {
+			ksort($expected);
+			$found = false;
+			foreach ($data as $actual) {
+				$actualIntersect = array_filter(
+					$actual,
+					function ($k) use ($expected) {
+						return isset($expected[$k]);
+					},
+					ARRAY_FILTER_USE_KEY,
+				);
+				ksort($actualIntersect);
+				if ($expected === $actualIntersect) {
+					$found = true;
+					break;
+				}
+			}
+			if (!$found) {
+				throw new Exception('Notification not found: ' . json_encode($expected));
+			}
+		}
 	}
 }
