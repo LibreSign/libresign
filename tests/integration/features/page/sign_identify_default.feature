@@ -13,7 +13,7 @@ Feature: page/sign_identify_default
     And the response should have a status code 200
     And user signer1 has the following notifications
       | app       | object_type | object_id | subject                         |
-      | libresign | sign        | pdf       | There is a file for you to sign |
+      | libresign | sign        | document  | There is a file for you to sign |
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
@@ -68,7 +68,7 @@ Feature: page/sign_identify_default
     And the response should have a status code 200
     And user signer1 has the following notifications
       | app       | object_type | object_id | subject                         |
-      | libresign | sign        | pdf       | There is a file for you to sign |
+      | libresign | sign        | document  | There is a file for you to sign |
     And as user "signer1"
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200

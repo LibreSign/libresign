@@ -16,6 +16,7 @@ return array_merge_recursive(
 	$routes,
 	include(__DIR__ . '/routes/routesAccountController.php'),
 	include(__DIR__ . '/routes/routesAdminController.php'),
+	include(__DIR__ . '/routes/routesDevelopController.php'),
 	include(__DIR__ . '/routes/routesFileController.php'),
 	include(__DIR__ . '/routes/routesFileElementsController.php'),
 	include(__DIR__ . '/routes/routesIdentifyAccountController.php'),
