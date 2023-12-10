@@ -16,12 +16,12 @@
 					status="0"
 					status-text="none"
 					@sidebar="showSidebar = true" />
-				<NcButton @click="showModalUploadFromUrl">
-					{{ t('libresign', 'Upload from URL') }}
-					<template #icon>
-						<LinkIcon :size="20" />
-					</template>
-				</NcButton>
+				<!-- <NcButton @click="showModalUploadFromUrl"> -->
+				<!-- 	{{ t('libresign', 'Upload from URL') }} -->
+				<!-- 	<template #icon> -->
+				<!-- 		<LinkIcon :size="20" /> -->
+				<!-- 	</template> -->
+				<!-- </NcButton> -->
 				<NcButton @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
