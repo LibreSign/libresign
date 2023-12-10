@@ -109,7 +109,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function validateToSign(?IUser $user = null): void {
-		$this->requireAuthenticatedUser($user);
+		$this->throwIfNotAuthenticated($user);
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$this->validateWithAccount($user);
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
@@ -187,7 +187,7 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
-	private function requireAuthenticatedUser(?IUser $user = null): void {
+	private function throwIfNotAuthenticated(?IUser $user = null): void {
 		if (!$user instanceof IUser) {
 			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
