@@ -8,7 +8,6 @@
 			<div class="container-buttons" v-if="loading">
 				<NcLoadingIcon :size="64" name="Loading" />
 				<p>{{ t('libresign', 'Upload file') }}</p>
-
 			</div>
 			<div class="container-buttons" v-if="!loading">
 				<File v-show="!isEmptyFile"
@@ -66,7 +65,9 @@
 		<LibresignTab v-if="showSidebar"
 			:prop-file="file"
 			:prop-name="file.name"
-			@close="showSidebar = false" />
+			@close="showSidebar = false"
+			class="file-viwer"
+		/>
 	</div>
 </template>
 <script>
@@ -285,6 +286,14 @@ export default {
 
 .modal__content h2 {
 	text-align: center;
+}
+
+.file-viwer {
+	display: grid;
+  grid-gap: 10px;
+  justify-content: center;
+  align-content: baseline;
+  width: 100%;
 }
 
 .form-group {
