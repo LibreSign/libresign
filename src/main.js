@@ -25,6 +25,8 @@ import Vue from 'vue'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import XccPdfEditor from 'xcc-pdf-editor'
+import VueSignaturePad from 'vue-signature-pad';
 
 import './plugins/vuelidate.js'
 import './init.js'
@@ -51,6 +53,11 @@ __webpack_nonce__ = btoa(getRequestToken())
 // We do not want the index.php since we're loading files
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
+
+sync(store, router)
+
+Vue.use(XccPdfEditor)
+Vue.use(VueSignaturePad)
 
 Vue.prototype.t = t
 Vue.prototype.n = n

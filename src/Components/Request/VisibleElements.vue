@@ -28,40 +28,21 @@
 				</button>
 			</Sidebar>
 		</div>
-		<div class="image-page">
-			<!-- <canvas ref="canvas" :width="page.resolution.w" :height="page.resolution.h" /> -->
-			<!-- <div :style="{ width: `${page.resolution.w}px`, height: `${page.resolution.h}px`, background: 'red' }">
-				<img :src="page.url">
-			</div> -->
-			<PageNavigation v-model="currentSigner.element.coordinates.page"
-				:pages="document.pages"
-				:width="pageDimensions.css.width" />
-			<div class="image-page--main">
-				<div class="image-page--container"
-					:style="{ '--page-img-w': pageDimensions.css.width, '--page-img-h': pageDimensions.css.height }">
-					<DragResize v-if="hasSignerSelected"
-						parent-limitation
-						:is-active="true"
-						:is-resizable="true"
-						:w="currentSigner.element.coordinates.width"
-						:h="currentSigner.element.coordinates.height"
-						:x="currentSigner.element.coordinates.left"
-						:y="currentSigner.element.coordinates.top"
-						@resizing="resize"
-						@dragging="resize">
-						<div class="image-page--element">
-							{{ currentSigner.displayName }}
-						</div>
-						<div class="image-page--action">
-							<button class="primary" @click="saveElement">
-								{{ t('libresign', editingElement ? 'Update' : 'Save') }}
-							</button>
-						</div>
-					</DragResize>
-					<img ref="img" :src="page.url">
-				</div>
-			</div>
+		<div
+			v-if="loading"
+			class="image-page">
+			<NcLoadingIcon :size="64" name="Loading" />
+			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
+		<div class="image-page" v-if="!loading">
+			<Drawing />
+			<VuePdf
+				style="height: 100vh;"
+				:pdf="url"
+				:config="configPdf"
+			/>
+		</div>
+	</div>
 	</NcModal>
 </template>
 
@@ -70,16 +51,18 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import DragResize from 'vue-drag-resize'
+import "vue-pdf-app/dist/icons/main.css";
+import VuePdf from "vue-pdf-app";
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import Sidebar from './SignDetail/partials/Sidebar.vue'
-import PageNavigation from './SignDetail/partials/PageNavigation.vue'
 import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import Drawing from '../../Components/PdfEditor/Drawing.vue'
 
 const emptyElement = () => {
 	return {
@@ -110,10 +93,11 @@ export default {
 	name: 'VisibleElements',
 	components: {
 		NcModal,
-		DragResize,
 		Sidebar,
-		PageNavigation,
 		Chip,
+		NcLoadingIcon,
+		VuePdf,
+		Drawing,
 	},
 	props: {
 		file: {
@@ -124,14 +108,25 @@ export default {
 	},
 	data() {
 		return {
+      url: '',
+      documentError: undefined,
+      enableUploader: false,
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
+		  initFileName: 'document.pdf',
+      initFile:'',
+      textFields: ["Ok"],
+      imageUrls: [],
+      configPdf: {
+      	toolbar: false,
+      },
 			document: {
 				id: '',
 				name: '',
 				signers: [],
 				pages: [],
 				visibleElements: [],
+				loading: false,
 			},
 			modal: false,
 			currentSigner: emptySignerData(),
@@ -196,6 +191,14 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer')
 	},
 	methods: {
+		onDocumentErrored(e) {
+      this.documentError = e.text;
+    },
+		save2Upload(payload){
+      console.log(payload.pdfBytes);
+      console.log(payload.fileName);
+      console.log(payload.sealInfo);
+    },
 		showModal() {
 			if (!this.canRequestSign) {
 				return
@@ -289,11 +292,17 @@ export default {
 		},
 		async loadDocument() {
 			try {
+				this.loading = true
 				this.signers = []
-				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
-				this.document = this.document.data
+ 				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+ 				console.log(document.data)
+ 				this.url = document.data.file
+				this.document = document.data
 				this.updateSigners()
+				this.loading = false
 			} catch (err) {
+				this.documentError = err
+				this.loading = false
 				this.onError(err)
 			}
 		},
