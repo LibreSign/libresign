@@ -24,6 +24,7 @@ OC.L10N.register(
     "signed" : "unterschrieben",
     "deleted" : "gelöscht",
     "Identification Document" : "Ausweis",
+    "pending" : "Ausstehend",
     "Password to sign not defined. Create a password to sign." : "Passwort zum Unterschreiben nicht definiert. Erstelle ein Passwort für die Unterschrift.",
     "Invalid Sign engine." : "Ungültige Signier-Engine",
     "Digital signed by LibreSign." : "Digital signiert durch LibreSign.",
