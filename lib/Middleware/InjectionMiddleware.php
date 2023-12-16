@@ -150,10 +150,22 @@ class InjectionMiddleware extends Middleware {
 						: $exception->getCode()
 				);
 			case $exception instanceof PageException:
-				$this->initialState->provideInitialState('config', json_decode($exception->getMessage(), true));
+				if ($this->isJson($exception->getMessage())) {
+					$this->initialState->provideInitialState('config', json_decode($exception->getMessage(), true));
+				} else {
+					$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
+				}
 
 				Util::addScript(Application::APP_ID, 'libresign-external');
-				$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
+				$response = new TemplateResponse(
+					Application::APP_ID,
+					'external',
+					[],
+					TemplateResponse::RENDER_AS_BASE,
+					$exception->getCode() === 0
+						? AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
+						: $exception->getCode()
+				);
 
 				$policy = new ContentSecurityPolicy();
 				$policy->addAllowedFrameDomain('\'self\'');
