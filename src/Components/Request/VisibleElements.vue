@@ -35,13 +35,28 @@
 			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
 		<div class="image-page" v-if="!loading">
-			<Drawing />
-			<VuePdf
-				style="height: 100vh;"
-				:pdf="url"
-				:config="configPdf"
+			<XccPdfEditor
+    			width="100%"
+    			height="100%"
+    			:show-choose-file-btn="true" 
+    			:show-customize-editor="true"
+    			:show-customize-editor-add-text="true"
+    			:show-customize-editor-add-img="true"
+    			:show-customize-editor-add-draw="true"
+    			:show-line-size-select = 'false'
+    			:show-font-size-select= 'false'
+    			:show-font-select="false"
+    			:show-rename="true"
+    			:show-save-btn="false"
+    			:save-to-upload="true"
+    			:init-file-src="url"
+    			:init-file-name="initFileName"
+    			:init-image-scale ="0.2"
+    			:seal-image-show="true"
+    			:seal-image-hidden-on-save="true"
+    			@onSave2Upload="save"
 			/>
-		</div>
+			</div>
 	</div>
 	</NcModal>
 </template>
@@ -181,6 +196,9 @@ export default {
 		signerFileUuid() {
 			return get(this.document, ['settings', 'signerFileUuid'])
 		},
+		save(data) {
+			console.log(data)
+		}
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
