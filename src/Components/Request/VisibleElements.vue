@@ -28,36 +28,33 @@
 				</button>
 			</Sidebar>
 		</div>
-		<div
-			v-if="loading"
+		<div v-if="loading"
 			class="image-page">
 			<NcLoadingIcon :size="64" name="Loading" />
 			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
-		<div class="image-page" v-if="!loading">
-			<XccPdfEditor
-    			width="100%"
-    			height="100%"
-    			:show-choose-file-btn="true" 
-    			:show-customize-editor="true"
-    			:show-customize-editor-add-text="true"
-    			:show-customize-editor-add-img="true"
-    			:show-customize-editor-add-draw="true"
-    			:show-line-size-select = 'false'
-    			:show-font-size-select= 'false'
-    			:show-font-select="false"
-    			:show-rename="true"
-    			:show-save-btn="false"
-    			:save-to-upload="true"
-    			:init-file-src="url"
-    			:init-file-name="initFileName"
-    			:init-image-scale ="0.2"
-    			:seal-image-show="true"
-    			:seal-image-hidden-on-save="true"
-    			@onSave2Upload="save"
-			/>
-			</div>
-	</div>
+		<div v-if="!loading" class="image-page">
+			<XccPdfEditor width="100%"
+				height="100%"
+				:show-choose-file-btn="true"
+				:show-customize-editor="true"
+				:show-customize-editor-add-text="true"
+				:show-customize-editor-add-img="true"
+				:show-customize-editor-add-draw="true"
+				:show-line-size-select="false"
+				:show-font-size-select="false"
+				:show-font-select="false"
+				:show-rename="true"
+				:show-save-btn="false"
+				:save-to-upload="true"
+				:init-file-src="url"
+				:init-file-name="initFileName"
+				:init-image-scale="0.2"
+				:seal-image-show="true"
+				:seal-image-hidden-on-save="true"
+				@onSave2Upload="save" />
+		</div>
+		</div>
 	</NcModal>
 </template>
 
@@ -66,8 +63,8 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import "vue-pdf-app/dist/icons/main.css";
-import VuePdf from "vue-pdf-app";
+import 'vue-pdf-app/dist/icons/main.css'
+import VuePdf from 'vue-pdf-app'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
@@ -123,18 +120,18 @@ export default {
 	},
 	data() {
 		return {
-      url: '',
-      documentError: undefined,
-      enableUploader: false,
+			url: '',
+			documentError: undefined,
+			enableUploader: false,
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
 		  initFileName: 'document.pdf',
-      initFile:'',
-      textFields: ["Ok"],
-      imageUrls: [],
-      configPdf: {
+			initFile: '',
+			textFields: ['Ok'],
+			imageUrls: [],
+			configPdf: {
       	toolbar: false,
-      },
+			},
 			document: {
 				id: '',
 				name: '',
@@ -198,7 +195,7 @@ export default {
 		},
 		save(data) {
 			console.log(data)
-		}
+		},
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
@@ -210,13 +207,13 @@ export default {
 	},
 	methods: {
 		onDocumentErrored(e) {
-      this.documentError = e.text;
-    },
-		save2Upload(payload){
-      console.log(payload.pdfBytes);
-      console.log(payload.fileName);
-      console.log(payload.sealInfo);
-    },
+			this.documentError = e.text
+		},
+		save2Upload(payload) {
+			console.log(payload.pdfBytes)
+			console.log(payload.fileName)
+			console.log(payload.sealInfo)
+		},
 		showModal() {
 			if (!this.canRequestSign) {
 				return

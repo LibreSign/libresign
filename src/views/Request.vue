@@ -5,11 +5,11 @@
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
-			<div class="container-buttons" v-if="loading">
+			<div v-if="loading" class="container-buttons">
 				<NcLoadingIcon :size="64" name="Loading" />
 				<p>{{ t('libresign', 'Upload file') }}</p>
 			</div>
-			<div class="container-buttons" v-if="!loading">
+			<div v-if="!loading" class="container-buttons">
 				<File v-show="!isEmptyFile"
 					:file="file"
 					status="0"
@@ -50,8 +50,7 @@
 						<LinkIcon :size="20" />
 					</NcTextField>
 				</div>
-				<NcButton
-					:disabled="!canUploadFronUrl"
+				<NcButton :disabled="!canUploadFronUrl"
 					type="primary"
 					@click="uploadUrl">
 					{{ t('libresign', 'Send') }}
@@ -65,9 +64,8 @@
 		<LibresignTab v-if="showSidebar"
 			:prop-file="file"
 			:prop-name="file.name"
-			@close="showSidebar = false"
 			class="file-viwer"
-		/>
+			@close="showSidebar = false" />
 	</div>
 </template>
 <script>
@@ -290,10 +288,10 @@ export default {
 
 .file-viwer {
 	display: grid;
-  grid-gap: 10px;
-  justify-content: center;
-  align-content: baseline;
-  width: 100%;
+	grid-gap: 10px;
+	justify-content: center;
+	align-content: baseline;
+	width: 100%;
 }
 
 .form-group {
@@ -318,9 +316,9 @@ export default {
 	grid-template-rows: 1fr 1fr 1fr;
 	grid-gap: 10px;
 	justify-content: space-evenly;
-  justify-items: center;
-  align-content: space-evenly;
-  align-items: center;
+	justify-items: center;
+	align-content: space-evenly;
+	align-items: center;
 }
 
 .container-request {

@@ -241,10 +241,10 @@ export default {
 
 .file-viwer {
 	display: grid;
-  grid-gap: 10px;
-  justify-content: center;
-  align-content: baseline;
-  width: 100%;
+	grid-gap: 10px;
+	justify-content: center;
+	align-content: baseline;
+	width: 100%;
 }
 
 .form-group {
@@ -269,9 +269,9 @@ export default {
 	grid-template-rows: 1fr 1fr 1fr;
 	grid-gap: 10px;
 	justify-content: space-evenly;
-  justify-items: center;
-  align-content: space-evenly;
-  align-items: center;
+	justify-items: center;
+	align-content: space-evenly;
+	align-items: center;
 }
 
 .container-request {
