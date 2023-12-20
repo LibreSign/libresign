@@ -13,6 +13,7 @@ OC.L10N.register(
     "Save" : "Guardar",
     "Signatures" : "Firmes",
     "Name" : "Nome",
+    "No recommendations. Start typing." : "Nun hai nenguna recomendación. Comienza a escribir",
     "Searching …" : "Buscando…",
     "Description" : "Descripción",
     "Add" : "Amestar",
