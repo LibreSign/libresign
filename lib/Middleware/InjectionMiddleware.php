@@ -31,7 +31,6 @@ use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
@@ -177,7 +176,7 @@ class InjectionMiddleware extends Middleware {
 		if ($exception->getCode() === 0) {
 			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
 		}
-		return $exception->getCode();
+		return (int) $exception->getCode();
 	}
 
 	protected function isJson(string $string): bool {
