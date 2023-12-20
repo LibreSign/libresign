@@ -99,6 +99,12 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			throw new $exception($message, $code);
 		} catch (\Throwable $exception) {
 		}
+		if ($exception instanceof PageException) {
+			$this->request
+				->method('getHeader')
+				->with('Accept')
+				->willReturn('text/html');
+		}
 		$injectionMiddleware = $this->getInjectionMiddleware();
 		$actual = $injectionMiddleware->afterException($controller, $methodName, $exception);
 		$expected($this, $message, $code, $actual);
@@ -162,6 +168,30 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$self->assertJsonStringEqualsJsonString(
 						json_encode(['message' => $message]),
 						$states['libresign-error'],
+						'Invalid response params content'
+					);
+					$self->assertEquals(
+						$code,
+						$actual->getStatus(),
+						'Invalid response status code'
+					);
+				},
+			],
+			[
+				json_encode(['action' => 100]), 1, PageException::class,
+				function (self $self, $message, int $code, $actual) {
+					/** @var TemplateResponse $actual */
+					$self->assertInstanceOf(
+						TemplateResponse::class,
+						$actual,
+						'The response need to be TemplateResponse'
+					);
+					$states = $self->initialStateService->getInitialStates();
+					$self->assertJsonStringEqualsJsonString(
+						json_encode([
+							'libresign-action' => '100',
+						]),
+						json_encode($states),
 						'Invalid response params content'
 					);
 					$self->assertEquals(
