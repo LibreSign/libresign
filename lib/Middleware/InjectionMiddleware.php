@@ -31,7 +31,6 @@ use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Exception\PageException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
@@ -134,38 +133,40 @@ class InjectionMiddleware extends Middleware {
 	 * @return Response
 	 */
 	public function afterException($controller, $methodName, \Exception $exception): Response {
-		switch (true) {
-			case $exception instanceof LibresignException:
-				if ($this->isJson($exception->getMessage())) {
-					$body = json_decode($exception->getMessage());
-				} else {
-					$body = [
-						'message' => $exception->getMessage(),
-					];
+		if (str_contains($this->request->getHeader('Accept'), 'html')) {
+			if ($this->isJson($exception->getMessage())) {
+				foreach (json_decode($exception->getMessage(), true) as $key => $value) {
+					$this->initialState->provideInitialState($key, $value);
 				}
-				return new JSONResponse(
-					data: $body,
-					statusCode: $this->getStatusCodeFromException($exception)
-				);
-			case $exception instanceof PageException:
-				if ($this->isJson($exception->getMessage())) {
-					$this->initialState->provideInitialState('config', json_decode($exception->getMessage(), true));
-				} else {
-					$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
-				}
+			} else {
+				$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
+			}
 
-				Util::addScript(Application::APP_ID, 'libresign-external');
-				$response = new TemplateResponse(
-					appName: Application::APP_ID,
-					templateName: 'external',
-					renderAs: TemplateResponse::RENDER_AS_BASE,
-					status: $this->getStatusCodeFromException($exception)
-				);
+			Util::addScript(Application::APP_ID, 'libresign-external');
+			$response = new TemplateResponse(
+				appName: Application::APP_ID,
+				templateName: 'external',
+				renderAs: TemplateResponse::RENDER_AS_BASE,
+				status: $this->getStatusCodeFromException($exception)
+			);
 
-				$policy = new ContentSecurityPolicy();
-				$policy->addAllowedFrameDomain('\'self\'');
-				$response->setContentSecurityPolicy($policy);
-				return $response;
+			$policy = new ContentSecurityPolicy();
+			$policy->addAllowedFrameDomain('\'self\'');
+			$response->setContentSecurityPolicy($policy);
+			return $response;
+		}
+		if ($exception instanceof LibresignException) {
+			if ($this->isJson($exception->getMessage())) {
+				$body = json_decode($exception->getMessage());
+			} else {
+				$body = [
+					'message' => $exception->getMessage(),
+				];
+			}
+			return new JSONResponse(
+				data: $body,
+				statusCode: $this->getStatusCodeFromException($exception)
+			);
 		}
 
 		throw $exception;
@@ -175,7 +176,7 @@ class InjectionMiddleware extends Middleware {
 		if ($exception->getCode() === 0) {
 			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
 		}
-		return $exception->getCode();
+		return (int) $exception->getCode();
 	}
 
 	protected function isJson(string $string): bool {
