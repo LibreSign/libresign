@@ -45,6 +45,25 @@ Feature: request-signature
       | action | 200              |
       | errors | ["Invalid user"] |
 
+  Scenario: Request to sign with error when the user is not authenticated
+    Given as user "admin"
+    And reset notifications of user "signer1"
+    And my inbox is empty
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer1"}}] |
+      | name | document |
+    Then the response should have a status code 200
+    And as user "signer1"
+    And I fetch the signer UUID from notification
+    And as user ""
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value                                     |
+      | action | 100                                       |
+      | errors | ["You are not logged in. Please log in."] |
+
   Scenario: Request to sign with error when the authenticated user have an email different of signer
     Given as user "admin"
     And reset notifications of user "signer1"
