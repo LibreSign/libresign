@@ -25,6 +25,26 @@ Feature: request-signature
       | key      | value             |
       | message  | Name is mandatory |
 
+  Scenario: Request to sign with error using different authenticated account
+    Given as user "admin"
+    And set the email of user "signer1" to "signer1@domain.test"
+    And reset notifications of user "signer1"
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer1"}}] |
+      | name | document |
+    And the response should have a status code 200
+    And as user "signer1"
+    And I fetch the signer UUID from notification
+    And user "signer2" exists
+    And as user "signer2"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value            |
+      | action | 200              |
+      | errors | ["Invalid user"] |
+
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
     And set the email of user "signer1" to "signer1@domain.test"
