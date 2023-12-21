@@ -34,7 +34,7 @@
 			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
 		<div v-if="!loading" class="image-page">
-			<XccPdfEditor width="100%"
+			<VuePdfEditor width="100%"
 				height="100%"
 				:show-choose-file-btn="true"
 				:show-customize-editor="true"
@@ -47,24 +47,23 @@
 				:show-rename="true"
 				:show-save-btn="false"
 				:save-to-upload="true"
-				:init-file-src="url"
+				:init-file-src="url
 				:init-file-name="initFileName"
 				:init-image-scale="0.2"
 				:seal-image-show="true"
 				:seal-image-hidden-on-save="true"
-				@onSave2Upload="save" />
+				@onSave2Upload="save2Upload" />
 		</div>
 		</div>
 	</NcModal>
 </template>
-
 <script>
+
+
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import 'vue-pdf-app/dist/icons/main.css'
-import VuePdf from 'vue-pdf-app'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
@@ -74,7 +73,6 @@ import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import Drawing from '../../Components/PdfEditor/Drawing.vue'
 
 const emptyElement = () => {
 	return {
@@ -108,8 +106,6 @@ export default {
 		Sidebar,
 		Chip,
 		NcLoadingIcon,
-		VuePdf,
-		Drawing,
 	},
 	props: {
 		file: {

@@ -44,19 +44,15 @@
     "lodash": "^4.17.11",
     "lodash-es": "^4.17.21",
     "marked": "^11.1.1",
-    "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^2.0.943",
     "style-loader": "^3.3.3",
     "vue": "^2.7.16",
     "vue-advanced-cropper": "^1.11.6",
     "vue-drag-resize": "^1.5.4",
     "vue-material-design-icons": "^5.2.0",
-    "vue-pdf-app": "^2.1.0",
     "vue-router": "^3.6.5",
     "vuelidate": "^0.7.7",
     "vuex": "^3.6.2",
-    "worker-loader": "^3.0.8",
-    "xcc-pdf-editor": "^1.0.1"
+    "worker-loader": "^3.0.8"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"
