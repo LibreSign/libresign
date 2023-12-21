@@ -32,6 +32,7 @@ use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -56,6 +57,7 @@ class Account extends AbstractIdentifyMethod {
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
+		private ITimeFactory $timeFactory,
 		private MailService $mail
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Nextcloud acccount
@@ -68,6 +70,7 @@ class Account extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$userMountCache,
+			$timeFactory,
 		);
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
@@ -110,6 +113,8 @@ class Account extends AbstractIdentifyMethod {
 
 	public function validateToSign(?IUser $user = null): void {
 		$this->throwIfNotAuthenticated($user);
+		$this->throwIfMaximumValidityExpired();
+		$this->throwIfRenewalIntervalExpired();
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$this->validateWithAccount($user);
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
