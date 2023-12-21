@@ -144,16 +144,23 @@ class InjectionMiddleware extends Middleware {
 					];
 				}
 				return new JSONResponse(
-					$body,
-					$exception->getCode() === 0
-						? AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY
-						: $exception->getCode()
+					data: $body,
+					statusCode: $this->getStatusCodeFromException($exception)
 				);
 			case $exception instanceof PageException:
-				$this->initialState->provideInitialState('config', json_decode($exception->getMessage(), true));
+				if ($this->isJson($exception->getMessage())) {
+					$this->initialState->provideInitialState('config', json_decode($exception->getMessage(), true));
+				} else {
+					$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
+				}
 
 				Util::addScript(Application::APP_ID, 'libresign-external');
-				$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
+				$response = new TemplateResponse(
+					appName: Application::APP_ID,
+					templateName: 'external',
+					renderAs: TemplateResponse::RENDER_AS_BASE,
+					status: $this->getStatusCodeFromException($exception)
+				);
 
 				$policy = new ContentSecurityPolicy();
 				$policy->addAllowedFrameDomain('\'self\'');
@@ -162,6 +169,13 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		throw $exception;
+	}
+
+	private function getStatusCodeFromException(\Exception $exception): int {
+		if ($exception->getCode() === 0) {
+			return AppFrameworkHttp::STATUS_UNPROCESSABLE_ENTITY;
+		}
+		return $exception->getCode();
 	}
 
 	protected function isJson(string $string): bool {
