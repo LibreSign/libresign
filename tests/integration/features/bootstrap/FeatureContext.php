@@ -258,6 +258,13 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
+	 * @When /^wait for ([0-9]+) (second|seconds)$/
+	 */
+	public function waitForXSecond($seconds): void {
+		sleep($seconds);
+	}
+
+	/**
 	 * @When user :user has the following notifications
 	 *
 	 * @param string $user

@@ -87,6 +87,50 @@ Feature: request-signature
       | action | 100                                    |
       | errors | ["User already exists. Please login."] |
 
+  Scenario: Request to sign with error when the link was expired
+    Given as user "admin"
+    And my inbox is empty
+    And run the command "libresign:developer:reset --all"
+    And run the command "config:app:set libresign maximum_validity --value 1"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer2@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 200
+    And there should be 1 emails in my inbox
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    When wait for 1 second
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value             |
+      | action | 200               |
+      | errors | ["Link expired."] |
+
+  Scenario: Request to sign with error when is necessary to renew the link
+    Given as user "admin"
+    And my inbox is empty
+    And run the command "libresign:developer:reset --all"
+    And run the command "config:app:set libresign renewal_interval --value 1"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"signer2@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 200
+    And there should be 1 emails in my inbox
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    When wait for 1 second
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value                                 |
+      | action | 450                                   |
+      | errors | ["Link expired. Need to be renewed."] |
+
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
     And set the email of user "signer1" to "signer1@domain.test"
