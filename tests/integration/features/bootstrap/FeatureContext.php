@@ -299,4 +299,32 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			}
 		}
 	}
+
+	/**
+	 * @When I fetch the signer UUID from notification
+	 */
+	public function iFetchTheSignerUuidFromNotification(): void {
+		$this->sendOCSRequest(
+			'GET', '/apps/notifications/api/v2/notifications'
+		);
+
+		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		$data = $jsonBody['ocs']['data'];
+
+		$found = array_filter(
+			$data,
+			function ($notification) {
+				return $notification['subject'] === 'There is a file for you to sign';
+			}
+		);
+		if (empty($found)) {
+			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
+		}
+		$found = current($found);
+		
+
+		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
+		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		$this->signer['sign_uuid'] = $matches['uuid'];
+	}
 }
