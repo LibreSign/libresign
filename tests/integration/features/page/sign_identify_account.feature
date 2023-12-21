@@ -1,4 +1,4 @@
-Feature: page/sign_identify_default
+Feature: page/sign_identify_account
 
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
