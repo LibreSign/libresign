@@ -83,18 +83,15 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToSign(?IUser $user = null): void {
-		if ($user instanceof IUser) {
-			$this->validateWithEmail($user);
-		}
-	}
-
-	private function validateWithEmail(IUser $user): void {
-		$signer = $this->getSignerFromEmail($user);
-		$this->throwIfAlreadySigned();
+		$this->throwIfAccountAlreadyExists($user);
 		$this->throwIfFileNotFound();
+		$this->throwIfAlreadySigned();
 	}
 
-	private function getSignerFromEmail(IUser $user): ?IUser {
+	private function throwIfAccountAlreadyExists(?IUser $user): ?IUser {
+		if (!$user instanceof IUser) {
+			return null;
+		}
 		$email = $this->entity->getIdentifierValue();
 		$signer = $this->userManager->getByEmail($email);
 		if (!$signer) {
