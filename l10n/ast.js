@@ -8,6 +8,7 @@ OC.L10N.register(
     "User already exists" : "L'usuariu yá esiste",
     "Settings" : "Configuración",
     "Password" : "Contraseña",
+    "Confirm" : "Confirmar",
     "Draw" : "Dibuxar",
     "Cancel" : "Encaboxar",
     "Save" : "Guardar",
