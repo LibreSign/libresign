@@ -14,6 +14,7 @@ OC.L10N.register(
     "draft" : "borrolhon",
     "signed" : "signat",
     "deleted" : "suprimit",
+    "pending" : "pendent",
     "Digital signed by LibreSign." : "Signatura numerica per LibreSign.",
     "User not found." : "Utilizaire pas trobat.",
     "document to sign" : "document de signar",
