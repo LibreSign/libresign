@@ -125,19 +125,19 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSignRequestUuid]
 	public function sign($uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
-			$this->signFileService->getFileData(
-				$this->getFileEntity(),
-				$this->userSession->getUser(),
+			$this->signFileService->getSignerData(
 				$this->getSignRequestEntity()
 			),
-			[
-				'sign' => [
-					'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
-				],
-			],
 		));
+		$this->initialState->provideInitialState('sign', [
+			'uuid' => $this->getFileEntity()->getUuid(),
+			'filename' => $this->getFileEntity()->getName(),
+			'description' => $this->getSignRequestEntity()->getDescription(),
+			'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
+		]);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -158,14 +158,11 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->getSignRequestEntity(),
 			$method,
 		);
+		$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+		// TRANSLATORS Message sent to signer when the sign link was expired and was possible to request to renew. The signer will see this message on the screen and nothing more.
+		$this->initialState->provideInitialState('message', $this->l10n->t('Renewed with success. Access the link again.'));
 		Util::addScript(Application::APP_ID, 'libresign-external');
-		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
-
-		$policy = new ContentSecurityPolicy();
-		$policy->addAllowedFrameDomain('\'self\'');
-		$response->setContentSecurityPolicy($policy);
-
-		return $response;
+		return new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 	}
 
 	/**
