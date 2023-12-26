@@ -109,11 +109,11 @@ Feature: request-signature
       | action | 200               |
       | errors | ["Link expired."] |
 
-  Scenario: Request to sign with error when is necessary to renew the link
+  Scenario: Request to sign with success when is necessary to renew the link
     Given as user "admin"
     And my inbox is empty
     And run the command "libresign:developer:reset --all"
-    And run the command "config:app:set libresign renewal_interval --value 1"
+    And run the command "config:app:set libresign renewal_interval --value 5"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
@@ -123,9 +123,20 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    When wait for 1 second
+    When wait for 5 seconds
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
+    And the response should be a JSON array with the following mandatory values
+      | key    | value                                 |
+      | action | 450                                   |
+      | errors | ["Link expired. Need to be renewed."] |
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>/renew/email"
+    Then the response should have a status code 200
+    And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key    | value                                 |
       | action | 450                                   |
