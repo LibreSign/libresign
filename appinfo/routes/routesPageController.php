@@ -14,7 +14,7 @@ return [
 		['name' => 'page#resetPassword',              'url' => '/reset-password', 'verb' => 'GET'],
 		// Pages - public
 		['name' => 'page#sign',                       'url' => '/p/sign/{uuid}', 'verb' => 'GET'],
-		['name' => 'page#signRenew',                  'url' => '/p/sign/{uuid}/renew/{method}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'extra'],
+		['name' => 'page#signRenew',                  'url' => '/p/sign/{uuid}/renew/{method}', 'verb' => 'GET', 'postfix' => 'extra'],
 		['name' => 'page#sign',                       'url' => '/p/sign/{uuid}/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'extra'],
 		['name' => 'page#signAccountFile',            'url' => '/p/account/files/approve/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#signAccountFile',            'url' => '/p/account/files/approve/{uuid}/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'extra'],
