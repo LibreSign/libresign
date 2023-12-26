@@ -129,8 +129,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return;
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$lastActionDate = max(
+			$signRequest->getCreatedAt(),
+			$this->getEntity()->getLastAttemptDate()?->format('U'),
+		);
 		$now = $this->timeFactory->getTime();
-		if ($signRequest->getCreatedAt() + $renewalInterval <= $now) {
+		if ($lastActionDate + $renewalInterval <= $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_RENEW_EMAIL,
 				'errors' => [$this->l10n->t('Link expired. Need to be renewed.')],
