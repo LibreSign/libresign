@@ -533,6 +533,10 @@ class SignFileService {
 		$this->validateHelper->validateSigner($uuid, $user);
 	}
 
+	public function validateRenewSigner($uuid, $user): void {
+		$this->validateHelper->validateRenewSigner($uuid, $user);
+	}
+
 	/**
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}

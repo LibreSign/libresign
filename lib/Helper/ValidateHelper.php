@@ -588,6 +588,17 @@ class ValidateHelper {
 		$this->validateIdentifyMethod($uuid, $user);
 	}
 
+	public function validateRenewSigner(string $uuid, ?IUser $user = null): void {
+		$this->validateSignerUuidExists($uuid);
+		$signRequest = $this->signRequestMapper->getByUuid($uuid);
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		foreach ($identifyMethods as $methods) {
+			foreach ($methods as $identifyMethod) {
+				$identifyMethod->validateToRenew($user);
+			}
+		}
+	}
+
 	public function validateIdentifyMethod(string $uuid, ?IUser $user = null): void {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());

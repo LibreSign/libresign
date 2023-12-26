@@ -212,6 +212,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $customConfig;
 	}
 
+	public function validateToRenew(?IUser $user = null): void {
+		$this->throwIfMaximumValidityExpired();
+		$this->throwIfAlreadySigned();
+		$this->throwIfFileNotFound();
+	}
+
 	public function save(): void {
 		$this->refreshIdFromDatabaseIfNecessary();
 		if ($this->getEntity()->getId()) {
