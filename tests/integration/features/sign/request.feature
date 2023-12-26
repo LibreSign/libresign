@@ -113,7 +113,7 @@ Feature: request-signature
     Given as user "admin"
     And my inbox is empty
     And run the command "libresign:developer:reset --all"
-    And run the command "config:app:set libresign renewal_interval --value 5"
+    And run the command "config:app:set libresign renewal_interval --value 1"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
@@ -123,7 +123,7 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    When wait for 5 seconds
+    When wait for 1 seconds
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -132,15 +132,20 @@ Feature: request-signature
       | errors | ["Link expired. Need to be renewed."] |
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>/renew/email"
     Then the response should have a status code 200
+    And the response should contain the initial state "libresign-message" with the following values:
+      """
+      Renewed with success. Access the link again.
+      """
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
+    And run the command "config:app:set libresign renewal_interval --value 300"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 200
-    And the response should be a JSON array with the following mandatory values
-      | key    | value                                 |
-      | action | 450                                   |
-      | errors | ["Link expired. Need to be renewed."] |
+    And the response should contain the initial state "libresign-action" with the following values:
+      """
+      250
+      """
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
