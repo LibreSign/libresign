@@ -32,6 +32,7 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
@@ -96,11 +97,26 @@ class InjectionMiddleware extends Middleware {
 			$this->requireSigner();
 		}
 
+		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {
+			/** @var AEnvironmentPageAwareController $controller */
+			$controller->validateRenewSigner(
+				uuid: $this->request->getParam('uuid'),
+			);
+			/** @var AEnvironmentPageAwareController $controller */
+			$controller->loadNextcloudFileFromSignRequestUuid(
+				uuid: $this->request->getParam('uuid'),
+			);
+		}
+
 		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))
 			&& $controller instanceof AEnvironmentPageAwareController
 		) {
 			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadSignRequestUuid(
+			$controller->validateSignRequestUuid(
+				uuid: $this->request->getParam('uuid'),
+			);
+			/** @var AEnvironmentPageAwareController $controller */
+			$controller->loadNextcloudFileFromSignRequestUuid(
 				uuid: $this->request->getParam('uuid'),
 			);
 		}
