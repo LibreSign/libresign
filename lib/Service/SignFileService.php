@@ -647,6 +647,18 @@ class SignFileService {
 		return $return;
 	}
 
+	public function getSignerData(?SignRequestEntity $signRequest = null): array {
+		$return['user']['name'] = $signRequest->getDisplayName();
+		$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
+			return [
+				'mandatory' => $identifyMethod->getMandatory(),
+				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
+				'method' => $identifyMethod->getMethod(),
+			];
+		}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
+		return $return;
+	}
+
 	/**
 	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
 	 */
