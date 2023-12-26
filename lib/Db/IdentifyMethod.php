@@ -77,10 +77,7 @@ class IdentifyMethod extends Entity {
 		$this->addType('lastAttemptDate', 'datetime');
 	}
 
-	/**
-	 * @param \DateTime|string $createdAt
-	 */
-	public function setIdentifiedAtDate(?string $identifiedAtDate): void {
+	public function setIdentifiedAtDate(null|string|\DateTime $identifiedAtDate): void {
 		if ($identifiedAtDate && !$identifiedAtDate instanceof \DateTime) {
 			$identifiedAtDate = new \DateTime($identifiedAtDate);
 		}
@@ -88,10 +85,7 @@ class IdentifyMethod extends Entity {
 		$this->markFieldUpdated('identifiedAtDate');
 	}
 
-	/**
-	 * @param \DateTime|string $createdAt
-	 */
-	public function setLastAttemptDate(?string $lastAttemptDate): void {
+	public function setLastAttemptDate(null|string|\DateTime $lastAttemptDate): void {
 		if ($lastAttemptDate && !$lastAttemptDate instanceof \DateTime) {
 			$lastAttemptDate = new \DateTime($lastAttemptDate);
 		}
