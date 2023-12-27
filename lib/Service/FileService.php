@@ -425,6 +425,10 @@ class FileService {
 	}
 
 	public function getPage(string $uuid, int $page, string $uid): string {
+		$canPreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', false);
+		if (!$canPreviewAsImage) {
+			throw new LibresignException($this->l10n->t('Page not found.'));
+		}
 		$libreSignFile = $this->fileMapper->getByUuid($uuid);
 		$uid = $this->userSession->getUser()->getUID();
 		if ($libreSignFile->getUserId() !== $uid) {
