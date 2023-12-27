@@ -17,15 +17,23 @@ Feature: account/create_to_sign
     And I fetch the signer UUID from opened email
     And follow the link on opened email
     And the response should have a status code 200
+    And the response should contain the initial state "libresign-action" with the following values:
+      """
+      250
+      """
+    And the response should contain the initial state "libresign-sign" with the following values:
+      """
+      {
+        "pdf": {
+          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
+        },
+        "description": null,
+        "filename": "document"
+      }
+      """
     And the response should contain the initial state "libresign-config" with the following values:
       """
       {
-        "action": 250,
-        "sign": {
-          "pdf": {
-            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-          }
-        },
         "user": {
           "name": ""
         },
@@ -58,15 +66,23 @@ Feature: account/create_to_sign
     And I fetch the signer UUID from opened email
     And follow the link on opened email
     And the response should have a status code 200
+    And the response should contain the initial state "libresign-action" with the following values:
+      """
+      250
+      """
+    And the response should contain the initial state "libresign-sign" with the following values:
+      """
+      {
+        "pdf": {
+          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
+        },
+        "description": null,
+        "filename": "document"
+      }
+      """
     And the response should contain the initial state "libresign-config" with the following values:
       """
       {
-        "action": 250,
-        "sign": {
-          "pdf": {
-            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-          }
-        },
         "user": {
           "name": ""
         },
