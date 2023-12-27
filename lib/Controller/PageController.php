@@ -133,7 +133,6 @@ class PageController extends AEnvironmentPageAwareController {
 			),
 		));
 		$this->initialState->provideInitialState('sign', [
-			'uuid' => $this->getFileEntity()->getUuid(),
 			'filename' => $this->getFileEntity()->getName(),
 			'description' => $this->getSignRequestEntity()->getDescription(),
 			'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
