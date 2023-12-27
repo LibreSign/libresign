@@ -30,9 +30,11 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
@@ -59,6 +61,7 @@ class RequestSignatureService {
 		protected FolderService $folderService,
 		protected IMimeTypeDetector $mimeTypeDetector,
 		protected ValidateHelper $validateHelper,
+		protected ITimeFactory $timeFactory,
 		protected IClientService $client,
 		protected LoggerInterface $logger
 	) {
@@ -119,6 +122,23 @@ class RequestSignatureService {
 		}
 		$this->fileMapper->insert($file);
 		return $file;
+	}
+
+	public function renew(SignRequestEntity $signRequest, string $method): void {
+		$identifyMethods = $this->identifyMethod->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (!array_key_exists($method, $identifyMethods)) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+
+		$signRequest->setUuid(UUIDUtil::getUUID());
+		$this->saveSignRequest($signRequest);
+
+		foreach ($identifyMethods['email'] as $method) {
+			$entity = $method->getEntity();
+			$entity->setAttempts($entity->getAttempts() + 1);
+			$entity->setLastAttemptDate($this->timeFactory->getDateTime());
+			$method->save();
+		}
 	}
 
 	public function getFileMetadata(\OCP\Files\Node $node): array {

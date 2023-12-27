@@ -29,10 +29,12 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -60,6 +62,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private IInitialState $initialState,
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
+		protected RequestSignatureService $requestSignatureService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
@@ -122,19 +125,18 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSignRequestUuid]
 	public function sign($uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config', array_merge(
 			$this->accountService->getConfig($this->userSession->getUser()),
-			$this->signFileService->getFileData(
-				$this->getFileEntity(),
-				$this->userSession->getUser(),
+			$this->signFileService->getSignerData(
 				$this->getSignRequestEntity()
 			),
-			[
-				'sign' => [
-					'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
-				],
-			],
 		));
+		$this->initialState->provideInitialState('sign', [
+			'filename' => $this->getFileEntity()->getName(),
+			'description' => $this->getSignRequestEntity()->getDescription(),
+			'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
+		]);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -144,6 +146,22 @@ class PageController extends AEnvironmentPageAwareController {
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[CanSignRequestUuid]
+	public function signRenew(string $method): TemplateResponse {
+		$this->requestSignatureService->renew(
+			$this->getSignRequestEntity(),
+			$method,
+		);
+		$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+		// TRANSLATORS Message sent to signer when the sign link was expired and was possible to request to renew. The signer will see this message on the screen and nothing more.
+		$this->initialState->provideInitialState('message', $this->l10n->t('Renewed with success. Access the link again.'));
+		Util::addScript(Application::APP_ID, 'libresign-external');
+		return new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 	}
 
 	/**

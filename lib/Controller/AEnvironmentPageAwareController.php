@@ -55,7 +55,11 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	/**
 	 * @throws LibresignException
 	 */
-	public function loadSignRequestUuid(string $uuid): void {
+	private function loadEntitiesFromUuid(string $uuid): void {
+		if ($this->signRequestEntity instanceof SignRequestEntity
+			&& $this->fileEntity instanceof FileEntity) {
+			return;
+		}
 		try {
 			$this->signRequestEntity = $this->signFileService->getSignRequest($uuid);
 			$this->fileEntity = $this->signFileService->getFile(
@@ -67,7 +71,35 @@ abstract class AEnvironmentPageAwareController extends Controller {
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]), AppFrameworkHttp::STATUS_NOT_FOUND);
 		}
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	public function validateSignRequestUuid(string $uuid): void {
+		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
+			$this->fileEntity->getNodeId(),
+		);
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	public function validateRenewSigner(string $uuid): void {
+		$this->loadEntitiesFromUuid($uuid);
+		$this->signFileService->validateRenewSigner($uuid, $this->userSession->getUser());
+		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
+			$this->fileEntity->getNodeId(),
+		);
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
+		$this->loadEntitiesFromUuid($uuid);
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),
 		);
