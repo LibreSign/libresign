@@ -533,6 +533,10 @@ class SignFileService {
 		$this->validateHelper->validateSigner($uuid, $user);
 	}
 
+	public function validateRenewSigner($uuid, $user): void {
+		$this->validateHelper->validateRenewSigner($uuid, $user);
+	}
+
 	/**
 	 * @return (array|int|mixed)[]
 	 * @psalm-return array{action?: int, user?: array{name: mixed}, sign?: array{pdf: array{file?: File, nodeId?: mixed, url?: mixed, base64?: string}|null, uuid: mixed, filename: mixed, description: mixed}, errors?: non-empty-list<mixed>, redirect?: mixed, settings?: array{accountHash: string}}
@@ -640,6 +644,18 @@ class SignFileService {
 		} else {
 			$return['user']['name'] = $user->getDisplayName();
 		}
+		return $return;
+	}
+
+	public function getSignerData(?SignRequestEntity $signRequest = null): array {
+		$return['user']['name'] = $signRequest->getDisplayName();
+		$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
+			return [
+				'mandatory' => $identifyMethod->getMandatory(),
+				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
+				'method' => $identifyMethod->getMethod(),
+			];
+		}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
 		return $return;
 	}
 

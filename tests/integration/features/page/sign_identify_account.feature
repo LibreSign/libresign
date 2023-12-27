@@ -89,15 +89,23 @@ Feature: page/sign_identify_account
     And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/authkey"
     And as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And the response should contain the initial state "libresign-action" with the following values:
+      """
+      250
+      """
+    And the response should contain the initial state "libresign-sign" with the following values:
+      """
+      {
+        "pdf": {
+          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
+        },
+        "description": null,
+        "filename": "document"
+      }
+      """
     Then the response should contain the initial state "libresign-config" with the following values:
       """
       {
-        "action": 250,
-        "sign": {
-          "pdf": {
-            "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-          }
-        },
         "user": {
           "name": ""
         },

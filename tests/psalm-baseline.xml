@@ -72,11 +72,6 @@
       <code>LoadSidebar</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Middleware/InjectionMiddleware.php">
-    <InvalidTemplateParam occurrences="1">
-      <code>$response-&gt;setContentSecurityPolicy($policy)</code>
-    </InvalidTemplateParam>
-  </file>
   <file src="lib/Migration/Version2040Date20211027183759.php">
     <MissingDependency occurrences="3">
       <code>$this-&gt;root</code>
@@ -154,7 +149,8 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
-    <UndefinedClass occurrences="2">
+    <UndefinedClass occurrences="3">
+      <code>UUIDUtil</code>
       <code>UUIDUtil</code>
       <code>UUIDUtil</code>
     </UndefinedClass>

@@ -32,6 +32,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
@@ -52,6 +53,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
+		private ITimeFactory $timeFactory,
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
@@ -102,6 +104,40 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('File not found')],
+			]));
+		}
+	}
+
+	protected function throwIfMaximumValidityExpired(): void {
+		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', '0');
+		if ($maximumValidity <= 0) {
+			return;
+		}
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$now = $this->timeFactory->getTime();
+		if ($signRequest->getCreatedAt() + $maximumValidity <= $now) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Link expired.')],
+			]));
+		}
+	}
+
+	protected function throwIfRenewalIntervalExpired(): void {
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
+		if ($renewalInterval <= 0) {
+			return;
+		}
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$lastActionDate = max(
+			$signRequest->getCreatedAt(),
+			$this->getEntity()->getLastAttemptDate()?->format('U'),
+		);
+		$now = $this->timeFactory->getTime();
+		if ($lastActionDate + $renewalInterval <= $now) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_RENEW_EMAIL,
+				'errors' => [$this->l10n->t('Link expired. Need to be renewed.')],
 			]));
 		}
 	}
@@ -174,6 +210,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			unset($customConfig[$invalidKey]);
 		}
 		return $customConfig;
+	}
+
+	public function validateToRenew(?IUser $user = null): void {
+		$this->throwIfMaximumValidityExpired();
+		$this->throwIfAlreadySigned();
+		$this->throwIfFileNotFound();
 	}
 
 	public function save(): void {
