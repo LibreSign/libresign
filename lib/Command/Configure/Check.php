@@ -45,7 +45,7 @@ class Check extends Base {
 	) {
 		parent::__construct();
 		$this->configureCheckService = $configureCheckService;
-		$this->pagePreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', false);
+		$this->pagePreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0');
 	}
 
 	protected function configure(): void {
