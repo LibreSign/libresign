@@ -13,6 +13,6 @@ Feature: account/me
     And sending "get" to ocs "/apps/libresign/api/v1/account/me"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key      | value                                                                            |
-      | account  | {"uid":"signer1","emailAddress":"","displayName":"signer1-displayname"}          |
-      | settings | {"canPreviewPageAsImage": true, "canRequestSign":false,"hasSignatureFile":false} |
+      | key      | value                                                                             |
+      | account  | {"uid":"signer1","emailAddress":"","displayName":"signer1-displayname"}           |
+      | settings | {"canPreviewPageAsImage": false, "canRequestSign":false,"hasSignatureFile":false} |
