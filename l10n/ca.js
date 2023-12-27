@@ -24,6 +24,7 @@ OC.L10N.register(
     "signed" : "signat",
     "deleted" : "suprimit",
     "Identification Document" : "Document identificatiu",
+    "pending" : "pendent",
     "Password to sign not defined. Create a password to sign." : "La contrasenya per signar no està definida. Crea una contrasenya per signar.",
     "Invalid Sign engine." : "Motor de signatura no vàlid.",
     "Digital signed by LibreSign." : "Signat digitalment per LibreSign.",
