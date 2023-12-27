@@ -25,7 +25,9 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\ConfigureCheckService;
+use OCP\IConfig;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableCellStyle;
@@ -35,23 +37,21 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Check extends Base {
 	private ConfigureCheckService $configureCheckService;
+	private bool $pagePreviewAsImage = false;
+
 	public function __construct(
-		ConfigureCheckService $configureCheckService
+		ConfigureCheckService $configureCheckService,
+		private IConfig $config,
 	) {
 		parent::__construct();
 		$this->configureCheckService = $configureCheckService;
+		$this->pagePreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', false);
 	}
 
 	protected function configure(): void {
 		$this
 			->setName('libresign:configure:check')
 			->setDescription('Check configure')
-			->addOption(
-				name: 'preview',
-				shortcut: 'p',
-				mode: InputOption::VALUE_NONE,
-				description: 'Check requirements to generate image preview'
-			)
 			->addOption(
 				name: 'sign',
 				shortcut: 's',
@@ -64,13 +64,28 @@ class Check extends Base {
 				mode: InputOption::VALUE_NONE,
 				description: 'Check requirements to use root certificate'
 			);
+		if ($this->pagePreviewAsImage) {
+			$this
+				->addOption(
+					name: 'preview',
+					shortcut: 'p',
+					mode: InputOption::VALUE_NONE,
+					description: 'Check requirements to generate image preview'
+				);
+		}
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$preview = $input->getOption('preview');
-		$sign = $input->getOption('sign');
-		$certificate = $input->getOption('certificate');
-		$all = (!$preview && !$sign && !$certificate);
+		if ($this->pagePreviewAsImage) {
+			$preview = $input->getOption('preview');
+			$sign = $input->getOption('sign');
+			$certificate = $input->getOption('certificate');
+			$all = (!$preview && !$sign && !$certificate);
+		} else {
+			$sign = $input->getOption('sign');
+			$certificate = $input->getOption('certificate');
+			$all = (!$sign && !$certificate);
+		}
 
 		$result = [];
 		if ($all) {
