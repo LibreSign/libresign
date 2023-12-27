@@ -55,7 +55,11 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	/**
 	 * @throws LibresignException
 	 */
-	public function loadSignRequestUuid(string $uuid): void {
+	private function loadEntitiesFromUuid(string $uuid): void {
+		if ($this->signRequestEntity instanceof SignRequestEntity
+			&& $this->fileEntity instanceof FileEntity) {
+			return;
+		}
 		try {
 			$this->signRequestEntity = $this->signFileService->getSignRequest($uuid);
 			$this->fileEntity = $this->signFileService->getFile(
@@ -73,10 +77,7 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	 * @throws LibresignException
 	 */
 	public function validateSignRequestUuid(string $uuid): void {
-		if (!$this->signRequestEntity instanceof SignRequestEntity
-			|| !$this->fileEntity instanceof FileEntity) {
-			$this->loadSignRequestUuid($uuid);
-		}
+		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),
@@ -87,10 +88,7 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	 * @throws LibresignException
 	 */
 	public function validateRenewSigner(string $uuid): void {
-		if (!$this->signRequestEntity instanceof SignRequestEntity
-			|| !$this->fileEntity instanceof FileEntity) {
-			$this->loadSignRequestUuid($uuid);
-		}
+		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateRenewSigner($uuid, $this->userSession->getUser());
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),
@@ -101,10 +99,7 @@ abstract class AEnvironmentPageAwareController extends Controller {
 	 * @throws LibresignException
 	 */
 	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
-		if (!$this->signRequestEntity instanceof SignRequestEntity
-			|| !$this->fileEntity instanceof FileEntity) {
-			$this->loadSignRequestUuid($uuid);
-		}
+		$this->loadEntitiesFromUuid($uuid);
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),
 		);
