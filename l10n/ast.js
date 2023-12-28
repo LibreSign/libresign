@@ -9,6 +9,7 @@ OC.L10N.register(
     "Settings" : "Configuración",
     "Password" : "Contraseña",
     "Confirm" : "Confirmar",
+    "Text" : "Testu",
     "Draw" : "Dibuxar",
     "Cancel" : "Encaboxar",
     "Save" : "Guardar",
