@@ -50,45 +50,53 @@ class Reset extends Base {
 		$this
 			->setName('libresign:developer:reset')
 			->setDescription('Clean all LibreSign data')
-			->addOption('all',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset all'
+			->addOption(
+				name: 'all',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset all'
 			)
-			->addOption('notifications',
-				null,
-				InputOption::VALUE_OPTIONAL,
-				'Reset notifications'
+			->addOption(
+				name: 'notifications',
+				shortcut: null,
+				mode: InputOption::VALUE_OPTIONAL,
+				description: 'Reset notifications'
 			)
-			->addOption('identify',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset identify'
+			->addOption(
+				name: 'identify',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset identify'
 			)
-			->addOption('signrequest',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset sign request'
+			->addOption(
+				name: 'signrequest',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset sign request'
 			)
-			->addOption('file',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset file'
+			->addOption(
+				name: 'file',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset file'
 			)
-			->addOption('fileelement',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset file element'
+			->addOption(
+				name: 'fileelement',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset file element'
 			)
-			->addOption('userelement',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset user element'
+			->addOption(
+				name: 'userelement',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset user element'
 			)
-			->addOption('config',
-				null,
-				InputOption::VALUE_NONE,
-				'Reset config'
+			->addOption(
+				name: 'config',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Reset config'
 			)
 		;
 	}
