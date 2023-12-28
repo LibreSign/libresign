@@ -33,30 +33,35 @@ class Uninstall extends Base {
 		$this
 			->setName('libresign:uninstall')
 			->setDescription('Uninstall files')
-			->addOption('all',
-				null,
-				InputOption::VALUE_NONE,
-				'All binaries'
+			->addOption(
+				name: 'all',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'All binaries'
 			)
-			->addOption('jsignpdf',
-				null,
-				InputOption::VALUE_NONE,
-				'JSignPdf'
+			->addOption(
+				name: 'jsignpdf',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'JSignPdf'
 			)
-			->addOption('pdftk',
-				null,
-				InputOption::VALUE_NONE,
-				'PDFtk'
+			->addOption(
+				name: 'pdftk',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'PDFtk'
 			)
-			->addOption('cfssl',
-				null,
-				InputOption::VALUE_NONE,
-				'CFSSL'
+			->addOption(
+				name: 'cfssl',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'CFSSL'
 			)
-			->addOption('java',
-				null,
-				InputOption::VALUE_NONE,
-				'Java'
+			->addOption(
+				name: 'java',
+				shortcut: null,
+				mode: InputOption::VALUE_NONE,
+				description: 'Java'
 			);
 	}
 
