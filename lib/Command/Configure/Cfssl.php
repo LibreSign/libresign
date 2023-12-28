@@ -36,52 +36,52 @@ class Cfssl extends Base {
 			->setName('libresign:configure:cfssl')
 			->setDescription('Configure Cfssl')
 			->addOption(
-				'cn',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Comon name'
+				name: 'cn',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Comon name'
 			)
 			->addOption(
-				'ou',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Organization unit'
+				name: 'ou',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Organization unit'
 			)
 			->addOption(
-				'o',
-				'o',
-				InputOption::VALUE_REQUIRED,
-				'Organization'
+				name: 'o',
+				shortcut: 'o',
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Organization'
 			)
 			->addOption(
-				'c',
-				'c',
-				InputOption::VALUE_REQUIRED,
-				'Country name'
+				name: 'c',
+				shortcut: 'c',
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Country name'
 			)
 			->addOption(
-				'st',
-				's',
-				InputOption::VALUE_REQUIRED,
-				'State'
+				name: 'st',
+				shortcut: 's',
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'State'
 			)
 			->addOption(
-				'l',
-				'l',
-				InputOption::VALUE_REQUIRED,
-				'Locality'
+				name: 'l',
+				shortcut: 'l',
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Locality'
 			)
 			->addOption(
-				'config-path',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'Config path'
+				name: 'config-path',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'Config path'
 			)
 			->addOption(
-				'cfssl-uri',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'CFSSL URI'
+				name: 'cfssl-uri',
+				shortcut: null,
+				mode: InputOption::VALUE_REQUIRED,
+				description: 'CFSSL URI'
 			);
 	}
 
