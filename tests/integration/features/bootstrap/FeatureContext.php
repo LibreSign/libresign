@@ -48,6 +48,16 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->openedEmailStorage = $storage;
 	}
 
+	public function sendRequest(string $verb, string $url, $body = null, array $headers = [], array $options = []): void {
+		if (!is_null($this->currentUser)) {
+			$options = array_merge(
+				['cookies' => $this->getUserCookieJar($this->currentUser)],
+				$options
+			);
+		}
+		parent::sendRequest($verb, $url, $body, $headers, $options);
+	}
+
 	/**
 	 * @Then /^the signer "([^"]*)" have a file to sign$/
 	 */

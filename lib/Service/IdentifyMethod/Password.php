@@ -30,6 +30,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -52,6 +53,7 @@ class Password extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private SessionService $sessionService,
 		private Pkcs12Handler $pkcs12Handler,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by certificate password
@@ -65,6 +67,7 @@ class Password extends AbstractIdentifyMethod {
 			$root,
 			$userMountCache,
 			$timeFactory,
+			$sessionService,
 		);
 	}
 

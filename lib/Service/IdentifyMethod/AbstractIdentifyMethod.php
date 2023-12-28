@@ -32,6 +32,7 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -54,6 +55,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private SessionService $sessionService,
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
@@ -123,13 +125,23 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
+	protected function renewSession(): void {
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
+		if ($renewalInterval <= 0) {
+			return;
+		}
+		$this->sessionService->resetDurationOfSignPage();
+	}
+
 	protected function throwIfRenewalIntervalExpired(): void {
 		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
 		if ($renewalInterval <= 0) {
 			return;
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$startTime = $this->sessionService->getSignStartTime();
 		$lastActionDate = max(
+			$startTime,
 			$signRequest->getCreatedAt(),
 			$this->getEntity()->getLastAttemptDate()?->format('U'),
 		);
