@@ -46,20 +46,23 @@ class Check extends Base {
 		$this
 			->setName('libresign:configure:check')
 			->setDescription('Check configure')
-			->addOption('preview',
-				'p',
-				InputOption::VALUE_NONE,
-				'Check requirements to generate image preview'
+			->addOption(
+				name: 'preview',
+				shortcut: 'p',
+				mode: InputOption::VALUE_NONE,
+				description: 'Check requirements to generate image preview'
 			)
-			->addOption('sign',
-				's',
-				InputOption::VALUE_NONE,
-				'Check requirements to sign document'
+			->addOption(
+				name: 'sign',
+				shortcut: 's',
+				mode: InputOption::VALUE_NONE,
+				description: 'Check requirements to sign document'
 			)
-			->addOption('certificate',
-				'c',
-				InputOption::VALUE_NONE,
-				'Check requirements to use root certificate'
+			->addOption(
+				name: 'certificate',
+				shortcut: 'c',
+				mode: InputOption::VALUE_NONE,
+				description: 'Check requirements to use root certificate'
 			);
 	}
 
