@@ -113,7 +113,8 @@ Feature: request-signature
     Given as user "admin"
     And my inbox is empty
     And run the command "libresign:developer:reset --all"
-    And run the command "config:app:set libresign renewal_interval --value 1"
+    And run the command "config:app:set libresign maximum_validity --value 300"
+    And run the command "config:app:set libresign renewal_interval --value 2"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
@@ -123,7 +124,7 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    When wait for 1 seconds
+    When wait for 2 second
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -139,8 +140,14 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    And run the command "config:app:set libresign renewal_interval --value 300"
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Given wait for 1 second
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    And the response should have a status code 200
+    Given wait for 1 second
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    Then the response should have a status code 200
+    Given wait for 1 second
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-action" with the following values:
       """

@@ -30,6 +30,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
+use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -52,6 +53,7 @@ class Email extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private SessionService $sessionService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->l10n->t('Email');
@@ -64,6 +66,7 @@ class Email extends AbstractIdentifyMethod {
 			$root,
 			$userMountCache,
 			$timeFactory,
+			$sessionService,
 		);
 	}
 
@@ -91,6 +94,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
+		$this->renewSession();
 	}
 
 	private function throwIfAccountAlreadyExists(?IUser $user): ?IUser {
