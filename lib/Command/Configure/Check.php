@@ -76,15 +76,12 @@ class Check extends Base {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$sign = $input->getOption('sign');
+		$certificate = $input->getOption('certificate');
+		$all = (!$sign && !$certificate);
 		if ($this->pagePreviewAsImage) {
 			$preview = $input->getOption('preview');
-			$sign = $input->getOption('sign');
-			$certificate = $input->getOption('certificate');
-			$all = (!$preview && !$sign && !$certificate);
-		} else {
-			$sign = $input->getOption('sign');
-			$certificate = $input->getOption('certificate');
-			$all = (!$sign && !$certificate);
+			$all = (!$preview && $all);
 		}
 
 		$result = [];
