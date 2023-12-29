@@ -537,31 +537,17 @@ class SignFileService {
 		$this->validateHelper->validateRenewSigner($uuid, $user);
 	}
 
-	public function getFileData(FileEntity $fileData, ?IUser $user, ?SignRequestEntity $signRequest = null): array {
-		$return['action'] = JSActions::ACTION_SIGN;
-		$return['sign'] = [
-			'uuid' => $fileData->getUuid(),
-			'filename' => $fileData->getName()
-		];
+	public function getSignerData(?IUser $user, ?SignRequestEntity $signRequest = null): array {
 		if ($signRequest) {
 			$return['user']['name'] = $signRequest->getDisplayName();
-			$return['sign']['description'] = $signRequest->getDescription();
-			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
-				return [
-					'mandatory' => $identifyMethod->getMandatory(),
-					'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
-					'method' => $identifyMethod->getMethod(),
-				];
-			}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
-		} else {
+		} elseif ($user) {
 			$return['user']['name'] = $user->getDisplayName();
 		}
 		return $return;
 	}
 
-	public function getSignerData(?SignRequestEntity $signRequest = null): array {
-		$return['user']['name'] = $signRequest->getDisplayName();
-		$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
+	public function getAvailableIdentifyMethods(?SignRequestEntity $signRequest = null): array {
+		$return = array_map(function (IdentifyMethod $identifyMethod): array {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
 				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
