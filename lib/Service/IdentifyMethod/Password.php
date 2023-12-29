@@ -39,6 +39,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use Psr\Log\LoggerInterface;
 
 class Password extends AbstractIdentifyMethod {
 	public function __construct(
@@ -53,6 +54,7 @@ class Password extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private LoggerInterface $logger,
 		private SessionService $sessionService,
 		private Pkcs12Handler $pkcs12Handler,
 	) {
@@ -67,6 +69,7 @@ class Password extends AbstractIdentifyMethod {
 			$root,
 			$userMountCache,
 			$timeFactory,
+			$logger,
 			$sessionService,
 		);
 	}

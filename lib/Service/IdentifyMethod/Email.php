@@ -39,6 +39,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
@@ -53,6 +54,7 @@ class Email extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private LoggerInterface $logger,
 		private SessionService $sessionService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
@@ -66,6 +68,7 @@ class Email extends AbstractIdentifyMethod {
 			$root,
 			$userMountCache,
 			$timeFactory,
+			$logger,
 			$sessionService,
 		);
 	}

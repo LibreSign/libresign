@@ -39,6 +39,7 @@ use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use Psr\Log\LoggerInterface;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
@@ -55,6 +56,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private LoggerInterface $logger,
 		private SessionService $sessionService,
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
@@ -117,7 +119,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$now = $this->timeFactory->getTime();
-		if ($signRequest->getCreatedAt() + $maximumValidity <= $now) {
+		if ($signRequest->getCreatedAt() + $maximumValidity < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Link expired.')],
@@ -140,13 +142,24 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$startTime = $this->sessionService->getSignStartTime();
+		$createdAt = $signRequest->getCreatedAt();
+		$lastAttempt = $this->getEntity()->getLastAttemptDate()?->format('U');
 		$lastActionDate = max(
 			$startTime,
-			$signRequest->getCreatedAt(),
-			$this->getEntity()->getLastAttemptDate()?->format('U'),
+			$createdAt,
+			$lastAttempt,
 		);
 		$now = $this->timeFactory->getTime();
-		if ($lastActionDate + $renewalInterval <= $now) {
+		$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
+			'renewalInterval' => $renewalInterval,
+			'startTime' => $startTime,
+			'createdAt' => $createdAt,
+			'lastAttempt' => $lastAttempt,
+			'lastActionDate' => $lastActionDate,
+			'now' => $now,
+		]);
+		if ($lastActionDate + $renewalInterval < $now) {
+			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_RENEW_EMAIL,
 				'errors' => [$this->l10n->t('Link expired. Need to be renewed.')],

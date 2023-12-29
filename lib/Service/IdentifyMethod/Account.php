@@ -43,6 +43,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
 	private bool $canCreateAccount;
@@ -59,6 +60,7 @@ class Account extends AbstractIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private LoggerInterface $logger,
 		private SessionService $sessionService,
 		private MailService $mail
 	) {
@@ -73,6 +75,7 @@ class Account extends AbstractIdentifyMethod {
 			$root,
 			$userMountCache,
 			$timeFactory,
+			$logger,
 			$sessionService,
 		);
 		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
