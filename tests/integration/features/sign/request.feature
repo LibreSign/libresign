@@ -101,7 +101,7 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    When wait for 1 second
+    When wait for 2 second
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
@@ -113,24 +113,25 @@ Feature: request-signature
     Given as user "admin"
     And my inbox is empty
     And run the command "libresign:developer:reset --all"
-    And run the command "config:app:set libresign maximum_validity --value 300"
-    And run the command "config:app:set libresign renewal_interval --value 2"
-    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+    And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
       | name | document |
-    Then the response should have a status code 200
+    And the response should have a status code 200
     And there should be 1 emails in my inbox
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
-    When wait for 2 second
+    And run the command "config:app:set libresign maximum_validity --value 300"
+    And run the command "config:app:set libresign renewal_interval --value 1"
+    Given wait for 2 second
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                 |
       | action | 450                                   |
       | errors | ["Link expired. Need to be renewed."] |
+    Given my inbox is empty
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>/renew/email"
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-message" with the following values:
@@ -140,6 +141,10 @@ Feature: request-signature
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""
+    # setting the renewal interval to 2 and making 3 requests, one by second,
+    # the 3rd don't will fail because on each valid request, the renewal
+    # interval is renewed.
+    And run the command "config:app:set libresign renewal_interval --value 2"
     Given wait for 1 second
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should have a status code 200
