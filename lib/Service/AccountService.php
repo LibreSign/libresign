@@ -251,11 +251,11 @@ class AccountService {
 	 * @return array[]
 	 */
 	public function getConfig(?IUser $user): array {
-		$info['settings']['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
-		$info['settings']['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
-		$info['settings']['hasSignatureFile'] = $this->hasSignatureFile($user);
-		$info['settings']['phoneNumber'] = $this->getPhoneNumber($user);
-		$info['settings']['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
+		$info['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
+		$info['certificateOk'] = $this->certificateEngineHandler->getEngine()->isSetupOk() && $this->pkcs12Handler->isHandlerOk();
+		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
+		$info['phoneNumber'] = $this->getPhoneNumber($user);
+		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
 		return $info;
 	}
 
