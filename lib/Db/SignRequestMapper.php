@@ -165,7 +165,7 @@ class SignRequestMapper extends QBMapper {
 	 */
 	public function getById(int $signRequestId): SignRequest {
 		foreach ($this->signers as $signRequest) {
-			if ($signRequest->getFileId() === $signRequestId) {
+			if ($signRequest->getId() === $signRequestId) {
 				return $signRequest;
 			}
 		}
