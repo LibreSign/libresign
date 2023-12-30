@@ -74,7 +74,6 @@ export default {
 			pendingFilter: 'files/pendingFilter',
 			signedFilter: 'files/signedFilter',
 			orderFiles: 'files/orderFiles',
-			getError: 'error/getError',
 		}),
 		filterFile: {
 			get() {

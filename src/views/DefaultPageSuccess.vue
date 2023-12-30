@@ -49,15 +49,11 @@ export default {
 	},
 	computed: {
 		myUuid() {
-			const config = loadState('libresign', 'config', {})
 			const getUuid = this.$store.getters.getUuidToValidate
 			if (getUuid) {
 				return getUuid
 			}
-			if (config.sign) {
-				return config.sign.uuid
-			}
-			return config.uuid
+			return loadState('libresign', 'uuid')
 		},
 	},
 	methods: {
