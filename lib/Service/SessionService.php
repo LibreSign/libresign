@@ -29,7 +29,8 @@ use OCP\IConfig;
 use OCP\ISession;
 
 class SessionService {
-	const NO_RENEWAL_INTERVAL = 0;
+	public const NO_RENEWAL_INTERVAL = 0;
+	public const NO_MAXIMUM_VALIDITY = 0;
 
 	public function __construct(
 		protected ISession $session,

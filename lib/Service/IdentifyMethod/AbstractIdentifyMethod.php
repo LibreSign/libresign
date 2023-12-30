@@ -113,7 +113,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', '0');
+		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
@@ -128,7 +128,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function renewSession(): void {
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -136,7 +136,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
