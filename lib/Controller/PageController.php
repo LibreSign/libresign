@@ -139,6 +139,13 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->signFileService->getAvailableIdentifyMethods($this->getSignRequestEntity())
 		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
+		$file = $this->fileService
+			->setFile($this->getFileEntity())
+			->showVisibleElements()
+			->showSigners()
+			->formatFile();
+		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
+		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
