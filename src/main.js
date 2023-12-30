@@ -24,7 +24,6 @@
 import Vue from 'vue'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
-import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
 
 import './plugins/vuelidate.js'
@@ -52,8 +51,6 @@ __webpack_nonce__ = btoa(getRequestToken())
 // We do not want the index.php since we're loading files
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
-
-sync(store, router)
 
 Vue.prototype.t = t
 Vue.prototype.n = n
