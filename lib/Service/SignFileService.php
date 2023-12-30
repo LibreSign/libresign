@@ -538,6 +538,7 @@ class SignFileService {
 	}
 
 	public function getSignerData(?IUser $user, ?SignRequestEntity $signRequest = null): array {
+		$return = ['user' => ['name' => null]];
 		if ($signRequest) {
 			$return['user']['name'] = $signRequest->getDisplayName();
 		} elseif ($user) {
