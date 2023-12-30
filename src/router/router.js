@@ -77,6 +77,11 @@ const routes = [
 			uuid: route.params.uuid,
 		}),
 	},
+	{
+		path: '/p/sign/:uuid/renew/email',
+		component: () => import('../views/RenewEmail.vue'),
+		name: 'RenewEmail',
+	},
 
 	// internal pages
 	{
