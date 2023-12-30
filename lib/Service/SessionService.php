@@ -29,6 +29,8 @@ use OCP\IConfig;
 use OCP\ISession;
 
 class SessionService {
+	const NO_RENEWAL_INTERVAL = 0;
+
 	public function __construct(
 		protected ISession $session,
 		protected IConfig $config,
@@ -36,12 +38,12 @@ class SessionService {
 	}
 
 	public function getSignStartTime(): int {
-		return $this->session->get('libresign-sign-start-time') ?? 0;
+		return $this->session->get('libresign-sign-start-time') ?? self::NO_RENEWAL_INTERVAL;
 	}
 
 	public function resetDurationOfSignPage(): void {
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
-		if ($renewalInterval <= 0) {
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', self::NO_RENEWAL_INTERVAL);
+		if ($renewalInterval <= self::NO_RENEWAL_INTERVAL) {
 			return;
 		}
 		$this->session->reopen();
