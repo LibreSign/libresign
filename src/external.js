@@ -54,14 +54,8 @@ Vue.prototype.n = n
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
 
-if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
-	router.push({ name: 'ExternalRoot' })
-}
-
 export default new Vue({
 	el: '#content',
-	// eslint-disable-next-line vue/match-component-file-name
-	name: 'LibreSignExternalRoot',
 	router,
 	store,
 	render: h => h(External),
