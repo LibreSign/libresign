@@ -50,18 +50,21 @@ const routes = [
 		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
 		name: 'SignPDF',
-	}, {
+	},
+	{
 		path: '/p/sign/:uuid/sign-in',
 		component: () => import('../views/CreateUser.vue'),
 		name: 'CreateUser',
 		props: (route) => ({
 			messageToast: t('libresign', 'You need to create an account to sign this file.'),
 		}),
-	}, {
+	},
+	{
 		path: '/p/sign/:uuid/error',
 		component: () => import('../views/DefaultPageError.vue'),
 		name: 'DefaultPageError',
-	}, {
+	},
+	{
 		path: '/p/sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess.vue'),
 		name: 'DefaultPageSuccess',
