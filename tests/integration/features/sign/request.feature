@@ -125,7 +125,7 @@ Feature: request-signature
     And run the command "config:app:set libresign maximum_validity --value 300"
     And run the command "config:app:set libresign renewal_interval --value 1"
     Given wait for 2 second
-    And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
+    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                 |
