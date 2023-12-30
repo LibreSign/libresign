@@ -435,9 +435,7 @@ class SignFileService {
 			$this->validateHelper->userCanApproveValidationDocuments($user);
 			$signRequest = new SignRequestEntity();
 			$signRequest->setFileId($libresignFile->getId());
-			$signRequest->setEmail($user->getEMailAddress());
 			$signRequest->setDisplayName($user->getDisplayName());
-			$signRequest->setUserId($user->getUID());
 			$signRequest->setUuid(UUIDUtil::getUUID());
 			$signRequest->setCreatedAt(time());
 		}
