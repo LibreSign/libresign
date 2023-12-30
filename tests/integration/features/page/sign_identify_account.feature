@@ -93,30 +93,13 @@ Feature: page/sign_identify_account
       """
       250
       """
-    And the response should contain the initial state "libresign-sign" with the following values:
+    And the response should contain the initial state "libresign-pdf" with the following values:
       """
       {
-        "pdf": {
-          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-        },
-        "description": null,
-        "filename": "document"
+        "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
       }
       """
-    Then the response should contain the initial state "libresign-config" with the following values:
+    And the response should contain the initial state "libresign-filename" with the following values:
       """
-      {
-        "user": {
-          "name": ""
-        },
-        "settings": {
-          "identifyMethods": [
-            {
-              "mandatory": 1,
-              "identifiedAtDate": null,
-              "method": "account"
-            }
-          ]
-        }
-      }
+      document
       """
