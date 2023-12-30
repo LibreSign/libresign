@@ -24,8 +24,7 @@ import { translate as t } from '@nextcloud/l10n'
 import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
 
-const libresignVar = loadState('libresign', 'config', {})
-const isCompleteAdminConfig = libresignVar?.settings?.certificateOk
+const isCompleteAdminConfig = loadState('libresign', 'config', {})?.certificateOk ?? false
 const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
 
 const routes = [
@@ -44,7 +43,7 @@ const routes = [
 	},
 	{
 		path: '/p/sign/:uuid',
-		redirect: { name: selectAction(libresignVar.action) },
+		redirect: { name: selectAction(loadState('libresign', 'action', '')) },
 	},
 	{
 		path: '/p/sign/:uuid/pdf',

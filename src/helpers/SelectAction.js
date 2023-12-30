@@ -23,9 +23,7 @@
 
 import { loadState } from '@nextcloud/initial-state'
 
-const libresignVar = loadState('libresign', 'config', {})
-
-const redirectURL = libresignVar.redirect ? libresignVar.redirect : 'Home'
+const redirectURL = loadState('libresign', 'redirect', null) ?? 'Home'
 
 export const selectAction = (action) => {
 	switch (action) {

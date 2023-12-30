@@ -31,7 +31,7 @@
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<NcAppNavigationItem v-if="settings.certificateOk"
+				<NcAppNavigationItem v-if="config.certificateOk"
 					:to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
@@ -44,7 +44,7 @@
 					:title="t('libresign', 'Validate')"
 					icon="icon-file" />
 
-				<NcAppNavigationItem v-if="settings.identificationDocumentsFlow && settings.isApprover"
+				<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
 					:to="{name: 'DocsAccountValidation'}"
 					:title="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
@@ -81,9 +81,6 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import Icon from './assets/images/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { loadState } from '@nextcloud/initial-state'
-import { defaults } from 'lodash-es'
-
-const libresignState = loadState('libresign', 'config', {})
 
 export default {
 	name: 'App',
@@ -98,7 +95,7 @@ export default {
 	},
 	data() {
 		return {
-			settings: defaults({}, libresignState?.settings || {}, {
+			config: loadState('libresign', 'config', {
 				hasSignatureFile: false,
 				identificationDocumentsFlow: false,
 				certificateOk: false,

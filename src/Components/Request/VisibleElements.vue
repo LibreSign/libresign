@@ -307,8 +307,8 @@ export default {
 
 			try {
 				this.editingElement
-					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}/${element.elementId}`), payload)
-					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.file.uuid}`), payload)
+					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}/${element.elementId}`), payload)
+					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}`), payload)
 				showSuccess(t('libresign', 'Element created'))
 
 				this.loadDocument()
