@@ -23,7 +23,7 @@
 
 import { loadState } from '@nextcloud/initial-state'
 
-const redirectURL = loadState('libresign', 'redirect', null) ?? 'Home'
+const redirectURL = loadState('libresign', 'redirect', 'Home')
 
 export const selectAction = (action) => {
 	switch (action) {
