@@ -32,12 +32,14 @@ use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use Psr\Log\LoggerInterface;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
@@ -54,6 +56,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
+		private LoggerInterface $logger,
+		private SessionService $sessionService,
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
@@ -109,13 +113,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', '0');
+		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$now = $this->timeFactory->getTime();
-		if ($signRequest->getCreatedAt() + $maximumValidity <= $now) {
+		if ($signRequest->getCreatedAt() + $maximumValidity < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Link expired.')],
@@ -123,18 +127,39 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
+	protected function renewSession(): void {
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		if ($renewalInterval <= 0) {
+			return;
+		}
+		$this->sessionService->resetDurationOfSignPage();
+	}
+
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', '0');
+		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$startTime = $this->sessionService->getSignStartTime();
+		$createdAt = $signRequest->getCreatedAt();
+		$lastAttempt = $this->getEntity()->getLastAttemptDate()?->format('U');
 		$lastActionDate = max(
-			$signRequest->getCreatedAt(),
-			$this->getEntity()->getLastAttemptDate()?->format('U'),
+			$startTime,
+			$createdAt,
+			$lastAttempt,
 		);
 		$now = $this->timeFactory->getTime();
-		if ($lastActionDate + $renewalInterval <= $now) {
+		$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
+			'renewalInterval' => $renewalInterval,
+			'startTime' => $startTime,
+			'createdAt' => $createdAt,
+			'lastAttempt' => $lastAttempt,
+			'lastActionDate' => $lastActionDate,
+			'now' => $now,
+		]);
+		if ($lastActionDate + $renewalInterval < $now) {
+			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_RENEW_EMAIL,
 				'errors' => [$this->l10n->t('Link expired. Need to be renewed.')],

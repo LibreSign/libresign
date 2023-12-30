@@ -4593,16 +4593,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.9.2",
+            "version": "v0.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "601f02ba3a9830c69317309c86dc817e8f623c50"
+                "reference": "ed7aafa401f8f13eb9b32af5759c73dc2800225a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/601f02ba3a9830c69317309c86dc817e8f623c50",
-                "reference": "601f02ba3a9830c69317309c86dc817e8f623c50",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/ed7aafa401f8f13eb9b32af5759c73dc2800225a",
+                "reference": "ed7aafa401f8f13eb9b32af5759c73dc2800225a",
                 "shasum": ""
             },
             "require": {
@@ -4646,9 +4646,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.9.2"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.9.3"
             },
-            "time": "2023-12-26T21:53:27+00:00"
+            "time": "2023-12-28T23:34:32+00:00"
         }
     ],
     "aliases": [],
