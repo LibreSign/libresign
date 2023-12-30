@@ -38,6 +38,12 @@ export const selectAction = (action) => {
 		return 'SignPDF'
 	case 300:
 		return 'DefaultPageSuccess'
+	case 350: // ACTION_SIGNED
+		return 'DefaultPageSuccess'
+	case 400: // ACTION_CREATE_SIGNATURE_PASSWORD
+		return 'CreatePassword'
+	case 450: // ACTION_RENEW_EMAIL
+		return 'RenewEmail'
 	default:
 		break
 	}
