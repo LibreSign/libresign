@@ -303,7 +303,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	public function resetPassword(): TemplateResponse {
 		$this->initialState->provideInitialState('config',
-			$this->accountService->getConfig($this->userSession->getUser()),
+			$this->accountService->getConfig($this->userSession->getUser())
 		);
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
