@@ -138,11 +138,11 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('identifyMethods',
 			$this->signFileService->getAvailableIdentifyMethods($this->getSignRequestEntity())
 		);
-		$this->initialState->provideInitialState('sign', [
-			'filename' => $this->getFileEntity()->getName(),
-			'description' => $this->getSignRequestEntity()->getDescription(),
-			'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
-		]);
+		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
+		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
+		$this->initialState->provideInitialState('pdf',
+			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -254,9 +254,9 @@ class PageController extends AEnvironmentPageAwareController {
 			);
 			$this->initialState->provideInitialState('file', [
 				'uuid' => $this->getFileEntity()?->getUuid(),
-				'filename' => $this->getFileEntity()?->getName(),
 				'description' => $this->getSignRequestEntity()?->getDescription(),
 			]);
+			$this->initialState->provideInitialState('filename', $this->getFileEntity()?->getName());
 			$this->initialState->provideInitialState('pdf',
 				$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid'))
 			);
