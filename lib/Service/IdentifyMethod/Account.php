@@ -127,6 +127,7 @@ class Account extends AbstractIdentifyMethod {
 			$this->validateWithEmail($user);
 		}
 		$this->renewSession();
+		$this->updateIdentifiedAt();
 	}
 
 	private function validateWithAccount(IUser $user): void {
