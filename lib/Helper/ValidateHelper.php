@@ -291,14 +291,14 @@ class ValidateHelper {
 
 	private function validateUserHasNecessaryElements(SignRequest $signRequest, IUser $user, array $list = []): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
-		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $signRequest): bool {
+		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user, $signRequest): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
 				return $item['documentElementId'] === $fileElement->getId();
 			});
 			if (!$found) {
 				try {
 					$this->userElementMapper->findMany([
-						'user_id' => $signRequest->getUserId(),
+						'user_id' => $user->getUID(),
 						'type' => $fileElement->getType(),
 					]);
 					return true;
