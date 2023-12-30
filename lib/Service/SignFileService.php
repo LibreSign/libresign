@@ -78,6 +78,7 @@ class SignFileService {
 	private ?Node $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
+	private IUser $user;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -208,6 +209,11 @@ class SignFileService {
 		return $this;
 	}
 
+	public function setCurrentUser(IUser $user): self {
+		$this->user = $user;
+		return $this;
+	}
+
 	/**
 	 * @return static
 	 */
@@ -222,7 +228,7 @@ class SignFileService {
 				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
 			} else {
 				$userElement = $this->userElementMapper->findOne([
-					'user_id' => $this->signRequest->getUserId(),
+					'user_id' => $this->user->getUID(),
 					'type' => $fileElement->getType(),
 				]);
 			}
