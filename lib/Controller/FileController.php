@@ -73,7 +73,15 @@ class FileController extends Controller {
 	#[PublicPage]
 	public function validate(?string $type = null, $identifier = null): JSONResponse {
 		try {
-			if (!empty($type) && !empty($identifier)) {
+			if ($type === 'Uuid' && !empty($identifier)) {
+				try {
+					$this->fileService
+						->setFileByType('Uuid', $identifier);
+				} catch (LibresignException $e) {
+					$this->fileService
+						->setFileByType('SignerUuid', $identifier);
+				}
+			} elseif (!empty($type) && !empty($identifier)) {
 				$this->fileService
 					->setFileByType($type, $identifier);
 			} elseif ($this->request->getParam('path')) {
