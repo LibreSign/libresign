@@ -13,18 +13,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "4ec04d066c93d7e27c4ef9bc01d3ee794206ca52"
+                "reference": "e9d12a6ce92872f452fcf89647e3165ce40737fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/4ec04d066c93d7e27c4ef9bc01d3ee794206ca52",
-                "reference": "4ec04d066c93d7e27c4ef9bc01d3ee794206ca52",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/e9d12a6ce92872f452fcf89647e3165ce40737fb",
+                "reference": "e9d12a6ce92872f452fcf89647e3165ce40737fb",
                 "shasum": ""
             },
             "require": {
                 "byjg/webrequest": "4.9.*",
                 "ext-json": "*",
-                "php": ">=5.6"
+                "php": ">=7.4"
             },
             "require-dev": {
                 "byjg/restserver": "4.9.*",
@@ -44,9 +44,9 @@
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/master"
+                "source": "https://github.com/byjg/php-swagger-test/tree/4.9.1"
             },
-            "time": "2023-10-11T14:58:45+00:00"
+            "time": "2023-12-30T20:49:21+00:00"
         },
         {
             "name": "byjg/uri",
