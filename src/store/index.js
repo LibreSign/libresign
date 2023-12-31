@@ -38,7 +38,6 @@ export default new Store({
 	state: {
 		errors: [],
 		pdfData: {},
-		uuidToValidate: '',
 	},
 
 	mutations: {
@@ -56,9 +55,6 @@ export default new Store({
 		},
 		setHasPfx(state, haspfx) {
 			set(state.settings, 'hasSignatureFile', haspfx)
-		},
-		setUuidToValidate(state, uuid) {
-			state.uuidToValidate = uuid
 		},
 	},
 
@@ -83,9 +79,6 @@ export default new Store({
 		},
 		getPdfData(state) {
 			return state.pdfData
-		},
-		getUuidToValidate(state) {
-			return state.uuidToValidate
 		},
 	},
 

@@ -99,14 +99,6 @@ export default {
 		NcLoadingIcon,
 	},
 
-	props: {
-		uuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
-
 	data() {
 		const fileInfo = loadState('libresign', 'file_info', {})
 		return {
@@ -118,7 +110,7 @@ export default {
 			legend: t('libresign', 'Enter the ID or UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
 			noDateMessage: t('libresign', 'No date'),
-			myUuid: this.uuid ? this.uuid : '',
+			myUuid: this.$route.params?.uuid ?? '',
 			hasInfo: Object.keys(fileInfo).length > 0,
 			hasLoading: false,
 			document: fileInfo,
@@ -208,7 +200,7 @@ export default {
 				}
 			}
 			this.hasInfo = !this.hasInfo
-			this.myUuid = this.uuid
+			this.myUuid = this.$route.params.uuid
 		},
 	},
 }
