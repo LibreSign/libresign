@@ -74,9 +74,6 @@ export default new Store({
 		getHasPfx(state) {
 			return state.settings.hasSignatureFile
 		},
-		getCertificateOk(state) {
-			return state.settings.certificateOk
-		},
 		getPdfData(state) {
 			return state.pdfData
 		},

@@ -30,6 +30,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
@@ -83,6 +84,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'main')]
 	public function index(): TemplateResponse {
 		$this->initialState->provideInitialState('config', $this->accountService->getConfig($this->userSession->getUser()));
 		$this->initialState->provideInitialState('certificate_engine', $this->accountService->getCertificateEngineName());
@@ -107,12 +109,14 @@ class PageController extends AEnvironmentPageAwareController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'main')]
 	public function indexF(): TemplateResponse {
 		return $this->index();
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'main')]
 	public function indexFPath(): TemplateResponse {
 		return $this->index();
 	}
@@ -122,6 +126,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
 	public function sign($uuid): TemplateResponse {
@@ -164,6 +169,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
 	#[PublicPage]
 	#[CanSignRequestUuid]
 	public function signRenew(string $method): TemplateResponse {
@@ -183,6 +189,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
 	public function signAccountFile($uuid): TemplateResponse {
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
@@ -212,6 +219,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function getPdf($uuid) {
@@ -236,8 +244,11 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid]
+	#[PublicPage]
+	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function getPdfUser($uuid) {
+		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
 		$resp->addHeader('Content-Type', 'application/pdf');
 		$csp = new ContentSecurityPolicy();
@@ -252,6 +263,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'external')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validation(): TemplateResponse {
@@ -287,6 +299,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validationFileWithShortUrl(): RedirectResponse {
@@ -299,6 +312,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'main')]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
 	public function resetPassword(): TemplateResponse {
@@ -317,6 +331,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validationFile(string $uuid): TemplateResponse {
