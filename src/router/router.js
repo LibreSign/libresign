@@ -20,8 +20,13 @@
  *
  */
 
+import Vue from 'vue'
+import Router from 'vue-router'
+import { generateUrl } from '@nextcloud/router'
 import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
+
+Vue.use(Router)
 
 const isCompleteAdminConfig = loadState('libresign', 'config', {})?.certificateOk ?? false
 const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
@@ -133,4 +138,23 @@ const routes = [
 	},
 ]
 
-export default routes
+const router = new Router({
+	mode: 'history',
+	base: generateUrl('/apps/libresign'),
+	linkActiveClass: 'active',
+	routes,
+})
+
+router.beforeEach((to, from, next) => {
+	if (to.query.redirect === 'CreatePassword') {
+		next({ name: 'CreatePassword' })
+	}
+
+	const errors = loadState('libresign', 'errors', [])
+	if (Array.isArray(errors) && errors.length > 0) {
+		store.commit('setError', errors)
+	}
+	next()
+})
+
+export default router
