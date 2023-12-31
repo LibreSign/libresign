@@ -42,41 +42,43 @@ const routes = [
 	{
 		path: '/p/account/files/approve/:uuid',
 		component: () => import('../views/SignPDF/SignPDF.vue'),
-		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
+		props: true,
 		name: 'AccountFileApprove',
 	},
 	{
 		path: '/p/sign/:uuid',
 		redirect: { name: selectAction(loadState('libresign', 'action', '')) },
+		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/pdf',
 		component: () => import('../views/SignPDF/SignPDF.vue'),
-		props: (route) => ({ uuid: route.params.uuid, redirect: false }),
+		props: true,
 		name: 'SignPDF',
 	},
 	{
 		path: '/p/sign/:uuid/sign-in',
 		component: () => import('../views/CreateUser.vue'),
 		name: 'CreateUser',
+		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/error',
 		component: () => import('../views/DefaultPageError.vue'),
 		name: 'DefaultPageError',
+		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/success',
 		component: () => import('../views/DefaultPageSuccess.vue'),
 		name: 'DefaultPageSuccess',
+		props: true,
 	},
 	{
 		path: '/p/validation/:uuid',
 		component: () => import('../views/Validation.vue'),
 		name: 'validationFilePublic',
-		props: (route) => ({
-			uuid: route.params.uuid,
-		}),
+		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/renew/email',
@@ -107,9 +109,7 @@ const routes = [
 		path: '/f/validation/:uuid',
 		component: () => import('../views/Validation.vue'),
 		name: 'validationFile',
-		props: (route) => ({
-			uuid: route.params.uuid,
-		}),
+		props: true,
 	},
 	{
 		path: '/f/timeline/sign',
