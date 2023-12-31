@@ -34,16 +34,16 @@ const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
 const routes = [
 	{
 		path: '/reset-password',
-		component: () => import('../views/ResetPassword.vue'),
 		name: 'ResetPassword',
+		component: () => import('../views/ResetPassword.vue'),
 	},
 
 	// public
 	{
 		path: '/p/account/files/approve/:uuid',
+		name: 'AccountFileApprove',
 		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: true,
-		name: 'AccountFileApprove',
 	},
 	{
 		path: '/p/sign/:uuid',
@@ -52,38 +52,38 @@ const routes = [
 	},
 	{
 		path: '/p/sign/:uuid/pdf',
+		name: 'SignPDF',
 		component: () => import('../views/SignPDF/SignPDF.vue'),
 		props: true,
-		name: 'SignPDF',
 	},
 	{
 		path: '/p/sign/:uuid/sign-in',
-		component: () => import('../views/CreateUser.vue'),
 		name: 'CreateUser',
+		component: () => import('../views/CreateUser.vue'),
 		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/error',
-		component: () => import('../views/DefaultPageError.vue'),
 		name: 'DefaultPageError',
+		component: () => import('../views/DefaultPageError.vue'),
 		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/success',
-		component: () => import('../views/DefaultPageSuccess.vue'),
 		name: 'DefaultPageSuccess',
+		component: () => import('../views/DefaultPageSuccess.vue'),
 		props: true,
 	},
 	{
 		path: '/p/validation/:uuid',
-		component: () => import('../views/Validation.vue'),
 		name: 'validationFilePublic',
+		component: () => import('../views/Validation.vue'),
 		props: true,
 	},
 	{
 		path: '/p/sign/:uuid/renew/email',
-		component: () => import('../views/RenewEmail.vue'),
 		name: 'RenewEmail',
+		component: () => import('../views/RenewEmail.vue'),
 	},
 
 	// internal pages
@@ -97,44 +97,44 @@ const routes = [
 	},
 	{
 		path: '/f/incomplete',
-		component: () => import('../views/IncompleteCertification.vue'),
 		name: 'incomplete',
+		component: () => import('../views/IncompleteCertification.vue'),
 	},
 	{
 		path: '/f/validation',
-		component: () => import('../views/Validation.vue'),
 		name: 'validation',
+		component: () => import('../views/Validation.vue'),
 	},
 	{
 		path: '/f/validation/:uuid',
-		component: () => import('../views/Validation.vue'),
 		name: 'validationFile',
+		component: () => import('../views/Validation.vue'),
 		props: true,
 	},
 	{
 		path: '/f/timeline/sign',
-		component: () => import('../views/Timeline/Timeline.vue'),
 		name: 'signFiles',
+		component: () => import('../views/Timeline/Timeline.vue'),
 	},
 	{
 		path: '/f/request',
-		component: () => import('../views/Request.vue'),
 		name: 'requestFiles',
+		component: () => import('../views/Request.vue'),
 	},
 	{
 		path: '/f/account',
-		component: () => import('../views/Account/Account.vue'),
 		name: 'Account',
+		component: () => import('../views/Account/Account.vue'),
 	},
 	{
 		path: '/f/docs/accounts/validation',
-		component: () => import('../views/Documents/AccountValidation.vue'),
 		name: 'DocsAccountValidation',
+		component: () => import('../views/Documents/AccountValidation.vue'),
 	},
 	{
 		path: '/f/create-password',
-		component: () => import('../views/CreatePassword.vue'),
 		name: 'CreatePassword',
+		component: () => import('../views/CreatePassword.vue'),
 	},
 ]
 
