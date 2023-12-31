@@ -45,7 +45,7 @@ router.beforeEach((to, from, next) => {
 	}
 
 	const errors = loadState('libresign', 'errors', [])
-	if (errors) {
+	if (Array.isArray(errors) && errors.length > 0) {
 		store.commit('setError', errors)
 	}
 	next()
