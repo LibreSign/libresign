@@ -41,6 +41,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use InvalidArgumentException;
 
 class FileController extends Controller {
 	public function __construct(
