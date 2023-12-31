@@ -72,64 +72,20 @@ class FileController extends Controller {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function validate(?string $type = null, $identifier = null): JSONResponse {
+		$this->validateParameters($type, $identifier);
+
 		try {
-			if ($type === 'Uuid' && !empty($identifier)) {
-				try {
-					$this->fileService
-						->setFileByType('Uuid', $identifier);
-				} catch (LibresignException $e) {
-					$this->fileService
-						->setFileByType('SignerUuid', $identifier);
-				}
-			} elseif (!empty($type) && !empty($identifier)) {
-				$this->fileService
-					->setFileByType($type, $identifier);
-			} elseif ($this->request->getParam('path')) {
-				$this->fileService
-					->setMe($this->userSession->getUser())
-					->setFileByPath($this->request->getParam('path'));
-			} elseif ($this->request->getParam('fileId')) {
-				$this->fileService->setFileByType(
-					'FileId',
-					$this->request->getParam('fileId')
-				);
-			} elseif ($this->request->getParam('uuid')) {
-				$this->fileService->setFileByType(
-					'Uuid',
-					$this->request->getParam('uuid')
-				);
-			}
-			$return = [];
-			$statusCode = Http::STATUS_OK;
+			$file = $this->locateFile($type, $identifier);
 		} catch (LibresignException $e) {
-			$message = $this->l10n->t($e->getMessage());
-			$return = [
+			return new JSONResponse([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$message]
-			];
-			$statusCode = $e->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
-		} catch (\Throwable $th) {
-			$message = $this->l10n->t($th->getMessage());
-			$this->logger->error($message);
-			$return = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$message]
-			];
-			$statusCode = $th->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY;
+				'errors' => [$this->l10n->t($e->getMessage())],
+			], $e->getCode() ?? Http::STATUS_UNPROCESSABLE_ENTITY);
 		}
 
-		$return = array_merge($return,
-			$this->fileService
-				->setMe($this->userSession->getUser())
-				->showVisibleElements()
-				->showPages()
-				->showSigners()
-				->showSettings()
-				->showMessages()
-				->formatFile()
-		);
+		$return = $this->formatFile($file);
 
-		return new JSONResponse($return, $statusCode);
+		return new JSONResponse($return, Http::STATUS_OK);
 	}
 
 	#[NoAdminRequired]
@@ -208,5 +164,40 @@ class FileController extends Controller {
 				Http::STATUS_UNPROCESSABLE_ENTITY,
 			);
 		}
+	}
+
+	private function validateParameters(?string $type, $identifier): void {
+		if ($type !== null && !in_array($type, ['Uuid', 'SignerUuid', 'FileId'])) {
+			throw new InvalidArgumentException('The file type must be one of: Uuid, SignerUuid, FileId.');
+		}
+
+		if ($identifier === null) {
+			throw new InvalidArgumentException('The file identifier must be specified.');
+		}
+	}
+
+	private function locateFile(?string $type, $identifier): FileEntity {
+		if ($type === 'Uuid') {
+			$file = $this->fileService->getFileByUuid($identifier);
+		} elseif ($type === 'SignerUuid') {
+			$file = $this->fileService->getFileBySignerUuid($identifier);
+		} elseif ($type === 'FileId') {
+			$file = $this->fileService->getFileById($identifier);
+		} else {
+			$file = $this->fileService->getFileByPath($identifier);
+		}
+
+		if ($file === null) {
+			throw new LibresignException('The file could not be found.');
+		}
+
+		return $file;
+	}
+
+	private function formatFile(FileEntity $file): array {
+		return [
+			'action' => JSActions::ACTION_DO_NOTHING,
+			'file' => $this->fileService->formatFile($file),
+		];
 	}
 }
