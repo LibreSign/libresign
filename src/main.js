@@ -34,7 +34,7 @@ import './assets/styles/main.scss'
 import 'vue-advanced-cropper/dist/style.css'
 
 import App from './App.vue'
-import router from './router/index.js'
+import router from './router/router.js'
 import store from './store/index.js'
 
 Vue.mixin({ methods: { t, n } })
@@ -57,10 +57,6 @@ Vue.prototype.n = n
 
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
-
-if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
-	router.push({ name: 'home' })
-}
 
 export default new Vue({
 	el: '#content',

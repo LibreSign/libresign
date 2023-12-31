@@ -26,7 +26,7 @@ import { getRequestToken } from '@nextcloud/auth'
 import Vue from 'vue'
 
 import External from './External.vue'
-import router from './router/index.js'
+import router from './router/router.js'
 import store from './store/index.js'
 
 import './plugins/vuelidate.js'
