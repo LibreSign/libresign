@@ -27,24 +27,26 @@ const redirectURL = loadState('libresign', 'redirect', 'Home')
 
 export const selectAction = (action) => {
 	switch (action) {
-	case 100: // ACTION_REDIRECT
-		window.location.replace(redirectURL.toString())
-		break
-	case 150: // ACTION_CREATE_USER
-		return 'CreateUser'
-	case 200: // ACTION_DO_NOTHING
-		return 'DefaultPageError'
-	case 250: // ACTION_SIGN
-		return 'SignPDF'
-	case 300: // ACTION_SHOW_ERROR
-		return 'DefaultPageSuccess'
-	case 350: // ACTION_SIGNED
-		return 'DefaultPageSuccess'
-	case 400: // ACTION_CREATE_SIGNATURE_PASSWORD
-		return 'CreatePassword'
-	case 450: // ACTION_RENEW_EMAIL
-		return 'RenewEmail'
-	default:
-		break
+		case 100: // ACTION_REDIRECT
+			window.location.replace(redirectURL.toString())
+			break
+		case 150: // ACTION_CREATE_USER
+			return 'CreateUser'
+		case 200: // ACTION_DO_NOTHING
+			return 'DefaultPageError'
+		case 250: // ACTION_SIGN
+			return 'SignPDF'
+		case 300: // ACTION_SHOW_ERROR
+			return 'DefaultPageSuccess'
+		case 350: // ACTION_SIGNED
+			return 'DefaultPageSuccess'
+		case 400: // ACTION_CREATE_SIGNATURE_PASSWORD
+			return 'CreatePassword'
+		case 450: // ACTION_RENEW_EMAIL
+			return 'RenewEmail'
+		case 500: // ACTION_INCOMPLETE_SETUP
+			return 'incomplete';
+		default:
+			break
 	}
 }
