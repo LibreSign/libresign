@@ -16,6 +16,7 @@ OC.L10N.register(
     "This action requires you to confirm your password" : "Aksi ini membutuhkan konfirmasi kata sandi Anda",
     "Password" : "Kata sandi",
     "Confirm" : "Konfirmasi",
+    "Text" : "Teks",
     "Upload" : "Unggah",
     "Apply" : "Terapkan",
     "Cancel" : "Membatalkan",
