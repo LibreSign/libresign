@@ -20,7 +20,6 @@
  *
  */
 
-import { translate as t } from '@nextcloud/l10n'
 import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -55,9 +54,6 @@ const routes = [
 		path: '/p/sign/:uuid/sign-in',
 		component: () => import('../views/CreateUser.vue'),
 		name: 'CreateUser',
-		props: (route) => ({
-			messageToast: t('libresign', 'You need to create an account to sign this file.'),
-		}),
 	},
 	{
 		path: '/p/sign/:uuid/error',

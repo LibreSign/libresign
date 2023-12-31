@@ -164,6 +164,7 @@ class Account extends AbstractIdentifyMethod {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_CREATE_USER,
 				'settings' => ['accountHash' => md5($email)],
+				'message' => $this->l10n->t('You need to create an account to sign this file.'),
 			]));
 		}
 		if (count($signer) > 0) {
