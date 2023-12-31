@@ -4,9 +4,9 @@
 			<PDFViewer :url="pdf.url" />
 		</div>
 
-		<Sidebar v-bind="{ document, uuid: pdfUuid, loading }" id="app-navigation">
+		<Sidebar v-bind="{ document, uuid, loading }" id="app-navigation">
 			<Sign v-if="signEnabled"
-				v-bind="{ document, uuid: pdfUuid, docType }"
+				v-bind="{ document, uuid, docType }"
 				@signed="onSigned"
 				@update:phone="onPhoneUpdated" />
 			<div v-else>
@@ -32,19 +32,13 @@ export default {
 	mixins: [
 		isMobile,
 	],
-	props: {
-		uuid: {
-			type: String,
-			default: '',
-		},
-	},
 	data() {
 		return {
 			loading: false,
 			action: loadState('libresign', 'action'),
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
-			pdfUuid: loadState('libresign', 'uuid', null) ?? this.uuid,
+			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
 			document: {
 				name: '',
 				filename: loadState('libresign', 'filename'),
@@ -82,7 +76,7 @@ export default {
 		},
 		onSigned(data) {
 			showSuccess(data.message)
-			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.pdfUuid } })
+			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
 			window.location.href = url.href
 		},
 		onPhoneUpdated(val) {

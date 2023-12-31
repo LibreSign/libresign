@@ -31,8 +31,7 @@
 					:title="t('libresign', 'Back to sign')"
 					exact
 					@click="goToSign" />
-				<NcAppNavigationItem v-if="config.certificateOk"
-					:to="{name: 'requestFiles'}"
+				<NcAppNavigationItem :to="{name: 'requestFiles'}"
 					:title="t('libresign', 'Request')"
 					icon="icon-rename"
 					exact />
@@ -98,7 +97,6 @@ export default {
 			config: loadState('libresign', 'config', {
 				hasSignatureFile: false,
 				identificationDocumentsFlow: false,
-				certificateOk: false,
 				isApprover: false,
 				phoneNumber: '',
 				signMethod: 'password',
