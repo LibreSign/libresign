@@ -28,118 +28,116 @@ import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
 
-const routes = [
-	{
-		path: '/reset-password',
-		name: 'ResetPassword',
-		component: () => import('../views/ResetPassword.vue'),
-	},
-
-	// public
-	{
-		path: '/p/account/files/approve/:uuid',
-		name: 'AccountFileApprove',
-		component: () => import('../views/SignPDF/SignPDF.vue'),
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid',
-		redirect: { name: selectAction(loadState('libresign', 'action', '')) },
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid/pdf',
-		name: 'SignPDF',
-		component: () => import('../views/SignPDF/SignPDF.vue'),
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid/sign-in',
-		name: 'CreateUser',
-		component: () => import('../views/CreateUser.vue'),
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid/error',
-		name: 'DefaultPageError',
-		component: () => import('../views/DefaultPageError.vue'),
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid/success',
-		name: 'DefaultPageSuccess',
-		component: () => import('../views/DefaultPageSuccess.vue'),
-		props: true,
-	},
-	{
-		path: '/p/validation/:uuid',
-		name: 'validationFilePublic',
-		component: () => import('../views/Validation.vue'),
-		props: true,
-	},
-	{
-		path: '/p/sign/:uuid/renew/email',
-		name: 'RenewEmail',
-		component: () => import('../views/RenewEmail.vue'),
-	},
-
-	// internal pages
-	{
-		path: '/f/',
-		redirect: { name: 'requestFiles' },
-	},
-	{
-		path: '/',
-		redirect: { name: 'requestFiles' },
-	},
-	{
-		path: '/f/incomplete',
-		name: 'incomplete',
-		component: () => import('../views/IncompleteCertification.vue'),
-	},
-	{
-		path: '/f/validation',
-		name: 'validation',
-		component: () => import('../views/Validation.vue'),
-	},
-	{
-		path: '/f/validation/:uuid',
-		name: 'validationFile',
-		component: () => import('../views/Validation.vue'),
-		props: true,
-	},
-	{
-		path: '/f/timeline/sign',
-		name: 'signFiles',
-		component: () => import('../views/Timeline/Timeline.vue'),
-	},
-	{
-		path: '/f/request',
-		name: 'requestFiles',
-		component: () => import('../views/Request.vue'),
-	},
-	{
-		path: '/f/account',
-		name: 'Account',
-		component: () => import('../views/Account/Account.vue'),
-	},
-	{
-		path: '/f/docs/accounts/validation',
-		name: 'DocsAccountValidation',
-		component: () => import('../views/Documents/AccountValidation.vue'),
-	},
-	{
-		path: '/f/create-password',
-		name: 'CreatePassword',
-		component: () => import('../views/CreatePassword.vue'),
-	},
-]
-
 const router = new Router({
 	mode: 'history',
 	base: generateUrl('/apps/libresign'),
 	linkActiveClass: 'active',
-	routes,
+	routes: [
+		{
+			path: '/reset-password',
+			name: 'ResetPassword',
+			component: () => import('../views/ResetPassword.vue'),
+		},
+
+		// public
+		{
+			path: '/p/account/files/approve/:uuid',
+			name: 'AccountFileApprove',
+			component: () => import('../views/SignPDF/SignPDF.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid',
+			redirect: { name: selectAction(loadState('libresign', 'action', '')) },
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/pdf',
+			name: 'SignPDF',
+			component: () => import('../views/SignPDF/SignPDF.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/sign-in',
+			name: 'CreateUser',
+			component: () => import('../views/CreateUser.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/error',
+			name: 'DefaultPageError',
+			component: () => import('../views/DefaultPageError.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/success',
+			name: 'DefaultPageSuccess',
+			component: () => import('../views/DefaultPageSuccess.vue'),
+			props: true,
+		},
+		{
+			path: '/p/validation/:uuid',
+			name: 'validationFilePublic',
+			component: () => import('../views/Validation.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/renew/email',
+			name: 'RenewEmail',
+			component: () => import('../views/RenewEmail.vue'),
+		},
+
+		// internal pages
+		{
+			path: '/f/',
+			redirect: { name: 'requestFiles' },
+		},
+		{
+			path: '/',
+			redirect: { name: 'requestFiles' },
+		},
+		{
+			path: '/f/incomplete',
+			name: 'incomplete',
+			component: () => import('../views/IncompleteCertification.vue'),
+		},
+		{
+			path: '/f/validation',
+			name: 'validation',
+			component: () => import('../views/Validation.vue'),
+		},
+		{
+			path: '/f/validation/:uuid',
+			name: 'validationFile',
+			component: () => import('../views/Validation.vue'),
+			props: true,
+		},
+		{
+			path: '/f/timeline/sign',
+			name: 'signFiles',
+			component: () => import('../views/Timeline/Timeline.vue'),
+		},
+		{
+			path: '/f/request',
+			name: 'requestFiles',
+			component: () => import('../views/Request.vue'),
+		},
+		{
+			path: '/f/account',
+			name: 'Account',
+			component: () => import('../views/Account/Account.vue'),
+		},
+		{
+			path: '/f/docs/accounts/validation',
+			name: 'DocsAccountValidation',
+			component: () => import('../views/Documents/AccountValidation.vue'),
+		},
+		{
+			path: '/f/create-password',
+			name: 'CreatePassword',
+			component: () => import('../views/CreatePassword.vue'),
+		},
+	],
 })
 
 router.beforeEach((to, from, next) => {
