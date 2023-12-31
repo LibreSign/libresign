@@ -143,20 +143,16 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-	const isCompleteAdminConfig = loadState('libresign', 'config', {})?.certificateOk ?? false
-	if (!isCompleteAdminConfig && to.path !== '/f/incomplete') {
-		next('/f/incomplete')
-	}
-
-	if (to.query.redirect === 'CreatePassword') {
+	const action = selectAction(loadState('libresign', 'action', ''))
+	if (action !== undefined && to.name !== action) {
+		next({
+			name: action,
+		})
+	} else if (to.query.redirect === 'CreatePassword') {
 		next({ name: 'CreatePassword' })
+	} else {
+		next()
 	}
-
-	const errors = loadState('libresign', 'errors', [])
-	if (Array.isArray(errors) && errors.length > 0) {
-		store.commit('setError', errors)
-	}
-	next()
 })
 
 export default router
