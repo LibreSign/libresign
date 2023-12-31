@@ -28,9 +28,6 @@ import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
 
-const isCompleteAdminConfig = loadState('libresign', 'config', {})?.certificateOk ?? false
-const initUrl = isCompleteAdminConfig ? 'requestFiles' : 'incomplete'
-
 const routes = [
 	{
 		path: '/reset-password',
@@ -89,11 +86,11 @@ const routes = [
 	// internal pages
 	{
 		path: '/f/',
-		redirect: { name: initUrl },
+		redirect: { name: 'requestFiles' },
 	},
 	{
 		path: '/',
-		redirect: { name: initUrl },
+		redirect: { name: 'requestFiles' },
 	},
 	{
 		path: '/f/incomplete',
@@ -146,6 +143,11 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
+	const isCompleteAdminConfig = loadState('libresign', 'config', {})?.certificateOk ?? false
+	if (!isCompleteAdminConfig && to.path !== '/f/incomplete') {
+		next('/f/incomplete')
+	}
+
 	if (to.query.redirect === 'CreatePassword') {
 		next({ name: 'CreatePassword' })
 	}
