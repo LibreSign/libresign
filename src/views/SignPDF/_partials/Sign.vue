@@ -163,7 +163,6 @@ export default {
 			try {
 				this.user = await sigantureService.loadMe()
 			} catch (err) {
-				onError(err)
 			}
 		},
 		async loadSignatures() {
@@ -171,7 +170,6 @@ export default {
 				const { elements } = await sigantureService.loadSignatures()
 				this.userSignatures = (elements || []).reverse()
 			} catch (err) {
-				onError(err)
 			}
 		},
 		async signWithPassword(password) {
