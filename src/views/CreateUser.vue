@@ -144,13 +144,6 @@ export default {
 		NcModal,
 	},
 
-	props: {
-		messageToast: {
-			type: String,
-			default: 'Create user',
-		},
-	},
-
 	data() {
 		return {
 			hasLoading: false,
@@ -160,7 +153,8 @@ export default {
 			pfx: '',
 			sizeAvatar: 100,
 			passwordSign: false,
-			initial: null,
+			settings: loadState('libresign', 'settings'),
+			message: loadState('libresign', 'message'),
 			controllerView: 0,
 			viewDraw: false,
 			enabledFeatures: [],
@@ -222,7 +216,7 @@ export default {
 			return this.password === this.passwordConfirm
 		},
 		isEqualEmail() {
-			return this.initial.settings.accountHash === md5(this.email).toString()
+			return this.settings.accountHash === md5(this.email).toString()
 		},
 		hableCreateUserButton() {
 			if (this.$v.email.$model) {
@@ -242,8 +236,7 @@ export default {
 
 	created() {
 		this.changeSizeAvatar()
-		showError(t('libresign', this.messageToast))
-		this.initial = loadState('libresign', 'config', {})
+		showError(t('libresign', this.message))
 	},
 
 	methods: {

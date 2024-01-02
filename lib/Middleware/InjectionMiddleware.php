@@ -31,9 +31,12 @@ use OCA\Libresign\Controller\AEnvironmentPageAwareController;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\SignFileService;
@@ -59,6 +62,7 @@ class InjectionMiddleware extends Middleware {
 		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		private SignRequestMapper $signRequestMapper,
+		private CertificateEngineHandler $certificateEngineHandler,
 		private FileMapper $fileMapper,
 		private IInitialState $initialState,
 		private SignFileService $signFileService,
@@ -95,6 +99,11 @@ class InjectionMiddleware extends Middleware {
 
 		if (!empty($reflectionMethod->getAttributes(RequireSigner::class))) {
 			$this->requireSigner();
+		}
+
+		$requireSetupOk = $reflectionMethod->getAttributes(RequireSetupOk::class);
+		if (!empty($requireSetupOk)) {
+			$this->requireSetupOk(current($requireSetupOk));
 		}
 
 		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {
@@ -141,6 +150,17 @@ class InjectionMiddleware extends Middleware {
 		}
 	}
 
+	private function requireSetupOk(\ReflectionAttribute $attribute): void {
+		if (!$this->certificateEngineHandler->getEngine()->isSetupOk()) {
+			/** @var RequireSetupOk $requirement */
+			$requireSetupOk = $attribute->newInstance();
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_INCOMPLETE_SETUP,
+				'template' => $requireSetupOk->getTemplate(),
+			]));
+		}
+	}
+
 	/**
 	 * @param Controller $controller
 	 * @param string $methodName
@@ -150,19 +170,24 @@ class InjectionMiddleware extends Middleware {
 	 */
 	public function afterException($controller, $methodName, \Exception $exception): Response {
 		if (str_contains($this->request->getHeader('Accept'), 'html')) {
+			$template = 'external';
 			if ($this->isJson($exception->getMessage())) {
 				foreach (json_decode($exception->getMessage(), true) as $key => $value) {
+					if ($key === 'template') {
+						$template = $value;
+						continue;
+					}
 					$this->initialState->provideInitialState($key, $value);
 				}
 			} else {
 				$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
 			}
 
-			Util::addScript(Application::APP_ID, 'libresign-external');
+			Util::addScript(Application::APP_ID, 'libresign-' . $template);
 			$response = new TemplateResponse(
 				appName: Application::APP_ID,
-				templateName: 'external',
-				renderAs: TemplateResponse::RENDER_AS_BASE,
+				templateName: $template,
+				renderAs: $this->getRenderAsFromTemplate($template),
 				status: $this->getStatusCodeFromException($exception)
 			);
 
@@ -186,6 +211,13 @@ class InjectionMiddleware extends Middleware {
 		}
 
 		throw $exception;
+	}
+
+	private function getRenderAsFromTemplate(string $template): string {
+		if ($template === 'external') {
+			return TemplateResponse::RENDER_AS_BASE;
+		}
+		return TemplateResponse::RENDER_AS_USER;
 	}
 
 	private function getStatusCodeFromException(\Exception $exception): int {

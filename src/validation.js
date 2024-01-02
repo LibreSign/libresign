@@ -23,11 +23,10 @@
 
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
-import { sync } from 'vuex-router-sync'
 import Vue from 'vue'
 
 import Validation from './views/Validation.vue'
-import router from './router/index.js'
+import router from './router/router.js'
 import store from './store/index.js'
 
 // CSP config for webpack dynamic chunk loading
@@ -41,19 +40,11 @@ __webpack_nonce__ = btoa(getRequestToken());
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
-sync(store, router)
-
 Vue.prototype.t = t
 Vue.prototype.n = n
 
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
-
-if (
-	window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking
-) {
-	router.push({ name: 'Validation' })
-}
 
 export default new Vue({
 	el: '#content',
