@@ -22,15 +22,25 @@
 
 import Vue from 'vue'
 import Router from 'vue-router'
-import { generateUrl } from '@nextcloud/router'
+import { getRootUrl, generateUrl } from '@nextcloud/router'
 import { selectAction } from '../helpers/SelectAction.js'
 import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
 
+function generateWebBasePath() {
+	// if index.php is in the url AND we got this far, then it's working:
+	// let's keep using index.php in the url
+	const webRootWithIndexPHP = getRootUrl() + '/index.php'
+	const doesURLContainIndexPHP = window.location.pathname.startsWith(webRootWithIndexPHP)
+	return generateUrl('/apps/libresign', {}, {
+		noRewrite: doesURLContainIndexPHP,
+	})
+}
+
 const router = new Router({
 	mode: 'history',
-	base: generateUrl('/apps/libresign'),
+	base: generateWebBasePath(),
 	linkActiveClass: 'active',
 	routes: [
 		{
