@@ -78,6 +78,7 @@ class SignFileService {
 	private ?Node $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
+	private IUser $user;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -208,6 +209,11 @@ class SignFileService {
 		return $this;
 	}
 
+	public function setCurrentUser(IUser $user): self {
+		$this->user = $user;
+		return $this;
+	}
+
 	/**
 	 * @return static
 	 */
@@ -222,7 +228,7 @@ class SignFileService {
 				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
 			} else {
 				$userElement = $this->userElementMapper->findOne([
-					'user_id' => $this->signRequest->getUserId(),
+					'user_id' => $this->user->getUID(),
 					'type' => $fileElement->getType(),
 				]);
 			}
@@ -429,9 +435,7 @@ class SignFileService {
 			$this->validateHelper->userCanApproveValidationDocuments($user);
 			$signRequest = new SignRequestEntity();
 			$signRequest->setFileId($libresignFile->getId());
-			$signRequest->setEmail($user->getEMailAddress());
 			$signRequest->setDisplayName($user->getDisplayName());
-			$signRequest->setUserId($user->getUID());
 			$signRequest->setUuid(UUIDUtil::getUUID());
 			$signRequest->setCreatedAt(time());
 		}
@@ -537,31 +541,18 @@ class SignFileService {
 		$this->validateHelper->validateRenewSigner($uuid, $user);
 	}
 
-	public function getFileData(FileEntity $fileData, ?IUser $user, ?SignRequestEntity $signRequest = null): array {
-		$return['action'] = JSActions::ACTION_SIGN;
-		$return['sign'] = [
-			'uuid' => $fileData->getUuid(),
-			'filename' => $fileData->getName()
-		];
+	public function getSignerData(?IUser $user, ?SignRequestEntity $signRequest = null): array {
+		$return = ['user' => ['name' => null]];
 		if ($signRequest) {
 			$return['user']['name'] = $signRequest->getDisplayName();
-			$return['sign']['description'] = $signRequest->getDescription();
-			$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
-				return [
-					'mandatory' => $identifyMethod->getMandatory(),
-					'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
-					'method' => $identifyMethod->getMethod(),
-				];
-			}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
-		} else {
+		} elseif ($user) {
 			$return['user']['name'] = $user->getDisplayName();
 		}
 		return $return;
 	}
 
-	public function getSignerData(?SignRequestEntity $signRequest = null): array {
-		$return['user']['name'] = $signRequest->getDisplayName();
-		$return['settings']['identifyMethods'] = array_map(function (IdentifyMethod $identifyMethod): array {
+	public function getAvailableIdentifyMethods(SignRequestEntity $signRequest = null): array {
+		$return = array_map(function (IdentifyMethod $identifyMethod): array {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
 				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),

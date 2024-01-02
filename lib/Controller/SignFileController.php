@@ -94,6 +94,7 @@ class SignFileController extends AEnvironmentAwareController {
 					'user-agent' => $this->request->getHeader('User-Agent'),
 					'remote-address' => $this->request->getRemoteAddress(),
 				])
+				->setCurrentUser($user)
 				->setVisibleElements($elements)
 				->setSignWithoutPassword(!empty($code))
 				->setPassword($password)

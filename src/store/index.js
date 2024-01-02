@@ -30,11 +30,8 @@ import validate from './modules/validate.js'
 import error from './modules/errors.js'
 import settings from './modules/settings.js'
 import user from './modules/user.js'
-import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Vuex)
-
-const libresignVar = loadState('libresign', 'config', {})
 
 export default new Store({
 
@@ -77,9 +74,6 @@ export default new Store({
 	getters: {
 		getErrors: state => {
 			return state.errors
-		},
-		getError(state) {
-			return libresignVar.errors
 		},
 		getHasPfx(state) {
 			return state.settings.hasSignatureFile

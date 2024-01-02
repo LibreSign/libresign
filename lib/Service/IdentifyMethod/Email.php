@@ -98,6 +98,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
 		$this->renewSession();
+		$this->updateIdentifiedAt();
 	}
 
 	private function throwIfAccountAlreadyExists(?IUser $user): ?IUser {

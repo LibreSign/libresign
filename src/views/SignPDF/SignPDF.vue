@@ -1,12 +1,12 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div id="viewer" class="content">
-			<PDFViewer :url="pdfData.url" />
+			<PDFViewer :url="pdf.url" />
 		</div>
 
-		<Sidebar v-bind="{ document, loading }" id="app-navigation">
+		<Sidebar v-bind="{ document, uuid: pdfUuid, loading }" id="app-navigation">
 			<Sign v-if="signEnabled"
-				v-bind="{ document, uuid, docType }"
+				v-bind="{ document, uuid: pdfUuid, docType }"
 				@signed="onSigned"
 				@update:phone="onPhoneUpdated" />
 			<div v-else>
@@ -19,10 +19,9 @@
 <script>
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
-import { defaultsDeep, set } from 'lodash-es'
 import { loadState } from '@nextcloud/initial-state'
-import { canSign, getStatusLabel, service as signService } from '../../domains/sign/index.js'
-import { onError, showErrors } from '../../helpers/errors.js'
+import { canSign, getStatusLabel } from '../../domains/sign/index.js'
+import { showErrors } from '../../helpers/errors.js'
 import PDFViewer from './_partials/PDFViewer.vue'
 import Sidebar from './_partials/Sidebar.vue'
 import Sign from './_partials/Sign.vue'
@@ -40,34 +39,21 @@ export default {
 		},
 	},
 	data() {
-		const state = defaultsDeep(loadState('libresign', 'config', {}), {
-			action: 0,
-			errors: [],
-			user: {
-				name: '',
-			},
-			sign: {
-				pdf: {
-					url: '',
-				},
-				uuid: '',
-				filename: '',
-				description: null,
-			},
-			settings: {
-				hasSignatureFile: false,
-			},
-		})
-
 		return {
-			state,
-			loading: true,
+			loading: false,
+			action: loadState('libresign', 'action'),
+			errors: loadState('libresign', 'errors', []),
+			pdf: loadState('libresign', 'pdf'),
+			pdfUuid: loadState('libresign', 'uuid', null) ?? this.uuid,
 			document: {
 				name: '',
+				filename: loadState('libresign', 'filename'),
+				description: loadState('libresign', 'description'),
+				status: loadState('libresign', 'status'),
 				fileId: 0,
-				signers: [],
+				signers: loadState('libresign', 'signers', []),
 				pages: [],
-				visibleElements: [],
+				visibleElements: loadState('libresign', 'visibleElements', []),
 				settings: { signMethod: 'password', canSign: false },
 			},
 		}
@@ -78,19 +64,6 @@ export default {
 				? 'document-validate'
 				: 'default'
 		},
-		documentUUID() {
-			return this.state?.sign?.uuid
-		},
-		pdfData() {
-			const { sign } = this.state
-
-			return {
-				url: sign?.pdf?.url,
-				uuid: sign?.uuid,
-				filename: sign?.filename,
-				description: sign?.filename,
-			}
-		},
 		signEnabled() {
 			return canSign(this.document?.status)
 		},
@@ -99,15 +72,7 @@ export default {
 		},
 	},
 	mounted() {
-		showErrors(this.state.errors)
-
-		this.loading = true
-
-		this.loadDocument()
-			.catch(console.warn)
-			.then(() => {
-				this.loading = false
-			})
+		showErrors(this.errors)
 	},
 	methods: {
 		gotoAccount() {
@@ -117,22 +82,13 @@ export default {
 		},
 		onSigned(data) {
 			showSuccess(data.message)
-			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.documentUUID } })
+			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.pdfUuid } })
 			window.location.href = url.href
-		},
-		async loadDocument() {
-			try {
-				this.document = await signService.validateByUUID(this.documentUUID)
-			} catch (err) {
-				onError(err)
-			}
 		},
 		onPhoneUpdated(val) {
 			const doc = {
 				...this.document,
 			}
-
-			set(doc, 'settings.phoneNumber', val)
 
 			this.document = doc
 		},

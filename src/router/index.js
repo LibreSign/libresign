@@ -26,10 +26,9 @@ import Router from 'vue-router'
 import routes from './router.js'
 import store from '../store/index.js'
 import { generateUrl } from '@nextcloud/router'
+import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
-
-const libresignVar = store.state.settings
 
 const base = generateUrl('/apps/libresign')
 
@@ -45,13 +44,9 @@ router.beforeEach((to, from, next) => {
 		next({ name: 'CreatePassword' })
 	}
 
-	if (libresignVar) {
-		if (libresignVar.sign) {
-			store.commit('setPdfData', libresignVar.sign)
-		}
-		if (libresignVar.errors) {
-			store.commit('setError', libresignVar.errors)
-		}
+	const errors = loadState('libresign', 'errors', [])
+	if (errors) {
+		store.commit('setError', errors)
 	}
 	next()
 })
