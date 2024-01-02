@@ -28,6 +28,9 @@ import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
 
+/**
+ * @return {string} Vue Router base url
+ */
 function generateWebBasePath() {
 	// if index.php is in the url AND we got this far, then it's working:
 	// let's keep using index.php in the url
@@ -60,37 +63,35 @@ const router = new Router({
 			path: '/p/sign/:uuid',
 			redirect: { name: selectAction(loadState('libresign', 'action', '')) },
 			props: true,
-			children: [
-				{
-					path: 'pdf',
-					name: 'SignPDF',
-					component: () => import('../views/SignPDF/SignPDF.vue'),
-					props: true,
-				},
-				{
-					path: 'sign-in',
-					name: 'CreateUser',
-					component: () => import('../views/CreateUser.vue'),
-					props: true,
-				},
-				{
-					path: 'error',
-					name: 'DefaultPageError',
-					component: () => import('../views/DefaultPageError.vue'),
-					props: true,
-				},
-				{
-					path: 'success',
-					name: 'DefaultPageSuccess',
-					component: () => import('../views/DefaultPageSuccess.vue'),
-					props: true,
-				},
-				{
-					path: 'renew/email',
-					name: 'RenewEmail',
-					component: () => import('../views/RenewEmail.vue'),
-				},
-			]
+		},
+		{
+			path: '/p/sign/:uuid/pdf',
+			name: 'SignPDF',
+			component: () => import('../views/SignPDF/SignPDF.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/sign-in',
+			name: 'CreateUser',
+			component: () => import('../views/CreateUser.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/error',
+			name: 'DefaultPageError',
+			component: () => import('../views/DefaultPageError.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/success',
+			name: 'DefaultPageSuccess',
+			component: () => import('../views/DefaultPageSuccess.vue'),
+			props: true,
+		},
+		{
+			path: '/p/sign/:uuid/renew/email',
+			name: 'RenewEmail',
+			component: () => import('../views/RenewEmail.vue'),
 		},
 		{
 			path: '/p/validation/:uuid',
