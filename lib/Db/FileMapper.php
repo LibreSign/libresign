@@ -72,7 +72,7 @@ class FileMapper extends QBMapper {
 	}
 
 	/**
-	 * Return LibreSign file by UUID
+	 * Return LibreSign file by file UUID
 	 */
 	public function getByUuid(?string $uuid = null): File {
 		if (is_null($uuid) && !empty($this->file)) {
@@ -89,6 +89,27 @@ class FileMapper extends QBMapper {
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
+			);
+
+		$file = $this->findEntity($qb);
+		$this->file[] = $file;
+		return $file;
+	}
+
+	/**
+	 * Return LibreSign file by signer UUID
+	 */
+	public function getBySignerUuid(?string $uuid = null): File {
+		if (is_null($uuid) && !empty($this->file)) {
+			return current($this->file);
+		}
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('f.*')
+			->from($this->getTableName(), 'f')
+			->join('f', 'libresign_sign_request', 'sr', $qb->expr()->eq('f.id', 'sr.file_id'))
+			->where(
+				$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($uuid))
 			);
 
 		$file = $this->findEntity($qb);

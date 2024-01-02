@@ -21,32 +21,15 @@ Feature: account/create_to_sign
       """
       250
       """
-    And the response should contain the initial state "libresign-sign" with the following values:
+    And the response should contain the initial state "libresign-pdf" with the following values:
       """
       {
-        "pdf": {
-          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-        },
-        "description": null,
-        "filename": "document"
+        "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
       }
       """
-    And the response should contain the initial state "libresign-config" with the following values:
+    And the response should contain the initial state "libresign-filename" with the following values:
       """
-      {
-        "user": {
-          "name": ""
-        },
-        "settings": {
-          "identifyMethods": [
-            {
-              "mandatory": 1,
-              "identifiedAtDate": null,
-              "method": "email"
-            }
-          ]
-        }
-      }
+      document
       """
     Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
       | uuid     | <SIGN_UUID>         |
@@ -70,32 +53,15 @@ Feature: account/create_to_sign
       """
       250
       """
-    And the response should contain the initial state "libresign-sign" with the following values:
+    And the response should contain the initial state "libresign-pdf" with the following values:
       """
       {
-        "pdf": {
-          "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
-        },
-        "description": null,
-        "filename": "document"
+        "url": "/index.php/apps/libresign/pdf/user/<SIGN_UUID>"
       }
       """
-    And the response should contain the initial state "libresign-config" with the following values:
+    And the response should contain the initial state "libresign-filename" with the following values:
       """
-      {
-        "user": {
-          "name": ""
-        },
-        "settings": {
-          "identifyMethods": [
-            {
-              "mandatory": 1,
-              "identifiedAtDate": null,
-              "method": "email"
-            }
-          ]
-        }
-      }
+      document
       """
     Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
       | uuid | <SIGN_UUID> |

@@ -126,17 +126,31 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	public function sign($uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
-		$this->initialState->provideInitialState('config', array_merge(
-			$this->accountService->getConfig($this->userSession->getUser()),
+		$this->initialState->provideInitialState('config',
+			$this->accountService->getConfig($this->userSession->getUser())
+		);
+		$this->initialState->provideInitialState('signer',
 			$this->signFileService->getSignerData(
-				$this->getSignRequestEntity()
-			),
-		));
-		$this->initialState->provideInitialState('sign', [
-			'filename' => $this->getFileEntity()->getName(),
-			'description' => $this->getSignRequestEntity()->getDescription(),
-			'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
-		]);
+				$this->userSession->getUser(),
+				$this->getSignRequestEntity(),
+			)
+		);
+		$this->initialState->provideInitialState('identifyMethods',
+			$this->signFileService->getAvailableIdentifyMethods($this->getSignRequestEntity())
+		);
+		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
+		$file = $this->fileService
+			->setFile($this->getFileEntity())
+			->showVisibleElements()
+			->showSigners()
+			->formatFile();
+		$this->initialState->provideInitialState('status', $file['status']);
+		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
+		$this->initialState->provideInitialState('signers', $file['signers']);
+		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
+		$this->initialState->provideInitialState('pdf',
+			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -170,20 +184,16 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function signAccountFile($uuid): TemplateResponse {
-		$config = [];
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
 		} catch (DoesNotExistException $e) {
-			$config = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			];
+			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
 		}
-		$this->initialState->provideInitialState('config', array_merge(
-			$config,
+		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
-		));
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -228,23 +238,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function getPdfUser($uuid) {
-		$config = array_merge(
-			$this->accountService->getConfig($this->userSession->getUser()),
-			$this->signFileService->getFileData(
-				$this->getFileEntity(),
-				$this->userSession->getUser(),
-				$this->getSignRequestEntity()
-			),
-			[
-				'sign' => [
-					'pdf' => $this->signFileService->getFileUrl('file', $this->getFileEntity(), $this->getNextcloudFile(), $uuid),
-				],
-			],
-		);
-		if (!isset($config['sign'])) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
-		}
-		$resp = new FileDisplayResponse($config['sign']['pdf']['file']);
+		$resp = new FileDisplayResponse($this->getNextcloudFile());
 		$resp->addHeader('Content-Type', 'application/pdf');
 		$csp = new ContentSecurityPolicy();
 		$csp->addAllowedFrameDomain('\'self\'');
@@ -263,21 +257,23 @@ class PageController extends AEnvironmentPageAwareController {
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
-			$this->initialState->provideInitialState('config', array_merge(
-				$this->accountService->getConfig($this->userSession->getUser()),
-				$this->signFileService->getFileData(
-					$this->getFileEntity(),
+			$this->initialState->provideInitialState('config',
+				$this->accountService->getConfig($this->userSession->getUser())
+			);
+			$this->initialState->provideInitialState('file', [
+				'uuid' => $this->getFileEntity()?->getUuid(),
+				'description' => $this->getSignRequestEntity()?->getDescription(),
+			]);
+			$this->initialState->provideInitialState('filename', $this->getFileEntity()?->getName());
+			$this->initialState->provideInitialState('pdf',
+				$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid'))
+			);
+			$this->initialState->provideInitialState('signer',
+				$this->signFileService->getSignerData(
 					$this->userSession->getUser(),
-					$this->getSignRequestEntity()
-				),
-				[
-					'sign' => [
-						'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid')),
-					],
-				],
-			));
-		} else {
-			$this->initialState->provideInitialState('config', []);
+					$this->getSignRequestEntity(),
+				)
+			);
 		}
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
@@ -306,19 +302,9 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSignRequestUuid]
 	public function resetPassword(): TemplateResponse {
-		$this->initialState->provideInitialState('config', array_merge(
-			$this->accountService->getConfig($this->userSession->getUser()),
-			$this->signFileService->getFileData(
-				$this->getFileEntity(),
-				$this->userSession->getUser(),
-				$this->getSignRequestEntity()
-			),
-			[
-				'sign' => [
-					'pdf' => $this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $this->request->getParam('uuid')),
-				],
-			],
-		));
+		$this->initialState->provideInitialState('config',
+			$this->accountService->getConfig($this->userSession->getUser())
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
 		$response = new TemplateResponse(Application::APP_ID, 'reset_password');
@@ -335,20 +321,16 @@ class PageController extends AEnvironmentPageAwareController {
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
-		$config = [];
 		try {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
 		} catch (DoesNotExistException $e) {
-			$config = [
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			];
+			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
 		}
-		$this->initialState->provideInitialState('config', array_merge(
-			$config,
+		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
-		));
+		);
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
