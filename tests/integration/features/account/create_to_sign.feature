@@ -1,6 +1,7 @@
 Feature: account/create_to_sign
   Background:
     Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
     And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
     And my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"

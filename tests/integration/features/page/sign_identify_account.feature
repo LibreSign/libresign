@@ -1,4 +1,6 @@
 Feature: page/sign_identify_account
+  Background: Make setup ok
+    Given run the command "config:app:set libresign authkey --value dummy"
 
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
@@ -85,9 +87,7 @@ Feature: page/sign_identify_account
       | email | |
       | me | true |
       | identifyMethods | [{"method":"account","mandatory":1,"identifiedAtDate":null}] |
-    When as user "admin"
-    And sending "delete" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/authkey"
-    And as user "signer1"
+    When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:
       """

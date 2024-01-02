@@ -137,6 +137,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function updateIdentifiedAt(): void {
 		$this->getEntity()->setIdentifiedAtDate($this->timeFactory->getDateTime());
+		$this->willNotify = false;
 		$this->save();
 	}
 

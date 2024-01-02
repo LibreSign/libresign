@@ -24,7 +24,6 @@
 import Vue from 'vue'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
-import { sync } from 'vuex-router-sync'
 import { translate, translatePlural } from '@nextcloud/l10n'
 
 import './plugins/vuelidate.js'
@@ -35,7 +34,7 @@ import './assets/styles/main.scss'
 import 'vue-advanced-cropper/dist/style.css'
 
 import App from './App.vue'
-import router from './router/index.js'
+import router from './router/router.js'
 import store from './store/index.js'
 
 Vue.mixin({ methods: { t, n } })
@@ -53,17 +52,11 @@ __webpack_nonce__ = btoa(getRequestToken())
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
-sync(store, router)
-
 Vue.prototype.t = t
 Vue.prototype.n = n
 
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
-
-if (window.location.pathname.split('/')[1] === 'index.php' && OC.config.modRewriteWorking) {
-	router.push({ name: 'home' })
-}
 
 export default new Vue({
 	el: '#content',

@@ -49,7 +49,7 @@ export default {
 	},
 	computed: {
 		myUuid() {
-			const getUuid = this.$store.getters.getUuidToValidate
+			const getUuid = this.$route.params.uuid
 			if (getUuid) {
 				return getUuid
 			}

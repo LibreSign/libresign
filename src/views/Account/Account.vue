@@ -10,7 +10,7 @@
 							<p>{{ user.displayName }}</p>
 						</div>
 					</div>
-					<div v-if="getCertificateOk" class="user-password">
+					<div class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
 						<div class="user-display-password icon-password">
 							<NcButton @click="uploadCertificate()">
@@ -84,7 +84,6 @@ export default {
 	computed: {
 		...mapGetters({
 			getHasPfx: 'getHasPfx',
-			getCertificateOk: 'getCertificateOk',
 		}),
 	},
 	methods: {

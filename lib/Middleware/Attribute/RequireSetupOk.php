@@ -22,16 +22,18 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\Helper;
+namespace OCA\Libresign\Middleware\Attribute;
 
-final class JSActions {
-	public const ACTION_REDIRECT = 100;
-	public const ACTION_CREATE_USER = 150;
-	public const ACTION_DO_NOTHING = 200;
-	public const ACTION_SIGN = 250;
-	public const ACTION_SHOW_ERROR = 300;
-	public const ACTION_SIGNED = 350;
-	public const ACTION_CREATE_SIGNATURE_PASSWORD = 400;
-	public const ACTION_RENEW_EMAIL = 450;
-	public const ACTION_INCOMPLETE_SETUP = 500;
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD)]
+class RequireSetupOk {
+	public function __construct(
+		protected string $template = 'external',
+	) {
+	}
+
+	public function getTemplate(): string {
+		return $this->template;
+	}
 }
