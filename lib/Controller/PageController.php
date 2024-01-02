@@ -263,7 +263,7 @@ class PageController extends AEnvironmentPageAwareController {
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	#[RequireSetupOk(template: 'external')]
+	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 5, period: 120)]
 	public function validation(): TemplateResponse {
