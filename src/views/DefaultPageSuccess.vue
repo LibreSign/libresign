@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import icon from '../assets/images/logo-white.png'
+import icon from '../../img/logo-white.svg'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
