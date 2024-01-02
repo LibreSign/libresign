@@ -1,4 +1,6 @@
 Feature: page/sign_identify_default
+  Background: Make setup ok
+    Given run the command "config:app:set libresign authkey --value dummy"
 
   Scenario: Open sign file with all data valid
     Given as user "admin"
