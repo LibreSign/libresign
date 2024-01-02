@@ -77,7 +77,7 @@ import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationI
 import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import Icon from './assets/images/signed-icon.svg'
+import Icon from './../img/signed-icon.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { loadState } from '@nextcloud/initial-state'
 

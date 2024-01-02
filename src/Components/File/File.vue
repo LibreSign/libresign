@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import ApplicationImagePdf from '../../assets/images/application-pdf.png'
+import ApplicationImagePdf from '../../../img/application-pdf.png'
 export default {
 	name: 'File',
 	props: {
