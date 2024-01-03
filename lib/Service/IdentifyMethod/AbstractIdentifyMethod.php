@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use InvalidArgumentException;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -167,10 +168,18 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($lastActionDate + $renewalInterval < $now) {
 			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_RENEW_EMAIL,
+				'action' => $this->getRenewActionByName(),
 				'errors' => [$this->l10n->t('Link expired. Need to be renewed.')],
 			]));
 		}
+	}
+
+	private function getRenewActionByName(): int {
+		switch ($this->name) {
+			case 'email':
+				return JSActions::ACTION_RENEW_EMAIL;
+		}
+		throw new InvalidArgumentException('Invalid identify method name');
 	}
 
 	protected function throwIfAlreadySigned(): void {
