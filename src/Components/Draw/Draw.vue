@@ -43,9 +43,9 @@
 import Editor from './Editor.vue'
 import TextInput from './TextInput.vue'
 import FileUpload from './FileUpload.vue'
-import DrawIcon from '../../assets/images/curvature.png'
-import TextIcon from '../../assets/images/text.png'
-import UploadIcon from '../../assets/images/upload-black.png'
+import DrawIcon from '../../../img/curvature.png'
+import TextIcon from '../../../img/text.png'
+import UploadIcon from '../../../img/upload-black.png'
 
 export default {
 	name: 'Draw',

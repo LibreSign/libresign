@@ -62,7 +62,7 @@ export default {
 	height: 100%;
 
 	#img{
-		background-image: url('../assets/images/sad-face-in-rounded-square.svg');
+		background-image: url('../../img/sad-face-in-rounded-square.svg');
 		height: 140px;
 		width: 140px;
 		background-repeat: no-repeat;

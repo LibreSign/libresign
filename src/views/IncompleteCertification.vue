@@ -12,7 +12,7 @@
 
 <script>
 
-import BackgroundImage from '../assets/images/bg.png'
+import BackgroundImage from '../../img/logo-gray.svg'
 
 export default {
 	name: 'IncompleteCertification',
