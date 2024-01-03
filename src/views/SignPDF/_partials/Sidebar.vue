@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import PDFIcon from '../../../assets/images/application-pdf.png'
+import PDFIcon from '../../../../img/application-pdf.png'
 import Chip from '../../../Components/Chip.vue'
 import { get } from 'lodash-es'
 
