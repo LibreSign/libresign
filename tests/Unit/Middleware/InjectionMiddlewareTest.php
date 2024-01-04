@@ -96,7 +96,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider providerAfterException
 	 */
-	public function testAfterException(string $message, int $code, string $exception, callable $expected): void {
+	public function testAfterException(string $message, int $code, string $exception, callable $callback): void {
 		$controller = $this->createMock(Controller::class);
 		$methodName = 'fake';
 		try {
@@ -111,7 +111,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 		$injectionMiddleware = $this->getInjectionMiddleware();
 		$actual = $injectionMiddleware->afterException($controller, $methodName, $exception);
-		$expected($this, $message, $code, $actual);
+		$callback($this, $message, $code, $actual);
 	}
 
 	public static function providerAfterException(): array {
