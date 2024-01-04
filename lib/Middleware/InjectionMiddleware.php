@@ -56,6 +56,8 @@ use OCP\Util;
 
 class InjectionMiddleware extends Middleware {
 	protected ?string $userId;
+	protected string $template = '';
+	protected string $renderAs = '';
 
 	public function __construct(
 		private IRequest $request,
@@ -170,24 +172,14 @@ class InjectionMiddleware extends Middleware {
 	 */
 	public function afterException($controller, $methodName, \Exception $exception): Response {
 		if (str_contains($this->request->getHeader('Accept'), 'html')) {
-			$template = 'external';
-			if ($this->isJson($exception->getMessage())) {
-				foreach (json_decode($exception->getMessage(), true) as $key => $value) {
-					if ($key === 'template') {
-						$template = $value;
-						continue;
-					}
-					$this->initialState->provideInitialState($key, $value);
-				}
-			} else {
-				$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
-			}
+			$this->handleException($exception);
 
+			$template = $this->getTemplate();
 			Util::addScript(Application::APP_ID, 'libresign-' . $template);
 			$response = new TemplateResponse(
 				appName: Application::APP_ID,
 				templateName: $template,
-				renderAs: $this->getRenderAsFromTemplate($template),
+				renderAs: $this->getRenderAs(),
 				status: $this->getStatusCodeFromException($exception)
 			);
 
@@ -213,7 +205,36 @@ class InjectionMiddleware extends Middleware {
 		throw $exception;
 	}
 
-	private function getRenderAsFromTemplate(string $template): string {
+	private function handleException(\Exception $exception): void {
+		if ($this->isJson($exception->getMessage())) {
+			foreach (json_decode($exception->getMessage(), true) as $key => $value) {
+				if ($key === 'template') {
+					$this->template = $value;
+					continue;
+				}
+				if ($key === 'renderAs') {
+					$this->renderAs = $value;
+					continue;
+				}
+				$this->initialState->provideInitialState($key, $value);
+			}
+		} else {
+			$this->initialState->provideInitialState('error', ['message' => $exception->getMessage()]);
+		}
+	}
+
+	private function getTemplate(): string {
+		if (!empty($this->template)) {
+			return $this->template;
+		}
+		return 'external';
+	}
+
+	private function getRenderAs(): string {
+		if (!empty($this->renderAs)) {
+			return $this->renderAs;
+		}
+		$template = $this->getTemplate();
 		if ($template === 'external') {
 			return TemplateResponse::RENDER_AS_BASE;
 		}
