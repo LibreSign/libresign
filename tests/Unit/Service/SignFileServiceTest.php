@@ -13,6 +13,7 @@ use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Libresign\Service\SignMethodService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -48,9 +49,10 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IEventDispatcher|MockObject $eventDispatcher;
 	private IURLGenerator|MockObject $urlGenerator;
 	private SignMethodService|MockObject $signMethod;
-	private IdentifyMethodService|MockObject $identifyMethod;
 	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
+	private IdentifyMethodService $identifyMethodService;
+	private ITimeFactory $timeFactory;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -78,6 +80,8 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signMethod = $this->createMock(SignMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
+		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
+		$this->timeFactory = $this->createMock(ITimeFactory::class);
 	}
 
 	private function getService(): SignFileService {
@@ -102,7 +106,9 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->urlGenerator,
 			$this->signMethod,
 			$this->identifyMethodMapper,
-			$this->tempManager
+			$this->tempManager,
+			$this->identifyMethodService,
+			$this->timeFactory,
 		);
 	}
 

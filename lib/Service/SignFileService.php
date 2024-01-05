@@ -47,7 +47,9 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
@@ -101,7 +103,9 @@ class SignFileService {
 		private IURLGenerator $urlGenerator,
 		private SignMethodService $signMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private ITempManager $tempManager
+		private ITempManager $tempManager,
+		private IdentifyMethodService $identifyMethodService,
+		private ITimeFactory $timeFactory,
 	) {
 	}
 
@@ -388,6 +392,23 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('File not found'), 1);
 		}
 		return $libresignFile;
+	}
+
+	public function renew(SignRequestEntity $signRequest, string $method): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (empty($identifyMethods[$method])) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+
+		$signRequest->setUuid(UUIDUtil::getUUID());
+		$this->signRequestMapper->update($signRequest);
+
+		array_map(function (IIdentifyMethod $identifyMethod) {
+			$entity = $identifyMethod->getEntity();
+			$entity->setAttempts($entity->getAttempts() + 1);
+			$entity->setLastAttemptDate($this->timeFactory->getDateTime());
+			$identifyMethod->save();
+		}, $identifyMethods[$method]);
 	}
 
 	public function requestCode(SignRequestEntity $signRequest, IUser $user): string {
