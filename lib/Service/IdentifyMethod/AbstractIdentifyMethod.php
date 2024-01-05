@@ -41,6 +41,7 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
+use Wobeto\EmailBlur\Blur;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
@@ -167,6 +168,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		]);
 		if ($lastActionDate + $renewalInterval < $now) {
 			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
+			$blur = new Blur($this->getEntity()->getIdentifierValue());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_RENEW_EMAIL,
 				// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
@@ -176,7 +178,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 					We will send a new link to the email %1$s.
 					Click below to receive the new link and be able to sign the document.
 					BODY,
-					[$this->getEntity()->getIdentifierValue()]
+					[$blur->make()]
 				),
 				'uuid' => $signRequest->getUuid(),
 				// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
