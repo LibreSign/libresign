@@ -158,6 +158,7 @@ router.beforeEach((to, from, next) => {
 	if (action !== undefined && to.name !== action) {
 		next({
 			name: action,
+			params: to.params,
 		})
 	} else if (to.query.redirect === 'CreatePassword') {
 		next({ name: 'CreatePassword' })
