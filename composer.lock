@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b4d09ae81d391240dcf15b403ab648dd",
+    "content-hash": "e680dc2da1aee7d230b344aa0367ca37",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1650,6 +1650,46 @@
                 }
             ],
             "time": "2023-09-06T15:09:26+00:00"
+        },
+        {
+            "name": "wobeto/email-blur",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/fernandowobeto/email-blur.git",
+                "reference": "8b5dde08cad6655eeadb982fed3619d72cbc809d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/fernandowobeto/email-blur/zipball/8b5dde08cad6655eeadb982fed3619d72cbc809d",
+                "reference": "8b5dde08cad6655eeadb982fed3619d72cbc809d",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Wobeto\\EmailBlur\\": "Wobeto/EmailBlur/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fernando WObeto",
+                    "email": "fernandowobeto@gmail.com"
+                }
+            ],
+            "description": "A library to e-mail blur",
+            "support": {
+                "issues": "https://github.com/fernandowobeto/email-blur/issues",
+                "source": "https://github.com/fernandowobeto/email-blur/tree/1.0.0"
+            },
+            "time": "2021-06-05T01:11:18+00:00"
         }
     ],
     "packages-dev": [

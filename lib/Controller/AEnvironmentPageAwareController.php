@@ -24,96 +24,22 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\SignRequest as SignRequestEntity;
-use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Files\File;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 abstract class AEnvironmentPageAwareController extends Controller {
-	private ?SignRequestEntity $signRequestEntity = null;
-	private ?FileEntity $fileEntity = null;
-	private ?File $nextcloudFile = null;
+	use LibresignTrait;
 
 	public function __construct(
 		IRequest $request,
 		protected SignFileService $signFileService,
 		protected IL10N $l10n,
-		private IUserSession $userSession,
+		protected IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	private function loadEntitiesFromUuid(string $uuid): void {
-		if ($this->signRequestEntity instanceof SignRequestEntity
-			&& $this->fileEntity instanceof FileEntity) {
-			return;
-		}
-		try {
-			$this->signRequestEntity = $this->signFileService->getSignRequest($uuid);
-			$this->fileEntity = $this->signFileService->getFile(
-				$this->signRequestEntity->getFileId(),
-			);
-		} catch (DoesNotExistException $e) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			]), AppFrameworkHttp::STATUS_NOT_FOUND);
-		}
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	public function validateSignRequestUuid(string $uuid): void {
-		$this->loadEntitiesFromUuid($uuid);
-		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	public function validateRenewSigner(string $uuid): void {
-		$this->loadEntitiesFromUuid($uuid);
-		$this->signFileService->validateRenewSigner($uuid, $this->userSession->getUser());
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
-	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
-		$this->loadEntitiesFromUuid($uuid);
-		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
-			$this->fileEntity->getNodeId(),
-		);
-	}
-
-	public function getSignRequestEntity(): ?SignRequestEntity {
-		return $this->signRequestEntity;
-	}
-
-	public function getFileEntity(): ?FileEntity {
-		return $this->fileEntity;
-	}
-
-	public function getNextcloudFile(): ?File {
-		return $this->nextcloudFile;
 	}
 }
