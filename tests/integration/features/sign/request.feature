@@ -165,6 +165,18 @@ Feature: request-signature
       250
       """
 
+  Scenario: Request to sign with error using account as identifier when the user don't exists
+    Given as user "admin"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]}] |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer2"}}] |
+      | name | document |
+    Then the response should be a JSON array with the following mandatory values
+      | key     | value                                      |
+      | message | It is not possible to create new accounts. |
+
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
     And run the command "config:app:set libresign authkey --value dummy"
