@@ -71,6 +71,7 @@ class Email extends AbstractIdentifyMethod {
 			$logger,
 			$sessionService,
 		);
+		$this->getSettings();
 	}
 
 	public function notify(bool $isNew): void {
@@ -139,7 +140,10 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function getSettings(): array {
-		$settings = parent::getSettingsFromDatabase(
+		if (!empty($this->settings)) {
+			return $this->settings;
+		}
+		$this->settings = parent::getSettingsFromDatabase(
 			default: [
 				'enabled' => false,
 			],
@@ -147,6 +151,6 @@ class Email extends AbstractIdentifyMethod {
 				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
-		return $settings;
+		return $this->settings;
 	}
 }

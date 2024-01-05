@@ -46,7 +46,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
-	private bool $canCreateAccount;
+	private bool $canCreateAccount = true;
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -78,7 +78,7 @@ class Account extends AbstractIdentifyMethod {
 			$logger,
 			$sessionService,
 		);
-		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
+		$this->getSettings();
 	}
 
 	public function notify(bool $isNew): void {
@@ -105,6 +105,9 @@ class Account extends AbstractIdentifyMethod {
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$signer = $this->userManager->get($this->entity->getIdentifierValue());
 			if (!$signer) {
+				if (!$this->canCreateAccount) {
+					throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
+				}
 				throw new LibresignException($this->l10n->t('User not found.'));
 			}
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
@@ -218,11 +221,14 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function getSettings(): array {
+		if (!empty($this->settings)) {
+			return $this->settings;
+		}
 		$signatureMethod = [
 			'id' => 'password',
 			'label' => \OC::$server->get(Password::class)->friendlyName,
 		];
-		$settings = $this->getSettingsFromDatabase(
+		$this->settings = $this->getSettingsFromDatabase(
 			default: [
 				'enabled' => $this->isEnabledByDefault(),
 				'signature_method' => $signatureMethod,
@@ -232,10 +238,11 @@ class Account extends AbstractIdentifyMethod {
 				],
 			]
 		);
-		if (in_array('password', $settings['allowed_signature_methods'])) {
-			$settings['allowed_signature_methods'] = [$signatureMethod];
+		$this->canCreateAccount = $this->settings['can_create_account'];
+		if (in_array('password', $this->settings['allowed_signature_methods'])) {
+			$this->settings['allowed_signature_methods'] = [$signatureMethod];
 		}
-		return $settings;
+		return $this->settings;
 	}
 
 	private function isEnabledByDefault(): bool {
