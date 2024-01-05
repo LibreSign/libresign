@@ -170,7 +170,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			$blur = new Blur($this->getEntity()->getIdentifierValue());
 			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_RENEW_EMAIL,
+				'action' => $this->getRenewAction(),
 				// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
 				'title' => $this->l10n->t('Link expired'),
 				'body' => $this->l10n->t(<<<'BODY'
@@ -187,7 +187,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
-	private function getRenewActionByName(): int {
+	private function getRenewAction(): int {
 		switch ($this->name) {
 			case 'email':
 				return JSActions::ACTION_RENEW_EMAIL;
