@@ -110,6 +110,9 @@ class Account extends AbstractIdentifyMethod {
 		if ($this->entity->getIdentifierKey() === 'account') {
 			$signer = $this->userManager->get($this->entity->getIdentifierValue());
 			if (!$signer) {
+				if (!$this->canCreateAccount) {
+					throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
+				}
 				throw new LibresignException($this->l10n->t('User not found.'));
 			}
 		} elseif ($this->entity->getIdentifierKey() === 'email') {
@@ -240,6 +243,7 @@ class Account extends AbstractIdentifyMethod {
 				],
 			]
 		);
+		$this->canCreateAccount = $this->settings['can_create_account'];
 		if (in_array('password', $this->settings['allowed_signature_methods'])) {
 			$this->settings['allowed_signature_methods'] = [$signatureMethod];
 		}
