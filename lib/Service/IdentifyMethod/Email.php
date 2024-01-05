@@ -71,6 +71,7 @@ class Email extends AbstractIdentifyMethod {
 			$logger,
 			$sessionService,
 		);
+		$this->getSettings();
 	}
 
 	public function notify(bool $isNew): void {
