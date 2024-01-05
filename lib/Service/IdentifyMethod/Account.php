@@ -46,7 +46,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
-	private bool $canCreateAccount;
+	private bool $canCreateAccount = true;
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -78,12 +78,7 @@ class Account extends AbstractIdentifyMethod {
 			$logger,
 			$sessionService,
 		);
-		$this->loadDefaultValueToCanCreateAccount();
 		$this->getSettings();
-	}
-
-	private function loadDefaultValueToCanCreateAccount(): void {
-		$this->canCreateAccount = (bool) $this->config->getAppValue(Application::APP_ID, 'can_create_accountApplication', true);
 	}
 
 	public function notify(bool $isNew): void {
