@@ -135,16 +135,15 @@ Feature: request-signature
     When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
-      | key    | value                                 |
-      | action | 450                                   |
-      | errors | ["Link expired. Need to be renewed."] |
+      | key    | value       |
+      | action | 450         |
+      | title | Link expired |
     Given my inbox is empty
-    When sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>/renew/email"
+    When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
     Then the response should have a status code 200
-    And the response should contain the initial state "libresign-message" with the following values:
-      """
-      Renewed with success. Access the link again.
-      """
+    And the response should be a JSON array with the following mandatory values
+      | key     | value                                        |
+      | message | Renewed with success. Access the link again. |
     And I open the latest email to "signer2@domain.test" with subject "LibreSign: Changes into a file for you to sign"
     And I fetch the signer UUID from opened email
     And as user ""

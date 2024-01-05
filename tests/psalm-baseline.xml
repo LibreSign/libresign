@@ -154,8 +154,7 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/RequestSignatureService.php">
-    <UndefinedClass occurrences="3">
-      <code>UUIDUtil</code>
+    <UndefinedClass occurrences="2">
       <code>UUIDUtil</code>
       <code>UUIDUtil</code>
     </UndefinedClass>
@@ -173,7 +172,8 @@
       <code>$this-&gt;root</code>
       <code>private</code>
     </MissingDependency>
-    <UndefinedClass occurrences="1">
+    <UndefinedClass occurrences="2">
+      <code>UUIDUtil</code>
       <code>UUIDUtil</code>
     </UndefinedClass>
   </file>
