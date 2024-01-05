@@ -29,7 +29,6 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
@@ -59,7 +58,7 @@ use OCP\Util;
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
 		IRequest $request,
-		private IUserSession $userSession,
+		protected IUserSession $userSession,
 		private IInitialState $initialState,
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
@@ -165,23 +164,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
-	}
-
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[RequireSetupOk]
-	#[PublicPage]
-	#[CanSignRequestUuid]
-	public function signRenew(string $method): TemplateResponse {
-		$this->requestSignatureService->renew(
-			$this->getSignRequestEntity(),
-			$method,
-		);
-		$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
-		// TRANSLATORS Message sent to signer when the sign link was expired and was possible to request to renew. The signer will see this message on the screen and nothing more.
-		$this->initialState->provideInitialState('message', $this->l10n->t('Renewed with success. Access the link again.'));
-		Util::addScript(Application::APP_ID, 'libresign-external');
-		return new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
 	}
 
 	/**

@@ -30,14 +30,17 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -45,12 +48,13 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class SignFileController extends AEnvironmentAwareController {
+	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
 		protected IL10N $l10n,
 		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
-		private IUserSession $userSession,
+		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		protected SignFileService $signFileService,
 		private FileService $fileService,
@@ -142,6 +146,24 @@ class SignFileController extends AEnvironmentAwareController {
 				'errors' => [$message]
 			],
 			Http::STATUS_UNPROCESSABLE_ENTITY
+		);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[CanSignRequestUuid]
+	#[RequireSignRequestUuid]
+	public function signRenew(string $method): JSONResponse {
+		$this->signFileService->renew(
+			$this->getSignRequestEntity(),
+			$method,
+		);
+		return new JSONResponse(
+			[
+				// TRANSLATORS Message sent to signer when the sign link was expired and was possible to request to renew. The signer will see this message on the screen and nothing more.
+				'message' => $this->l10n->t('Renewed with success. Access the link again.'),
+			]
 		);
 	}
 

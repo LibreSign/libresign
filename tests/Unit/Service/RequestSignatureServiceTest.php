@@ -34,7 +34,6 @@ use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\PdfParserService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignMethodService;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -57,7 +56,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private FolderService|MockObject $folderService;
 	private IConfig $config;
 	private ValidateHelper|MockObject $validateHelper;
-	private ITimeFactory|MockObject $timeFactory;
 	private FileElementMapper|MockObject $fileElementMapper;
 	private FileElementService|MockObject $fileElementService;
 	private SignMethodService|MockObject $signMethod;
@@ -83,7 +81,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
-		$this->timeFactory = $this->createMock(ITimeFactory::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);
 		$this->signMethod = $this->createMock(SignMethodService::class);
@@ -109,7 +106,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 			$this->folderService,
 			$this->mimeTypeDetector,
 			$this->validateHelper,
-			$this->timeFactory,
 			$this->client,
 			$this->loggerInterface
 		);
