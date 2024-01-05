@@ -47,7 +47,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected string $friendlyName;
-	protected array $customConfig = [];
+	protected array $settings = [];
 	protected bool $willNotify = true;
 	public function __construct(
 		private IConfig $config,
@@ -209,8 +209,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function getSettingsFromDatabase(array $default = [], array $immutable = []): array {
-		if ($this->customConfig) {
-			return $this->customConfig;
+		if ($this->settings) {
+			return $this->settings;
 		}
 		$default = array_merge(
 			[
@@ -225,8 +225,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$customConfig = $this->removeKeysThatDontExists($customConfig, $default);
 		$customConfig = $this->overrideImmutable($customConfig, $immutable);
 		$customConfig = $this->getDefaultValues($customConfig, $default);
-		$this->customConfig = $customConfig;
-		return $this->customConfig;
+		$this->settings = $customConfig;
+		return $this->settings;
 	}
 
 	private function overrideImmutable(array $customConfig, array $immutable) {
