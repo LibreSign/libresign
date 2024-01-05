@@ -218,11 +218,14 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function getSettings(): array {
+		if (!empty($this->settings)) {
+			return $this->settings;
+		}
 		$signatureMethod = [
 			'id' => 'password',
 			'label' => \OC::$server->get(Password::class)->friendlyName,
 		];
-		$settings = $this->getSettingsFromDatabase(
+		$this->settings = $this->getSettingsFromDatabase(
 			default: [
 				'enabled' => $this->isEnabledByDefault(),
 				'signature_method' => $signatureMethod,
@@ -232,10 +235,10 @@ class Account extends AbstractIdentifyMethod {
 				],
 			]
 		);
-		if (in_array('password', $settings['allowed_signature_methods'])) {
-			$settings['allowed_signature_methods'] = [$signatureMethod];
+		if (in_array('password', $this->settings['allowed_signature_methods'])) {
+			$this->settings['allowed_signature_methods'] = [$signatureMethod];
 		}
-		return $settings;
+		return $this->settings;
 	}
 
 	private function isEnabledByDefault(): bool {
