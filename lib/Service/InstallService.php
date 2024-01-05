@@ -36,6 +36,7 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\Http\Client\IClientService;
@@ -93,7 +94,16 @@ class InstallService {
 			try {
 				$folder = $folder->getFolder($path);
 			} catch (\Throwable $th) {
-				$folder = $folder->newFolder($path);
+				try {
+					$folder = $folder->newFolder('/');
+				} catch (NotPermittedException $e) {
+					$user = posix_getpwuid(posix_getuid());
+					throw new LibresignException(
+						$e->getMessage() . '. ' .
+						'Permission problems. ' .
+						'Maybe this could fix: chown -R ' . $user['name'] . ' ' . $this->getDataDir()
+					);
+				}
 			}
 		}
 		return $folder;
