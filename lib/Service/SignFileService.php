@@ -62,6 +62,7 @@ use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Sabre\DAV\UUIDUtil;
 use TypeError;
@@ -96,6 +97,7 @@ class SignFileService {
 		private IConfig $config,
 		protected ValidateHelper $validateHelper,
 		private IRootFolder $root,
+		private IUserSession $userSession,
 		private IUserMountCache $userMountCache,
 		private FileElementMapper $fileElementMapper,
 		private UserElementMapper $userElementMapper,
@@ -505,9 +507,38 @@ class SignFileService {
 			} else {
 				$buffer = $originalFile->getContent($originalFile);
 			}
-			/** @var \OCP\Files\File */
-			$fileToSign = $this->root->newFile($signedFilePath);
-			$fileToSign->putContent($buffer);
+			$fileToSign = $this->forceSaveFileOfDifferentUser($signedFilePath, $buffer);
+		}
+		return $fileToSign;
+	}
+
+	/**
+	 * Problem: Nextcloud server disalowed to write a content into a file that isn't of authenticated user.
+	 *
+	 * Workaround: to prevent error when try to save a file in a folder of different authenticated user
+	 *
+	 * At the follow code:
+	 * https://github.com/nextcloud/server/blob/4173dfe05bd0155eb217dd428ac82091a508567a/apps/files_versions/lib/Listener/FileEventsListener.php#L350-L366
+	 * Nextcloud server force to use the user folder to get the file of authenticated user.
+	 * This piece of code is to bypass the logic to use the authenticated user.
+	 *
+	 * How to reproduce: With account signer1, upload a file and request to signer 2 to sign
+	 * Authenticated as signer2, try to sign the file
+	 * Expected behavior: file signed
+	 * Current behavior: Will get "internal error" because the code at previous link will return null as the path of file
+	 *
+	 * @todo Identify a way to be possible save the file content
+	 */
+	private function forceSaveFileOfDifferentUser(string $path, string $content): \OCP\Files\File {
+		/** @var \OCP\Files\File */
+		$fileToSign = $this->root->newFile($path);
+		$currentUser = $this->userSession->getUser();
+		$this->userSession->setUser(null);
+		try {
+			$fileToSign->putContent($content);
+		} catch (\Throwable $th) {
+			$this->userSession->setUser($currentUser);
+			throw $th;
 		}
 		return $fileToSign;
 	}
