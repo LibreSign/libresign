@@ -60,7 +60,7 @@ export default {
 			if (this.loading) {
 				return t('libesign', 'Searching …')
 			}
-			return t('libesign', 'No elements found.')
+			return t('libesign', 'No signers.')
 		},
 	},
 	watch: {
