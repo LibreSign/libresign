@@ -187,6 +187,7 @@ export default {
 				this.file.name = response.data.name
 			} catch (err) {
 				this.error = err.response.data.message
+				this.loading = false
 				return
 			}
 			await this.closeModalUploadFromUrl()
