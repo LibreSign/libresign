@@ -23,6 +23,7 @@ use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
+use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
@@ -43,6 +44,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IConfig $config;
 	private ValidateHelper|MockObject $validateHelper;
 	private IRootFolder|MockObject $root;
+	private IUserSession|MockObject $userSession;
 	private IUserMountCache|MockObject $userMountCache;
 	private FileElementMapper|MockObject $fileElementMapper;
 	private UserElementMapper|MockObject $userElementMapper;
@@ -72,6 +74,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userMountCache = $this->createMock(IUserMountCache::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
@@ -99,6 +102,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->config,
 			$this->validateHelper,
 			$this->root,
+			$this->userSession,
 			$this->userMountCache,
 			$this->fileElementMapper,
 			$this->userElementMapper,
