@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Invalid UUID",
     "Success" : "Success",
     "Invalid user or password" : "Invalid user or password",
     "_Element created with success_::_Elements created with success_" : ["Element created with success","Elements created with success"],
@@ -14,10 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "Certificate file saved with success.",
     "New password to sign documents has been created" : "New password to sign documents has been created",
     "Name is mandatory" : "Name is mandatory",
+    "Invalid UUID" : "Invalid UUID",
     "Notification sent with success." : "Notification sent with success.",
-    "Renewed with success. Access the link again." : "Renewed with success. Access the link again.",
     "File signed" : "File signed",
     "Internal error. Contact admin." : "Internal error. Contact admin.",
+    "Renewed with success. Access the link again." : "Renewed with success. Access the link again.",
     "Invalid data to sign file" : "Invalid data to sign file",
     "The code to sign file was successfully requested." : "The code to sign file was successfully requested.",
     "Failed to send code." : "Failed to send code.",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "No signers." : "No signers.",
     "You must not sign this file." : "You must not sign this file.",
     "Link expired." : "Link expired.",
-    "Link expired. Need to be renewed." : "Link expired. Need to be renewed.",
     "Account" : "Account",
     "It is not possible to create new accounts." : "It is not possible to create new accounts.",
     "You need to create an account to sign this file." : "You need to create an account to sign this file.",

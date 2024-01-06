@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "无效 UUID",
     "Success" : "成功",
     "Invalid user or password" : "无效用户或密码",
     "_Element created with success_::_Elements created with success_" : ["成功创建了元素"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "已保存设置",
     "New password to sign documents has been created" : "已创建签署文档的新密码",
     "Name is mandatory" : "名称是强制的",
+    "Invalid UUID" : "无效 UUID",
     "Notification sent with success." : "成功发送了邀请",
     "File signed" : "签署的文件",
     "Internal error. Contact admin." : "内部错误。联系管理员 ",

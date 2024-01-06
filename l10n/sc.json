@@ -1,10 +1,10 @@
 { "translations": {
-    "Invalid UUID" : "UUID no bàlidu",
     "Success" : "In manera curreta",
     "Invalid user or password" : "Utente o crae non bàlidos",
     "Settings saved" : "Impostatziones sarvadas",
     "New password to sign documents has been created" : "Crae noa pro firmare documentos creada",
     "Name is mandatory" : "Est pretzisu a pònnere su nùmene",
+    "Invalid UUID" : "UUID no bàlidu",
     "Notification sent with success." : "Notìficas imbiadas in manera curreta.",
     "File signed" : "Archìviu firmadu",
     "Internal error. Contact admin." : "Errore de intro. Cuntata s'amministratzione.",

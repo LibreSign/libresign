@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "UUID غير صالح",
     "Success" : "نجاح",
     "Invalid user or password" : "مستخدم أو كلمة مرور غير صالحة",
     "_Element created with success_::_Elements created with success_" : ["تم إنشاء العناصر بنجاح","تم إنشاء العنصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح"],
@@ -14,10 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "تمّ بنجاح حفظ ملف شهادة المصادقة",
     "New password to sign documents has been created" : "تم إنشاء كلمة مرور جديدة لتوقيع المستندات",
     "Name is mandatory" : "الاسم إلزامي",
+    "Invalid UUID" : "UUID غير صالح",
     "Notification sent with success." : "تم إرسال الإخطار بنجاح.",
-    "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
     "File signed" : "الملف موقّع",
     "Internal error. Contact admin." : "خطأ داخلي. اتصل بالمسؤول.",
+    "Renewed with success. Access the link again." : "تمّ التجديد بنحاحٍ. عاوِد الدخول على الرابط.",
     "Invalid data to sign file" : "بيانات غير صالحة للتوقيع على الملف",
     "The code to sign file was successfully requested." : "تم طلب كود توقيع الملف بنجاح.",
     "Failed to send code." : "فشل في إرسال الكود.",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "No signers." : "لا يوجد موقعون.",
     "You must not sign this file." : "لا يجب عليك التوقيع على هذا الملف.",
     "Link expired." : "إنتهت صلاحية الرابط.",
-    "Link expired. Need to be renewed." : "الرابط منتهي الصلاحية، و يتوجب تجديده.",
     "Account" : "الحساب",
     "It is not possible to create new accounts." : "يتعذّر إنشاء حسابات جديدة.",
     "You need to create an account to sign this file." : "تحتاج إلى إنشاء حساب للتوقيع على هذا الملف.",

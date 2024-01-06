@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "UUID geçersiz",
     "Success" : "Tamamlandı",
     "Invalid user or password" : "Kullanıcı adı ya da parola geçersiz",
     "_Element created with success_::_Elements created with success_" : ["Bileşen oluşturuldu","Bileşen oluşturuldu"],
@@ -14,10 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "Sertifika dosyası kaydedildi.",
     "New password to sign documents has been created" : "Belgeleri imzalamak için yeni parola oluşturuldu",
     "Name is mandatory" : "Adın yazılması zorunludur",
+    "Invalid UUID" : "UUID geçersiz",
     "Notification sent with success." : "Bildirim gönderildi.",
-    "Renewed with success. Access the link again." : "Yenilendi. Bağlantıya yeniden erişin.",
     "File signed" : "Dosya imzalanmış",
     "Internal error. Contact admin." : "Bir iç sorun çıktı. BT yöneticiniz ile görüşün.",
+    "Renewed with success. Access the link again." : "Yenilendi. Bağlantıya yeniden erişin.",
     "Invalid data to sign file" : "Dosyayı imzalamak için veriler geçersiz",
     "The code to sign file was successfully requested." : "Dosyayı imzalama kodu istendi.",
     "Failed to send code." : "Kod gönderilemedi",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "No signers." : "Herhangi bir imzalayan yok.",
     "You must not sign this file." : "Bu dosyayı imzalamamalısınız.",
     "Link expired." : "Bağlantının süresi dolmuş.",
-    "Link expired. Need to be renewed." : "Bağlantının süresi dolmuş. Yenilenmesi gerekli.",
     "Account" : "Hesap",
     "It is not possible to create new accounts." : "Yeni hesap açılamaz.",
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",

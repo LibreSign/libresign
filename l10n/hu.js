@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Érvénytelen UUID",
     "Success" : "Sikeres",
     "Invalid user or password" : "Érvénytelen felhasználó vagy jelszó",
     "_Element created with success_::_Elements created with success_" : ["Elem sikeresen létrehozva","Elemek sikeresen létrehozva"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "Beállítások mentve",
     "New password to sign documents has been created" : "Az új, dokumentumok aláírásához használt jelszó létrehozva",
     "Name is mandatory" : "A név megadása kötelező",
+    "Invalid UUID" : "Érvénytelen UUID",
     "Notification sent with success." : "Az értesítés sikeresen kiküldve.",
     "File signed" : "Fájl aláírva",
     "Internal error. Contact admin." : "Belső hiba. Lépjen kapcsolatba a rendszergazdával.",

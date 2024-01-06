@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Neteisingas UUID",
     "Success" : "Pavyko",
     "Invalid user or password" : "Neteisingas naudotojas ar slaptažodis",
     "Settings saved" : "Nustatymai įrašyti",
+    "Invalid UUID" : "Neteisingas UUID",
     "File signed" : "Failas pasirašytas",
     "Internal error. Contact admin." : "Vidinė klaida. Susisiekite su administratoriumi.",
     "deleted" : "Ištrintas",
