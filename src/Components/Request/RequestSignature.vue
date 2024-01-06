@@ -83,11 +83,12 @@ export default {
 			listSigners: true,
 			signerToEdit: {},
 			dataSigners: this.signers,
+			signed: this.signers.filter(signer => signer.sign_date.length > 0).length > 0
 		}
 	},
 	computed: {
 		canSave() {
-			return this.dataSigners.length > 0
+			return this.canRequestSign && !this.signed && this.dataSigners.length > 0
 		},
 	},
 	watch: {
