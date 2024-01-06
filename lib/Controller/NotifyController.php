@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\NotifyService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -71,6 +72,8 @@ class NotifyController extends Controller {
 	public function signer($fileId, $signRequestId): JSONResponse {
 		try {
 			$this->notifyService->signer($fileId, $signRequestId);
+		} catch (LibresignException $e) {
+			throw $e;
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
