@@ -28,6 +28,10 @@
 			@click="save()">
 			{{ t('libresign', 'Next') }}
 		</NcButton>
+		<NcButton v-if="signed"
+			@click="validationFile()">
+			{{ t('libresign', 'Validate') }}
+		</NcButton>
 		<VisibleElements :file="file" />
 	</div>
 	<div v-else>
@@ -102,6 +106,9 @@ export default {
 		subscribe('libresign:edit-signer', this.editSigner)
 	},
 	methods: {
+		validationFile() {
+			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
+		},
 		addIdentifier(signers) {
 			signers.map(signer => {
 				// generate unique code to new signer to be possible delete or edit
