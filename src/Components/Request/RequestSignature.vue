@@ -16,7 +16,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="!signer.signed && signer.signRequestId"
+				<NcActionButton v-if="canRequestSign && !signer.sign_date && signer.signRequestId"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
@@ -27,6 +27,10 @@
 		<NcButton v-if="canSave"
 			@click="save()">
 			{{ t('libresign', 'Next') }}
+		</NcButton>
+		<NcButton v-if="signed"
+			@click="validationFile()">
+			{{ t('libresign', 'Validate') }}
 		</NcButton>
 		<VisibleElements :file="file" />
 	</div>
@@ -83,11 +87,12 @@ export default {
 			listSigners: true,
 			signerToEdit: {},
 			dataSigners: this.signers,
+			signed: this.signers.filter(signer => signer.sign_date.length > 0).length > 0
 		}
 	},
 	computed: {
 		canSave() {
-			return this.dataSigners.length > 0
+			return this.canRequestSign && !this.signed && this.dataSigners.length > 0
 		},
 	},
 	watch: {
@@ -101,6 +106,9 @@ export default {
 		subscribe('libresign:edit-signer', this.editSigner)
 	},
 	methods: {
+		validationFile() {
+			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
+		},
 		addIdentifier(signers) {
 			signers.map(signer => {
 				// generate unique code to new signer to be possible delete or edit
