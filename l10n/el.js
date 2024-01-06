@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Μη έγκυρο UUID",
     "Success" : "Επιτυχής",
     "Invalid user or password" : "Μη έγκυρος χρήστης ή συνθηματικό",
     "_Element created with success_::_Elements created with success_" : ["Στοιχεία δημιουργήθηκαν με επιτυχία","Στοιχεία δημιουργήθηκαν με επιτυχία"],
@@ -10,6 +9,7 @@ OC.L10N.register(
     "Element updated with success" : "Τα στοιχεία ανανεώθηκαν επιτυχώς ",
     "Settings saved" : "Οι ρυθμίσεις αποθηκεύτηκαν",
     "Name is mandatory" : "Το όνομα είναι υποχρεωτικό",
+    "Invalid UUID" : "Μη έγκυρο UUID",
     "Internal error. Contact admin." : "Εσωτερικό σφάλμα. Επικοινωνήστε με τον διαχειριστή.",
     "deleted" : "διαγραφεί",
     "document to sign" : "Έγγραφο προς υπογραφή ",

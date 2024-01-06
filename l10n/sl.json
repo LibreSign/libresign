@@ -1,5 +1,4 @@
 { "translations": {
-    "Invalid UUID" : "Neveljaven UUID",
     "Success" : "Uspešno končano",
     "Invalid user or password" : "Neveljaven uporabnik oziroma napačno geslo",
     "_Element created with success_::_Elements created with success_" : ["Predmet je uspešno ustvarjen.","Predmeta sta uspešno ustvarjena.","Predmeti so uspešno ustvarjeni.","Predmeti so uspešno ustvarjeni."],
@@ -10,6 +9,7 @@
     "Settings saved" : "Nastavitve so shranjene",
     "New password to sign documents has been created" : "Novo geslo za podpisovanje dokumentov je uspešno ustvarjeno.",
     "Name is mandatory" : "Ime je obvezno",
+    "Invalid UUID" : "Neveljaven UUID",
     "Notification sent with success." : "Obvestilo je uspešno poslano.",
     "File signed" : "Datoteka je podpisana",
     "Internal error. Contact admin." : "Notranja napaka, stopite v stik s skrbnikom.",

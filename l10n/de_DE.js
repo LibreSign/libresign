@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Ungültiges UUID",
     "Success" : "Erfolgreich",
     "Invalid user or password" : "Ungültiger Benutzername oder Passwort",
     "_Element created with success_::_Elements created with success_" : ["Element erfolgreich erstellt","Elemente erfolgreich erstellt"],
@@ -14,10 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "Zertifikatdatei erfolgreich gespeichert.",
     "New password to sign documents has been created" : "Neues Passwort zum Signieren von Dokumenten erstellt",
     "Name is mandatory" : "Name ist erforderlich",
+    "Invalid UUID" : "Ungültiges UUID",
     "Notification sent with success." : "Benachrichtigung erfolgreich versandt.",
-    "Renewed with success. Access the link again." : "Erfolgreich erneuert. Greifen Sie erneut auf den Link zu.",
     "File signed" : "Datei signiert",
     "Internal error. Contact admin." : "Interner Fehler. Bitte den Administrator kontaktieren.",
+    "Renewed with success. Access the link again." : "Erfolgreich erneuert. Greifen Sie erneut auf den Link zu.",
     "Invalid data to sign file" : "Ungültige Daten zum Signieren der Datei",
     "The code to sign file was successfully requested." : "Der Code zum Signieren der Datei wurde erfolgreich angefordert.",
     "Failed to send code." : "Fehler beim Senden des Codes.",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "No signers." : "Keine Unterzeichner.",
     "You must not sign this file." : "Sie müssen diese Datei nicht unterschreiben",
     "Link expired." : "Link abgelaufen.",
-    "Link expired. Need to be renewed." : "Link abgelaufen, er muss erneuert werden.",
     "Account" : "Konto",
     "It is not possible to create new accounts." : "Es ist nicht möglich, neue Konten zu erstellen.",
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",

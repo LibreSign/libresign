@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "잘못된 UUID",
     "Success" : "성공",
     "Invalid user or password" : "잘못된 사용자 또는 암호",
     "_Element created with success_::_Elements created with success_" : ["성공적으로 생성된 요소"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "설정 저장됨",
     "New password to sign documents has been created" : "문서에 서명하기 위한 새 암호가 생성되었습니다.",
     "Name is mandatory" : "이름은 필수 사항입니다.",
+    "Invalid UUID" : "잘못된 UUID",
     "Notification sent with success." : "알림이 성공적으로 전송되었습니다.",
     "File signed" : "서명된 파일",
     "Internal error. Contact admin." : "내부 오류. 관리자에게 문의하십시오.",

@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "UUID non válido",
     "Success" : "Correcto",
     "Invalid user or password" : "O usuario ou o contrasinal non é correcto",
     "_Element created with success_::_Elements created with success_" : ["Elemento creado satisfactoriamente","Elementos creados satisfactoriamente"],
@@ -14,6 +13,7 @@ OC.L10N.register(
     "Certificate file saved with success." : "O ficheiro de certificado gardouse satisfactoriamente.",
     "New password to sign documents has been created" : "Creouse un novo contrasinal para asinar documentos",
     "Name is mandatory" : "O nome é obrigatorio",
+    "Invalid UUID" : "UUID non válido",
     "Notification sent with success." : "A notificación foi enviada satisfactoriamente",
     "File signed" : "Ficheiro asinado",
     "Internal error. Contact admin." : "Produciuse un erro interno. Contacte coa administración.",
@@ -359,7 +359,7 @@ OC.L10N.register(
     "Add visible signatures" : "Engadir sinaturas visíbeis",
     "Are you sure you want to exclude user {email} from the request?" : "Confirma que quer excluír o usuario {email} da solicitude?",
     "Password & Security" : "Contrasinal e seguranza",
-    "Create password key" : "Crear a chave do contrasinal",
+    "Create password key" : "Crear a chave de contrasinal",
     "Reset password" : "Restabelecer o contrasinal",
     "Nothing to do" : "Non hai nada que facer",
     "Validate Document" : "Validar o documento",
