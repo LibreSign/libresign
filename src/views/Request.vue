@@ -35,6 +35,10 @@
 			@close="closeModalUploadFromUrl">
 			<div class="modal__content">
 				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
+				<NcNoteCard v-if="error.length > 0"
+					type="error">
+					{{ error }}
+				</NcNoteCard>
 				<div class="form-group">
 					<NcTextField :label="t('libresign', 'URL of a PDF file')"
 						:value.sync="pdfUrl">
@@ -64,6 +68,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
@@ -90,6 +95,7 @@ export default {
 		NcModal,
 		NcTextField,
 		NcButton,
+		NcNoteCard,
 		LinkIcon,
 		UploadIcon,
 		CloudUploadIcon,
@@ -105,6 +111,7 @@ export default {
 			loading: false,
 			file: {},
 			signers: [],
+			error: '',
 		}
 	},
 	computed: {
@@ -162,13 +169,18 @@ export default {
 			this.modalUploadFromUrl = false
 		},
 		async uploadUrl() {
-			const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
-				file: {
-					url: this.pdfUrl,
-				},
-			})
-			this.file.nodeId = response.data.id
-			this.file.name = response.data.name
+			try {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
+					file: {
+						url: this.pdfUrl,
+					},
+				})
+				this.file.nodeId = response.data.id
+				this.file.name = response.data.name
+			} catch (err) {
+				this.error = err.response.data.message
+				return
+			}
 			this.showSidebar = true
 			this.closeModalUploadFromUrl()
 		},
