@@ -181,8 +181,8 @@ export default {
 				this.error = err.response.data.message
 				return
 			}
+			await this.closeModalUploadFromUrl()
 			this.showSidebar = true
-			this.closeModalUploadFromUrl()
 		},
 		async upload(file) {
 			try {
