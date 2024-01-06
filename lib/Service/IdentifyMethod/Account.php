@@ -102,21 +102,15 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function validateToRequest(): void {
-		if ($this->entity->getIdentifierKey() === 'account') {
-			$signer = $this->userManager->get($this->entity->getIdentifierValue());
-			if (!$signer) {
-				if (!$this->canCreateAccount) {
-					throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
-				}
-				throw new LibresignException($this->l10n->t('User not found.'));
-			}
-		} elseif ($this->entity->getIdentifierKey() === 'email') {
-			if (!$this->canCreateAccount) {
-				throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
-			}
-			if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-				throw new LibresignException($this->l10n->t('Invalid email'));
-			}
+		$signer = $this->userManager->get($this->entity->getIdentifierValue());
+		if ($signer) {
+			return;
+		}
+		if (!$this->canCreateAccount) {
+			throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
+		}
+		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
 
