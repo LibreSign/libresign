@@ -26,7 +26,8 @@
 				<NcButton @click="uploadFile">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
-						<UploadIcon :size="20" />
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<UploadIcon v-else :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -50,7 +51,8 @@
 					@click="uploadUrl">
 					{{ t('libresign', 'Send') }}
 					<template #icon>
-						<CloudUploadIcon :size="20" />
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<CloudUploadIcon v-else :size="20" />
 					</template>
 				</NcButton>
 			</div>
@@ -70,6 +72,7 @@ import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
@@ -98,6 +101,7 @@ export default {
 		NcNoteCard,
 		LinkIcon,
 		UploadIcon,
+		NcLoadingIcon,
 		CloudUploadIcon,
 		FolderIcon,
 		File,
@@ -123,6 +127,9 @@ export default {
 			return this.signers.length > 0
 		},
 		canUploadFronUrl() {
+			if (this.loading) {
+				return false
+			}
 			try {
 				// eslint-disable-next-line no-new
 				new URL(this.pdfUrl)
@@ -169,6 +176,7 @@ export default {
 			this.modalUploadFromUrl = false
 		},
 		async uploadUrl() {
+			this.loading = true
 			try {
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
@@ -183,6 +191,8 @@ export default {
 			}
 			await this.closeModalUploadFromUrl()
 			this.showSidebar = true
+			this.closeModalUploadFromUrl()
+			this.loading = false
 		},
 		async upload(file) {
 			try {
@@ -204,6 +214,7 @@ export default {
 			}
 		},
 		uploadFile() {
+			this.loading = true
 			const input = document.createElement('input')
 			input.accept = PDF_MIME_TYPE
 			input.type = 'file'
@@ -219,6 +230,7 @@ export default {
 			}
 
 			input.click()
+			this.loading = false
 		},
 		async getFile() {
 			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
