@@ -100,7 +100,11 @@ trait TFile {
 			if (!filter_var($data['file']['url'], FILTER_VALIDATE_URL)) {
 				throw new \Exception($this->l10n->t('Invalid URL file'));
 			}
-			$response = $this->client->newClient()->get($data['file']['url']);
+			try {
+				$response = $this->client->newClient()->get($data['file']['url']);
+			} catch (\Throwable $th) {
+				throw new \Exception($this->l10n->t('Invalid URL file'));
+			}
 			$mimetypeFromHeader = $response->getHeader('Content-Type');
 			$content = (string) $response->getBody();
 			if (!$content) {
