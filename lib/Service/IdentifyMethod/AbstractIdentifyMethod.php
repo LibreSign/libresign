@@ -293,13 +293,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($entity->getId()) {
 			return;
 		}
-		if (!$entity->getSignRequestId() || !$entity->getMethod()) {
+		if (!$entity->getSignRequestId() || !$entity->getIdentifierKey()) {
 			return;
 		}
 
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($entity->getSignRequestId());
 		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($entity): bool {
-			return $current->getMethod() === $entity->getMethod();
+			return $current->getIdentifierKey() === $entity->getIdentifierKey();
 		});
 		if (!$exists) {
 			return;

@@ -129,8 +129,7 @@ class SignRequestMapper extends QBMapper {
 		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
 			->join('sr', 'libresign_identify_method', 'im', 'sr.id = im.sign_request_id')
-			->where($qb->expr()->eq('im.method', $qb->createNamedParameter($identifyMethod->getEntity()->getMethod())))
-			->andWhere($qb->expr()->eq('im.identifier_key', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierKey())))
+			->where($qb->expr()->eq('im.identifier_key', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierKey())))
 			->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierValue())))
 			->andWhere($qb->expr()->eq('sr.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
 		return $this->findEntity($qb);
@@ -249,8 +248,8 @@ class SignRequestMapper extends QBMapper {
 			->from($this->getTableName(), 'sr')
 			->leftJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->andX(
 				$qb->expr()->eq('fu.id', 'im.sign_request_id'),
-				$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
-				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('account')),
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter('uid'))
 			))
 			->where(
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
@@ -274,8 +273,8 @@ class SignRequestMapper extends QBMapper {
 
 			->leftJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->andX(
 				$qb->expr()->eq('fu.id', 'im.sign_request_id'),
-				$qb->expr()->eq('im.method', $qb->createNamedParameter('account')),
-				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('uid'))
+				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('account')),
+				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter('uid'))
 			))
 			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
 			->where(
@@ -380,7 +379,7 @@ class SignRequestMapper extends QBMapper {
 			$cursor = $qb->executeQuery();
 			while ($row = $cursor->fetch()) {
 				$identifyMethod = new IdentifyMethod();
-				$return[$row['sign_request_id']][$row['method']] = $identifyMethod->fromRow($row);
+				$return[$row['sign_request_id']][$row['identifier_key']] = $identifyMethod->fromRow($row);
 			}
 		}
 		return $return;
@@ -503,7 +502,7 @@ class SignRequestMapper extends QBMapper {
 						}, false),
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
-								'method' => $identifyMethod->getMethod(),
+								'method' => $identifyMethod->getIdentifierKey(),
 								'mandatory' => $identifyMethod->getMandatory(),
 								'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate()
 							];

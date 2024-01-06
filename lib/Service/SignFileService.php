@@ -608,7 +608,7 @@ class SignFileService {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
 				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
-				'method' => $identifyMethod->getMethod(),
+				'method' => $identifyMethod->getIdentifierKey(),
 			];
 		}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
 		return $return;

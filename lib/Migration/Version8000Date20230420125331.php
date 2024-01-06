@@ -69,11 +69,6 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 			$identifyMethod->addColumn('file_user_id', Types::BIGINT, [
 				'notnull' => true,
 			]);
-			$identifyMethod->addColumn('method', Types::STRING, [
-				'notnull' => true,
-				'default' => 'account',
-				'length' => 30,
-			]);
 			$identifyMethod->addColumn('mandatory', Types::SMALLINT, [
 				'notnull' => true,
 				'default' => 0,
@@ -105,7 +100,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'length' => 20,
 				'unsigned' => true,
 			]);
-			$identifyMethod->addUniqueIndex(['file_user_id', 'method'], 'identify_method_unique_index');
+			$identifyMethod->addUniqueIndex(['file_user_id', 'identifier_key'], 'identify_method_unique_index');
 			$identifyMethod->setPrimaryKey(['id'], 'identify_pk_idx');
 			$changed = true;
 		}

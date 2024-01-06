@@ -71,7 +71,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 
 		$table = $schema->getTable('libresign_identify_method');
 		$table->dropIndex('identify_method_unique_index');
-		$table->addUniqueIndex(['sign_request_id', 'method'], 'identify_method_unique_index');
+		$table->addUniqueIndex(['sign_request_id', 'identifier_key'], 'identify_method_unique_index');
 
 		if (!$schema->hasTable('libresign_sign_request')) {
 			$table = $schema->createTable('libresign_sign_request');
@@ -111,7 +111,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 			$table->addColumn('metadata', Types::JSON, [
 				'notnull' => false,
 			]);
-	
+
 			$table->setPrimaryKey(['id']);
 			$table->addIndex(['uuid']);
 			$table->addUniqueIndex(['uuid'], 'sign_request_uuid_index');
