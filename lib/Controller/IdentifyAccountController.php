@@ -118,7 +118,6 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'isNoUser' => false,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
-			'type' => IShare::TYPE_USER,
 			'icon' => 'icon-user',
 		];
 		return $return;
