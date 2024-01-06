@@ -16,7 +16,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="!signer.signed && signer.signRequestId"
+				<NcActionButton v-if="canRequestSign && !signer.sign_date && signer.signRequestId"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
