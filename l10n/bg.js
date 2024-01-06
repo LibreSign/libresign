@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Невалиден UUID",
     "Success" : "Успех",
     "Invalid user or password" : "Невалиден потребител или парола",
     "_Element created with success_::_Elements created with success_" : ["Елементите са успешно създадени","Елементите са успешно създадени"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "Настройките са запазени",
     "New password to sign documents has been created" : "Създадена е нова парола за подписване на документи",
     "Name is mandatory" : "Името е задължително",
+    "Invalid UUID" : "Невалиден UUID",
     "Notification sent with success." : "Известието е изпратено успешно.",
     "File signed" : "Файлът е подписан",
     "Internal error. Contact admin." : "Вътрешна грешка. Свържете се с администратора.",

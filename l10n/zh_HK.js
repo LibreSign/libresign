@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "無效的 UUID",
     "Success" : "成功",
     "Invalid user or password" : "無效的用戶或密碼",
     "_Element created with success_::_Elements created with success_" : ["成功建立元素"],
@@ -14,10 +13,11 @@ OC.L10N.register(
     "Certificate file saved with success." : "成功保存憑證檔案。",
     "New password to sign documents has been created" : "已創建用於簽署文件的新密碼",
     "Name is mandatory" : "必須有名字",
+    "Invalid UUID" : "無效的 UUID",
     "Notification sent with success." : "通告發送成功。",
-    "Renewed with success. Access the link again." : "更新成功。請再次存取連結。",
     "File signed" : "檔案已被簽署",
     "Internal error. Contact admin." : "內部錯誤。聯絡管理員。",
+    "Renewed with success. Access the link again." : "更新成功。請再次存取連結。",
     "Invalid data to sign file" : "簽署文件的數據無效",
     "The code to sign file was successfully requested." : "已成功請求籤名文件的代碼。",
     "Failed to send code." : "無法發送代碼。",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "No signers." : "沒有簽署人。",
     "You must not sign this file." : "您不得簽署此文件。",
     "Link expired." : "連結已過期。",
-    "Link expired. Need to be renewed." : "連結已過期。需要更新。",
     "Account" : "賬戶",
     "It is not possible to create new accounts." : "無法建立新賬戶。",
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",

@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "Virheellinen UUID",
     "Success" : "Onnistui",
     "Invalid user or password" : "Virheellinen käyttäjä tai salasana",
     "Elements not found" : "Elementtejä ei löydy",
@@ -10,6 +9,7 @@ OC.L10N.register(
     "Settings saved" : "Asetukset tallennettu",
     "New password to sign documents has been created" : "Uusi salasana asiakirjojen allekirjoittamista varten on luotu",
     "Name is mandatory" : "Nimi on pakollinen",
+    "Invalid UUID" : "Virheellinen UUID",
     "Notification sent with success." : "Ilmoitus lähetetty onnistuneesti.",
     "File signed" : "Tiedosto allekirjoitettu",
     "Internal error. Contact admin." : "Sisäinen virhe. Ota yhteys ylläpitäjään.",

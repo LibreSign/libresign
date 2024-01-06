@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "UUID non valido",
     "Success" : "Successo",
     "Invalid user or password" : "Utente o password non validi",
     "_Element created with success_::_Elements created with success_" : ["Elemento creato con successo","Elementi creati con successo","Elementi creati con successo"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "Impostazioni salvate",
     "New password to sign documents has been created" : "È stata creata una nuova password per firmare i documenti",
     "Name is mandatory" : "Il nome è obbligatorio",
+    "Invalid UUID" : "UUID non valido",
     "Notification sent with success." : "Notifica inviata correttamente.",
     "File signed" : "File firmato",
     "Internal error. Contact admin." : "Errore interno. Contatta l'amministratore.",

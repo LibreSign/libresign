@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Invalid UUID" : "UUID baliogabea",
     "Success" : "Arrakasta",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
     "_Element created with success_::_Elements created with success_" : ["Elementua ondo sortu da","Elementuak ondo sortu dira"],
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Settings saved" : "Ezarpenak gordeta",
     "New password to sign documents has been created" : "Dokumentuak sinatzeko pasahitz berria sortu da",
     "Name is mandatory" : "Izena nahitaezkoa da",
+    "Invalid UUID" : "UUID baliogabea",
     "Notification sent with success." : "Jakinarazpena arrakastaz bidali da.",
     "File signed" : "Fitxategia sinatuta",
     "Internal error. Contact admin." : "Barne-errorea. Jarri harremanetan administratzailearekin.",
