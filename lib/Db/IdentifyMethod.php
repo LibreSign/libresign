@@ -30,8 +30,6 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method void setSignRequestId(int $signRequestId)
  * @method int getSignRequestId()
- * @method void setMethod(string $method)
- * @method string getMethod()
  * @method void setAttempts(int $attempts)
  * @method int getAttempts()
  * @method void setMandatory(int $mandatory)
@@ -48,8 +46,6 @@ use OCP\AppFramework\Db\Entity;
 class IdentifyMethod extends Entity {
 	/** @var integer */
 	public $signRequestId;
-	/** @var string */
-	public $method;
 	/** @var int */
 	public $mandatory;
 	/** @var string */
@@ -67,7 +63,6 @@ class IdentifyMethod extends Entity {
 
 	public function __construct() {
 		$this->addType('signRequestId', 'integer');
-		$this->addType('method', 'string');
 		$this->addType('mandatory', 'int');
 		$this->addType('code', 'string');
 		$this->addType('identifierKey', 'string');
