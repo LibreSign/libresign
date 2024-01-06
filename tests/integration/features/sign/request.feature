@@ -193,6 +193,18 @@ Feature: request-signature
       | libresign | sign        | document  | There is a file for you to sign |
     And there should be 0 emails in my inbox
 
+  Scenario: Request to sign with error using account as identifier with invalid email
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"invalidemail.tld"}}] |
+      | name | document |
+    Then the response should have a status code 422
+    Then the response should be a JSON array with the following mandatory values
+      | key     | value         |
+      | message | Invalid email |
+
   Scenario: Request to sign with success using email as identifier and URL as file
     Given as user "admin"
     And run the command "config:app:set libresign authkey --value dummy"
