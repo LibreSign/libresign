@@ -105,6 +105,7 @@ OC.L10N.register(
     "No signers." : "沒有簽署人。",
     "You must not sign this file." : "您不得簽署此文件。",
     "Link expired." : "連結已過期。",
+    "Link expired" : "連結已過期",
     "Account" : "賬戶",
     "It is not possible to create new accounts." : "無法建立新賬戶。",
     "You need to create an account to sign this file." : "您需要創建一個賬戶來簽署此檔案。",
