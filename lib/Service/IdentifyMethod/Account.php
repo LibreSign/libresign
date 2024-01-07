@@ -110,9 +110,7 @@ class Account extends AbstractIdentifyMethod {
 		if ($signer) {
 			return;
 		}
-		if (!$this->canCreateAccount) {
-			throw new LibresignException($this->l10n->t('It is not possible to create new accounts.'));
-		}
+		$this->canCreateAccount();
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
