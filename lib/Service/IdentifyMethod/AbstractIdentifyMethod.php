@@ -44,6 +44,7 @@ use Psr\Log\LoggerInterface;
 use Wobeto\EmailBlur\Blur;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
+	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected string $friendlyName;

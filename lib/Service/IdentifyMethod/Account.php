@@ -46,7 +46,6 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
-	private bool $canCreateAccount = true;
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -85,20 +84,25 @@ class Account extends AbstractIdentifyMethod {
 		if (!$this->willNotify) {
 			return;
 		}
+		$entity = $this->getEntity();
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		if ($this->entity->getIdentifierKey() === 'account') {
+		$signer = $this->userManager->get($entity->getIdentifierValue());
+		if ($signer) {
 			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
 				$signRequest,
 				$this,
 				$isNew
 			));
-		} elseif ($this->entity->getIdentifierKey() === 'email') {
-			if ($isNew) {
-				$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
-				return;
-			}
-			$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
+			return;
 		}
+		if (!filter_var($entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'));
+		}
+		if ($isNew) {
+			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
+			return;
+		}
+		$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
 	}
 
 	public function validateToRequest(): void {
@@ -115,49 +119,37 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	public function validateToSign(?IUser $user = null): void {
+		$signer = $this->getSigner();
 		$this->throwIfNotAuthenticated($user);
+		$this->authenticatedUserIsTheSigner($user, $signer);
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
-		if ($this->entity->getIdentifierKey() === 'account') {
-			$this->validateWithAccount($user);
-		} elseif ($this->entity->getIdentifierKey() === 'email') {
-			$this->validateWithEmail($user);
-		}
+		$this->throwIfAlreadySigned();
+		$this->throwIfFileNotFound();
 		$this->renewSession();
 		$this->updateIdentifiedAt();
 	}
 
-	private function validateWithAccount(IUser $user): void {
-		$signer = $this->getSignerFromAccount();
-		$this->authenticatedUserIsTheSigner($user, $signer);
-		$this->throwIfAlreadySigned();
-		$this->throwIfFileNotFound();
-	}
-
-	private function validateWithEmail(IUser $user): void {
-		$this->canCreateAccount();
-		$signer = $this->getSignerFromEmail();
-		$this->authenticatedUserIsTheSigner($user, $signer);
-		$this->throwIfAlreadySigned();
-		$this->throwIfFileNotFound();
-	}
-
-	private function getSignerFromAccount(): IUser {
+	private function getSigner(): IUser {
 		$account = $this->entity->getIdentifierValue();
 		$signer = $this->userManager->get($account);
 		if (!$signer) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('User not found.')],
-			]));
+			$signer = $this->getSignerFromEmail();
 		}
 		return $signer;
 	}
 
 	private function getSignerFromEmail(): IUser {
 		$email = $this->entity->getIdentifierValue();
+		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid email')],
+			]));
+		}
 		$signer = $this->userManager->getByEmail($email);
-		if (!$signer) {
+		if (empty($signer)) {
+			$this->canCreateAccount();
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_CREATE_USER,
 				'settings' => ['accountHash' => md5($email)],

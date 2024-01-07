@@ -199,12 +199,40 @@ Feature: request-signature
     And run the command "config:app:set libresign authkey --value dummy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
-      | users | [{"identify":{"account":"invalidemail.tld"}}] |
+      | users | [{"identify":{"account":"invaliddomain.test"}}] |
       | name | document |
     Then the response should have a status code 422
     Then the response should be a JSON array with the following mandatory values
       | key     | value         |
       | message | Invalid email |
+
+  Scenario: Request to sign with error using email as account identifier and can not create account
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]}] |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer3@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 422
+    Then the response should be a JSON array with the following mandatory values
+      | key     | value         |
+      | message | It is not possible to create new accounts. |
+
+  Scenario: Request to sign with success using email as account identifier and can create account
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    And my inbox is empty
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":"password","allowed_signature_methods":["password"]}] |
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer3@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 200
+    And there should be 1 emails in my inbox
+    And I open the latest email to "signer3@domain.test" with subject "LibreSign: There is a file for you to sign"
 
   Scenario: Request to sign with success using email as identifier and URL as file
     Given as user "admin"
