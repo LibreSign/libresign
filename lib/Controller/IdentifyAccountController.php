@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Service\IdentifyMethod\Account;
+use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
@@ -43,7 +43,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		private ISearch $collaboratorSearch,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
-		private Account $identifyAccountMethod,
+		private Email $identifyEmailMethod,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -71,7 +71,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		if (count($this->shareTypes) > 1) {
 			return $this->shareTypes;
 		}
-		$settings = $this->identifyAccountMethod->getSettings();
+		$settings = $this->identifyEmailMethod->getSettings();
 		if ($settings['can_create_account']) {
 			$this->shareTypes[] = IShare::TYPE_EMAIL;
 		}

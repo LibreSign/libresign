@@ -15,20 +15,25 @@
 						{{ t('libresign', 'Make this method required') }}
 					</NcActionCheckbox>
 				</div>
-				<div class="container-checkbox">
-					<NcActionCheckbox :checked.sync="option.can_create_account"
-						@change="save()">
-						{{ t('libresign', 'Allow account creation for new users') }}
-					</NcActionCheckbox>
-
-					<p>{{ t('libresign', 'Allows sending registration email when the user does not have an account.') }}</p>
-				</div>
 
 				<div class="container-select">
 					<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method') }}</label>
 					<NcSelect v-model="option.signature_method"
 						:options="option.allowed_signature_methods"
 						input-id="selectIdentificationDefault" />
+				</div>
+			</div>
+			<div v-else-if="option.name === 'email' && option.enabled">
+				<NcCheckboxRadioSwitch type="switch"
+					:checked.sync="option.enabled"
+					@update:checked="save()">
+					{{ option.friendly_name }}
+				</NcCheckboxRadioSwitch>
+				<div class="container-checkbox">
+					<NcActionCheckbox :checked.sync="option.can_create_account"
+						@change="save()">
+						{{ t('libresign', 'Request to create account when the user does not have an account') }}
+					</NcActionCheckbox>
 				</div>
 			</div>
 			<div v-else>
