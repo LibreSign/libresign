@@ -195,6 +195,7 @@ Feature: request-signature
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
+    And run the command "libresign:developer:reset --all"
     And run the command "config:app:set libresign authkey --value dummy"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
