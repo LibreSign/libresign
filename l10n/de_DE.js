@@ -105,6 +105,7 @@ OC.L10N.register(
     "No signers." : "Keine Unterzeichner.",
     "You must not sign this file." : "Sie müssen diese Datei nicht unterschreiben",
     "Link expired." : "Link abgelaufen.",
+    "Link expired" : "Link abgelaufen",
     "Account" : "Konto",
     "It is not possible to create new accounts." : "Es ist nicht möglich, neue Konten zu erstellen.",
     "You need to create an account to sign this file." : "Sie müssen ein Konto erstellen, um diese Datei signieren zu können.",

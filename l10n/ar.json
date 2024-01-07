@@ -103,6 +103,7 @@
     "No signers." : "لا يوجد موقعون.",
     "You must not sign this file." : "لا يجب عليك التوقيع على هذا الملف.",
     "Link expired." : "إنتهت صلاحية الرابط.",
+    "Link expired" : "إنتهت صلاحية الرابط",
     "Account" : "الحساب",
     "It is not possible to create new accounts." : "يتعذّر إنشاء حسابات جديدة.",
     "You need to create an account to sign this file." : "تحتاج إلى إنشاء حساب للتوقيع على هذا الملف.",
