@@ -103,6 +103,7 @@
     "No signers." : "沒有簽署人。",
     "You must not sign this file." : "您無法簽署此檔案。",
     "Link expired." : "連結已過期。",
+    "Link expired" : "連結已過期",
     "Account" : "帳號",
     "It is not possible to create new accounts." : "無法建立新帳號。",
     "You need to create an account to sign this file." : "您必須建立帳號以簽署此檔案。",

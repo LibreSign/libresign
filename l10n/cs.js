@@ -280,6 +280,7 @@ OC.L10N.register(
     "Downloading binaries" : "Stahují se programy",
     "Binaries downloaded" : "Stahování programů",
     "Validate setup" : "Ověřit nastavení",
+    "Expiration rules" : "Pravidla skončení platnosti",
     "Enable identification documents flow" : "Zapnout tok identifikačních dokladů",
     "Identification documents" : "Identifikační doklady",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Tok identifikačních dokumentů učiní pro kohokoli, kdo má podepsat soubor, povinným aby jím zaslané identifikační doklady byly schváleny některým ze členů schvalující skupiny. Uživatel tak bude moci vytvořit certifikát pouze až po schválení svých identifikačních dokladů.",
