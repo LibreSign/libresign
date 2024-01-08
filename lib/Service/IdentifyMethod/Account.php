@@ -107,12 +107,8 @@ class Account extends AbstractIdentifyMethod {
 
 	public function validateToRequest(): void {
 		$signer = $this->userManager->get($this->entity->getIdentifierValue());
-		if ($signer) {
-			return;
-		}
-		$this->canCreateAccount();
-		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'));
+		if (!$signer) {
+			throw new LibresignException($this->l10n->t('User not found.'));
 		}
 	}
 
