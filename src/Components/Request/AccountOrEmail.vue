@@ -1,8 +1,8 @@
 <template>
-	<div id="identify-account">
-		<label for="identify-search-input">{{ t('libresign', 'Search signer by account') }}</label>
+	<div id="account-or-email">
+		<label for="identify-search-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
-			v-model="selectedAccount"
+			v-model="selectedSigner"
 			input-id="identify-search-input"
 			class="identify-search__input"
 			:loading="loading"
@@ -16,10 +16,10 @@
 			</template>
 		</NcSelect>
 		<p v-if="haveError"
-			id="identify-account-field"
-			class="identify-account__helper-text-message identify-account__helper-text-message--error">
-			<AlertCircle class="identify-account__helper-text-message__icon" :size="18" />
-			{{ t('libresign', 'Account is mandatory') }}
+			id="account-or-email-field"
+			class="account-or-email__helper-text-message account-or-email__helper-text-message--error">
+			<AlertCircle class="account-or-email__helper-text-message__icon" :size="18" />
+			{{ t('libresign', 'Signer is mandatory') }}
 		</p>
 	</div>
 </template>
@@ -30,7 +30,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import AlertCircle from 'vue-material-design-icons/AlertCircleOutline.vue'
 
 export default {
-	name: 'IdentifyAccount',
+	name: 'AccountOrEmail',
 	components: {
 		NcSelect,
 		AlertCircle,
@@ -41,7 +41,7 @@ export default {
 			default: false,
 			required: false,
 		},
-		account: {
+		signer: {
 			type: Object,
 			default: () => {},
 			required: false,
@@ -51,7 +51,7 @@ export default {
 		return {
 			loading: false,
 			options: [],
-			selectedAccount: null,
+			selectedSigner: null,
 			haveError: this.required,
 		}
 	},
@@ -64,21 +64,24 @@ export default {
 		},
 	},
 	watch: {
-		selectedAccount(account) {
-			this.haveError = account === null && this.required
-			if (account === null) {
-				this.$emit('update:account', false)
-				return
-			}
-			this.$emit('update:account', account)
+		selectedSigner(selected) {
+			let type = this.getTypeFromItem(selected)
+			this.haveError = selected === null && this.required
+			this.$emit('update:' + type, selected)
 		},
 	},
 	mounted() {
 		if (Object.keys(this.account).length > 0) {
-			this.selectedAccount = this.account
+			this.selectedSigner = this.account
 		}
 	},
 	methods: {
+		getTypeFromItem(item) {
+			if (item.isNoUser && item.icon === 'icon-mail') {
+				return 'email'
+			}
+			return 'account'
+		},
 		async asyncFind(search, lookup = false) {
 			search = search.trim()
 			this.loading = true
@@ -103,7 +106,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.identify-account {
+.account-or-email {
 	display: flex;
 	flex-direction: column;
 	margin-bottom: 4px;
