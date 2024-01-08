@@ -1,12 +1,10 @@
 <template>
 	<div class="identifySigner">
-		<IdentifyAccount v-if="methods.account.enabled"
-			:required="methods.account.required"
+		<AccountOrEmail v-if="methods.account.enabled || methods.email.enabled"
+			:required="methods.account.required || methods.email.required"
 			:account="methods.account.value"
-			@update:account="updateAccount" />
-		<IdentifyEmail v-if="methods.email.enabled"
-			:required="methods.email.required"
 			:email="methods.email.value"
+			@update:account="updateAccount"
 			@update:email="updateEmail" />
 		<SignerName :name="getName()"
 			@update:name="updateName" />
@@ -24,8 +22,7 @@
 </template>
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import IdentifyAccount from './IdentifyAccount.vue'
-import IdentifyEmail from './IdentifyEmail.vue'
+import AccountOrEmail from './AccountOrEmail.vue'
 import SignerName from './SignerName.vue'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -33,8 +30,7 @@ export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
-		IdentifyAccount,
-		IdentifyEmail,
+		AccountOrEmail,
 		SignerName,
 	},
 	props: {
@@ -62,7 +58,7 @@ export default {
 				email: {
 					enabled: false,
 					required: false,
-					value: '',
+					value: {},
 				},
 			},
 		}
@@ -110,17 +106,11 @@ export default {
 			if (name) {
 				return name
 			}
-			if (this.methods.account.enabled && this.methods.account.required && Object.keys(this.methods.account.value).length > 0) {
-				return this.methods.account.value.displayName
-			}
-			if (this.methods.email.enabled && this.methods.email.required && this.methods.email.value.length > 0) {
-				return this.methods.email.value
-			}
 			if (this.methods.account.enabled && Object.keys(this.methods.account.value).length > 0) {
 				return this.methods.account.value.displayName
 			}
-			if (this.methods.email.enabled && this.methods.email.value.length > 0) {
-				return this.methods.email.value
+			if (this.methods.email.enabled && Object.keys(this.methods.email.value).length > 0) {
+				return this.methods.email.value.displayName
 			}
 		},
 		saveSigner() {
@@ -131,9 +121,6 @@ export default {
 			}
 			let canSave = false
 			if (this.methods.account.enabled) {
-				if (this.methods.account.required && Object.keys(this.methods.account.value).length === 0) {
-					return
-				}
 				if (Object.keys(this.methods.account.value).length > 0) {
 					canSave = true
 					signer.identifyMethods.push({
@@ -143,10 +130,7 @@ export default {
 				}
 			}
 			if (this.methods.email.enabled) {
-				if (this.methods.email.required && this.methods.email.value.length === 0) {
-					return
-				}
-				if (this.methods.email.value?.length > 0) {
+				if (Object.keys(this.methods.email.value).length > 0) {
 					canSave = true
 					signer.identifyMethods.push({
 						method: 'email',
