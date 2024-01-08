@@ -216,13 +216,11 @@ class Account extends AbstractIdentifyMethod {
 			default: [
 				'enabled' => $this->isEnabledByDefault(),
 				'signature_method' => $signatureMethod,
-				'can_create_account' => $this->canCreateAccount,
 				'allowed_signature_methods' => [
 					$signatureMethod,
 				],
 			]
 		);
-		$this->canCreateAccount = $this->settings['can_create_account'];
 		if (in_array('password', $this->settings['allowed_signature_methods'])) {
 			$this->settings['allowed_signature_methods'] = [$signatureMethod];
 		}

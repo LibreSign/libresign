@@ -146,11 +146,13 @@ class Email extends AbstractIdentifyMethod {
 		$this->settings = parent::getSettingsFromDatabase(
 			default: [
 				'enabled' => false,
+				'can_create_account' => $this->canCreateAccount,
 			],
 			immutable: [
 				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
+		$this->canCreateAccount = $this->settings['can_create_account'];
 		return $this->settings;
 	}
 }
