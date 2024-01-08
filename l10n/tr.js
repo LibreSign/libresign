@@ -105,6 +105,7 @@ OC.L10N.register(
     "No signers." : "Herhangi bir imzalayan yok.",
     "You must not sign this file." : "Bu dosyayı imzalamamalısınız.",
     "Link expired." : "Bağlantının süresi dolmuş.",
+    "Link expired" : "Bağlantının süresi dolmuş",
     "Account" : "Hesap",
     "It is not possible to create new accounts." : "Yeni hesap açılamaz.",
     "You need to create an account to sign this file." : "Bu dosyayı imzalamak için bir hesap açmalısınız.",
