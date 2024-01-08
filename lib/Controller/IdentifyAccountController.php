@@ -72,7 +72,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			return $this->shareTypes;
 		}
 		$settings = $this->identifyEmailMethod->getSettings();
-		if ($settings['can_create_account']) {
+		if ($settings['enabled']) {
 			$this->shareTypes[] = IShare::TYPE_EMAIL;
 		}
 		return $this->shareTypes;
