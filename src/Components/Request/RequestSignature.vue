@@ -87,7 +87,7 @@ export default {
 			listSigners: true,
 			signerToEdit: {},
 			dataSigners: [],
-			signed: this.signers.filter(signer => signer.sign_date.length > 0).length > 0,
+			signed: this.signers.filter(signer => signer.sign_date?.length > 0).length > 0,
 		}
 	},
 	computed: {
@@ -97,18 +97,22 @@ export default {
 	},
 	watch: {
 		signers(signers) {
-			this.addIdentifierToAll(signers)
-			this.dataSigners = signers
-			this.listSigners = true
+			this.init(signers)
 		},
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
+		this.init(this.signers)
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
+		init(signers) {
+			this.addIdentifierToAll(signers)
+			this.dataSigners = signers
+			this.listSigners = true
+		},
 		validationFile() {
 			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
 		},
