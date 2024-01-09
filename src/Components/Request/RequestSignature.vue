@@ -86,7 +86,7 @@ export default {
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			listSigners: true,
 			signerToEdit: {},
-			dataSigners: this.signers,
+			dataSigners: [],
 			signed: this.signers.filter(signer => signer.sign_date.length > 0).length > 0,
 		}
 	},
@@ -97,7 +97,7 @@ export default {
 	},
 	watch: {
 		signers(signers) {
-			this.addIdentifier(signers)
+			this.addIdentifierToAll(signers)
 			this.dataSigners = signers
 			this.listSigners = true
 		},
@@ -112,17 +112,18 @@ export default {
 		validationFile() {
 			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
 		},
-		addIdentifier(signers) {
-			signers.map(signer => {
-				// generate unique code to new signer to be possible delete or edit
-				if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-					signer.identify = btoa(JSON.stringify(signer))
-				}
-				if (signer.signRequestId) {
-					signer.identify = signer.signRequestId
-				}
-				return signer
-			})
+		addIdentifierToAll(signers) {
+			signers.map(signer => this.addIdentifierToSigner(signer))
+		},
+		addIdentifierToSigner(signer) {
+			// generate unique code to new signer to be possible delete or edit
+			if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
+				signer.identify = btoa(JSON.stringify(signer))
+			}
+			if (signer.signRequestId) {
+				signer.identify = signer.signRequestId
+			}
+			return signer
 		},
 		addSigner() {
 			this.signerToEdit = {}
@@ -191,9 +192,10 @@ export default {
 		},
 		async signerUpdate(signer) {
 			this.toggleAddSigner()
+			signer = this.addIdentifierToSigner(signer)
 			// Remove if already exists
 			for (let i = this.dataSigners.length - 1; i >= 0; i--) {
-				if (this.dataSigners[i].identify?.length > 0 && signer.identify?.length > 0 && this.dataSigners[i].identify === signer.identify) {
+				if (this.dataSigners[i].identify === signer.identify) {
 					this.dataSigners.splice(i, 1)
 					break
 				}
