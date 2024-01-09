@@ -202,7 +202,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @When I change the file
 	 */
 	public function iChangeTheFile(TableNode $body): void {
-		$this->file['uuid'];
 		$newBody = [];
 		foreach ($body->getTable() as $key => $row) {
 			$newBody[$key] = $row;
@@ -338,7 +337,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
 		}
 		$found = current($found);
-		
+
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
 		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
