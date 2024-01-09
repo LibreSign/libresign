@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -56,6 +57,7 @@ class Email extends AbstractIdentifyMethod {
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
 		private SessionService $sessionService,
+		private FileElementMapper $fileElementMapper,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->l10n->t('Email');
@@ -99,8 +101,30 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
+		$this->throwIfNeedVisibleElementsAndCanNotHave();
 		$this->renewSession();
 		$this->updateIdentifiedAt();
+	}
+
+	private function throwIfNeedVisibleElementsAndCanNotHave(): void {
+		if ($this->canCreateAccount) {
+			return;
+		}
+
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+
+		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
+			$fileEntity->getId(),
+			$this->getEntity()->getSignRequestId()
+		);
+		if (!empty($fileElements)) {
+			$this->logger->alert('Signer identified by email {email} can not sign the document because neet do have visible elements and is not allowed to create account', ['email' => $this->getEntity()->getIdentifierValue()]);
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('You do not have permission for this action.')],
+			]));
+		}
 	}
 
 	private function throwIfIsNotSameUser(?IUser $user): void {
