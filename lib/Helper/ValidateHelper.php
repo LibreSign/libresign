@@ -496,6 +496,19 @@ class ValidateHelper {
 		}
 	}
 
+	public function signerCanHaveVisibleElement(int $signRequestId): void {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($identifyMethods as $identifyMethod) {
+			if ($identifyMethod->getIdentifierKey() === 'email') {
+				$email = $this->identifyMethodService->getInstanceOfIdentifyMethod('email', $identifyMethod->getIdentifierValue());
+				$settings = $email->getSettings();
+				if (empty($settings['can_create_account'])) {
+					throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+				}
+			}
+		}
+	}
+
 	public function haveValidMail(array $data, ?int $type = null): void {
 		if ($type === self::TYPE_TO_SIGN) {
 			return;

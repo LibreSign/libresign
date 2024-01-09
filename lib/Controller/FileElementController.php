@@ -26,29 +26,38 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileElementService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class FileElementController extends Controller {
+	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
 		private FileElementService $fileElementService,
-		private IUserSession $userSession,
 		private ValidateHelper $validateHelper,
-		private LoggerInterface $logger
+		private LoggerInterface $logger,
+		protected SignFileService $signFileService,
+		protected IL10N $l10n,
+		protected IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[RequireSignRequestUuid]
 	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
@@ -64,6 +73,7 @@ class FileElementController extends Controller {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
+			$this->validateHelper->signerCanHaveVisibleElement($signRequestId);
 			$fileElement = $this->fileElementService->saveVisibleElement($visibleElement, $uuid);
 			$return = [
 				'fileElementId' => $fileElement->getId(),
