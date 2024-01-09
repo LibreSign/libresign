@@ -185,7 +185,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
-		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->signer['sign_uuid'] = $matches['uuid'];
 	}
 
@@ -243,9 +243,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->response->getBody()->seek(0);
 		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
 		$expectedArray = json_decode($expected, true);
-		Assert::arrayHasKey($realResponseArray, 'pagination', 'The response have not pagination');
+		Assert::assertArrayHasKey('pagination', $realResponseArray, 'The response have not pagination');
 		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
-		Assert::arrayHasKey($realResponseArray, 'data');
+		Assert::assertArrayHasKey('data', $realResponseArray);
 		Assert::assertCount(count($expectedArray['data']), $realResponseArray['data']);
 		foreach ($expectedArray['data'] as $fileFey => $file) {
 			Assert::assertCount(count($file['signers']), $realResponseArray['data'][$fileFey]['signers']);
@@ -340,7 +340,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
-		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->signer['sign_uuid'] = $matches['uuid'];
 	}
 }
