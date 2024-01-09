@@ -43,7 +43,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { emit, subscribe } from '@nextcloud/event-bus'
+import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -104,6 +104,9 @@ export default {
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
 		validationFile() {
