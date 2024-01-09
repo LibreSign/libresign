@@ -1,10 +1,10 @@
 <template>
 	<div id="account-or-email">
-		<label for="identify-search-input">{{ t('libresign', 'Search signer') }}</label>
+		<label for="account-or-email-input">{{ t('libresign', 'Search signer') }}</label>
 		<NcSelect ref="select"
 			v-model="selectedSigner"
-			input-id="identify-search-input"
-			class="identify-search__input"
+			input-id="account-or-email-input"
+			class="account-or-email__input"
 			:loading="loading"
 			:filterable="false"
 			:placeholder="t('libresign', 'Name')"
@@ -65,23 +65,25 @@ export default {
 	},
 	watch: {
 		selectedSigner(selected) {
-			let type = this.getTypeFromItem(selected)
 			this.haveError = selected === null && this.required
-			this.$emit('update:' + type, selected)
+			if (selected === null) {
+				this.$emit('update:email', false)
+				this.$emit('update:account', false)
+			} else if (selected.isNoUser && selected.icon === 'icon-mail') {
+				this.$emit('update:email', selected)
+				this.$emit('update:account', false)
+			} else {
+				this.$emit('update:email', false)
+				this.$emit('update:account', selected)
+			}
 		},
 	},
 	mounted() {
-		if (Object.keys(this.account).length > 0) {
-			this.selectedSigner = this.account
+		if (Object.keys(this.signer).length > 0) {
+			this.selectedSigner = this.signer
 		}
 	},
 	methods: {
-		getTypeFromItem(item) {
-			if (item.isNoUser && item.icon === 'icon-mail') {
-				return 'email'
-			}
-			return 'account'
-		},
 		async asyncFind(search, lookup = false) {
 			search = search.trim()
 			this.loading = true
@@ -123,6 +125,7 @@ export default {
 	input {
 		grid-area: 1 / 1;
 		width: 100%;
+		position: relative;
 	}
 
 	&__helper-text-message {
