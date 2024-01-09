@@ -45,7 +45,7 @@ import File from '../../Components/File/File.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { subscribe } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import LibresignTab from '../../Components/File/LibresignTab.vue'
 
 export default {
@@ -100,6 +100,9 @@ export default {
 	},
 	async mounted() {
 		subscribe('libresign:delete-signer', this.deleteSigner)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:delete-signer')
 	},
 
 	methods: {
