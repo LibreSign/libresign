@@ -26,6 +26,6 @@ namespace OCA\Libresign\Middleware\Attribute;
 
 use Attribute;
 
-#[Attribute]
+#[Attribute(Attribute::TARGET_METHOD)]
 class CanSignRequestUuid {
 }
