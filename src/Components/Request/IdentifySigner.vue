@@ -2,8 +2,7 @@
 	<div class="identifySigner">
 		<AccountOrEmail v-if="methods.account.enabled || methods.email.enabled"
 			:required="methods.account.required || methods.email.required"
-			:account="methods.account.value"
-			:email="methods.email.value"
+			:signer="methods.account.value || methods.email.value"
 			@update:account="updateAccount"
 			@update:email="updateEmail" />
 		<SignerName :name="getName()"
