@@ -135,7 +135,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 	private function excludeNotAllowed(array $list): array {
 		$shareTypes = $this->getShareTypes();
-		return array_filter($list, function($result) use($shareTypes) {
+		return array_filter($list, function ($result) use ($shareTypes) {
 			return in_array($result['shareType'], $shareTypes);
 		});
 	}
