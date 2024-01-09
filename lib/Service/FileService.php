@@ -28,6 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
+use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\TCPDILibresign;
@@ -60,6 +61,7 @@ class FileService {
 	private $showMessages = false;
 	/** @var File|null */
 	private $file;
+	private ?SignRequest $signRequest = null;
 	/** @var IUser|null */
 	private $me;
 	/** @var array */
@@ -151,6 +153,11 @@ class FileService {
 	 */
 	public function setFile(File $file): self {
 		$this->file = $file;
+		return $this;
+	}
+
+	public function setSignRequest(SignRequest $signRequest): self {
+		$this->signRequest = $signRequest;
 		return $this;
 	}
 
@@ -266,7 +273,11 @@ class FileService {
 			if ($this->me) {
 				$uid = $this->me->getUID();
 			}
-			$visibleElements = $this->fileElementMapper->getByFileId($this->file->getId());
+			if (is_object($this->signRequest)) {
+				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $this->signRequest->getId());
+			} else {
+				$visibleElements = $this->fileElementMapper->getByFileId($this->file->getId());
+			}
 			foreach ($visibleElements as $visibleElement) {
 				$element = [
 					'elementId' => $visibleElement->getId(),
