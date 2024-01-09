@@ -80,6 +80,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->entity;
 	}
 
+	public function getSettings(): array {
+		return $this->settings;
+	}
+
 	public function notify(bool $isNew): void {
 	}
 

@@ -259,6 +259,33 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
+  Scenario: Request to sign using email as identifier and when is necessary to use visible elements
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And I send a file to be signed
+      | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users  | [{"identify":{"email":"signer1@domain.test"}}]  |
+      | status | 0                                               |
+      | name   | document                                        |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And fetch field "data.0.signers.0.signRequestId" from prevous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <data.0.signers.0.signRequestId> |
+      | type | signature |
+    Then the response should have a status code 404
+    And the response should be a JSON array with the following mandatory values
+      | key    | value                                           |
+      | errors | ["You do not have permission for this action."] |
+    When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <data.0.signers.0.signRequestId> |
+      | type | signature |
+    Then the response should have a status code 200
+
   Scenario: Request to sign with success using multiple users
     Given as user "admin"
     And run the command "config:app:set libresign authkey --value dummy"
