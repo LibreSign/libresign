@@ -73,7 +73,7 @@ import { loadState } from '@nextcloud/initial-state'
 import DragResize from 'vue-drag-resize'
 import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import { subscribe } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
 import Sidebar from './SignDetail/partials/Sidebar.vue'
 import PageNavigation from './SignDetail/partials/PageNavigation.vue'
@@ -190,6 +190,10 @@ export default {
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
 		subscribe('libresign:visible-elements-select-signer', this.onSelectSigner)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:show-visible-elements')
+		unsubscribe('libresign:visible-elements-select-signer')
 	},
 	methods: {
 		showModal() {
