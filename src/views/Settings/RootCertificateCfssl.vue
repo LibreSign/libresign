@@ -121,7 +121,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { subscribe } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import { selectCustonOption } from '../../helpers/certification.js'
@@ -168,6 +168,10 @@ export default {
 			this.configureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
 			this.loaded = true
 		})
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:certificate-engine:changed')
+		unsubscribe('libresign:update:certificateToSave')
 	},
 
 	methods: {
