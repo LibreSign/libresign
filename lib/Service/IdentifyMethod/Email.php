@@ -94,6 +94,7 @@ class Email extends AbstractIdentifyMethod {
 
 	public function validateToSign(?IUser $user = null): void {
 		$this->throwIfAccountAlreadyExists($user);
+		$this->throwIfIsNotSameUser($user);
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
@@ -102,18 +103,31 @@ class Email extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
-	private function throwIfAccountAlreadyExists(?IUser $user): ?IUser {
+	private function throwIfIsNotSameUser(?IUser $user): void {
 		if (!$user instanceof IUser) {
-			return null;
+			return;
+		}
+		$email = $this->entity->getIdentifierValue();
+		if ($user->getEMailAddress() !== $email) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid user')],
+			]));
+		}
+	}
+
+	private function throwIfAccountAlreadyExists(?IUser $user): void {
+		if (!$user instanceof IUser) {
+			return;
 		}
 		$email = $this->entity->getIdentifierValue();
 		$signer = $this->userManager->getByEmail($email);
 		if (!$signer) {
-			return null;
+			return;
 		}
 		foreach ($signer as $s) {
 			if ($s->getUID() === $user->getUID()) {
-				return $s;
+				return;
 			}
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
