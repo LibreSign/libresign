@@ -33,7 +33,7 @@
 			<NcLoadingIcon :size="64" name="Loading" />
 			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
-		<div v-if="!loading" class="image-page">
+		<div v-else class="image-page">
 			<VuePdfEditor width="100%"
 				height="100%"
 				:show-choose-file-btn="true"
@@ -47,8 +47,7 @@
 				:show-rename="true"
 				:show-save-btn="false"
 				:save-to-upload="true"
-				:init-file-src="url"
-				:init-file-name="initFileName"
+				:init-file-src="document.data.file.url"
 				:init-image-scale="0.2"
 				:seal-image-show="true"
 				:seal-image-hidden-on-save="true"
@@ -56,8 +55,8 @@
 		</div>
 	</NcModal>
 </template>
-<script>
 
+<script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -116,18 +115,8 @@ export default {
 	},
 	data() {
 		return {
-			url: '',
-			documentError: undefined,
-			enableUploader: false,
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
-			initFileName: 'document.pdf',
-			initFile: '',
-			textFields: ['Ok'],
-			imageUrls: [],
-			configPdf: {
-				toolbar: false,
-			},
 			document: {
 				id: '',
 				name: '',
@@ -199,13 +188,7 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer')
 	},
 	methods: {
-		onDocumentErrored(e) {
-			this.documentError = e.text
-		},
 		save2Upload(payload) {
-			console.log(payload.pdfBytes)
-			console.log(payload.fileName)
-			console.log(payload.sealInfo)
 		},
 		showModal() {
 			if (!this.canRequestSign) {
@@ -302,15 +285,11 @@ export default {
 			try {
 				this.loading = true
 				this.signers = []
-				const document = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
-					fileId: this.file.nodeId,
-				}))
-				this.url = document.data.file
-				this.document = document.data
+				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+				this.document = this.document.data
 				this.updateSigners()
 				this.loading = false
 			} catch (err) {
-				this.documentError = err
 				this.loading = false
 				this.onError(err)
 			}
@@ -328,16 +307,9 @@ export default {
 			}
 
 			try {
-				if (this.editingElement) {
-					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
-						uuid: this.document.uuid,
-						elementId: element.elementId,
-					}), payload)
-				} else {
-					await axios.post(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}', {
-						uuid: this.document.uuid,
-					}), payload)
-				}
+				this.editingElement
+					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}/${element.elementId}`), payload)
+					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}`), payload)
 				showSuccess(t('libresign', 'Element created'))
 
 				this.loadDocument()
