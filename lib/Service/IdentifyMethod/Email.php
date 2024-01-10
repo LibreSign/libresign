@@ -106,6 +106,11 @@ class Email extends AbstractIdentifyMethod {
 		$this->updateIdentifiedAt();
 	}
 
+	/**
+	 * @todo make possible to request to sign by email and use visible elements
+	 *
+	 * Reference: https://github.com/LibreSign/libresign/issues/2093
+	 */
 	private function throwIfNeedVisibleElementsAndCanNotHave(): void {
 		if ($this->canCreateAccount) {
 			return;
