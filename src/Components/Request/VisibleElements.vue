@@ -71,6 +71,7 @@ import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import VuePdfEditor from '@libresign/vue-pdf-editor'
 
 const emptyElement = () => {
 	return {
@@ -104,6 +105,7 @@ export default {
 		Sidebar,
 		Chip,
 		NcLoadingIcon,
+		VuePdfEditor,
 	},
 	props: {
 		file: {

@@ -25,7 +25,6 @@ import Vue from 'vue'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { translate, translatePlural } from '@nextcloud/l10n'
-import VuePdfEditor from '@libresign/vue-pdf-editor'
 
 import './plugins/vuelidate.js'
 import './init.js'
@@ -41,7 +40,7 @@ import store from './store/index.js'
 Vue.mixin({ methods: { t, n } })
 Vue.prototype.t = translate
 Vue.prototype.n = translatePlural
-Vue.use(VuePdfEditor)
+
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line
 __webpack_nonce__ = btoa(getRequestToken())
