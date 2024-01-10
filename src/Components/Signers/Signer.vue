@@ -89,7 +89,7 @@ export default {
 				return
 			}
 			if (this.signer.sign_date) {
-				return;
+				return
 			}
 			emit(this.event, this.signer)
 		},
