@@ -61,6 +61,8 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 		$offset = $limit * ($page - 1);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
+		$result['exact'] = $this->unifyResult($result['exact']);
+		$result = $this->unifyResult($result);
 		$return = $this->formatForNcSelect($result);
 		$return = $this->addHerself($return, $search);
 		$return = $this->excludeNotAllowed($return);
@@ -83,18 +85,24 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		return $this->shareTypes;
 	}
 
-	private function formatForNcSelect(array $list): array {
+	private function unifyResult(array $list): array {
+		$ids = [];
 		$return = [];
-		foreach ($list['exact'] as $item) {
-			$return = array_merge($return, $item);
+		foreach ($list as $items) {
+			foreach ($items as $item) {
+				if (in_array($item['value']['shareWith'], $ids)) {
+					continue;
+				}
+				$ids[] = $item['value']['shareWith'];
+				$return[] = $item;
+			}
 		}
-		unset($list['exact']);
-		foreach ($list as $item) {
-			$return = array_merge($return, $item);
-		}
+		return $return;
+	}
 
-		foreach ($return as $key => $item) {
-			$return[$key] = [
+	private function formatForNcSelect(array $list): array {
+		foreach ($list as $key => $item) {
+			$list[$key] = [
 				'id' => $item['value']['shareWith'],
 				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER ?? false,
 				'displayName' => $item['label'],
@@ -102,12 +110,12 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				'shareType' => $item['value']['shareType'],
 			];
 			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
-				$return[$key]['icon'] = 'icon-mail';
+				$list[$key]['icon'] = 'icon-mail';
 			} elseif ($item['value']['shareType'] === IShare::TYPE_USER) {
-				$return[$key]['icon'] = 'icon-user';
+				$list[$key]['icon'] = 'icon-user';
 			}
 		}
-		return $return;
+		return $list;
 	}
 
 	private function addHerself(array $return, string $search): array {
