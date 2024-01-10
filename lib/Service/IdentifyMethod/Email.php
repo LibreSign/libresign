@@ -77,10 +77,10 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function notify(bool $isNew): void {
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if (!$this->willNotify) {
 			return;
 		}
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if ($isNew) {
 			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
 			return;
