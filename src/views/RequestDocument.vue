@@ -18,19 +18,10 @@ import {
 
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import LinkIcon from 'vue-material-design-icons/Link.vue'
-import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
-import UploadIcon from 'vue-material-design-icons/Upload.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
-import LibresignTab from '../Components/File/LibresignTab.vue'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -43,18 +34,9 @@ const loadFileToBase64 = file => {
 	})
 }
 export default {
-	name: 'Request',
+	name: 'RequestDocument',
 	components: {
-		NcModal,
-		NcTextField,
-		NcButton,
-		LinkIcon,
-		NcLoadingIcon,
-		UploadIcon,
-		CloudUploadIcon,
-		FolderIcon,
 		File,
-		LibresignTab,
 	},
 	data() {
 		return {

@@ -15,12 +15,13 @@
 					status="0"
 					status-text="none"
 					@sidebar="showSidebar = true" />
-				<!-- <NcButton @click="showModalUploadFromUrl"> -->
-				<!-- 	{{ t('libresign', 'Upload from URL') }} -->
-				<!-- 	<template #icon> -->
-				<!-- 		<LinkIcon :size="20" /> -->
-				<!-- 	</template> -->
-				<!-- </NcButton> -->
+				<NcButton @click="showModalUploadFromUrl">
+					{{ t('libresign', 'Upload from URL') }}
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<LinkIcon v-else :size="20" />
+					</template>
+				</NcButton>
 				<NcButton @click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
@@ -78,7 +79,6 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
@@ -106,7 +106,6 @@ export default {
 		NcButton,
 		NcNoteCard,
 		LinkIcon,
-		NcLoadingIcon,
 		UploadIcon,
 		NcLoadingIcon,
 		CloudUploadIcon,

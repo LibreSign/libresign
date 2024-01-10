@@ -47,18 +47,16 @@
 				:show-rename="true"
 				:show-save-btn="false"
 				:save-to-upload="true"
-				:init-file-src="url
+				:init-file-src="url"
 				:init-file-name="initFileName"
 				:init-image-scale="0.2"
 				:seal-image-show="true"
 				:seal-image-hidden-on-save="true"
 				@onSave2Upload="save2Upload" />
 		</div>
-		</div>
 	</NcModal>
 </template>
 <script>
-
 
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -121,12 +119,12 @@ export default {
 			enableUploader: false,
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			signers: [],
-		  initFileName: 'document.pdf',
+			initFileName: 'document.pdf',
 			initFile: '',
 			textFields: ['Ok'],
 			imageUrls: [],
 			configPdf: {
-      	toolbar: false,
+				toolbar: false,
 			},
 			document: {
 				id: '',
@@ -191,6 +189,7 @@ export default {
 		},
 		save(data) {
 			console.log(data)
+			return data
 		},
 	},
 	mounted() {
@@ -305,9 +304,8 @@ export default {
 			try {
 				this.loading = true
 				this.signers = []
- 				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
- 				console.log(document.data)
- 				this.url = document.data.file
+				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+				this.url = document.data.file
 				this.document = document.data
 				this.updateSigners()
 				this.loading = false
