@@ -36,7 +36,7 @@ export default {
 	watch: {
 		name(name) {
 			this.displayName = name
-		}
+		},
 	},
 	methods: {
 		onNameChange() {
