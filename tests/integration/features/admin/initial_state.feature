@@ -6,8 +6,8 @@ Feature: admin/initial_state
     Then the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -20,8 +20,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -34,8 +34,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -48,8 +48,8 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
@@ -62,20 +62,20 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
 
   Scenario: Update identify methods and retrieve with success as initial state
     Given as user "admin"
     When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]},{"name":"email","enabled":false,"mandatory":false}] |
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signature_method":"password","allowed_signature_methods":["password"]},{"name":"email","enabled":false,"mandatory":false}] |
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"can_create_account":false,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":false,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":false,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """

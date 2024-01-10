@@ -77,7 +77,6 @@ class IdentifyMethodService {
 		$entity->setIdentifierKey($name);
 		$entity->setIdentifierValue($identifyValue);
 		$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
-		$entity->setMethod($name);
 		if ($identifyValue) {
 			$identifyMethod->validateToRequest();
 		}
@@ -141,7 +140,7 @@ class IdentifyMethodService {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($entities as $entity) {
 			$identifyMethod = $this->getInstanceOfIdentifyMethod(
-				$entity->getMethod(),
+				$entity->getIdentifierKey(),
 				$entity->getIdentifierValue(),
 			);
 			$identifyMethod->setEntity($entity);

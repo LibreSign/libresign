@@ -25,6 +25,8 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Service\IdentifyMethod\Account;
+use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
@@ -34,20 +36,21 @@ use OCP\IUserSession;
 use OCP\Share\IShare;
 
 class IdentifyAccountController extends AEnvironmentAwareController {
+	private array $shareTypes = [];
 	public function __construct(
 		IRequest $request,
 		private ISearch $collaboratorSearch,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
+		private Email $identifyEmailMethod,
+		private Account $identifyAccountMethod,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
 	#[NoAdminRequired]
 	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
-		$shareTypes = [
-			IShare::TYPE_USER,
-		];
+		$shareTypes = $this->getShareTypes();
 		$lookup = false;
 
 		// only search for string larger than a given threshold
@@ -58,26 +61,68 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 		$offset = $limit * ($page - 1);
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
+		$result['exact'] = $this->unifyResult($result['exact']);
+		$result = $this->unifyResult($result);
 		$return = $this->formatForNcSelect($result);
 		$return = $this->addHerself($return, $search);
+		$return = $this->excludeNotAllowed($return);
 
 		return new DataResponse($return);
 	}
 
+	private function getShareTypes(): array {
+		if (count($this->shareTypes) > 0) {
+			return $this->shareTypes;
+		}
+		$settings = $this->identifyEmailMethod->getSettings();
+		if ($settings['enabled']) {
+			$this->shareTypes[] = IShare::TYPE_EMAIL;
+		}
+		$settings = $this->identifyAccountMethod->getSettings();
+		if ($settings['enabled']) {
+			$this->shareTypes[] = IShare::TYPE_USER;
+		}
+		return $this->shareTypes;
+	}
+
+	private function unifyResult(array $list): array {
+		$ids = [];
+		$return = [];
+		foreach ($list as $items) {
+			foreach ($items as $item) {
+				if (in_array($item['value']['shareWith'], $ids)) {
+					continue;
+				}
+				$ids[] = $item['value']['shareWith'];
+				$return[] = $item;
+			}
+		}
+		return $return;
+	}
+
 	private function formatForNcSelect(array $list): array {
-		$list = array_merge($list['exact']['users'], $list['users']);
 		foreach ($list as $key => $item) {
 			$list[$key] = [
 				'id' => $item['value']['shareWith'],
-				'isNoUser' => false,
+				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER ?? false,
 				'displayName' => $item['label'],
 				'subname' => $item['shareWithDisplayNameUnique'],
+				'shareType' => $item['value']['shareType'],
 			];
+			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
+				$list[$key]['icon'] = 'icon-mail';
+			} elseif ($item['value']['shareType'] === IShare::TYPE_USER) {
+				$list[$key]['icon'] = 'icon-user';
+			}
 		}
 		return $list;
 	}
 
 	private function addHerself(array $return, string $search): array {
+		$settings = $this->identifyAccountMethod->getSettings();
+		if (empty($settings['enabled'])) {
+			return $return;
+		}
 		$user = $this->userSession->getUser();
 		if (!str_contains($user->getUID(), $search) && !str_contains($user->getDisplayName(), $search)) {
 			return $return;
@@ -91,7 +136,16 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'isNoUser' => false,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
+			'icon' => 'icon-user',
+			'shareType' => IShare::TYPE_USER,
 		];
 		return $return;
+	}
+
+	private function excludeNotAllowed(array $list): array {
+		$shareTypes = $this->getShareTypes();
+		return array_filter($list, function ($result) use ($shareTypes) {
+			return in_array($result['shareType'], $shareTypes);
+		});
 	}
 }

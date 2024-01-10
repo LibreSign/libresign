@@ -1,13 +1,13 @@
 <template>
 	<div v-if="listSigners" class="requestSignature">
-		<NcButton v-if="canRequestSign"
+		<NcButton v-if="canRequestSign && !signed"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
 		<Signers :signers="dataSigners"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
-				<NcActionButton v-if="canRequestSign"
+				<NcActionButton v-if="canRequestSign && !signer.sign_date"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="deleteSigner(signer)">
@@ -86,8 +86,8 @@ export default {
 			canRequestSign: loadState('libresign', 'can_request_sign'),
 			listSigners: true,
 			signerToEdit: {},
-			dataSigners: this.signers,
-			signed: this.signers.filter(signer => signer.sign_date.length > 0).length > 0
+			dataSigners: [],
+			signed: this.signers.filter(signer => signer.sign_date?.length > 0).length > 0,
 		}
 	},
 	computed: {
@@ -97,32 +97,37 @@ export default {
 	},
 	watch: {
 		signers(signers) {
-			this.addIdentifier(signers)
-			this.dataSigners = signers
-			this.listSigners = true
+			this.init(signers)
 		},
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
+		this.init(this.signers)
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
+		init(signers) {
+			this.addIdentifierToAll(signers)
+			this.dataSigners = signers
+			this.listSigners = true
+		},
 		validationFile() {
 			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
 		},
-		addIdentifier(signers) {
-			signers.map(signer => {
-				// generate unique code to new signer to be possible delete or edit
-				if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-					signer.identify = btoa(JSON.stringify(signer))
-				}
-				if (signer.signRequestId) {
-					signer.identify = signer.signRequestId
-				}
-				return signer
-			})
+		addIdentifierToAll(signers) {
+			signers.map(signer => this.addIdentifierToSigner(signer))
+		},
+		addIdentifierToSigner(signer) {
+			// generate unique code to new signer to be possible delete or edit
+			if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
+				signer.identify = btoa(JSON.stringify(signer))
+			}
+			if (signer.signRequestId) {
+				signer.identify = signer.signRequestId
+			}
+			return signer
 		},
 		addSigner() {
 			this.signerToEdit = {}
@@ -169,7 +174,7 @@ export default {
 					if (method.method === 'account') {
 						user.identify.account = method?.value?.id ?? method?.value ?? signer.uid
 					} else if (method.method === 'email') {
-						user.identify.email = method?.value ?? signer.email
+						user.identify.email = method?.value?.id ?? method?.value ?? signer.email
 					}
 				})
 				params.users.push(user)
@@ -191,9 +196,10 @@ export default {
 		},
 		async signerUpdate(signer) {
 			this.toggleAddSigner()
+			signer = this.addIdentifierToSigner(signer)
 			// Remove if already exists
 			for (let i = this.dataSigners.length - 1; i >= 0; i--) {
-				if (this.dataSigners[i].identify?.length > 0 && signer.identify?.length > 0 && this.dataSigners[i].identify === signer.identify) {
+				if (this.dataSigners[i].identify === signer.identify) {
 					this.dataSigners.splice(i, 1)
 					break
 				}

@@ -145,6 +145,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
 			->setFile($this->getFileEntity())
+			->setSignRequest($this->getSignRequestEntity())
 			->showVisibleElements()
 			->showSigners()
 			->formatFile();

@@ -168,14 +168,14 @@ Feature: request-signature
   Scenario: Request to sign with error using account as identifier when the user don't exists
     Given as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"can_create_account":false,"signature_method":"password","allowed_signature_methods":["password"]}] |
+      | value | (string)[{"name":"account","enabled":true,"signature_method":"password","allowed_signature_methods":["password"]}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"account":"signer2"}}] |
       | name | document |
     Then the response should be a JSON array with the following mandatory values
-      | key     | value                                      |
-      | message | It is not possible to create new accounts. |
+      | key     | value           |
+      | message | User not found. |
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
@@ -192,6 +192,31 @@ Feature: request-signature
       | app       | object_type | object_id | subject                         |
       | libresign | sign        | document  | There is a file for you to sign |
     And there should be 0 emails in my inbox
+
+  Scenario: Request to sign with error using account as identifier with invalid email
+    Given as user "admin"
+    And run the command "libresign:developer:reset --all"
+    And run the command "config:app:set libresign authkey --value dummy"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"invaliddomain.test"}}] |
+      | name | document |
+    Then the response should have a status code 422
+    Then the response should be a JSON array with the following mandatory values
+      | key     | value           |
+      | message | User not found. |
+
+  Scenario: Request to sign with error using email as account identifier
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"account":"signer3@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 422
+    Then the response should be a JSON array with the following mandatory values
+      | key     | value           |
+      | message | User not found. |
 
   Scenario: Request to sign with success using email as identifier and URL as file
     Given as user "admin"
@@ -233,6 +258,33 @@ Feature: request-signature
     Then the response should have a status code 200
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
+
+  Scenario: Request to sign using email as identifier and when is necessary to use visible elements
+    Given as user "admin"
+    And run the command "config:app:set libresign authkey --value dummy"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
+    And I send a file to be signed
+      | file   | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users  | [{"identify":{"email":"signer1@domain.test"}}]  |
+      | status | 0                                               |
+      | name   | document                                        |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    And fetch field "data.0.signers.0.signRequestId" from prevous JSON response
+    When sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <data.0.signers.0.signRequestId> |
+      | type | signature |
+    Then the response should have a status code 404
+    And the response should be a JSON array with the following mandatory values
+      | key    | value                                           |
+      | errors | ["You do not have permission for this action."] |
+    When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
+    And sending "post" to ocs "/apps/libresign/api/v1/file-element/<FILE_UUID>"
+      | signRequestId | <data.0.signers.0.signRequestId> |
+      | type | signature |
+    Then the response should have a status code 200
 
   Scenario: Request to sign with success using multiple users
     Given as user "admin"

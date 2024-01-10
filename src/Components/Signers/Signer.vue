@@ -88,6 +88,9 @@ export default {
 			if (this.event.length === 0) {
 				return
 			}
+			if (this.signer.sign_date) {
+				return
+			}
 			emit(this.event, this.signer)
 		},
 	},
