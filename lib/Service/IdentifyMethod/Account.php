@@ -84,25 +84,12 @@ class Account extends AbstractIdentifyMethod {
 		if (!$this->willNotify) {
 			return;
 		}
-		$entity = $this->getEntity();
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$signer = $this->userManager->get($entity->getIdentifierValue());
-		if ($signer) {
-			$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
-				$signRequest,
-				$this,
-				$isNew
-			));
-			return;
-		}
-		if (!filter_var($entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'));
-		}
-		if ($isNew) {
-			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
-			return;
-		}
-		$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
+		$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
+			$signRequest,
+			$this,
+			$isNew
+		));
 	}
 
 	public function validateToRequest(): void {
