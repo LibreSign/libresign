@@ -44,6 +44,7 @@ use Psr\Log\LoggerInterface;
 use Wobeto\EmailBlur\Blur;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
+	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected string $friendlyName;
@@ -77,6 +78,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	public function getEntity(): IdentifyMethod {
 		return $this->entity;
+	}
+
+	public function getSettings(): array {
+		return $this->settings;
 	}
 
 	public function notify(bool $isNew): void {
@@ -293,13 +298,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($entity->getId()) {
 			return;
 		}
-		if (!$entity->getSignRequestId() || !$entity->getMethod()) {
+		if (!$entity->getSignRequestId() || !$entity->getIdentifierKey()) {
 			return;
 		}
 
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($entity->getSignRequestId());
 		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($entity): bool {
-			return $current->getMethod() === $entity->getMethod();
+			return $current->getIdentifierKey() === $entity->getIdentifierKey();
 		});
 		if (!$exists) {
 			return;

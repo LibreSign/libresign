@@ -14,6 +14,7 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
+	private array $fields = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -138,6 +139,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
 			$this->baseUrl . '/index.php',
 		];
+		foreach ($this->fields as $key => $value) {
+			$patterns[] = '/<' . $key . '>/';
+			$replacements[] = $value;
+		}
 		$text = preg_replace($patterns, $replacements, $text);
 		return $text;
 	}
@@ -185,7 +190,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		/** @var \rpkamp\Mailhog\Message\Message $openedEmail */
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
-		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->signer['sign_uuid'] = $matches['uuid'];
 	}
 
@@ -202,7 +207,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @When I change the file
 	 */
 	public function iChangeTheFile(TableNode $body): void {
-		$this->file['uuid'];
 		$newBody = [];
 		foreach ($body->getTable() as $key => $row) {
 			$newBody[$key] = $row;
@@ -244,9 +248,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->response->getBody()->seek(0);
 		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
 		$expectedArray = json_decode($expected, true);
-		Assert::arrayHasKey($realResponseArray, 'pagination', 'The response have not pagination');
+		Assert::assertArrayHasKey('pagination', $realResponseArray, 'The response have not pagination');
 		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
-		Assert::arrayHasKey($realResponseArray, 'data');
+		Assert::assertArrayHasKey('data', $realResponseArray);
 		Assert::assertCount(count($expectedArray['data']), $realResponseArray['data']);
 		foreach ($expectedArray['data'] as $fileFey => $file) {
 			Assert::assertCount(count($file['signers']), $realResponseArray['data'][$fileFey]['signers']);
@@ -265,6 +269,21 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fileId = $responseArray['data'][$fileSequence - 1]['file']['nodeId'];
 		$signRequestId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['signRequestId'];
 		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $signRequestId);
+	}
+
+	/**
+	 * @When fetch field :path from prevous JSON response
+	 */
+	public function fetchFieldFromPreviousJsonResponse(string $path): void {
+		$this->response->getBody()->seek(0);
+		$responseArray = json_decode($this->response->getBody()->getContents(), true);
+		$keys = explode('.', $path);
+		$value = $responseArray;
+		foreach ($keys as $key) {
+			Assert::assertArrayHasKey($key, $value, 'Key [' . $key . '] of path [' . $path . '] not found.');
+			$value = $value[$key];
+		}
+		$this->fields[$path] = $value;
 	}
 
 	/**
@@ -338,10 +357,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
 		}
 		$found = current($found);
-		
+
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
-		Assert::arrayHasKey('uuid', $matches, 'UUID not found on email');
+		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
 		$this->signer['sign_uuid'] = $matches['uuid'];
 	}
 }

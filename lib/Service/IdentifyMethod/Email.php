@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -56,6 +57,7 @@ class Email extends AbstractIdentifyMethod {
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
 		private SessionService $sessionService,
+		private FileElementMapper $fileElementMapper,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->l10n->t('Email');
@@ -75,10 +77,10 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function notify(bool $isNew): void {
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if (!$this->willNotify) {
 			return;
 		}
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		if ($isNew) {
 			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
 			return;
@@ -94,26 +96,67 @@ class Email extends AbstractIdentifyMethod {
 
 	public function validateToSign(?IUser $user = null): void {
 		$this->throwIfAccountAlreadyExists($user);
+		$this->throwIfIsNotSameUser($user);
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
+		$this->throwIfNeedVisibleElementsAndCanNotHave();
 		$this->renewSession();
 		$this->updateIdentifiedAt();
 	}
 
-	private function throwIfAccountAlreadyExists(?IUser $user): ?IUser {
+	/**
+	 * @todo make possible to request to sign by email and use visible elements
+	 *
+	 * Reference: https://github.com/LibreSign/libresign/issues/2093
+	 */
+	private function throwIfNeedVisibleElementsAndCanNotHave(): void {
+		if ($this->canCreateAccount) {
+			return;
+		}
+
+		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+
+		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
+			$fileEntity->getId(),
+			$this->getEntity()->getSignRequestId()
+		);
+		if (!empty($fileElements)) {
+			$this->logger->alert('Signer identified by email {email} can not sign the document because neet do have visible elements and is not allowed to create account', ['email' => $this->getEntity()->getIdentifierValue()]);
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('You do not have permission for this action.')],
+			]));
+		}
+	}
+
+	private function throwIfIsNotSameUser(?IUser $user): void {
 		if (!$user instanceof IUser) {
-			return null;
+			return;
+		}
+		$email = $this->entity->getIdentifierValue();
+		if ($user->getEMailAddress() !== $email) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid user')],
+			]));
+		}
+	}
+
+	private function throwIfAccountAlreadyExists(?IUser $user): void {
+		if (!$user instanceof IUser) {
+			return;
 		}
 		$email = $this->entity->getIdentifierValue();
 		$signer = $this->userManager->getByEmail($email);
 		if (!$signer) {
-			return null;
+			return;
 		}
 		foreach ($signer as $s) {
 			if ($s->getUID() === $user->getUID()) {
-				return $s;
+				return;
 			}
 		}
 		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
@@ -146,11 +189,13 @@ class Email extends AbstractIdentifyMethod {
 		$this->settings = parent::getSettingsFromDatabase(
 			default: [
 				'enabled' => false,
+				'can_create_account' => $this->canCreateAccount,
 			],
 			immutable: [
 				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
+		$this->canCreateAccount = $this->settings['can_create_account'];
 		return $this->settings;
 	}
 }

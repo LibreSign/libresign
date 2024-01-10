@@ -1,14 +1,11 @@
 <template>
 	<div class="identifySigner">
-		<IdentifyAccount v-if="methods.account.enabled"
-			:required="methods.account.required"
-			:account="methods.account.value"
-			@update:account="updateAccount" />
-		<IdentifyEmail v-if="methods.email.enabled"
-			:required="methods.email.required"
-			:email="methods.email.value"
+		<AccountOrEmail v-if="methods.account.enabled || methods.email.enabled"
+			:required="methods.account.required || methods.email.required"
+			:signer="methods.account.value || methods.email.value"
+			@update:account="updateAccount"
 			@update:email="updateEmail" />
-		<SignerName :name="getName()"
+		<SignerName :name="name"
 			@update:name="updateName" />
 		<div class="identifySigner__footer">
 			<div class="button-group">
@@ -24,8 +21,7 @@
 </template>
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import IdentifyAccount from './IdentifyAccount.vue'
-import IdentifyEmail from './IdentifyEmail.vue'
+import AccountOrEmail from './AccountOrEmail.vue'
 import SignerName from './SignerName.vue'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -33,8 +29,7 @@ export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
-		IdentifyAccount,
-		IdentifyEmail,
+		AccountOrEmail,
 		SignerName,
 	},
 	props: {
@@ -62,7 +57,7 @@ export default {
 				email: {
 					enabled: false,
 					required: false,
-					value: '',
+					value: {},
 				},
 			},
 		}
@@ -83,9 +78,11 @@ export default {
 			this.name = this.signerToEdit.displayName
 			this.identify = this.signerToEdit.identify ?? this.signerToEdit.signRequestId
 			this.signerToEdit.identifyMethods.forEach(method => {
+				this.updateName(method.value?.displayName ?? this.name)
 				if (method.method === 'email') {
 					this.methods.email.value = method.value ?? this.signerToEdit.email
 				} else if (method.method === 'account') {
+					this.updateName(this.signerToEdit.displayName ?? this.name)
 					this.methods.account.value = method.value ?? {
 						account: this.signerToEdit.uid,
 						displayName: this.signerToEdit.displayName,
@@ -105,35 +102,14 @@ export default {
 		})
 	},
 	methods: {
-		getName() {
-			const name = this.name
-			if (name) {
-				return name
-			}
-			if (this.methods.account.enabled && this.methods.account.required && Object.keys(this.methods.account.value).length > 0) {
-				return this.methods.account.value.displayName
-			}
-			if (this.methods.email.enabled && this.methods.email.required && this.methods.email.value.length > 0) {
-				return this.methods.email.value
-			}
-			if (this.methods.account.enabled && Object.keys(this.methods.account.value).length > 0) {
-				return this.methods.account.value.displayName
-			}
-			if (this.methods.email.enabled && this.methods.email.value.length > 0) {
-				return this.methods.email.value
-			}
-		},
 		saveSigner() {
 			const signer = {
-				displayName: this.getName(),
+				displayName: this.name,
 				identify: this.identify,
 				identifyMethods: [],
 			}
 			let canSave = false
 			if (this.methods.account.enabled) {
-				if (this.methods.account.required && Object.keys(this.methods.account.value).length === 0) {
-					return
-				}
 				if (Object.keys(this.methods.account.value).length > 0) {
 					canSave = true
 					signer.identifyMethods.push({
@@ -143,10 +119,7 @@ export default {
 				}
 			}
 			if (this.methods.email.enabled) {
-				if (this.methods.email.required && this.methods.email.value.length === 0) {
-					return
-				}
-				if (this.methods.email.value?.length > 0) {
+				if (Object.keys(this.methods.email.value).length > 0) {
 					canSave = true
 					signer.identifyMethods.push({
 						method: 'email',
@@ -164,6 +137,8 @@ export default {
 		updateAccount(account) {
 			if (typeof account !== 'object') {
 				account = {}
+			} else {
+				this.updateName(account.displayName ?? this.name)
 			}
 			this.methods.account.value = account
 		},
