@@ -304,7 +304,9 @@ export default {
 			try {
 				this.loading = true
 				this.signers = []
-				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+				const document = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
+					fileId: this.file.nodeId,
+				}))
 				this.url = document.data.file
 				this.document = document.data
 				this.updateSigners()
@@ -328,9 +330,16 @@ export default {
 			}
 
 			try {
-				this.editingElement
-					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}/${element.elementId}`), payload)
-					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}`), payload)
+				if (this.editingElement) {
+					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
+						uuid: this.document.uuid,
+						elementId: element.elementId,
+					}), payload)
+				} else {
+					await axios.post(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}', {
+						uuid: this.document.uuid,
+					}), payload)
+				}
 				showSuccess(t('libresign', 'Element created'))
 
 				this.loadDocument()
