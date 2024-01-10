@@ -7,7 +7,7 @@
 		<Signers :signers="dataSigners"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
-				<NcActionButton v-if="canRequestSign"
+				<NcActionButton v-if="canRequestSign && !signer.sign_date"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="deleteSigner(signer)">
