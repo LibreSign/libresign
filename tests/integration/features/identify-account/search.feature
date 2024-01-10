@@ -9,7 +9,7 @@ Feature: search
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"search-signer1","isNoUser":false,"displayName":"search-signer1-displayname","subname":"search-signer1","icon":"icon-user"}]} |
+      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"search-signer1","isNoUser":false,"displayName":"search-signer1-displayname","subname":"search-signer1","icon":"icon-user","shareType":0}]} |
 
   Scenario: Search account by multiple users
     Given as user "admin"
@@ -17,7 +17,7 @@ Feature: search
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"search-signer1","isNoUser":false,"displayName":"search-signer1-displayname","subname":"search-signer1","icon":"icon-user"},{"id":"search-signer2","isNoUser":false,"displayName":"search-signer2-displayname","subname":"search-signer2","icon":"icon-user"}]} |
+      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"search-signer1","isNoUser":false,"displayName":"search-signer1-displayname","subname":"search-signer1","icon":"icon-user","shareType":0},{"id":"search-signer2","isNoUser":false,"displayName":"search-signer2-displayname","subname":"search-signer2","icon":"icon-user","shareType":0}]} |
 
 
   Scenario: Search account by herself with partial name search
@@ -27,7 +27,7 @@ Feature: search
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin","isNoUser":false,"displayName":"admin","subname":"admin@email.tld","icon":"icon-user"}]} |
+      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin","isNoUser":false,"displayName":"admin","subname":"admin@email.tld","icon":"icon-user","shareType":0}]} |
 
   Scenario: Search account by herself with full name search
     Given as user "admin"
@@ -36,4 +36,4 @@ Feature: search
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin","isNoUser":false,"displayName":"admin","subname":"admin@email.tld","icon":"icon-user"}]} |
+      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin","isNoUser":false,"displayName":"admin","subname":"admin@email.tld","icon":"icon-user","shareType":0}]} |
