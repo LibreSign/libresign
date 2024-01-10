@@ -496,6 +496,11 @@ class ValidateHelper {
 		}
 	}
 
+	/**
+	 * @todo make possible to request to sign by email and use visible elements
+	 *
+	 * Reference: https://github.com/LibreSign/libresign/issues/2093
+	 */
 	public function signerCanHaveVisibleElement(int $signRequestId): void {
 		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($identifyMethods as $identifyMethod) {
