@@ -5,11 +5,7 @@
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
-			<div v-if="loading" class="container-buttons">
-				<NcLoadingIcon :size="64" name="Loading" />
-				<p>{{ t('libresign', 'Upload file') }}</p>
-			</div>
-			<div v-if="!loading" class="container-buttons">
+			<div class="content-request">
 				<File v-show="!isEmptyFile"
 					:file="file"
 					status="0"
@@ -18,8 +14,7 @@
 				<NcButton @click="showModalUploadFromUrl">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" />
-						<LinkIcon v-else :size="20" />
+						<LinkIcon :size="20" />
 					</template>
 				</NcButton>
 				<NcButton @click="getFile">
@@ -65,7 +60,6 @@
 		<LibresignTab v-if="showSidebar"
 			:prop-file="file"
 			:prop-name="file.name"
-			class="file-viwer"
 			@close="showSidebar = false" />
 	</div>
 </template>
@@ -75,10 +69,10 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import LinkIcon from 'vue-material-design-icons/Link.vue'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
@@ -155,7 +149,6 @@ export default {
 		}),
 		async send(users) {
 			try {
-				this.loading = true
 				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					file: { fileId: this.file.id },
 					name: this.file.name.split('.pdf')[0],
@@ -167,10 +160,8 @@ export default {
 					})),
 				})
 				this.clear()
-				this.loading = false
 			} catch {
 				console.error('error')
-				this.loading = false
 			}
 		},
 		clear() {
@@ -201,26 +192,26 @@ export default {
 			}
 			await this.closeModalUploadFromUrl()
 			this.showSidebar = true
-			this.loading = false
 			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
 		async upload(file) {
 			try {
-				this.loading = true
 				const { name: original } = file
+
 				const name = original.split('.').slice(0, -1).join('.')
+
 				const data = await loadFileToBase64(file)
+
 				const res = await filesService.uploadFile({ name, file: data })
+
 				this.file.nodeId = res.id
 				this.file.name = res.name
 
 				this.showSidebar = true
 				await this.validateFile(res.id)
-				this.loading = false
 			} catch (err) {
 				onError(err)
-				this.loading = false
 			}
 		},
 		uploadFile() {
@@ -256,7 +247,6 @@ export default {
 			}
 
 			try {
-				this.loading = true
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/file'), {
 					file: {
 						path,
@@ -266,10 +256,8 @@ export default {
 				this.file.nodeId = response.data.id
 				this.file.name = response.data.name
 				this.showSidebar = true
-				this.loading = false
 			} catch (err) {
 				onError(err)
-				this.loading = false
 			}
 		},
 	},
@@ -283,14 +271,6 @@ export default {
 
 .modal__content h2 {
 	text-align: center;
-}
-
-.file-viwer {
-	display: grid;
-	grid-gap: 10px;
-	justify-content: center;
-	align-content: baseline;
-	width: 100%;
 }
 
 .form-group {
@@ -309,23 +289,10 @@ export default {
 	height: 100%;
 }
 
-.container-buttons {
-	display: grid;
-	grid-template-columns: 1fr;
-	grid-template-rows: 1fr 1fr 1fr;
-	grid-gap: 10px;
-	justify-content: space-evenly;
-	justify-items: center;
-	align-content: space-evenly;
-	align-items: center;
-}
-
 .container-request {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-left: 10px;
-	margin-right: 10px;
 	justify-content: center;
 	width: 100%;
 	max-width: 100%;
