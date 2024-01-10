@@ -1,6 +1,6 @@
 <template>
 	<div v-if="listSigners" class="requestSignature">
-		<NcButton v-if="canRequestSign"
+		<NcButton v-if="canRequestSign && !signed"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
