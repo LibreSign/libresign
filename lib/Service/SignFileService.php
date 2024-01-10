@@ -55,6 +55,7 @@ use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
+use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IL10N;
@@ -530,8 +531,12 @@ class SignFileService {
 	 * @todo Identify a way to be possible save the file content
 	 */
 	private function forceSaveFileOfDifferentUser(string $path, string $content): \OCP\Files\File {
-		/** @var \OCP\Files\File */
-		$fileToSign = $this->root->newFile($path);
+		try {
+			/** @var \OCP\Files\File */
+			$fileToSign = $this->root->newFile($path);
+		} catch (NotPermittedException $e) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		}
 		$currentUser = $this->userSession->getUser();
 		$this->userSession->setUser(null);
 		try {
