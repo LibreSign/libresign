@@ -28,14 +28,14 @@ export default {
 	},
 	data() {
 		return {
-			displayName: '',
+			displayName: this.name,
 			helperText: '',
 			haveError: this.required,
 		}
 	},
-	mounted() {
-		if (this.name) {
-			this.displayName = this.name
+	watch: {
+		name(name) {
+			this.displayName = name
 		}
 	},
 	methods: {

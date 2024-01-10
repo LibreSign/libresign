@@ -5,7 +5,7 @@
 			:signer="methods.account.value || methods.email.value"
 			@update:account="updateAccount"
 			@update:email="updateEmail" />
-		<SignerName :name="getName()"
+		<SignerName :name="name"
 			@update:name="updateName" />
 		<div class="identifySigner__footer">
 			<div class="button-group">
@@ -78,9 +78,11 @@ export default {
 			this.name = this.signerToEdit.displayName
 			this.identify = this.signerToEdit.identify ?? this.signerToEdit.signRequestId
 			this.signerToEdit.identifyMethods.forEach(method => {
+				this.updateName(method.value?.displayName ?? this.name)
 				if (method.method === 'email') {
 					this.methods.email.value = method.value ?? this.signerToEdit.email
 				} else if (method.method === 'account') {
+					this.updateName(this.signerToEdit.displayName ?? this.name)
 					this.methods.account.value = method.value ?? {
 						account: this.signerToEdit.uid,
 						displayName: this.signerToEdit.displayName,
@@ -100,21 +102,9 @@ export default {
 		})
 	},
 	methods: {
-		getName() {
-			const name = this.name
-			if (name) {
-				return name
-			}
-			if (this.methods.account.enabled && Object.keys(this.methods.account.value).length > 0) {
-				return this.methods.account.value.displayName
-			}
-			if (this.methods.email.enabled && Object.keys(this.methods.email.value).length > 0) {
-				return this.methods.email.value.displayName
-			}
-		},
 		saveSigner() {
 			const signer = {
-				displayName: this.getName(),
+				displayName: this.name,
 				identify: this.identify,
 				identifyMethods: [],
 			}
@@ -147,6 +137,8 @@ export default {
 		updateAccount(account) {
 			if (typeof account !== 'object') {
 				account = {}
+			} else {
+				this.updateName(account.displayName ?? this.name)
 			}
 			this.methods.account.value = account
 		},
