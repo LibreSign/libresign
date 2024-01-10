@@ -189,10 +189,6 @@ export default {
 		signerFileUuid() {
 			return get(this.document, ['settings', 'signerFileUuid'])
 		},
-		save(data) {
-			console.log(data)
-			return data
-		},
 	},
 	mounted() {
 		subscribe('libresign:show-visible-elements', this.showModal)
