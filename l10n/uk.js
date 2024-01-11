@@ -31,7 +31,6 @@ OC.L10N.register(
     "Name" : "Назва",
     "No recommendations. Start typing." : "Відсутні рекомендації. Будь ласка, додайте.",
     "Searching …" : "Пошук...",
-    "No elements found." : "Елементи не знайдено.",
     "Update" : "Оновлення",
     "Description" : "Опис",
     "Add" : "Додати",

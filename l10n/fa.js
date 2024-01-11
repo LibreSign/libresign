@@ -149,7 +149,6 @@ OC.L10N.register(
     "Name" : "نام",
     "No recommendations. Start typing." : "هیچ توصیه‌ای وجود ندارد. شروع به نوشتن کنید.",
     "Searching …" : "جستجوکردن …",
-    "No elements found." : "عنصری یافت نشد.",
     "Update" : "به‌روز رسانی",
     "Description" : "توضیحات",
     "Add" : "افزودن",

@@ -149,7 +149,6 @@ OC.L10N.register(
     "Name" : "Meno",
     "No recommendations. Start typing." : "Žiadne odporúčania. Môžete začať písať.",
     "Searching …" : "Hľadá sa…",
-    "No elements found." : "Nenájdené žiadne prvky.",
     "Update" : "Aktualizovať",
     "Description" : "Popis",
     "Add" : "Pridať",

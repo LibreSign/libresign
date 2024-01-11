@@ -32,7 +32,6 @@ OC.L10N.register(
     "Name" : "Име",
     "No recommendations. Start typing." : "Нема препораки. Започнете со пишување.",
     "Searching …" : "Пребарување ...",
-    "No elements found." : "Нема пронајдено елементи.",
     "Update" : "Ажурирај",
     "Description" : "Опис",
     "Add" : "Додади",

@@ -143,7 +143,6 @@ OC.L10N.register(
     "Name" : "Ime",
     "No recommendations. Start typing." : "Ni priporočil; začnite z vpisovanjem",
     "Searching …" : "Poteka iskanje ...",
-    "No elements found." : "Ni najdenih predmetov",
     "Update" : "Posodobi",
     "Description" : "Opis",
     "Add" : "Dodaj",

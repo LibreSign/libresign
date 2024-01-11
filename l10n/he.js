@@ -27,7 +27,6 @@ OC.L10N.register(
     "Name" : "שם",
     "No recommendations. Start typing." : "אין המלצות. נא להתחיל להקליד.",
     "Searching …" : "מתבצע חיפוש…",
-    "No elements found." : "לא נמצאו רכיבים.",
     "Update" : "עדכון",
     "Description" : "תיאור",
     "Add" : "הוספה",

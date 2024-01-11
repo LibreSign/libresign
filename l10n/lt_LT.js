@@ -51,7 +51,6 @@ OC.L10N.register(
     "Name" : "Vardas",
     "No recommendations. Start typing." : "Rekomendacijų nėra. Pradėkite rašyti.",
     "Searching …" : "Ieškoma…",
-    "No elements found." : "Nerasta jokių elementų.",
     "Update" : "Atnaujinti",
     "Description" : "Aprašas",
     "Add" : "Pridėti",

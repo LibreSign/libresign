@@ -29,7 +29,6 @@ OC.L10N.register(
     "Name" : "Navn",
     "No recommendations. Start typing." : "Ingen anbefalinger. Start å skrive.",
     "Searching …" : "Søker ...",
-    "No elements found." : "Ingen elementer funnet.",
     "Update" : "Oppdater",
     "Description" : "Beskrivelse",
     "Add" : "Legg til",

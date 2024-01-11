@@ -145,7 +145,6 @@ OC.L10N.register(
     "Name" : "名称",
     "No recommendations. Start typing." : "没有建议。开始输入。",
     "Searching …" : "正在搜索 ...",
-    "No elements found." : "未发现元素。",
     "Update" : "更新",
     "Description" : "描述",
     "Add" : "添加",
