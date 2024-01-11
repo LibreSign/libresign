@@ -24,7 +24,6 @@ OC.L10N.register(
     "Save" : "Saglabāt",
     "Name" : "Vārds",
     "Searching …" : "Meklē...",
-    "No elements found." : "Elementi netika atrasti.",
     "Update" : "Atjaunināt",
     "Description" : "Apraksts",
     "Add" : "Pievienot",

@@ -149,7 +149,6 @@ OC.L10N.register(
     "Name" : "Nombre",
     "No recommendations. Start typing." : "No hay recomendaciones. Comienza a escribir.",
     "Searching …" : "Buscando...",
-    "No elements found." : "No se encontraron elementos.",
     "Update" : "Actualizar",
     "Description" : "Descripción",
     "Add" : "Agregar",

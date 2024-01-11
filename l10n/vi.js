@@ -26,7 +26,6 @@ OC.L10N.register(
     "Name" : "Tên",
     "No recommendations. Start typing." : "Không có khuyến nghị. Bắt đầu gõ.",
     "Searching …" : "Đang tìm kiếm ...",
-    "No elements found." : "Không tìm thấy phần tử nào.",
     "Update" : "Cập nhật",
     "Description" : "Mô tả",
     "Add" : "Thêm",

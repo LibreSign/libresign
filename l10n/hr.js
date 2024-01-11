@@ -131,7 +131,6 @@ OC.L10N.register(
     "Name" : "Naziv",
     "No recommendations. Start typing." : "Nema preporuka. Započnite unos.",
     "Searching …" : "Traženje…",
-    "No elements found." : "Elementi nisu pronađeni.",
     "Update" : "Ažuriraj",
     "Description" : "Opis",
     "Add" : "Dodaj",

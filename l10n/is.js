@@ -32,7 +32,6 @@ OC.L10N.register(
     "Name" : "Heiti",
     "No recommendations. Start typing." : "Engar tillögur. Byrjaðu að skrifa.",
     "Searching …" : "Leita …",
-    "No elements found." : "Engin stök fundust.",
     "Update" : "Uppfæra",
     "Description" : "Lýsing",
     "Add" : "Bæta við",

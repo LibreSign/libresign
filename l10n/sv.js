@@ -30,7 +30,6 @@ OC.L10N.register(
     "Name" : "Namn",
     "No recommendations. Start typing." : "Inga rekommendationer. Börja skriva.",
     "Searching …" : "Söker ...",
-    "No elements found." : "Inga element hittades.",
     "Update" : "Uppdatera",
     "Description" : "Beskrivning",
     "Add" : "Lägg till",

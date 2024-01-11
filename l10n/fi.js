@@ -107,7 +107,6 @@ OC.L10N.register(
     "Name" : "Nimi",
     "No recommendations. Start typing." : "Ei suosituksia. Aloita kirjoittaminen.",
     "Searching …" : "Haetaan…",
-    "No elements found." : "Elementtejä ei löytynyt.",
     "Update" : "Päivitä",
     "Description" : "Kuvaus",
     "Add" : "Lisää",
