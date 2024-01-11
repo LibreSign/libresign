@@ -26,7 +26,6 @@ OC.L10N.register(
     "Save" : "Konservi",
     "Name" : "Nomo",
     "No recommendations. Start typing." : "Neniu propono. Ektajpu.",
-    "No elements found." : "Nenio trovita.",
     "Update" : "Ĝisdatigi",
     "Description" : "Priskribo",
     "Add" : "Aldoni",

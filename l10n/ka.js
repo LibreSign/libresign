@@ -27,7 +27,6 @@ OC.L10N.register(
     "Name" : "Name",
     "No recommendations. Start typing." : "No recommendations. Start typing.",
     "Searching …" : "Searching …",
-    "No elements found." : "No elements found.",
     "Update" : "Update",
     "Description" : "Description",
     "Add" : "Add",

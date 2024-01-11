@@ -150,7 +150,6 @@ OC.L10N.register(
     "Name" : "Име",
     "No recommendations. Start typing." : "Няма препоръки. Започнете да пишете.",
     "Searching …" : "Търсене ...",
-    "No elements found." : "Няма намерен елемент.",
     "Update" : "Обновяване",
     "Description" : "Описание",
     "Add" : "Добавяне",

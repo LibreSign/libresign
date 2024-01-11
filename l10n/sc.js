@@ -84,7 +84,6 @@ OC.L10N.register(
     "Name" : "Nùmene",
     "No recommendations. Start typing." : "Peruna racumandatzione. Cumintza a iscrìere.",
     "Searching …" : "Chirchende …",
-    "No elements found." : "Perunu elementu agatadu.",
     "Update" : "Agiorna",
     "Description" : "Descritzione",
     "Add" : "Agiunghe",

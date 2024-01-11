@@ -50,7 +50,6 @@ OC.L10N.register(
     "Name" : "Όνομα",
     "No recommendations. Start typing." : "Δεν υπάρχουν συστάσεις. Αρχίστε να πληκτρολογείτε.",
     "Searching …" : "Αναζήτηση ...",
-    "No elements found." : "Δεν βρέθηκαν στοιχεία.",
     "Update" : "Ενημέρωση",
     "Description" : "Περιγραφή",
     "Add" : "Προσθήκη",

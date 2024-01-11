@@ -142,7 +142,6 @@ OC.L10N.register(
     "Name" : "이름",
     "No recommendations. Start typing." : "추천 없음. 타이핑을 시작하십시오",
     "Searching …" : "검색 중...",
-    "No elements found." : "요소를 찾을 수 없습니다.",
     "Update" : "업데이트",
     "Description" : "설명",
     "Add" : "추가",
