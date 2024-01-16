@@ -270,9 +270,6 @@ class FileService {
 	private function getVisibleElements(): array {
 		$return = [];
 		try {
-			if ($this->me) {
-				$uid = $this->me->getUID();
-			}
 			if (is_object($this->signRequest)) {
 				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $this->signRequest->getId());
 			} else {
@@ -291,14 +288,6 @@ class FileService {
 						'lly' => $visibleElement->getLly()
 					]
 				];
-				if (!empty($uid) && $uid === $this->file->getUserId()) {
-					$signRequest = $this->signRequestMapper->getById($visibleElement->getSignRequestId());
-					$userAssociatedToVisibleElement = $this->userManager->getByEmail($signRequest->getEmail());
-					if ($userAssociatedToVisibleElement) {
-						$element['uid'] = $userAssociatedToVisibleElement[0]->getUID();
-					}
-					$element['email'] = $signRequest->getEmail();
-				}
 				$element['coordinates'] = array_merge(
 					$element['coordinates'],
 					$this->fileElementService->translateCoordinatesFromInternalNotation($element, $this->file)
