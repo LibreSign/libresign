@@ -159,6 +159,7 @@ OC.L10N.register(
     "Element created" : "작성된 요소",
     "Details" : "세부사항",
     "Certificate" : "인증서",
+    "Delete certificate" : "인증서 삭제",
     "Select a file" : "파일 선택",
     "Type" : "종류",
     "Status" : "상태",
