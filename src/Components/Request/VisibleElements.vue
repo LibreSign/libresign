@@ -17,15 +17,21 @@
 				</small>
 			</p>
 			<Sidebar class="view-sign-detail--sidebar"
-				:signers="signers"
+				:signers="document.signers"
 				event="libresign:visible-elements-select-signer">
-				<button v-if="isDraft" class="primary publish-btn" @click="publish">
+				<NcButton v-if="canSave"
+					:type="canSave?'primary':'secondary'"
+					:wide="true"
+					@click="showConfirm = true">
 					{{ t('libresign', 'Request') }}
-				</button>
+				</NcButton>
 
-				<button v-if="canSign" class="primary publish-btn" @click="goToSign">
+				<NcButton v-if="canSign"
+					:type="!canSave?'primary':'secondary'"
+					:wide="true"
+					@click="goToSign">
 					{{ t('libresign', 'Sign') }}
-				</button>
+				</NcButton>
 			</Sidebar>
 		</div>
 		<div v-if="loading"
@@ -34,77 +40,53 @@
 			<p>{{ t('libresign', 'Loading file') }}</p>
 		</div>
 		<div v-else class="image-page">
-			<VuePdfEditor width="100%"
+			<PdfEditor ref="pdfEditor"
+				width="100%"
 				height="100%"
-				:show-choose-file-btn="true"
-				:show-customize-editor="true"
-				:show-customize-editor-add-text="true"
-				:show-customize-editor-add-img="true"
-				:show-customize-editor-add-draw="true"
-				:show-line-size-select="false"
-				:show-font-size-select="false"
-				:show-font-select="false"
-				:show-rename="true"
-				:show-save-btn="false"
-				:save-to-upload="true"
-				:init-file-src="document.data.file.url"
-				:init-image-scale="0.2"
-				:seal-image-show="true"
-				:seal-image-hidden-on-save="true"
-				@onSave2Upload="save2Upload" />
+				:file-src="document.file" />
 		</div>
+		<NcDialog :open.sync="showConfirm"
+			:name="t('libresign', 'Confirm')"
+			:message="t('libresign', 'Request signatures?')">
+			<template #actions>
+				<NcButton type="secondary" @click="closeModal">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton type="primary" @click="save">
+					{{ t('libresign', 'Request') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</NcModal>
 </template>
 
 <script>
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import { get, pick, find, map, cloneDeep, isEmpty } from 'lodash-es'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import { service as signService, SIGN_STATUS } from '../../domains/sign/index.js'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Sidebar from './SignDetail/partials/Sidebar.vue'
 import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import VuePdfEditor from '@libresign/vue-pdf-editor'
-
-const emptyElement = () => {
-	return {
-		coordinates: {
-			page: 1,
-			left: 100,
-			top: 100,
-			height: SignatureImageDimensions.height,
-			width: SignatureImageDimensions.width,
-		},
-		elementId: 0,
-	}
-}
-
-const emptySignerData = () => ({
-	signed: null,
-	displayName: '',
-	fullName: null,
-	me: false,
-	signRequestId: 0,
-	email: '',
-	element: emptyElement(),
-})
-
-const deepCopy = val => JSON.parse(JSON.stringify(val))
+import PdfEditor from '../PdfEditor/PdfEditor.vue'
 
 export default {
 	name: 'VisibleElements',
 	components: {
 		NcModal,
+		NcDialog,
 		Sidebar,
 		Chip,
+		NcButton,
 		NcLoadingIcon,
-		VuePdfEditor,
+		PdfEditor,
 	},
 	props: {
 		file: {
@@ -116,7 +98,6 @@ export default {
 	data() {
 		return {
 			canRequestSign: loadState('libresign', 'can_request_sign'),
-			signers: [],
 			document: {
 				id: '',
 				name: '',
@@ -126,57 +107,37 @@ export default {
 				loading: false,
 			},
 			modal: false,
-			currentSigner: emptySignerData(),
+			showConfirm: false,
 		}
 	},
 	computed: {
-		pageIndex() {
-			return this.currentSigner.element.coordinates.page - 1
-		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
 				return false
 			}
 
-			return !isEmpty(this.signerFileUuid)
+			return (this.document?.settings?.signerFileUuid ?? '').length > 0
+		},
+		canSave() {
+			if (
+				[
+					SIGN_STATUS.DRAFT,
+					SIGN_STATUS.ABLE_TO_SIGN,
+					SIGN_STATUS.PARTIAL_SIGNED,
+				].includes(this.status)
+			) {
+				return true
+			}
+			return false
 		},
 		status() {
-			return Number(get(this.document, 'status', -1))
+			return Number(this.document?.status ?? -1)
 		},
 		statusLabel() {
-			return get(this.document, 'statusText', '')
+			return this.document.statusText
 		},
 		isDraft() {
 			return this.status === SIGN_STATUS.DRAFT
-		},
-		page() {
-			return this.document.pages[this.pageIndex] || {
-				url: '',
-				resolution: {
-					h: 0,
-					w: 0,
-				},
-			}
-		},
-		pageDimensions() {
-			const { w, h } = this.page.resolution
-			return {
-				height: h,
-				width: w,
-				css: {
-					height: `${Math.ceil(h)}px`,
-					width: `${Math.ceil(w)}px`,
-				},
-			}
-		},
-		hasSignerSelected() {
-			return this.currentSigner.signRequestId !== 0
-		},
-		editingElement() {
-			return this.currentSigner.element.elementId > 0
-		},
-		signerFileUuid() {
-			return get(this.document, ['settings', 'signerFileUuid'])
 		},
 	},
 	mounted() {
@@ -188,8 +149,6 @@ export default {
 		unsubscribe('libresign:visible-elements-select-signer')
 	},
 	methods: {
-		save2Upload(payload) {
-		},
 		showModal() {
 			if (!this.canRequestSign) {
 				return
@@ -208,75 +167,55 @@ export default {
 			return showError(err.message)
 		},
 		updateSigners() {
-			const { signRequestId } = this.currentSigner
-
-			this.currentSigner = emptySignerData()
-
-			const [signers, visibleElements] = deepCopy([this.document.signers, this.document.visibleElements])
-
-			this.signers = map(signers, signer => {
-				const element = find(visibleElements, (el) => {
-					return el.signRequestId === signer.signRequestId
-				})
-
-				const row = {
-					...signer,
-					element: emptyElement(),
-				}
-
-				if (element) {
-					const coordinates = pick(element.coordinates, ['top', 'left', 'width', 'height', 'page'])
-
-					row.element = {
-						elementId: element.elementId,
-						coordinates,
+			this.document.signers.array.forEach(signer => {
+				this.document.visibleElements.forEach(element => {
+					if (element.signRequestId === signer.signRequestId) {
+						signer.coordinates = element
+						this.$refs.pdfEditor.addSigner(signer)
 					}
-				}
-
-				return row
+				})
 			})
-
-			if (signRequestId === 0) {
-				return
-			}
-
-			const current = this.signers.find(signer => signer.signRequestId === signRequestId)
-
-			this.onSelectSigner({ ...current })
-		},
-		resize(newRect) {
-			const { coordinates } = this.currentSigner.element
-
-			this.currentSigner.element.coordinates = {
-				...coordinates,
-				...newRect,
-			}
 		},
 		onSelectSigner(signer) {
-			const page = this.pageIndex + 1
-
-			this.currentSigner = emptySignerData()
-			this.currentSigner = cloneDeep(signer)
-
-			if (signer.element.elementId === 0) {
-				this.currentSigner.element.coordinates.page = page
+			signer.coordinates = {
+				page: 1,
+				left: 100,
+				top: 100,
+				height: SignatureImageDimensions.height,
+				width: SignatureImageDimensions.width,
 			}
+			this.$refs.pdfEditor.addSigner(signer)
 		},
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
 
 			window.location.href = route.href
 		},
-		async publish() {
-			const allow = confirm(t('libresign', 'Request signatures?'))
-
-			if (!allow) {
-				return
-			}
-
+		async save() {
 			try {
-				await signService.changeRegisterStatus(this.document.fileId, SIGN_STATUS.ABLE_TO_SIGN)
-				this.loadDocument()
+				const visibleElements = []
+				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
+					const [pageNumber, page] = entry
+					page.forEach(function(element) {
+						visibleElements.push({
+							type: 'signature',
+							signRequestId: element.signer.signRequestId,
+							coordinates: {
+								page: parseInt(pageNumber) + 1,
+								width: element.width,
+								height: element.height,
+								llx: element.x,
+								ury: element.y,
+							},
+						})
+					})
+				})
+				await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+					users: [],
+					uuid: this.file.uuid,
+					visibleElements,
+					status: 0,
+				})
 			} catch (err) {
 				this.onError(err)
 			}
@@ -284,9 +223,8 @@ export default {
 		async loadDocument() {
 			try {
 				this.loading = true
-				this.signers = []
-				this.document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
-				this.document = this.document.data
+				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
+				this.document = document.data
 				this.updateSigners()
 				this.loading = false
 			} catch (err) {
@@ -294,32 +232,17 @@ export default {
 				this.onError(err)
 			}
 		},
-		async saveElement() {
-			const { element, signRequestId } = this.currentSigner
-
-			const payload = {
-				coordinates: {
-					...element.coordinates,
-					page: element.coordinates.page,
-				},
-				type: 'signature',
-				signRequestId,
-			}
-
-			try {
-				this.editingElement
-					? await axios.patch(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}/${element.elementId}`), payload)
-					: await axios.post(generateOcsUrl(`/apps/libresign/api/v1/file-element/${this.document.uuid}`), payload)
-				showSuccess(t('libresign', 'Element created'))
-
-				this.loadDocument()
-			} catch (err) {
-				this.onError(err)
-			}
-		},
 	},
 }
 </script>
+
+<style lang="scss">
+.image-page {
+	.py-12,.p-5 {
+		all: unset;
+	}
+}
+</style>
 
 <style lang="scss" scoped>
 .sign-details {
@@ -331,54 +254,5 @@ export default {
 		width: 300px;
 	}
 	overflow: auto;
-}
-
-.image-page {
-	width: 100%;
-	margin: 0.5em;
-	&--main {
-		position: relative;
-	}
-	&--element {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		position: absolute;
-		cursor: grab;
-		background: rgba(0, 0, 0, 0.3);
-		color: #FFF;
-		font-weight: bold;
-		justify-content: space-around;
-		align-items: center;
-		flex-direction: row;
-		&:active {
-			cursor: grabbing;
-		}
-	}
-	&--action {
-		width: 100%;
-		position: absolute;
-		top: 100%;
-	}
-	&--container {
-		border-color: #000;
-		border-style: solid;
-		border-width: thin;
-		width: var(--page-img-w);
-		height: var(--page-img-h);
-		left: 0;
-		top: 0;
-		&, img {
-			user-select: none;
-			outline: 0;
-		}
-		img {
-			max-width: 100%;
-		}
-	}
-}
-
-.publish-btn {
-	width: 100%;
 }
 </style>
