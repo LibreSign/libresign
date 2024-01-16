@@ -43,7 +43,8 @@
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:file-src="document.file" />
+				:file-src="document.file"
+				@pdf-editor:end-init="updateSigners" />
 		</div>
 		<NcDialog :open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
@@ -167,7 +168,7 @@ export default {
 			return showError(err.message)
 		},
 		updateSigners() {
-			this.document.signers.array.forEach(signer => {
+			this.document.signers.forEach(signer => {
 				this.document.visibleElements.forEach(element => {
 					if (element.signRequestId === signer.signRequestId) {
 						signer.coordinates = element
@@ -225,7 +226,6 @@ export default {
 				this.loading = true
 				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
 				this.document = document.data
-				this.updateSigners()
 				this.loading = false
 			} catch (err) {
 				this.loading = false

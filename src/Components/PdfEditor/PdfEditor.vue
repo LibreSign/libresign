@@ -11,7 +11,8 @@
 		:save-to-upload="false"
 		:init-file-src="fileSrc"
 		:init-image-scale="1"
-		:seal-image-show="false">
+		:seal-image-show="false"
+		@pdf-editor:end-init="endInit">
 		<template #custom="{ object, pagesScale }">
 			<Signature :x="object.x"
 				:y="object.y"
@@ -47,6 +48,9 @@ export default {
 		},
 	},
 	methods: {
+		endInit(event) {
+			this.$emit('pdf-editor:end-init', { ...event })
+		},
 		addSigner(signer) {
 			const width = SignatureImageDimensions.width
 			const height = SignatureImageDimensions.height
