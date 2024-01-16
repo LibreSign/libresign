@@ -121,6 +121,7 @@ export default {
 			if (this.height > MAX_TARGET) {
 				scale = Math.min(scale, MAX_TARGET / this.height)
 			}
+			// eslint-disable-next-line vue/custom-event-name-casing
 			this.$emit('onUpdate', {
 				width: this.width * scale,
 				height: this.height * scale,
@@ -166,6 +167,7 @@ export default {
 				this.handleTouchend(event)
 			}
 			if (this.operation === 'move') {
+			// eslint-disable-next-line vue/custom-event-name-casing
 				this.$emit('onUpdate', {
 					x: this.x + this.dx,
 					y: this.y + this.dy,
@@ -173,6 +175,7 @@ export default {
 				this.dx = 0
 				this.dy = 0
 			} else if (this.operation === 'scale') {
+			// eslint-disable-next-line vue/custom-event-name-casing
 				this.$emit('onUpdate', {
 					x: this.x + this.dx,
 					y: this.y + this.dy,
@@ -195,7 +198,7 @@ export default {
 			if (event.type === 'touchstart') {
 				coordinate = this.handleTouchStart(event)
 			}
-			if (!coordinate) return console.log('ERROR')
+			if (!coordinate) return
 
 			this.startX = coordinate.detail.x
 			this.startY = coordinate.detail.y
