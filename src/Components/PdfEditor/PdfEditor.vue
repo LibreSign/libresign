@@ -24,7 +24,7 @@
 				:origin-height="object.originHeight"
 				:page-scale="pagesScale"
 				@onUpdate="$refs.vuePdfEditor.updateObject(object.id, $event)"
-				@onDelete="$refs.vuePdfEditor.deleteObject(object.id)" />
+				@onDelete="onDeleteSigner(object)" />
 		</template>
 	</VuePdfEditor>
 </template>
@@ -32,7 +32,6 @@
 <script>
 import VuePdfEditor from '@libresign/vue-pdf-editor'
 import Signature from './Signature.vue'
-import { SignatureImageDimensions } from './../Draw/options.js'
 
 export default {
 	name: 'PdfEditor',
@@ -51,20 +50,21 @@ export default {
 		endInit(event) {
 			this.$emit('pdf-editor:end-init', { ...event })
 		},
+		onDeleteSigner(object) {
+			this.$emit('pdf-editor:on-delete-signer', object)
+			this.$refs.vuePdfEditor.deleteObject(object.id)
+		},
 		addSigner(signer) {
-			const width = SignatureImageDimensions.width
-			const height = SignatureImageDimensions.height
-
 			const object = {
 				id: this.$refs.vuePdfEditor.genID(),
 				type: 'custom',
 				signer,
-				width,
-				height,
-				originWidth: width,
-				originHeight: height,
-				x: 0,
-				y: 0,
+				width: signer.element.coordinates.width,
+				height: signer.element.coordinates.height,
+				originWidth: signer.element.coordinates.width,
+				originHeight: signer.element.coordinates.height,
+				x: signer.element.coordinates.llx,
+				y: signer.element.coordinates.ury,
 			}
 			this.$refs.vuePdfEditor.addObject(object)
 		},

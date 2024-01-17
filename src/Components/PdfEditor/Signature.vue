@@ -209,6 +209,7 @@ export default {
 			this.directions = coordinate.detail.target.dataset.direction.split('-')
 		},
 		onDelete() {
+			// eslint-disable-next-line vue/custom-event-name-casing
 			this.$emit('onDelete')
 		},
 	},

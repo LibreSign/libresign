@@ -44,13 +44,14 @@
 				width="100%"
 				height="100%"
 				:file-src="document.file"
-				@pdf-editor:end-init="updateSigners" />
+				@pdf-editor:end-init="updateSigners"
+				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
 		<NcDialog :open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
 			:message="t('libresign', 'Request signatures?')">
 			<template #actions>
-				<NcButton type="secondary" @click="closeModal">
+				<NcButton type="secondary" @click="showConfirm = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton type="primary" @click="save">
@@ -169,23 +170,38 @@ export default {
 		},
 		updateSigners() {
 			this.document.signers.forEach(signer => {
-				this.document.visibleElements.forEach(element => {
-					if (element.signRequestId === signer.signRequestId) {
-						signer.coordinates = element
-						this.$refs.pdfEditor.addSigner(signer)
-					}
-				})
+				if (this.document.visibleElements) {
+					this.document.visibleElements.forEach(element => {
+						if (element.signRequestId === signer.signRequestId) {
+							const object = structuredClone(signer)
+							object.element = element
+							object.displayName += element.elementId
+							this.$refs.pdfEditor.addSigner(object)
+						}
+					})
+				}
 			})
 		},
 		onSelectSigner(signer) {
-			signer.coordinates = {
-				page: 1,
-				left: 100,
-				top: 100,
-				height: SignatureImageDimensions.height,
-				width: SignatureImageDimensions.width,
+			signer.element = {
+				coordinates: {
+					page: 1,
+					llx: 100,
+					ury: 100,
+					height: SignatureImageDimensions.height,
+					width: SignatureImageDimensions.width,
+				},
 			}
 			this.$refs.pdfEditor.addSigner(signer)
+		},
+		async onDeleteSigner(object) {
+			if (!object.signer.element.elementId) {
+				return
+			}
+			await axios.delete(generateOcsUrl('/apps/libresign/api/v1/file-element/{uuid}/{elementId}', {
+				uuid: this.document.uuid,
+				elementId: object.signer.element.elementId,
+			}))
 		},
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
@@ -201,6 +217,7 @@ export default {
 						visibleElements.push({
 							type: 'signature',
 							signRequestId: element.signer.signRequestId,
+							elementId: element.signer.element.elementId,
 							coordinates: {
 								page: parseInt(pageNumber) + 1,
 								width: element.width,
@@ -220,6 +237,8 @@ export default {
 			} catch (err) {
 				this.onError(err)
 			}
+			this.showConfirm = false
+			this.closeModal()
 		},
 		async loadDocument() {
 			try {
