@@ -55,15 +55,9 @@
 			</template>
 		</NcAppNavigation>
 		<NcAppContent :class="{'icon-loading' : loading }">
-			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
-			<NcEmptyContent v-if="isRoot" class="emp-content">
+			<NcEmptyContent :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
 				<template #icon>
-					<img :src="icon">
-				</template>
-				<template #desc>
-					<p>
-						{{ t('libresign', 'LibreSign, digital signature app for Nextcloud.') }}
-					</p>
+					<img :src="LogoLibreSign">
 				</template>
 			</NcEmptyContent>
 		</NcAppContent>
@@ -77,7 +71,7 @@ import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationI
 import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import Icon from './../img/signed-icon.svg'
+import LogoLibreSign from './../img/logo-gray.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -102,7 +96,7 @@ export default {
 				signMethod: 'password',
 			}),
 			loading: false,
-			icon: Icon,
+			LogoLibreSign,
 		}
 	},
 	computed: {
@@ -123,21 +117,25 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-.emp-content{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 70%;
+<style lang="scss">
+.app-content {
+	.empty-content {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 70%;
+		margin-top: unset !important;
 
-	margin-top: 10vh;
-	p{
-		opacity: .6;
-	}
+		margin-top: 10vh;
+		p {
+			opacity: .6;
+		}
 
-	img{
-		width: 400px;
+		&__icon {
+			width: 400px !important;
+			height: unset !important;
+		}
 	}
 }
 </style>
