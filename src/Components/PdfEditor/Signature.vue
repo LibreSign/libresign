@@ -209,7 +209,7 @@ export default {
 			this.directions = coordinate.detail.target.dataset.direction.split('-')
 		},
 		onDelete() {
-			this.$emit('pdf-editor:on-delete')
+			this.$emit('onDelete')
 		},
 	},
 }
