@@ -241,7 +241,7 @@ class ValidateHelper {
 					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}
 				if ($value < 0) {
-					throw new LibresignException($this->l10n->t('Coordinate %s must be equal to or greater than 0', [$type]));
+					throw new LibresignException($this->l10n->t('Out of marging'));
 				}
 			}
 		}

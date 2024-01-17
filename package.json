@@ -8,6 +8,7 @@
     "build": "webpack --node-env production --progress",
     "dev": "webpack --node-env development --progress",
     "watch": "webpack --node-env development --progress --watch",
+    "serve": "webpack serve --node-env development --progress --allowed-hosts all --host 0.0.0.0",
     "lint": "eslint --ext .js,.vue src",
     "lint:fix": "eslint --ext .js,.vue src --fix",
     "stylelint": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue",
@@ -18,6 +19,7 @@
   },
   "dependencies": {
     "@fontsource/dancing-script": "^5.0.16",
+    "@libresign/vue-pdf-editor": "^1.2.2",
     "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.1.0",
     "@nextcloud/axios": "^2.4.0",
