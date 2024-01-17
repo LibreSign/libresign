@@ -55,7 +55,8 @@
 			</template>
 		</NcAppNavigation>
 		<NcAppContent :class="{'icon-loading' : loading }">
-			<NcEmptyContent :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
+			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
+			<NcEmptyContent v-if="isRoot" :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
 				<template #icon>
 					<img :src="LogoLibreSign">
 				</template>
