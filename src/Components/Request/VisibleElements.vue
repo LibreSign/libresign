@@ -175,7 +175,6 @@ export default {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
 							object.element = element
-							object.displayName += element.elementId
 							this.$refs.pdfEditor.addSigner(object)
 						}
 					})
@@ -223,7 +222,9 @@ export default {
 								width: element.width,
 								height: element.height,
 								llx: element.x,
+								lly: element.y + element.height,
 								ury: element.y,
+								urx: element.x + element.width,
 							},
 						})
 					})
@@ -234,11 +235,11 @@ export default {
 					visibleElements,
 					status: 0,
 				})
+				this.showConfirm = false
+				this.closeModal()
 			} catch (err) {
 				this.onError(err)
 			}
-			this.showConfirm = false
-			this.closeModal()
 		},
 		async loadDocument() {
 			try {
