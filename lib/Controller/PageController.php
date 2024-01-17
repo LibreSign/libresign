@@ -204,7 +204,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 5, period: 120)]
+	#[AnonRateLimit(limit: 5, period: 60)]
 	public function getPdf($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		try {
@@ -229,7 +229,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[PublicPage]
 	#[RequireSetupOk]
-	#[AnonRateLimit(limit: 5, period: 120)]
+	#[AnonRateLimit(limit: 12, period: 60)]
 	public function getPdfUser($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
