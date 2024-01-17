@@ -134,7 +134,7 @@ class FileElementService {
 
 	public function deleteVisibleElement(int $elementId): void {
 		$fileElement = new FileElement();
-		$fileElement->fromRow(['id' => $elementId]);
+		$fileElement = $fileElement->fromRow(['id' => $elementId]);
 		$this->fileElementMapper->delete($fileElement);
 	}
 
