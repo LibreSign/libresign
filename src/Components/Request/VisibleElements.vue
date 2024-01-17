@@ -265,7 +265,7 @@ export default {
 
 <style lang="scss" scoped>
 .sign-details {
-	margin-left: 5px;
+	padding: 8px;
 }
 
 .view-sign-detail {
@@ -273,5 +273,8 @@ export default {
 		width: 300px;
 	}
 	overflow: auto;
+	.button-vue {
+		margin: 4px;
+	}
 }
 </style>
