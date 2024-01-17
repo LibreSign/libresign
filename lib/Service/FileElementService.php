@@ -125,7 +125,7 @@ class FileElementService {
 		$dimension = $metadata['d'][$properties['coordinates']['page'] - 1];
 
 		$translated['left'] = $properties['coordinates']['llx'];
-		$translated['height'] = $properties['coordinates']['ury'] - $properties['coordinates']['lly'];
+		$translated['height'] = abs($properties['coordinates']['ury'] - $properties['coordinates']['lly']);
 		$translated['top'] = $dimension['h'] - $properties['coordinates']['ury'];
 		$translated['width'] = $properties['coordinates']['urx'] - $properties['coordinates']['llx'];
 
@@ -134,7 +134,7 @@ class FileElementService {
 
 	public function deleteVisibleElement(int $elementId): void {
 		$fileElement = new FileElement();
-		$fileElement->fromRow(['id' => $elementId]);
+		$fileElement = $fileElement->fromRow(['id' => $elementId]);
 		$this->fileElementMapper->delete($fileElement);
 	}
 
