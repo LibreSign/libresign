@@ -203,7 +203,7 @@ export default {
 			}))
 		},
 		goToSign() {
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.signerFileUuid } })
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
 
 			window.location.href = route.href
 		},
