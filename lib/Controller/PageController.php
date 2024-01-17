@@ -204,7 +204,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 5, period: 60)]
+	#[AnonRateLimit(limit: 12, period: 60)]
 	public function getPdf($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		try {
