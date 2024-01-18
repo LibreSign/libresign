@@ -1,3 +1,9 @@
+<template>
+	<div class="libre-progress" :class="{ infinity }">
+		<span :style="{width: infinity ? false : `${value}%`}" />
+	</div>
+</template>
+
 <script>
 export default {
 	name: 'ProgressBar',
@@ -13,12 +19,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div class="libre-progress" :class="{ infinity }">
-		<span :style="{width: infinity ? false : `${value}%`}" />
-	</div>
-</template>
 
 <style lang="scss" scoped>
 .libre-progress {

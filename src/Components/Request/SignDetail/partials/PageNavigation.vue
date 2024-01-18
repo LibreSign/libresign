@@ -1,3 +1,17 @@
+<template>
+	<nav :style="{ width }" class="page-navigation">
+		<button :disabled="!allowPrevious" class="primary" @click="previous">
+			{{ t('libresign', 'Previous') }}
+		</button>
+		<NcCounterBubble type="outlined">
+			{{ actual }}/{{ size }}
+		</NcCounterBubble>
+		<button :disabled="!allowNext" class="primary" @click="next">
+			{{ t('libresign', 'Next') }}
+		</button>
+	</nav>
+</template>
+
 <script>
 import NcCounterBubble from '@nextcloud/vue/dist/Components/NcCounterBubble.js'
 import { size } from 'lodash-es'
@@ -46,20 +60,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<nav :style="{ width }" class="page-navigation">
-		<button :disabled="!allowPrevious" class="primary" @click="previous">
-			{{ t('libresign', 'Previous') }}
-		</button>
-		<NcCounterBubble type="outlined">
-			{{ actual }}/{{ size }}
-		</NcCounterBubble>
-		<button :disabled="!allowNext" class="primary" @click="next">
-			{{ t('libresign', 'Next') }}
-		</button>
-	</nav>
-</template>
 
 <style scoped>
 .page-navigation {

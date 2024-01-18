@@ -1,3 +1,36 @@
+<template>
+	<NcModal size="normal" @close="close">
+		<NcContent class="modal-view">
+			<template slot="header">
+				<h2>{{ t('libresign', 'Sign with your email.') }}</h2>
+			</template>
+
+			<div class="code-request">
+				<h3 class="email">
+					{{ settings.email }}
+				</h3>
+
+				<div v-if="tokenRequested">
+					<input v-model="token"
+						:disabled="loading"
+						name="code"
+						type="text">
+				</div>
+
+				<div>
+					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
+						{{ t('libresign', 'Request code.') }}
+					</button>
+
+					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
+						{{ t('libresign', 'Send code.') }}
+					</button>
+				</div>
+			</div>
+		</NcContent>
+	</NcModal>
+</template>
+
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { showSuccess } from '@nextcloud/dialogs'
@@ -66,39 +99,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcModal size="normal" @close="close">
-		<NcContent class="modal-view">
-			<template slot="header">
-				<h2>{{ t('libresign', 'Sign with your email.') }}</h2>
-			</template>
-
-			<div class="code-request">
-				<h3 class="email">
-					{{ settings.email }}
-				</h3>
-
-				<div v-if="tokenRequested">
-					<input v-model="token"
-						:disabled="loading"
-						name="code"
-						type="text">
-				</div>
-
-				<div>
-					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
-						{{ t('libresign', 'Request code.') }}
-					</button>
-
-					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
-						{{ t('libresign', 'Send code.') }}
-					</button>
-				</div>
-			</div>
-		</NcContent>
-	</NcModal>
-</template>
 
 <style lang="scss" scoped>
 h3.email {
