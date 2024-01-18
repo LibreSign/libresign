@@ -5,8 +5,9 @@
 			height: `${Math.round((width + dw) / ratio)}px`,
 			transform: `translate(${x + dx}px, ${y + dy}px)`,
 		}">
-		<div class="absolute w-full h-full cursor-grab"
+		<div class="absolute w-full h-full"
 			:class="[
+				!readOnly ? 'cursor-grab' : '',
 				operation === 'move' ? 'cursor-grabbing' : '',
 				operation ? 'operation' : '',
 			]"
@@ -31,6 +32,7 @@
 		</div>
 		<div class="absolute cursor-pointer transform delete"
 			:style="{ top: '0%', left: '50%' }"
+			v-if="!readOnly"
 			@click="onDelete">
 			<CloseCircleIcon class="w-full h-full"
 				text="Remove"
@@ -87,6 +89,10 @@ export default {
 			default: 1,
 		},
 		fixSize: {
+			type: Boolean,
+			default: false,
+		},
+		readOnly: {
 			type: Boolean,
 			default: false,
 		},
@@ -191,6 +197,9 @@ export default {
 			this.operation = ''
 		},
 		handlePanStart(event) {
+			if (this.readOnly) {
+				return
+			}
 			let coordinate
 			if (event.type === 'mousedown') {
 				coordinate = this.handleMousedown(event)
