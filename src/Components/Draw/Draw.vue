@@ -100,6 +100,7 @@ export default {
 .draw-signature {
 	.modal-container {
 		width: unset !important;
+		height: unset !important;
 	}
 }
 </style>
