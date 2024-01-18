@@ -20,13 +20,13 @@
 							{{ t('libresign', 'Loading …') }}
 						</p>
 					</div>
-					<Sign v-else-if="signEnabled"
+					<div v-if="!signEnabled">
+						{{ t('libresign', 'Document not available for signature.') }}
+					</div>
+					<Sign v-else
 						v-bind="{ document, uuid, docType }"
 						@signed="onSigned"
 						@update:phone="onPhoneUpdated" />
-					<div v-else>
-						{{ t('libresign', 'Document not available for signature.') }}
-					</div>
 				</main>
 			</div>
 		</NcAppNavigation>
