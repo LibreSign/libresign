@@ -1,3 +1,43 @@
+<template>
+	<NcContent class="container-account-docs-to-validate with-sidebar--full" app-name="libresign">
+		<!-- <pre>{{ documentList }}</pre> -->
+		<ProgressBar v-if="loading" infinity />
+
+		<div v-else class="is-fullwidth">
+			<table class="libre-table is-fullwidth">
+				<thead>
+					<tr>
+						<td>
+							{{ t('libresign', 'Type') }}
+						</td>
+						<td>
+							{{ t('libresign', 'Status') }}
+						</td>
+						<td>
+							{{ t('libresign', 'Actions') }}
+						</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+						<td>
+							{{ doc.file_type.name }}
+						</td>
+						<td>
+							{{ doc.status_text }}
+						</td>
+						<td class="actions">
+							<button @click="openApprove(doc)">
+								{{ t('libresign', 'Validate') }}
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</NcContent>
+</template>
+
 <script>
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import { documentsService, parseDocument } from '../../domains/documents/index.js'
@@ -43,43 +83,3 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcContent class="container-account-docs-to-validate with-sidebar--full" app-name="libresign">
-		<!-- <pre>{{ documentList }}</pre> -->
-		<ProgressBar v-if="loading" infinity />
-
-		<div v-else class="is-fullwidth">
-			<table class="libre-table is-fullwidth">
-				<thead>
-					<tr>
-						<td>
-							{{ t('libresign', 'Type') }}
-						</td>
-						<td>
-							{{ t('libresign', 'Status') }}
-						</td>
-						<td>
-							{{ t('libresign', 'Actions') }}
-						</td>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
-						<td>
-							{{ doc.file_type.name }}
-						</td>
-						<td>
-							{{ doc.status_text }}
-						</td>
-						<td class="actions">
-							<button @click="openApprove(doc)">
-								{{ t('libresign', 'Validate') }}
-							</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</NcContent>
-</template>

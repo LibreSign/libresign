@@ -1,3 +1,59 @@
+<template>
+	<div class="document-sign">
+		<div class="sign-elements">
+			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
+				<PreviewSignature :src="element.url" />
+			</figure>
+		</div>
+		<div v-if="ableToSign">
+			<button :disabled="loading" class="button" @click="callSignMethod">
+				{{ t('libresign', 'Sign the document.') }}
+			</button>
+		</div>
+		<div v-else-if="!loading">
+			<div v-if="needPassword && !hasPassword">
+				<p>
+					{{ t('libresign', 'Please define your sign password') }}
+				</p>
+
+				<button :disabled="loading" class="button" @click="callPassword">
+					{{ t('libresign', 'Define a password and sign the document.') }}
+				</button>
+			</div>
+			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
+				<p>
+					{{ t('libresign', 'You do not have any signature defined.') }}
+				</p>
+
+				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
+					{{ t('libresign', 'Define your signature.') }}
+				</button>
+			</div>
+			<div v-else>
+				<p>
+					{{ t('libresign', 'Unable to sign.') }}
+				</p>
+			</div>
+		</div>
+		<PasswordManager v-if="modals.password"
+			v-bind="{ hasPassword, signMethod }"
+			@change="signWithPassword"
+			@create="onPasswordCreate"
+			@close="onModalClose('password')" />
+
+		<SMSManager v-if="modals.sms"
+			v-bind="{ settings, fileId }"
+			@change="signWithCode"
+			@update:phone="val => $emit('update:phone', val)"
+			@close="onModalClose('sms')" />
+
+		<EmailManager v-if="modals.email"
+			v-bind="{ settings, fileId }"
+			@change="signWithCode"
+			@close="onModalClose('email')" />
+	</div>
+</template>
+
 <script>
 import { get, isEmpty, pick } from 'lodash-es'
 import { showError } from '@nextcloud/dialogs'
@@ -222,62 +278,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div class="document-sign">
-		<div class="sign-elements">
-			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
-				<PreviewSignature :src="element.url" />
-			</figure>
-		</div>
-		<div v-if="ableToSign">
-			<button :disabled="loading" class="button" @click="callSignMethod">
-				{{ t('libresign', 'Sign the document.') }}
-			</button>
-		</div>
-		<div v-else-if="!loading">
-			<div v-if="needPassword && !hasPassword">
-				<p>
-					{{ t('libresign', 'Please define your sign password') }}
-				</p>
-
-				<button :disabled="loading" class="button" @click="callPassword">
-					{{ t('libresign', 'Define a password and sign the document.') }}
-				</button>
-			</div>
-			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
-				<p>
-					{{ t('libresign', 'You do not have any signature defined.') }}
-				</p>
-
-				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
-					{{ t('libresign', 'Define your signature.') }}
-				</button>
-			</div>
-			<div v-else>
-				<p>
-					{{ t('libresign', 'Unable to sign.') }}
-				</p>
-			</div>
-		</div>
-		<PasswordManager v-if="modals.password"
-			v-bind="{ hasPassword, signMethod }"
-			@change="signWithPassword"
-			@create="onPasswordCreate"
-			@close="onModalClose('password')" />
-
-		<SMSManager v-if="modals.sms"
-			v-bind="{ settings, fileId }"
-			@change="signWithCode"
-			@update:phone="val => $emit('update:phone', val)"
-			@close="onModalClose('sms')" />
-
-		<EmailManager v-if="modals.email"
-			v-bind="{ settings, fileId }"
-			@change="signWithCode"
-			@close="onModalClose('email')" />
-	</div>
-</template>
 
 <style>
 .modal-wrapper .modal-container{
