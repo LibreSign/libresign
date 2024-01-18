@@ -122,13 +122,13 @@ OC.L10N.register(
     "Details" : "Tiedot",
     "Certificate" : "Varmenne",
     "Delete certificate" : "Poista varmenne",
+    "Type" : "Tyyppi",
+    "Status" : "Tila",
+    "Actions" : "Toiminnot",
     "Not sent yet" : "Ei vielä lähetetty",
     "Select a file" : "Select a file",
     "File was sent." : "Tiedosto lähetettiin.",
     "File was deleted." : "Tiedosto poistettiin.",
-    "Type" : "Tyyppi",
-    "Status" : "Tila",
-    "Actions" : "Toiminnot",
     "Customize your signatures" : "Mukauta allekirjoituksiasi",
     "Your signatures" : "Omat allekirjoitukset",
     "Signature" : "Allekirjoitus",
@@ -177,7 +177,6 @@ OC.L10N.register(
     "Sign the document." : "Allekirjoita asiakirja.",
     "Sign with your cellphone number." : "Allekirjoitus matkapuhelinnumerollasi.",
     "Save your number." : "Tallenna numerosi.",
-    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea.",
     "Loading …" : "Ladataan…",
     "All Files" : "Kaikki tiedostot",
     "Pending" : "Odottaa",
@@ -199,6 +198,7 @@ OC.L10N.register(
     "Enter the emails that will receive the request" : "Anna sähköpostiosoitteet, johon pyyntö lähetetään",
     "Add users" : "Lisää käyttäjiä",
     "Generate root certificate." : "Luo juurivarmenne.",
-    "Remove" : "Poista"
+    "Remove" : "Poista",
+    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea."
 },
 "nplurals=2; plural=(n != 1);");
