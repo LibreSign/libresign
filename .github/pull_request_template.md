@@ -7,7 +7,8 @@ Issue Number:
 
 ### Pull Request Type
 
-Please check the type of change your pull request introduces:
+<!--
+Please check the type of change your pull request introduces. Remove all that is unrelated and remove the comment block too, maintaining only the type of your PR:
 
 - Bugfix
 - Feature
@@ -16,6 +17,7 @@ Please check the type of change your pull request introduces:
 - Build related changes
 - Documentation content changes
 - Other (please describe):
+-->
 
 ### Pull request checklist
 
