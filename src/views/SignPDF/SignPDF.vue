@@ -1,6 +1,7 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<NcAppNavigation
+			:aria-label="t('libresign', 'Signature tab')"
 			:class="{'icon-loading': loading}">
 			<div class="sign-pdf-sidebar">
 				<header>
