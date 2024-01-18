@@ -1,16 +1,15 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
-		<NcAppNavigation
-			:aria-label="t('libresign', 'Signature tab')"
+		<NcAppNavigation :aria-label="t('libresign', 'Signature tab')"
 			:class="{'icon-loading': loading}">
 			<div class="sign-pdf-sidebar">
 				<header>
 					<img class="pdf-icon" :src="PDFIcon">
 					<h1>
-						{{ this.document.filename }}
+						{{ document.filename }}
 						<br>
 						<Chip>
-							{{ this.document.statusText }}
+							{{ document.statusText }}
 						</Chip>
 					</h1>
 				</header>
