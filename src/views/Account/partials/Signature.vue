@@ -14,32 +14,25 @@
 			<slot name="no-signatures" />
 		</div>
 
-		<NcModal v-if="isEditing" v-on="{ close }">
-			<div class="container-modal-customize-signatures">
-				<header>
-					<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
-				</header>
-
-				<div class="content">
-					<Draw text-editor file-editor v-on="{ close, save }" />
-				</div>
-			</div>
-		</NcModal>
+		<Draw v-if="isEditing"
+			:draw-editor="true"
+			:text-editor="true"
+			:fileEditor="true"
+			@save="save"
+			@close="close" />
 	</div>
 </template>
 
 <script>
-import Draw from '../../../Components/Draw/index.js'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { startsWith } from 'lodash-es'
+import Draw from '../../../Components/Draw/Draw.vue'
 
 export default {
 	name: 'Signature',
 	components: {
-		Draw,
-		NcModal,
 		PreviewSignature,
+		Draw,
 	},
 	props: {
 		type: {
@@ -130,34 +123,6 @@ export default {
 		width: 50%;
 		font-size: 1rem;
 		font-weight: normal;
-	}
-}
-
-.container-modal-customize-signatures{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: calc(100% - 20px);
-	height: calc(100% - 40px);
-	margin: 20px;
-
-	header{
-		width: 100%;
-
-		h1{
-			border-bottom: 2px solid #000;
-			width: 95%;
-			font-size: 1.5rem;
-			padding-bottom: 5px;
-			padding-left: 10px;
-		}
-	}
-
-	.content{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		height: 100%;
 	}
 }
 </style>
