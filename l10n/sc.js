@@ -148,7 +148,6 @@ OC.L10N.register(
     "Generated certificate!" : "Tzertificadu generadu!",
     "Validation URL" : "URL de cunvàlida",
     "Sign the document." : "Firma su documentu.",
-    "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo.",
     "Loading …" : "Carrigamentu …",
     "All Files" : "Totu is archìvios",
     "Pending" : "In suspesu",
@@ -174,6 +173,7 @@ OC.L10N.register(
     "Add users" : "Agiunghe utentes",
     "Root certificate data." : "Datos tzertificados sorgente.",
     "Generate root certificate." : "Gènera su tzertificadu sorgente.",
-    "Remove" : "Boga"
+    "Remove" : "Boga",
+    "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo."
 },
 "nplurals=2; plural=(n != 1);");
