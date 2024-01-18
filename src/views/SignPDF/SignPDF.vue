@@ -9,37 +9,40 @@
 				@pdf-editor:end-init="updateSigners" />
 		</div>
 
-		<div class="sign-pdf-sidebar">
-			<header>
-				<img class="pdf-icon" :src="PDFIcon">
-				<h1>
-					{{ this.document.name }}
-					<br>
-					<Chip>
-						{{ this.document.statusText }}
-					</Chip>
-				</h1>
-			</header>
+		<NcAppSidebar title="">
+			<div class="sign-pdf-sidebar">
+				<header>
+					<img class="pdf-icon" :src="PDFIcon">
+					<h1>
+						{{ this.document.filename }}
+						<br>
+						<Chip>
+							{{ this.document.statusText }}
+						</Chip>
+					</h1>
+				</header>
 
-			<main>
-				<div v-if="loading" class="sidebar-loading">
-					<p>
-						{{ t('libresign', 'Loading …') }}
-					</p>
-				</div>
-				<Sign v-else-if="signEnabled"
-					v-bind="{ document, uuid, docType }"
-					@signed="onSigned"
-					@update:phone="onPhoneUpdated" />
-				<div v-else>
-					{{ t('libresign', 'Document not available for signature.') }}
-				</div>
-			</main>
-		</div>
+				<main>
+					<div v-if="loading" class="sidebar-loading">
+						<p>
+							{{ t('libresign', 'Loading …') }}
+						</p>
+					</div>
+					<Sign v-else-if="signEnabled"
+						v-bind="{ document, uuid, docType }"
+						@signed="onSigned"
+						@update:phone="onPhoneUpdated" />
+					<div v-else>
+						{{ t('libresign', 'Document not available for signature.') }}
+					</div>
+				</main>
+			</div>
+		</NcAppSidebar>
 	</div>
 </template>
 
 <script>
+import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
@@ -53,6 +56,7 @@ import SIGN_STATUS from '../../domains/sign/enum.js'
 export default {
 	name: 'SignPDF',
 	components: {
+		NcAppSidebar,
 		PdfEditor,
 		Chip,
 		Sign,
