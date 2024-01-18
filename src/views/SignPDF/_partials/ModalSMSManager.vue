@@ -1,3 +1,53 @@
+<template>
+	<NcModal size="normal" @close="close">
+		<NcContent class="modal-view">
+			<template slot="header">
+				<h2>{{ t('libresign', 'Sign with your cellphone number.') }}</h2>
+				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
+			</template>
+
+			<div v-if="hasNumber" class="code-request">
+				<h3 class="phone">
+					{{ phoneNumber }}
+				</h3>
+
+				<div v-if="tokenRequested">
+					<input v-model="token"
+						:disabled="loading"
+						name="code"
+						type="text">
+				</div>
+
+				<div>
+					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
+						{{ t('libresign', 'Request code.') }}
+					</button>
+
+					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
+						{{ t('libresign', 'Send code.') }}
+					</button>
+				</div>
+			</div>
+			<div v-else class="store-number">
+				<div>
+					<input v-model="phoneNumber"
+						:disabled="loading"
+						name="cellphone"
+						placeholder="+55 00 0 0000 0000"
+						type="tel"
+						@change="sanitizeNumber">
+				</div>
+
+				<div>
+					<button :disabled="loading || phoneNumber.length < 10" @click="saveNumber">
+						{{ t('libresign', 'Save your number.') }}
+					</button>
+				</div>
+			</div>
+		</NcContent>
+	</NcModal>
+</template>
+
 <script>
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
@@ -107,56 +157,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<NcModal size="normal" @close="close">
-		<NcContent class="modal-view">
-			<template slot="header">
-				<h2>{{ t('libresign', 'Sign with your cellphone number.') }}</h2>
-				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
-			</template>
-
-			<div v-if="hasNumber" class="code-request">
-				<h3 class="phone">
-					{{ phoneNumber }}
-				</h3>
-
-				<div v-if="tokenRequested">
-					<input v-model="token"
-						:disabled="loading"
-						name="code"
-						type="text">
-				</div>
-
-				<div>
-					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
-						{{ t('libresign', 'Request code.') }}
-					</button>
-
-					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
-						{{ t('libresign', 'Send code.') }}
-					</button>
-				</div>
-			</div>
-			<div v-else class="store-number">
-				<div>
-					<input v-model="phoneNumber"
-						:disabled="loading"
-						name="cellphone"
-						placeholder="+55 00 0 0000 0000"
-						type="tel"
-						@change="sanitizeNumber">
-				</div>
-
-				<div>
-					<button :disabled="loading || phoneNumber.length < 10" @click="saveNumber">
-						{{ t('libresign', 'Save your number.') }}
-					</button>
-				</div>
-			</div>
-		</NcContent>
-	</NcModal>
-</template>
 
 <style lang="scss" scoped>
 h3.phone {

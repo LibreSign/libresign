@@ -1,3 +1,52 @@
+<template>
+	<div v-if="enabledFlow" class="documents">
+		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
+
+		<ProgressBar v-if="loading" infinity />
+
+		<table v-else class="libre-table is-fullwidth">
+			<thead>
+				<tr>
+					<td>
+						{{ t('libresign', 'Type') }}
+					</td>
+					<td>
+						{{ t('libresign', 'Status') }}
+					</td>
+					<td>
+						{{ t('libresign', 'Actions') }}
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(doc, index) in list" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+					<td>
+						{{ doc.file_type.name }}
+					</td>
+					<td>
+						{{ doc.status_text }}
+					</td>
+					<td class="actions">
+						<template v-if="doc.status === -1">
+							<button @click="pickFile(doc.file_type.key)">
+								<div class="icon-folder" />
+							</button>
+							<button @click="inputFile(doc.file_type.key)">
+								<div class="icon-upload" />
+							</button>
+						</template>
+						<template v-else>
+							<button @click="deleteFile(doc)">
+								<div class="icon-delete" />
+							</button>
+						</template>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</template>
+
 <script>
 import { find, get } from 'lodash-es'
 import { getFilePickerBuilder, showWarning, showSuccess } from '@nextcloud/dialogs'
@@ -169,55 +218,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div v-if="enabledFlow" class="documents">
-		<h1>{{ t('libresign', 'Your profile documents') }}</h1>
-
-		<ProgressBar v-if="loading" infinity />
-
-		<table v-else class="libre-table is-fullwidth">
-			<thead>
-				<tr>
-					<td>
-						{{ t('libresign', 'Type') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Status') }}
-					</td>
-					<td>
-						{{ t('libresign', 'Actions') }}
-					</td>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(doc, index) in list" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
-					<td>
-						{{ doc.file_type.name }}
-					</td>
-					<td>
-						{{ doc.status_text }}
-					</td>
-					<td class="actions">
-						<template v-if="doc.status === -1">
-							<button @click="pickFile(doc.file_type.key)">
-								<div class="icon-folder" />
-							</button>
-							<button @click="inputFile(doc.file_type.key)">
-								<div class="icon-upload" />
-							</button>
-						</template>
-						<template v-else>
-							<button @click="deleteFile(doc)">
-								<div class="icon-delete" />
-							</button>
-						</template>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</template>
 
 <style lang="scss" scoped>
 .documents {

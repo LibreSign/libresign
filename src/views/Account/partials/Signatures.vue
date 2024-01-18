@@ -1,3 +1,32 @@
+<template>
+	<div class="signatures">
+		<h1>{{ t('libresign', 'Your signatures') }}</h1>
+
+		<Signature :value="sings.signature.value" type="signature" v-on="{ save }">
+			<template slot="title">
+				{{ t('libresign', 'Signature') }}
+			</template>
+
+			<span slot="no-signatures">
+				{{ t('libresign', 'No signature, click here to create a new') }}
+			</span>
+		</Signature>
+
+		<Signature v-if="false"
+			:value="sings.initial.value"
+			type="initial"
+			v-on="{ save }">
+			<template slot="title">
+				{{ t('libresign', 'Initials') }}
+			</template>
+
+			<span slot="no-signatures">
+				{{ t('libresign', 'No initials, click here to create a new') }}
+			</span>
+		</Signature>
+	</div>
+</template>
+
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { get } from 'lodash-es'
@@ -88,35 +117,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div class="signatures">
-		<h1>{{ t('libresign', 'Your signatures') }}</h1>
-
-		<Signature :value="sings.signature.value" type="signature" v-on="{ save }">
-			<template slot="title">
-				{{ t('libresign', 'Signature') }}
-			</template>
-
-			<span slot="no-signatures">
-				{{ t('libresign', 'No signature, click here to create a new') }}
-			</span>
-		</Signature>
-
-		<Signature v-if="false"
-			:value="sings.initial.value"
-			type="initial"
-			v-on="{ save }">
-			<template slot="title">
-				{{ t('libresign', 'Initials') }}
-			</template>
-
-			<span slot="no-signatures">
-				{{ t('libresign', 'No initials, click here to create a new') }}
-			</span>
-		</Signature>
-	</div>
-</template>
 
 <style lang="scss" scoped>
 .signatures {
