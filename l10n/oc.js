@@ -84,10 +84,10 @@ OC.L10N.register(
     "Sign" : "Signar",
     "Details" : "Detalhs",
     "Certificate" : "Certificat",
-    "Select a file" : "Select a file",
     "Type" : "Tipe",
     "Status" : "Estat",
     "Actions" : "Accions",
+    "Select a file" : "Select a file",
     "Signature" : "Signatura",
     "Profile picture" : "Imatge de perfil",
     "Password Creation" : "Creacion del senhal",
@@ -105,7 +105,6 @@ OC.L10N.register(
     "Generating certificate." : "Generacion del certificat",
     "Generated certificate!" : "Certificat generat !",
     "Sign the document." : "Signar aqueste document.",
-    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
     "Loading …" : "Cargament…",
     "Pending" : "En espèra",
     "Return" : "Tornar",
@@ -114,6 +113,7 @@ OC.L10N.register(
     "User created!" : "Utilizaire creat !",
     "Reset password" : "Reïnicializar senhal",
     "Add users" : "Apondre utilizaires",
-    "Remove" : "Suprimir"
+    "Remove" : "Suprimir",
+    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador."
 },
 "nplurals=2; plural=(n > 1);");
