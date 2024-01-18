@@ -150,6 +150,7 @@ class PageController extends AEnvironmentPageAwareController {
 			->showSigners()
 			->formatFile();
 		$this->initialState->provideInitialState('status', $file['status']);
+		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
