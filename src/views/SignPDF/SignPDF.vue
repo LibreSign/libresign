@@ -1,15 +1,6 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
-		<div id="viewer" class="content">
-			<PdfEditor ref="pdfEditor"
-				width="100%"
-				height="100%"
-				:file-src="pdf.url"
-				:read-only="true"
-				@pdf-editor:end-init="updateSigners" />
-		</div>
-
-		<NcAppSidebar title="">
+		<NcAppNavigation>
 			<div class="sign-pdf-sidebar">
 				<header>
 					<img class="pdf-icon" :src="PDFIcon">
@@ -37,12 +28,21 @@
 					</div>
 				</main>
 			</div>
-		</NcAppSidebar>
+		</NcAppNavigation>
+		<NcAppContent>
+			<PdfEditor ref="pdfEditor"
+				width="100%"
+				height="100%"
+				:file-src="pdf.url"
+				:read-only="true"
+				@pdf-editor:end-init="updateSigners" />
+		</NcAppContent>
 	</div>
 </template>
 
 <script>
-import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
@@ -56,7 +56,8 @@ import SIGN_STATUS from '../../domains/sign/enum.js'
 export default {
 	name: 'SignPDF',
 	components: {
-		NcAppSidebar,
+		NcAppContent,
+		NcAppNavigation,
 		PdfEditor,
 		Chip,
 		Sign,
@@ -136,32 +137,17 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.bg-gray-100 {
+	all: unset;
+}
+</style>
 <style lang="scss" scoped>
 .container {
 	display: flex;
 	flex-direction: row;
 	width: 100%;
 	height: 100%;
-
-	.content{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		height: 100%;
-	}
-
-	#description{
-		width: 38%;
-
-		@media (max-width: 1024px){
-			width: 40%;
-		}
-
-		@media (max-width: 650px) {
-			width: 100%;
-			height: 20%;
-		}
-	}
 
 	.sign-pdf-sidebar {
 		min-width: 380px;
@@ -199,34 +185,6 @@ export default {
 				text-align: center;
 			}
 		}
-	}
-
-	#viewer{
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		background: #cecece;
-		height: 100%;
-
-		@media (max-width: 1024px){
-			width: 60%;
-		}
-
-		@media (max-width: 650px) {
-			width: 100%;
-		}
-	}
-
-	@media (max-width: 650px) {
-		display: flex;
-		flex-direction: column;
-	}
-
-}
-
-.mobile{
-	#viewer{
-		width: 100% !important;
 	}
 }
 
