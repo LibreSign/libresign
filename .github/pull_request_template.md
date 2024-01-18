@@ -27,3 +27,4 @@ Please check the type of change your pull request introduces. Remove all that is
 - [ ] If your pull request is related to frontend modifications provide a print of before and after screen
 - [ ] Did you provide a general summary of your changes ?
 - [ ] Try to limit your pull request to one type, submit multiple pull requests if needed
+- [ ] I implemented tests that cover my contribution
