@@ -25,7 +25,7 @@
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
+				<button :disabled="loading" class="button is-warning is-fullwidth" @click="callCreateSignature">
 					{{ t('libresign', 'Define your signature.') }}
 				</button>
 			</div>
@@ -101,12 +101,14 @@ export default {
 			password: false,
 			email: false,
 			sms: false,
+			createSignature: false,
 		},
 		user: {
 			account: { uid: '', displayName: '', emailAddress: '' },
 			settings: { canRequestSign: false, hasSignatureFile: true },
 		},
 		userSignatures: [],
+		createPassword: false,
 	}),
 	computed: {
 		signer() {
@@ -259,10 +261,8 @@ export default {
 		callPassword() {
 			this.modals.password = true
 		},
-		goToSignatures() {
-			const url = this.$router.resolve({ name: 'Account', query: { _back_to_signature: this.uuid } })
-
-			window.location.href = url.href
+		callCreateSignature() {
+			this.modals.createSignature = true
 		},
 		callSignMethod() {
 			if (this.modals[this.signMethod] === undefined) {
