@@ -9,15 +9,33 @@
 				@pdf-editor:end-init="updateSigners" />
 		</div>
 
-		<Sidebar v-bind="{ document, uuid, loading }" id="app-navigation">
-			<Sign v-if="signEnabled"
-				v-bind="{ document, uuid, docType }"
-				@signed="onSigned"
-				@update:phone="onPhoneUpdated" />
-			<div v-else>
-				{{ t('libresign', 'Document not available for signature.') }}
-			</div>
-		</Sidebar>
+		<div class="sign-pdf-sidebar">
+			<header>
+				<img class="pdf-icon" :src="PDFIcon">
+				<h1>
+					{{ this.document.name }}
+					<br>
+					<Chip>
+						{{ this.document.statusText }}
+					</Chip>
+				</h1>
+			</header>
+
+			<main>
+				<div v-if="loading" class="sidebar-loading">
+					<p>
+						{{ t('libresign', 'Loading …') }}
+					</p>
+				</div>
+				<Sign v-else-if="signEnabled"
+					v-bind="{ document, uuid, docType }"
+					@signed="onSigned"
+					@update:phone="onPhoneUpdated" />
+				<div v-else>
+					{{ t('libresign', 'Document not available for signature.') }}
+				</div>
+			</main>
+		</div>
 	</div>
 </template>
 
@@ -25,17 +43,18 @@
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
-import { canSign, getStatusLabel } from '../../domains/sign/index.js'
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
-import Sidebar from './_partials/Sidebar.vue'
+import Chip from '../../Components/Chip.vue'
 import Sign from './_partials/Sign.vue'
+import PDFIcon from '../../../img/application-pdf.png'
+import SIGN_STATUS from '../../domains/sign/enum.js'
 
 export default {
 	name: 'SignPDF',
 	components: {
 		PdfEditor,
-		Sidebar,
+		Chip,
 		Sign,
 	},
 	mixins: [
@@ -48,11 +67,13 @@ export default {
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
 			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
+			PDFIcon,
 			document: {
 				name: '',
 				filename: loadState('libresign', 'filename'),
 				description: loadState('libresign', 'description'),
 				status: loadState('libresign', 'status'),
+				statusText: loadState('libresign', 'statusText'),
 				fileId: 0,
 				signers: loadState('libresign', 'signers', []),
 				pages: [],
@@ -67,17 +88,15 @@ export default {
 				? 'document-validate'
 				: 'default'
 		},
-		signEnabled() {
-			return canSign(this.document?.status)
-		},
-		status() {
-			return getStatusLabel(this.document?.status)
-		},
 	},
 	mounted() {
 		showErrors(this.errors)
 	},
 	methods: {
+		signEnabled() {
+			return SIGN_STATUS.ABLE_TO_SIGN === this.document.status
+				|| SIGN_STATUS.PARTIAL_SIGNED === this.document.status
+		},
 		updateSigners() {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
@@ -137,6 +156,44 @@ export default {
 		@media (max-width: 650px) {
 			width: 100%;
 			height: 20%;
+		}
+	}
+
+	.sign-pdf-sidebar {
+		min-width: 380px;
+		max-width: 450px;
+		height: 100%;
+		display: flex;
+		align-items: flex-start;
+		flex-direction: column;
+		header {
+			display: block;
+			text-align: center;
+			width: 100%;
+			margin-top: 1em;
+			margin-bottom: 3em;
+			.pdf-icon {
+				max-height: 100px;
+			}
+			h1 {
+				font-size: 1.2em;
+				font-weight: bold;
+			}
+			img {
+				display: inline-block;
+				margin: 0 auto;
+			}
+			small {
+				display: block;
+			}
+		}
+		main {
+			flex-direction: column;
+			align-items: center;
+			width: 100%;
+			.sidebar-loading {
+				text-align: center;
+			}
 		}
 	}
 
