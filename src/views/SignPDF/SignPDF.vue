@@ -52,7 +52,7 @@ import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import Chip from '../../Components/Chip.vue'
 import Sign from './_partials/Sign.vue'
 import PDFIcon from '../../../img/application-pdf.png'
-import SIGN_STATUS from '../../domains/sign/enum.js'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 
 export default {
 	name: 'SignPDF',
