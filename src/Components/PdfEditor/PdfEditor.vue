@@ -49,7 +49,7 @@ export default {
 		readOnly: {
 			type: Boolean,
 			default: false,
-		}
+		},
 	},
 	methods: {
 		endInit(event) {
