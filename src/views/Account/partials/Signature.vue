@@ -1,3 +1,33 @@
+<template>
+	<div class="signature-fav">
+		<header>
+			<h2>
+				<slot name="title" />
+			</h2>
+			<div v-if="hasSignature" class="icon icon-rename" @click="edit" />
+		</header>
+
+		<div v-if="hasSignature">
+			<PreviewSignature :src="imgSrc" />
+		</div>
+		<div v-else class="no-signatures" @click="edit">
+			<slot name="no-signatures" />
+		</div>
+
+		<NcModal v-if="isEditing" v-on="{ close }">
+			<div class="container-modal-customize-signatures">
+				<header>
+					<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
+				</header>
+
+				<div class="content">
+					<Draw text-editor file-editor v-on="{ close, save }" />
+				</div>
+			</div>
+		</NcModal>
+	</div>
+</template>
+
 <script>
 import Draw from '../../../Components/Draw/index.js'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
@@ -57,36 +87,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div class="signature-fav">
-		<header>
-			<h2>
-				<slot name="title" />
-			</h2>
-			<div v-if="hasSignature" class="icon icon-rename" @click="edit" />
-		</header>
-
-		<div v-if="hasSignature">
-			<PreviewSignature :src="imgSrc" />
-		</div>
-		<div v-else class="no-signatures" @click="edit">
-			<slot name="no-signatures" />
-		</div>
-
-		<NcModal v-if="isEditing" v-on="{ close }">
-			<div class="container-modal-customize-signatures">
-				<header>
-					<h1>{{ t('libresign', 'Customize your signatures') }}</h1>
-				</header>
-
-				<div class="content">
-					<Draw text-editor file-editor v-on="{ close, save }" />
-				</div>
-			</div>
-		</NcModal>
-	</div>
-</template>
 
 <style lang="scss" scoped>
 .signature-modal {
