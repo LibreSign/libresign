@@ -1,6 +1,7 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
-		<NcAppNavigation>
+		<NcAppNavigation
+			:class="{'icon-loading': loading}">
 			<div class="sign-pdf-sidebar">
 				<header>
 					<img class="pdf-icon" :src="PDFIcon">
@@ -67,7 +68,7 @@ export default {
 	],
 	data() {
 		return {
-			loading: false,
+			loading: true,
 			action: loadState('libresign', 'action'),
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
@@ -115,6 +116,7 @@ export default {
 					})
 				}
 			})
+			this.loading = false
 		},
 		gotoAccount() {
 			const url = this.$router.resolve({ name: 'Account' })
