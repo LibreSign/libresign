@@ -1,7 +1,12 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
 		<div id="viewer" class="content">
-			<PDFViewer :url="pdf.url" />
+			<PdfEditor ref="pdfEditor"
+				width="100%"
+				height="100%"
+				:file-src="pdf.url"
+				:read-only="true"
+				@pdf-editor:end-init="updateSigners" />
 		</div>
 
 		<Sidebar v-bind="{ document, uuid, loading }" id="app-navigation">
@@ -22,13 +27,17 @@ import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { canSign, getStatusLabel } from '../../domains/sign/index.js'
 import { showErrors } from '../../helpers/errors.js'
-import PDFViewer from './_partials/PDFViewer.vue'
+import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import Sidebar from './_partials/Sidebar.vue'
 import Sign from './_partials/Sign.vue'
 
 export default {
 	name: 'SignPDF',
-	components: { PDFViewer, Sidebar, Sign },
+	components: {
+		PdfEditor,
+		Sidebar,
+		Sign,
+	},
 	mixins: [
 		isMobile,
 	],
@@ -69,6 +78,20 @@ export default {
 		showErrors(this.errors)
 	},
 	methods: {
+		updateSigners() {
+			this.document.signers.forEach(signer => {
+				if (this.document.visibleElements) {
+					this.document.visibleElements.forEach(element => {
+						if (element.signRequestId === signer.signRequestId) {
+							const object = structuredClone(signer)
+							object.readOnly = true
+							object.element = element
+							this.$refs.pdfEditor.addSigner(object)
+						}
+					})
+				}
+			})
+		},
 		gotoAccount() {
 			const url = this.$router.resolve({ name: 'Account' })
 

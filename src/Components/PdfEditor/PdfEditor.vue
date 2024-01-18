@@ -16,7 +16,8 @@
 		<template #custom="{ object, pagesScale }">
 			<Signature :x="object.x"
 				:y="object.y"
-				:fix-size="false"
+				:fix-size="object.signer.readOnly"
+				:read-only="object.signer.readOnly"
 				:display-name="object.signer.displayName"
 				:width="object.width"
 				:height="object.height"
@@ -45,6 +46,10 @@ export default {
 			default: '',
 			require: true,
 		},
+		readOnly: {
+			type: Boolean,
+			default: false,
+		}
 	},
 	methods: {
 		endInit(event) {
