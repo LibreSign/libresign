@@ -30,9 +30,9 @@
 				class="absolute cursor-nwse-resize transform selector"
 				:style="{ top: '100%', left: '100%' }" />
 		</div>
-		<div class="absolute cursor-pointer transform delete"
+		<div v-if="!readOnly"
+			class="absolute cursor-pointer transform delete"
 			:style="{ top: '0%', left: '50%' }"
-			v-if="!readOnly"
 			@click="onDelete">
 			<CloseCircleIcon class="w-full h-full"
 				text="Remove"
