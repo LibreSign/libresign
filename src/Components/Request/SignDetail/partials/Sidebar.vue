@@ -1,3 +1,18 @@
+<template>
+	<div>
+		<ul>
+			<Signer v-for="signer in signers"
+				:key="signer.id"
+				:signer="signer"
+				:event="event">
+				<slot v-bind="{signer}" slot="actions" name="actions" />
+			</Signer>
+		</ul>
+
+		<slot />
+	</div>
+</template>
+
 <script>
 import Signer from '../../../Signers/Signer.vue'
 
@@ -19,21 +34,6 @@ export default {
 	},
 }
 </script>
-
-<template>
-	<div>
-		<ul>
-			<Signer v-for="signer in signers"
-				:key="signer.id"
-				:signer="signer"
-				:event="event">
-				<slot v-bind="{signer}" slot="actions" name="actions" />
-			</Signer>
-		</ul>
-
-		<slot />
-	</div>
-</template>
 
 <style scoped>
 ul >>> li {
