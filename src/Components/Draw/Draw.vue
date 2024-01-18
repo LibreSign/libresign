@@ -1,5 +1,6 @@
 <template>
-	<div class="container">
+	<NcModal>
+		<h2>{{ t('libresign', 'Customize your signatures') }}</h2>
 		<ul class="editor-select">
 			<li v-if="textEditor"
 				:class="{active: isActive('text')}"
@@ -36,10 +37,11 @@
 				@save="save"
 				@close="close" />
 		</div>
-	</div>
+	</NcModal>
 </template>
 
 <script>
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import Editor from './Editor.vue'
 import TextInput from './TextInput.vue'
 import FileUpload from './FileUpload.vue'
@@ -49,7 +51,12 @@ import UploadIcon from '../../../img/upload-black.png'
 
 export default {
 	name: 'Draw',
-	components: { TextInput, Editor, FileUpload },
+	components: {
+		NcModal,
+		TextInput,
+		Editor,
+		FileUpload,
+	},
 	props: {
 		drawEditor: {
 			type: Boolean,
@@ -74,9 +81,11 @@ export default {
 		uploadIcon: UploadIcon,
 	},
 
-	data: () => ({
-		toolSelected: 'draw',
-	}),
+	data() {
+		return {
+			toolSelected: 'draw',
+		}
+	},
 
 	methods: {
 		isActive(tabItem) {
@@ -87,12 +96,13 @@ export default {
 		},
 		save(param) {
 			this.$emit('save', param)
+			this.close()
 		},
 		setActive(tabItem) {
 			this.toolSelected = tabItem
 
 			if (tabItem === 'text') {
-				this.$nextTick(() => this.$refs.text.setFocus())
+				this.$refs.text.setFocus()
 			}
 		},
 	},
