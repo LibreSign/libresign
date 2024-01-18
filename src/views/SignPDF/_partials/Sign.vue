@@ -25,7 +25,7 @@
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button is-warning is-fullwidth" @click="goToSignatures">
+				<button :disabled="loading" class="button is-warning is-fullwidth" @click="callCreateSignature">
 					{{ t('libresign', 'Define your signature.') }}
 				</button>
 			</div>
@@ -35,6 +35,12 @@
 				</p>
 			</div>
 		</div>
+		<Draw v-if="modals.createSignature"
+			:draw-editor="true"
+			:text-editor="true"
+			:file-editor="true"
+			@save="saveSignature"
+			@close="onModalClose('createSignature')" />
 		<PasswordManager v-if="modals.password"
 			v-bind="{ hasPassword, signMethod }"
 			@change="signWithPassword"
@@ -56,7 +62,9 @@
 
 <script>
 import { get, isEmpty, pick } from 'lodash-es'
-import { showError } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { service as sigantureService } from '../../../domains/signatures/index.js'
 import { service as signService } from '../../../domains/sign/index.js'
 import { onError } from '../../../helpers/errors.js'
@@ -64,6 +72,7 @@ import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import Draw from '../../../Components/Draw/Draw.vue'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -79,6 +88,7 @@ export default {
 		SMSManager,
 		EmailManager,
 		PreviewSignature,
+		Draw,
 	},
 	props: {
 		uuid: {
@@ -101,12 +111,14 @@ export default {
 			password: false,
 			email: false,
 			sms: false,
+			createSignature: false,
 		},
 		user: {
 			account: { uid: '', displayName: '', emailAddress: '' },
 			settings: { canRequestSign: false, hasSignatureFile: true },
 		},
 		userSignatures: [],
+		createPassword: false,
 	}),
 	computed: {
 		signer() {
@@ -228,6 +240,25 @@ export default {
 			} catch (err) {
 			}
 		},
+		async saveSignature(value) {
+			try {
+				const res = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
+					elements: [
+						{
+							file: {
+								base64: value,
+							},
+							type: 'signature',
+						},
+					],
+				})
+				await this.loadSignatures()
+				showSuccess(res.data.message)
+			} catch (err) {
+				onError(err)
+			}
+			this.modals.createSignature = false
+		},
 		async signWithPassword(password) {
 			this.loading = true
 
@@ -259,10 +290,8 @@ export default {
 		callPassword() {
 			this.modals.password = true
 		},
-		goToSignatures() {
-			const url = this.$router.resolve({ name: 'Account', query: { _back_to_signature: this.uuid } })
-
-			window.location.href = url.href
+		callCreateSignature() {
+			this.modals.createSignature = true
 		},
 		callSignMethod() {
 			if (this.modals[this.signMethod] === undefined) {

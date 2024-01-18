@@ -17,7 +17,7 @@
 		<Draw v-if="isEditing"
 			:draw-editor="true"
 			:text-editor="true"
-			:fileEditor="true"
+			:file-editor="true"
 			@save="save"
 			@close="close" />
 	</div>
