@@ -107,7 +107,7 @@ export default {
 			return Object.values(this.documents)
 		},
 		enabledFlow() {
-			return loadState('libresign', 'config').settings.identificationDocumentsFlow
+			return loadState('libresign', 'config').identificationDocumentsFlow
 		},
 	},
 	mounted() {
