@@ -7,7 +7,7 @@
 			class="account-or-email__input"
 			:loading="loading"
 			:filterable="false"
-			:placeholder="t('libresign', 'Name')"
+			:placeholder="placeholder"
 			:user-select="true"
 			:options="options"
 			@search="asyncFind">
@@ -45,6 +45,10 @@ export default {
 			type: Object,
 			default: () => {},
 			required: false,
+		},
+		placeholder: {
+			type: String,
+			default: t('libresign', 'Name'),
 		},
 	},
 	data() {
