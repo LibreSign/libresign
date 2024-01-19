@@ -11,19 +11,22 @@
 					status="0"
 					status-text="none"
 					@sidebar="showSidebar = true" />
-				<NcButton @click="showModalUploadFromUrl">
+				<NcButton @click="showModalUploadFromUrl"
+					:wide="true">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
 						<LinkIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton @click="getFile">
+				<NcButton @click="getFile"
+					:wide="true">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
 						<FolderIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton @click="uploadFile">
+				<NcButton @click="uploadFile"
+					:wide="true">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
@@ -313,6 +316,7 @@ export default {
 
 	.content-request{
 		display: flex;
+		gap: 12px; flex: 1;
 		flex-direction: column;
 	}
 }
