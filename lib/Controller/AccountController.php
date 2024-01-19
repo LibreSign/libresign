@@ -333,7 +333,7 @@ class AccountController extends ApiController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function deleteSignatureElement($elementId): JSONResponse {
+	public function deleteSignatureElement(int $elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			$this->accountService->deleteSignatureElement($userId, $elementId);
