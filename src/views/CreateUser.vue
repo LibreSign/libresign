@@ -34,7 +34,7 @@
 						:size="sizeAvatar" />
 
 					<div v-show="controllerView === 0" class="form-account">
-						<h2>{{ t('libresign', 'You need to create an account with the same email you received the invitation') }}</h2>
+						<h2>{{ t('libresign', 'You need to create an account with the same email address you received the invitation from.') }}</h2>
 
 						<div class="group">
 							<input v-model.trim="$v.email.$model"
@@ -78,7 +78,7 @@
 						<div class="group">
 							<input v-model="$v.pfx.$model"
 								type="password"
-								:placeholder="t('libresign', 'Password for sign document.')">
+								:placeholder="t('libresign', 'Password to sign the document.')">
 							<span v-show="showPfxError">{{ t('libresign', 'Your password must be greater than 4 digits') }} </span>
 						</div>
 						<div class="buttons">
