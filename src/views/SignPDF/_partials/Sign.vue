@@ -6,11 +6,10 @@
 			</figure>
 		</div>
 		<div v-if="ableToSign" class="button-wrapper">
-			<NcButton
-				:wide="true"
+			<NcButton :wide="true"
 				:disabled="loading"
-				@click="callSignMethod"
-				type="primary">
+				type="primary"
+				@click="callSignMethod">
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
 		</div>
@@ -19,11 +18,10 @@
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
-				<NcButton
-					:wide="true"
+				<NcButton :wide="true"
 					:disabled="loading"
-					@click="callPassword"
-					type="primary">
+					type="primary"
+					@click="callPassword">
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
@@ -32,11 +30,10 @@
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<NcButton
-					:wide="true"
+				<NcButton :wide="true"
 					:disabled="loading"
-					@click="callCreateSignature"
-					type="primary">
+					type="primary"
+					@click="callCreateSignature">
 					{{ t('libresign', 'Define your signature.') }}
 				</NcButton>
 			</div>
@@ -73,7 +70,7 @@
 
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import { get, isEmpty, pick } from 'lodash-es'
+import { isEmpty, pick } from 'lodash-es'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -133,7 +130,7 @@ export default {
 		},
 		userSignatures: [],
 		createPassword: false,
-		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile
+		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile,
 	}),
 	computed: {
 		signer() {
@@ -149,23 +146,22 @@ export default {
 			return (this.document?.visibleElements || [])
 				.filter(row => row.signRequestId === this.signer.signRequestId)
 		},
-		signature() {
-			return this.userSignatures.find(row => {
+		elements() {
+			const signature = this.userSignatures.find(row => {
 				return row.type === 'signature'
 			}) ?? {}
-		},
-		elements() {
-			const { signature, visibleElements } = this
+			if (Object.keys(signature).length === 0) {
+				return []
+			}
+			const url = signature.file.url
 
-			const url = get(signature, ['file', 'url'])
-			const id = get(signature, ['id'])
-
-			return visibleElements
+			const element = this.visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
-					profileElementId: id,
+					profileElementId: signature.id,
 					url: `${url}&_t=${Date.now()}`,
 				}))
+			return element
 		},
 		hasSignatures() {
 			return !isEmpty(this.userSignatures)
@@ -247,8 +243,8 @@ export default {
 		},
 		async loadSignatures() {
 			try {
-				const { elements } = await sigantureService.loadSignatures()
-				this.userSignatures = (elements || []).reverse()
+				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
+				this.userSignatures = response.data.elements
 			} catch (err) {
 			}
 		},
