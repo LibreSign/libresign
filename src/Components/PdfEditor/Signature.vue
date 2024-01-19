@@ -5,7 +5,7 @@
 			height: `${Math.round((width + dw) / ratio)}px`,
 			transform: `translate(${x + dx}px, ${y + dy}px)`,
 		}">
-		<div class="absolute w-full h-full"
+		<div class="signature absolute w-full h-full"
 			:class="[
 				!readOnly ? 'cursor-grab' : '',
 				operation === 'move' ? 'cursor-grabbing' : '',
@@ -225,7 +225,10 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.signature {
+	background-color: rgba(0, 0, 0, 0.2);
+}
 .operation {
 	background-color: rgba(0, 0, 0, 0.3);
 }
