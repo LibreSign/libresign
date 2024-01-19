@@ -129,10 +129,11 @@ export default {
 		},
 		user: {
 			account: { uid: '', displayName: '', emailAddress: '' },
-			settings: { canRequestSign: false, hasSignatureFile: true },
+			settings: { canRequestSign: false },
 		},
 		userSignatures: [],
 		createPassword: false,
+		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile
 	}),
 	computed: {
 		signer() {
@@ -172,9 +173,6 @@ export default {
 		needSignature() {
 			return !isEmpty(this.document?.visibleElements)
 		},
-		hasPassword() {
-			return loadState('libresign', 'config', {})?.hasSignatureFile
-		},
 		needPassword() {
 			return this.signMethod === 'password'
 		},
@@ -213,7 +211,7 @@ export default {
 		},
 		settings() {
 			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
-			const user = pick(this.user.settings, ['canRequestSign', 'hasSignatureFile'])
+			const user = pick(this.user.settings, ['canRequestSign'])
 
 			return {
 				...base,
@@ -299,7 +297,7 @@ export default {
 			}
 		},
 		onPasswordCreate() {
-			this.loadUser()
+			this.hasPassword = true
 		},
 		callPassword() {
 			this.modals.password = true
