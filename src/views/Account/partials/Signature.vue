@@ -155,7 +155,6 @@ export default {
 }
 
 .signature-fav{
-	width: 90%;
 	margin: 10px;
 
 	header{
