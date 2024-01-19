@@ -70,7 +70,6 @@
 
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import { isEmpty, pick } from 'lodash-es'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -163,10 +162,10 @@ export default {
 			return element
 		},
 		hasSignatures() {
-			return !isEmpty(this.userSignatures)
+			return this.userSignatures.length > 0
 		},
 		needSignature() {
-			return !isEmpty(this.document?.visibleElements)
+			return this.document?.visibleElements.length > 0
 		},
 		needPassword() {
 			return this.signMethod === 'password'
@@ -195,7 +194,7 @@ export default {
 
 			const payload = { fileId }
 
-			if (!isEmpty(elements)) {
+			if (elements.length > 0) {
 				payload.elements = elements
 			}
 
@@ -205,12 +204,9 @@ export default {
 			return Number(this.document.fileId ?? 0)
 		},
 		settings() {
-			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
-			const user = pick(this.user.settings, ['canRequestSign'])
-
 			return {
-				...base,
-				...user,
+				...this.document.settings,
+				...this.user.settings,
 				email: this.email,
 			}
 		},
@@ -236,7 +232,8 @@ export default {
 	methods: {
 		async loadUser() {
 			try {
-				this.user = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+				this.user = data
 			} catch (err) {
 			}
 		},
