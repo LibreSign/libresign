@@ -199,14 +199,19 @@ class FileMapper extends QBMapper {
 	public function getTextOfStatus(int $status): ?string {
 		switch ($status) {
 			case File::STATUS_DRAFT:
+				// TRANSLATORS Name of the status that the document is still as a draft
 				return $this->l->t('draft');
 			case File::STATUS_ABLE_TO_SIGN:
-				return $this->l->t('able to sign');
+				// TRANSLATORS Name of the status that the document can be signed
+				return $this->l->t('available for signature');
 			case File::STATUS_PARTIAL_SIGNED:
+				// TRANSLATORS Status name when the document has already been partially signed
 				return $this->l->t('partially signed');
 			case File::STATUS_SIGNED:
+				// TRANSLATORS Status name when the document has been completely signed
 				return $this->l->t('signed');
 			case File::STATUS_DELETED:
+				// TRANSLATORS Name of the status when the document was deleted
 				return $this->l->t('deleted');
 		}
 		return '';
