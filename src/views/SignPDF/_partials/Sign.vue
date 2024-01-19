@@ -237,7 +237,7 @@ export default {
 	methods: {
 		async loadUser() {
 			try {
-				this.user = await sigantureService.loadMe()
+				this.user = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			} catch (err) {
 			}
 		},
