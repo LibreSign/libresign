@@ -11,22 +11,22 @@
 					status="0"
 					status-text="none"
 					@sidebar="showSidebar = true" />
-				<NcButton @click="showModalUploadFromUrl"
-					:wide="true">
+				<NcButton :wide="true"
+					@click="showModalUploadFromUrl">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
 						<LinkIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton @click="getFile"
-					:wide="true">
+				<NcButton :wide="true"
+					@click="getFile">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
 						<FolderIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton @click="uploadFile"
-					:wide="true">
+				<NcButton :wide="true"
+					@click="uploadFile">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
