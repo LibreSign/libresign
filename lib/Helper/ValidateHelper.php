@@ -252,7 +252,8 @@ class ValidateHelper {
 					throw new LibresignException($this->l10n->t('Coordinate %s must be an integer', [$type]));
 				}
 				if ($value < 0) {
-					throw new LibresignException($this->l10n->t('Out of marging'));
+					// TRANSLATORS Is an error that occur when the visible element added to the PDF file have your position outside the page margin
+					throw new LibresignException($this->l10n->t('Object outside the page margin'));
 				}
 			}
 		}
