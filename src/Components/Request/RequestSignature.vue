@@ -87,12 +87,14 @@ export default {
 			listSigners: true,
 			signerToEdit: {},
 			dataSigners: [],
-			signed: this.signers.filter(signer => signer.sign_date?.length > 0).length > 0,
 		}
 	},
 	computed: {
 		canSave() {
 			return this.canRequestSign && !this.signed && this.dataSigners.length > 0
+		},
+		signed() {
+			return this.signers.filter(signer => signer.sign_date?.length > 0).length > 0
 		},
 	},
 	watch: {
