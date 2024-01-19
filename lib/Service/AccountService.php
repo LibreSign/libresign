@@ -430,7 +430,12 @@ class AccountService {
 			}
 			$this->validateHelper->validateBase64($content);
 		} else {
-			$content = base64_decode($data['file']['base64']);
+			$withMime = explode(',', $data['file']['base64']);
+			if (count($withMime) === 2) {
+				$content = base64_decode($withMime[1]);
+			} else {
+				$content = base64_decode($data['file']['base64']);
+			}
 		}
 		return $content;
 	}

@@ -82,8 +82,8 @@ export default {
 		close() {
 			this.$emit('close')
 		},
-		save(param) {
-			this.$emit('save', param)
+		save(base64) {
+			this.$emit('save', base64)
 			this.close()
 		},
 	},
