@@ -58,11 +58,6 @@ const buildService = (http) => {
 
 			return data
 		},
-		async loadMe() {
-			const { data } = await http.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-
-			return data
-		},
 	})
 }
 
