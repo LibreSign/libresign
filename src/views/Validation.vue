@@ -103,10 +103,10 @@ export default {
 		const fileInfo = loadState('libresign', 'file_info', {})
 		return {
 			image: BackgroundImage,
-			infoDocument: t('libresign', 'Document Informations'),
+			infoDocument: t('libresign', 'Document informations'),
 			infoIcon: iconA,
 			signatureIcon: iconB,
-			title: t('libresign', 'Validate Subscription.'),
+			title: t('libresign', 'Validate signature'),
 			legend: t('libresign', 'Enter the ID or UUID of the document to validate.'),
 			buttonTitle: t('libresign', 'Validation'),
 			noDateMessage: t('libresign', 'No date'),
