@@ -86,6 +86,9 @@ export default {
 			getHasPfx: 'getHasPfx',
 		}),
 	},
+	mounted() {
+		this.$store.commit('setHasPfx', loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
+	},
 	methods: {
 		uploadCertificate() {
 			const input = document.createElement('input')

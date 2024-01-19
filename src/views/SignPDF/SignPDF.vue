@@ -1,41 +1,66 @@
 <template>
 	<div :class="isMobile ? 'container mobile' : 'container'">
-		<div id="viewer" class="content">
+		<NcAppNavigation :aria-label="t('libresign', 'Signature tab')"
+			:class="{'icon-loading': loading}">
+			<div class="sign-pdf-sidebar">
+				<header>
+					<img class="pdf-icon" :src="PDFIcon">
+					<h1>
+						{{ document.filename }}
+						<br>
+						<Chip>
+							{{ document.statusText }}
+						</Chip>
+					</h1>
+				</header>
+
+				<main>
+					<div v-if="loading" class="sidebar-loading">
+						<p>
+							{{ t('libresign', 'Loading …') }}
+						</p>
+					</div>
+					<div v-if="!signEnabled">
+						{{ t('libresign', 'Document not available for signature.') }}
+					</div>
+					<Sign v-else
+						v-bind="{ document, uuid, docType }"
+						@signed="onSigned"
+						@update:phone="onPhoneUpdated" />
+				</main>
+			</div>
+		</NcAppNavigation>
+		<NcAppContent>
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
 				:file-src="pdf.url"
 				:read-only="true"
 				@pdf-editor:end-init="updateSigners" />
-		</div>
-
-		<Sidebar v-bind="{ document, uuid, loading }" id="app-navigation">
-			<Sign v-if="signEnabled"
-				v-bind="{ document, uuid, docType }"
-				@signed="onSigned"
-				@update:phone="onPhoneUpdated" />
-			<div v-else>
-				{{ t('libresign', 'Document not available for signature.') }}
-			</div>
-		</Sidebar>
+		</NcAppContent>
 	</div>
 </template>
 
 <script>
+import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
+import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
-import { canSign, getStatusLabel } from '../../domains/sign/index.js'
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
-import Sidebar from './_partials/Sidebar.vue'
+import Chip from '../../Components/Chip.vue'
 import Sign from './_partials/Sign.vue'
+import PDFIcon from '../../../img/application-pdf.png'
+import { SIGN_STATUS } from '../../domains/sign/enum.js'
 
 export default {
 	name: 'SignPDF',
 	components: {
+		NcAppContent,
+		NcAppNavigation,
 		PdfEditor,
-		Sidebar,
+		Chip,
 		Sign,
 	},
 	mixins: [
@@ -43,16 +68,18 @@ export default {
 	],
 	data() {
 		return {
-			loading: false,
+			loading: true,
 			action: loadState('libresign', 'action'),
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
 			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
+			PDFIcon,
 			document: {
 				name: '',
 				filename: loadState('libresign', 'filename'),
 				description: loadState('libresign', 'description'),
 				status: loadState('libresign', 'status'),
+				statusText: loadState('libresign', 'statusText'),
 				fileId: 0,
 				signers: loadState('libresign', 'signers', []),
 				pages: [],
@@ -67,17 +94,15 @@ export default {
 				? 'document-validate'
 				: 'default'
 		},
-		signEnabled() {
-			return canSign(this.document?.status)
-		},
-		status() {
-			return getStatusLabel(this.document?.status)
-		},
 	},
 	mounted() {
 		showErrors(this.errors)
 	},
 	methods: {
+		signEnabled() {
+			return SIGN_STATUS.ABLE_TO_SIGN === this.document.status
+				|| SIGN_STATUS.PARTIAL_SIGNED === this.document.status
+		},
 		updateSigners() {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
@@ -91,6 +116,7 @@ export default {
 					})
 				}
 			})
+			this.loading = false
 		},
 		gotoAccount() {
 			const url = this.$router.resolve({ name: 'Account' })
@@ -113,59 +139,57 @@ export default {
 }
 </script>
 
+<style lang="scss">
+.bg-gray-100 {
+	all: unset;
+}
+</style>
 <style lang="scss" scoped>
+.app-navigation {
+	width: unset;
+}
 .container {
 	display: flex;
 	flex-direction: row;
 	width: 100%;
 	height: 100%;
 
-	.content{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
+	.sign-pdf-sidebar {
+		min-width: 380px;
+		max-width: 450px;
 		height: 100%;
-	}
-
-	#description{
-		width: 38%;
-
-		@media (max-width: 1024px){
-			width: 40%;
-		}
-
-		@media (max-width: 650px) {
-			width: 100%;
-			height: 20%;
-		}
-	}
-
-	#viewer{
 		display: flex;
-		justify-content: center;
-		align-items: center;
-		background: #cecece;
-		height: 100%;
-
-		@media (max-width: 1024px){
-			width: 60%;
-		}
-
-		@media (max-width: 650px) {
-			width: 100%;
-		}
-	}
-
-	@media (max-width: 650px) {
-		display: flex;
+		align-items: flex-start;
 		flex-direction: column;
-	}
-
-}
-
-.mobile{
-	#viewer{
-		width: 100% !important;
+		header {
+			display: block;
+			text-align: center;
+			width: 100%;
+			margin-top: 1em;
+			margin-bottom: 3em;
+			.pdf-icon {
+				max-height: 100px;
+			}
+			h1 {
+				font-size: 1.2em;
+				font-weight: bold;
+			}
+			img {
+				display: inline-block;
+				margin: 0 auto;
+			}
+			small {
+				display: block;
+			}
+		}
+		main {
+			flex-direction: column;
+			align-items: center;
+			width: 100%;
+			.sidebar-loading {
+				text-align: center;
+			}
+		}
 	}
 }
 

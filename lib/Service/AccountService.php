@@ -153,10 +153,10 @@ class AccountService {
 	}
 
 	public function validateCertificateData(array $data): void {
-		if (!$data['user']['email']) {
+		if (array_key_exists('email', $data['user']) && empty($data['user']['email'])) {
 			throw new LibresignException($this->l10n->t('You must have an email. You can define the email in your profile.'), 1);
 		}
-		if (!filter_var($data['user']['email'], FILTER_VALIDATE_EMAIL)) {
+		if (!empty($data['user']['email']) && !filter_var($data['user']['email'], FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException($this->l10n->t('Invalid email'), 1);
 		}
 		if (empty($data['signPassword'])) {

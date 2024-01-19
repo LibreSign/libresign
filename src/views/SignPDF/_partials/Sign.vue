@@ -5,29 +5,37 @@
 				<PreviewSignature :src="element.url" />
 			</figure>
 		</div>
-		<div v-if="ableToSign">
-			<button :disabled="loading" class="button" @click="callSignMethod">
+		<div v-if="ableToSign" class="button-wrapper">
+			<NcButton :wide="true"
+				:disabled="loading"
+				type="primary"
+				@click="callSignMethod">
 				{{ t('libresign', 'Sign the document.') }}
-			</button>
+			</NcButton>
 		</div>
-		<div v-else-if="!loading">
+		<div v-else-if="!loading" class="button-wrapper">
 			<div v-if="needPassword && !hasPassword">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
-
-				<button :disabled="loading" class="button" @click="callPassword">
+				<NcButton :wide="true"
+					:disabled="loading"
+					type="primary"
+					@click="callPassword">
 					{{ t('libresign', 'Define a password and sign the document.') }}
-				</button>
+				</NcButton>
 			</div>
 			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button is-warning is-fullwidth" @click="callCreateSignature">
+				<NcButton :wide="true"
+					:disabled="loading"
+					type="primary"
+					@click="callCreateSignature">
 					{{ t('libresign', 'Define your signature.') }}
-				</button>
+				</NcButton>
 			</div>
 			<div v-else>
 				<p>
@@ -61,7 +69,8 @@
 </template>
 
 <script>
-import { get, isEmpty, pick } from 'lodash-es'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import { isEmpty, pick } from 'lodash-es'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -73,6 +82,7 @@ import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
+import { loadState } from '@nextcloud/initial-state'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -84,6 +94,7 @@ export default {
 	name: 'Sign',
 	SIGN_METHODS,
 	components: {
+		NcButton,
 		PasswordManager,
 		SMSManager,
 		EmailManager,
@@ -115,10 +126,11 @@ export default {
 		},
 		user: {
 			account: { uid: '', displayName: '', emailAddress: '' },
-			settings: { canRequestSign: false, hasSignatureFile: true },
+			settings: { canRequestSign: false },
 		},
 		userSignatures: [],
 		createPassword: false,
+		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile,
 	}),
 	computed: {
 		signer() {
@@ -134,32 +146,28 @@ export default {
 			return (this.document?.visibleElements || [])
 				.filter(row => row.signRequestId === this.signer.signRequestId)
 		},
-		signature() {
-			return this.userSignatures.find(row => {
+		elements() {
+			const signature = this.userSignatures.find(row => {
 				return row.type === 'signature'
 			}) ?? {}
-		},
-		elements() {
-			const { signature, visibleElements } = this
+			if (Object.keys(signature).length === 0) {
+				return []
+			}
+			const url = signature.file.url
 
-			const url = get(signature, ['file', 'url'])
-			const id = get(signature, ['id'])
-
-			return visibleElements
+			const element = this.visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
-					profileElementId: id,
+					profileElementId: signature.id,
 					url: `${url}&_t=${Date.now()}`,
 				}))
+			return element
 		},
 		hasSignatures() {
 			return !isEmpty(this.userSignatures)
 		},
 		needSignature() {
 			return !isEmpty(this.document?.visibleElements)
-		},
-		hasPassword() {
-			return !!this.user?.settings?.hasSignatureFile
 		},
 		needPassword() {
 			return this.signMethod === 'password'
@@ -199,7 +207,7 @@ export default {
 		},
 		settings() {
 			const base = pick(this.document.settings, ['signMethod', 'canSign', 'phoneNumber'])
-			const user = pick(this.user.settings, ['canRequestSign', 'hasSignatureFile'])
+			const user = pick(this.user.settings, ['canRequestSign'])
 
 			return {
 				...base,
@@ -235,8 +243,8 @@ export default {
 		},
 		async loadSignatures() {
 			try {
-				const { elements } = await sigantureService.loadSignatures()
-				this.userSignatures = (elements || []).reverse()
+				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
+				this.userSignatures = response.data.elements
 			} catch (err) {
 			}
 		},
@@ -285,7 +293,7 @@ export default {
 			}
 		},
 		onPasswordCreate() {
-			this.loadUser()
+			this.hasPassword = true
 		},
 		callPassword() {
 			this.modals.password = true
@@ -308,27 +316,13 @@ export default {
 }
 </script>
 
-<style>
-.modal-wrapper .modal-container{
-	max-width: 900px;
-	width: 75%;
-	height: 80%;
-}
-</style>
-
 <style lang="scss" scoped>
-.document-sign {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	button {
-		display: block;
-		margin: 0 auto;
-	}
-}
-
 .no-signature-warning {
 	margin-top: 1em;
+}
+
+.button-wrapper {
+	padding: calc(var(--default-grid-baseline, 4px)*2);
 }
 
 .sign-elements {
