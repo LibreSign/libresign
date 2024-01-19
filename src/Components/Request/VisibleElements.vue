@@ -231,7 +231,9 @@ export default {
 				})
 				await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					users: [],
-					uuid: this.file.uuid,
+					// Only add to array if not empty
+					...(this.file.uuid && { uuid: this.file.uuid }),
+					...(this.file.nodeId && { file: { fileId: this.file.nodeId } }),
 					visibleElements,
 					status: 0,
 				})
