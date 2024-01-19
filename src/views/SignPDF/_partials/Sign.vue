@@ -291,8 +291,8 @@ export default {
 				this.loading = false
 			}
 		},
-		onPasswordCreate() {
-			this.hasPassword = true
+		onPasswordCreate(hasPassword) {
+			this.hasPassword = hasPassword
 		},
 		callPassword() {
 			this.modals.password = true
