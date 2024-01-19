@@ -145,6 +145,9 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
+.app-navigation {
+	width: unset;
+}
 .container {
 	display: flex;
 	flex-direction: row;

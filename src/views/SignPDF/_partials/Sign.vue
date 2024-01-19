@@ -5,29 +5,40 @@
 				<PreviewSignature :src="element.url" />
 			</figure>
 		</div>
-		<div v-if="ableToSign">
-			<button :disabled="loading" class="button" @click="callSignMethod">
+		<div v-if="ableToSign" class="button-wrapper">
+			<NcButton
+				:wide="true"
+				:disabled="loading"
+				@click="callSignMethod"
+				type="primary">
 				{{ t('libresign', 'Sign the document.') }}
-			</button>
+			</NcButton>
 		</div>
-		<div v-else-if="!loading">
+		<div v-else-if="!loading" class="button-wrapper">
 			<div v-if="needPassword && !hasPassword">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
-
-				<button :disabled="loading" class="button" @click="callPassword">
+				<NcButton
+					:wide="true"
+					:disabled="loading"
+					@click="callPassword"
+					type="primary">
 					{{ t('libresign', 'Define a password and sign the document.') }}
-				</button>
+				</NcButton>
 			</div>
 			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
 
-				<button :disabled="loading" class="button is-warning is-fullwidth" @click="callCreateSignature">
+				<NcButton
+					:wide="true"
+					:disabled="loading"
+					@click="callCreateSignature"
+					type="primary">
 					{{ t('libresign', 'Define your signature.') }}
-				</button>
+				</NcButton>
 			</div>
 			<div v-else>
 				<p>
@@ -61,6 +72,7 @@
 </template>
 
 <script>
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { get, isEmpty, pick } from 'lodash-es'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -73,6 +85,7 @@ import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
+import { loadState } from '@nextcloud/initial-state'
 
 const SIGN_METHODS = Object.freeze({
 	PASSWORD: 'PasswordManager',
@@ -84,6 +97,7 @@ export default {
 	name: 'Sign',
 	SIGN_METHODS,
 	components: {
+		NcButton,
 		PasswordManager,
 		SMSManager,
 		EmailManager,
@@ -159,7 +173,7 @@ export default {
 			return !isEmpty(this.document?.visibleElements)
 		},
 		hasPassword() {
-			return !!this.user?.settings?.hasSignatureFile
+			return loadState('libresign', 'config', {})?.hasSignatureFile
 		},
 		needPassword() {
 			return this.signMethod === 'password'
@@ -308,27 +322,13 @@ export default {
 }
 </script>
 
-<style>
-.modal-wrapper .modal-container{
-	max-width: 900px;
-	width: 75%;
-	height: 80%;
-}
-</style>
-
 <style lang="scss" scoped>
-.document-sign {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	button {
-		display: block;
-		margin: 0 auto;
-	}
-}
-
 .no-signature-warning {
 	margin-top: 1em;
+}
+
+.button-wrapper {
+	padding: calc(var(--default-grid-baseline, 4px)*2);
 }
 
 .sign-elements {
