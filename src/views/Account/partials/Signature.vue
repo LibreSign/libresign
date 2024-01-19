@@ -4,7 +4,18 @@
 			<h2>
 				<slot name="title" />
 			</h2>
-			<div v-if="hasSignature" class="icon icon-rename" @click="edit" />
+			<NcActions :inline="2">
+				<NcActionButton v-if="hasSignature" @click="removeSignature">
+					<template #icon>
+						<DeleteIcon :size="20" />
+					</template>
+				</NcActionButton>
+				<NcActionButton @click="edit">
+					<template #icon>
+						<DrawIcon :size="20" />
+					</template>
+				</NcActionButton>
+			</NcActions>
 		</header>
 
 		<div v-if="hasSignature">
@@ -24,6 +35,10 @@
 </template>
 
 <script>
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import { startsWith } from 'lodash-es'
 import Draw from '../../../Components/Draw/Draw.vue'
@@ -34,6 +49,10 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 export default {
 	name: 'Signature',
 	components: {
+		NcActions,
+		NcActionButton,
+		DeleteIcon,
+		DrawIcon,
 		PreviewSignature,
 		Draw,
 	},
@@ -72,6 +91,21 @@ export default {
 		edit() {
 			this.isEditing = true
 		},
+		async removeSignature() {
+			try {
+				const response = await axios.delete(
+					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
+						elementId: this.id,
+					}),
+				)
+				showSuccess(response.data.message)
+				this.$emit('signature:delete', {
+					type: this.type,
+				})
+			} catch (err) {
+				showError(err.response.data.message)
+			}
+		},
 		close() {
 			this.isEditing = false
 		},
@@ -92,8 +126,12 @@ export default {
 					const response = await axios.post(
 						generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'),
 						{
-							type: this.type,
-							file: { base64 },
+							elements: [
+								{
+									type: this.type,
+									file: { base64 },
+								},
+							],
 						},
 					)
 					showSuccess(response.data.message)
@@ -148,9 +186,9 @@ export default {
 	}
 
 	h2{
+		width: 100%;
 		padding-left: 5px;
 		border-bottom: 1px solid #000;
-		width: 50%;
 		font-size: 1rem;
 		font-weight: normal;
 	}

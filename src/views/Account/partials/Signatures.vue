@@ -5,6 +5,7 @@
 		<Signature :id="signs.signature.id"
 			type="signature"
 			:value="signs.signature.value"
+			@signature:delete="signatureDelete"
 			v-on="{ save }">
 			<template slot="title">
 				{{ t('libresign', 'Signature') }}
@@ -64,6 +65,14 @@ export default {
 	methods: {
 		async save({ base64, type }) {
 			this.signs[type].value = base64
+			this.loadSignatures()
+		},
+		signatureDelete({ type }) {
+			this.signs[type] = {
+				id: 0,
+				fileId: 0,
+				value: '',
+			}
 			this.loadSignatures()
 		},
 		async loadSignatures() {
