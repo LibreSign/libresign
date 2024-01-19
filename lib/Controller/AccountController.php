@@ -129,7 +129,6 @@ class AccountController extends ApiController {
 			$data = [
 				'user' => [
 					'identify' => $this->userSession->getUser()->getUID(),
-					'email' => $this->userSession->getUser()->getEMailAddress(),
 					'name' => $this->userSession->getUser()->getDisplayName(),
 				],
 				'signPassword' => $signPassword,

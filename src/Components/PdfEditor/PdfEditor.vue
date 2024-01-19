@@ -7,6 +7,7 @@
 		:show-line-size-select="false"
 		:show-font-size-select="false"
 		:show-font-select="false"
+		:show-rename="false"
 		:show-save-btn="false"
 		:save-to-upload="false"
 		:init-file-src="fileSrc"
