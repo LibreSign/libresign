@@ -76,8 +76,8 @@ export default {
 		onClose() {
 			this.$emit('close')
 		},
-		onCreate(val) {
-			this.$emit('create')
+		onCreate({ hasPassword }) {
+			this.$emit('create', hasPassword)
 
 			if (this.signMethod !== 'password') {
 				this.$nextTick(() => this.onClose())
