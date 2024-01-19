@@ -3,6 +3,7 @@
 		<AccountOrEmail v-if="methods.account.enabled || methods.email.enabled"
 			:required="methods.account.required || methods.email.required"
 			:signer="methods.account.value || methods.email.value"
+			:placeholder="placeholder"
 			@update:account="updateAccount"
 			@update:email="updateEmail" />
 		<SignerName :name="name"
@@ -65,6 +66,12 @@ export default {
 	computed: {
 		isNewSigner() {
 			return this.id === null || this.id === undefined
+		},
+		placeholder() {
+			if (!this.methods.account.enabled && this.methods.email.enabled) {
+				return t('libresign', 'Email')
+			}
+			return t('libresign', 'Name')
 		},
 		saveButtonText() {
 			if (this.isNewSigner) {
