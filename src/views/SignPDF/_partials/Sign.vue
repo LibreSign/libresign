@@ -74,7 +74,6 @@ import { isEmpty, pick } from 'lodash-es'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { service as sigantureService } from '../../../domains/signatures/index.js'
 import { service as signService } from '../../../domains/sign/index.js'
 import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
@@ -237,7 +236,7 @@ export default {
 	methods: {
 		async loadUser() {
 			try {
-				this.user = await sigantureService.loadMe()
+				this.user = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 			} catch (err) {
 			}
 		},
