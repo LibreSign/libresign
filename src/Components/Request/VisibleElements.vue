@@ -202,7 +202,8 @@ export default {
 				elementId: object.signer.element.elementId,
 			}))
 		},
-		goToSign() {
+		async goToSign() {
+			await this.save()
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
 
 			window.location.href = route.href
