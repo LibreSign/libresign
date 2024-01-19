@@ -2,7 +2,10 @@
 	<div class="signatures">
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
-		<Signature :value="sings.signature.value" type="signature" v-on="{ save }">
+		<Signature :id="signs.signature.id"
+			type="signature"
+			:value="signs.signature.value"
+			v-on="{ save }">
 			<template slot="title">
 				{{ t('libresign', 'Signature') }}
 			</template>
@@ -13,8 +16,9 @@
 		</Signature>
 
 		<Signature v-if="false"
-			:value="sings.initial.value"
+			:id="signs.initial.id"
 			type="initial"
+			:value="signs.initial.value"
 			v-on="{ save }">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
@@ -28,16 +32,10 @@
 </template>
 
 <script>
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { get } from 'lodash-es'
+import { showError } from '@nextcloud/dialogs'
 import Signature from './Signature.vue'
-import { service } from '../../../domains/signatures/index.js'
-
-const emptySignature = {
-	id: 0,
-	fileId: 0,
-	value: '',
-}
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Signatures',
@@ -46,9 +44,17 @@ export default {
 	},
 	data() {
 		return {
-			sings: {
-				signature: { ...emptySignature },
-				initial: { ...emptySignature },
+			signs: {
+				signature: {
+					id: 0,
+					fileId: 0,
+					value: '',
+				},
+				initial: {
+					id: 0,
+					fileId: 0,
+					value: '',
+				},
 			},
 		}
 	},
@@ -56,62 +62,23 @@ export default {
 		this.loadSignatures()
 	},
 	methods: {
-		onError(err) {
-			const message = get(err, ['response', 'data', 'message'], err.message)
-
-			showError(message)
-		},
-		save({ base64, type }) {
-			this.sings[type] = {
-				...this.sings[type],
-				value: base64,
-			}
-
-			this.$nextTick(async () => {
-				const entry = {
-					...this.sings[type],
-				}
-
-				entry.id > 0
-					? await this.update(entry.id, { type, base64 })
-					: await this.create({ type, base64 })
-
-				this.loadSignatures()
-			})
-		},
-		async update(id, { type, base64 }) {
-			try {
-				const res = await service.updateSignature(id, { type, base64 })
-				showSuccess(res.message)
-			} catch (err) {
-				this.onError(err)
-			}
-		},
-		async create({ type, base64 }) {
-			try {
-				const res = await service.createSignature(type, base64)
-				showSuccess(res.message)
-			} catch (err) {
-				this.onError(err)
-			}
-
+		async save({ base64, type }) {
+			this.signs[type].value = base64
+			this.loadSignatures()
 		},
 		async loadSignatures() {
 			try {
-				const { elements } = await service.loadSignatures()
+				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
 
-				this.sings = (elements || [])
-					.reduce((acc, current) => {
-						acc[current.type] = {
-							...emptySignature,
-							id: current.id,
-							fileId: current.file.fileId,
-							value: current.file.url,
-						}
-						return acc
-					}, { ...this.sings })
+				response.data.elements.forEach(current => {
+					this.signs[current.type] = {
+						id: current.id,
+						fileId: current.file.fileId,
+						value: current.file.url,
+					}
+				})
 			} catch (err) {
-				this.onError(err)
+				showError(err.response.data.message)
 			}
 		},
 	},

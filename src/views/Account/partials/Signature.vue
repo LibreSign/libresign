@@ -27,6 +27,9 @@
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import { startsWith } from 'lodash-es'
 import Draw from '../../../Components/Draw/Draw.vue'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 
 export default {
 	name: 'Signature',
@@ -43,6 +46,11 @@ export default {
 			type: String,
 			required: false,
 			default: () => '',
+		},
+		id: {
+			type: Number,
+			required: false,
+			default: 0,
 		},
 	},
 	data: () => ({
@@ -67,15 +75,37 @@ export default {
 		close() {
 			this.isEditing = false
 		},
-		save(value) {
+		async save(base64) {
+			try {
+				if (this.id > 0) {
+					const response = await axios.patch(
+						generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
+							elementId: this.id,
+						}),
+						{
+							type: this.type,
+							file: { base64 },
+						},
+					)
+					showSuccess(response.data.message)
+				} else {
+					const response = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'),
+						{
+							type: this.type,
+							file: { base64 },
+						},
+					)
+					showSuccess(response.data.message)
+				}
+			} catch (err) {
+				showError(err.response.data.message)
+			}
 			this.$emit('save', {
-				base64: value,
+				base64,
 				type: this.type,
 			})
-
-			this.$nextTick(() => {
-				this.close()
-			})
+			this.close()
 		},
 	},
 }
