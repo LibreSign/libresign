@@ -35,8 +35,8 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\Libresign\Service\SignMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -66,7 +66,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected RequestSignatureService $requestSignatureService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
-		private SignMethodService $signMethodService,
+		private SignatureMethodService $SignatureMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
@@ -99,7 +99,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('signature_method', $this->signMethodService->getCurrent());
+		$this->initialState->provideInitialState('signature_method', $this->SignatureMethodService->getCurrent());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');

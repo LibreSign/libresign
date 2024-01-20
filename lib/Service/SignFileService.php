@@ -104,7 +104,7 @@ class SignFileService {
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
-		private SignMethodService $signMethod,
+		private SignatureMethodService $signMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
