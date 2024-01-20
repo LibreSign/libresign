@@ -70,7 +70,6 @@ class FileService {
 	private $settings = [
 		'canSign' => false,
 		'canRequestSign' => false,
-		'hasSignatureFile' => false,
 		'signerFileUuid' => null,
 		'phoneNumber' => '',
 	];
