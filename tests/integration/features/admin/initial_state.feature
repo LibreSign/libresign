@@ -6,7 +6,7 @@ Feature: admin/initial_state
     Then the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
@@ -20,7 +20,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
@@ -34,7 +34,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
@@ -48,7 +48,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
@@ -62,7 +62,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
@@ -75,7 +75,7 @@ Feature: admin/initial_state
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signature_method":{"id":"password","label":"Certificate with password"},"allowed_signature_methods":[{"id":"password","label":"Certificate with password"}]},
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
         {"name":"email","friendly_name":"Email","enabled":false,"mandatory":false,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """
