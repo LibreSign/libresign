@@ -7,7 +7,7 @@
 
 			<div class="code-request">
 				<h3 class="email">
-					{{ settings.email }}
+					{{ email }}
 				</h3>
 
 				<div v-if="tokenRequested">
@@ -32,11 +32,11 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { showSuccess } from '@nextcloud/dialogs'
-import { castArray } from 'lodash-es'
 import { onError } from '../../../helpers/errors.js'
-import { service as signService } from '../../../domains/sign/index.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -49,13 +49,19 @@ export default {
 		NcModal,
 	},
 	props: {
-		settings: {
+		email: {
 			type: Object,
 			required: true,
 		},
 		fileId: {
 			type: Number,
-			required: true,
+			required: false,
+			default: 0,
+		},
+		uuid: {
+			type: String,
+			required: false,
+			default: '',
 		},
 	},
 	data: () => ({
@@ -71,12 +77,18 @@ export default {
 			await this.$nextTick()
 
 			try {
-				const { message } = await signService.requestSignCode(this.fileId)
-
+				if (this.uuid.length > 0) {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+						fileId: this.fileId,
+					}))
+					showSuccess(data.message)
+				} else {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
+						uuid: this.uuid,
+					}))
+					showSuccess(data.message)
+				}
 				this.tokenRequested = true
-
-				castArray(message)
-					.forEach(showSuccess)
 			} catch (err) {
 				onError(err)
 			} finally {
