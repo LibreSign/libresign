@@ -9,7 +9,7 @@
 			<NcButton :wide="true"
 				:disabled="loading"
 				type="primary"
-				@click="callSignMethod">
+				@click="signDocument">
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
 		</div>
@@ -50,7 +50,7 @@
 			@save="saveSignature"
 			@close="onModalClose('createSignature')" />
 		<PasswordManager v-if="modals.password"
-			v-bind="{ hasPassword, signMethod }"
+			v-bind="{ hasPassword }"
 			@change="signWithPassword"
 			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
@@ -207,7 +207,6 @@ export default {
 			return {
 				...this.document.settings,
 				...this.user.settings,
-				email: this.email,
 			}
 		},
 		signMethod() {
@@ -297,7 +296,7 @@ export default {
 		callCreateSignature() {
 			this.modals.createSignature = true
 		},
-		callSignMethod() {
+		signDocument() {
 			if (this.modals[this.signMethod] === undefined) {
 				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
 				return

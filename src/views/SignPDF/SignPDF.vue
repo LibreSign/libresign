@@ -84,7 +84,7 @@ export default {
 				signers: loadState('libresign', 'signers', []),
 				pages: [],
 				visibleElements: loadState('libresign', 'visibleElements', []),
-				settings: { signMethod: 'password', canSign: false },
+				settings: { canSign: false },
 			},
 		}
 	},

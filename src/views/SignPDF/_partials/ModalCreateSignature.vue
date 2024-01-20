@@ -47,10 +47,6 @@ export default {
 			type: Boolean,
 			required: true,
 		},
-		signMethod: {
-			type: String,
-			required: true,
-		},
 	},
 	data: () => ({
 		view: VIEWS.INPUT_PASSWORD,
@@ -79,9 +75,7 @@ export default {
 		onCreate(val) {
 			this.$emit('create')
 
-			if (this.signMethod !== 'password') {
-				this.$nextTick(() => this.onClose())
-			}
+			this.onClose()
 		},
 		onChange(val) {
 			this.$emit('change', val)
