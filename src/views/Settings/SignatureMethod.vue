@@ -3,8 +3,8 @@
 		<p>
 			<NcSelect v-model="signatureMethod"
 				:options="allowedSignatureMethods"
-				@input="save()"
-				input-id="selectIdentificationDefault" />
+				input-id="selectIdentificationDefault"
+				@input="save()" />
 		</p>
 	</NcSettingsSection>
 </template>
