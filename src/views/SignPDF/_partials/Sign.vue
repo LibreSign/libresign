@@ -43,6 +43,23 @@
 				</p>
 			</div>
 		</div>
+		<NcModal v-if="modals['click-to-sign']" @close="modals['click-to-sign'] = false">
+			<div class="modal__content">
+				<h2 class="modal__header">
+					{{ t('libresign', 'Confirm') }}
+				</h2>
+				{{ t('libresign', 'Confirm your signature') }}
+				<div class="modal__button-row">
+					<NcButton @click="modals['click-to-sign'] = false">
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+					<NcButton type="primary"
+						@click="signDocument">
+						{{ t('libresign', 'Confirm') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcModal>
 		<Draw v-if="modals.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
@@ -69,6 +86,7 @@
 </template>
 
 <script>
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -92,6 +110,7 @@ export default {
 	name: 'Sign',
 	SIGN_METHODS,
 	components: {
+		NcModal,
 		NcButton,
 		PasswordManager,
 		SMSManager,
@@ -122,6 +141,7 @@ export default {
 				email: false,
 				sms: false,
 				createSignature: false,
+				'click-to-sign': false,
 			},
 			user: {
 				account: { uid: '', displayName: '', emailAddress: '' },
@@ -291,7 +311,7 @@ export default {
 		confirmSignDocument() {
 			if (this.modals[this.signatureMethod.id] === undefined) {
 				showError(t('libresign', '{signatureMethod} is not a valid sign method', {
-					signatureMethod: this.signatureMethod.label
+					signatureMethod: this.signatureMethod.label,
 				}))
 				return
 			}
@@ -317,6 +337,28 @@ export default {
 .sign-elements {
 	img {
 		max-width: 100%;
+	}
+}
+
+.modal {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		gap: 4px 0;
+	}
+	&__header {
+		font-weight: bold;
+		font-size: 20px;
+		margin-bottom: 12px;
+		line-height: 30px;
+		color: var(--color-text-light);
+	}
+	&__button-row {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
 	}
 }
 </style>
