@@ -40,7 +40,7 @@ use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use Psr\Container\ContainerInterface;
 
-class SignMethodService {
+class SignatureMethodService {
 	public const SIGN_PASSWORD = 'password';
 	public const SIGN_SIGNAL = 'signal';
 	public const SIGN_TELEGRAM = 'telegram';
@@ -100,15 +100,15 @@ class SignMethodService {
 	private function sendCode(IUser $user, SignRequest $signRequest, string $code): void {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
-			case SignMethodService::SIGN_SMS:
-			case SignMethodService::SIGN_TELEGRAM:
-			case SignMethodService::SIGN_SIGNAL:
+			case SignatureMethodService::SIGN_SMS:
+			case SignatureMethodService::SIGN_TELEGRAM:
+			case SignatureMethodService::SIGN_SIGNAL:
 				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
-			case SignMethodService::SIGN_EMAIL:
+			case SignatureMethodService::SIGN_EMAIL:
 				$this->sendCodeByEmail($signRequest, $code);
 				break;
-			case SignMethodService::SIGN_PASSWORD:
+			case SignatureMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
