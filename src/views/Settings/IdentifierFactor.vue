@@ -20,6 +20,7 @@
 					<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method') }}</label>
 					<NcSelect v-model="option.signature_method"
 						:options="option.allowed_signature_methods"
+						@input="save()"
 						input-id="selectIdentificationDefault" />
 				</div>
 			</div>
