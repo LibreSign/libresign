@@ -35,6 +35,7 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\Http;
@@ -57,6 +58,7 @@ class SignFileController extends AEnvironmentAwareController {
 		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		protected SignFileService $signFileService,
+		protected SignatureMethodService $signatureMethodService,
 		private FileService $fileService,
 		protected LoggerInterface $logger
 	) {
@@ -100,7 +102,8 @@ class SignFileController extends AEnvironmentAwareController {
 				])
 				->setCurrentUser($user)
 				->setVisibleElements($elements)
-				->setSignWithoutPassword(!empty($code))
+				// @todo improve this
+				->setSignWithoutPassword(!empty($code) || $this->signatureMethodService->getCurrent()['id'] === 'click-to-sign')
 				->setPassword($password)
 				->sign();
 
