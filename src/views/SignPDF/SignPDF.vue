@@ -25,8 +25,7 @@
 					</div>
 					<Sign v-else
 						v-bind="{ document, uuid, docType }"
-						@signed="onSigned"
-						@update:phone="onPhoneUpdated" />
+						@signed="onSigned" />
 				</main>
 			</div>
 		</NcAppNavigation>
@@ -84,7 +83,6 @@ export default {
 				signers: loadState('libresign', 'signers', []),
 				pages: [],
 				visibleElements: loadState('libresign', 'visibleElements', []),
-				settings: { canSign: false },
 			},
 		}
 	},
@@ -127,13 +125,6 @@ export default {
 			showSuccess(data.message)
 			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
 			window.location.href = url.href
-		},
-		onPhoneUpdated(val) {
-			const doc = {
-				...this.document,
-			}
-
-			this.document = doc
 		},
 	},
 }
