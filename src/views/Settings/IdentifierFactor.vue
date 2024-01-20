@@ -51,7 +51,6 @@
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -61,7 +60,6 @@ export default {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
 		NcActionCheckbox,
-		NcSelect,
 	},
 	data() {
 		const identifyMethod = loadState('libresign', 'identify_methods')
