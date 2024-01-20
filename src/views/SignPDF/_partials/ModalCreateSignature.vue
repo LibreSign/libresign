@@ -43,7 +43,7 @@ export default {
 		CreatePassword,
 	},
 	props: {
-		hasPassword: {
+		hasSignatureFile: {
 			type: Boolean,
 			required: true,
 		},
@@ -64,7 +64,7 @@ export default {
 		},
 	},
 	mounted() {
-		if (!this.hasPassword) {
+		if (!this.hasSignatureFile) {
 			this.view = VIEWS.CREATE_PASSWORD
 		}
 	},

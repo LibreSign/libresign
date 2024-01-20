@@ -14,7 +14,7 @@
 			</NcButton>
 		</div>
 		<div v-else-if="!loading" class="button-wrapper">
-			<div v-if="needPassword && !hasPassword">
+			<div v-if="needPassword && !hasSignatureFile">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
@@ -50,7 +50,7 @@
 			@save="saveSignature"
 			@close="onModalClose('createSignature')" />
 		<PasswordManager v-if="modals.password"
-			v-bind="{ hasPassword }"
+			v-bind="{ hasSignatureFile }"
 			@change="signWithPassword"
 			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
@@ -128,7 +128,7 @@ export default {
 		},
 		userSignatures: [],
 		createPassword: false,
-		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile,
+		hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
 	}),
 	computed: {
 		signer() {
@@ -171,7 +171,7 @@ export default {
 			return this.signMethod === 'password'
 		},
 		ableToSign() {
-			if (this.needPassword && !this.hasPassword) {
+			if (this.needPassword && !this.hasSignatureFile) {
 				return false
 			}
 
@@ -287,8 +287,8 @@ export default {
 				this.loading = false
 			}
 		},
-		onPasswordCreate(hasPassword) {
-			this.hasPassword = hasPassword
+		onPasswordCreate(hasSignatureFile) {
+			this.hasSignatureFile = hasSignatureFile
 		},
 		callPassword() {
 			this.modals.password = true
