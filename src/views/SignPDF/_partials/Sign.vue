@@ -9,7 +9,7 @@
 			<NcButton :wide="true"
 				:disabled="loading"
 				type="primary"
-				@click="signDocument">
+				@click="confirmSignDocument">
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
 		</div>
@@ -129,6 +129,7 @@ export default {
 		userSignatures: [],
 		createPassword: false,
 		hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
+		signatureMethod: loadState('libresign', 'signature_method'),
 	}),
 	computed: {
 		signer() {
@@ -168,7 +169,7 @@ export default {
 			return this.document?.visibleElements.length > 0
 		},
 		needPassword() {
-			return this.signMethod === 'password'
+			return this.signatureMethod === 'password'
 		},
 		ableToSign() {
 			if (this.needPassword && !this.hasSignatureFile) {
@@ -208,9 +209,6 @@ export default {
 				...this.document.settings,
 				...this.user.settings,
 			}
-		},
-		signMethod() {
-			return this.settings.signMethod || 'password'
 		},
 		email() {
 			return this.user?.account?.emailAddress || 'unknown'
@@ -296,13 +294,13 @@ export default {
 		callCreateSignature() {
 			this.modals.createSignature = true
 		},
-		signDocument() {
-			if (this.modals[this.signMethod] === undefined) {
-				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
+		confirmSignDocument() {
+			if (this.modals[this.signatureMethod] === undefined) {
+				showError(t('libresign', '%s is not a valid sign method', this.signatureMethod))
 				return
 			}
 
-			this.modals[this.signMethod] = true
+			this.modals[this.signatureMethod] = true
 		},
 		onModalClose(modal) {
 			this.modals[modal] = false
