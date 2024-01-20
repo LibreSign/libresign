@@ -47,7 +47,6 @@ class RequestSignatureService {
 
 	public function __construct(
 		protected IL10N $l10n,
-		protected SignMethodService $signMethod,
 		protected IdentifyMethodService $identifyMethod,
 		protected SignRequestMapper $signRequestMapper,
 		protected IUserManager $userManager,
