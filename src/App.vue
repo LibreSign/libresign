@@ -94,7 +94,6 @@ export default {
 				identificationDocumentsFlow: false,
 				isApprover: false,
 				phoneNumber: '',
-				signMethod: 'password',
 			}),
 			loading: false,
 			LogoLibreSign,
