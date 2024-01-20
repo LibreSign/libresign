@@ -66,7 +66,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected RequestSignatureService $requestSignatureService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
-		private SignatureMethodService $SignatureMethodService,
+		private SignatureMethodService $signatureMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
@@ -158,7 +158,7 @@ class PageController extends AEnvironmentPageAwareController {
 		if ($this->userSession->getUser()) {
 			$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
 		}
-		$this->initialState->provideInitialState('signature_method', $this->SignatureMethodService->getCurrent());
+		$this->initialState->provideInitialState('signature_method', $this->signatureMethodService->getCurrent());
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
