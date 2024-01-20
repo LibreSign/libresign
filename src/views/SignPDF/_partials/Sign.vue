@@ -114,23 +114,25 @@ export default {
 			default: 'default',
 		},
 	},
-	data: () => ({
-		loading: true,
-		modals: {
-			password: false,
-			email: false,
-			sms: false,
-			createSignature: false,
-		},
-		user: {
-			account: { uid: '', displayName: '', emailAddress: '' },
-			settings: { canRequestSign: false },
-		},
-		userSignatures: [],
-		createPassword: false,
-		hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
-		signatureMethod: loadState('libresign', 'signature_method'),
-	}),
+	data() {
+		return {
+			loading: true,
+			modals: {
+				password: false,
+				email: false,
+				sms: false,
+				createSignature: false,
+			},
+			user: {
+				account: { uid: '', displayName: '', emailAddress: '' },
+				settings: { canRequestSign: false },
+			},
+			userSignatures: loadState('libresign', 'user_signatures'),
+			createPassword: false,
+			hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
+			signatureMethod: loadState('libresign', 'signature_method'),
+		}
+	},
 	computed: {
 		signer() {
 			return this.document?.signers.find(row => row.me) || {}
@@ -219,7 +221,6 @@ export default {
 
 		Promise.all([
 			this.loadUser(),
-			this.loadSignatures(),
 		])
 			.catch(console.warn)
 			.then(() => {
@@ -234,16 +235,9 @@ export default {
 			} catch (err) {
 			}
 		},
-		async loadSignatures() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
-				this.userSignatures = response.data.elements
-			} catch (err) {
-			}
-		},
 		async saveSignature(value) {
 			try {
-				const res = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
 					elements: [
 						{
 							file: {
@@ -253,8 +247,8 @@ export default {
 						},
 					],
 				})
-				await this.loadSignatures()
-				showSuccess(res.data.message)
+				this.userSignatures = response.data.elements
+				showSuccess(response.data.message)
 			} catch (err) {
 				onError(err)
 			}
