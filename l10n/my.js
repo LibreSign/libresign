@@ -20,8 +20,6 @@ OC.L10N.register(
     "Generating certificate." : "Certificate ဖန်တီးနေသည်။",
     "Could not generate certificate." : "Certificate ဖန်တီးမှု မပြုလုပ်နိုင်ပါ။",
     "Generated certificate!" : "Certificate ဖန်တီးပြီး!",
-    "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
-    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။",
     "Enter the ID or UUID of the document to validate." : "စာရွက်စာတမ်းကို ခိုင်လုံမှုစစ်ဆေးရန် ID သို့မဟုတ် UUID ဖြည့်သွင်းပါ။",
     "Validation" : "ခိုင်လုံမှုစိစစ်ခြင်း",
     "No date" : "ရက်စွဲမပါ",
@@ -29,6 +27,8 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
     "Add users" : "အသုံးပြုသူ ထည့်သွင်းရန်",
     "Root certificate data." : "Root Certificate အချက်အလက်",
-    "Generate root certificate." : "Root Certificate ဖန်တီးရန်။"
+    "Generate root certificate." : "Root Certificate ဖန်တီးရန်။",
+    "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
+    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။"
 },
 "nplurals=1; plural=0;");
