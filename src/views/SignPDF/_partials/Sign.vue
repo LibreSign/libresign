@@ -171,7 +171,7 @@ export default {
 			return this.document?.visibleElements.length > 0
 		},
 		needPassword() {
-			return this.signatureMethod === 'password'
+			return this.signatureMethod.id === 'password'
 		},
 		ableToSign() {
 			if (this.needPassword && !this.hasSignatureFile) {
@@ -289,12 +289,14 @@ export default {
 			this.modals.createSignature = true
 		},
 		confirmSignDocument() {
-			if (this.modals[this.signatureMethod] === undefined) {
-				showError(t('libresign', '%s is not a valid sign method', this.signatureMethod))
+			if (this.modals[this.signatureMethod.id] === undefined) {
+				showError(t('libresign', '{signatureMethod} is not a valid sign method', {
+					signatureMethod: this.signatureMethod.label
+				}))
 				return
 			}
 
-			this.modals[this.signatureMethod] = true
+			this.modals[this.signatureMethod.id] = true
 		},
 		onModalClose(modal) {
 			this.modals[modal] = false
