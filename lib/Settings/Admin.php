@@ -27,6 +27,7 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignMethodService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IConfig;
@@ -38,7 +39,8 @@ class Admin implements ISettings {
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
-		private IConfig $config
+		private IConfig $config,
+		private SignMethodService $signMethodService,
 	) {
 	}
 	public function getForm(): TemplateResponse {
@@ -46,6 +48,14 @@ class Admin implements ISettings {
 		$this->initialState->provideInitialState(
 			'identify_methods',
 			$this->identifyMethodService->getIdentifyMethodsSettings()
+		);
+		$this->initialState->provideInitialState(
+			'signature_method',
+			$this->signMethodService->getCurrent()
+		);
+		$this->initialState->provideInitialState(
+			'allowed_signature_methods',
+			$this->signMethodService->getAllowedMethods()
 		);
 		$this->initialState->provideInitialState(
 			'certificate_engine',

@@ -15,14 +15,6 @@
 						{{ t('libresign', 'Make this method required') }}
 					</NcActionCheckbox>
 				</div>
-
-				<div class="container-select">
-					<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method') }}</label>
-					<NcSelect v-model="option.signature_method"
-						:options="option.allowed_signature_methods"
-						@input="save()"
-						input-id="selectIdentificationDefault" />
-				</div>
 			</div>
 			<div v-else-if="option.name === 'email' && option.enabled">
 				<NcCheckboxRadioSwitch type="switch"
