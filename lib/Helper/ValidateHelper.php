@@ -40,6 +40,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -76,6 +77,7 @@ class ValidateHelper {
 		private UserElementMapper $userElementMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private SignatureMethodService $signatureMethodService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
 		private IConfig $config,
@@ -687,6 +689,10 @@ class ValidateHelper {
 	}
 
 	public function validateCredentials(SignRequest $signRequest, IUser $user, array $params): void {
+		$current = $this->signatureMethodService->getCurrent();
+		if ($current['id'] === 'click-to-sign') {
+			return;
+		}
 		$params = array_filter($params, function ($value): bool {
 			return !empty($value);
 		});
