@@ -99,7 +99,6 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
-		$this->initialState->provideInitialState('signature_method', $this->SignatureMethodService->getCurrent());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
 		Util::addScript(Application::APP_ID, 'libresign-main');
@@ -157,6 +156,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
+		$this->initialState->provideInitialState('signature_method', $this->SignatureMethodService->getCurrent());
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
