@@ -109,8 +109,7 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/FileService.php">
-    <MissingDependency occurrences="2">
-      <code>$this-&gt;rootFolder</code>
+    <MissingDependency occurrences="1">
       <code>private</code>
     </MissingDependency>
   </file>
@@ -131,6 +130,11 @@
     </MissingDependency>
   </file>
   <file src="lib/Service/IdentifyMethod/Account.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
+    </MissingDependency>
+  </file>
+  <file src="lib/Service/IdentifyMethod/ClickToSign.php">
     <MissingDependency occurrences="1">
       <code>private</code>
     </MissingDependency>
