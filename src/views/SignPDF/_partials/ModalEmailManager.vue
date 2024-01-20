@@ -83,7 +83,7 @@ export default {
 					}))
 					showSuccess(data.message)
 				} else {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
 						uuid: this.uuid,
 					}))
 					showSuccess(data.message)
