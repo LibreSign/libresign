@@ -245,7 +245,8 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'message' => $th->getMessage()
+					'message' => $th->getMessage(),
+					'elements' => $this->accountService->getUserElements($this->userSession->getUser()->getUID()),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
