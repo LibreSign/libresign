@@ -1,15 +1,18 @@
 <template>
 	<NcModal size="normal" @close="close">
-		<NcContent class="modal-view">
-			<template slot="header">
-				<h2>{{ t('libresign', 'Sign with your email.') }}</h2>
-			</template>
+		<div class="modal__content">
+			<h2 class="modal__header">
+				{{ t('libresign', 'Sign with your email.') }}
+			</h2>
 
 			<div class="code-request">
-				<h3 class="email">
+				<div v-if="email" class="email">
 					{{ email }}
-				</h3>
-
+				</div>
+				<NcTextField v-else
+					:label="t('libresign', 'Email')"
+					:placeholder="t('libresign', 'Email')"
+					:value.sync="sendTo" />
 				<div v-if="tokenRequested">
 					<input v-model="token"
 						:disabled="loading"
@@ -17,17 +20,17 @@
 						type="text">
 				</div>
 
-				<div>
-					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
+				<div class="modal__button-row">
+					<NcButton v-if="!tokenRequested" :disabled="loading || !canRequestCode" @click="requestCode">
 						{{ t('libresign', 'Request code.') }}
-					</button>
+					</NcButton>
 
-					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
+					<NcButton v-if="tokenRequested" :disabled="loading || !canRequestCode" @click="sendCode">
 						{{ t('libresign', 'Send code.') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
-		</NcContent>
+		</div>
 	</NcModal>
 </template>
 
@@ -35,8 +38,11 @@
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
+import { validateEmail } from '../../../utils/validators.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -47,11 +53,14 @@ export default {
 	name: 'ModalEmailManager',
 	components: {
 		NcModal,
+		NcTextField,
+		NcButton,
 	},
 	props: {
 		email: {
-			type: Object,
+			type: String,
 			required: true,
+			default: '',
 		},
 		fileId: {
 			type: Number,
@@ -68,7 +77,16 @@ export default {
 		token: '',
 		tokenRequested: false,
 		loading: false,
+		sendTo: ''
 	}),
+	computed: {
+		canRequestCode() {
+			if(validateEmail(this.sendTo)) {
+				return true
+			}
+			return false
+		}
+	},
 	methods: {
 		async requestCode() {
 			this.loading = true
@@ -77,15 +95,23 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.uuid.length > 0) {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-						fileId: this.fileId,
-					}))
+				if (this.fileId.length > 0) {
+					const { data } = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {fileId: this.fileId}),
+						{
+							sendToEmail: this.sendTo,
+							method: 'email',
+						}
+					)
 					showSuccess(data.message)
 				} else {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
-						uuid: this.uuid,
-					}))
+					const { data } = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {uuid: this.uuid}),
+						{
+							sendToEmail: this.sendTo,
+							method: 'email',
+						}
+					)
 					showSuccess(data.message)
 				}
 				this.tokenRequested = true
@@ -113,7 +139,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-h3.email {
+.email {
 	font-family: monospace;
 	text-align: center;
 }
@@ -140,6 +166,28 @@ button {
 		height: auto !important;
 		display: block;
 		margin: 0 auto;
+	}
+}
+
+.modal {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		gap: 4px 0;
+	}
+	&__header {
+		font-weight: bold;
+		font-size: 20px;
+		margin-bottom: 12px;
+		line-height: 30px;
+		color: var(--color-text-light);
+	}
+	&__button-row {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
 	}
 }
 
