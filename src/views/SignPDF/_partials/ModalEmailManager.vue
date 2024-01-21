@@ -88,15 +88,15 @@ export default {
 		token: '',
 		tokenRequested: false,
 		loading: false,
-		sendTo: ''
+		sendTo: '',
 	}),
 	computed: {
 		canRequestCode() {
-			if(validateEmail(this.sendTo)) {
+			if (validateEmail(this.sendTo)) {
 				return true
 			}
 			return false
-		}
+		},
 	},
 	methods: {
 		async requestCode() {
@@ -108,20 +108,20 @@ export default {
 			try {
 				if (this.fileId.length > 0) {
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {fileId: this.fileId}),
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
 						{
 							sendToEmail: this.sendTo,
 							method: 'email',
-						}
+						},
 					)
 					showSuccess(data.message)
 				} else {
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {uuid: this.uuid}),
+						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
 						{
 							sendToEmail: this.sendTo,
 							method: 'email',
-						}
+						},
 					)
 					showSuccess(data.message)
 				}
