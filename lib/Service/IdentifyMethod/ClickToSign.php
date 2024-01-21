@@ -40,6 +40,7 @@ use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 class ClickToSign extends AbstractIdentifyMethod {
+	public const ID = 'click-to-sign';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,

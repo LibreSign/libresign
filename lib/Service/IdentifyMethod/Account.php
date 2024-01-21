@@ -46,6 +46,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
+	public const ID = 'account';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,

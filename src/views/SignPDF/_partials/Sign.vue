@@ -76,6 +76,7 @@
 			:phone-number="user?.account?.phoneNumber"
 			:uuid="uuid"
 			:file-id="document.fileId"
+			:confirm-code="needSmsCode"
 			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
@@ -84,6 +85,7 @@
 			:email="blurredEmail"
 			:uuid="uuid"
 			:file-id="document.fileId"
+			:confirm-code="needEmailCode"
 			@change="signWithCode"
 			@close="onModalClose('email')" />
 	</div>
@@ -137,6 +139,7 @@ export default {
 		},
 	},
 	data() {
+		const identifyMethods = loadState('libresign', 'identifyMethods')
 		return {
 			loading: true,
 			modals: {
@@ -154,6 +157,7 @@ export default {
 			createPassword: false,
 			hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
 			signatureMethod: loadState('libresign', 'signature_method'),
+			identifyMethods,
 		}
 	},
 	computed: {
@@ -196,6 +200,12 @@ export default {
 		needPassword() {
 			return this.signatureMethod.id === 'password'
 		},
+		needEmailCode() {
+			return this.needValidate('email')
+		},
+		needSmsCode() {
+			return this.needValidate('sms')
+		},
 		ableToSign() {
 			if (this.needPassword && !this.hasSignatureFile) {
 				return false
@@ -210,6 +220,8 @@ export default {
 	},
 	mounted() {
 		this.loading = true
+		this.modals.email = this.needEmailCode
+		this.modals.sms = this.needSmsCode
 
 		Promise.all([
 			this.loadUser(),
@@ -220,6 +232,12 @@ export default {
 			})
 	},
 	methods: {
+		needValidate(method) {
+			const total = this.identifyMethods.find(row => {
+				return row.method === method && row.validateCode
+			})
+			return typeof total === 'object'
+		},
 		async loadUser() {
 			try {
 				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
