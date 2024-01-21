@@ -16,7 +16,6 @@ OC.L10N.register(
     "File already exists" : "ファイルが既に存在します",
     "Empty file" : "空白のファイル",
     "File is too big" : "ファイルが大きすぎます",
-    "Page not found." : "ページが見つかりません。",
     "Account" : "アカウント",
     "Invalid user" : "無効なユーザー",
     "Email" : "メール",
@@ -79,6 +78,7 @@ OC.L10N.register(
     "Open in LibreSign" : "LibreSignで開く",
     "User created!" : "ユーザーが作成しました！",
     "Password created!" : "パスワードが作成しました！",
+    "Page not found." : "ページが見つかりません。",
     "Reset password" : "パスワードをリセット",
     "Add users" : "ユーザーを追加",
     "Remove" : "削除"
