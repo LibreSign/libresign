@@ -25,9 +25,10 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\Password;
@@ -42,14 +43,19 @@ use OCP\Security\ISecureRandom;
 use Psr\Container\ContainerInterface;
 
 class SignatureMethodService {
-	public const SIGN_PASSWORD = 'password';
-	public const SIGN_SIGNAL = 'signal';
-	public const SIGN_TELEGRAM = 'telegram';
-	public const SIGN_SMS = 'sms';
-	public const SIGN_EMAIL = 'email';
+	private const SIGN_PASSWORD = 'password';
+	private const SIGN_SIGNAL = 'signal';
+	private const SIGN_TELEGRAM = 'telegram';
+	private const SIGN_SMS = 'sms';
+	private const SIGN_EMAIL = 'email';
+	private const DEFAULT_SIGN_METHOD = 'password';
+	/**
+	 * @var AbstractIdentifyMethod[]
+	 */
+	private array $allowedMethods;
 
 	public function __construct(
-		private SignRequestMapper $signRequestMapper,
+		private IdentifyMethodService $identifyMethodService,
 		private IAccountManager $accountManager,
 		private IAppManager $appManager,
 		private IConfig $config,
@@ -57,8 +63,16 @@ class SignatureMethodService {
 		private ISecureRandom $secureRandom,
 		private IHasher $hasher,
 		private ContainerInterface $serverContainer,
-		private MailService $mail
+		private MailService $mail,
+		private Password $password,
+		private ClickToSign $clickToSign,
+		private Email $email,
 	) {
+		$this->allowedMethods = [
+			$this->password::ID => $this->password,
+			$this->clickToSign::ID => $this->clickToSign,
+			$this->email::ID => $this->email,
+		];
 	}
 
 	public function getCurrent(): array {
@@ -76,48 +90,65 @@ class SignatureMethodService {
 	}
 
 	public function getAllowedMethods(): array {
-		return [
-			[
-				'id' => 'password',
-				'label' => \OC::$server->get(Password::class)->friendlyName,
-			],
-			[
-				'id' => 'click-to-sign',
-				'label' => \OC::$server->get(ClickToSign::class)->friendlyName,
-			],
-			[
-				'id' => 'email',
-				'label' => \OC::$server->get(Email::class)->friendlyName,
-			],
-		];
+		return array_map(function (AbstractIdentifyMethod $method) {
+			return [
+				'id' => $method->id,
+				'label' => $method->friendlyName,
+			];
+		}, array_values($this->allowedMethods));
 	}
 
-	public function requestCode(SignRequest $signRequest, IUser $user, string $sendToEmail = ''): string {
+	public function requestCode(SignRequest $signRequest, string $methodId, string $identify = ''): string {
+		if (!array_key_exists($methodId, $this->allowedMethods)) {
+			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
+		}
+
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (!empty($identifyMethods[$methodId])) {
+			$method = array_filter($identifyMethods[$methodId], function (IdentifyMethod $identifyMethod) use ($methodId) {
+				if ($identifyMethod->getIdentifierKey() === $methodId) {
+					true;
+				}
+				return false;
+			});
+			$method = current($method);
+		}
+		if (empty($method)) {
+			$method = $this->identifyMethodService->getInstanceOfIdentifyMethod($methodId, $identify);
+		} else {
+			if (!empty($identify) && $identify !== $method->getEntity()->getIdentifierKey()) {
+				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+			}
+			$identify = $method->getEntity()->getIdentifierKey();
+		}
+
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
-		$this->sendCode($user, $token, $signRequest->getDisplayName(), $sendToEmail);
-		$signRequest->setCode($this->hasher->hash($token));
-		$this->signRequestMapper->update($signRequest);
+		$this->sendCode($signRequest, $methodId, $token, $identify);
+
+		$entity = $method->getEntity();
+		$entity->setCode($this->hasher->hash($token));
+		$entity->setMandatory(0);
+		$this->identifyMethodService->save($signRequest, false);
+
 		return $token;
 	}
 
-	private function sendCode(IUser $user, string $code, string $displayName, string $sendToEmail): void {
-		$current = $this->getCurrent();
-		$signMethod = $current['id'];
-		switch ($signMethod) {
+	private function sendCode(SignRequest $signRequest, string $methodId, string $code, string $identify = ''): void {
+		switch ($methodId) {
 			case SignatureMethodService::SIGN_SMS:
 			case SignatureMethodService::SIGN_TELEGRAM:
 			case SignatureMethodService::SIGN_SIGNAL:
-				$this->sendCodeByGateway($user, $code, $signMethod);
+				$this->sendCodeByGateway($code, gatewayName: $methodId);
 				break;
 			case SignatureMethodService::SIGN_EMAIL:
-				$this->sendCodeByEmail($sendToEmail, $displayName, $code);
+				$this->sendCodeByEmail($code, $identify, $signRequest->getDisplayName());
 				break;
 			case SignatureMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
 
-	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName): void {
+	private function sendCodeByGateway(string $code, string $gatewayName): void {
 		$gateway = $this->getGateway($user, $gatewayName);
 
 		$userAccount = $this->accountManager->getAccount($user);
@@ -140,7 +171,11 @@ class SignatureMethodService {
 		return $gateway;
 	}
 
-	private function sendCodeByEmail(string $email, string $name, string $code): void {
-		$this->mail->sendCodeToSign($email, $name, $code);
+	private function sendCodeByEmail(string $code, string $email, string $displayName): void {
+		$this->mail->sendCodeToSign(
+			email: $email,
+			name: $displayName,
+			code: $code
+		);
 	}
 }

@@ -42,6 +42,7 @@ use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 class Password extends AbstractIdentifyMethod {
+	public const ID = 'password';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,

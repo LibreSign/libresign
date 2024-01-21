@@ -47,6 +47,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
+	public string $id;
 	public string $friendlyName;
 	protected array $settings = [];
 	protected bool $willNotify = true;
@@ -64,6 +65,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
+		$this->id = $this->camelToUnderscore($this->name);
 		$this->cleanEntity();
 	}
 
@@ -143,6 +145,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function updateIdentifiedAt(): void {
+		if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
+			return;
+		}
 		$this->getEntity()->setIdentifiedAtDate($this->timeFactory->getDateTime());
 		$this->willNotify = false;
 		$this->save();
@@ -311,5 +316,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$exists = current($exists);
 		$entity->setId($exists->getId());
+	}
+
+	private function camelToUnderscore($string) {
+		return strtolower(preg_replace(
+			'/(?<=\d)(?=[A-Za-z])|(?<=[A-Za-z])(?=\d)|(?<=[a-z])(?=[A-Z])/', '_', $string));
 	}
 }

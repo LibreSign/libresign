@@ -43,6 +43,7 @@ use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
+	public const ID = 'email';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -138,6 +139,9 @@ class Email extends AbstractIdentifyMethod {
 		}
 		$email = $this->entity->getIdentifierValue();
 		if ($user->getEMailAddress() !== $email) {
+			if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
+				return;
+			}
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid user')],

@@ -11,27 +11,27 @@
 				<div v-if="email" class="email">
 					{{ email }}
 				</div>
-				<NcTextField v-else
+				<NcTextField v-else-if="!needConfirmCode"
 					:disabled="loading"
 					:label="t('libresign', 'Email')"
 					:placeholder="t('libresign', 'Email')"
 					:value.sync="sendTo" />
-				<div v-if="tokenRequested">
-					<input v-model="token"
+				<div v-else>
+					<NcTextField :value.sync="token"
 						:disabled="loading"
 						name="code"
-						type="text">
+						type="text" />
 				</div>
 
 				<div class="modal__button-row">
-					<NcButton v-if="!tokenRequested" :disabled="loading || !canRequestCode" @click="requestCode">
+					<NcButton v-if="!needConfirmCode" :disabled="loading || !canRequestCode" @click="requestCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
 						{{ t('libresign', 'Request code.') }}
 					</NcButton>
 
-					<NcButton v-if="tokenRequested" :disabled="loading || !canRequestCode" @click="sendCode">
+					<NcButton v-if="needConfirmCode" :disabled="loading || !canRequestCode" @click="sendCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
@@ -73,6 +73,11 @@ export default {
 			required: true,
 			default: '',
 		},
+		confirmCode: {
+			type: Boolean,
+			required: true,
+			default: false,
+		},
 		fileId: {
 			type: Number,
 			required: false,
@@ -97,6 +102,9 @@ export default {
 			}
 			return false
 		},
+		needConfirmCode() {
+			return this.confirmCode || this.tokenRequested
+		},
 	},
 	methods: {
 		async requestCode() {
@@ -110,8 +118,8 @@ export default {
 					const { data } = await axios.post(
 						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
 						{
-							sendToEmail: this.sendTo,
-							method: 'email',
+							identify: this.sendTo,
+							methodId: 'email',
 						},
 					)
 					showSuccess(data.message)
@@ -119,8 +127,8 @@ export default {
 					const { data } = await axios.post(
 						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
 						{
-							sendToEmail: this.sendTo,
-							method: 'email',
+							identify: this.sendTo,
+							methodId: 'email',
 						},
 					)
 					showSuccess(data.message)

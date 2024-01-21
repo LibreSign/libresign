@@ -188,7 +188,6 @@ class SignFileController extends AEnvironmentAwareController {
 		$statusCode = null;
 		try {
 			try {
-				$user = $this->userSession->getUser();
 				if ($fileId) {
 					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 				} else {
@@ -202,8 +201,8 @@ class SignFileController extends AEnvironmentAwareController {
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
-				user: $user,
-				sendToEmail: $this->request->getParam('sendToEmail', ''),
+				methodId: $this->request->getParam('methodId', ''),
+				identify: $this->request->getParam('identify', ''),
 			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
