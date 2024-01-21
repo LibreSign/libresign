@@ -81,7 +81,7 @@
 			@close="onModalClose('sms')" />
 
 		<EmailManager v-if="modals.email"
-			:email="user?.account?.emailAddress"
+			:email="blurredEmail"
 			:uuid="uuid"
 			:file-id="document.fileId"
 			@change="signWithCode"
@@ -149,6 +149,7 @@ export default {
 			user: {
 				account: { uid: '', displayName: '' },
 			},
+			blurredEmail: loadState('libresign', 'blurred_email', ''),
 			userSignatures: loadState('libresign', 'user_signatures'),
 			createPassword: false,
 			hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,

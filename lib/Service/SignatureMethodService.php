@@ -29,6 +29,7 @@ use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
+use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\Password;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
@@ -46,7 +47,6 @@ class SignatureMethodService {
 	public const SIGN_TELEGRAM = 'telegram';
 	public const SIGN_SMS = 'sms';
 	public const SIGN_EMAIL = 'email';
-	private const DEFAULT_SIGN_METHOD = 'password';
 
 	public function __construct(
 		private SignRequestMapper $signRequestMapper,
@@ -85,20 +85,24 @@ class SignatureMethodService {
 				'id' => 'click-to-sign',
 				'label' => \OC::$server->get(ClickToSign::class)->friendlyName,
 			],
+			[
+				'id' => 'email',
+				'label' => \OC::$server->get(Email::class)->friendlyName,
+			],
 		];
 	}
 
-	public function requestCode(SignRequest $signRequest, IUser $user): string {
-		return $this->requestCode($signRequest, $user);
+	public function requestCode(SignRequest $signRequest, IUser $user, string $sendToEmail = ''): string {
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
-		$this->sendCode($user, $signRequest, $token);
+		$this->sendCode($user, $token, $signRequest->getDisplayName(), $sendToEmail);
 		$signRequest->setCode($this->hasher->hash($token));
 		$this->signRequestMapper->update($signRequest);
 		return $token;
 	}
 
-	private function sendCode(IUser $user, SignRequest $signRequest, string $code): void {
-		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
+	private function sendCode(IUser $user, string $code, string $displayName, string $sendToEmail): void {
+		$current = $this->getCurrent();
+		$signMethod = $current['id'];
 		switch ($signMethod) {
 			case SignatureMethodService::SIGN_SMS:
 			case SignatureMethodService::SIGN_TELEGRAM:
@@ -106,7 +110,7 @@ class SignatureMethodService {
 				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
 			case SignatureMethodService::SIGN_EMAIL:
-				$this->sendCodeByEmail($signRequest, $code);
+				$this->sendCodeByEmail($sendToEmail, $displayName, $code);
 				break;
 			case SignatureMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
@@ -136,7 +140,7 @@ class SignatureMethodService {
 		return $gateway;
 	}
 
-	private function sendCodeByEmail(SignRequest $signRequest, string $code): void {
-		$this->mail->sendCodeToSign($signRequest, $code);
+	private function sendCodeByEmail(string $email, string $name, string $code): void {
+		$this->mail->sendCodeToSign($email, $name, $code);
 	}
 }

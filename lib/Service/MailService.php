@@ -38,7 +38,7 @@ use Psr\Log\LoggerInterface;
 class MailService {
 	/** @var array */
 	private $files = [];
-	
+
 	public function __construct(
 		private LoggerInterface $logger,
 		private IMailer $mailer,
@@ -146,17 +146,17 @@ class MailService {
 		}
 	}
 
-	public function sendCodeToSign(SignRequest $signRequest, string $code): void {
+	public function sendCodeToSign(string $email, string $name, string $code): void {
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.TestEmail');
 		$emailTemplate->setSubject($this->l10n->t('LibreSign: Code to sign file'));
 		$emailTemplate->addHeader();
 		$emailTemplate->addBodyText($this->l10n->t('Use this code to sign the document:'));
 		$emailTemplate->addBodyText($code);
 		$message = $this->mailer->createMessage();
-		if ($signRequest->getDisplayName()) {
-			$message->setTo([$signRequest->getEmail() => $signRequest->getDisplayName()]);
+		if (!empty($name)) {
+			$message->setTo([$email => $name]);
 		} else {
-			$message->setTo([$signRequest->getEmail()]);
+			$message->setTo([$email]);
 		}
 		$message->useTemplate($emailTemplate);
 		try {

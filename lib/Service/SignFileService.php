@@ -414,8 +414,8 @@ class SignFileService {
 		}, $identifyMethods[$method]);
 	}
 
-	public function requestCode(SignRequestEntity $signRequest, IUser $user): string {
-		return $this->signMethod->requestCode($signRequest, $user);
+	public function requestCode(SignRequestEntity $signRequest, IUser $user, string $sendToEmail = ''): string {
+		return $this->signMethod->requestCode($signRequest, $user, $sendToEmail);
 	}
 
 	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
