@@ -6,9 +6,9 @@
 				<!-- <p>{{ t('libresign', 'Sign the document.') }}</p> -->
 			</template>
 
-			<div v-if="hasNumber" class="code-request">
+			<div v-if="newPhoneNumber" class="code-request">
 				<h3 class="phone">
-					{{ phoneNumber }}
+					{{ newPhoneNumber }}
 				</h3>
 
 				<div v-if="tokenRequested">
@@ -30,7 +30,7 @@
 			</div>
 			<div v-else class="store-number">
 				<div>
-					<input v-model="phoneNumber"
+					<input v-model="newPhoneNumber"
 						:disabled="loading"
 						name="cellphone"
 						placeholder="+55 00 0 0000 0000"
@@ -39,7 +39,7 @@
 				</div>
 
 				<div>
-					<button :disabled="loading || phoneNumber.length < 10" @click="saveNumber">
+					<button :disabled="loading || newPhoneNumber.length < 10" @click="saveNumber">
 						{{ t('libresign', 'Save your number.') }}
 					</button>
 				</div>
@@ -49,14 +49,14 @@
 </template>
 
 <script>
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import { confirmPassword } from '@nextcloud/password-confirmation'
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { isEmpty, castArray } from 'lodash-es'
 import { onError } from '../../../helpers/errors.js'
 import { settingsService } from '../../../domains/settings/index.js'
-import { service as signService } from '../../../domains/sign/index.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -69,34 +69,27 @@ export default {
 		NcModal,
 	},
 	props: {
-		settings: {
-			type: Object,
+		phoneNumber: {
+			type: String,
 			required: true,
 		},
 		fileId: {
 			type: Number,
-			required: true,
+			required: false,
+			default: 0,
+		},
+		uuid: {
+			type: String,
+			required: false,
+			default: '',
 		},
 	},
 	data: () => ({
 		token: '',
-		phoneNumber: '',
+		newPhoneNumber: this.phoneNumber,
 		tokenRequested: false,
 		loading: false,
 	}),
-	computed: {
-		hasNumber() {
-			return !isEmpty(this.settings.phoneNumber)
-		},
-	},
-	watch: {
-		'settings.phoneNumber'(val) {
-			this.phoneNumber = val || ''
-		},
-	},
-	mounted() {
-		this.phoneNumber = this.settings.phoneNumber || ''
-	},
 	methods: {
 		async saveNumber() {
 			this.loading = true
@@ -106,9 +99,9 @@ export default {
 
 			try {
 				await confirmPassword()
-				const { data: { phone }, success } = await settingsService.saveUserNumber(this.phoneNumber)
+				const { data: { phone }, success } = await settingsService.saveUserNumber(this.newPhoneNumber)
 
-				this.phoneNumber = phone
+				this.newPhoneNumber = phone
 				this.$emit('update:phone', phone)
 
 				if (!success) {
@@ -129,12 +122,18 @@ export default {
 			await this.$nextTick()
 
 			try {
-				const { message } = await signService.requestSignCode(this.fileId)
-
+				if (this.uuid.length > 0) {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+						fileId: this.fileId,
+					}))
+					showSuccess(data.message)
+				} else {
+					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
+						uuid: this.uuid,
+					}))
+					showSuccess(data.message)
+				}
 				this.tokenRequested = true
-
-				castArray(message)
-					.forEach(showSuccess)
 			} catch (err) {
 				onError(err)
 			} finally {
@@ -152,7 +151,7 @@ export default {
 			this.$emit('close')
 		},
 		sanitizeNumber() {
-			this.phoneNumber = sanitizeNumber(this.phoneNumber)
+			this.newPhoneNumber = sanitizeNumber(this.newPhoneNumber)
 		},
 	},
 }

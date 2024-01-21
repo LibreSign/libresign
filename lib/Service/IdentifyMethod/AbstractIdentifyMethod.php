@@ -47,7 +47,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
-	protected string $friendlyName;
+	public string $friendlyName;
 	protected array $settings = [];
 	protected bool $willNotify = true;
 	public function __construct(

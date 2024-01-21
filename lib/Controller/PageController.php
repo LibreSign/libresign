@@ -35,6 +35,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -65,6 +66,7 @@ class PageController extends AEnvironmentPageAwareController {
 		protected RequestSignatureService $requestSignatureService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
+		private SignatureMethodService $signatureMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
@@ -153,6 +155,10 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
+		if ($this->userSession->getUser()) {
+			$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
+		}
+		$this->initialState->provideInitialState('signature_method', $this->signatureMethodService->getCurrent());
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',

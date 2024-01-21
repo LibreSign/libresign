@@ -245,7 +245,7 @@ class AccountController extends ApiController {
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
-					'message' => $th->getMessage()
+					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
@@ -256,7 +256,8 @@ class AccountController extends ApiController {
 					'Element created with success',
 					'Elements created with success',
 					count($elements)
-				)
+				),
+				'elements' => $this->accountService->getUserElements($this->userSession->getUser()->getUID()),
 			],
 			Http::STATUS_OK
 		);

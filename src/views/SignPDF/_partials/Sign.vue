@@ -9,12 +9,12 @@
 			<NcButton :wide="true"
 				:disabled="loading"
 				type="primary"
-				@click="callSignMethod">
+				@click="confirmSignDocument">
 				{{ t('libresign', 'Sign the document.') }}
 			</NcButton>
 		</div>
 		<div v-else-if="!loading" class="button-wrapper">
-			<div v-if="needPassword && !hasPassword">
+			<div v-if="needPassword && !hasSignatureFile">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
@@ -43,6 +43,23 @@
 				</p>
 			</div>
 		</div>
+		<NcModal v-if="modals['click-to-sign']" @close="modals['click-to-sign'] = false">
+			<div class="modal__content">
+				<h2 class="modal__header">
+					{{ t('libresign', 'Confirm') }}
+				</h2>
+				{{ t('libresign', 'Confirm your signature') }}
+				<div class="modal__button-row">
+					<NcButton @click="modals['click-to-sign'] = false">
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+					<NcButton type="primary"
+						@click="signDocument">
+						{{ t('libresign', 'Confirm') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcModal>
 		<Draw v-if="modals.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
@@ -50,30 +67,34 @@
 			@save="saveSignature"
 			@close="onModalClose('createSignature')" />
 		<PasswordManager v-if="modals.password"
-			v-bind="{ hasPassword, signMethod }"
+			v-bind="{ hasSignatureFile }"
 			@change="signWithPassword"
 			@create="onPasswordCreate"
 			@close="onModalClose('password')" />
 
 		<SMSManager v-if="modals.sms"
-			v-bind="{ settings, fileId }"
+			:phone-number="user?.account?.phoneNumber"
+			:uuid="uuid"
+			:file-id="document.fileId"
 			@change="signWithCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
 		<EmailManager v-if="modals.email"
-			v-bind="{ settings, fileId }"
+			:email="user?.account?.emailAddress"
+			:uuid="uuid"
+			:file-id="document.fileId"
 			@change="signWithCode"
 			@close="onModalClose('email')" />
 	</div>
 </template>
 
 <script>
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { service as signService } from '../../../domains/sign/index.js'
 import { onError } from '../../../helpers/errors.js'
 import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
@@ -92,6 +113,7 @@ export default {
 	name: 'Sign',
 	SIGN_METHODS,
 	components: {
+		NcModal,
 		NcButton,
 		PasswordManager,
 		SMSManager,
@@ -114,22 +136,25 @@ export default {
 			default: 'default',
 		},
 	},
-	data: () => ({
-		loading: true,
-		modals: {
-			password: false,
-			email: false,
-			sms: false,
-			createSignature: false,
-		},
-		user: {
-			account: { uid: '', displayName: '', emailAddress: '' },
-			settings: { canRequestSign: false },
-		},
-		userSignatures: [],
-		createPassword: false,
-		hasPassword: loadState('libresign', 'config', {})?.hasSignatureFile,
-	}),
+	data() {
+		return {
+			loading: true,
+			modals: {
+				password: false,
+				email: false,
+				sms: false,
+				createSignature: false,
+				'click-to-sign': false,
+			},
+			user: {
+				account: { uid: '', displayName: '' },
+			},
+			userSignatures: loadState('libresign', 'user_signatures'),
+			createPassword: false,
+			hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
+			signatureMethod: loadState('libresign', 'signature_method'),
+		}
+	},
 	computed: {
 		signer() {
 			return this.document?.signers.find(row => row.me) || {}
@@ -168,10 +193,10 @@ export default {
 			return this.document?.visibleElements.length > 0
 		},
 		needPassword() {
-			return this.signMethod === 'password'
+			return this.signatureMethod.id === 'password'
 		},
 		ableToSign() {
-			if (this.needPassword && !this.hasPassword) {
+			if (this.needPassword && !this.hasSignatureFile) {
 				return false
 			}
 
@@ -181,48 +206,12 @@ export default {
 
 			return true
 		},
-		singPayload() {
-			const elements = this.elements
-				.map(row => ({
-					documentElementId: row.documentElementId,
-					profileElementId: row.profileElementId,
-				}))
-
-			const fileId = this.docType === 'document-validate'
-				? this.fileId
-				: this.uuid
-
-			const payload = { fileId }
-
-			if (elements.length > 0) {
-				payload.elements = elements
-			}
-
-			return payload
-		},
-		fileId() {
-			return Number(this.document.fileId ?? 0)
-		},
-		settings() {
-			return {
-				...this.document.settings,
-				...this.user.settings,
-				email: this.email,
-			}
-		},
-		signMethod() {
-			return this.settings.signMethod || 'password'
-		},
-		email() {
-			return this.user?.account?.emailAddress || 'unknown'
-		},
 	},
 	mounted() {
 		this.loading = true
 
 		Promise.all([
 			this.loadUser(),
-			this.loadSignatures(),
 		])
 			.catch(console.warn)
 			.then(() => {
@@ -237,16 +226,9 @@ export default {
 			} catch (err) {
 			}
 		},
-		async loadSignatures() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
-				this.userSignatures = response.data.elements
-			} catch (err) {
-			}
-		},
 		async saveSignature(value) {
 			try {
-				const res = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
+				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
 					elements: [
 						{
 							file: {
@@ -256,40 +238,45 @@ export default {
 						},
 					],
 				})
-				await this.loadSignatures()
-				showSuccess(res.data.message)
+				this.userSignatures = response.data.elements
+				showSuccess(response.data.message)
 			} catch (err) {
 				onError(err)
 			}
 			this.modals.createSignature = false
 		},
 		async signWithPassword(password) {
-			this.loading = true
-
-			const payload = { ...this.singPayload, password }
-
-			return this.signDocument(payload)
+			return this.signDocument({ password })
 		},
 		async signWithCode(code) {
-			this.loading = true
-
-			const payload = { ...this.singPayload, code }
-
-			return this.signDocument(payload)
+			return this.signDocument({ code })
 		},
-		async signDocument(payload) {
+		async signDocument(payload = {}) {
 			this.loading = true
+			if (this.elements.length > 0) {
+				payload.elements = this.elements
+					.map(row => ({
+						documentElementId: row.documentElementId,
+						profileElementId: row.profileElementId,
+					}))
+			}
 			try {
-				const data = await signService.signDocument(payload)
+				let url = ''
+				if (this.uuid.length) {
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.uuid })
+				} else {
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.document.fileId })
+				}
+
+				const { data } = await axios.post(url, payload)
 				this.$emit('signed', data)
 			} catch (err) {
 				onError(err)
-			} finally {
-				this.loading = false
 			}
+			this.loading = false
 		},
-		onPasswordCreate(hasPassword) {
-			this.hasPassword = hasPassword
+		onPasswordCreate(hasSignatureFile) {
+			this.hasSignatureFile = hasSignatureFile
 		},
 		callPassword() {
 			this.modals.password = true
@@ -297,13 +284,15 @@ export default {
 		callCreateSignature() {
 			this.modals.createSignature = true
 		},
-		callSignMethod() {
-			if (this.modals[this.signMethod] === undefined) {
-				showError(t('libresign', '%s is not a valid sign method', this.signMethod))
+		confirmSignDocument() {
+			if (this.modals[this.signatureMethod.id] === undefined) {
+				showError(t('libresign', '{signatureMethod} is not a valid sign method', {
+					signatureMethod: this.signatureMethod.label,
+				}))
 				return
 			}
 
-			this.modals[this.signMethod] = true
+			this.modals[this.signatureMethod.id] = true
 		},
 		onModalClose(modal) {
 			this.modals[modal] = false
@@ -324,6 +313,28 @@ export default {
 .sign-elements {
 	img {
 		max-width: 100%;
+	}
+}
+
+.modal {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		gap: 4px 0;
+	}
+	&__header {
+		font-weight: bold;
+		font-size: 20px;
+		margin-bottom: 12px;
+		line-height: 30px;
+		color: var(--color-text-light);
+	}
+	&__button-row {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
 	}
 }
 </style>

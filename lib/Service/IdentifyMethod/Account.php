@@ -191,22 +191,11 @@ class Account extends AbstractIdentifyMethod {
 		if (!empty($this->settings)) {
 			return $this->settings;
 		}
-		$signatureMethod = [
-			'id' => 'password',
-			'label' => \OC::$server->get(Password::class)->friendlyName,
-		];
 		$this->settings = $this->getSettingsFromDatabase(
 			default: [
 				'enabled' => $this->isEnabledByDefault(),
-				'signature_method' => $signatureMethod,
-				'allowed_signature_methods' => [
-					$signatureMethod,
-				],
 			]
 		);
-		if (in_array('password', $this->settings['allowed_signature_methods'])) {
-			$this->settings['allowed_signature_methods'] = [$signatureMethod];
-		}
 		return $this->settings;
 	}
 

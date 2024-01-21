@@ -135,6 +135,11 @@
       <code>private</code>
     </MissingDependency>
   </file>
+  <file src="lib/Service/IdentifyMethod/ClickToSign.php">
+    <MissingDependency occurrences="1">
+      <code>private</code>
+    </MissingDependency>
+  </file>
   <file src="lib/Service/IdentifyMethod/Email.php">
     <MissingDependency occurrences="1">
       <code>private</code>
