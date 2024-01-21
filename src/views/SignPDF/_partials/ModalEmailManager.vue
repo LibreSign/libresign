@@ -1,5 +1,7 @@
 <template>
-	<NcModal size="normal" @close="close">
+	<NcModal size="normal"
+		:can-close="!loading"
+		@close="close">
 		<div class="modal__content">
 			<h2 class="modal__header">
 				{{ t('libresign', 'Sign with your email.') }}
@@ -10,6 +12,7 @@
 					{{ email }}
 				</div>
 				<NcTextField v-else
+					:disabled="loading"
 					:label="t('libresign', 'Email')"
 					:placeholder="t('libresign', 'Email')"
 					:value.sync="sendTo" />
@@ -22,10 +25,16 @@
 
 				<div class="modal__button-row">
 					<NcButton v-if="!tokenRequested" :disabled="loading || !canRequestCode" @click="requestCode">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Request code.') }}
 					</NcButton>
 
 					<NcButton v-if="tokenRequested" :disabled="loading || !canRequestCode" @click="sendCode">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Send code.') }}
 					</NcButton>
 				</div>
@@ -40,6 +49,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
@@ -54,6 +64,7 @@ export default {
 	components: {
 		NcModal,
 		NcTextField,
+		NcLoadingIcon,
 		NcButton,
 	},
 	props: {
