@@ -101,36 +101,36 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
-		$this->throwIfNeedVisibleElementsAndCanNotHave();
+		// $this->throwIfNeedVisibleElementsAndCanNotHave();
 		$this->renewSession();
 		$this->updateIdentifiedAt();
 	}
 
-	/**
-	 * @todo make possible to request to sign by email and use visible elements
-	 *
-	 * Reference: https://github.com/LibreSign/libresign/issues/2093
-	 */
-	private function throwIfNeedVisibleElementsAndCanNotHave(): void {
-		if ($this->canCreateAccount) {
-			return;
-		}
+	// /**
+	//  * @todo make possible to request to sign by email and use visible elements
+	//  *
+	//  * Reference: https://github.com/LibreSign/libresign/issues/2093
+	//  */
+	// private function throwIfNeedVisibleElementsAndCanNotHave(): void {
+	// 	if ($this->canCreateAccount) {
+	// 		return;
+	// 	}
 
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+	// 	$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+	// 	$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
 
-		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
-			$fileEntity->getId(),
-			$this->getEntity()->getSignRequestId()
-		);
-		if (!empty($fileElements)) {
-			$this->logger->alert('Signer identified by email {email} can not sign the document because neet do have visible elements and is not allowed to create account', ['email' => $this->getEntity()->getIdentifierValue()]);
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('You do not have permission for this action.')],
-			]));
-		}
-	}
+	// 	$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId(
+	// 		$fileEntity->getId(),
+	// 		$this->getEntity()->getSignRequestId()
+	// 	);
+	// 	if (!empty($fileElements)) {
+	// 		$this->logger->alert('Signer identified by email {email} can not sign the document because neet do have visible elements and is not allowed to create account', ['email' => $this->getEntity()->getIdentifierValue()]);
+	// 		throw new LibresignException(json_encode([
+	// 			'action' => JSActions::ACTION_DO_NOTHING,
+	// 			'errors' => [$this->l10n->t('You do not have permission for this action.')],
+	// 		]));
+	// 	}
+	// }
 
 	private function throwIfIsNotSameUser(?IUser $user): void {
 		if (!$user instanceof IUser) {

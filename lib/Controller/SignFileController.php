@@ -172,6 +172,7 @@ class SignFileController extends AEnvironmentAwareController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSigner]
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
 	}
@@ -189,9 +190,9 @@ class SignFileController extends AEnvironmentAwareController {
 			try {
 				$user = $this->userSession->getUser();
 				if ($fileId) {
-					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId, $user->getUID());
+					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 				} else {
-					$signRequest = $this->signRequestMapper->getByUuidAndUserId($uuid, $user->getUID());
+					$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
 				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
@@ -199,7 +200,11 @@ class SignFileController extends AEnvironmentAwareController {
 			$this->validateHelper->canRequestCode($signRequest);
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
-			$this->signFileService->requestCode($signRequest, $user);
+			$this->signFileService->requestCode(
+				signRequest: $signRequest,
+				user: $user,
+				sendToEmail: $this->request->getParam('sendToEmail', ''),
+			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 		} catch (SmsTransmissionException $e) {
 			// There was an error when to send SMS code to user.

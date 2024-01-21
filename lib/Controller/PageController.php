@@ -55,6 +55,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
+use Wobeto\EmailBlur\Blur;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -156,6 +157,11 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		if ($this->userSession->getUser()) {
+			$email = $this->userSession->getUser()->getEMailAddress();
+			if ($email) {
+				$blur = new Blur($email);
+				$this->initialState->provideInitialState('blurred_email', $blur->make());
+			}
 			$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
 		}
 		$this->initialState->provideInitialState('signature_method', $this->signatureMethodService->getCurrent());

@@ -241,21 +241,13 @@ class SignRequestMapper extends QBMapper {
 		return $signers;
 	}
 
-	public function getByUuidAndUserId(string $uuid, string $userId): SignRequest {
+	public function getBySignerUuidAndUserId(string $uuid): SignRequest {
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('*')
+		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
-			->leftJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->andX(
-				$qb->expr()->eq('fu.id', 'im.sign_request_id'),
-				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('account')),
-				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter('uid'))
-			))
 			->where(
-				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
-			)
-			->andWhere(
-				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId))
+				$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($uuid))
 			);
 
 		$signRequest = $this->findEntity($qb);
@@ -263,25 +255,14 @@ class SignRequestMapper extends QBMapper {
 		return $signRequest;
 	}
 
-	public function getByFileIdAndUserId(int $file_id, string $userId): SignRequest {
+	public function getByFileIdAndUserId(int $file_id): SignRequest {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
 			->join('sr', 'libresign_file', 'f', 'sr.file_id = f.id')
-
-
-			->leftJoin('sr', 'libresign_identify_method', 'im', $qb->expr()->andX(
-				$qb->expr()->eq('fu.id', 'im.sign_request_id'),
-				$qb->expr()->eq('im.identifier_key', $qb->createNamedParameter('account')),
-				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter('uid'))
-			))
-			->leftJoin('f', 'users', 'u', 'im.identifier_value = u.uid')
 			->where(
 				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_INT))
-			)
-			->where(
-				$qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($userId))
 			);
 
 		return $this->findEntity($qb);

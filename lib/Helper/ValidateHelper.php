@@ -669,8 +669,12 @@ class ValidateHelper {
 		}
 	}
 
-	public function canRequestCode(SignRequest $signRequest): bool {
-		return $signRequest->getSignMethod() !== 'password';
+	public function canRequestCode(SignRequest $signRequest): void {
+		// @todo make the sign method to say if he can request code
+		$current = $this->signatureMethodService->getCurrent();
+		if (!in_array($current['id'], ['email'])) {
+			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
+		}
 	}
 
 	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
