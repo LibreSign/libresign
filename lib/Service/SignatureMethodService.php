@@ -28,6 +28,8 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
+use OCA\Libresign\Service\IdentifyMethod\Password;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -38,12 +40,13 @@ use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use Psr\Container\ContainerInterface;
 
-class SignMethodService {
+class SignatureMethodService {
 	public const SIGN_PASSWORD = 'password';
 	public const SIGN_SIGNAL = 'signal';
 	public const SIGN_TELEGRAM = 'telegram';
 	public const SIGN_SMS = 'sms';
 	public const SIGN_EMAIL = 'email';
+	private const DEFAULT_SIGN_METHOD = 'password';
 
 	public function __construct(
 		private SignRequestMapper $signRequestMapper,
@@ -58,6 +61,33 @@ class SignMethodService {
 	) {
 	}
 
+	public function getCurrent(): array {
+		$signatureMethod = $this->config->getAppValue(Application::APP_ID, 'signature_method');
+		$signatureMethod = json_decode($signatureMethod, true);
+		if (!is_array($signatureMethod)) {
+			$signatureMethods = $this->getAllowedMethods();
+			foreach ($signatureMethods as $signatureMethod) {
+				if ($signatureMethod['id'] === self::DEFAULT_SIGN_METHOD) {
+					return $signatureMethod;
+				}
+			}
+		}
+		return $signatureMethod;
+	}
+
+	public function getAllowedMethods(): array {
+		return [
+			[
+				'id' => 'password',
+				'label' => \OC::$server->get(Password::class)->friendlyName,
+			],
+			[
+				'id' => 'click-to-sign',
+				'label' => \OC::$server->get(ClickToSign::class)->friendlyName,
+			],
+		];
+	}
+
 	public function requestCode(SignRequest $signRequest, IUser $user): string {
 		return $this->requestCode($signRequest, $user);
 		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
@@ -70,22 +100,22 @@ class SignMethodService {
 	private function sendCode(IUser $user, SignRequest $signRequest, string $code): void {
 		$signMethod = $this->config->getAppValue(Application::APP_ID, 'sign_method', 'password');
 		switch ($signMethod) {
-			case SignMethodService::SIGN_SMS:
-			case SignMethodService::SIGN_TELEGRAM:
-			case SignMethodService::SIGN_SIGNAL:
+			case SignatureMethodService::SIGN_SMS:
+			case SignatureMethodService::SIGN_TELEGRAM:
+			case SignatureMethodService::SIGN_SIGNAL:
 				$this->sendCodeByGateway($user, $code, $signMethod);
 				break;
-			case SignMethodService::SIGN_EMAIL:
+			case SignatureMethodService::SIGN_EMAIL:
 				$this->sendCodeByEmail($signRequest, $code);
 				break;
-			case SignMethodService::SIGN_PASSWORD:
+			case SignatureMethodService::SIGN_PASSWORD:
 				throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 		}
 	}
 
 	private function sendCodeByGateway(IUser $user, string $code, string $gatewayName): void {
 		$gateway = $this->getGateway($user, $gatewayName);
-		
+
 		$userAccount = $this->accountManager->getAccount($user);
 		$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
 		$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));

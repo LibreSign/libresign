@@ -15,13 +15,6 @@
 						{{ t('libresign', 'Make this method required') }}
 					</NcActionCheckbox>
 				</div>
-
-				<div class="container-select">
-					<label for="selectIdentificationDefault">{{ t('libresign', 'Default signature method') }}</label>
-					<NcSelect v-model="option.signature_method"
-						:options="option.allowed_signature_methods"
-						input-id="selectIdentificationDefault" />
-				</div>
 			</div>
 			<div v-else-if="option.name === 'email' && option.enabled">
 				<NcCheckboxRadioSwitch type="switch"
@@ -58,7 +51,6 @@
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcActionCheckbox from '@nextcloud/vue/dist/Components/NcActionCheckbox.js'
 import { loadState } from '@nextcloud/initial-state'
 
@@ -68,7 +60,6 @@ export default {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
 		NcActionCheckbox,
-		NcSelect,
 	},
 	data() {
 		const identifyMethod = loadState('libresign', 'identify_methods')

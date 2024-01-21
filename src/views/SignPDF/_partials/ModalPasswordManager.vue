@@ -43,12 +43,8 @@ export default {
 		CreatePassword,
 	},
 	props: {
-		hasPassword: {
+		hasSignatureFile: {
 			type: Boolean,
-			required: true,
-		},
-		signMethod: {
-			type: String,
 			required: true,
 		},
 	},
@@ -68,7 +64,7 @@ export default {
 		},
 	},
 	mounted() {
-		if (!this.hasPassword) {
+		if (!this.hasSignatureFile) {
 			this.view = VIEWS.CREATE_PASSWORD
 		}
 	},
@@ -76,12 +72,10 @@ export default {
 		onClose() {
 			this.$emit('close')
 		},
-		onCreate({ hasPassword }) {
-			this.$emit('create', hasPassword)
+		onCreate({ hasSignatureFile }) {
+			this.$emit('create', hasSignatureFile)
 
-			if (this.signMethod !== 'password') {
-				this.$nextTick(() => this.onClose())
-			}
+			this.onClose()
 		},
 		onChange(val) {
 			this.$emit('change', val)

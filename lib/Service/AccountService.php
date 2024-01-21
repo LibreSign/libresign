@@ -476,7 +476,7 @@ class AccountService {
 	 * @psalm-return array{id?: int, type?: string, file?: array{url: string, fileId: int}, uid?: string, starred?: 0|1, createdAt?: \DateTime}
 	 */
 	public function getUserElementByElementId(string $userId, $elementId): array {
-		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
+		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
 			return [];
@@ -495,7 +495,7 @@ class AccountService {
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId): void {
-		$element = $this->userElementMapper->findOne(['element_id' => $elementId, 'user_id' => $userId]);
+		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
 		$this->userElementMapper->delete($element);
 	}
 

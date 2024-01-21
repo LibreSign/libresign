@@ -55,7 +55,7 @@ export default {
 				}
 				this.clear()
 				this.$emit('close', true)
-				this.$emit('change-pfx', { hasPassword: true })
+				this.$emit('change-pfx', { hasSignatureFile: true })
 			} catch (err) {
 				if (err.response.data.message) {
 					showError(err.response.data.message)
@@ -63,7 +63,7 @@ export default {
 					showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				}
 				this.hasLoading = false
-				this.$emit('change-pfx', { hasPassword: false })
+				this.$emit('change-pfx', { hasSignatureFile: false })
 			}
 		},
 		clear() {
