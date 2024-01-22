@@ -35,7 +35,6 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
 use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
