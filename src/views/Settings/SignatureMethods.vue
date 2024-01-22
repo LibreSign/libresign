@@ -1,9 +1,9 @@
 <template>
 	<NcSettingsSection :title="title">
 		<p>
-			<NcCheckboxRadioSwitch type="switch"
-				v-for="(method, id) in signatureMethods"
+			<NcCheckboxRadioSwitch v-for="(method, id) in signatureMethods"
 				:key="id"
+				type="switch"
 				:checked.sync="method.enabled"
 				@update:checked="save()">
 				{{ method.label }}
@@ -35,14 +35,14 @@ export default {
 				(accumulator, id) => {
 					return (this.signatureMethods[id]?.enabled ? 1 : 0) + accumulator
 				},
-				0
+				0,
 			)
 			if (sumEnabled === 0) {
 				this.signatureMethods.password.enabled = true
 			}
-			let props = {}
-			Object.keys(this.signatureMethods).map((id) => {
-				props[id] = {enabled: this.signatureMethods[id].enabled}
+			const props = {}
+			Object.keys(this.signatureMethods).forEach(id => {
+				props[id] = { enabled: this.signatureMethods[id].enabled }
 			})
 			OCP.AppConfig.setValue('libresign', 'signature_methods',
 				JSON.stringify(props),
