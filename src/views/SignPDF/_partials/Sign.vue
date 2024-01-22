@@ -87,7 +87,7 @@
 			:file-editor="true"
 			@save="saveSignature"
 			@close="onModalClose('createSignature')" />
-		<NcModal v-if="modalCreatePassword" @close="onModalClose('password')">
+		<NcModal v-if="modalCreatePassword" @close="modalCreatePassword = false">
 			<CreatePassword @password:created="onPasswordCreate"
 				@close="modalCreatePassword = false" />
 		</NcModal>
@@ -123,7 +123,6 @@ import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignat
 import Draw from '../../../Components/Draw/Draw.vue'
 import { loadState } from '@nextcloud/initial-state'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
-import ResetPassword from '../../../views/ResetPassword.vue'
 import CreatePassword from '../../../views/CreatePassword.vue'
 
 export default {
@@ -132,7 +131,6 @@ export default {
 		NcModal,
 		NcButton,
 		NcPasswordField,
-		ResetPassword,
 		CreatePassword,
 		SMSManager,
 		EmailManager,
