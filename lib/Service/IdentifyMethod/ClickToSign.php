@@ -37,10 +37,10 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class ClickToSign extends AbstractIdentifyMethod {
-	public const ID = 'click-to-sign';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -51,6 +51,7 @@ class ClickToSign extends AbstractIdentifyMethod {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
+		private IHasher $hasher,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -66,6 +67,7 @@ class ClickToSign extends AbstractIdentifyMethod {
 			$signRequestMapper,
 			$fileMapper,
 			$root,
+			$hasher,
 			$userMountCache,
 			$timeFactory,
 			$logger,

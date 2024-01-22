@@ -25,12 +25,12 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
-use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
 use OCA\Libresign\Service\IdentifyMethod\Email;
+use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethod\Password;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
@@ -38,6 +38,7 @@ use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\IUserSession;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 use Psr\Container\ContainerInterface;
@@ -70,9 +71,9 @@ class SignatureMethodService {
 		private Email $email,
 	) {
 		$this->allowedMethods = [
-			$this->password::ID => $this->password,
-			$this->clickToSign::ID => $this->clickToSign,
-			$this->email::ID => $this->email,
+			$this->password->getName() => $this->password,
+			$this->clickToSign->getName() => $this->clickToSign,
+			$this->email->getName() => $this->email,
 		];
 	}
 
@@ -93,7 +94,7 @@ class SignatureMethodService {
 	public function getAllowedMethods(): array {
 		return array_map(function (AbstractIdentifyMethod $method) {
 			return [
-				'id' => $method->id,
+				'id' => $method->getName(),
 				'label' => $method->friendlyName,
 			];
 		}, array_values($this->allowedMethods));
@@ -106,11 +107,8 @@ class SignatureMethodService {
 
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		if (!empty($identifyMethods[$methodId])) {
-			$method = array_filter($identifyMethods[$methodId], function (IdentifyMethod $identifyMethod) use ($methodId) {
-				if ($identifyMethod->getIdentifierKey() === $methodId) {
-					true;
-				}
-				return false;
+			$method = array_filter($identifyMethods[$methodId], function (IIdentifyMethod $identifyMethod) use ($methodId) {
+				return $identifyMethod->getName() === $methodId;
 			});
 			$method = current($method);
 		}
@@ -118,9 +116,9 @@ class SignatureMethodService {
 			$method = $this->identifyMethodService->getInstanceOfIdentifyMethod($methodId, $identify);
 		} else {
 			if (!empty($identify) && $identify !== $method->getEntity()->getIdentifierKey()) {
-				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+				$method->getEntity()->setIdentifierValue($identify);
 			}
-			$identify = $method->getEntity()->getIdentifierKey();
+			$identify = $method->getEntity()->getIdentifierValue();
 		}
 
 		$token = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
@@ -150,6 +148,7 @@ class SignatureMethodService {
 	}
 
 	private function sendCodeByGateway(string $code, string $gatewayName): void {
+		$user = \OC::$server->get(IUserSession::class)->getUser();
 		$gateway = $this->getGateway($user, $gatewayName);
 
 		$userAccount = $this->accountManager->getAccount($user);

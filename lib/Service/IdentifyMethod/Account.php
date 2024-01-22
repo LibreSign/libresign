@@ -43,6 +43,7 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
@@ -58,6 +59,7 @@ class Account extends AbstractIdentifyMethod {
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
+		private IHasher $hasher,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -73,6 +75,7 @@ class Account extends AbstractIdentifyMethod {
 			$signRequestMapper,
 			$fileMapper,
 			$root,
+			$hasher,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -100,10 +103,10 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
-	public function validateToSign(?IUser $user = null): void {
+	public function validateToSign(): void {
 		$signer = $this->getSigner();
-		$this->throwIfNotAuthenticated($user);
-		$this->authenticatedUserIsTheSigner($user, $signer);
+		$this->throwIfNotAuthenticated($this->user);
+		$this->authenticatedUserIsTheSigner($this->user, $signer);
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfAlreadySigned();

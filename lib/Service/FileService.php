@@ -214,10 +214,8 @@ class FileService {
 				foreach ($identifyMethodServices as $methods) {
 					foreach ($methods as $identifyMethod) {
 						$entity = $identifyMethod->getEntity();
-						$signatureToShow['me'] =
-							$this->me->getEMailAddress() === $entity->getIdentifierValue()
-							|| $this->me->getUID() === $entity->getIdentifierValue();
-						if ($signatureToShow['me']) {
+						if ($this->me->getEMailAddress() === $entity->getIdentifierValue() || $this->me->getUID() === $entity->getIdentifierValue()) {
+							$signatureToShow['me'] = true;
 							if (!$signer->getSigned()) {
 								$this->settings['canSign'] = true;
 								$this->settings['signerFileUuid'] = $signer->getUuid();
