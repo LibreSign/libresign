@@ -464,9 +464,6 @@ class SignRequestMapper extends QBMapper {
 						}, ''),
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
-							if (!$user->getEMailAddress()) {
-								return false;
-							}
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
 								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
 									return true;
