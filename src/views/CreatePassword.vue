@@ -3,17 +3,22 @@
 		<form @submit="e => e.preventDefault()">
 			<header>
 				<h2>{{ t('libresign', 'Password Creation') }}</h2>
-				<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 			</header>
 			<div class="container">
+				<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 				<div class="input-group">
 					<label for="password">{{ t('libresign', 'Enter a password') }}</label>
-					<NcPasswordField :value.sync="password" />
+					<NcPasswordField :disabled="loading"
+						:label="t('libresign', 'Enter a password')"
+						:placeholder="t('libresign', 'Enter a password')"
+						:value.sync="password" />
 				</div>
-				<button :class="hasLoading? 'btn-load loading primary btn-confirm': 'primary btn-confirm'"
-					@click="send">
+				<NcButton :disabled="loading" @click="send">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
 					{{ t('libresign', 'Confirm') }}
-				</button>
+				</NcButton>
 			</div>
 		</form>
 	</NcContent>
@@ -23,6 +28,8 @@
 import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -32,6 +39,8 @@ export default {
 	components: {
 		NcContent,
 		NcPasswordField,
+		NcButton,
+		NcLoadingIcon,
 	},
 	data() {
 		return {
@@ -78,81 +87,30 @@ export default {
 		flex-direction: column;
 		width: 100%;
 		max-width: 100%;
-		margin: 50px;
 		justify-content: center;
 		align-items: center;
 		text-align: center;
 		header{
-			margin-bottom: 2.5rem;
-		}
-		h1{
-			font-size: 45px;
-			margin-bottom: 1rem;
-		}
-		p{
-			font-size: 15px;
+			font-weight: bold;
+			font-size: 20px;
+			margin-bottom: 12px;
+			line-height: 30px;
+			color: var(--color-text-light);
 		}
 	}
 
 	.container {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		align-items: center;
-
-		width: 100%;
-		max-width: 420px;
-
-		text-align: start;
-	}
-
-	.btn-confirm{
-		width: 100%;
-		max-width: 280px;
-	}
-
-	.btn-load{
-		background-color: transparent !important;
-		font-size: 0;
-		pointer-events: none;
-		cursor: not-allowed;
-		margin-top: 10px;
-		border: none;
-
-	}
-
-	.input-item{
-		display: flex;
-		flex-direction: row;
-		border: 1px solid #cecece;
-		border-radius: 10px;
-		width: 100%;
-		max-width: 380px;
-		label{
-			padding: 0 20px;
-			border-radius: 10px 0 0 10px;
-			background-color: #cecece;
-		}
-		input{
-			border: none;
-		}
-		&:focus-within{
-			border: thin solid #0082c9;
-			box-shadow: inset 0 0 1em rgba(0, 130, 201, .5);
-		}
+		padding: 20px;
+		gap: 4px 0;
 	}
 
 	.input-group{
+		justify-content: space-between;
 		display: flex;
 		flex-direction: column;
-		margin: 10px;
 		width: 100%;
-		label:first-child{
-			opacity: 0.7;
-		}
-		input{
-			width: 100%;
-			max-width: 370px;
-		}
 	}
 </style>
