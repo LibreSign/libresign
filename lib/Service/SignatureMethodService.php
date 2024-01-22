@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
