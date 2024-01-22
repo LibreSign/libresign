@@ -23,7 +23,7 @@
 					<div v-if="!signEnabled">
 						{{ t('libresign', 'Document not available for signature.') }}
 					</div>
-					<Sign v-else
+					<Sign v-else-if="!loading"
 						v-bind="{ document, uuid, docType }"
 						@signed="onSigned" />
 				</main>
