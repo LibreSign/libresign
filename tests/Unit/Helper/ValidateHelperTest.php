@@ -611,17 +611,17 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	/**
-	 * @dataProvider datavalidateIdentifyMethod
+	 * @dataProvider datavalidateIfIdentifyMethodExists
 	 */
-	public function testvalidateIdentifyMethod(string $identifyMethod, bool $throwException): void {
+	public function testValidateIfIdentifyMethodExists(string $identifyMethod, bool $throwException): void {
 		if ($throwException) {
 			$this->expectException(LibresignException::class);
 		}
-		$return = $this->getValidateHelper()->validateIdentifyMethod($identifyMethod);
+		$return = $this->getValidateHelper()->validateIfIdentifyMethodExists($identifyMethod);
 		$this->assertNull($return);
 	}
 
-	public function datavalidateIdentifyMethod(): array {
+	public function datavalidateIfIdentifyMethodExists(): array {
 		return [
 			['', true],
 			['invalid', true],
