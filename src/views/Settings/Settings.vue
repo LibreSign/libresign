@@ -29,7 +29,7 @@
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
 		<IdentifierFactor />
-		<SignatureMethod />
+		<SignatureMethods />
 		<ExpirationRules />
 		<Validation />
 		<AllowedGroups />
@@ -55,7 +55,7 @@ import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import IdentifierFactor from './IdentifierFactor.vue'
-import SignatureMethod from './SignatureMethod.vue'
+import SignatureMethods from './SignatureMethods.vue'
 
 export default {
 	name: 'Settings',
@@ -67,7 +67,7 @@ export default {
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
 		IdentifierFactor,
-		SignatureMethod,
+		SignatureMethods,
 		ExpirationRules,
 		Validation,
 		AllowedGroups,

@@ -54,7 +54,7 @@ class SignatureMethodService {
 	/**
 	 * @var AbstractIdentifyMethod[]
 	 */
-	private array $allowedMethods;
+	private array $methods;
 
 	public function __construct(
 		private IdentifyMethodService $identifyMethodService,
@@ -70,7 +70,7 @@ class SignatureMethodService {
 		private ClickToSign $clickToSign,
 		private Email $email,
 	) {
-		$this->allowedMethods = [
+		$this->methods = [
 			$this->password->getName() => $this->password,
 			$this->clickToSign->getName() => $this->clickToSign,
 			$this->email->getName() => $this->email,
@@ -78,12 +78,12 @@ class SignatureMethodService {
 	}
 
 	public function getCurrent(): array {
-		$signatureMethod = $this->config->getAppValue(Application::APP_ID, 'signature_method');
+		$signatureMethod = $this->config->getAppValue(Application::APP_ID, 'signature_methods');
 		$signatureMethod = json_decode($signatureMethod, true);
 		if (!is_array($signatureMethod)) {
 			$signatureMethods = $this->getAllowedMethods();
-			foreach ($signatureMethods as $signatureMethod) {
-				if ($signatureMethod['id'] === self::DEFAULT_SIGN_METHOD) {
+			foreach ($signatureMethods as $id => $signatureMethod) {
+				if ($id === self::DEFAULT_SIGN_METHOD) {
 					return $signatureMethod;
 				}
 			}
@@ -91,17 +91,17 @@ class SignatureMethodService {
 		return $signatureMethod;
 	}
 
-	public function getAllowedMethods(): array {
+	public function getMethods(): array {
 		return array_map(function (AbstractIdentifyMethod $method) {
 			return [
-				'id' => $method->getName(),
 				'label' => $method->friendlyName,
+				'enabled' => $method->isEnabledAsSignatueMethod(),
 			];
-		}, array_values($this->allowedMethods));
+		}, $this->methods);
 	}
 
 	public function requestCode(SignRequest $signRequest, string $methodId, string $identify = ''): string {
-		if (!array_key_exists($methodId, $this->allowedMethods)) {
+		if (!array_key_exists($methodId, $this->methods)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
 

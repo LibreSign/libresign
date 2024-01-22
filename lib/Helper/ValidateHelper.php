@@ -672,8 +672,8 @@ class ValidateHelper {
 
 	public function canRequestCode(SignRequest $signRequest): void {
 		// @todo make the sign method to say if he can request code
-		$current = $this->signatureMethodService->getCurrent();
-		if (!in_array($current['id'], ['email'])) {
+		$signatureMethods = $this->signatureMethodService->getMethods();
+		if (!array_key_exists('email', $signatureMethods)) {
 			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
 		}
 	}
