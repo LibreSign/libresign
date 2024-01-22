@@ -79,7 +79,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->codeSentByUser = $code;
 	}
 
-	public function setUser(IUser $user): void {
+	public function setUser(?IUser $user): void {
 		$this->user = $user;
 	}
 
