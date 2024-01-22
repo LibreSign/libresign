@@ -75,6 +75,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->name;
 	}
 
+	public function isEnabledAsSignatueMethod(): bool {
+		$settings = $this->getSettings();
+		return $settings['enabled_as_signature_method'];
+	}
+
 	public function setCodeSentByUser(string $code): void {
 		$this->codeSentByUser = $code;
 	}
@@ -97,6 +102,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function getSettings(): array {
+		$this->getSettingsFromDatabase();
 		return $this->settings;
 	}
 
@@ -250,6 +256,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'friendly_name' => $this->friendlyName,
 				'enabled' => true,
+				'enabled_as_signature_method' => false,
 				'mandatory' => true,
 			],
 			$default
@@ -267,6 +274,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function getSavedSettings(): array {
+		return array_merge(
+			$this->getSavedIdentifyMethodsSettings(),
+			$this->getSavedSignatureMethodsSettings(),
+		);
+	}
+
+	private function getSavedIdentifyMethodsSettings(): array {
 		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
 		$config = json_decode($config, true);
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
@@ -279,6 +293,23 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return $carry;
 		}, []);
 		return $current;
+	}
+
+	private function getSavedSignatureMethodsSettings(): array {
+		$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
+		$config = json_decode($config, true);
+		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
+			return [];
+		}
+		foreach ($config as $id => $method) {
+			if ($id !== $this->name) {
+				continue;
+			}
+			return [
+				'enabled_as_signature_method' => array_key_exists('enabled', $method) && $method['enabled'],
+			];
+		}
+		return [];
 	}
 
 	private function getDefaultValues(array $customConfig, array $default): array {

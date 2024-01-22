@@ -168,7 +168,7 @@ Feature: request-signature
   Scenario: Request to sign with error using account as identifier when the user don't exists
     Given as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"signature_method":"password","allowed_signature_methods":["password"]}] |
+      | value | (string)[{"name":"account","enabled":true}] |
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"account":"signer2"}}] |
