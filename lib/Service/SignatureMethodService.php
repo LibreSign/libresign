@@ -50,7 +50,6 @@ class SignatureMethodService {
 	private const SIGN_TELEGRAM = 'telegram';
 	private const SIGN_SMS = 'sms';
 	private const SIGN_EMAIL = 'email';
-	private const DEFAULT_SIGN_METHOD = 'password';
 	/**
 	 * @var AbstractIdentifyMethod[]
 	 */
