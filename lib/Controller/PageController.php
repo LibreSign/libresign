@@ -55,6 +55,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
+use Wobeto\EmailBlur\Blur;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -156,9 +157,23 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		if ($this->userSession->getUser()) {
+			$email = $this->userSession->getUser()->getEMailAddress();
 			$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
 		}
-		$this->initialState->provideInitialState('signature_method', $this->signatureMethodService->getCurrent());
+		$signatureMethod = $this->signatureMethodService->getCurrent();
+		if ($signatureMethod['id'] === IdentifyMethodService::IDENTIFY_EMAIL) {
+			$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($this->getSignRequestEntity()->getId());
+			if (isset($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL])) {
+				$method = current($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL]);
+				$email = $method->getEntity()->getIdentifierValue();
+			}
+		}
+		if (!empty($email)) {
+			$blur = new Blur($email);
+			$this->initialState->provideInitialState('blurred_email', $blur->make());
+		}
+		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
+		$this->initialState->provideInitialState('signature_method', $signatureMethod);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
