@@ -43,14 +43,14 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="modals['click-to-sign']" @close="modals['click-to-sign'] = false">
+		<NcModal v-if="modals.click_to_sign" @close="modals.click_to_sign = false">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm') }}
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="modals['click-to-sign'] = false">
+					<NcButton @click="modals.click_to_sign = false">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
@@ -147,7 +147,7 @@ export default {
 				email: false,
 				sms: false,
 				createSignature: false,
-				'click-to-sign': false,
+				click_to_sign: false,
 			},
 			user: {
 				account: { uid: '', displayName: '' },

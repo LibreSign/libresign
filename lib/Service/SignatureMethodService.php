@@ -43,6 +43,7 @@ use OCP\Security\ISecureRandom;
 use Psr\Container\ContainerInterface;
 
 class SignatureMethodService {
+	public const TOKEN_LENGTH = 6;
 	private const SIGN_PASSWORD = 'password';
 	private const SIGN_SIGNAL = 'signal';
 	private const SIGN_TELEGRAM = 'telegram';
@@ -122,7 +123,7 @@ class SignatureMethodService {
 			$identify = $method->getEntity()->getIdentifierKey();
 		}
 
-		$token = $this->secureRandom->generate(6, ISecureRandom::CHAR_DIGITS);
+		$token = $this->secureRandom->generate(self::TOKEN_LENGTH, ISecureRandom::CHAR_DIGITS);
 		$this->sendCode($signRequest, $methodId, $token, $identify);
 
 		$entity = $method->getEntity();
