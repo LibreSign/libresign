@@ -1,6 +1,6 @@
 <template>
 	<NcModal size="normal"
-		:can-close="!loading"
+		:can-close="false"
 		@close="close">
 		<div class="modal__content">
 			<h2 class="modal__header">
@@ -17,8 +17,12 @@
 					:placeholder="t('libresign', 'Email')"
 					:value.sync="sendTo" />
 				<div v-else>
-					<NcTextField :value.sync="token"
+					{{ t('libresign', 'Enter the code you received') }}
+					<NcTextField maxlength="6"
+						:value.sync="token"
 						:disabled="loading"
+						:label="t('libresign', 'Enter your code')"
+						:placeholder="t('libresign', 'Enter your code')"
 						name="code"
 						type="text" />
 				</div>
@@ -31,7 +35,7 @@
 						{{ t('libresign', 'Request code.') }}
 					</NcButton>
 
-					<NcButton v-if="needConfirmCode" :disabled="loading || !canRequestCode" @click="sendCode">
+					<NcButton v-if="needConfirmCode" :disabled="!canSendCode" @click="sendCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
@@ -51,6 +55,7 @@ import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showSuccess } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
 
@@ -93,6 +98,7 @@ export default {
 		token: '',
 		tokenRequested: false,
 		loading: false,
+		tokenLength: loadState('libresign', 'token_length', 6),
 		sendTo: '',
 	}),
 	computed: {
@@ -105,6 +111,9 @@ export default {
 		needConfirmCode() {
 			return this.confirmCode || this.tokenRequested
 		},
+		canSendCode() {
+			return !this.canRequestCode && !this.loading && this.token.length === this.tokenLength
+		}
 	},
 	methods: {
 		async requestCode() {
@@ -142,10 +151,7 @@ export default {
 		},
 		sendCode() {
 			this.$emit('change', this.token)
-
-			this.$nextTick(() => {
-				this.close()
-			})
+			this.close()
 		},
 		close() {
 			this.$emit('close')
