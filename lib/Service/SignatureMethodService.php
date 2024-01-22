@@ -77,20 +77,6 @@ class SignatureMethodService {
 		];
 	}
 
-	public function getCurrent(): array {
-		$signatureMethod = $this->config->getAppValue(Application::APP_ID, 'signature_methods');
-		$signatureMethod = json_decode($signatureMethod, true);
-		if (!is_array($signatureMethod)) {
-			$signatureMethods = $this->getAllowedMethods();
-			foreach ($signatureMethods as $id => $signatureMethod) {
-				if ($id === self::DEFAULT_SIGN_METHOD) {
-					return $signatureMethod;
-				}
-			}
-		}
-		return $signatureMethod;
-	}
-
 	public function getMethods(): array {
 		return array_map(function (AbstractIdentifyMethod $method) {
 			return [
