@@ -45,7 +45,6 @@
     "Element must be associated with a user" : "Елемент мора да се придружи кориснику",
     "User not found for element." : "Није пронађен корисник за елемент.",
     "Coordinate %s must be an integer" : "Координата %s мора бити цео број",
-    "Out of marging" : "Ван маргина",
     "Page number must be an integer" : "Број странице мора бити цео број",
     "Page must be equal to or greater than 1" : "Страница мора бити већа од или једнака 1",
     "Element needs a type" : "Елементу је потребан тип",

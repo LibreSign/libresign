@@ -48,7 +48,6 @@ OC.L10N.register(
     "Element must be associated with a user" : "El elemento debe estar asociado a un usuario",
     "User not found for element." : "Usuario no encontrado para el elemento.",
     "Coordinate %s must be an integer" : "La coordenada %s debe ser un entero",
-    "Out of marging" : "Fuera de margen",
     "Page number must be an integer" : "El número de página debe ser un entero",
     "Page must be equal to or greater than 1" : "La página debe ser mayor o igual a 1",
     "Element needs a type" : "El elemento necesita un tipo",
