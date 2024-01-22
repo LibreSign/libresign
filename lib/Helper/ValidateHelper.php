@@ -670,7 +670,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function canRequestCode(SignRequest $signRequest): void {
+	public function canRequestCode(): void {
 		// @todo make the sign method to say if he can request code
 		$signatureMethods = $this->signatureMethodService->getMethods();
 		if (!array_key_exists('email', $signatureMethods)) {
