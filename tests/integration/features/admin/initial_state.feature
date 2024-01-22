@@ -70,7 +70,7 @@ Feature: admin/initial_state
   Scenario: Update identify methods and retrieve with success as initial state
     Given as user "admin"
     When sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
-      | value | (string)[{"name":"account","enabled":true,"mandatory":true,"signature_method":"password","allowed_signature_methods":["password"]},{"name":"email","enabled":false,"mandatory":false}] |
+      | value | (string)[{"name":"account","enabled":true,"mandatory":true},{"name":"email","enabled":false,"mandatory":false}] |
     Then sending "get" to "/settings/admin/libresign"
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
