@@ -96,7 +96,7 @@ class Password extends AbstractIdentifyMethod {
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			$isEnabledAsSignatueMethod = true;
 		} else {
-			$isEnabledAsSignatueMethod = array_reduce($config, function (string $carry, $method) {
+			$isEnabledAsSignatueMethod = array_reduce($config, function (bool $carry, $method) {
 				if (!is_array($method)) {
 					$carry = false;
 				} elseif (array_key_exists('enabled', $method)) {
