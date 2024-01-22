@@ -140,6 +140,7 @@ export default {
 		},
 		updateEmail(email) {
 			this.methods.email.value = email
+			this.updateName(email.displayName ?? this.name)
 		},
 		updateAccount(account) {
 			if (typeof account !== 'object') {
