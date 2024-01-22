@@ -77,7 +77,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	public function isEnabledAsSignatueMethod(): bool {
 		$settings = $this->getSettings();
-		return $settings['enabled_as_signature_method'] ?? false;
+		return $settings['enabled_as_signature_method'];
 	}
 
 	public function setCodeSentByUser(string $code): void {
@@ -102,6 +102,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function getSettings(): array {
+		$this->getSettingsFromDatabase();
 		return $this->settings;
 	}
 
@@ -255,6 +256,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'name' => $this->name,
 				'friendly_name' => $this->friendlyName,
 				'enabled' => true,
+				'enabled_as_signature_method' => false,
 				'mandatory' => true,
 			],
 			$default
@@ -299,11 +301,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			return [];
 		}
-		foreach ($config as $method) {
-			if (!array_key_exists('name', $method)) {
-				continue;
-			}
-			if ($method['name'] !== $this->name) {
+		foreach ($config as $id => $method) {
+			if ($id !== $this->name) {
 				continue;
 			}
 			return [
