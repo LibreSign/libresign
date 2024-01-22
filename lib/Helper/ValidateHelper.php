@@ -697,9 +697,11 @@ class ValidateHelper {
 	public function validateCredentials(SignRequest $signRequest, IUser $user, string $identifyMethodName, string $identifyValue, string $token): void {
 		$this->validateIfIdentifyMethodExists($identifyMethodName);
 		$multidimensionalList = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		$identifyMethods = $multidimensionalList[$identifyMethodName];
-		if ($identifyValue) {
-			$identifyMethods = array_filter($identifyMethods, fn ($m) => $m->getEntity()->getIdentifierValue() === $identifyValue);
+		if (!empty($multidimensionalList[$identifyMethodName])) {
+			$identifyMethods = $multidimensionalList[$identifyMethodName];
+			if ($identifyValue) {
+				$identifyMethods = array_filter($identifyMethods, fn ($m) => $m->getEntity()->getIdentifierValue() === $identifyValue);
+			}
 		}
 		if (!empty($identifyMethods)) {
 			$identifyMethod = current($identifyMethods);
