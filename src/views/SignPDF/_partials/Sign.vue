@@ -43,18 +43,18 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="modals.click_to_sign" @close="modals.click_to_sign = false">
+		<NcModal v-if="modals.clickToSign" @close="modals.clickToSign = false">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm') }}
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="modals.click_to_sign = false">
+					<NcButton @click="modals.clickToSign = false">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
-						@click="signDocument">
+						@click="signWithClick">
 						{{ t('libresign', 'Confirm') }}
 					</NcButton>
 				</div>
@@ -77,7 +77,7 @@
 			:uuid="uuid"
 			:file-id="document.fileId"
 			:confirm-code="needSmsCode"
-			@change="signWithCode"
+			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
@@ -86,7 +86,7 @@
 			:uuid="uuid"
 			:file-id="document.fileId"
 			:confirm-code="needEmailCode"
-			@change="signWithCode"
+			@change="signWithEmailToken"
 			@close="onModalClose('email')" />
 	</div>
 </template>
@@ -147,7 +147,7 @@ export default {
 				email: false,
 				sms: false,
 				createSignature: false,
-				click_to_sign: false,
+				clickToSign: false,
 			},
 			user: {
 				account: { uid: '', displayName: '' },
@@ -161,19 +161,6 @@ export default {
 		}
 	},
 	computed: {
-		signer() {
-			return this.document?.signers.find(row => row.me) || {}
-		},
-		visibleElements() {
-			const { signRequestId } = this.signer
-
-			if (!signRequestId) {
-				return []
-			}
-
-			return (this.document?.visibleElements || [])
-				.filter(row => row.signRequestId === this.signer.signRequestId)
-		},
 		elements() {
 			const signature = this.userSignatures.find(row => {
 				return row.type === 'signature'
@@ -181,9 +168,18 @@ export default {
 			if (Object.keys(signature).length === 0) {
 				return []
 			}
-			const url = signature.file.url
 
-			const element = this.visibleElements
+			const signer = this.document?.signers.find(row => row.me) || {}
+
+			if (!signer.signRequestId) {
+				return []
+			}
+
+			const visibleElements = (this.document?.visibleElements || [])
+				.filter(row => row.signRequestId === signer.signRequestId)
+
+			const url = signature.file.url
+			const element = visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
 					profileElementId: signature.id,
@@ -264,11 +260,28 @@ export default {
 			}
 			this.modals.createSignature = false
 		},
-		async signWithPassword(password) {
-			return this.signDocument({ password })
+		async signWithClick() {
+			return this.signDocument({
+				method: 'clickToSign',
+			})
 		},
-		async signWithCode(code) {
-			return this.signDocument({ code })
+		async signWithPassword(password) {
+			return this.signDocument({
+				method: 'password',
+				identifyValue: password,
+			})
+		},
+		async signWithSMSCode(token) {
+			return this.signDocument({
+				method: 'sms',
+				token,
+			})
+		},
+		async signWithEmailToken(token) {
+			return this.signDocument({
+				method: 'email',
+				token,
+			})
 		},
 		async signDocument(payload = {}) {
 			this.loading = true
@@ -288,7 +301,9 @@ export default {
 				}
 
 				const { data } = await axios.post(url, payload)
-				this.$emit('signed', data)
+				if (data?.action === 350) { // ACTION_SIGNED
+					this.$emit('signed', data)
+				}
 			} catch (err) {
 				onError(err)
 			}
@@ -304,6 +319,14 @@ export default {
 			this.modals.createSignature = true
 		},
 		confirmSignDocument() {
+			if (this.needEmailCode) {
+				this.modals.email = true
+				return
+			}
+			if (this.needSmsCode) {
+				this.modals.sms = true
+				return
+			}
 			if (this.modals[this.signatureMethod.id] === undefined) {
 				showError(t('libresign', '{signatureMethod} is not a valid sign method', {
 					signatureMethod: this.signatureMethod.label,

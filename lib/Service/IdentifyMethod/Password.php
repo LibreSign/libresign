@@ -37,8 +37,8 @@ use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
-use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Password extends AbstractIdentifyMethod {
@@ -53,6 +53,7 @@ class Password extends AbstractIdentifyMethod {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
+		private IHasher $hasher,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -68,6 +69,7 @@ class Password extends AbstractIdentifyMethod {
 			$signRequestMapper,
 			$fileMapper,
 			$root,
+			$hasher,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -75,8 +77,8 @@ class Password extends AbstractIdentifyMethod {
 		);
 	}
 
-	public function validateToSign(?IUser $user = null): void {
-		$pfx = $this->pkcs12Handler->getPfx($user->getUID());
+	public function validateToSign(): void {
+		$pfx = $this->pkcs12Handler->getPfx($this->user->getUID());
 		openssl_pkcs12_read($pfx, $cert_info, $this->getEntity()->getIdentifierValue());
 		if (empty($cert_info)) {
 			throw new LibresignException($this->l10n->t('Invalid password'));

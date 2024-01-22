@@ -634,7 +634,8 @@ class ValidateHelper {
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		foreach ($identifyMethods as $methods) {
 			foreach ($methods as $identifyMethod) {
-				$identifyMethod->validateToSign($user);
+				$identifyMethod->setUser($user);
+				$identifyMethod->validateToSign();
 			}
 		}
 	}
@@ -693,41 +694,33 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateCredentials(SignRequest $signRequest, IUser $user, array $params): void {
-		$current = $this->signatureMethodService->getCurrent();
-		if ($current['id'] === 'click-to-sign') {
-			return;
+	public function validateCredentials(SignRequest $signRequest, IUser $user, string $identifyMethodName, string $identifyValue, string $token): void {
+		$this->validateIfIdentifyMethodExists($identifyMethodName);
+		$multidimensionalList = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		$identifyMethods = $multidimensionalList[$identifyMethodName];
+		if ($identifyValue) {
+			$identifyMethods = array_filter($identifyMethods, fn ($m) => $m->getEntity()->getIdentifierValue() === $identifyValue);
 		}
-		$params = array_filter($params, function ($value): bool {
-			return !empty($value);
-		});
-		if (count($params) === 0) {
-			throw new LibresignException($this->l10n->t('Empty identify data.'));
+		if (!empty($identifyMethods)) {
+			$identifyMethod = current($identifyMethods);
+		} else {
+			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
 		}
-		if (count($params) > 1) {
-			throw new LibresignException($this->l10n->t('Do not use mixed identify data.'));
-		}
-
-		$currentIdentifyMethod = key($params);
-		$this->validateIdentifyMethods([$currentIdentifyMethod]);
-		$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($currentIdentifyMethod, current($params));
 		if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
-		$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-		$identifyMethod->getEntity()->setIdentifierValue(current($params));
-		$identifyMethod->validateToSign($user);
+		$identifyMethod->setUser($user);
+		$identifyMethod->setCodeSentByUser($token);
+		$identifyMethod->validateToSign();
 	}
 
-	public function validateIdentifyMethods(array $identifyMethods): void {
-		foreach ($identifyMethods as $identifyMethod) {
-			if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
-				// TRANSLATORS When is requested to a person to sign a file, is
-				// necessary identify what is the identification method. The
-				// identification method is used to define how will be the sign
-				// flow.
-				throw new LibresignException($this->l10n->t('Invalid identification method'));
-			}
+	public function validateIfIdentifyMethodExists($identifyMethod): void {
+		if (!in_array($identifyMethod, IdentifyMethodService::IDENTIFY_METHODS)) {
+			// TRANSLATORS When is requested to a person to sign a file, is
+			// necessary identify what is the identification method. The
+			// identification method is used to define how will be the sign
+			// flow.
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
 	}
 

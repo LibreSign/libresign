@@ -28,6 +28,9 @@ use OCA\Libresign\Db\IdentifyMethod;
 use OCP\IUser;
 
 interface IIdentifyMethod {
+	public function getName(): string;
+	public function setCodeSentByUser(string $code): void;
+	public function setUser(IUser $user): void;
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
@@ -36,7 +39,7 @@ interface IIdentifyMethod {
 	public function notify(bool $isNew): void;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;
-	public function validateToSign(?IUser $user = null): void;
+	public function validateToSign(): void;
 	public function validateToRenew(?IUser $user = null): void;
 	public function save(): void;
 	public function delete(): void;
