@@ -40,6 +40,7 @@ use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 use Wobeto\EmailBlur\Blur;
 
@@ -48,6 +49,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected IdentifyMethod $entity;
 	protected string $name;
 	public string $friendlyName;
+	protected ?IUser $user = null;
+	protected string $codeSentByUser = '';
 	protected array $settings = [];
 	protected bool $willNotify = true;
 	public function __construct(
@@ -57,6 +60,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private SignRequestMapper $signRequestMapper,
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
+		private IHasher $hasher,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -65,6 +69,18 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
 		$this->cleanEntity();
+	}
+
+	public function getName(): string {
+		return $this->name;
+	}
+
+	public function setCodeSentByUser(string $code): void {
+		$this->codeSentByUser = $code;
+	}
+
+	public function setUser(?IUser $user): void {
+		$this->user = $user;
 	}
 
 	public function cleanEntity(): void {
@@ -97,7 +113,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function validateToCreateAccount(string $value): void {
 	}
 
-	public function validateToSign(?IUser $user = null): void {
+	public function validateToSign(): void {
 	}
 
 	protected function throwIfFileNotFound(): void {
@@ -134,6 +150,15 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
+	protected function throwIfInvalidToken(): void {
+		if (empty($this->codeSentByUser)) {
+			return;
+		}
+		if (!$this->hasher->verify($this->codeSentByUser, $this->getEntity()->getCode())) {
+			throw new LibresignException($this->l10n->t('Invalid code.'));
+		}
+	}
+
 	protected function renewSession(): void {
 		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
@@ -143,6 +168,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function updateIdentifiedAt(): void {
+		if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
+			return;
+		}
 		$this->getEntity()->setIdentifiedAtDate($this->timeFactory->getDateTime());
 		$this->willNotify = false;
 		$this->save();

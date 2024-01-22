@@ -44,8 +44,6 @@ use OCP\DB\Types;
  * @method string getDisplayName()
  * @method void setFullName(string $fullName)
  * @method string getFullName()
- * @method void setCode(string $code)
- * @method string getCode()
  * @method void setMetadata(array $metadata)
  * @method string getMetadata()
  */
@@ -77,9 +75,6 @@ class SignRequest extends Entity {
 
 	/** @var int */
 	protected $signed;
-
-	/** @var string */
-	protected $code;
 
 	/** @var string */
 	protected $metadata;

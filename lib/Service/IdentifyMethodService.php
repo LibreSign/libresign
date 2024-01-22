@@ -40,6 +40,7 @@ class IdentifyMethodService {
 	public const IDENTIFY_TELEGRAM = 'telegram';
 	public const IDENTIFY_SMS = 'sms';
 	public const IDENTIFY_PASSWORD = 'password';
+	public const IDENTIFY_CLICK_TO_SIGN = 'clickToSign';
 	public const IDENTIFY_METHODS = [
 		self::IDENTIFY_ACCOUNT,
 		self::IDENTIFY_EMAIL,
@@ -47,6 +48,7 @@ class IdentifyMethodService {
 		self::IDENTIFY_TELEGRAM,
 		self::IDENTIFY_SMS,
 		self::IDENTIFY_PASSWORD,
+		self::IDENTIFY_CLICK_TO_SIGN,
 	];
 	private array $identifyMethodsSettings = [];
 	/**

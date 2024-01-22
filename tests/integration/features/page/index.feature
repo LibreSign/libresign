@@ -11,6 +11,6 @@ Feature: page/sign_identify_default
       """
       [
         {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
+        {"name":"email","friendly_name":"Email token","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest"}
       ]
       """

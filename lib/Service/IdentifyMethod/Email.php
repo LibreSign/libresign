@@ -40,9 +40,11 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
+use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
+	public const ID = 'email';
 	public function __construct(
 		private IConfig $config,
 		private IL10N $l10n,
@@ -53,6 +55,7 @@ class Email extends AbstractIdentifyMethod {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
+		private IHasher $hasher,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -60,7 +63,7 @@ class Email extends AbstractIdentifyMethod {
 		private FileElementMapper $fileElementMapper,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->l10n->t('Email');
+		$this->friendlyName = $this->l10n->t('Email token');
 		parent::__construct(
 			$config,
 			$l10n,
@@ -68,6 +71,7 @@ class Email extends AbstractIdentifyMethod {
 			$signRequestMapper,
 			$fileMapper,
 			$root,
+			$hasher,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -94,9 +98,10 @@ class Email extends AbstractIdentifyMethod {
 		}
 	}
 
-	public function validateToSign(?IUser $user = null): void {
-		$this->throwIfAccountAlreadyExists($user);
-		$this->throwIfIsNotSameUser($user);
+	public function validateToSign(): void {
+		$this->throwIfAccountAlreadyExists($this->user);
+		$this->throwIfIsNotSameUser($this->user);
+		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfFileNotFound();
@@ -138,6 +143,9 @@ class Email extends AbstractIdentifyMethod {
 		}
 		$email = $this->entity->getIdentifierValue();
 		if ($user->getEMailAddress() !== $email) {
+			if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
+				return;
+			}
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid user')],

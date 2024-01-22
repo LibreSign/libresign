@@ -414,8 +414,8 @@ class SignFileService {
 		}, $identifyMethods[$method]);
 	}
 
-	public function requestCode(SignRequestEntity $signRequest, IUser $user): string {
-		return $this->signMethod->requestCode($signRequest, $user);
+	public function requestCode(SignRequestEntity $signRequest, string $method, string $identify = ''): string {
+		return $this->signMethod->requestCode($signRequest, $method, $identify);
 	}
 
 	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
@@ -613,6 +613,7 @@ class SignFileService {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
 				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
+				'validateCode' => $identifyMethod->getCode() && empty($identifyMethod->getIdentifiedAtDate()) ? true : false,
 				'method' => $identifyMethod->getIdentifierKey(),
 			];
 		}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));

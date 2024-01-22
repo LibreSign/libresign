@@ -122,7 +122,7 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.uuid.length > 0) {
+				if (this.fileId.length > 0) {
 					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
 						fileId: this.fileId,
 					}))

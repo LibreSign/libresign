@@ -68,18 +68,18 @@ class SignFileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function signUsingFileId(int $fileId, string $password = null, array $elements = [], string $code = null): JSONResponse {
-		return $this->sign($password, $fileId, null, $elements, $code);
+	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
+		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
-	public function signUsingUuid(string $uuid, string $password = null, array $elements = [], string $code = null): JSONResponse {
-		return $this->sign($password, null, $uuid, $elements, $code);
+	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
+		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
 
-	public function sign(string $password = null, int $fileId = null, string $signRequestUuid = null, array $elements = [], string $code = null): JSONResponse {
+	public function sign(int $fileId = null, string $signRequestUuid = null, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
@@ -89,10 +89,12 @@ class SignFileController extends AEnvironmentAwareController {
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
 			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
-			$this->validateHelper->validateCredentials($signRequest, $user, [
-				'password' => $password,
-				'code' => $code,
-			]);
+			$this->validateHelper->validateCredentials($signRequest, $user, $method, $identifyValue, $token);
+			if ($method === 'password') {
+				$this->signFileService->setPassword($identifyValue);
+			} else {
+				$this->signFileService->setSignWithoutPassword(false);
+			}
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setSignRequest($signRequest)
@@ -102,9 +104,6 @@ class SignFileController extends AEnvironmentAwareController {
 				])
 				->setCurrentUser($user)
 				->setVisibleElements($elements)
-				// @todo improve this
-				->setSignWithoutPassword(!empty($code) || $this->signatureMethodService->getCurrent()['id'] === 'click-to-sign')
-				->setPassword($password)
 				->sign();
 
 			return new JSONResponse(
@@ -172,6 +171,7 @@ class SignFileController extends AEnvironmentAwareController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[RequireSigner]
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
 	}
@@ -184,14 +184,12 @@ class SignFileController extends AEnvironmentAwareController {
 	}
 
 	private function getCode(string $uuid = null, int $fileId = null): JSONResponse {
-		$statusCode = null;
 		try {
 			try {
-				$user = $this->userSession->getUser();
 				if ($fileId) {
-					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId, $user->getUID());
+					$signRequest = $this->signRequestMapper->getByFileIdAndUserId($fileId);
 				} else {
-					$signRequest = $this->signRequestMapper->getByUuidAndUserId($uuid, $user->getUID());
+					$signRequest = $this->signRequestMapper->getBySignerUuidAndUserId($uuid);
 				}
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
@@ -199,8 +197,13 @@ class SignFileController extends AEnvironmentAwareController {
 			$this->validateHelper->canRequestCode($signRequest);
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
-			$this->signFileService->requestCode($signRequest, $user);
+			$this->signFileService->requestCode(
+				signRequest: $signRequest,
+				method: $this->request->getParam('method', ''),
+				identify: $this->request->getParam('identify', ''),
+			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
+			$statusCode = Http::STATUS_OK;
 		} catch (SmsTransmissionException $e) {
 			// There was an error when to send SMS code to user.
 			$message = $this->l10n->t('Failed to send code.');

@@ -1,33 +1,55 @@
 <template>
-	<NcModal size="normal" @close="close">
-		<NcContent class="modal-view">
-			<template slot="header">
-				<h2>{{ t('libresign', 'Sign with your email.') }}</h2>
-			</template>
+	<NcModal size="normal"
+		:can-close="false"
+		@close="close">
+		<div class="modal__content">
+			<h2 class="modal__header">
+				{{ t('libresign', 'Sign with your email.') }}
+			</h2>
 
 			<div class="code-request">
-				<h3 class="email">
+				<div v-if="email" class="email">
 					{{ email }}
-				</h3>
-
-				<div v-if="tokenRequested">
-					<input v-model="token"
-						:disabled="loading"
-						name="code"
-						type="text">
 				</div>
+				<div v-if="needConfirmCode">
+					{{ t('libresign', 'Enter the code you received') }}
+					<NcTextField maxlength="6"
+						:value.sync="token"
+						:disabled="loading"
+						:label="t('libresign', 'Enter your code')"
+						:placeholder="t('libresign', 'Enter your code')"
+						name="code"
+						type="text" />
+				</div>
+				<NcTextField v-else
+					:disabled="loading"
+					:label="t('libresign', 'Email')"
+					:placeholder="t('libresign', 'Email')"
+					:value.sync="sendTo" />
 
-				<div>
-					<button v-if="!tokenRequested" :disabled="loading" @click="requestCode">
+				<div class="modal__button-row">
+					<NcButton v-if="needConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
+						{{ t('libresign', 'Request new code') }}
+					</NcButton>
+					<NcButton v-if="!needConfirmCode" :disabled="loading || !canRequestCode" @click="requestCode">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Request code.') }}
-					</button>
+					</NcButton>
 
-					<button v-if="tokenRequested" :disabled="loading" @click="sendCode">
+					<NcButton v-if="needConfirmCode" :disabled="!canSendCode" @click="sendCode">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Send code.') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
-		</NcContent>
+		</div>
 	</NcModal>
 </template>
 
@@ -35,8 +57,13 @@
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showSuccess } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 import { onError } from '../../../helpers/errors.js'
+import { validateEmail } from '../../../utils/validators.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -47,11 +74,20 @@ export default {
 	name: 'ModalEmailManager',
 	components: {
 		NcModal,
+		NcTextField,
+		NcLoadingIcon,
+		NcButton,
 	},
 	props: {
 		email: {
-			type: Object,
+			type: String,
 			required: true,
+			default: '',
+		},
+		confirmCode: {
+			type: Boolean,
+			required: true,
+			default: false,
 		},
 		fileId: {
 			type: Number,
@@ -68,8 +104,31 @@ export default {
 		token: '',
 		tokenRequested: false,
 		loading: false,
+		tokenLength: loadState('libresign', 'token_length', 6),
+		sendTo: '',
 	}),
+	computed: {
+		canRequestCode() {
+			if (validateEmail(this.sendTo)) {
+				return true
+			}
+			return false
+		},
+		needConfirmCode() {
+			return this.tokenRequested
+		},
+		canSendCode() {
+			return this.tokenRequested && !this.loading && this.token.length === this.tokenLength
+		},
+	},
+	mounted() {
+		this.tokenRequested = this.confirmCode
+	},
 	methods: {
+		requestNewCode() {
+			this.tokenRequested = false
+			this.token = ''
+		},
 		async requestCode() {
 			this.loading = true
 			this.tokenRequested = false
@@ -77,15 +136,23 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.uuid.length > 0) {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-						fileId: this.fileId,
-					}))
+				if (this.fileId.length > 0) {
+					const { data } = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
+						{
+							identify: this.sendTo,
+							method: 'email',
+						},
+					)
 					showSuccess(data.message)
 				} else {
-					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
-						uuid: this.uuid,
-					}))
+					const { data } = await axios.post(
+						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
+						{
+							identify: this.sendTo,
+							method: 'email',
+						},
+					)
 					showSuccess(data.message)
 				}
 				this.tokenRequested = true
@@ -97,10 +164,7 @@ export default {
 		},
 		sendCode() {
 			this.$emit('change', this.token)
-
-			this.$nextTick(() => {
-				this.close()
-			})
+			this.close()
 		},
 		close() {
 			this.$emit('close')
@@ -113,7 +177,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-h3.email {
+.email {
 	font-family: monospace;
 	text-align: center;
 }
@@ -140,6 +204,28 @@ button {
 		height: auto !important;
 		display: block;
 		margin: 0 auto;
+	}
+}
+
+.modal {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 20px;
+		gap: 4px 0;
+	}
+	&__header {
+		font-weight: bold;
+		font-size: 20px;
+		margin-bottom: 12px;
+		line-height: 30px;
+		color: var(--color-text-light);
+	}
+	&__button-row {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
 	}
 }
 
