@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
@@ -50,11 +49,10 @@ class SignatureMethodService {
 	private const SIGN_TELEGRAM = 'telegram';
 	private const SIGN_SMS = 'sms';
 	private const SIGN_EMAIL = 'email';
-	private const DEFAULT_SIGN_METHOD = 'password';
 	/**
 	 * @var AbstractIdentifyMethod[]
 	 */
-	private array $allowedMethods;
+	private array $methods;
 
 	public function __construct(
 		private IdentifyMethodService $identifyMethodService,
@@ -70,38 +68,24 @@ class SignatureMethodService {
 		private ClickToSign $clickToSign,
 		private Email $email,
 	) {
-		$this->allowedMethods = [
+		$this->methods = [
 			$this->password->getName() => $this->password,
 			$this->clickToSign->getName() => $this->clickToSign,
 			$this->email->getName() => $this->email,
 		];
 	}
 
-	public function getCurrent(): array {
-		$signatureMethod = $this->config->getAppValue(Application::APP_ID, 'signature_method');
-		$signatureMethod = json_decode($signatureMethod, true);
-		if (!is_array($signatureMethod)) {
-			$signatureMethods = $this->getAllowedMethods();
-			foreach ($signatureMethods as $signatureMethod) {
-				if ($signatureMethod['id'] === self::DEFAULT_SIGN_METHOD) {
-					return $signatureMethod;
-				}
-			}
-		}
-		return $signatureMethod;
-	}
-
-	public function getAllowedMethods(): array {
+	public function getMethods(): array {
 		return array_map(function (AbstractIdentifyMethod $method) {
 			return [
-				'id' => $method->getName(),
 				'label' => $method->friendlyName,
+				'enabled' => $method->isEnabledAsSignatueMethod(),
 			];
-		}, array_values($this->allowedMethods));
+		}, $this->methods);
 	}
 
 	public function requestCode(SignRequest $signRequest, string $methodId, string $identify = ''): string {
-		if (!array_key_exists($methodId, $this->allowedMethods)) {
+		if (!array_key_exists($methodId, $this->methods)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
 

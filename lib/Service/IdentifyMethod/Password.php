@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -83,5 +84,34 @@ class Password extends AbstractIdentifyMethod {
 		if (empty($cert_info)) {
 			throw new LibresignException($this->l10n->t('Invalid password'));
 		}
+	}
+
+	public function getSettings(): array {
+		if (!empty($this->settings)) {
+			return $this->settings;
+		}
+
+		$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
+		$config = json_decode($config, true);
+		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
+			$isEnabledAsSignatueMethod = true;
+		} else {
+			$isEnabledAsSignatueMethod = array_reduce($config, function (bool $carry, $method) {
+				if (!is_array($method)) {
+					$carry = false;
+				} elseif (array_key_exists('enabled', $method)) {
+					$carry = ((bool) $method['enabled']) || !$carry;
+				}
+				return $carry;
+			}, true);
+		}
+
+		$this->settings = $this->getSettingsFromDatabase(
+			default: [
+				'enabled_as_signature_method' => $isEnabledAsSignatueMethod,
+			]
+		);
+
+		return $this->settings;
 	}
 }

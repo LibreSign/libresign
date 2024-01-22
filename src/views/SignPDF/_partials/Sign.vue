@@ -14,7 +14,7 @@
 			</NcButton>
 		</div>
 		<div v-else-if="!loading" class="button-wrapper">
-			<div v-if="needPassword && !hasSignatureFile">
+			<div v-if="needCreatePassword">
 				<p>
 					{{ t('libresign', 'Please define your sign password') }}
 				</p>
@@ -25,7 +25,7 @@
 					{{ t('libresign', 'Define a password and sign the document.') }}
 				</NcButton>
 			</div>
-			<div v-else-if="needSignature && !hasSignatures" class="no-signature-warning">
+			<div v-else-if="needSignature" class="no-signature-warning">
 				<p>
 					{{ t('libresign', 'You do not have any signature defined.') }}
 				</p>
@@ -43,14 +43,16 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="modals.clickToSign" @close="modals.clickToSign = false">
+		<NcModal v-if="signatureMethods.clickToSign.modal"
+			:can-close="!loading"
+			@close="onModalClose('clicKToSign')">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm') }}
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="modals.clickToSign = false">
+					<NcButton @click="signatureMethods.clickToSign.modal = false">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
@@ -60,19 +62,36 @@
 				</div>
 			</div>
 		</NcModal>
-		<Draw v-if="modals.createSignature"
+		<NcModal v-if="modalSignWithPassword"
+			:can-close="!loading"
+			@close="modalSignWithPassword = false">
+			<div class="modal__content">
+				<h2 class="modal__header">
+					{{ t('libresign', 'Confirm your signature') }}
+				</h2>
+				{{ t('libresign', 'Subscription password.') }}
+				<NcPasswordField :value.sync="signPassword" type="password" />
+				<div class="modal__button-row">
+					<NcButton @click="modalSignWithPassword = false">
+						{{ t('libresign', 'Cancel') }}
+					</NcButton>
+					<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
+						{{ t('libresign', 'Sign the document.') }}
+					</NcButton>
+				</div>
+			</div>
+		</NcModal>
+		<Draw v-if="signatureMethods.createSignature.modal"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
 			@save="saveSignature"
 			@close="onModalClose('createSignature')" />
-		<PasswordManager v-if="modals.password"
-			v-bind="{ hasSignatureFile }"
-			@change="signWithPassword"
-			@create="onPasswordCreate"
-			@close="onModalClose('password')" />
-
-		<SMSManager v-if="modals.sms"
+		<NcModal v-if="modalCreatePassword" @close="onModalClose('password')">
+			<CreatePassword @password:created="onPasswordCreate"
+				@close="modalCreatePassword = false" />
+		</NcModal>
+		<SMSManager v-if="signatureMethods.sms.modal"
 			:phone-number="user?.account?.phoneNumber"
 			:uuid="uuid"
 			:file-id="document.fileId"
@@ -81,11 +100,11 @@
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
-		<EmailManager v-if="modals.email"
+		<EmailManager v-if="signatureMethods.email.modal"
 			:email="blurredEmail"
 			:uuid="uuid"
 			:file-id="document.fileId"
-			:confirm-code="needEmailCode"
+			:confirm-code="signatureMethods.email.necessary"
 			@change="signWithEmailToken"
 			@close="onModalClose('email')" />
 	</div>
@@ -96,28 +115,25 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
-import PasswordManager from './ModalPasswordManager.vue'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import { loadState } from '@nextcloud/initial-state'
-
-const SIGN_METHODS = Object.freeze({
-	PASSWORD: 'PasswordManager',
-	EMAIL: 'EmailManager',
-	SMS: 'SMSManager',
-})
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import ResetPassword from '../../../views/ResetPassword.vue'
+import CreatePassword from '../../../views/CreatePassword.vue'
 
 export default {
 	name: 'Sign',
-	SIGN_METHODS,
 	components: {
 		NcModal,
 		NcButton,
-		PasswordManager,
+		NcPasswordField,
+		ResetPassword,
+		CreatePassword,
 		SMSManager,
 		EmailManager,
 		PreviewSignature,
@@ -139,25 +155,25 @@ export default {
 		},
 	},
 	data() {
-		const identifyMethods = loadState('libresign', 'identifyMethods')
+		const signatureMethods = loadState('libresign', 'signature_methods')
+		for (const methodId of Object.keys(signatureMethods)) {
+			signatureMethods[methodId].modal = false
+		}
+		signatureMethods.createSignature = { modal: false }
+		signatureMethods.sms = { modal: false }
+		signatureMethods.clickToSign.necessary = signatureMethods.clickToSign.enabled
 		return {
 			loading: true,
-			modals: {
-				password: false,
-				email: false,
-				sms: false,
-				createSignature: false,
-				clickToSign: false,
-			},
 			user: {
 				account: { uid: '', displayName: '' },
 			},
+			modalCreatePassword: false,
+			modalSignWithPassword: false,
+			signPassword: '',
 			blurredEmail: loadState('libresign', 'blurred_email', ''),
 			userSignatures: loadState('libresign', 'user_signatures'),
-			createPassword: false,
 			hasSignatureFile: loadState('libresign', 'config', {})?.hasSignatureFile,
-			signatureMethod: loadState('libresign', 'signature_method'),
-			identifyMethods,
+			signatureMethods,
 		}
 	},
 	computed: {
@@ -190,34 +206,35 @@ export default {
 		hasSignatures() {
 			return this.userSignatures.length > 0
 		},
+		needCreatePassword() {
+			return this.signatureMethods.password.enabled
+				&& !this.hasSignatureFile
+		},
 		needSignature() {
 			return this.document?.visibleElements.length > 0
-		},
-		needPassword() {
-			return this.signatureMethod.id === 'password'
+				&& !this.hasSignatures
 		},
 		needEmailCode() {
-			return this.needValidate('email')
+			return this.signatureMethods.email.enabled
+				&& this.signatureMethods.email.validateCode
 		},
 		needSmsCode() {
-			return this.needValidate('sms')
+			return (this.signatureMethods.sms?.enabled
+				&& this.signatureMethods.sms?.validateCode)
+				?? false
 		},
 		ableToSign() {
-			if (this.needPassword && !this.hasSignatureFile) {
+			if (this.needCreatePassword) {
 				return false
 			}
-
-			if (this.needSignature && !this.hasSignatures) {
+			if (this.needSignature) {
 				return false
 			}
-
 			return true
 		},
 	},
 	mounted() {
 		this.loading = true
-		this.modals.email = this.needEmailCode
-		this.modals.sms = this.needSmsCode
 
 		Promise.all([
 			this.loadUser(),
@@ -228,12 +245,6 @@ export default {
 			})
 	},
 	methods: {
-		needValidate(method) {
-			const total = this.identifyMethods.find(row => {
-				return row.method === method && row.validateCode
-			})
-			return typeof total === 'object'
-		},
 		async loadUser() {
 			try {
 				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
@@ -258,17 +269,17 @@ export default {
 			} catch (err) {
 				onError(err)
 			}
-			this.modals.createSignature = false
+			this.signatureMethods.createSignature.modal = false
 		},
 		async signWithClick() {
 			return this.signDocument({
 				method: 'clickToSign',
 			})
 		},
-		async signWithPassword(password) {
+		async signWithPassword() {
 			return this.signDocument({
 				method: 'password',
-				identifyValue: password,
+				identifyValue: this.signPassword,
 			})
 		},
 		async signWithSMSCode(token) {
@@ -313,31 +324,29 @@ export default {
 			this.hasSignatureFile = hasSignatureFile
 		},
 		callPassword() {
-			this.modals.password = true
+			this.modalCreatePassword = true
 		},
 		callCreateSignature() {
-			this.modals.createSignature = true
+			this.signatureMethods.createSignature.modal = true
 		},
 		confirmSignDocument() {
 			if (this.needEmailCode) {
-				this.modals.email = true
+				this.signatureMethods.email.modal = true
+				return
+			}
+			if (this.needSignature) {
+				this.signatureMethods.createSignature.modal = true
 				return
 			}
 			if (this.needSmsCode) {
-				this.modals.sms = true
-				return
+				this.signatureMethods.sms.modal = true
 			}
-			if (this.modals[this.signatureMethod.id] === undefined) {
-				showError(t('libresign', '{signatureMethod} is not a valid sign method', {
-					signatureMethod: this.signatureMethod.label,
-				}))
-				return
+			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
+				this.modalSignWithPassword = true
 			}
-
-			this.modals[this.signatureMethod.id] = true
 		},
-		onModalClose(modal) {
-			this.modals[modal] = false
+		onModalClose(methodId) {
+			this.signatureMethods[methodId].modal = false
 		},
 	},
 }
