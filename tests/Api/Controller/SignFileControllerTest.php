@@ -29,7 +29,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/sign/file_id/171')
 			->withRequestBody([
-				'password' => 'secretPassword'
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
 			])
 			->assertResponseCode(422);
 
@@ -51,7 +52,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/sign/uuid/invalid')
 			->withRequestBody([
-				'password' => 'secretPassword'
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
 			])
 			->assertResponseCode(422);
 
@@ -91,7 +93,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
 			->withRequestBody([
-				'password' => 'secretPassword'
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
 			])
 			->assertResponseCode(422);
 
@@ -132,7 +135,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
 			->withRequestBody([
-				'password' => 'secretPassword'
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
 			])
 			->assertResponseCode(422);
 
@@ -299,7 +303,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			])
 			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
 			->withRequestBody([
-				'password' => 'secretPassword'
+				'identifyValue' => 'secretPassword',
+				'method' => 'password',
 			]);
 
 		$this->assertRequest();
