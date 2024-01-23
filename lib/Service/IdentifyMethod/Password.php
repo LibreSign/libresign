@@ -91,19 +91,23 @@ class Password extends AbstractIdentifyMethod {
 			return $this->settings;
 		}
 
-		$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
-		$config = json_decode($config, true);
-		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
-			$isEnabledAsSignatueMethod = true;
+		if (!$this->sessionService->isAuthenticated()) {
+			$isEnabledAsSignatueMethod = false;
 		} else {
-			$isEnabledAsSignatueMethod = array_reduce($config, function (bool $carry, $method) {
-				if (!is_array($method)) {
-					$carry = false;
-				} elseif (array_key_exists('enabled', $method)) {
-					$carry = ((bool) $method['enabled']) || !$carry;
-				}
-				return $carry;
-			}, true);
+			$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
+			$config = json_decode($config, true);
+			if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
+				$isEnabledAsSignatueMethod = true;
+			} else {
+				$isEnabledAsSignatueMethod = array_reduce($config, function (bool $carry, $method) {
+					if (!is_array($method)) {
+						$carry = false;
+					} elseif (array_key_exists('enabled', $method)) {
+						$carry = ((bool) $method['enabled']) || !$carry;
+					}
+					return $carry;
+				}, true);
+			}
 		}
 
 		$this->settings = $this->getSettingsFromDatabase(

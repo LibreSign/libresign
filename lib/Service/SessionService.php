@@ -50,4 +50,8 @@ class SessionService {
 		$this->session->reopen();
 		$this->session->set('libresign-sign-start-time', time());
 	}
+
+	public function isAuthenticated() {
+		return $this->session->get('user_id') ? true : false;
+	}
 }
