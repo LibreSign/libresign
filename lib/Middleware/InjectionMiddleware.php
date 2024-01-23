@@ -28,6 +28,7 @@ use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
+use OCA\Libresign\Controller\ISignatureUuid;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -79,16 +80,10 @@ class InjectionMiddleware extends Middleware {
 	 * @throws \Exception
 	 */
 	public function beforeController(Controller $controller, string $methodName) {
-		switch (true) {
-			case $controller instanceof AEnvironmentAwareController:
-				$apiVersion = $this->request->getParam('apiVersion');
-				/** @var AEnvironmentAwareController $controller */
-				$controller->setAPIVersion((int) substr($apiVersion, 1));
-				break;
-			case $controller instanceof AEnvironmentPageAwareController:
-				break;
-			default:
-				return;
+		if ($controller instanceof AEnvironmentAwareController) {
+			$apiVersion = $this->request->getParam('apiVersion');
+			/** @var AEnvironmentAwareController $controller */
+			$controller->setAPIVersion((int) substr($apiVersion, 1));
 		}
 
 		$reflectionMethod = new \ReflectionMethod($controller, $methodName);
@@ -101,32 +96,35 @@ class InjectionMiddleware extends Middleware {
 			$this->requireSigner();
 		}
 
-		$requireSetupOk = $reflectionMethod->getAttributes(RequireSetupOk::class);
-		if (!empty($requireSetupOk)) {
-			$this->requireSetupOk(current($requireSetupOk));
+		$this->requireSetupOk($reflectionMethod);
+
+		$this->handleUuid($controller, $reflectionMethod);
+	}
+
+	private function handleUuid(Controller $controller, \ReflectionMethod $reflectionMethod): void {
+		if (!$controller instanceof ISignatureUuid) {
+			return;
 		}
 
 		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->validateRenewSigner(
-				uuid: $this->request->getParam('uuid'),
+				uuid: $this->request->getParam('uuid', ''),
 			);
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->loadNextcloudFileFromSignRequestUuid(
-				uuid: $this->request->getParam('uuid'),
+				uuid: $this->request->getParam('uuid', ''),
 			);
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))
-			&& $controller instanceof AEnvironmentPageAwareController
-		) {
+		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->validateSignRequestUuid(
-				uuid: $this->request->getParam('uuid'),
+				uuid: $this->request->getParam('uuid', ''),
 			);
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->loadNextcloudFileFromSignRequestUuid(
-				uuid: $this->request->getParam('uuid'),
+				uuid: $this->request->getParam('uuid', ''),
 			);
 		}
 	}
@@ -150,7 +148,12 @@ class InjectionMiddleware extends Middleware {
 		}
 	}
 
-	private function requireSetupOk(\ReflectionAttribute $attribute): void {
+	private function requireSetupOk(\ReflectionMethod $reflectionMethod): void {
+		$attribute = $reflectionMethod->getAttributes(RequireSetupOk::class);
+		if (empty($attribute)) {
+			return;
+		}
+		$attribute = current($attribute);
 		if (!$this->certificateEngineHandler->getEngine()->isSetupOk()) {
 			/** @var RequireSetupOk $requirement */
 			$requireSetupOk = $attribute->newInstance();

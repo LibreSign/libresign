@@ -72,11 +72,6 @@
       <code>LoadSidebar</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Middleware/InjectionMiddleware.php">
-    <InvalidArgument occurrences="1">
-      <code>current($requireSetupOk)</code>
-    </InvalidArgument>
-  </file>
   <file src="lib/Migration/Version2040Date20211027183759.php">
     <MissingDependency occurrences="3">
       <code>$this-&gt;root</code>
