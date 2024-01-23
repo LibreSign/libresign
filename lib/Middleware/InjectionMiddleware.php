@@ -96,10 +96,7 @@ class InjectionMiddleware extends Middleware {
 			$this->requireSigner();
 		}
 
-		$requireSetupOk = $reflectionMethod->getAttributes(RequireSetupOk::class);
-		if (!empty($requireSetupOk)) {
-			$this->requireSetupOk(current($requireSetupOk));
-		}
+		$this->requireSetupOk($reflectionMethod);
 
 		$this->handleUuid($controller, $reflectionMethod);
 	}
@@ -151,7 +148,12 @@ class InjectionMiddleware extends Middleware {
 		}
 	}
 
-	private function requireSetupOk(\ReflectionAttribute $attribute): void {
+	private function requireSetupOk(\ReflectionMethod $reflectionMethod): void {
+		$attribute = $reflectionMethod->getAttributes(RequireSetupOk::class);
+		if (empty($attribute)) {
+			return;
+		}
+		$attribute = current($attribute);
 		if (!$this->certificateEngineHandler->getEngine()->isSetupOk()) {
 			/** @var RequireSetupOk $requirement */
 			$requireSetupOk = $attribute->newInstance();
