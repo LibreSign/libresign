@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Email" : "மின்னஞ்சல்",
     "Invalid password" : "Invalid Password",
     "Files" : "கோப்புகள்",
     "Settings" : "அமைப்புகள்",
@@ -10,6 +9,7 @@ OC.L10N.register(
     "Cancel" : "இரத்து செய்க",
     "Save" : "சேமிக்க ",
     "Name" : "பெயர்",
+    "Email" : "மின்னஞ்சல்",
     "Update" : "இற்றைப்படுத்தல்",
     "Description" : "விவரிப்பு",
     "Add" : "சேர்க்க",

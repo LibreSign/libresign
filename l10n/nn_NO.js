@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "File not found" : "Fann ikkje fila",
     "File is too big" : "Fila er for stor",
-    "Email" : "Epost",
     "Invalid password" : "Feil passord",
     "Files" : "Filer",
     "Settings" : "Innstillingar",
@@ -14,6 +13,7 @@ OC.L10N.register(
     "Cancel" : "Avbryt",
     "Save" : "Lagre",
     "Name" : "Namn",
+    "Email" : "Epost",
     "Update" : "Oppdater",
     "Description" : "Skildring",
     "Add" : "Legg til",
