@@ -629,7 +629,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateIdentifyMethod(string $uuid, ?IUser $user = null): void {
+	private function validateIdentifyMethod(string $uuid, ?IUser $user = null): void {
 		$signRequest = $this->signRequestMapper->getByUuid($uuid);
 		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		foreach ($identifyMethods as $methods) {
@@ -641,6 +641,7 @@ class ValidateHelper {
 	}
 
 	private function validateSignerUuidExists(string $uuid): void {
+		$this->validateUuidFormat($uuid);
 		try {
 			$signRequest = $this->signRequestMapper->getByUuid($uuid);
 			$this->fileMapper->getById($signRequest->getFileId());
@@ -649,6 +650,18 @@ class ValidateHelper {
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]));
+		}
+	}
+
+	/**
+	 * @throws LibresignException
+	 */
+	public function validateUuidFormat(string $uuid): void {
+		if (!$uuid || !preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $uuid)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]), Http::STATUS_NOT_FOUND);
 		}
 	}
 
