@@ -1,7 +1,6 @@
 { "translations": {
     "deleted" : "obrisano",
     "File not found" : "Fajl nije nađen",
-    "Email" : "email",
     "Files" : "Фајлови",
     "Settings" : "Поставке",
     "Password" : "Lozinka",
@@ -9,6 +8,7 @@
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",
     "Name" : "Ime",
+    "Email" : "email",
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Delete" : "Obriši",

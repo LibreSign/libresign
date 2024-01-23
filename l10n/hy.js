@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "File not found" : "Ֆայլը չգտնվեց",
     "File is too big" : "Նիշքը չափազանց մեծ է",
-    "Email" : "Էլ․փոստ",
     "Files" : "Ֆայլեր",
     "Settings" : "կարգավորումներ",
     "Password" : "Գաղտնաբառ",
@@ -11,6 +10,7 @@ OC.L10N.register(
     "Cancel" : "ընդհատել",
     "Save" : "Պահպանել",
     "Name" : "Անուն",
+    "Email" : "Էլ․փոստ",
     "Update" : "Թարմացնել",
     "Description" : "Նկարագրություն",
     "Add" : "Ավելացնել",

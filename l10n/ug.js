@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "Email" : "تورخەت",
     "Files" : "ھۆججەتلەر",
     "Settings" : "تەڭشەكلەر",
     "Password" : "ئىم",
@@ -9,6 +8,7 @@ OC.L10N.register(
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",
     "Name" : "ئاتى",
+    "Email" : "تورخەت",
     "Update" : "يېڭىلا",
     "Description" : "چۈشەندۈرۈش",
     "Add" : "قوش",
