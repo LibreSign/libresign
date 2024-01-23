@@ -56,7 +56,7 @@ trait LibresignTrait {
 			$this->fileEntity = $this->signFileService->getFile(
 				$this->signRequestEntity->getFileId(),
 			);
-		} catch (DoesNotExistException $e) {
+		} catch (DoesNotExistException|LibresignException $e) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid UUID')],
@@ -68,7 +68,6 @@ trait LibresignTrait {
 	 * @throws LibresignException
 	 */
 	public function validateSignRequestUuid(string $uuid): void {
-		$this->validateUuidFormat($uuid);
 		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateSigner($uuid, $this->userSession->getUser());
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
@@ -79,20 +78,7 @@ trait LibresignTrait {
 	/**
 	 * @throws LibresignException
 	 */
-	private function validateUuidFormat(string $uuid): void {
-		if (!$uuid || !preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $uuid)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid UUID')],
-			]), AppFrameworkHttp::STATUS_NOT_FOUND);
-		}
-	}
-
-	/**
-	 * @throws LibresignException
-	 */
 	public function validateRenewSigner(string $uuid): void {
-		$this->validateUuidFormat($uuid);
 		$this->loadEntitiesFromUuid($uuid);
 		$this->signFileService->validateRenewSigner($uuid, $this->userSession->getUser());
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
@@ -104,7 +90,6 @@ trait LibresignTrait {
 	 * @throws LibresignException
 	 */
 	public function loadNextcloudFileFromSignRequestUuid(string $uuid): void {
-		$this->validateUuidFormat($uuid);
 		$this->loadEntitiesFromUuid($uuid);
 		$this->nextcloudFile = $this->signFileService->getNextcloudFile(
 			$this->fileEntity->getNodeId(),

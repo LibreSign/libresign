@@ -138,7 +138,7 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	private function requireSigner(): void {
-		$uuid = $this->request->getParam('uuid');
+		$uuid = $this->request->getParam('uuid', '');
 
 		try {
 			$user = $this->userSession->getUser();
