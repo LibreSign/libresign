@@ -156,9 +156,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
-		if ($this->userSession->getUser()) {
-			$this->initialState->provideInitialState('user_signatures', $this->accountService->getUserElements($this->userSession->getUser()->getUID()));
-		}
+		$this->provideSignerSignatues();
 		$signatureMethods = $this->signatureMethodService->getMethods();
 		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
@@ -177,6 +175,14 @@ class PageController extends AEnvironmentPageAwareController {
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
+	}
+
+	private function provideSignerSignatues(): void {
+		$signatures = [];
+		if ($this->userSession->getUser()) {
+			$signatures = $this->accountService->getUserElements($this->userSession->getUser()->getUID());
+		}
+		$this->initialState->provideInitialState('user_signatures', $signatures);
 	}
 
 	private function provideBlurredEmail(array $signatureMethods, ?string $email): void {
