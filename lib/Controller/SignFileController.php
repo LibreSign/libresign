@@ -194,7 +194,7 @@ class SignFileController extends AEnvironmentAwareController {
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
-			$this->validateHelper->canRequestCode($signRequest);
+			$this->validateHelper->canRequestCode();
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
