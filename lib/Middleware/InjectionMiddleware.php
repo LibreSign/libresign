@@ -28,6 +28,7 @@ use OC\AppFramework\Http as AppFrameworkHttp;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Controller\AEnvironmentAwareController;
 use OCA\Libresign\Controller\AEnvironmentPageAwareController;
+use OCA\Libresign\Controller\ISignatureUuid;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
@@ -84,10 +85,6 @@ class InjectionMiddleware extends Middleware {
 			/** @var AEnvironmentAwareController $controller */
 			$controller->setAPIVersion((int) substr($apiVersion, 1));
 		}
-		$traits = class_uses($controller);
-		if (!isset($traits[\OCA\Libresign\Controller\LibresignTrait::class])) {
-			return;
-		}
 
 		$reflectionMethod = new \ReflectionMethod($controller, $methodName);
 
@@ -102,6 +99,14 @@ class InjectionMiddleware extends Middleware {
 		$requireSetupOk = $reflectionMethod->getAttributes(RequireSetupOk::class);
 		if (!empty($requireSetupOk)) {
 			$this->requireSetupOk(current($requireSetupOk));
+		}
+
+		$this->handleUuid($controller, $reflectionMethod);
+	}
+
+	private function handleUuid(Controller $controller, \ReflectionMethod $reflectionMethod): void {
+		if (!$controller instanceof ISignatureUuid) {
+			return;
 		}
 
 		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {

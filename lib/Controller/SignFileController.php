@@ -48,7 +48,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class SignFileController extends AEnvironmentAwareController {
+class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
