@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "File not found" : "ಕಡತ ಕಂಡುಬಂದಿಲ್ಲ",
     "Invalid user" : "﻿ಅಮಾನ್ಯ ಬಳಕೆದಾರ",
-    "Email" : "﻿ಇ-ಅಂಚೆ",
     "Files" : "ಕಡತಗಳು",
     "Settings" : "ಆಯ್ಕೆ",
     "Authentication required" : "﻿ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ",
@@ -12,6 +11,7 @@ OC.L10N.register(
     "Cancel" : "﻿ರದ್ದು",
     "Save" : "﻿ಉಳಿಸಿ",
     "Name" : "﻿ಹೆಸರು",
+    "Email" : "﻿ಇ-ಅಂಚೆ",
     "Add" : "﻿ಸೇರಿಸಿ",
     "Users" : "﻿ಬಳಕೆದಾರರು",
     "Delete" : "﻿ಅಳಿಸಿ",

@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "deleted" : "obrisano",
     "File not found" : "Fajl nije nađen",
-    "Email" : "email",
     "Files" : "Фајлови",
     "Settings" : "Поставке",
     "Password" : "Lozinka",
@@ -11,6 +10,7 @@ OC.L10N.register(
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",
     "Name" : "Ime",
+    "Email" : "email",
     "Description" : "Opis",
     "Add" : "Dodaj",
     "Delete" : "Obriši",
