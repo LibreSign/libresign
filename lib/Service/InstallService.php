@@ -272,7 +272,7 @@ class InstallService {
 			exec('ps -p ' . $progressData['pid'], $output, $exitCode);
 			if (count($output) <= 1) {
 				$this->removeDownloadProgress();
-				return false;
+				continue;
 			}
 			return true;
 		}
