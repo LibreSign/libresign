@@ -155,7 +155,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[CanSignRequestUuid]
-	#[RequireSignRequestUuid]
 	public function signRenew(string $method): JSONResponse {
 		$this->signFileService->renew(
 			$this->getSignRequestEntity(),
