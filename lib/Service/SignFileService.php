@@ -552,6 +552,7 @@ class SignFileService {
 	 * @throws DoesNotExistException
 	 */
 	public function getSignRequest(string $uuid): SignRequestEntity {
+		$this->validateHelper->validateUuidFormat($uuid);
 		return $this->signRequestMapper->getByUuid($uuid);
 	}
 
