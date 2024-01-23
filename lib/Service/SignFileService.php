@@ -608,7 +608,7 @@ class SignFileService {
 		return $return;
 	}
 
-	public function getAvailableIdentifyMethods(SignRequestEntity $signRequest = null): array {
+	public function getAvailableIdentifyMethods(SignRequestEntity $signRequest): array {
 		$return = array_map(function (IdentifyMethod $identifyMethod): array {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
