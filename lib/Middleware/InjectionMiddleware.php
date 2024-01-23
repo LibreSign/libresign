@@ -79,16 +79,14 @@ class InjectionMiddleware extends Middleware {
 	 * @throws \Exception
 	 */
 	public function beforeController(Controller $controller, string $methodName) {
-		switch (true) {
-			case $controller instanceof AEnvironmentAwareController:
-				$apiVersion = $this->request->getParam('apiVersion');
-				/** @var AEnvironmentAwareController $controller */
-				$controller->setAPIVersion((int) substr($apiVersion, 1));
-				break;
-			case $controller instanceof AEnvironmentPageAwareController:
-				break;
-			default:
-				return;
+		if ($controller instanceof AEnvironmentAwareController) {
+			$apiVersion = $this->request->getParam('apiVersion');
+			/** @var AEnvironmentAwareController $controller */
+			$controller->setAPIVersion((int) substr($apiVersion, 1));
+		}
+		$traits = class_uses($controller);
+		if (!isset($traits[\OCA\Libresign\Controller\LibresignTrait::class])) {
+			return;
 		}
 
 		$reflectionMethod = new \ReflectionMethod($controller, $methodName);
@@ -117,9 +115,7 @@ class InjectionMiddleware extends Middleware {
 			);
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))
-			&& $controller instanceof AEnvironmentPageAwareController
-		) {
+		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->validateSignRequestUuid(
 				uuid: $this->request->getParam('uuid'),
