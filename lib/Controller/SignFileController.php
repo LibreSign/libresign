@@ -33,7 +33,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
-use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
@@ -48,7 +47,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class SignFileController extends AEnvironmentAwareController {
+class SignFileController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
@@ -155,7 +154,6 @@ class SignFileController extends AEnvironmentAwareController {
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[CanSignRequestUuid]
-	#[RequireSignRequestUuid]
 	public function signRenew(string $method): JSONResponse {
 		$this->signFileService->renew(
 			$this->getSignRequestEntity(),
