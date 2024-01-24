@@ -39,9 +39,10 @@
 			@close="closeModalUploadFromUrl">
 			<div class="modal__content">
 				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
-				<NcNoteCard v-if="error.length > 0"
-					type="error">
-					{{ error }}
+				<NcNoteCard v-for="message in error"
+					:key="message"
+					type="error" >
+					{{ message }}
 				</NcNoteCard>
 				<div class="form-group">
 					<NcTextField :label="t('libresign', 'URL of a PDF file')"
@@ -189,7 +190,7 @@ export default {
 				this.file.nodeId = response.data.id
 				this.file.name = response.data.name
 			} catch (err) {
-				this.error = err.response.data.message
+				this.error = err.response.data.errors
 				this.loading = false
 				return
 			}
