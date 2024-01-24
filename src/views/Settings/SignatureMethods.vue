@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title">
+	<NcSettingsSection :name="name">
 		<p>
 			<NcCheckboxRadioSwitch v-for="(method, id) in signatureMethods"
 				:key="id"
@@ -25,7 +25,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Signature methods'),
+			name: t('libresign', 'Signature methods'),
 			signatureMethods: loadState('libresign', 'signature_methods', []),
 		}
 	},

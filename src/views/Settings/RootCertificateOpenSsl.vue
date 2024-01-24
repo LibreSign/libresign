@@ -23,7 +23,7 @@
 
 <template>
 	<NcSettingsSection v-if="isThisEngine && loaded"
-		:title="title"
+		:name="name"
 		:description="description">
 		<div v-if="configureOk" id="tableRootCertificateOpenSsl" class="form-libresign">
 			<table class="grid">
@@ -139,7 +139,7 @@ export default {
 			},
 			error: false,
 			customData: false,
-			title: t('libresign', 'Root certificate data'),
+			name: t('libresign', 'Root certificate data'),
 			description: t('libresign', 'To generate new signatures, you must first generate the root certificate.'),
 			submitLabel: t('libresign', 'Generate root certificate'),
 			formDisabled: false,

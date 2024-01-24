@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<NcCheckboxRadioSwitch type="switch"
 			:checked.sync="collectMetadataEnabled"
 			@update:checked="saveCollectMetadata()">
@@ -22,7 +22,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Collect signers\' metadata'),
+			name: t('libresign', 'Collect signers\' metadata'),
 			description: t('libresign', 'Enabling this feature, every time a document is signed, LibreSign will store the IP address and user agent of the signer.'),
 			collectMetadataEnabled: false,
 		}
