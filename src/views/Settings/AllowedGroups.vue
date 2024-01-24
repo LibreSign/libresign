@@ -85,7 +85,12 @@ export default {
 		async saveGroups() {
 			await confirmPassword()
 
-			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected)
+			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected.map((g) => {
+				if (typeof g === 'object') {
+					return g.id
+				}
+				return g
+			}))
 			OCP.AppConfig.setValue('libresign', 'groups_request_sign', listOfInputGroupsSelected)
 			this.idKey += 1
 		},
