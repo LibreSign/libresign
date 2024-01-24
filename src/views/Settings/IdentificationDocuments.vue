@@ -72,7 +72,12 @@ export default {
 		},
 
 		saveApprovalGroups() {
-			const listOfInputGroupsSelected = JSON.stringify(this.approvalGroups)
+			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected.map((g) => {
+				if (typeof g === 'object') {
+					return g.id
+				}
+				return g
+			}))
 			OCP.AppConfig.setValue('libresign', 'approval_group', listOfInputGroupsSelected)
 			this.idApprovalGroupsKey += 1
 		},
