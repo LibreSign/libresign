@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title">
+	<NcSettingsSection :name="name">
 		<p>
 			{{ t('libresign', 'Rules for controlling the expiration of a request to sign a file.') }}
 		</p>
@@ -49,7 +49,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Expiration rules'),
+			name: t('libresign', 'Expiration rules'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			enableMaximumValidity: false,
 			maximumValidity: '0',

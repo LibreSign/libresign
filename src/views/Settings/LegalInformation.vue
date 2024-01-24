@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<div class="legal-information-content">
 			<textarea v-model="legalInformation"
 				:placeholder="t('libresign', 'Legal Information')"
@@ -20,7 +20,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Legal information'),
+			name: t('libresign', 'Legal information'),
 			description: t('libresign', 'This information will appear on the validation page'),
 			legalInformation: '',
 		}

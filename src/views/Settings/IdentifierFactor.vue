@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<div v-for="(option, index) in options"
 			:key="index">
 			<hr v-if="index != 0">
@@ -65,7 +65,7 @@ export default {
 		const identifyMethod = loadState('libresign', 'identify_methods')
 
 		return {
-			title: t('libresign', 'Identify factors'),
+			name: t('libresign', 'Identify factors'),
 			description: t('libresign', 'Ways to identify a person who will sign a document.'),
 			isEmpty: identifyMethod.length === 0,
 			options: identifyMethod,
