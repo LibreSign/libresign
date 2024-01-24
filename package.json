@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@fontsource/dancing-script": "^5.0.16",
-    "@libresign/vue-pdf-editor": "^1.2.2",
+    "@libresign/vue-pdf-editor": "^1.2.4",
     "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.1.0",
     "@nextcloud/axios": "^2.4.0",
@@ -53,7 +53,7 @@
   ],
   "engines": {
     "node": "^20.0.0",
-    "npm": "^9.0.0"
+    "npm": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
