@@ -23,29 +23,39 @@
 
 <template>
 	<NcContent app-name="libresign">
-		<NcAppNavigation>
+		<NcAppNavigation :class="{'icon-loading' : loading }">
 			<template #list>
 				<NcAppNavigationItem v-if="back_to_signature"
 					class="back_to_signature"
 					icon="icon-history"
-					:title="t('libresign', 'Back to sign')"
-					exact
+					:name="t('libresign', 'Back to sign')"
 					@click="goToSign" />
-				<NcAppNavigationItem :to="{name: 'requestFiles'}"
-					:title="t('libresign', 'Request')"
-					icon="icon-rename"
-					exact />
-				<NcAppNavigationItem :to="{ name: 'signFiles' }"
-					:title="t('libresign', 'Files')"
-					icon="icon-files-dark"
-					exact />
-				<NcAppNavigationItem :to="{name: 'validation'}"
-					:title="t('libresign', 'Validate')"
-					icon="icon-file" />
 
-				<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
-					:to="{name: 'DocsAccountValidation'}"
-					:title="t('libresign', 'Documents Validation')"
+				<NcAppNavigationItem :to="{name: 'requestFiles'}"
+					id="request-files"
+					:name="t('libresign', 'Request')">
+					<template #icon>
+						<FileSignIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+				<NcAppNavigationItem :to="{ name: 'signFiles' }"
+					id="sign-files"
+					:name="t('libresign', 'Files')">
+					<template #icon>
+						<FolderIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+				<NcAppNavigationItem :to="{name: 'validation'}"
+					id="validation"
+					:name="t('libresign', 'Validate')">
+					<template #icon>
+						<FileCheckIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+
+				<NcAppNavigationItem :to="{name: 'DocsAccountValidation'}"
+					v-if="config.identificationDocumentsFlow && config.isApprover"
+					:name="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
 			</template>
 			<template #footer>
@@ -75,6 +85,9 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import LogoLibreSign from './../img/logo-gray.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
 import { loadState } from '@nextcloud/initial-state'
+import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
 
 export default {
 	name: 'App',
@@ -86,6 +99,9 @@ export default {
 		NcAppContent,
 		NcEmptyContent,
 		CroppedLayoutSettings,
+		FileSignIcon,
+		FolderIcon,
+		FileCheckIcon,
 	},
 	data() {
 		return {
@@ -118,6 +134,21 @@ export default {
 </script>
 
 <style lang="scss">
+.app-libresign {
+	.app-navigation {
+		.back_to_signature
+			.app-navigation-entry__title {
+			color: var(--color-warning, #eca700);
+		}
+		.app-navigation-entry.active {
+			background-color: var(--color-primary-element) !important;
+			.app-navigation-entry-link{
+				color: var(--color-primary-element-text) !important;
+			}
+		}
+	}
+}
+
 .app-content {
 	.empty-content {
 		display: flex;
@@ -137,11 +168,5 @@ export default {
 			height: unset !important;
 		}
 	}
-}
-</style>
-
-<style>
-.back_to_signature .app-navigation-entry__title {
-	color: var(--color-warning, #eca700);
 }
 </style>
