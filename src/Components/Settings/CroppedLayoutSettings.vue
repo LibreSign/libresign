@@ -24,7 +24,7 @@
 <template>
 	<ul>
 		<NcAppNavigationItem icon="icon-user"
-			:title="t('libresign', 'Account')"
+			:name="t('libresign', 'Account')"
 			:to=" {name: 'Account'} " />
 	</ul>
 </template>
