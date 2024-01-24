@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "e9d12a6ce92872f452fcf89647e3165ce40737fb"
+                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/e9d12a6ce92872f452fcf89647e3165ce40737fb",
-                "reference": "e9d12a6ce92872f452fcf89647e3165ce40737fb",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/0fee1204da82694978b196ba4b27de41d10cfbb0",
+                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0",
                 "shasum": ""
             },
             "require": {
@@ -44,21 +44,21 @@
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/4.9.1"
+                "source": "https://github.com/byjg/php-swagger-test/tree/master"
             },
-            "time": "2023-12-30T20:49:21+00:00"
+            "time": "2024-01-16T01:41:42+00:00"
         },
         {
             "name": "byjg/uri",
             "version": "4.9.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/byjg/uri.git",
+                "url": "https://github.com/byjg/php-uri.git",
                 "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/uri/zipball/c1467fd5ed953c760cb54d2475ce9bc743d73948",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/c1467fd5ed953c760cb54d2475ce9bc743d73948",
                 "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948",
                 "shasum": ""
             },
@@ -81,30 +81,31 @@
             ],
             "description": "An implementation of PSR UriInterface ",
             "support": {
-                "issues": "https://github.com/byjg/uri/issues",
-                "source": "https://github.com/byjg/uri/tree/4.9.0"
+                "issues": "https://github.com/byjg/php-uri/issues",
+                "source": "https://github.com/byjg/php-uri/tree/4.9.0"
             },
             "time": "2022-06-15T13:17:35+00:00"
         },
         {
             "name": "byjg/webrequest",
-            "version": "4.9.0",
+            "version": "4.9.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/byjg/webrequest.git",
-                "reference": "7a600a320f41a307294e856b20da78febd933ef7"
+                "url": "https://github.com/byjg/php-webrequest.git",
+                "reference": "686cb0cdd682fea309a3ed014c344ecdd1c64304"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/webrequest/zipball/7a600a320f41a307294e856b20da78febd933ef7",
-                "reference": "7a600a320f41a307294e856b20da78febd933ef7",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/686cb0cdd682fea309a3ed014c344ecdd1c64304",
+                "reference": "686cb0cdd682fea309a3ed014c344ecdd1c64304",
                 "shasum": ""
             },
             "require": {
                 "byjg/uri": "4.9.*",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=7.3",
+                "php": ">=7.4",
+                "psr/http-client": "^1.0",
                 "psr/http-message": "1.0.*"
             },
             "require-dev": {
@@ -122,10 +123,10 @@
             ],
             "description": "A lightweight and highly customized CURL wrapper for making RESt calls and a wrapper for call dynamically SOAP requests.",
             "support": {
-                "issues": "https://github.com/byjg/webrequest/issues",
-                "source": "https://github.com/byjg/webrequest/tree/4.9.0"
+                "issues": "https://github.com/byjg/php-webrequest/issues",
+                "source": "https://github.com/byjg/php-webrequest/tree/4.9.1"
             },
-            "time": "2023-05-21T20:42:34+00:00"
+            "time": "2024-01-04T03:01:47+00:00"
         },
         {
             "name": "doctrine/instantiator",
@@ -199,16 +200,16 @@
         },
         {
             "name": "donatj/mock-webserver",
-            "version": "v2.7.1",
+            "version": "v2.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/donatj/mock-webserver.git",
-                "reference": "19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f"
+                "reference": "1887dcbd8b4a52dde23a43f0d303c4509a065e83"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f",
-                "reference": "19ace5d63d88d4a73383a6c7fe7d5c6830c87a4f",
+                "url": "https://api.github.com/repos/donatj/mock-webserver/zipball/1887dcbd8b4a52dde23a43f0d303c4509a065e83",
+                "reference": "1887dcbd8b4a52dde23a43f0d303c4509a065e83",
                 "shasum": ""
             },
             "require": {
@@ -218,7 +219,7 @@
                 "ralouphie/getallheaders": "~2.0 || ~3.0"
             },
             "require-dev": {
-                "corpus/coding-standard": "^0.6.0 || ^0.7.0",
+                "corpus/coding-standard": "^0.6.0 || ^0.8.0",
                 "donatj/drop": "^1.0",
                 "ext-curl": "*",
                 "friendsofphp/php-cs-fixer": "^3.1",
@@ -255,7 +256,7 @@
             ],
             "support": {
                 "issues": "https://github.com/donatj/mock-webserver/issues",
-                "source": "https://github.com/donatj/mock-webserver/tree/v2.7.1"
+                "source": "https://github.com/donatj/mock-webserver/tree/v2.7.2"
             },
             "funding": [
                 {
@@ -271,7 +272,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2023-10-30T15:32:10+00:00"
+            "time": "2024-01-22T20:41:09+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -501,25 +502,27 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.18.0",
+            "version": "v5.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "1bcbb2179f97633e98bbbc87044ee2611c7d7999"
+                "reference": "4a21235f7e56e713259a6f76bf4b5ea08502b9dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/1bcbb2179f97633e98bbbc87044ee2611c7d7999",
-                "reference": "1bcbb2179f97633e98bbbc87044ee2611c7d7999",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/4a21235f7e56e713259a6f76bf4b5ea08502b9dc",
+                "reference": "4a21235f7e56e713259a6f76bf4b5ea08502b9dc",
                 "shasum": ""
             },
             "require": {
+                "ext-ctype": "*",
+                "ext-json": "*",
                 "ext-tokenizer": "*",
-                "php": ">=7.0"
+                "php": ">=7.4"
             },
             "require-dev": {
                 "ircmaxell/php-yacc": "^0.0.7",
-                "phpunit/phpunit": "^6.5 || ^7.0 || ^8.0 || ^9.0"
+                "phpunit/phpunit": "^7.0 || ^8.0 || ^9.0"
             },
             "bin": [
                 "bin/php-parse"
@@ -527,7 +530,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.9-dev"
+                    "dev-master": "5.0-dev"
                 }
             },
             "autoload": {
@@ -551,9 +554,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v4.18.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.0.0"
             },
-            "time": "2023-12-10T21:03:43+00:00"
+            "time": "2024-01-07T17:17:35+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1086,6 +1089,58 @@
                 }
             ],
             "time": "2023-01-14T12:32:24+00:00"
+        },
+        {
+            "name": "psr/http-client",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-client.git",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-client/zipball/bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP clients",
+            "homepage": "https://github.com/php-fig/http-client",
+            "keywords": [
+                "http",
+                "http-client",
+                "psr",
+                "psr-18"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-client"
+            },
+            "time": "2023-09-23T14:17:50+00:00"
         },
         {
             "name": "psr/http-factory",
