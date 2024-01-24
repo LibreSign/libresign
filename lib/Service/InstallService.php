@@ -95,7 +95,7 @@ class InstallService {
 				$folder = $folder->getFolder($path);
 			} catch (\Throwable $th) {
 				try {
-					$folder = $folder->newFolder('/');
+					$folder = $folder->newFolder($path);
 				} catch (NotPermittedException $e) {
 					$user = posix_getpwuid(posix_getuid());
 					throw new LibresignException(
