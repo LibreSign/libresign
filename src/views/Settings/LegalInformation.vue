@@ -30,7 +30,7 @@ export default {
 	},
 	methods: {
 		async getData() {
-			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/legal_information', {})
+			const response = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/legal_information'))
 			this.legalInformation = response.data.ocs.data.data
 		},
 		saveLegalInformation() {
