@@ -131,6 +131,7 @@ export default {
 			}
 		},
 		setCurrentFile(file) {
+			this.filesStore.selectFile(file.uuid)
 			this.currentFile = file
 		},
 		async deleteSigner(signer) {
