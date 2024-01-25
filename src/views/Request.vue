@@ -41,7 +41,7 @@
 				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
 				<NcNoteCard v-for="message in error"
 					:key="message"
-					type="error" >
+					type="error">
 					{{ message }}
 				</NcNoteCard>
 				<div class="form-group">
