@@ -31,7 +31,8 @@
 					:name="t('libresign', 'Back to sign')"
 					@click="goToSign" />
 
-				<NcAppNavigationItem id="request-files"
+				<NcAppNavigationItem v-if="canRequestSign"
+					id="request-files"
 					:to="{name: 'requestFiles'}"
 					:name="t('libresign', 'Request')">
 					<template #icon>
@@ -105,6 +106,7 @@ export default {
 	},
 	data() {
 		return {
+			canRequestSign: loadState('libresign', 'can_request_sign'),
 			config: loadState('libresign', 'config', {
 				hasSignatureFile: false,
 				identificationDocumentsFlow: false,
