@@ -33,10 +33,10 @@ export const useFilesStore = defineStore('files', {
 
 	actions: {
 		addFile(file) {
-			Vue.set(this.files, file.nodeId, file)
+			Vue.set(this.files, file.file.nodeId, file)
 		},
-		selectFile(uuid) {
-			this.file = this.files[uuid]
+		selectFile(nodeId) {
+			this.file = this.files[nodeId]
 		},
 		async getAllFiles() {
 			try {
