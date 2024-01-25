@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
 			<p v-for="error in errors" :key="error">
 				{{ error }}
@@ -56,7 +56,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Dependencies'),
+			name: t('libresign', 'Dependencies'),
 			description: t('libresign', 'Binaries required to work. Download size could be nearly 340MB, please wait a moment.'),
 			labelDownloadAllBinaries: t('libresign', 'Download binaries'),
 			downloadInProgress: false,

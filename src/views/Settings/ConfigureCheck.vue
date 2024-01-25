@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<table class="grid">
 			<tbody>
 				<tr class="group-header">
@@ -35,7 +35,7 @@ export default {
 		NcSettingsSection,
 	},
 	data: () => ({
-		title: t('libresign', 'Configuration check'),
+		name: t('libresign', 'Configuration check'),
 		description: t('libresign', 'Status of setup'),
 		items: [],
 	}),

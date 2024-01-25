@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { VuePdfEditor } from '@libresign/vue-pdf-editor'
+import VuePdfEditor from '@libresign/vue-pdf-editor'
 import Signature from './Signature.vue'
 
 export default {

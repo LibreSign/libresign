@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<div class="default-user-folder-content">
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="customUserFolder">
@@ -30,7 +30,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Customize default user folder'),
+			name: t('libresign', 'Customize default user folder'),
 			description: t('libresign', 'Name of the folder that will contain the user\'s digital certificate, visible signature images, and other files related to LibreSign.'),
 			value: '',
 			customUserFolder: false,
