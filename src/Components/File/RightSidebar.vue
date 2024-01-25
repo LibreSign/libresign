@@ -15,7 +15,7 @@ import RequestSignature from '../Request/RequestSignature.vue'
 import Moment from '@nextcloud/moment'
 
 export default {
-	name: 'LibresignTab',
+	name: 'RightSidebar',
 	components: {
 		NcAppSidebar,
 		RequestSignature,
