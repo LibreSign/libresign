@@ -1,6 +1,6 @@
 <template>
 	<NcListItem v-bind="{ to, 'counter-number': hasElement ? '📎' : undefined }"
-		:title="displayName"
+		:name="displayName"
 		:details="signDate"
 		:class="`signer-row signer-row-${status}`"
 		v-on="$listeners"

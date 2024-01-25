@@ -2,7 +2,7 @@
 	<NcModal class="draw-signature"
 		@close="close">
 		<NcAppSidebar active="tab-draw"
-			:title="t('libresign', 'Customize your signatures')">
+			:name="t('libresign', 'Customize your signatures')">
 			<NcAppSidebarTab v-if="drawEditor"
 				id="tab-draw"
 				:name="t('libresign', 'Draw')">

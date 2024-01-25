@@ -8,14 +8,14 @@
 				<p>{{ t('libresign', 'For security reasons, you must create a password to sign the documents. Enter your new password in the field below.') }}</p>
 				<div class="input-group">
 					<label for="password">{{ t('libresign', 'Enter a password') }}</label>
-					<NcPasswordField :disabled="loading"
+					<NcPasswordField :disabled="hasLoading"
 						:label="t('libresign', 'Enter a password')"
 						:placeholder="t('libresign', 'Enter a password')"
 						:value.sync="password" />
 				</div>
-				<NcButton :disabled="loading" @click="send">
+				<NcButton :disabled="hasLoading" @click="send">
 					<template #icon>
-						<NcLoadingIcon v-if="loading" :size="20" />
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
 					</template>
 					{{ t('libresign', 'Confirm') }}
 				</NcButton>
@@ -58,7 +58,6 @@ export default {
 					signPassword: this.password,
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
-				this.hasLoading = false
 				if (this.$store) {
 					this.$store.commit('setHasPfx', true)
 				}
@@ -71,9 +70,9 @@ export default {
 				} else {
 					showError(t('libresign', 'Error creating new password, please contact the administrator'))
 				}
-				this.hasLoading = false
 				this.$emit('password:created', false)
 			}
+			this.hasLoading = false
 		},
 		clear() {
 			this.password = ''

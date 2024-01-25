@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<NcListItem :title="signer.displayName"
+		<NcListItem :name="signer.displayName"
 			:force-display-actions="true"
 			@click="signerClickAction">
 			<template #icon>
