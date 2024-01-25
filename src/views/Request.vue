@@ -61,7 +61,7 @@
 				</NcButton>
 			</div>
 		</NcModal>
-		<LibresignTab v-if="showSidebar"
+		<RightSidebar v-if="showSidebar"
 			:prop-file="file"
 			:prop-name="file.name"
 			@close="showSidebar = false" />
@@ -84,7 +84,7 @@ import File from '../Components/File/File.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
-import LibresignTab from '../Components/File/LibresignTab.vue'
+import RightSidebar from '../Components/File/RightSidebar.vue'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -109,7 +109,7 @@ export default {
 		CloudUploadIcon,
 		FolderIcon,
 		File,
-		LibresignTab,
+		RightSidebar,
 	},
 	data() {
 		return {
