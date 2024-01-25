@@ -28,17 +28,21 @@ import { showError } from '@nextcloud/dialogs'
 export const useFilesStore = defineStore('files', {
 	state: () => ({
 		files: {},
+		file: {},
 	}),
 
 	actions: {
-		setFile(file) {
-			Vue.set(this.files, file.file.nodeId, file)
+		addFile(file) {
+			Vue.set(this.files, file.nodeId, file)
+		},
+		selectFile(uuid) {
+			this.file = this.files[uuid]
 		},
 		async getAllFiles() {
 			try {
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'))
 				response.data.data.forEach(file => {
-					this.setFile(file)
+					this.addFile(file)
 				})
 			} catch (err) {
 				showError('An error occurred while fetching the files')
