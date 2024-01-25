@@ -74,7 +74,7 @@ export default {
 		async getData() {
 			this.loadingGroups = true
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/groups_request_sign', {},
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign')
 			)
 			if (response.data.ocs.data.data !== '') {
 				this.groupsSelected = JSON.parse(response.data.ocs.data.data)

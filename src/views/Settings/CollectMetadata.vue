@@ -32,7 +32,7 @@ export default {
 	},
 	methods: {
 		async getData() {
-			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1', 2) + '/config/apps/libresign/collect_metadata', {})
+			const responseCollectMetadata = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/collect_metadata'))
 			this.collectMetadataEnabled = !!responseCollectMetadata.data.ocs.data.data
 		},
 		saveCollectMetadata() {
