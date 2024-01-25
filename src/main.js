@@ -22,6 +22,7 @@
  */
 
 import Vue from 'vue'
+import { createPinia, PiniaVuePlugin } from 'pinia'
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import { translate, translatePlural } from '@nextcloud/l10n'
@@ -37,10 +38,6 @@ import App from './App.vue'
 import router from './router/router.js'
 import store from './store/index.js'
 
-Vue.mixin({ methods: { t, n } })
-Vue.prototype.t = translate
-Vue.prototype.n = translatePlural
-
 // CSP config for webpack dynamic chunk loading
 // eslint-disable-next-line
 __webpack_nonce__ = btoa(getRequestToken())
@@ -52,16 +49,20 @@ __webpack_nonce__ = btoa(getRequestToken())
 // eslint-disable-next-line
 __webpack_public_path__ = generateFilePath('libresign', '', 'js/')
 
-Vue.prototype.t = t
-Vue.prototype.n = n
-
+Vue.prototype.t = translate
+Vue.prototype.n = translatePlural
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
+
+Vue.use(PiniaVuePlugin)
+
+const pinia = createPinia()
 
 export default new Vue({
 	el: '#content',
 	name: 'LibresignApp',
 	router,
 	store,
+	pinia,
 	render: h => h(App),
 })
