@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcSettingsSection :title="title">
+	<NcSettingsSection :name="name">
 		<CertificateEngine />
 		<DownloadBinaries />
 		<ConfigureCheck />
@@ -78,7 +78,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'LibreSign'),
+			name: t('libresign', 'LibreSign'),
 		}
 	},
 }

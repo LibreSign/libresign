@@ -1,5 +1,5 @@
 <template>
-	<NcSettingsSection :title="title">
+	<NcSettingsSection :name="name">
 		<p>
 			<NcCheckboxRadioSwitch type="switch"
 				:checked.sync="makeValidationUrlPrivate"
@@ -47,7 +47,7 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Validation URL'),
+			name: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			makeValidationUrlPrivate: false,
 			url: null,

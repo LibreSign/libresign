@@ -1,8 +1,11 @@
 <template>
-	<NcSettingsSection :title="title" :description="description">
+	<NcSettingsSection :name="name" :description="description">
 		<div class="certificate-engine-content">
-			<label for="certificateEngine" class="form-heading--required">{{ t('libresign', 'Certificate engine') }}</label>
-			<NcSelect v-bind="certificateEngines"
+			<NcSelect input-id="certificateEngine"
+				:aria-label-combobox="description"
+				:clearable="false"
+				:value="value"
+				:options="options"
 				@input="saveEngine" />
 		</div>
 	</NcSettingsSection>
@@ -22,19 +25,14 @@ export default {
 	},
 	data() {
 		return {
-			title: t('libresign', 'Certificate engine'),
-			description: t('libresign', 'Certificate engine to generate the root certificate'),
-			certificateEngines: {
-				inputId: 'certificateEngine',
-				placeholder: t('libresign', 'Select the certificate engine to generate the root certificate'),
-				clearable: false,
-				value: [],
-				options: [
-					{ id: 'cfssl', label: 'CFSSL' },
-					{ id: 'openssl', label: 'OpenSSL' },
-					{ id: 'none', label: t('libresign', 'I will not use root certificate') },
-				],
-			},
+			name: t('libresign', 'Certificate engine'),
+			description: t('libresign', 'Select the certificate engine to generate the root certificate'),
+			value: [],
+			options: [
+				{ id: 'cfssl', label: 'CFSSL' },
+				{ id: 'openssl', label: 'OpenSSL' },
+				{ id: 'none', label: t('libresign', 'I will not use root certificate') },
+			],
 		}
 	},
 	beforeMount() {
@@ -47,11 +45,11 @@ export default {
 		} else {
 			currentOption.label = t('libresign', 'I will not use root certificate')
 		}
-		this.certificateEngines.value = [currentOption]
+		this.value = [currentOption]
 	},
 	methods: {
 		saveEngine(selected) {
-			this.certificateEngines.value = selected
+			this.value = selected
 			OCP.AppConfig.setValue('libresign', 'certificate_engine', selected.id, {
 				success() {
 					emit('libresign:certificate-engine:changed', selected.id)

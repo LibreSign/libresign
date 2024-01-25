@@ -31,30 +31,30 @@
 					:name="t('libresign', 'Back to sign')"
 					@click="goToSign" />
 
-				<NcAppNavigationItem :to="{name: 'requestFiles'}"
-					id="request-files"
+				<NcAppNavigationItem id="request-files"
+					:to="{name: 'requestFiles'}"
 					:name="t('libresign', 'Request')">
 					<template #icon>
 						<FileSignIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
-				<NcAppNavigationItem :to="{ name: 'signFiles' }"
-					id="sign-files"
+				<NcAppNavigationItem id="sign-files"
+					:to="{ name: 'signFiles' }"
 					:name="t('libresign', 'Files')">
 					<template #icon>
 						<FolderIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
-				<NcAppNavigationItem :to="{name: 'validation'}"
-					id="validation"
+				<NcAppNavigationItem id="validation"
+					:to="{name: 'validation'}"
 					:name="t('libresign', 'Validate')">
 					<template #icon>
 						<FileCheckIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 
-				<NcAppNavigationItem :to="{name: 'DocsAccountValidation'}"
-					v-if="config.identificationDocumentsFlow && config.isApprover"
+				<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
+					:to="{name: 'DocsAccountValidation'}"
 					:name="t('libresign', 'Documents Validation')"
 					icon="icon-user" />
 			</template>

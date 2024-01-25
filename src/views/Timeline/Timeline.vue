@@ -21,11 +21,10 @@
 					:file="file"
 					@file:show-sidebar="setCurrentFile" />
 			</ul>
-			<NcEmptyContent v-else>
-				<template #desc>
-					<h1 class="empty-h1">
-						{{ t('libresign', 'There are no documents') }}
-					</h1>
+			<NcEmptyContent v-else
+				:name="t('libresign', 'There are no documents')">
+				<template #icon>
+					<FolderIcon />
 				</template>
 			</NcEmptyContent>
 		</div>
@@ -47,6 +46,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import LibresignTab from '../../Components/File/LibresignTab.vue'
+import FolderIcon from 'vue-material-design-icons/Folder.vue'
 
 export default {
 	name: 'Timeline',
@@ -54,6 +54,7 @@ export default {
 		File,
 		LibresignTab,
 		NcEmptyContent,
+		FolderIcon,
 	},
 	data() {
 		return {
@@ -191,9 +192,6 @@ export default {
 			display: flex;
 			width: 100%;
 			flex-wrap: wrap;
-		}
-		.empty-h1{
-			opacity: 0.8;
 		}
 
 		.file-details:hover {
