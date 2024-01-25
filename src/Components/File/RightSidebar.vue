@@ -1,5 +1,5 @@
 <template>
-	<NcAppSidebar :title="propName"
+	<NcAppSidebar :name="propName"
 		:subtitle="subTitle"
 		:active="propName"
 		@close="closeSidebar">
