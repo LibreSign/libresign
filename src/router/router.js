@@ -133,6 +133,12 @@ const router = new Router({
 		{
 			path: '/f/request',
 			name: 'requestFiles',
+			beforeEnter: (to, from, next) => {
+				if (!loadState('libresign', 'can_request_sign')) {
+					return { path: '/' }
+				}
+				next()
+			},
 			component: () => import('../views/Request.vue'),
 		},
 		{
