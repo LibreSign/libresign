@@ -28,7 +28,7 @@
 				</template>
 			</NcEmptyContent>
 		</div>
-		<LibresignTab v-if="haveCurrentFile"
+		<RightSidebar v-if="haveCurrentFile"
 			ref="sidebar"
 			:prop-file="currentFile.file"
 			:prop-signers="currentFile.signers"
@@ -45,14 +45,14 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import LibresignTab from '../../Components/File/LibresignTab.vue'
+import RightSidebar from '../../Components/File/RightSidebar.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
-		LibresignTab,
+		RightSidebar,
 		NcEmptyContent,
 		FolderIcon,
 	},
