@@ -2,11 +2,10 @@
 	<NcAppSidebar v-if="file"
 		ref="sidebar"
 		:class="{'app-sidebar--without-background lb-ls-root' : 'lb-ls-root'}"
-		:title="file.name"
+		:name="file.name"
 		:subtitle="subTitle"
 		:active="tabId"
 		:header="false"
-		name="sidebar"
 		@update:active="updateActive"
 		@close="closesidebar">
 		<NcAppSidebarTab id="signantures"

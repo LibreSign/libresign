@@ -68,7 +68,7 @@ export default {
 		},
 		async getMaximumValidity() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/maximum_validity')
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/maximum_validity'),
 			)
 			this.maximumValidity = Number(response.data.ocs.data.data).toString()
 			this.enableMaximumValidity = Number(this.maximumValidity) > 0
@@ -81,7 +81,7 @@ export default {
 		},
 		async getRenewalInterval() {
 			const response = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/renewal_interval')
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/renewal_interval'),
 			)
 			this.renewalInterval = Number(response.data.ocs.data.data).toString()
 			this.enableRenewalInterval = Number(this.renewalInterval) > 0
