@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import File from '../../Components/File/File.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
@@ -47,6 +47,8 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import RightSidebar from '../../Components/File/RightSidebar.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Timeline',
@@ -60,26 +62,25 @@ export default {
 		return {
 			sidebar: false,
 			loading: false,
-			fileFilter: this.files,
+			fileFilter: [],
 			filterActive: 3,
 			currentFile: {},
 		}
 	},
 
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
+	},
+
 	computed: {
 		...mapState({
-			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
-		}),
-		...mapGetters({
-			pendingFilter: 'files/pendingFilter',
-			signedFilter: 'files/signedFilter',
-			orderFiles: 'files/orderFiles',
 		}),
 		filterFile: {
 			get() {
-				if (this.fileFilter === undefined || '') {
-					return this.orderFiles
+				if (this.fileFilter.length === 0) {
+					return this.filesStore.orderFiles()
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1,
@@ -97,7 +98,7 @@ export default {
 		},
 	},
 	created() {
-		this.getAllFiles()
+		this.filesStore.getAllFiles()
 	},
 	async mounted() {
 		subscribe('libresign:delete-signer', this.deleteSigner)
@@ -109,21 +110,20 @@ export default {
 	methods: {
 		...mapActions({
 			setSidebarStatus: 'sidebar/setStatus',
-			getAllFiles: 'files/GET_ALL_FILES',
 			resetSidebarStatus: 'sidebar/RESET',
 		}),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this.pendingFilter
+				this.filterFile = this.filesStore.pendingFilter()
 				this.filterActive = 1
 				break
 			case 2:
-				this.filterFile = this.signedFilter
+				this.filterFile = this.filesStore.signedFilter()
 				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this.orderFiles
+				this.filterFile = this.filesStore.orderFiles()
 				this.filterActive = 3
 				break
 			default:

@@ -49,22 +49,6 @@ const getters = {
 	getFile: state => {
 		return state.file
 	},
-	getFiles: state => {
-		return state.files
-	},
-	pendingFilter: state => {
-		return state.files.slice().filter(
-			(a) => (a.status === 2)).sort(
-			(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-	},
-	signedFilter: state => {
-		return state.files.slice().filter(
-			(a) => (a.status === 1)).sort(
-			(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-	},
-	orderFiles: state => {
-		return state.files.sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
-	},
 	getFileToSign: state => state.fileToSign,
 	fileToBeSigned: state => state.file.file,
 }
