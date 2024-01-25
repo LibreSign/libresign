@@ -61,7 +61,7 @@ export default {
 			this.identificationDocumentsFlowEnabled = !!responseIdentificationDocuments.data.ocs.data.data
 
 			const responseApprovalGroups = await axios.get(
-				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/approval_group')
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/approval_group'),
 			)
 			if (responseApprovalGroups.data.ocs.data.data !== '') {
 				this.approvalGroups = JSON.parse(responseApprovalGroups.data.ocs.data.data)

@@ -10,7 +10,7 @@
 			<template #default>
 				<ul style="width: 350px;">
 					<div v-for="option in customNamesOptions" :key="option.id">
-						<NcListItem :title="option.label"
+						<NcListItem :name="option.label"
 							@click="onOptionalAttributeSelect(option)">
 							<template #subname>
 								{{ option.label }}

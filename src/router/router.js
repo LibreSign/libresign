@@ -135,7 +135,7 @@ const router = new Router({
 			name: 'requestFiles',
 			beforeEnter: (to, from, next) => {
 				if (!loadState('libresign', 'can_request_sign')) {
-					return {path: '/'}
+					return { path: '/' }
 				}
 				next()
 			},
