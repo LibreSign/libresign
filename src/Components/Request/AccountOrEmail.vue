@@ -7,6 +7,7 @@
 			class="account-or-email__input"
 			:loading="loading"
 			:filterable="false"
+			:aria-label-combobox="placeholder"
 			:placeholder="placeholder"
 			:user-select="true"
 			:options="options"
