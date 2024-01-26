@@ -5,7 +5,7 @@
 		</h3>
 		<RequestSignature :file="file"
 			:signers="signers"
-			:name="name" />
+			:name="subTitle" />
 	</div>
 </template>
 

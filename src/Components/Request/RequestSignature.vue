@@ -1,5 +1,7 @@
 <template>
-	<div v-if="listSigners" class="requestSignature">
+	<div v-if="listSigners"
+		id="request-signature-list-signers"
+		:name="name">
 		<NcButton v-if="canRequestSign && !signed"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
@@ -34,7 +36,8 @@
 		</NcButton>
 		<VisibleElements :file="file" />
 	</div>
-	<div v-else>
+	<div v-else
+		id="request-signature-identify-signer">
 		<IdentifySigner :signer-to-edit="signerToEdit"
 			@cancel-identify-signer="cancelIdentifySigner"
 			@save-identify-signer="signerUpdate" />

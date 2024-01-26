@@ -34,21 +34,24 @@
 				<NcAppNavigationItem v-if="canRequestSign"
 					id="request-files"
 					:to="{name: 'requestFiles'}"
-					:name="t('libresign', 'Request')">
+					:name="t('libresign', 'Request')"
+					@click="unselectFile">
 					<template #icon>
 						<FileSignIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem id="sign-files"
 					:to="{ name: 'signFiles' }"
-					:name="t('libresign', 'Files')">
+					:name="t('libresign', 'Files')"
+					@click="unselectFile">
 					<template #icon>
 						<FolderIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem id="validation"
 					:to="{name: 'validation'}"
-					:name="t('libresign', 'Validate')">
+					:name="t('libresign', 'Validate')"
+					@click="unselectFile">
 					<template #icon>
 						<FileCheckIcon :size="20" />
 					</template>
@@ -73,6 +76,7 @@
 				</template>
 			</NcEmptyContent>
 		</NcAppContent>
+		<RightSidebar />
 	</NcContent>
 </template>
 
@@ -85,10 +89,12 @@ import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import LogoLibreSign from './../img/logo-gray.svg'
 import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
+import RightSidebar from './Components/File/RightSidebar.vue'
 import { loadState } from '@nextcloud/initial-state'
 import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
+import { useFilesStore } from './store/files.js'
 
 export default {
 	name: 'App',
@@ -100,9 +106,14 @@ export default {
 		NcAppContent,
 		NcEmptyContent,
 		CroppedLayoutSettings,
+		RightSidebar,
 		FileSignIcon,
 		FolderIcon,
 		FileCheckIcon,
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
@@ -126,6 +137,9 @@ export default {
 		},
 	},
 	methods: {
+		unselectFile() {
+			this.filesStore.selectFile()
+		},
 		goToSign() {
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.back_to_signature } })
 
