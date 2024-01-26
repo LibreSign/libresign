@@ -72,7 +72,7 @@ export default {
 		},
 
 		saveApprovalGroups() {
-			const listOfInputGroupsSelected = JSON.stringify(this.groupsSelected.map((g) => {
+			const listOfInputGroupsSelected = JSON.stringify(this.approvalGroups.map((g) => {
 				if (typeof g === 'object') {
 					return g.id
 				}
