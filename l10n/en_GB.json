@@ -259,7 +259,6 @@
     "Select a custom name" : "Select a custom name",
     "Remove custom name entry from root certificate" : "Remove custom name entry from root certificate",
     "Certificate engine" : "Certificate engine",
-    "Certificate engine to generate the root certificate" : "Certificate engine to generate the root certificate",
     "Select the certificate engine to generate the root certificate" : "Select the certificate engine to generate the root certificate",
     "I will not use root certificate" : "I will not use root certificate",
     "Collect signers' metadata when signing a document" : "Collect signers' metadata when signing a document",

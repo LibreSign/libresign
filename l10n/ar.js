@@ -261,7 +261,6 @@ OC.L10N.register(
     "Select a custom name" : "حدد اسمًا مخصصًا",
     "Remove custom name entry from root certificate" : "إزالة إدخال الاسم المخصص من شهادة الجذر",
     "Certificate engine" : "محرك شهادات المصادقة",
-    "Certificate engine to generate the root certificate" : "محرك شهادات المصادقة لتوليد الشهادات الجذرية",
     "Select the certificate engine to generate the root certificate" : "إختَر محرك شهادات المصادقة لتوليد الشهادة الجذرية",
     "I will not use root certificate" : "سوف لن أستعمل الشهادة الجذرية",
     "Collect signers' metadata when signing a document" : "جمع البيانات التعريفية بالموقعين عند توقيعهم للمستند",

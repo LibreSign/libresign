@@ -259,7 +259,6 @@
     "Select a custom name" : "Seleccione un nombre personalizado",
     "Remove custom name entry from root certificate" : "Quitar entrada de nombre personalizado del certificado raíz",
     "Certificate engine" : "Motor de certificados",
-    "Certificate engine to generate the root certificate" : "Motor de certificados a utilizar para generar el certificado raíz",
     "Select the certificate engine to generate the root certificate" : "Seleccione el motor de certificados para generar el certificado raíz",
     "I will not use root certificate" : "No utilizaré el certificado raíz",
     "Collect signers' metadata when signing a document" : "Recolectar metadatos de firmantes cuando se firme un documento",

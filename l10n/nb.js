@@ -63,6 +63,7 @@ OC.L10N.register(
     "Pending" : "Venter",
     "No date" : "Ingen dato",
     "Reset password" : "Tilbakestill passord",
+    "Add users" : "Legg til brukere",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");
