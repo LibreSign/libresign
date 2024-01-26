@@ -622,6 +622,19 @@ class SignFileService {
 		return $return;
 	}
 
+	public function getAvailableIdentifyMethodsFromSettings(): array {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsSettings();
+		$return = array_map(function (array $identifyMethod): array {
+			return [
+				'mandatory' => $identifyMethod['mandatory'],
+				'identifiedAtDate' => null,
+				'validateCode' => false,
+				'method' => $identifyMethod['name'],
+			];
+		}, $identifyMethods);
+		return $return;
+	}
+
 	/**
 	 * @psalm-return array{file?: File, nodeId?: int, url?: string, base64?: string}
 	 */
