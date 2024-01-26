@@ -182,7 +182,7 @@ class AccountService {
 
 		try {
 			$this->validateHelper->validateFileTypeExists($file['type']);
-			$this->validateHelper->validateNewFile($file);
+			$this->validateHelper->validateNewFile($file, ValidateHelper::TYPE_ACCOUNT_DOCUMENT, $user);
 			$this->validateHelper->validateUserHasNoFileWithThisType($user->getUID(), $file['type']);
 		} catch (\Exception $e) {
 			throw new LibresignException(json_encode([
