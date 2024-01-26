@@ -16,23 +16,27 @@
 					{{ t('libresign', 'Select each signer to define their signature positions') }}
 				</small>
 			</p>
-			<Sidebar class="view-sign-detail--sidebar"
-				:signers="document.signers"
-				event="libresign:visible-elements-select-signer">
-				<NcButton v-if="canSave"
-					:type="canSave?'primary':'secondary'"
-					:wide="true"
-					@click="showConfirm = true">
-					{{ t('libresign', 'Request') }}
-				</NcButton>
+			<ul class="view-sign-detail__sidebar">
+				<Signer v-for="signer in document.signers"
+					:key="signer.id"
+					:signer="signer"
+					event="libresign:visible-elements-select-signer">
+					<slot v-bind="{signer}" slot="actions" name="actions" />
+				</Signer>
+			</ul>
+			<NcButton v-if="canSave"
+				:type="canSave?'primary':'secondary'"
+				:wide="true"
+				@click="showConfirm = true">
+				{{ t('libresign', 'Request') }}
+			</NcButton>
 
-				<NcButton v-if="canSign"
-					:type="!canSave?'primary':'secondary'"
-					:wide="true"
-					@click="goToSign">
-					{{ t('libresign', 'Sign') }}
-				</NcButton>
-			</Sidebar>
+			<NcButton v-if="canSign"
+				:type="!canSave?'primary':'secondary'"
+				:wide="true"
+				@click="goToSign">
+				{{ t('libresign', 'Sign') }}
+			</NcButton>
 		</div>
 		<div v-if="loading"
 			class="image-page">
@@ -72,7 +76,7 @@ import NcDialog from '../Nextcloud/NcDialog/NcDialog.vue'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
-import Sidebar from './SignDetail/partials/Sidebar.vue'
+import Signer from '../Signers/Signer.vue'
 import { showResponseError } from '../../helpers/errors.js'
 import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
@@ -84,7 +88,7 @@ export default {
 	components: {
 		NcModal,
 		NcDialog,
-		Sidebar,
+		Signer,
 		Chip,
 		NcButton,
 		NcLoadingIcon,
@@ -268,10 +272,6 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-.sign-details {
-	padding: 8px;
-}
-
 .view-sign-detail {
 	&--sidebar {
 		width: 300px;
@@ -279,6 +279,14 @@ export default {
 	overflow: auto;
 	.button-vue {
 		margin: 4px;
+	}
+	.sign-details {
+		padding: 8px;
+		&__sidebar {
+			li {
+				margin: 3px 3px 1em 3px;
+			}
+		}
 	}
 }
 </style>
