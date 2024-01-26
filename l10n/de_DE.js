@@ -261,7 +261,6 @@ OC.L10N.register(
     "Select a custom name" : "Einen benutzerdefinierten Namen auswählen",
     "Remove custom name entry from root certificate" : "Entfernen des benutzerdefinierten Namenseintrags aus dem Root-Zertifikat",
     "Certificate engine" : "Zertifikats-Engine",
-    "Certificate engine to generate the root certificate" : "Zertifikats-Engine zum Erstellen des Root-Zertifikats",
     "Select the certificate engine to generate the root certificate" : "Zertifikats-Engine zum Erstellen des Root-Zertifikats auswählen",
     "I will not use root certificate" : "Ich möchte kein Root-Zertifikat verwenden",
     "Collect signers' metadata when signing a document" : "Metadaten der Unterzeichner beim Signieren von Dokumenten sammeln",

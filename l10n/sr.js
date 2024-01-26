@@ -261,7 +261,6 @@ OC.L10N.register(
     "Select a custom name" : "Изаберите произвољно име",
     "Remove custom name entry from root certificate" : "Уклони ставку произвољног имена из кореног сертификата",
     "Certificate engine" : "Механизам за сертификате",
-    "Certificate engine to generate the root certificate" : "Механизам који се користи за генерисање кореног сертификата",
     "Select the certificate engine to generate the root certificate" : "Изаберите механизам за сертификате који треба да генерише корени сертификат",
     "I will not use root certificate" : "Нећу користити корени сертификат",
     "Collect signers' metadata when signing a document" : "Прикупи метаподатке потписника када се потписује документ",

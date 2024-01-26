@@ -252,7 +252,6 @@ OC.L10N.register(
     "Select a custom name" : "Vybrat uživatelsky určený název",
     "Remove custom name entry from root certificate" : "Odebrat položku s uživatelsky určeným názvem z kořenového certifikátu",
     "Certificate engine" : "Nástroj pro práci s certifikáty",
-    "Certificate engine to generate the root certificate" : "Nástroj pro práci s certifikáty kterým vytvořit kořenový certifikát",
     "Select the certificate engine to generate the root certificate" : "Vyberte nástroj pro práci s certifikáty kterým vytvořit kořenový certifikát",
     "I will not use root certificate" : "Nepoužiji kořenový certifikát",
     "Collect signers' metadata when signing a document" : "Shromáždit při podepisování metadata o podepisujících",

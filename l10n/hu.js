@@ -235,7 +235,6 @@ OC.L10N.register(
     "Select a custom name" : "Válasszon egy egyéni nevet",
     "Remove custom name entry from root certificate" : "Egyéni névbejegyzés eltávolítása a gyökértanúsítványból",
     "Certificate engine" : "Tanúsítvány motor",
-    "Certificate engine to generate the root certificate" : "Tanúsítvány motor a gyökértanúsítvány létrehozásához",
     "Select the certificate engine to generate the root certificate" : "Válasszon tanúsítvány motort a gyökértanúsítvány létrehozásához",
     "Collect signers' metadata when signing a document" : "Az aláírók metaadatainak begyűjtése a dokumentum aláírásakor",
     "Collect signers' metadata" : "Aláírók metaadatainak begyűjtése",
