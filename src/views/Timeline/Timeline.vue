@@ -15,11 +15,8 @@
 			<ul v-if="emptyContentFile ===false">
 				<File v-for="file in filterFile"
 					:key="file.uuid"
-					class="file-details"
-					:status="file.status"
-					:status-text="file.status_text"
-					:file="file"
-					@file:show-sidebar="setCurrentFile" />
+					:node-id="file.file.nodeId"
+					class="file-details" />
 			</ul>
 			<NcEmptyContent v-else
 				:name="t('libresign', 'There are no documents')">
@@ -28,13 +25,6 @@
 				</template>
 			</NcEmptyContent>
 		</div>
-		<RightSidebar v-if="haveCurrentFile"
-			ref="sidebar"
-			:prop-file="currentFile.file"
-			:prop-signers="currentFile.signers"
-			:prop-name="currentFile.name"
-			:prop-requested-by="currentFile.requested_by"
-			:prop-request-date="currentFile.request_date" />
 	</div>
 </template>
 
@@ -45,18 +35,19 @@ import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import RightSidebar from '../../Components/File/RightSidebar.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
-
 import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
-		RightSidebar,
 		NcEmptyContent,
 		FolderIcon,
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
@@ -64,15 +55,8 @@ export default {
 			loading: false,
 			fileFilter: [],
 			filterActive: 3,
-			currentFile: {},
 		}
 	},
-
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
-	},
-
 	computed: {
 		...mapState({
 			statusSidebar: state => state.sidebar.status,
@@ -92,9 +76,6 @@ export default {
 		},
 		emptyContentFile() {
 			return this.filterFile.length <= 0
-		},
-		haveCurrentFile() {
-			return Object.keys(this.currentFile).length !== 0
 		},
 	},
 	created() {
@@ -129,10 +110,6 @@ export default {
 			default:
 				break
 			}
-		},
-		setCurrentFile(file) {
-			this.filesStore.selectFile(file.file.nodeId)
-			this.currentFile = file
 		},
 		async deleteSigner(signer) {
 			for (const fileKey in this.filterFile) {

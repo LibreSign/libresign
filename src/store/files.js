@@ -22,8 +22,7 @@
 import { defineStore } from 'pinia'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import Vue from 'vue'
-import { showError } from '@nextcloud/dialogs'
+import { set } from 'vue'
 
 export const useFilesStore = defineStore('files', {
 	state: () => ({
@@ -33,9 +32,13 @@ export const useFilesStore = defineStore('files', {
 
 	actions: {
 		addFile(file) {
-			Vue.set(this.files, file.file.nodeId, file)
+			set(this.files, file.file.nodeId, file)
 		},
 		selectFile(nodeId) {
+			if (isNaN(nodeId)) {
+				this.file = {}
+				return
+			}
 			this.file = this.files[nodeId]
 		},
 		async getAllFiles() {
@@ -45,7 +48,6 @@ export const useFilesStore = defineStore('files', {
 					this.addFile(file)
 				})
 			} catch (err) {
-				showError('An error occurred while fetching the files')
 			}
 		},
 		pendingFilter() {
@@ -61,5 +63,5 @@ export const useFilesStore = defineStore('files', {
 		orderFiles() {
 			return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
 		},
-	}
+	},
 })
