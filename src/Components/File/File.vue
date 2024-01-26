@@ -9,7 +9,7 @@
 			:src="previewUrl"
 			@error="backgroundFailed = true"
 			@load="backgroundFailed = false">
-		<FileIcon v-else v-once :size="128"/>
+		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
 			<div :class="filesStore.files[nodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[nodeId].status) : '' " />
 			<span>{{ filesStore.files[nodeId].status_text !== 'none' ? filesStore.files[nodeId].status_text : '' }}</span>
@@ -104,9 +104,16 @@ export default {
 	max-width: 225px;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	&:hover {
-		color: var(--color-primary-element-text);
-		background: darken(#fff, 10%);
+
+	&:hover, &:focus, &:active {
+		// WCAG AA compliant
+		background-color: var(--color-background-hover);
+		// text-maxcontrast have been designed to pass WCAG AA over
+		// a white background, we need to adjust then.
+		--color-text-maxcontrast: var(--color-main-text);
+		> * {
+			--color-border: var(--color-border-dark);
+		}
 		border-radius: 10px;
 	}
 
