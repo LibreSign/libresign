@@ -303,10 +303,10 @@ export default {
 			}
 			try {
 				let url = ''
-				if (this.uuid.length) {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.uuid })
-				} else {
+				if (this.document.fileId > 0) {
 					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.document.fileId })
+				} else {
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.uuid })
 				}
 
 				const { data } = await axios.post(url, payload)
