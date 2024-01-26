@@ -87,12 +87,12 @@ class ValidateHelper {
 		private IUserMountCache $userMountCache,
 	) {
 	}
-	public function validateNewFile(array $data): void {
-		$this->validateFile($data, self::TYPE_TO_SIGN);
+	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user): void {
+		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['fileId'])) {
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
 		} elseif (!empty($data['file']['path'])) {
-			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
+			$userFolder = $this->root->getUserFolder($user?->getUID() ?? $data['userManager']->getUID());
 			try {
 				$node = $userFolder->get($data['file']['path']);
 			} catch (NotFoundException $e) {
@@ -106,7 +106,7 @@ class ValidateHelper {
 	 * @property array $data
 	 * @property int $type to_sign|visible_element
 	 */
-	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN): void {
+	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN, IUser $user): void {
 		if (empty($data['file'])) {
 			if ($type === self::TYPE_TO_SIGN) {
 				throw new LibresignException($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
@@ -131,10 +131,12 @@ class ValidateHelper {
 		} elseif (!empty($data['file']['base64'])) {
 			$this->validateBase64($data['file']['base64'], $type);
 		} elseif (!empty($data['file']['path'])) {
-			if (!is_a($data['userManager'], IUser::class)) {
-				throw new LibresignException($this->l10n->t('User not found.'));
+			if (!is_a($user, IUser::class)) {
+				if (!is_a($data['userManager'], IUser::class)) {
+					throw new LibresignException($this->l10n->t('User not found.'));
+				}
 			}
-			$userFolder = $this->root->getUserFolder($data['userManager']->getUID());
+			$userFolder = $this->root->getUserFolder($user?->getUID() ?? $data['userManager']->getUID());
 			try {
 				$userFolder->get($data['file']['path']);
 			} catch (NotFoundException $e) {
