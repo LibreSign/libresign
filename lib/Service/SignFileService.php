@@ -609,7 +609,8 @@ class SignFileService {
 		return $return;
 	}
 
-	public function getAvailableIdentifyMethods(SignRequestEntity $signRequest = null): array {
+	public function getAvailableIdentifyMethodsFromSignRequest(SignRequestEntity $signRequest): array {
+		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
 		$return = array_map(function (IdentifyMethod $identifyMethod): array {
 			return [
 				'mandatory' => $identifyMethod->getMandatory(),
@@ -617,7 +618,7 @@ class SignFileService {
 				'validateCode' => $identifyMethod->getCode() && empty($identifyMethod->getIdentifiedAtDate()) ? true : false,
 				'method' => $identifyMethod->getIdentifierKey(),
 			];
-		}, $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId()));
+		}, $identifyMethods);
 		return $return;
 	}
 
