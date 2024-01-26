@@ -28,7 +28,7 @@
 					</td>
 					<td class="actions">
 						<template v-if="doc.status === -1">
-							<button @click="pickFile(doc.file_type.key)">
+							<button @click="toggleFilePicker(doc.file_type.key)">
 								<div class="icon-folder" />
 							</button>
 							<button @click="inputFile(doc.file_type.key)">
@@ -44,19 +44,24 @@
 				</tr>
 			</tbody>
 		</table>
+		<FilePicker v-if="showFilePicker"
+			:name="t('libresign', 'Select your file')"
+			:multiselect="false"
+			:buttons="filePickerButtons"
+			:mimetype-filter="['application/pdf']"
+			@close="toggleFilePicker" />
 	</div>
 </template>
 
 <script>
 import { find, get } from 'lodash-es'
-import { getFilePickerBuilder, showWarning, showSuccess } from '@nextcloud/dialogs'
+import { showWarning, showSuccess } from '@nextcloud/dialogs'
+import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 import ProgressBar from '../../../Components/ProgressBar.vue'
-import { documentsService, parseDocument } from '../../../domains/documents/index.js'
-import { pathJoin } from '../../../helpers/path.js'
 import { onError } from '../../../helpers/errors.js'
 import { loadState } from '@nextcloud/initial-state'
-
-const PDF_MIME_TYPE = 'application/pdf'
 
 const FILE_TYPE_INFO = {
 	IDENTIFICATION: {
@@ -89,15 +94,25 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Documents',
 	components: {
+		FilePicker,
 		ProgressBar,
 	},
 	data() {
 		return {
 			documentList: [],
 			loading: true,
+			selectedType: null,
+			showFilePicker: false,
 		}
 	},
 	computed: {
+		filePickerButtons() {
+			return [{
+				label: t('libresign', 'Choose'),
+				callback: (nodes) => this.handleFileChoose(nodes),
+				type: 'primary',
+			}]
+		},
 		documents() {
 			return {
 				default: findDocumentByType(this.documentList, 'IDENTIFICATION'),
@@ -114,46 +129,48 @@ export default {
 		this.loadDocuments()
 	},
 	methods: {
+		toggleFilePicker(type) {
+			this.selectedType = type
+			this.showFilePicker = !this.showFilePicker
+		},
 		async loadDocuments() {
 			this.loading = true
 			try {
-				const { data } = await documentsService.loadAccountList()
-
-				this.documentList = data.map(parseDocument)
+				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files'))
+				this.documentList = data?.data.map(entry => {
+					return {
+						uuid: entry.file.uuid,
+						nodeId: entry.file.file.nodeId,
+						file_type: entry.file_type,
+						name: entry.file.name,
+						status: entry.file.status,
+						status_text: entry.file.status_text,
+					}
+				}) ?? []
 			} catch (err) {
 				onError(err)
 			} finally {
 				this.loading = false
 			}
 		},
-		async pickFile(type) {
+		async handleFileChoose(nodes) {
 			try {
-				const fileFullName = await getFilePickerBuilder(t('libresign', 'Select a file'))
-					.setMultiSelect(false)
-					.allowDirectories(false)
-					.setType(1) // FilePickerType.Choose
-					.setMimeTypeFilter([PDF_MIME_TYPE])
-					.build()
-					.pick()
-
-				const file = OC.dialogs.filelist.find(entry => {
-					const fullName = pathJoin(entry.path, entry.name)
-					return fullName === fileFullName
-				})
-
-				if (!file) {
+				const path = nodes[0]?.path
+				if (!path) {
 					showWarning(t('libresign', 'Impossible to get file entry'))
 					return
 				}
 
 				this.loading = true
 
-				await documentsService.addAcountFile({
-					type,
-					name: file.name,
-					file: {
-						fileId: file.id,
-					},
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+					files: [{
+						type: this.selectedType,
+						name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
+						file: {
+							path,
+						},
+					}],
 				})
 
 				showSuccess(t('libresign', 'File was sent.'))
@@ -169,13 +186,14 @@ export default {
 			this.loading = true
 			try {
 				const raw = await loadFileToBase64(inputFile)
-
-				await documentsService.addAcountFile({
-					type,
-					name: inputFile.name,
-					file: {
-						base64: raw,
-					},
+				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+					files: [{
+						type,
+						name: inputFile.name,
+						file: {
+							base64: raw,
+						},
+					}],
 				})
 
 				showSuccess(t('libresign', 'File was sent.'))
@@ -190,7 +208,9 @@ export default {
 		},
 		async deleteFile({ nodeId }) {
 			try {
-				await documentsService.deleteAcountFile(nodeId)
+				await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/files'), {
+					data: { nodeId },
+				})
 				showSuccess(t('libresign', 'File was deleted.'))
 				await this.loadDocuments()
 			} catch (err) {
@@ -201,7 +221,7 @@ export default {
 		},
 		inputFile(type) {
 			const input = document.createElement('input')
-			input.accept = PDF_MIME_TYPE
+			input.accept = 'application/pdf'
 			input.type = 'file'
 
 			input.onchange = (ev) => {
