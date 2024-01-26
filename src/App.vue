@@ -59,8 +59,11 @@
 
 				<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
 					:to="{name: 'DocsAccountValidation'}"
-					:name="t('libresign', 'Documents Validation')"
-					icon="icon-user" />
+					:name="t('libresign', 'Documents Validation')">
+					<template #icon>
+						<AccountCheckIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
 			</template>
 			<template #footer>
 				<NcAppNavigationSettings :title="t('libresign', 'Settings')">
@@ -94,6 +97,7 @@ import { loadState } from '@nextcloud/initial-state'
 import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
+import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
 import { useFilesStore } from './store/files.js'
 
 export default {
@@ -110,6 +114,7 @@ export default {
 		FileSignIcon,
 		FolderIcon,
 		FileCheckIcon,
+		AccountCheckIcon,
 	},
 	setup() {
 		const filesStore = useFilesStore()
