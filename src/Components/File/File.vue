@@ -106,6 +106,8 @@ export default {
 	text-overflow: ellipsis;
 	&:hover {
 		color: var(--color-primary-element-text);
+		background: darken(#fff, 10%);
+		border-radius: 10px;
 	}
 
 	img{
