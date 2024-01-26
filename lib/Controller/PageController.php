@@ -223,6 +223,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
 		);
+		$this->initialState->provideInitialState('identifyMethods',
+			$this->signFileService->getAvailableIdentifyMethodsFromSettings()
+		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
