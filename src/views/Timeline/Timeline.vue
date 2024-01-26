@@ -171,11 +171,6 @@ export default {
 			width: 100%;
 			flex-wrap: wrap;
 		}
-
-		.file-details:hover {
-			background: darken(#fff, 10%);
-			border-radius: 10px;
-		}
 	}
 }
 </style>
