@@ -81,7 +81,7 @@ export default {
 				description: loadState('libresign', 'description'),
 				status: loadState('libresign', 'status'),
 				statusText: loadState('libresign', 'statusText'),
-				fileId: 0,
+				fileId: loadState('libresign', 'fileId', 0),
 				signers: loadState('libresign', 'signers', []),
 				pages: [],
 				visibleElements: loadState('libresign', 'visibleElements', []),

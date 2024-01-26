@@ -239,6 +239,7 @@ class PageController extends AEnvironmentPageAwareController {
 			->showVisibleElements()
 			->showSigners()
 			->formatFile();
+		$this->initialState->provideInitialState('fileId', $file['fileId']);
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', []);
