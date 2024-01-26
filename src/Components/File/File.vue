@@ -9,7 +9,7 @@
 			:src="previewUrl"
 			@error="backgroundFailed = true"
 			@load="backgroundFailed = false">
-		<FileIcon v-else v-once />
+		<FileIcon v-else v-once :size="128"/>
 		<div class="enDot">
 			<div :class="filesStore.files[nodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[nodeId].status) : '' " />
 			<span>{{ filesStore.files[nodeId].status_text !== 'none' ? filesStore.files[nodeId].status_text : '' }}</span>
