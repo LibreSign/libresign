@@ -7,10 +7,9 @@
 			</header>
 			<div class="content-request">
 				<File v-show="!isEmptyFile"
-					:file="file"
+					:node-id="filesStore.file?.file?.nodeId"
 					status="0"
-					status-text="none"
-					@sidebar="showSidebar = true" />
+					status-text="none" />
 				<NcButton :wide="true"
 					@click="showModalUploadFromUrl">
 					{{ t('libresign', 'Upload from URL') }}
@@ -61,10 +60,6 @@
 				</NcButton>
 			</div>
 		</NcModal>
-		<RightSidebar v-if="showSidebar"
-			:prop-file="file"
-			:prop-name="file.name"
-			@close="showSidebar = false" />
 	</div>
 </template>
 <script>
@@ -81,10 +76,9 @@ import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import File from '../Components/File/File.vue'
-import { mapActions, mapGetters } from 'vuex'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
-import RightSidebar from '../Components/File/RightSidebar.vue'
+import { useFilesStore } from '../store/files.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -109,12 +103,14 @@ export default {
 		CloudUploadIcon,
 		FolderIcon,
 		File,
-		RightSidebar,
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
 			pdfUrl: '',
-			showSidebar: false,
 			modalUploadFromUrl: false,
 			loading: false,
 			file: {},
@@ -123,9 +119,8 @@ export default {
 		}
 	},
 	computed: {
-		...mapGetters({ fileSigners: 'validate/getSigners' }),
 		isEmptyFile() {
-			return Object.keys(this.file).length === 0
+			return Object.keys(this.filesStore.file).length === 0
 		},
 		canRequest() {
 			return this.signers.length > 0
@@ -143,36 +138,10 @@ export default {
 			}
 		},
 	},
-	beforeDestroy() {
-		this.resetValidateFile()
+	beforeUnmount() {
+		this.filesStore.selectFile()
 	},
 	methods: {
-		...mapActions({
-			resetValidateFile: 'validate/RESET',
-			validateFile: 'validate/VALIDATE_BY_ID',
-		}),
-		async send(users) {
-			try {
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-					file: { fileId: this.file.id },
-					name: this.file.name.split('.pdf')[0],
-					users: users.map((u) => ({
-						identify: {
-							email: u.email,
-						},
-						description: u.description,
-					})),
-				})
-				this.clear()
-			} catch {
-				console.error('error')
-			}
-		},
-		clear() {
-			this.file = {}
-			this.showSidebar = false
-			this.$refs.request.clearList()
-		},
 		showModalUploadFromUrl() {
 			this.modalUploadFromUrl = true
 		},
@@ -187,15 +156,19 @@ export default {
 						url: this.pdfUrl,
 					},
 				})
-				this.file.nodeId = response.data.id
-				this.file.name = response.data.name
+				this.filesStore.addFile({
+					file: {
+						nodeId: response.data.id,
+					},
+					name: response.data.name,
+				})
+				this.filesStore.selectFile(response.data.id)
 			} catch (err) {
 				this.error = err.response.data.errors
 				this.loading = false
 				return
 			}
 			await this.closeModalUploadFromUrl()
-			this.showSidebar = true
 			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
@@ -209,11 +182,13 @@ export default {
 
 				const res = await filesService.uploadFile({ name, file: data })
 
-				this.file.nodeId = res.id
-				this.file.name = res.name
-
-				this.showSidebar = true
-				await this.validateFile(res.id)
+				this.filesStore.addFile({
+					file: {
+						nodeId: res.id,
+					},
+					name: res.name,
+				})
+				this.filesStore.selectFile(res.id)
 			} catch (err) {
 				onError(err)
 			}
@@ -257,9 +232,13 @@ export default {
 					},
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
-				this.file.nodeId = response.data.id
-				this.file.name = response.data.name
-				this.showSidebar = true
+				this.filesStore.addFile({
+					file: {
+						nodeId: response.data.id,
+					},
+					name: response.data.name,
+				})
+				this.filesStore.selectFile(response.data.id)
 			} catch (err) {
 				onError(err)
 			}

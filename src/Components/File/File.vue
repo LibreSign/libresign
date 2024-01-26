@@ -1,47 +1,78 @@
 <template>
-	<div class="content-file" @click="openSidebar">
-		<img :src="srcImg">
+	<div v-if="nodeId !== 0" class="content-file" @click="openSidebar">
+		<img v-if="previewUrl && backgroundFailed !== true"
+			ref="previewImg"
+			alt=""
+			class="files-list__row-icon-preview"
+			:class="{'files-list__row-icon-preview--loaded': backgroundFailed === false}"
+			loading="lazy"
+			:src="previewUrl"
+			@error="backgroundFailed = true"
+			@load="backgroundFailed = false">
+		<FileIcon v-else v-once />
 		<div class="enDot">
-			<div :class="statusText!== 'none' ? 'dot ' + statusToClass(status) : '' " />
-			<span>{{ statusText !== 'none' ? statusToUppercase(statusText) : '' }}</span>
+			<div :class="filesStore.files[nodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[nodeId].status) : '' " />
+			<span>{{ filesStore.files[nodeId].status_text !== 'none' ? filesStore.files[nodeId].status_text : '' }}</span>
 		</div>
-		<h1>{{ file.name }}</h1>
+		<h1>{{ filesStore.files[nodeId].name }}</h1>
 	</div>
 </template>
 
 <script>
-import ApplicationImagePdf from '../../../img/application-pdf.png'
+import FileIcon from 'vue-material-design-icons/File.vue'
+import { generateUrl } from '@nextcloud/router'
+import { useFilesStore } from '../../store/files.js'
+
 export default {
 	name: 'File',
+	components: {
+		FileIcon,
+	},
 	props: {
-		file: {
-			type: Object,
-			default: () => { },
-			required: true,
-		},
-		status: {
-			type: [Number, String],
-			required: true,
+		nodeId: {
+			type: Number,
 			default: 0,
-		},
-		statusText: {
-			type: String,
 			required: true,
-			default: 'none',
-			validator: () => ['signed', 'no signers', 'pending', 'none'],
 		},
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
-			srcImg: ApplicationImagePdf,
+			backgroundFailed: false,
+			gridMode: true,
+			cropPreviews: true,
 		}
+	},
+	computed: {
+		previewUrl() {
+			if (this.backgroundFailed === true) {
+				return null
+			}
+			try {
+				const previewUrl = generateUrl('/core/preview?fileId={fileid}', {
+					fileid: this.filesStore.files[this.nodeId].file.nodeId,
+				})
+				const url = new URL(window.location.origin + previewUrl)
+
+				// Request tiny previews
+				url.searchParams.set('x', this.gridMode ? '128' : '32')
+				url.searchParams.set('y', this.gridMode ? '128' : '32')
+				url.searchParams.set('mimeFallback', 'true')
+
+				// Handle cropping
+				url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
+				return url.href
+			} catch (e) {
+				return null
+			}
+		},
 	},
 	methods: {
 		openSidebar() {
-			this.$emit('file:show-sidebar', this.file)
-		},
-		statusToUppercase(statusText) {
-			return statusText[0].toUpperCase() + statusText.substr(1)
+			this.filesStore.selectFile(this.nodeId)
 		},
 		statusToClass(status) {
 			switch (Number(status)) {
@@ -64,18 +95,21 @@ export default {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	max-height: 197px;
-	min-height: 197px;
+	max-height: 235px;
+	min-height: 235px;
 	margin: 30px 40px 20px 20px;
 	padding: 10px 20px 10px 20px;
 	cursor: pointer;
-	min-width: 187px;
-	max-width: 187px;
+	min-width: 225px;
+	max-width: 225px;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	&:hover {
+		color: var(--color-primary-element-text);
+	}
 
 	img{
-		width: 90px;
+		width: 128px;
 		cursor: inherit;
 	}
 

@@ -26,7 +26,6 @@ import Vuex, { Store } from 'vuex'
 import sidebar from './modules/sidebar.js'
 import files from './modules/files.js'
 import sign from './modules/sign.js'
-import validate from './modules/validate.js'
 import error from './modules/errors.js'
 import settings from './modules/settings.js'
 import user from './modules/user.js'
@@ -84,7 +83,6 @@ export default new Store({
 		sidebar,
 		files,
 		sign,
-		validate,
 		error,
 		user,
 	},

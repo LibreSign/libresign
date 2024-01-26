@@ -1,11 +1,13 @@
 <template>
-	<NcAppSidebar :name="propName"
+	<NcAppSidebar v-show="opened"
+		:name="filesStore.file.name"
 		:subtitle="subTitle"
-		:active="propName"
+		:active="filesStore.file.name"
 		@close="closeSidebar">
-		<RequestSignature :file="propFile"
-			:signers="propSigners"
-			:name="propName" />
+		<RequestSignature v-if="filesStore.file.name"
+			:file="filesStore.file.file"
+			:signers="filesStore.file.signers"
+			:name="filesStore.file.name" />
 	</NcAppSidebar>
 </template>
 
@@ -13,6 +15,8 @@
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import RequestSignature from '../Request/RequestSignature.vue'
 import Moment from '@nextcloud/moment'
+import { useFilesStore } from '../../store/files.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'RightSidebar',
@@ -20,42 +24,23 @@ export default {
 		NcAppSidebar,
 		RequestSignature,
 	},
-	props: {
-		propName: {
-			type: String,
-			default: '',
-			required: false,
-		},
-		propFile: {
-			type: Object,
-			default: () => {},
-			required: false,
-		},
-		propSigners: {
-			type: Array,
-			default: () => [],
-			required: false,
-		},
-		propRequestedBy: {
-			type: Object,
-			default: () => {},
-			required: false,
-		},
-		propRequestDate: {
-			type: String,
-			default: '',
-			required: false,
-		},
+	setup() {
+		const filesStore = useFilesStore()
+		const sidebarStore = useSidebarStore()
+		return { filesStore, sidebarStore }
 	},
 	computed: {
 		subTitle() {
-			if (this.propRequestedBy?.uid) {
+			if (this.filesStore.file.requested_by?.uid) {
 				return t('libresign', 'Requested by {name}, at {date}', {
-					name: this.propRequestedBy.uid,
-					date: Moment(Date.parse(this.propRequestDate)).format('LL LTS'),
+					name: this.filesStore.file.requested_by.uid,
+					date: Moment(Date.parse(this.filesStore.file.request_date)).format('LL LTS'),
 				})
 			}
 			return t('libresign', 'Enter who will receive the request')
+		},
+		opened() {
+			return Object.keys(this.filesStore.file).length > 0
 		},
 	},
 	methods: {
@@ -65,5 +50,3 @@ export default {
 	},
 }
 </script>
-<style lang="scss" scoped>
-</style>
