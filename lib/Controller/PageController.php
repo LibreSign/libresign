@@ -223,6 +223,11 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
 		);
+		$this->initialState->provideInitialState('signer',
+			$this->signFileService->getSignerData(
+				$this->userSession->getUser(),
+			)
+		);
 		$this->initialState->provideInitialState('identifyMethods',
 			$this->signFileService->getAvailableIdentifyMethodsFromSettings()
 		);
