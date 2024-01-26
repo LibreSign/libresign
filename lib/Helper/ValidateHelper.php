@@ -88,7 +88,7 @@ class ValidateHelper {
 		private IUserMountCache $userMountCache,
 	) {
 	}
-	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user): void {
+	public function validateNewFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		$this->validateFile($data, $type, $user);
 		if (!empty($data['file']['fileId'])) {
 			$this->validateNotRequestedSign((int)$data['file']['fileId']);
@@ -107,7 +107,7 @@ class ValidateHelper {
 	 * @property array $data
 	 * @property int $type to_sign|visible_element
 	 */
-	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN, IUser $user): void {
+	public function validateFile(array $data, int $type = self::TYPE_TO_SIGN, ?IUser $user = null): void {
 		if (empty($data['file'])) {
 			if ($type === self::TYPE_TO_SIGN) {
 				throw new LibresignException($this->l10n->t('File type: %s. Empty file.', [$this->getTypeOfFile($type)]));
