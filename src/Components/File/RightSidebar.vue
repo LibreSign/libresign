@@ -4,16 +4,20 @@
 		:subtitle="subTitle"
 		:active="filesStore.file.name"
 		@close="closeSidebar">
-		<RequestSignatureSidebar v-if="filesStore.file.name"
-			:file="filesStore.file.file"
-			:signers="filesStore.file.signers"
-			:name="filesStore.file.name" />
+		<NcAppSidebarTab v-if="filesStore.file.name"
+			id="request-signature-list-signers"
+			:name="filesStore.file.name">
+			<RequestSignature :file="filesStore.file.file"
+				:signers="filesStore.file.signers"
+				:name="filesStore.file.name" />
+		</NcAppSidebarTab>
 	</NcAppSidebar>
 </template>
 
 <script>
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
-import RequestSignatureSidebar from '../Request/RequestSignatureSidebar.vue'
+import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
+import RequestSignature from '../Request/RequestSignature.vue'
 import Moment from '@nextcloud/moment'
 import { useFilesStore } from '../../store/files.js'
 
@@ -21,7 +25,8 @@ export default {
 	name: 'RightSidebar',
 	components: {
 		NcAppSidebar,
-		RequestSignatureSidebar,
+		NcAppSidebarTab,
+		RequestSignature,
 	},
 	setup() {
 		const filesStore = useFilesStore()
