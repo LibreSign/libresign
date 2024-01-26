@@ -55,7 +55,7 @@ import VisibleElements from './VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 
 export default {
-	name: 'RequestSignature',
+	name: 'RequestSignatureSidebar',
 	components: {
 		NcActionButton,
 		NcButton,

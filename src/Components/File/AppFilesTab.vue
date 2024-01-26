@@ -3,7 +3,7 @@
 		<h3 v-if="subTitle">
 			{{ subTitle }}
 		</h3>
-		<RequestSignature :file="file"
+		<RequestSignatureSidebar :file="file"
 			:signers="signers"
 			:name="name" />
 	</div>
@@ -12,13 +12,13 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import RequestSignature from '../Request/RequestSignature.vue'
+import RequestSignatureSidebar from '../Request/RequestSignatureSidebar.vue'
 import Moment from '@nextcloud/moment'
 
 export default {
 	name: 'AppFilesTab',
 	components: {
-		RequestSignature,
+		RequestSignatureSidebar,
 	},
 	data() {
 		return {
