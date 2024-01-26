@@ -189,17 +189,17 @@ class AccountFileMapper extends QBMapper {
 			'description' => $this->fileTypeMapper->getDescriptionOfType($row['file_type']),
 		];
 		$row['request_date'] = (new \DateTime())
-			->setTimestamp($row['request_date'])
+			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
 		if (!empty($row['status_date'])) {
 			$row['status_date'] = (new \DateTime())
-				->setTimestamp($row['status_date'])
+				->setTimestamp((int) $row['status_date'])
 				->format('Y-m-d H:i:s');
 		}
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
-			'status_text' => $this->fileMapper->getTextOfStatus($row['status']),
+			'status_text' => $this->fileMapper->getTextOfStatus((int) $row['status']),
 			'status_date' => $row['status_date'],
 			'request_date' => $row['request_date'],
 			'requested_by' => [

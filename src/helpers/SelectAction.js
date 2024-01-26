@@ -36,6 +36,8 @@ export const selectAction = (action) => {
 		return 'DefaultPageError'
 	case 250: // ACTION_SIGN
 		return 'SignPDF'
+	case 275: // ACTION_SIGN_ACCOUNT_FILE
+		return 'AccountFileApprove'
 	case 300: // ACTION_SHOW_ERROR
 		return 'DefaultPageSuccess'
 	case 350: // ACTION_SIGNED

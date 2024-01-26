@@ -143,7 +143,7 @@ class PageController extends AEnvironmentPageAwareController {
 			)
 		);
 		$this->initialState->provideInitialState('identifyMethods',
-			$this->signFileService->getAvailableIdentifyMethods($this->getSignRequestEntity())
+			$this->signFileService->getAvailableIdentifyMethodsFromSignRequest($this->getSignRequestEntity())
 		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
@@ -156,12 +156,12 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
+		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
 		$signatureMethods = $this->signatureMethodService->getMethods();
 		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
-		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
@@ -215,11 +215,43 @@ class PageController extends AEnvironmentPageAwareController {
 			$fileEntity = $this->signFileService->getFileByUuid($uuid);
 			$this->signFileService->getAccountFileById($fileEntity->getId());
 		} catch (DoesNotExistException $e) {
-			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
-			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->l10n->t('Invalid UUID')],
+			]), Http::STATUS_NOT_FOUND);
 		}
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_ACCOUNT_FILE);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
+		);
+		$this->initialState->provideInitialState('signer',
+			$this->signFileService->getSignerData(
+				$this->userSession->getUser(),
+			)
+		);
+		$this->initialState->provideInitialState('identifyMethods',
+			$this->signFileService->getAvailableIdentifyMethodsFromSettings()
+		);
+		$this->initialState->provideInitialState('filename', $fileEntity->getName());
+		$file = $this->fileService
+			->setFile($fileEntity)
+			->setMe($this->userSession->getUser())
+			->showVisibleElements()
+			->showSigners()
+			->formatFile();
+		$this->initialState->provideInitialState('status', $file['status']);
+		$this->initialState->provideInitialState('statusText', $file['statusText']);
+		$this->initialState->provideInitialState('visibleElements', []);
+		$this->initialState->provideInitialState('signers', []);
+		$this->provideSignerSignatues();
+		$signatureMethods = $this->signatureMethodService->getMethods();
+		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
+		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
+		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
+		$this->initialState->provideInitialState('description', '');
+		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity->getNodeId());
+		$this->initialState->provideInitialState('pdf',
+			$this->signFileService->getFileUrl('url', $fileEntity, $nextcloudFile, $uuid)
 		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');

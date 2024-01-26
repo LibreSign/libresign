@@ -1,54 +1,48 @@
 <template>
-	<NcContent class="container-account-docs-to-validate with-sidebar--full" app-name="libresign">
-		<!-- <pre>{{ documentList }}</pre> -->
-		<ProgressBar v-if="loading" infinity />
-
-		<div v-else class="is-fullwidth">
-			<table class="libre-table is-fullwidth">
-				<thead>
-					<tr>
-						<td>
-							{{ t('libresign', 'Type') }}
-						</td>
-						<td>
-							{{ t('libresign', 'Status') }}
-						</td>
-						<td>
-							{{ t('libresign', 'Actions') }}
-						</td>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
-						<td>
-							{{ doc.file_type.name }}
-						</td>
-						<td>
-							{{ doc.status_text }}
-						</td>
-						<td class="actions">
-							<button @click="openApprove(doc)">
-								{{ t('libresign', 'Validate') }}
-							</button>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</NcContent>
+	<ProgressBar v-if="loading" infinity />
+	<div v-else class="is-fullwidth container-account-docs-to-validate with-sidebar--full">
+		<table class="libre-table is-fullwidth">
+			<thead>
+				<tr>
+					<td>
+						{{ t('libresign', 'Type') }}
+					</td>
+					<td>
+						{{ t('libresign', 'Status') }}
+					</td>
+					<td>
+						{{ t('libresign', 'Actions') }}
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(doc, index) in documentList" :key="`doc-${index}-${doc.nodeId}-${doc.file_type.key}`">
+					<td>
+						{{ doc.file_type.name }}
+					</td>
+					<td>
+						{{ doc.status_text }}
+					</td>
+					<td class="actions">
+						<button @click="openApprove(doc)">
+							{{ t('libresign', 'Validate') }}
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </template>
 
 <script>
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import { documentsService, parseDocument } from '../../domains/documents/index.js'
 import { onError } from '../../helpers/errors.js'
 import ProgressBar from '../../Components/ProgressBar.vue'
-import { map } from 'lodash-es'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 
 export default {
 	name: 'AccountValidation',
 	components: {
-		NcContent,
 		ProgressBar,
 	},
 	data: () => ({
@@ -63,8 +57,17 @@ export default {
 			this.loading = true
 
 			try {
-				const { data } = await documentsService.loadApprovalList()
-				this.documentList = map(data, parseDocument)
+				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
+				this.documentList = data.data.map(entry => {
+					return {
+						uuid: entry.file.uuid,
+						nodeId: entry.file.file.nodeId,
+						file_type: entry.file_type,
+						name: entry.file.name,
+						status: entry.file.status,
+						status_text: entry.file.status_text,
+					}
+				})
 			} catch (err) {
 				onError(err)
 			} finally {
