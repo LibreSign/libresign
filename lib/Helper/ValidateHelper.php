@@ -60,6 +60,7 @@ class ValidateHelper {
 	public const TYPE_TO_SIGN = 1;
 	public const TYPE_VISIBLE_ELEMENT_PDF = 2;
 	public const TYPE_VISIBLE_ELEMENT_USER = 3;
+	public const TYPE_ACCOUNT_DOCUMENT = 4;
 
 	public const STATUS_DRAFT = 0;
 	public const STATUS_ABLE_TO_SIGN = 1;
