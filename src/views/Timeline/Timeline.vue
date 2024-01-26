@@ -15,11 +15,8 @@
 			<ul v-if="emptyContentFile ===false">
 				<File v-for="file in filterFile"
 					:key="file.uuid"
-					class="file-details"
-					:status="file.status"
-					:status-text="file.status_text"
-					:file="file"
-					@file:show-sidebar="setCurrentFile" />
+					:node-id="file.file.nodeId"
+					class="file-details" />
 			</ul>
 			<NcEmptyContent v-else
 				:name="t('libresign', 'There are no documents')">
@@ -28,58 +25,46 @@
 				</template>
 			</NcEmptyContent>
 		</div>
-		<RightSidebar v-if="haveCurrentFile"
-			ref="sidebar"
-			:prop-file="currentFile.file"
-			:prop-signers="currentFile.signers"
-			:prop-name="currentFile.name"
-			:prop-requested-by="currentFile.requested_by"
-			:prop-request-date="currentFile.request_date" />
 	</div>
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import File from '../../Components/File/File.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
-import RightSidebar from '../../Components/File/RightSidebar.vue'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Timeline',
 	components: {
 		File,
-		RightSidebar,
 		NcEmptyContent,
 		FolderIcon,
+	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
 			sidebar: false,
 			loading: false,
-			fileFilter: this.files,
+			fileFilter: [],
 			filterActive: 3,
-			currentFile: {},
 		}
 	},
-
 	computed: {
 		...mapState({
-			files: state => state.files,
 			statusSidebar: state => state.sidebar.status,
-		}),
-		...mapGetters({
-			pendingFilter: 'files/pendingFilter',
-			signedFilter: 'files/signedFilter',
-			orderFiles: 'files/orderFiles',
 		}),
 		filterFile: {
 			get() {
-				if (this.fileFilter === undefined || '') {
-					return this.orderFiles
+				if (this.fileFilter.length === 0) {
+					return this.filesStore.orderFiles()
 				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1,
@@ -92,12 +77,9 @@ export default {
 		emptyContentFile() {
 			return this.filterFile.length <= 0
 		},
-		haveCurrentFile() {
-			return Object.keys(this.currentFile).length !== 0
-		},
 	},
 	created() {
-		this.getAllFiles()
+		this.filesStore.getAllFiles()
 	},
 	async mounted() {
 		subscribe('libresign:delete-signer', this.deleteSigner)
@@ -109,29 +91,25 @@ export default {
 	methods: {
 		...mapActions({
 			setSidebarStatus: 'sidebar/setStatus',
-			getAllFiles: 'files/GET_ALL_FILES',
 			resetSidebarStatus: 'sidebar/RESET',
 		}),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
-				this.filterFile = this.pendingFilter
+				this.filterFile = this.filesStore.pendingFilter()
 				this.filterActive = 1
 				break
 			case 2:
-				this.filterFile = this.signedFilter
+				this.filterFile = this.filesStore.signedFilter()
 				this.filterActive = 2
 				break
 			case 3:
-				this.filterFile = this.orderFiles
+				this.filterFile = this.filesStore.orderFiles()
 				this.filterActive = 3
 				break
 			default:
 				break
 			}
-		},
-		setCurrentFile(file) {
-			this.currentFile = file
 		},
 		async deleteSigner(signer) {
 			for (const fileKey in this.filterFile) {
@@ -192,11 +170,6 @@ export default {
 			display: flex;
 			width: 100%;
 			flex-wrap: wrap;
-		}
-
-		.file-details:hover {
-			background: darken(#fff, 10%);
-			border-radius: 10px;
 		}
 	}
 }

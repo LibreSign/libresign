@@ -1,5 +1,5 @@
 <template>
-	<div :class="isMobile ? 'container mobile' : 'container'">
+	<NcContent app-name="libresign" :class="isMobile ? 'container mobile' : 'container'">
 		<NcAppNavigation :aria-label="t('libresign', 'Signature tab')"
 			:class="{'icon-loading': loading}">
 			<div class="sign-pdf-sidebar">
@@ -37,10 +37,11 @@
 				:read-only="true"
 				@pdf-editor:end-init="updateSigners" />
 		</NcAppContent>
-	</div>
+	</NcContent>
 </template>
 
 <script>
+import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
@@ -56,6 +57,7 @@ import { SIGN_STATUS } from '../../domains/sign/enum.js'
 export default {
 	name: 'SignPDF',
 	components: {
+		NcContent,
 		NcAppContent,
 		NcAppNavigation,
 		PdfEditor,
@@ -140,6 +142,7 @@ export default {
 	width: unset;
 }
 .container {
+	all: unset;
 	display: flex;
 	flex-direction: row;
 	width: 100%;
