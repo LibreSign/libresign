@@ -156,12 +156,12 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
+		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
 		$signatureMethods = $this->signatureMethodService->getMethods();
 		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
-		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
