@@ -18,7 +18,7 @@
 					</template>
 				</NcButton>
 				<NcButton :wide="true"
-					@click="getFile">
+					@click="showFilePicker = true">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
 						<FolderIcon :size="20" />
@@ -34,6 +34,12 @@
 				</NcButton>
 			</div>
 		</div>
+		<FilePicker v-if="showFilePicker"
+			:name="t('libresign', 'Select your file')"
+			:multiselect="false"
+			:buttons="filePickerButtons"
+			:mimetype-filter="['application/pdf']"
+			@close="showFilePicker = false" />
 		<NcModal v-if="modalUploadFromUrl"
 			@close="closeModalUploadFromUrl">
 			<div class="modal__content">
@@ -63,7 +69,7 @@
 	</div>
 </template>
 <script>
-import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
@@ -93,6 +99,7 @@ const loadFileToBase64 = file => {
 export default {
 	name: 'Request',
 	components: {
+		FilePicker,
 		NcModal,
 		NcTextField,
 		NcButton,
@@ -112,6 +119,7 @@ export default {
 		return {
 			pdfUrl: '',
 			modalUploadFromUrl: false,
+			showFilePicker: false,
 			loading: false,
 			file: {},
 			signers: [],
@@ -119,6 +127,13 @@ export default {
 		}
 	},
 	computed: {
+		filePickerButtons() {
+			return [{
+				label: t('libresign', 'Choose'),
+				callback: (nodes) => this.handleFileChoose(nodes),
+				type: 'primary',
+			}]
+		},
 		isEmptyFile() {
 			return Object.keys(this.filesStore.file).length === 0
 		},
@@ -212,16 +227,9 @@ export default {
 			input.click()
 			this.loading = false
 		},
-		async getFile() {
-			const picker = getFilePickerBuilder(t('libresign', 'Select your file'))
-				.setMultiSelect(false)
-				.allowDirectories(false)
-				.setMimeTypeFilter('application/pdf')
-				.build()
-			const path = await picker.pick()
-
-			if (!path || typeof path !== 'string' || path.trim().length === 0 || path === '/') {
-				// No file has been selected
+		async handleFileChoose(nodes) {
+			const path = nodes[0]?.path
+			if (!path) {
 				return
 			}
 
