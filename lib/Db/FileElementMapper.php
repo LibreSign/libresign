@@ -69,8 +69,8 @@ class FileElementMapper extends QBMapper {
 			);
 		if ($signRequestId) {
 			$qb->andWhere(
-					$qb->expr()->eq('fe.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
-				);
+				$qb->expr()->eq('fe.sign_request_id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
+			);
 		}
 
 		return $this->findEntities($qb);
