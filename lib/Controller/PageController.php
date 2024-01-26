@@ -220,6 +220,7 @@ class PageController extends AEnvironmentPageAwareController {
 				'errors' => [$this->l10n->t('Invalid UUID')],
 			]), Http::STATUS_NOT_FOUND);
 		}
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_ACCOUNT_FILE);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
 		);
@@ -230,6 +231,27 @@ class PageController extends AEnvironmentPageAwareController {
 		);
 		$this->initialState->provideInitialState('identifyMethods',
 			$this->signFileService->getAvailableIdentifyMethodsFromSettings()
+		);
+		$this->initialState->provideInitialState('filename', $fileEntity->getName());
+		$file = $this->fileService
+			->setFile($fileEntity)
+			->setMe($this->userSession->getUser())
+			->showVisibleElements()
+			->showSigners()
+			->formatFile();
+		$this->initialState->provideInitialState('status', $file['status']);
+		$this->initialState->provideInitialState('statusText', $file['statusText']);
+		$this->initialState->provideInitialState('visibleElements', []);
+		$this->initialState->provideInitialState('signers', []);
+		$this->provideSignerSignatues();
+		$signatureMethods = $this->signatureMethodService->getMethods();
+		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
+		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
+		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
+		$this->initialState->provideInitialState('description', '');
+		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity->getNodeId());
+		$this->initialState->provideInitialState('pdf',
+			$this->signFileService->getFileUrl('url', $fileEntity, $nextcloudFile, $uuid)
 		);
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
