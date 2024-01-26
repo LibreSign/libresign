@@ -16,7 +16,6 @@ import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import RequestSignatureSidebar from '../Request/RequestSignatureSidebar.vue'
 import Moment from '@nextcloud/moment'
 import { useFilesStore } from '../../store/files.js'
-import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'RightSidebar',
@@ -26,8 +25,7 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		const sidebarStore = useSidebarStore()
-		return { filesStore, sidebarStore }
+		return { filesStore }
 	},
 	computed: {
 		subTitle() {
