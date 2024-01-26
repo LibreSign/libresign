@@ -131,7 +131,7 @@ export default {
 			return [{
 				label: t('libresign', 'Choose'),
 				callback: (nodes) => this.handleFileChoose(nodes),
-				type: 'primary'
+				type: 'primary',
 			}]
 		},
 		isEmptyFile() {
