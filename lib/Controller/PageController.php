@@ -143,7 +143,7 @@ class PageController extends AEnvironmentPageAwareController {
 			)
 		);
 		$this->initialState->provideInitialState('identifyMethods',
-			$this->signFileService->getAvailableIdentifyMethods($this->getSignRequestEntity())
+			$this->signFileService->getAvailableIdentifyMethodsFromSignRequest($this->getSignRequestEntity())
 		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
