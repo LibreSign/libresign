@@ -261,7 +261,6 @@ OC.L10N.register(
     "Select a custom name" : "選取自訂名稱",
     "Remove custom name entry from root certificate" : "移除來自根憑證的自訂名稱條目",
     "Certificate engine" : "憑證引擎",
-    "Certificate engine to generate the root certificate" : "用來產生根憑證的憑證引擎",
     "Select the certificate engine to generate the root certificate" : "選取用來產生根憑證的憑證引擎",
     "I will not use root certificate" : "我將不會使用根憑證",
     "Collect signers' metadata when signing a document" : "簽署文件時蒐集簽署者的詮釋資料",
