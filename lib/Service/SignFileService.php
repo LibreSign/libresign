@@ -447,6 +447,9 @@ class SignFileService {
 				return $carry;
 			});
 
+			if (!$signRequest) {
+				throw new DoesNotExistException('Sign request not found');
+			}
 			if ($signRequest->getSigned()) {
 				throw new LibresignException($this->l10n->t('File already signed by you'), 1);
 			}
