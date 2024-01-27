@@ -22,7 +22,7 @@ OC.L10N.register(
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "Radnje",
-    "Select a file" : "Select a file",
+    "Choose" : "Izaberite",
     "Profile picture" : "Slika profila",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
@@ -32,6 +32,7 @@ OC.L10N.register(
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
     "No date" : "No date",
-    "Reset password" : "Resetuj lozinku"
+    "Reset password" : "Resetuj lozinku",
+    "Select a file" : "Select a file"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

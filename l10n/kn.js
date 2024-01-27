@@ -17,7 +17,7 @@ OC.L10N.register(
     "Delete" : "﻿ಅಳಿಸಿ",
     "Next" : "ಮುಂದೆ",
     "Type" : "Type",
-    "Select a file" : "Select a file",
+    "Choose" : "﻿ಆಯ್ಕೆ",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
@@ -27,6 +27,7 @@ OC.L10N.register(
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "No date" : "No date",
     "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
+    "Select a file" : "Select a file",
     "Remove" : "ತೆಗೆದುಹಾಕಿ"
 },
 "nplurals=2; plural=(n > 1);");

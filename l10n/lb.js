@@ -21,7 +21,7 @@ OC.L10N.register(
     "Details" : "Detailer",
     "Type" : "Typ",
     "Actions" : "Aktiounen",
-    "Select a file" : "Select a file",
+    "Choose" : "Auswielen",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
@@ -32,6 +32,7 @@ OC.L10N.register(
     "Pending" : "Ausstoend",
     "No date" : "No date",
     "Reset password" : "Passwuert zréck setzen",
+    "Select a file" : "Select a file",
     "Remove" : "Läschen"
 },
 "nplurals=2; plural=(n != 1);");

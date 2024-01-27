@@ -35,7 +35,7 @@
     "Type" : "Tüüp",
     "Status" : "Staatus",
     "Actions" : "Tegevused",
-    "Select a file" : "Select a file",
+    "Choose" : "Vali",
     "Signature" : "Allkiri",
     "Profile picture" : "Profiili pilt",
     "Enter a password" : "Enter a password",
@@ -53,6 +53,7 @@
     "Pending" : "Ootel",
     "No date" : "No date",
     "Reset password" : "Lähtesta parool",
+    "Select a file" : "Select a file",
     "Remove" : "Eemalda"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

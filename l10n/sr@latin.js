@@ -16,7 +16,7 @@ OC.L10N.register(
     "Delete" : "Obriši",
     "Details" : "Detalji",
     "Type" : "Tip",
-    "Select a file" : "Select a file",
+    "Choose" : "Odaberi",
     "Enter a password" : "Unesite lozinku",
     "Yes" : "Da",
     "No" : "Ne",
@@ -24,6 +24,7 @@ OC.L10N.register(
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
     "No date" : "No date",
+    "Select a file" : "Select a file",
     "Remove" : "Ukloni"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

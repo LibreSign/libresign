@@ -42,7 +42,7 @@ OC.L10N.register(
     "Type" : "Typ",
     "Status" : "Status",
     "Actions" : "Åtgärder",
-    "Select a file" : "Välj en fil",
+    "Choose" : "Välj",
     "Signature" : "Signatur",
     "Profile picture" : "Profilbild",
     "Enter a password" : "Ange ett lösenord",
@@ -71,6 +71,7 @@ OC.L10N.register(
     "Pending" : "Väntande",
     "No date" : "Inget datum",
     "Reset password" : "Återställ lösenord",
+    "Select a file" : "Välj en fil",
     "Add users" : "Lägg till användare",
     "Remove" : "Ta bort"
 },

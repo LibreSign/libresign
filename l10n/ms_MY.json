@@ -15,7 +15,6 @@
     "Next" : "Seterus",
     "Previous" : "Sebelum",
     "Type" : "Jenis",
-    "Select a file" : "Select a file",
     "Profile picture" : "Gambar profil",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
@@ -26,6 +25,7 @@
     "Pending" : "Dalam proses",
     "No date" : "No date",
     "Reset password" : "Penetapan semula kata laluan",
+    "Select a file" : "Select a file",
     "Remove" : "Buang"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

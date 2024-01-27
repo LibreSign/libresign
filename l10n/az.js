@@ -27,7 +27,7 @@ OC.L10N.register(
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "İşlər",
-    "Select a file" : "Select a file",
+    "Choose" : "Seç",
     "Signature" : "İmza",
     "Profile picture" : "Profil şəkli",
     "Enter a password" : "Enter a password",
@@ -40,6 +40,7 @@ OC.L10N.register(
     "Pending" : "Gözləmə",
     "No date" : "No date",
     "Reset password" : "Parolu sıfırlayın",
+    "Select a file" : "Select a file",
     "Remove" : "Sil"
 },
 "nplurals=2; plural=(n != 1);");

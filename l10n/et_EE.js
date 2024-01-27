@@ -37,7 +37,7 @@ OC.L10N.register(
     "Type" : "Tüüp",
     "Status" : "Staatus",
     "Actions" : "Tegevused",
-    "Select a file" : "Select a file",
+    "Choose" : "Vali",
     "Signature" : "Allkiri",
     "Profile picture" : "Profiili pilt",
     "Enter a password" : "Enter a password",
@@ -55,6 +55,7 @@ OC.L10N.register(
     "Pending" : "Ootel",
     "No date" : "No date",
     "Reset password" : "Lähtesta parool",
+    "Select a file" : "Select a file",
     "Remove" : "Eemalda"
 },
 "nplurals=2; plural=(n != 1);");

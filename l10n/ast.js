@@ -17,7 +17,6 @@ OC.L10N.register(
     "Upload" : "Xunir",
     "Cancel" : "Encaboxar",
     "Save" : "Guardar",
-    "Signatures" : "Firmes",
     "No recommendations. Start typing." : "Nun hai nenguna recomendación. Comienza a escribir",
     "Name" : "Nome",
     "Searching …" : "Buscando…",
@@ -31,6 +30,7 @@ OC.L10N.register(
     "Certificate" : "Certificáu",
     "Status" : "Estáu",
     "Actions" : "Aiciones",
+    "Choose" : "Escoyer",
     "Signature" : "Firma",
     "Yes" : "Sí",
     "No" : "Non",
@@ -40,6 +40,7 @@ OC.L10N.register(
     "Optional attributes" : "Atributos opcionales",
     "Dependencies" : "Dependencies",
     "Loading …" : "Cargando…",
-    "All Files" : "Tolos ficheros"
+    "All Files" : "Tolos ficheros",
+    "Signatures" : "Firmes"
 },
 "nplurals=2; plural=(n != 1);");

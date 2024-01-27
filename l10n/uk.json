@@ -41,7 +41,7 @@
     "Type" : "Тип",
     "Status" : "Статус",
     "Actions" : "Дії",
-    "Select a file" : "Select a file",
+    "Choose" : "Вибрати",
     "Signature" : "Підпис",
     "Profile picture" : "Зображення облікового запису",
     "Enter a password" : "Enter a password",
@@ -61,6 +61,7 @@
     "Pending" : "Очікування",
     "No date" : "Без дати",
     "Reset password" : "Перевстановити пароль",
+    "Select a file" : "Select a file",
     "Add users" : "Додати користувачів",
     "Remove" : "Вилучити"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);"

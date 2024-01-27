@@ -19,7 +19,7 @@ OC.L10N.register(
     "Previous" : "មុន",
     "Details" : "ព័ត៌មាន​លម្អិត",
     "Type" : "Type",
-    "Select a file" : "Select a file",
+    "Choose" : "ជ្រើស",
     "Profile picture" : "រូបភាព​ប្រវត្តិរូប",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
@@ -30,6 +30,7 @@ OC.L10N.register(
     "Pending" : "កំពុង​រង់ចាំ",
     "No date" : "No date",
     "Reset password" : "កំណត់​ពាក្យ​សម្ងាត់​ម្ដង​ទៀត",
+    "Select a file" : "Select a file",
     "Remove" : "ដកចេញ"
 },
 "nplurals=1; plural=0;");

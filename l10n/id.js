@@ -36,7 +36,7 @@ OC.L10N.register(
     "Type" : "tipe",
     "Status" : "Status",
     "Actions" : "Tindakan",
-    "Select a file" : "Pilih berkas",
+    "Choose" : "Pilih",
     "Signature" : "Tanda",
     "Profile picture" : "Foto profil",
     "Enter a password" : "Masukkan kata sandi",
@@ -53,6 +53,7 @@ OC.L10N.register(
     "Pending" : "Tunggu",
     "No date" : "No date",
     "Reset password" : "Setel ulang kata sandi",
+    "Select a file" : "Pilih berkas",
     "Remove" : "Buang"
 },
 "nplurals=1; plural=0;");

@@ -40,7 +40,7 @@ OC.L10N.register(
     "Type" : "Tipo",
     "Status" : "Estado",
     "Actions" : "Acções",
-    "Select a file" : "Select a file",
+    "Choose" : "Escolher",
     "Signature" : "Assinatura",
     "Profile picture" : "Imagem do perfil",
     "Enter a password" : "Insira uma palavra-passe",
@@ -60,6 +60,7 @@ OC.L10N.register(
     "Pending" : "Pendente",
     "No date" : "Sem data",
     "Reset password" : "Repor palavra-passe",
+    "Select a file" : "Select a file",
     "Remove" : "Remover"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
