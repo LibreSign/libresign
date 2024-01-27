@@ -43,7 +43,7 @@ OC.L10N.register(
     "Type" : "Тип",
     "Status" : "Статус",
     "Actions" : "Дії",
-    "Select a file" : "Select a file",
+    "Choose" : "Вибрати",
     "Signature" : "Підпис",
     "Profile picture" : "Зображення облікового запису",
     "Enter a password" : "Enter a password",
@@ -63,6 +63,7 @@ OC.L10N.register(
     "Pending" : "Очікування",
     "No date" : "Без дати",
     "Reset password" : "Перевстановити пароль",
+    "Select a file" : "Select a file",
     "Add users" : "Додати користувачів",
     "Remove" : "Вилучити"
 },

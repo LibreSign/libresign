@@ -23,6 +23,7 @@ OC.L10N.register(
     "Change password" : "Change password",
     "Status" : "Status",
     "Actions" : "Actions",
+    "Choose" : "Choose",
     "Profile picture" : "Profil rasmi",
     "Yes" : "Yes",
     "No" : "No",

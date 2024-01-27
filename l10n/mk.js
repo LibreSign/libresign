@@ -46,7 +46,7 @@ OC.L10N.register(
     "Type" : "Вид",
     "Status" : "Статус",
     "Actions" : "Акции",
-    "Select a file" : "Select a file",
+    "Choose" : "Избери",
     "Signature" : "Потпис",
     "Profile picture" : "Фотографија за профил",
     "Enter a password" : "Внесете лозинка",
@@ -65,6 +65,7 @@ OC.L10N.register(
     "Pending" : "Чекање",
     "No date" : "No date",
     "Reset password" : "Ресетирај лозинка",
+    "Select a file" : "Select a file",
     "Add users" : "Додади корисници",
     "Remove" : "Отстрани "
 },

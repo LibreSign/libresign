@@ -17,7 +17,6 @@ OC.L10N.register(
     "Next" : "Seterus",
     "Previous" : "Sebelum",
     "Type" : "Jenis",
-    "Select a file" : "Select a file",
     "Profile picture" : "Gambar profil",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
@@ -28,6 +27,7 @@ OC.L10N.register(
     "Pending" : "Dalam proses",
     "No date" : "No date",
     "Reset password" : "Penetapan semula kata laluan",
+    "Select a file" : "Select a file",
     "Remove" : "Buang"
 },
 "nplurals=1; plural=0;");

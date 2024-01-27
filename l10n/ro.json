@@ -39,7 +39,7 @@
     "Type" : "Tip",
     "Status" : "Stare",
     "Actions" : "Acțiuni",
-    "Select a file" : "Select a file",
+    "Choose" : "Alege",
     "Signature" : "Semnătură",
     "Profile picture" : "Imagine de profil",
     "Enter a password" : "Enter a password",
@@ -58,6 +58,7 @@
     "Pending" : "În așteptare",
     "No date" : "No date",
     "Reset password" : "Resetează parola",
+    "Select a file" : "Select a file",
     "Add users" : "Adaugă utilizatori",
     "Remove" : "Elimină"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"

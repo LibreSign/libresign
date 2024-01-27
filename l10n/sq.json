@@ -35,7 +35,7 @@
     "Type" : "Shtyp",
     "Status" : "Statusi",
     "Actions" : "Veprimet",
-    "Select a file" : "Zgjidhni një skedar",
+    "Choose" : "Zgjidhni",
     "Signature" : "Nënshkrimi",
     "Profile picture" : "Foto profili",
     "Enter a password" : "Fusni një fjalëkalim",
@@ -54,6 +54,7 @@
     "Pending" : "Në Pritje të Konfirmimit",
     "No date" : "No date",
     "Reset password" : "Ricaktoni fjalëkalimin",
+    "Select a file" : "Zgjidhni një skedar",
     "Remove" : "Hiq"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

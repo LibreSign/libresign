@@ -21,7 +21,7 @@ OC.L10N.register(
     "Details" : "বিসতারিত",
     "Type" : "ধরণ",
     "Actions" : "পদক্ষেপসমূহ",
-    "Select a file" : "Select a file",
+    "Choose" : "বেছে নিন",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
@@ -31,6 +31,7 @@ OC.L10N.register(
     "Pending" : "মুলতুবি",
     "No date" : "No date",
     "Reset password" : "কূটশব্দ পূনঃনির্ধারণ কর",
+    "Select a file" : "Select a file",
     "Remove" : "অপসারণ"
 },
 "nplurals=2; plural=(n != 1);");

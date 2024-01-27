@@ -40,7 +40,7 @@
     "Type" : "Typ",
     "Status" : "Status",
     "Actions" : "Åtgärder",
-    "Select a file" : "Välj en fil",
+    "Choose" : "Välj",
     "Signature" : "Signatur",
     "Profile picture" : "Profilbild",
     "Enter a password" : "Ange ett lösenord",
@@ -69,6 +69,7 @@
     "Pending" : "Väntande",
     "No date" : "Inget datum",
     "Reset password" : "Återställ lösenord",
+    "Select a file" : "Välj en fil",
     "Add users" : "Lägg till användare",
     "Remove" : "Ta bort"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

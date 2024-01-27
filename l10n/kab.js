@@ -23,6 +23,7 @@ OC.L10N.register(
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",
+    "Choose" : "Fren",
     "Enter a password" : "Sekcem awal n uɛeddi",
     "Yes" : "Oui",
     "No" : "Uhu",

@@ -20,6 +20,7 @@ OC.L10N.register(
     "Details" : "விவரங்கள்",
     "Type" : "வகை",
     "Actions" : "செயல்கள்",
+    "Choose" : "தெரிவுசெய்க ",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",

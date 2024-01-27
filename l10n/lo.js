@@ -23,6 +23,7 @@ OC.L10N.register(
     "Previous" : "ກ່ອນໜ້າ",
     "Details" : "ລາຍລະອຽດ",
     "Type" : "ພິມ",
+    "Choose" : "ເລືອກ",
     "Enter a password" : "ໃສ່ລະຫັດຜ່ານ",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",

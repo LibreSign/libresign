@@ -32,6 +32,7 @@ OC.L10N.register(
     "Type" : "Tipe",
     "Status" : "Status",
     "Actions" : "Aksies",
+    "Choose" : "Kies",
     "Signature" : "Handtekening",
     "Profile picture" : "Profielprent",
     "Enter a password" : "Gee ’n wagwoord",

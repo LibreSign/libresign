@@ -34,7 +34,7 @@ OC.L10N.register(
     "Type" : "Tipo",
     "Status" : "Estatus",
     "Actions" : "Acciones",
-    "Select a file" : "Select a file",
+    "Choose" : "Seleccionar",
     "Signature" : "Firma",
     "Profile picture" : "Foto de perfil",
     "Enter a password" : "Ingresa una contraseña",
@@ -54,6 +54,7 @@ OC.L10N.register(
     "Pending" : "Pendiente",
     "No date" : "Sin fecha",
     "Reset password" : "Restablecer contraseña",
+    "Select a file" : "Select a file",
     "Remove" : "Eliminar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

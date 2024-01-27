@@ -13,13 +13,14 @@ OC.L10N.register(
     "Delete" : "حذف کریں",
     "Next" : "اگلا",
     "Type" : "Type",
-    "Select a file" : "Select a file",
+    "Choose" : "منتخب کریں",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
     "Send" : "بھجیں",
     "New password" : "نیا پاسورڈ",
     "No date" : "No date",
-    "Reset password" : "ری سیٹ پاسورڈ"
+    "Reset password" : "ری سیٹ پاسورڈ",
+    "Select a file" : "Select a file"
 },
 "nplurals=2; plural=(n != 1);");

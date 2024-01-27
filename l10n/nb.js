@@ -43,7 +43,7 @@ OC.L10N.register(
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "Handlinger",
-    "Select a file" : "Select a file",
+    "Choose" : "Velg",
     "Signature" : "Signatur",
     "Profile picture" : "Profilbilde",
     "Enter a password" : "Skriv inn et passord",
@@ -63,6 +63,7 @@ OC.L10N.register(
     "Pending" : "Venter",
     "No date" : "Ingen dato",
     "Reset password" : "Tilbakestill passord",
+    "Select a file" : "Select a file",
     "Add users" : "Legg til brukere",
     "Remove" : "Fjern"
 },

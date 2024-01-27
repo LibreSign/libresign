@@ -25,7 +25,6 @@ OC.L10N.register(
     "Details" : "Detalios",
     "Type" : "Typo",
     "Actions" : "Actiones",
-    "Select a file" : "Select a file",
     "Profile picture" : "Pictura de profilo",
     "Enter a password" : "Enter a password",
     "Yes" : "Si",
@@ -35,6 +34,7 @@ OC.L10N.register(
     "New password" : "Nove contrasigno",
     "Resource" : "Ressource",
     "Pending" : "Pendente",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Select a file" : "Select a file"
 },
 "nplurals=2; plural=(n != 1);");

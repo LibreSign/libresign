@@ -38,7 +38,7 @@ OC.L10N.register(
     "Type" : "Tipo",
     "Status" : "Stato",
     "Actions" : "Agoj",
-    "Select a file" : "Select a file",
+    "Choose" : "Elekti",
     "Signature" : "Subskribo",
     "Profile picture" : "Profila bildo",
     "Enter a password" : "Entajpu pasvorton",
@@ -58,6 +58,7 @@ OC.L10N.register(
     "Pending" : "Pritraktota",
     "No date" : "No date",
     "Reset password" : "Restarigi pasvorton",
+    "Select a file" : "Select a file",
     "Remove" : "Forigi"
 },
 "nplurals=2; plural=(n != 1);");

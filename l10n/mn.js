@@ -28,7 +28,7 @@ OC.L10N.register(
     "Type" : "Төрөл",
     "Status" : "төлөв",
     "Actions" : "Үйл ажиллагаа",
-    "Select a file" : "Select a file",
+    "Choose" : "Сонгох",
     "Signature" : "Гарын үсэг",
     "Profile picture" : "Профайл зураг",
     "Enter a password" : "Enter a password",
@@ -43,6 +43,7 @@ OC.L10N.register(
     "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
     "No date" : "No date",
+    "Select a file" : "Select a file",
     "Remove" : "Устгах"
 },
 "nplurals=2; plural=(n != 1);");

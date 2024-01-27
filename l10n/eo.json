@@ -36,7 +36,7 @@
     "Type" : "Tipo",
     "Status" : "Stato",
     "Actions" : "Agoj",
-    "Select a file" : "Select a file",
+    "Choose" : "Elekti",
     "Signature" : "Subskribo",
     "Profile picture" : "Profila bildo",
     "Enter a password" : "Entajpu pasvorton",
@@ -56,6 +56,7 @@
     "Pending" : "Pritraktota",
     "No date" : "No date",
     "Reset password" : "Restarigi pasvorton",
+    "Select a file" : "Select a file",
     "Remove" : "Forigi"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

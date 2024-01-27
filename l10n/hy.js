@@ -19,7 +19,7 @@ OC.L10N.register(
     "Previous" : "Նախորդ",
     "Details" : "Մանրամասներ",
     "Type" : "Տիպ",
-    "Select a file" : "Select a file",
+    "Choose" : "Ընտրել",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
@@ -27,6 +27,7 @@ OC.L10N.register(
     "Password reset" : "Վերականգնել գաղտնաբառը",
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Select a file" : "Select a file"
 },
 "nplurals=2; plural=(n != 1);");
