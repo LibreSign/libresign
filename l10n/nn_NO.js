@@ -26,7 +26,7 @@ OC.L10N.register(
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "Handlingar",
-    "Select a file" : "Select a file",
+    "Choose" : "Vel",
     "Signature" : "Signatur",
     "Profile picture" : "Profilbilete",
     "Enter a password" : "Skriv inn eit passord",
@@ -42,6 +42,7 @@ OC.L10N.register(
     "Pending" : "Under vegs",
     "No date" : "No date",
     "Reset password" : "Nullstill passord",
+    "Select a file" : "Select a file",
     "Remove" : "Fjern"
 },
 "nplurals=2; plural=(n != 1);");

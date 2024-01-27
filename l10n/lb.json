@@ -19,7 +19,7 @@
     "Details" : "Detailer",
     "Type" : "Typ",
     "Actions" : "Aktiounen",
-    "Select a file" : "Select a file",
+    "Choose" : "Auswielen",
     "Enter a password" : "Enter a password",
     "Yes" : "Yes",
     "No" : "No",
@@ -30,6 +30,7 @@
     "Pending" : "Ausstoend",
     "No date" : "No date",
     "Reset password" : "Passwuert zréck setzen",
+    "Select a file" : "Select a file",
     "Remove" : "Läschen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

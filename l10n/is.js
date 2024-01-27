@@ -44,7 +44,7 @@ OC.L10N.register(
     "Type" : "Tegund",
     "Status" : "Staða",
     "Actions" : "Aðgerðir",
-    "Select a file" : "Veldu skrá",
+    "Choose" : "Velja",
     "Signature" : "Undirskrift",
     "Profile picture" : "Einkennismynd",
     "Enter a password" : "Settu inn lykilorð",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "Pending" : "Í bið",
     "No date" : "Engin dagsetning",
     "Reset password" : "Endursetja lykilorð",
+    "Select a file" : "Veldu skrá",
     "Remove" : "Fjarlægja"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

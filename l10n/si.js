@@ -26,6 +26,7 @@ OC.L10N.register(
     "Certificate" : "සහතිකය",
     "Change password" : "මුරපදය වෙනස් කරන්න",
     "Actions" : "ක්‍රියාමාර්ග",
+    "Choose" : "තෝරන්න",
     "Signature" : "අත්සන",
     "Yes" : "ඔව්",
     "No" : "නැහැ",

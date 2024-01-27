@@ -38,7 +38,7 @@ OC.L10N.register(
     "Type" : "ประเภท",
     "Status" : "สถานะ",
     "Actions" : "การกระทำ",
-    "Select a file" : "Select a file",
+    "Choose" : "เลือก",
     "Signature" : "ลายเซ็น",
     "Profile picture" : "รูปภาพโปรไฟล์",
     "Enter a password" : "ใส่รหัสผ่าน",
@@ -53,6 +53,7 @@ OC.L10N.register(
     "Pending" : "รอดำเนินการ",
     "No date" : "ไม่มีวันที่",
     "Reset password" : "ตั้งรหัสผ่านใหม่",
+    "Select a file" : "Select a file",
     "Remove" : "ลบออก"
 },
 "nplurals=1; plural=0;");

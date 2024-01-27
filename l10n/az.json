@@ -25,7 +25,7 @@
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "İşlər",
-    "Select a file" : "Select a file",
+    "Choose" : "Seç",
     "Signature" : "İmza",
     "Profile picture" : "Profil şəkli",
     "Enter a password" : "Enter a password",
@@ -38,6 +38,7 @@
     "Pending" : "Gözləmə",
     "No date" : "No date",
     "Reset password" : "Parolu sıfırlayın",
+    "Select a file" : "Select a file",
     "Remove" : "Sil"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

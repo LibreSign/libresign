@@ -41,6 +41,7 @@ OC.L10N.register(
     "Type" : "Type",
     "Status" : "Status",
     "Actions" : "Actions",
+    "Choose" : "Choose",
     "Signature" : "Signature",
     "Profile picture" : "Profile picture",
     "Enter a password" : "Enter a password",

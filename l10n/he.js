@@ -40,7 +40,7 @@ OC.L10N.register(
     "Type" : "סוג",
     "Status" : "מצב",
     "Actions" : "פעולות",
-    "Select a file" : "Select a file",
+    "Choose" : "בחר",
     "Signature" : "חתימה",
     "Profile picture" : "תמונת פרופיל",
     "Enter a password" : "נא להקליד ססמה",
@@ -61,6 +61,7 @@ OC.L10N.register(
     "Pending" : "בהמתנה",
     "No date" : "No date",
     "Reset password" : "איפוס ססמה",
+    "Select a file" : "Select a file",
     "Remove" : "הסרה"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;");

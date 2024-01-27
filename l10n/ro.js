@@ -41,7 +41,7 @@ OC.L10N.register(
     "Type" : "Tip",
     "Status" : "Stare",
     "Actions" : "Acțiuni",
-    "Select a file" : "Select a file",
+    "Choose" : "Alege",
     "Signature" : "Semnătură",
     "Profile picture" : "Imagine de profil",
     "Enter a password" : "Enter a password",
@@ -60,6 +60,7 @@ OC.L10N.register(
     "Pending" : "În așteptare",
     "No date" : "No date",
     "Reset password" : "Resetează parola",
+    "Select a file" : "Select a file",
     "Add users" : "Adaugă utilizatori",
     "Remove" : "Elimină"
 },

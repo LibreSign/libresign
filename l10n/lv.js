@@ -36,7 +36,7 @@ OC.L10N.register(
     "Type" : "Tips",
     "Status" : "Status",
     "Actions" : "Darbības",
-    "Select a file" : "Izvēlēties failu",
+    "Choose" : "Izvēlies",
     "Signature" : "Paraksts",
     "Profile picture" : "Profila attēls",
     "Enter a password" : "Enter a password",
@@ -53,6 +53,7 @@ OC.L10N.register(
     "Pending" : "Gaida",
     "No date" : "No date",
     "Reset password" : "Mainīt paroli",
+    "Select a file" : "Izvēlēties failu",
     "Remove" : "Noņemt"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

@@ -38,7 +38,7 @@ OC.L10N.register(
     "Type" : "Loại",
     "Status" : "Trạng thái",
     "Actions" : "Hành động",
-    "Select a file" : "Select a file",
+    "Choose" : "Chọn",
     "Signature" : "Chữ ký",
     "Profile picture" : "Ảnh đại diện",
     "Enter a password" : "Nhập mật khẩu",
@@ -57,6 +57,7 @@ OC.L10N.register(
     "Pending" : "Đang dừng",
     "No date" : "No date",
     "Reset password" : "Khôi phục mật khẩu",
+    "Select a file" : "Select a file",
     "Add users" : "Thêm người dùng",
     "Remove" : "Xoá"
 },

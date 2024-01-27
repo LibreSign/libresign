@@ -15,6 +15,7 @@ OC.L10N.register(
     "Delete" : "Sguab às",
     "Details" : "Mion-fhiosrachadh",
     "Type" : "Seòrsa",
+    "Choose" : "Tagh",
     "Enter a password" : "Cuir a-steach facal-faire",
     "Yes" : "Tha",
     "No" : "Chan eil",

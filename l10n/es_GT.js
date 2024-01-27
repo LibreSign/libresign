@@ -35,6 +35,7 @@ OC.L10N.register(
     "Type" : "Tipo",
     "Status" : "Estatus",
     "Actions" : "Acciones",
+    "Choose" : "Seleccionar",
     "Signature" : "Firma",
     "Profile picture" : "Foto de perfil",
     "Enter a password" : "Ingresa una contraseña",

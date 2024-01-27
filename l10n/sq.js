@@ -37,7 +37,7 @@ OC.L10N.register(
     "Type" : "Shtyp",
     "Status" : "Statusi",
     "Actions" : "Veprimet",
-    "Select a file" : "Zgjidhni një skedar",
+    "Choose" : "Zgjidhni",
     "Signature" : "Nënshkrimi",
     "Profile picture" : "Foto profili",
     "Enter a password" : "Fusni një fjalëkalim",
@@ -56,6 +56,7 @@ OC.L10N.register(
     "Pending" : "Në Pritje të Konfirmimit",
     "No date" : "No date",
     "Reset password" : "Ricaktoni fjalëkalimin",
+    "Select a file" : "Zgjidhni një skedar",
     "Remove" : "Hiq"
 },
 "nplurals=2; plural=(n != 1);");

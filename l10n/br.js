@@ -31,6 +31,7 @@ OC.L10N.register(
     "Type" : "Stumm",
     "Status" : "Statud",
     "Actions" : "Oberoù",
+    "Choose" : "Dibab",
     "Profile picture" : "Skeudenn trolinenn",
     "Enter a password" : "Ebarzhiñ ar ger-tremen",
     "Yes" : "Ya",

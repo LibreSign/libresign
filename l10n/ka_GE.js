@@ -35,7 +35,7 @@ OC.L10N.register(
     "Type" : "სახეობა",
     "Status" : "სტატუსი",
     "Actions" : "მოქმედებები",
-    "Select a file" : "Select a file",
+    "Choose" : "აირჩიეთ",
     "Signature" : "ხელმოწერა",
     "Profile picture" : "პროფილის სურათი",
     "Enter a password" : "შეიყვანეთ პაროლი",
@@ -54,6 +54,7 @@ OC.L10N.register(
     "Pending" : "მოლოდინში",
     "No date" : "თარიღი არაა",
     "Reset password" : "პაროლის შეცვლა",
+    "Select a file" : "Select a file",
     "Remove" : "წაშლა"
 },
 "nplurals=2; plural=(n!=1);");
