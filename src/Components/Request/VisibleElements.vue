@@ -269,6 +269,12 @@ export default {
 		all: unset;
 	}
 }
+
+.modal-container {
+	.dialog {
+		height: unset;
+	}
+}
 </style>
 
 <style lang="scss" scoped>
