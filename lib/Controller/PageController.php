@@ -106,6 +106,10 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$response = new TemplateResponse(Application::APP_ID, 'main');
 
+		$policy = new ContentSecurityPolicy();
+		$policy->allowEvalScript(true);
+		$response->setContentSecurityPolicy($policy);
+
 		return $response;
 	}
 
