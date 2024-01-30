@@ -72,6 +72,8 @@ class Email extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$hasher,
+			$userManager,
+			$urlGenerator,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -104,6 +106,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
+		$this->throwIfNeedToCreateAccount();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
 		$this->throwIfNeedVisibleElementsAndCanNotHave();
