@@ -71,6 +71,8 @@ class Password extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$hasher,
+			$userManager,
+			$urlGenerator,
 			$userMountCache,
 			$timeFactory,
 			$logger,

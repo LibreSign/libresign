@@ -68,6 +68,8 @@ class ClickToSign extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$hasher,
+			$userManager,
+			$urlGenerator,
 			$userMountCache,
 			$timeFactory,
 			$logger,
