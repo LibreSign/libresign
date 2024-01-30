@@ -112,6 +112,22 @@ const router = new Router({
 		{
 			path: '/f/incomplete',
 			name: 'incomplete',
+			beforeEnter: (to, from, next) => {
+				const action = selectAction(loadState('libresign', 'action', ''))
+				if (action !== undefined) {
+					if (to.name !== 'incomplete') {
+						next({
+							name: action,
+							params: to.params,
+						})
+						return
+					}
+					next()
+				}
+				next({
+					name: 'requestFiles',
+				})
+			},
 			component: () => import('../views/IncompleteCertification.vue'),
 		},
 		{
