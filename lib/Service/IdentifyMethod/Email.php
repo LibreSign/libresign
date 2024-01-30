@@ -95,9 +95,7 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToRequest(): void {
-		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'));
-		}
+		$this->throwIfInvalidEmail();
 	}
 
 	public function validateToSign(): void {
@@ -184,12 +182,18 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToCreateAccount(string $value): void {
-		$this->validateToRequest();
+		$this->throwIfInvalidEmail();
 		if ($this->userManager->userExists($value)) {
 			throw new LibresignException($this->l10n->t('User already exists'));
 		}
 		if ($this->getEntity()->getIdentifierValue() !== $value) {
 			throw new LibresignException($this->l10n->t('This is not your file'));
+		}
+	}
+
+	private function throwIfInvalidEmail(): void {
+		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
 
