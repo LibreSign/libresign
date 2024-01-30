@@ -32,8 +32,10 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -49,18 +51,20 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class AccountController extends ApiController {
+class AccountController extends ApiController implements ISignatureUuid {
+	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
-		private IL10N $l10n,
+		protected IL10N $l10n,
 		private IAccountManager $accountManager,
 		private AccountService $accountService,
 		private AccountFileService $accountFileService,
+		protected SignFileService $signFileService,
 		private Pkcs12Handler $pkcs12Handler,
 		private Chain $loginChain,
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
-		private IUserSession $userSession,
+		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -238,7 +242,9 @@ class AccountController extends ApiController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function createSignatureElement(array $elements): JSONResponse {
+	#[PublicPage]
+	#[RequireSignRequestUuid]
+	public function createSignatureElement(array $elements, string $uuid): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements($elements, $this->userSession->getUser());

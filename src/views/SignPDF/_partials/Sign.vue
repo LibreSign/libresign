@@ -261,6 +261,7 @@ export default {
 							type: 'signature',
 						},
 					],
+					uuid: this.uuid,
 				})
 				this.userSignatures = response.data.elements
 				showSuccess(response.data.message)
