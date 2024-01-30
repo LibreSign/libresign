@@ -230,35 +230,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
-	protected function getSignerFromEmail(): IUser {
-		$email = $this->getEntity()->getIdentifierValue();
-		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid email')],
-			]));
-		}
-		$signer = $this->userManager->getByEmail($email);
-		if (empty($signer)) {
-			$this->throwIfNotAllowedToCreateAccount();
-			$this->throwIfNeedToCreateAccount();
-		}
-		if (count($signer) > 0) {
-			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->l10n->t('User already exists. Please login.')],
-				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.page.sign',
-						['uuid' => $signRequest->getUuid()]
-					),
-				]),
-			]));
-		}
-		return current($signer);
-	}
-
 	protected function throwIfNeedToCreateAccount() {
 		if (!$this->canCreateAccount) {
 			return;
@@ -272,15 +243,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'settings' => ['accountHash' => md5($email)],
 			'message' => $this->l10n->t('You need to create an account to sign this file.'),
 		]));
-	}
-
-	protected function throwIfNotAllowedToCreateAccount(): void {
-		if (!$this->canCreateAccount) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('It is not possible to create new accounts.')],
-			]));
-		}
 	}
 
 	private function getRenewAction(): int {
