@@ -102,7 +102,7 @@ class Email extends AbstractIdentifyMethod {
 
 	public function validateToSign(): void {
 		$this->throwIfAccountAlreadyExists($this->user);
-		$this->throwIfIsNotSameUser($this->user);
+		$this->throwIfIsAuthenticatedWithDifferentAccount($this->user);
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
@@ -140,12 +140,12 @@ class Email extends AbstractIdentifyMethod {
 		}
 	}
 
-	private function throwIfIsNotSameUser(?IUser $user): void {
+	private function throwIfIsAuthenticatedWithDifferentAccount(?IUser $user): void {
 		if (!$user instanceof IUser) {
 			return;
 		}
 		$email = $this->entity->getIdentifierValue();
-		if ($user->getEMailAddress() !== $email) {
+		if (!empty($user->getEMailAddress()) && $user->getEMailAddress() !== $email) {
 			if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
 				return;
 			}
