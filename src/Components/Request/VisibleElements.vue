@@ -291,7 +291,7 @@ export default {
 		position: sticky;
 		top: 0;
 		z-index: 9;
-		background-color: #fff;
+		background-color: var(--color-main-background);
 		&__sidebar {
 			li {
 				margin: 3px 3px 1em 3px;
