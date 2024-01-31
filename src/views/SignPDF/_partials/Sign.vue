@@ -114,6 +114,7 @@
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
@@ -244,7 +245,7 @@ export default {
 	},
 	methods: {
 		async loadUser() {
-			if (OC.currentUser) {
+			if (getCurrentUser()) {
 				try {
 					const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
 					this.user = data
@@ -345,7 +346,7 @@ export default {
 			}
 			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
 				this.modalSignWithPassword = true
-				return
+
 			}
 		},
 		onModalClose(methodId) {
