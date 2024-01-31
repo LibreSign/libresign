@@ -87,11 +87,11 @@ class FolderService {
 	 */
 	private function getOrCreateFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
-		$userFolder = $this->root->getUserFolder($this->getUserId());
-		if ($userFolder->nodeExists($path)) {
-			$folder = $userFolder->get($path);
+		$containerFolder = $this->root->getUserFolder($this->getUserId());
+		if ($containerFolder->nodeExists($path)) {
+			$folder = $containerFolder->get($path);
 		} else {
-			$folder = $userFolder->newFolder($path);
+			$folder = $containerFolder->newFolder($path);
 		}
 		return $folder;
 	}
