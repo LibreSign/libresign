@@ -26,8 +26,10 @@ namespace OCA\Libresign\Service;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
+use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
@@ -37,14 +39,17 @@ use OCP\IL10N;
 use OCP\IUser;
 
 class FolderService {
+	protected IAppData $appData;
 	public function __construct(
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
+		protected IAppDataFactory $appDataFactory,
 		private IConfig $config,
 		private IL10N $l10n,
 		private ?string $userId,
 	) {
 		$this->userId = $userId;
+		$this->appData = $appDataFactory->get('libresign');
 	}
 
 	public function setUserId(string $userId): void {
@@ -87,7 +92,15 @@ class FolderService {
 	 */
 	private function getOrCreateFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
-		$containerFolder = $this->root->getUserFolder($this->getUserId());
+		if ($this->getUserId()) {
+			$containerFolder = $this->root->getUserFolder($this->getUserId());
+		} else {
+			$containerFolder = $this->appData->getFolder('/');
+			$reflection = new \ReflectionClass($containerFolder);
+			$reflectionProperty = $reflection->getProperty('folder');
+			$reflectionProperty->setAccessible(true);
+			$containerFolder = $reflectionProperty->getValue($containerFolder);
+		}
 		if ($containerFolder->nodeExists($path)) {
 			$folder = $containerFolder->get($path);
 		} else {
@@ -100,6 +113,9 @@ class FolderService {
 	 * @psalm-suppress MixedReturnStatement
 	 */
 	public function getLibreSignDefaultPath(): string {
+		if (!$this->userId) {
+			return 'unauthenticated';
+		}
 		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');
 
 		if (empty($path)) {
