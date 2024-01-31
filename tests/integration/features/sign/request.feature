@@ -120,6 +120,8 @@ Feature: request-signature
     And my inbox is empty
     And run the command "libresign:developer:reset --all"
     And run the command "config:app:set libresign authkey --value dummy"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":false}] |
     And sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"email":"signer2@domain.test"}}] |
