@@ -5,6 +5,7 @@ OC.L10N.register(
     "Settings saved" : "設定が保存されました",
     "draft" : "下書き",
     "deleted" : "削除しました",
+    "pending" : "保留中",
     "User not found." : "ユーザーが見つかりません。",
     "No user data" : "ユーザーデータなし",
     "Invalid email" : "無効なメール",
