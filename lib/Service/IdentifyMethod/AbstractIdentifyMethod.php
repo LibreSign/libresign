@@ -170,6 +170,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function renewSession(): void {
+		$this->sessionService->setIdentifyMethodId($this->getEntity()->getId());
 		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;

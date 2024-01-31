@@ -42,6 +42,19 @@ class SessionService {
 		return $this->session->get('libresign-sign-start-time') ?? self::NO_RENEWAL_INTERVAL;
 	}
 
+	public function getSessionId(): string {
+		return $this->session->getId();
+	}
+
+	public function setIdentifyMethodId(int $id) {
+		$this->session->set('identify_method_id', $id);
+	}
+
+	public function getIdentifyMethodId(): ?int {
+		$id = $this->session->get('identify_method_id');
+		return $id;
+	}
+
 	public function resetDurationOfSignPage(): void {
 		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', self::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= self::NO_RENEWAL_INTERVAL) {
