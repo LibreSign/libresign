@@ -344,13 +344,13 @@ class AccountService {
 		$this->accountFileService->deleteFile($accountFile->getFileId(), $user->getUID());
 	}
 
-	public function saveVisibleElements(array $elements, IUser $user): void {
+	public function saveVisibleElements(array $elements, ?IUser $user): void {
 		foreach ($elements as $element) {
 			$this->saveVisibleElement($element, $user);
 		}
 	}
 
-	public function saveVisibleElement(array $data, IUser $user): void {
+	public function saveVisibleElement(array $data, ?IUser $user): void {
 		if (isset($data['elementId'])) {
 			$this->updateFileOfVisibleElement($data);
 			$this->updateDataOfVisibleElement($data);
@@ -380,7 +380,7 @@ class AccountService {
 		$this->userElementMapper->update($userElement);
 	}
 
-	private function insertFileOfVisibleElement(array $data, IUser $user): File {
+	private function insertFileOfVisibleElement(array $data, ?IUser $user): File {
 		$userFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $user);
 		if ($userFolder->nodeExists($folderName)) {

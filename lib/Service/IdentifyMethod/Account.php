@@ -76,6 +76,8 @@ class Account extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$hasher,
+			$userManager,
+			$urlGenerator,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -116,45 +118,19 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function getSigner(): IUser {
-		$account = $this->entity->getIdentifierValue();
-		$signer = $this->userManager->get($account);
+		$identifierValue = $this->entity->getIdentifierValue();
+		$signer = $this->userManager->get($identifierValue);
 		if (!$signer) {
-			$signer = $this->getSignerFromEmail();
+			$signer = $this->userManager->getByEmail($identifierValue);
+			if (empty($signer) || count($signer) > 1) {
+				throw new LibresignException(json_encode([
+					'action' => JSActions::ACTION_DO_NOTHING,
+					'errors' => [$this->l10n->t('Invalid user')],
+				]));
+			}
+			$signer = current($signer);
 		}
 		return $signer;
-	}
-
-	private function getSignerFromEmail(): IUser {
-		$email = $this->entity->getIdentifierValue();
-		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid email')],
-			]));
-		}
-		$signer = $this->userManager->getByEmail($email);
-		if (empty($signer)) {
-			$this->canCreateAccount();
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_CREATE_USER,
-				'settings' => ['accountHash' => md5($email)],
-				'message' => $this->l10n->t('You need to create an account to sign this file.'),
-			]));
-		}
-		if (count($signer) > 0) {
-			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->l10n->t('User already exists. Please login.')],
-				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-					'redirect_url' => $this->urlGenerator->linkToRoute(
-						'libresign.page.sign',
-						['uuid' => $signRequest->getUuid()]
-					),
-				]),
-			]));
-		}
-		return current($signer);
 	}
 
 	private function authenticatedUserIsTheSigner(IUser $user, IUser $signer): void {
@@ -162,15 +138,6 @@ class Account extends AbstractIdentifyMethod {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->l10n->t('Invalid user')],
-			]));
-		}
-	}
-
-	private function canCreateAccount(): void {
-		if (!$this->canCreateAccount) {
-			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('It is not possible to create new accounts.')],
 			]));
 		}
 	}

@@ -115,7 +115,7 @@ class FolderService {
 	 * @param array{settings: array, name: string} $data
 	 * @param IUser $owner
 	 */
-	public function getFolderName(array $data, IUser $owner): string {
+	public function getFolderName(array $data, ?IUser $owner): string {
 		if (isset($data['settings']['folderName'])) {
 			return $data['settings']['folderName'];
 		}

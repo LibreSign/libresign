@@ -39,7 +39,9 @@ use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\IUser;
+use OCP\IUserManager;
 use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 use Wobeto\EmailBlur\Blur;
@@ -61,6 +63,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		private FileMapper $fileMapper,
 		private IRootFolder $root,
 		private IHasher $hasher,
+		private IUserManager $userManager,
+		private IURLGenerator $urlGenerator,
 		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -224,6 +228,21 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'renewButton' => $this->l10n->t('Renew'),
 			]));
 		}
+	}
+
+	protected function throwIfNeedToCreateAccount() {
+		if (!$this->canCreateAccount) {
+			return;
+		}
+		if ($this->sessionService->getSignStartTime()) {
+			return;
+		}
+		$email = $this->getEntity()->getIdentifierValue();
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_CREATE_USER,
+			'settings' => ['accountHash' => md5($email)],
+			'message' => $this->l10n->t('You need to create an account to sign this file.'),
+		]));
 	}
 
 	private function getRenewAction(): int {
