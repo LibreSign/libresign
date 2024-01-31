@@ -63,6 +63,7 @@ class FileService {
 	private ?SignRequest $signRequest = null;
 	/** @var IUser|null */
 	private $me;
+	private ?int $identifyMethodId;
 	/** @var array */
 	private $signers = [];
 	/** @var array */
@@ -146,6 +147,11 @@ class FileService {
 		return $this;
 	}
 
+	public function setIdentifyMethodId(?int $id): self {
+		$this->identifyMethodId = $id;
+		return $this;
+	}
+
 	/**
 	 * @return static
 	 */
@@ -194,7 +200,7 @@ class FileService {
 				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),
 			];
 			// @todo refactor this code
-			if ($this->me) {
+			if ($this->me || $this->identifyMethodId) {
 				$identifyMethodServices = $signatureToShow['identifyMethods'];
 				// Identifi if I'm file owner
 				if ($this->me?->getUID() === $this->file->getUserId()) {
@@ -214,7 +220,10 @@ class FileService {
 				foreach ($identifyMethodServices as $methods) {
 					foreach ($methods as $identifyMethod) {
 						$entity = $identifyMethod->getEntity();
-						if ($this->me->getEMailAddress() === $entity->getIdentifierValue() || $this->me->getUID() === $entity->getIdentifierValue()) {
+						if ($this->identifyMethodId === $entity->getId()
+							|| $this->me?->getUID() === $entity->getIdentifierValue()
+							|| $this->me?->getEMailAddress() === $entity->getIdentifierValue()
+						) {
 							$signatureToShow['me'] = true;
 							if (!$signer->getSigned()) {
 								$this->settings['canSign'] = true;
