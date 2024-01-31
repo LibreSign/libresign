@@ -77,3 +77,9 @@ export default {
 	},
 }
 </script>
+<style>
+/** @todo remove this, only necessary because VuePdfEditor use Tailwind and the Tailwind have a global CSS that affect this */
+audio, canvas, embed, iframe, img, object, svg, video {
+	display: unset;
+}
+</style>
