@@ -196,8 +196,8 @@ export default {
 			const element = visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
-					profileElementId: signature.id,
-					url: `${url}&_t=${Date.now()}`,
+					profileFileId: signature.file.fileId,
+					url: `${url}?_t=${Date.now()}`,
 				}))
 			return element
 		},
@@ -301,7 +301,7 @@ export default {
 				payload.elements = this.elements
 					.map(row => ({
 						documentElementId: row.documentElementId,
-						profileElementId: row.profileElementId,
+						profileFileId: row.profileFileId,
 					}))
 			}
 			try {
