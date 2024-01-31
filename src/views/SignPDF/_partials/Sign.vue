@@ -176,7 +176,7 @@ export default {
 	},
 	computed: {
 		elements() {
-			const signature = this.userSignatures.find(row => {
+			const signature = this.userSignatures?.find(row => {
 				return row.type === 'signature'
 			}) ?? {}
 			if (Object.keys(signature).length === 0) {
@@ -202,7 +202,7 @@ export default {
 			return element
 		},
 		hasSignatures() {
-			return this.userSignatures.length > 0
+			return this.userSignatures?.length > 0
 		},
 		needCreatePassword() {
 			return this.signatureMethods.password.enabled
