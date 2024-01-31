@@ -341,9 +341,11 @@ export default {
 			}
 			if (this.needSmsCode) {
 				this.signatureMethods.sms.modal = true
+				return
 			}
 			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
 				this.modalSignWithPassword = true
+				return
 			}
 		},
 		onModalClose(methodId) {
