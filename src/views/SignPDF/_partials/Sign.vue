@@ -244,10 +244,12 @@ export default {
 	},
 	methods: {
 		async loadUser() {
-			try {
-				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-				this.user = data
-			} catch (err) {
+			if (OC.currentUser) {
+				try {
+					const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+					this.user = data
+				} catch (err) {
+				}
 			}
 		},
 		async saveSignature(value) {
