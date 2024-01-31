@@ -72,6 +72,8 @@ class Email extends AbstractIdentifyMethod {
 			$fileMapper,
 			$root,
 			$hasher,
+			$userManager,
+			$urlGenerator,
 			$userMountCache,
 			$timeFactory,
 			$logger,
@@ -93,17 +95,16 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToRequest(): void {
-		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'));
-		}
+		$this->throwIfInvalidEmail();
 	}
 
 	public function validateToSign(): void {
 		$this->throwIfAccountAlreadyExists($this->user);
-		$this->throwIfIsNotSameUser($this->user);
+		$this->throwIfIsAuthenticatedWithDifferentAccount($this->user);
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
+		$this->throwIfNeedToCreateAccount();
 		$this->throwIfFileNotFound();
 		$this->throwIfAlreadySigned();
 		$this->throwIfNeedVisibleElementsAndCanNotHave();
@@ -137,12 +138,12 @@ class Email extends AbstractIdentifyMethod {
 		}
 	}
 
-	private function throwIfIsNotSameUser(?IUser $user): void {
+	private function throwIfIsAuthenticatedWithDifferentAccount(?IUser $user): void {
 		if (!$user instanceof IUser) {
 			return;
 		}
 		$email = $this->entity->getIdentifierValue();
-		if ($user->getEMailAddress() !== $email) {
+		if (!empty($user->getEMailAddress()) && $user->getEMailAddress() !== $email) {
 			if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
 				return;
 			}
@@ -181,12 +182,28 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToCreateAccount(string $value): void {
-		$this->validateToRequest();
+		$this->throwIfInvalidEmail();
+		$this->throwIfNotAllowedToCreateAccount();
 		if ($this->userManager->userExists($value)) {
 			throw new LibresignException($this->l10n->t('User already exists'));
 		}
 		if ($this->getEntity()->getIdentifierValue() !== $value) {
 			throw new LibresignException($this->l10n->t('This is not your file'));
+		}
+	}
+
+	private function throwIfNotAllowedToCreateAccount(): void {
+		if (!$this->canCreateAccount) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_SHOW_ERROR,
+				'errors' => [$this->l10n->t('It is not possible to create new accounts.')],
+			]));
+		}
+	}
+
+	private function throwIfInvalidEmail(): void {
+		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException($this->l10n->t('Invalid email'));
 		}
 	}
 

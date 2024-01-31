@@ -75,7 +75,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			'users' => [
 				[
 					'identify' => [
-						'email' => 'person@test.coop',
+						'account' => 'username',
 					],
 				],
 			],
