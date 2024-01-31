@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Helper;
 
+use InvalidArgumentException;
 use OC\AppFramework\Http;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -178,6 +179,12 @@ class ValidateHelper {
 			$base64 = $withMime[1];
 		}
 		$string = base64_decode($base64);
+		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
+			if (strlen($string) > 10 * 1024) {
+				// TRANSLATORS Error when the visible element to add to document, like a signature or initial is bigger than normal
+				throw new InvalidArgumentException($this->l10n->t('File is too big'));
+			}
+		}
 		$newBase64 = base64_encode($string);
 		if ($newBase64 !== $base64) {
 			throw new LibresignException($this->l10n->t('File type: %s. Invalid Base64 file.', [$this->getTypeOfFile($type)]));
