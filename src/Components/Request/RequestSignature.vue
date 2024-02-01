@@ -27,6 +27,7 @@
 			</template>
 		</Signers>
 		<NcButton v-if="canSave"
+			type="primary"
 			@click="save()">
 			{{ t('libresign', 'Next') }}
 		</NcButton>
