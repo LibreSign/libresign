@@ -4,13 +4,11 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
-use OC\AppFramework\Services\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AllConfigOverwrite;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\ConfigOverwrite;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\IConfig;
 
 class TestCase extends \Test\TestCase {
