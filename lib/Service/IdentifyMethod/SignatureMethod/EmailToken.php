@@ -91,7 +91,6 @@ class EmailToken extends AbstractSignatureMethod {
 				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
-		$this->canCreateAccount = $this->settings['can_create_account'];
 		return $this->settings;
 	}
 }
