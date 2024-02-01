@@ -122,7 +122,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function validateToCreateAccount(string $value): void {
 	}
 
-	public function validateToSign(): void {
+	public function validateToIdentify(): void {
 	}
 
 	protected function throwIfFileNotFound(): void {

@@ -44,7 +44,6 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
-	public const ID = 'email';
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
@@ -63,7 +62,7 @@ class Email extends AbstractIdentifyMethod {
 		private FileElementMapper $fileElementMapper,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->l10n->t('Email token');
+		$this->friendlyName = $this->l10n->t('Email');
 		parent::__construct(
 			$appConfig,
 			$l10n,
@@ -98,7 +97,7 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfInvalidEmail();
 	}
 
-	public function validateToSign(): void {
+	public function validateToIdentify(): void {
 		$this->throwIfAccountAlreadyExists($this->user);
 		$this->throwIfIsAuthenticatedWithDifferentAccount($this->user);
 		$this->throwIfInvalidToken();
