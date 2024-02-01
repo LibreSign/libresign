@@ -93,7 +93,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
 			->method('getAppValue')
-			->willReturn(null);
+			->willReturn('');
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
@@ -112,7 +112,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->appConfig
 			->method('getAppValue')
-			->willReturnCallback(function ($appid, $key, $default) {
+			->willReturnCallback(function ($key, $default) {
 				switch ($key) {
 					case 'add_footer': return 1;
 					case 'validation_site': return 'http://test.coop';
