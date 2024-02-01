@@ -216,6 +216,9 @@ export default {
 			return this.signatureMethods.email.enabled
 				&& this.signatureMethods.email.validateCode
 		},
+		needClickToSign() {
+			return this.signatureMethods.clickToSign.enabled
+		},
 		needSmsCode() {
 			return (this.signatureMethods.sms?.enabled
 				&& this.signatureMethods.sms?.validateCode)
@@ -345,7 +348,10 @@ export default {
 			}
 			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
 				this.modalSignWithPassword = true
-
+			}
+			if (this.needClickToSign) {
+				this.signatureMethods.clickToSign.modal = true
+				return
 			}
 		},
 		onModalClose(methodId) {
