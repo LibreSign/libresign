@@ -644,7 +644,7 @@ class ValidateHelper {
 		foreach ($identifyMethods as $methods) {
 			foreach ($methods as $identifyMethod) {
 				$identifyMethod->setUser($user);
-				$identifyMethod->validateToSign();
+				$identifyMethod->validateToIdentify();
 			}
 		}
 	}
@@ -737,7 +737,7 @@ class ValidateHelper {
 		}
 		$identifyMethod->setUser($user);
 		$identifyMethod->setCodeSentByUser($token);
-		$identifyMethod->validateToSign();
+		$identifyMethod->validateToIdentify();
 	}
 
 	public function validateIfIdentifyMethodExists($identifyMethod): void {

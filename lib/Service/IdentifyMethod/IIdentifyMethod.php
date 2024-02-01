@@ -40,7 +40,7 @@ interface IIdentifyMethod {
 	public function notify(bool $isNew): void;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;
-	public function validateToSign(): void;
+	public function validateToIdentify(): void;
 	public function validateToRenew(?IUser $user = null): void;
 	public function save(): void;
 	public function delete(): void;

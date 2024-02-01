@@ -46,7 +46,6 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
-	public const ID = 'account';
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
@@ -104,7 +103,7 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
-	public function validateToSign(): void {
+	public function validateToIdentify(): void {
 		$signer = $this->getSigner();
 		$this->throwIfNotAuthenticated($this->user);
 		$this->authenticatedUserIsTheSigner($this->user, $signer);

@@ -27,10 +27,10 @@ namespace OCA\Libresign\Service;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
-use OCA\Libresign\Service\IdentifyMethod\ClickToSign;
-use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCA\Libresign\Service\IdentifyMethod\Password;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -64,7 +64,7 @@ class SignatureMethodService {
 		private MailService $mail,
 		private Password $password,
 		private ClickToSign $clickToSign,
-		private Email $email,
+		private EmailToken $email,
 	) {
 		$this->methods = [
 			$this->password->getName() => $this->password,

@@ -22,7 +22,7 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\Service\IdentifyMethod;
+namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
@@ -40,7 +40,7 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
-class ClickToSign extends AbstractIdentifyMethod {
+class ClickToSign extends AbstractSignatureMethod {
 	public function __construct(
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
