@@ -26,22 +26,21 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
-use OCA\Libresign\AppInfo\Application;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version8000Date20230608004729 extends SimpleMigrationStep {
 	public function __construct(
-		protected IConfig $config
+		protected IAppConfig $appConfig,
 	) {
 	}
 
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$cfsslBin = $this->config->getAppValue(Application::APP_ID, 'cfssl_bin');
-		$cfsslUrl = $this->config->getAppValue(Application::APP_ID, 'cfssl_url');
+		$cfsslBin = $this->appConfig->getAppValue('cfssl_bin');
+		$cfsslUrl = $this->appConfig->getAppValue('cfssl_url');
 		if ($cfsslBin || $cfsslUrl) {
-			$this->config->setAppValue(Application::APP_ID, 'certificate_engine', 'cfssl');
+			$this->appConfig->setAppValue('certificate_engine', 'cfssl');
 		}
 	}
 }

@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -32,10 +31,10 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -45,7 +44,7 @@ use Psr\Log\LoggerInterface;
 class Password extends AbstractIdentifyMethod {
 	public const ID = 'password';
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private MailService $mail,
 		private SignRequestMapper $signRequestMapper,
@@ -64,7 +63,7 @@ class Password extends AbstractIdentifyMethod {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by certificate password
 		$this->friendlyName = $this->l10n->t('Certificate with password');
 		parent::__construct(
-			$config,
+			$appConfig,
 			$l10n,
 			$identifyMethodMapper,
 			$signRequestMapper,
@@ -96,7 +95,7 @@ class Password extends AbstractIdentifyMethod {
 		if (!$this->sessionService->isAuthenticated()) {
 			$isEnabledAsSignatueMethod = false;
 		} else {
-			$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
+			$config = $this->appConfig->getAppValue('signature_methods', '[]');
 			$config = json_decode($config, true);
 			if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 				$isEnabledAsSignatueMethod = true;

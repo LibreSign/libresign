@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
@@ -34,10 +33,10 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -90,7 +89,7 @@ class FileService {
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
 		protected IClientService $client,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IRootFolder $rootFolder,
 		private IURLGenerator $urlGenerator,
 		protected IMimeTypeDetector $mimeTypeDetector,
@@ -329,7 +328,7 @@ class FileService {
 	}
 
 	public function getIdentificationDocumentsStatus(string $userId): int {
-		if (!$this->config->getAppValue(Application::APP_ID, 'identification_documents', '')) {
+		if (!$this->appConfig->getAppValue('identification_documents', '')) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
@@ -442,7 +441,7 @@ class FileService {
 	 */
 	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
 		$page = $page ?? 1;
-		$length = $length ?? $this->config->getAppValue(Application::APP_ID, 'length_of_page', 100);
+		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
 
 		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);

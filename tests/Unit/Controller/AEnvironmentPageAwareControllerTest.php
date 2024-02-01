@@ -51,13 +51,11 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 	public function setUp(): void {
 		$this->request = $this->createMock(IRequest::class);
-		$this->mockConfig([
-			'libresign' => [
-				'identify_methods' => [
-					[
-						'name' => 'email',
-						'enabled' => 1,
-					],
+		$this->mockAppConfig([
+			'identify_methods' => [
+				[
+					'name' => 'email',
+					'enabled' => 1,
 				],
 			],
 		]);

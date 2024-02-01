@@ -25,8 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCA\Libresign\AppInfo\Application;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -34,11 +33,9 @@ use OCP\Migration\SimpleMigrationStep;
  * Auto-generated migration step: Please modify to your needs!
  */
 class Version7000Date20230327094452 extends SimpleMigrationStep {
-	/** @var IConfig */
-	protected $config;
-
-	public function __construct(IConfig $config) {
-		$this->config = $config;
+	public function __construct(
+		protected IAppConfig $appConfig,
+	) {
 	}
 
 	/**
@@ -47,7 +44,7 @@ class Version7000Date20230327094452 extends SimpleMigrationStep {
 	 * {"commonName":"Test Company","names":{"C":"BR","O":"Organization","OU":"Organization Unit"}}
 	 */
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
-		$rootCert = $this->config->getAppValue(Application::APP_ID, 'rootCert');
+		$rootCert = $this->appConfig->getAppValue('rootCert');
 		$rootCert = json_decode($rootCert, true);
 		if (is_array($rootCert) && array_key_exists('names', $rootCert)) {
 			$names = [];
@@ -60,7 +57,7 @@ class Version7000Date20230327094452 extends SimpleMigrationStep {
 			}
 			if (count($names)) {
 				$rootCert['names'] = $names;
-				$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode($rootCert));
+				$this->appConfig->setAppValue('rootCert', json_encode($rootCert));
 			}
 		}
 	}

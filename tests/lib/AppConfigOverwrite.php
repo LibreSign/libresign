@@ -24,16 +24,18 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\lib;
 
 use OC\AppConfig;
-use OC\DB\Connection;
+use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 
 class AppConfigOverwrite extends AppConfig {
 	/** @var string[][] */
 	private $overWrite = [];
 
 	public function __construct(
-		Connection $conn
+		IDBConnection $conn,
+		LoggerInterface $logger,
 	) {
-		parent::__construct($conn);
+		parent::__construct($conn, $logger);
 	}
 
 	public function getValue($app, $key, $default = null) {
