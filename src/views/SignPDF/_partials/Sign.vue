@@ -45,14 +45,14 @@
 		</div>
 		<NcModal v-if="signatureMethods.clickToSign.modal"
 			:can-close="!loading"
-			@close="onModalClose('clicKToSign')">
+			@close="onModalClose('clickToSign')">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm') }}
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="signatureMethods.clickToSign.modal = false">
+					<NcButton @click="onModalClose('clickToSign')">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
@@ -114,6 +114,7 @@
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
+import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
@@ -159,7 +160,6 @@ export default {
 		}
 		signatureMethods.createSignature = { modal: false }
 		signatureMethods.sms = { modal: false }
-		signatureMethods.clickToSign.necessary = signatureMethods.clickToSign.enabled
 		return {
 			loading: true,
 			user: {
@@ -176,7 +176,7 @@ export default {
 	},
 	computed: {
 		elements() {
-			const signature = this.userSignatures.find(row => {
+			const signature = this.userSignatures?.find(row => {
 				return row.type === 'signature'
 			}) ?? {}
 			if (Object.keys(signature).length === 0) {
@@ -196,13 +196,13 @@ export default {
 			const element = visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
-					profileElementId: signature.id,
-					url: `${url}&_t=${Date.now()}`,
+					profileFileId: signature.file.fileId,
+					url: `${url}?_t=${Date.now()}`,
 				}))
 			return element
 		},
 		hasSignatures() {
-			return this.userSignatures.length > 0
+			return this.userSignatures?.length > 0
 		},
 		needCreatePassword() {
 			return this.signatureMethods.password.enabled
@@ -215,6 +215,9 @@ export default {
 		needEmailCode() {
 			return this.signatureMethods.email.enabled
 				&& this.signatureMethods.email.validateCode
+		},
+		needClickToSign() {
+			return this.signatureMethods.clickToSign.enabled
 		},
 		needSmsCode() {
 			return (this.signatureMethods.sms?.enabled
@@ -244,10 +247,12 @@ export default {
 	},
 	methods: {
 		async loadUser() {
-			try {
-				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
-				this.user = data
-			} catch (err) {
+			if (getCurrentUser()) {
+				try {
+					const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/me'))
+					this.user = data
+				} catch (err) {
+				}
 			}
 		},
 		async saveSignature(value) {
@@ -299,7 +304,7 @@ export default {
 				payload.elements = this.elements
 					.map(row => ({
 						documentElementId: row.documentElementId,
-						profileElementId: row.profileElementId,
+						profileFileId: row.profileFileId,
 					}))
 			}
 			try {
@@ -339,9 +344,14 @@ export default {
 			}
 			if (this.needSmsCode) {
 				this.signatureMethods.sms.modal = true
+				return
 			}
 			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
 				this.modalSignWithPassword = true
+			}
+			if (this.needClickToSign) {
+				this.signatureMethods.clickToSign.modal = true
+
 			}
 		},
 		onModalClose(methodId) {

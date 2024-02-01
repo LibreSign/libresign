@@ -35,6 +35,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -61,6 +62,7 @@ class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
 		IRequest $request,
 		protected IUserSession $userSession,
+		private SessionService $sessionService,
 		private IInitialState $initialState,
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
@@ -153,6 +155,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$file = $this->fileService
 			->setFile($this->getFileEntity())
 			->setMe($this->userSession->getUser())
+			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->setSignRequest($this->getSignRequestEntity())
 			->showVisibleElements()
 			->showSigners()
@@ -185,6 +188,8 @@ class PageController extends AEnvironmentPageAwareController {
 		$signatures = [];
 		if ($this->userSession->getUser()) {
 			$signatures = $this->accountService->getUserElements($this->userSession->getUser()->getUID());
+		} else {
+			$signatures = $this->accountService->getElementsFromSession($this->sessionService->getSessionId());
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
 	}
@@ -240,6 +245,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$file = $this->fileService
 			->setFile($fileEntity)
 			->setMe($this->userSession->getUser())
+			->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 			->showVisibleElements()
 			->showSigners()
 			->formatFile();

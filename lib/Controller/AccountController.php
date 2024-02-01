@@ -28,6 +28,7 @@ use InvalidArgumentException;
 use OC\Authentication\Login\Chain;
 use OC\Authentication\Login\LoginData;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
@@ -35,19 +36,25 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
+use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\CORS;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
+use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
+use OCP\IPreview;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -59,12 +66,15 @@ class AccountController extends ApiController implements ISignatureUuid {
 		private IAccountManager $accountManager,
 		private AccountService $accountService,
 		private AccountFileService $accountFileService,
+		private AccountFileMapper $accountFileMapper,
 		protected SignFileService $signFileService,
 		private Pkcs12Handler $pkcs12Handler,
 		private Chain $loginChain,
 		private IURLGenerator $urlGenerator,
 		private LoggerInterface $logger,
 		protected IUserSession $userSession,
+		protected SessionService $sessionService,
+		private IPreview $preview,
 		private ValidateHelper $validateHelper
 	) {
 		parent::__construct(Application::APP_ID, $request);
@@ -247,7 +257,11 @@ class AccountController extends ApiController implements ISignatureUuid {
 	public function createSignatureElement(array $elements, string $uuid): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->accountService->saveVisibleElements($elements, $this->userSession->getUser());
+			$this->accountService->saveVisibleElements(
+				elements: $elements,
+				sessionId: $this->sessionService->getSessionId(),
+				user: $this->userSession->getUser(),
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[
@@ -263,7 +277,12 @@ class AccountController extends ApiController implements ISignatureUuid {
 					'Elements created with success',
 					count($elements)
 				),
-				'elements' => $this->accountService->getUserElements($this->userSession->getUser()->getUID()),
+				'elements' =>
+					(
+						$this->userSession->getUser() instanceof IUser
+						? $this->accountService->getUserElements($this->userSession->getUser()->getUID())
+						: $this->accountService->getElementsFromSession($this->sessionService->getSessionId())
+					),
 			],
 			Http::STATUS_OK
 		);
@@ -272,11 +291,16 @@ class AccountController extends ApiController implements ISignatureUuid {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function getSignatureElements(): JSONResponse {
-		$userId = $this->userSession->getUser()->getUID();
+		$userId = $this->userSession->getUser()?->getUID();
 		try {
 			return new JSONResponse(
 				[
-					'elements' => $this->accountService->getUserElements($userId)
+					'elements' =>
+						(
+							$userId
+							? $this->accountService->getUserElements($userId)
+							: $this->accountService->getElementsFromSession($this->sessionService->getSessionId())
+						)
 				],
 				Http::STATUS_OK
 			);
@@ -291,8 +315,31 @@ class AccountController extends ApiController implements ISignatureUuid {
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]
 	#[NoCSRFRequired]
-	public function getSignatureElement($elementId): JSONResponse {
+	public function getSignatureElementPreview(int $fileId) {
+		try {
+			$node = $this->accountService->getFileByNodeIdAndSessionId(
+				$fileId,
+				$this->sessionService->getSessionId()
+			);
+		} catch (DoesNotExistException $th) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+		$preview = $this->preview->getPreview(
+			file: $node,
+			width: AccountService::ELEMENT_SIGN_WIDTH,
+			height: AccountService::ELEMENT_SIGN_HEIGHT,
+		);
+		$response = new FileDisplayResponse($preview, Http::STATUS_OK, [
+			'Content-Type' => $preview->getMimeType(),
+		]);
+		return $response;
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function getSignatureElement(int $elementId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
@@ -321,7 +368,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 				$element['file'] = $file;
 			}
 			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->accountService->saveVisibleElement($element, $this->userSession->getUser());
+			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $this->userSession->getUser());
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Element updated with success')
