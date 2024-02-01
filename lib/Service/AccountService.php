@@ -458,8 +458,8 @@ class AccountService {
 			if ($contentType !== 'image/png') {
 				throw new \Exception($this->l10n->t('Visible element file must be png.'));
 			}
-			$content = $response->getBody();
-			if (!$content) {
+			$content = (string) $response->getBody();
+			if (empty($content)) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
 			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
