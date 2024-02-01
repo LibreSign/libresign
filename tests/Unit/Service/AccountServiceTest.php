@@ -21,6 +21,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -50,6 +51,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignFileService|MockObject $signFile;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	private IMountProviderCollection|MockObject $mountProviderCollection;
 	private NewUserMailHelper|MockObject $newUserMail;
 	private IdentifyMethodService|MockObject $identifyMethodService;
@@ -83,6 +85,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -113,6 +116,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->requestSignatureService,
 			$this->certificateEngineHandler,
 			$this->config,
+			$this->appConfig,
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,

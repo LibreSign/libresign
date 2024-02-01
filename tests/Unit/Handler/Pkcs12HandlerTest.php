@@ -7,7 +7,7 @@ use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	protected Pkcs12Handler $pkcs12Handler;
 	protected FolderService|MockObject $folderService;
-	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	private IURLGenerator|MockObject $urlGenerator;
 	private SystemConfig $systemConfig;
 	private CfsslHandler|MockObject $cfsslHandler;
@@ -27,7 +27,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
@@ -38,7 +38,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->config,
+			$this->appConfig,
 			$this->urlGenerator,
 			$this->systemConfig,
 			$this->certificateEngineHandler,
@@ -90,13 +90,13 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithoutValidationSite() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn(null);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->config,
+			$this->appConfig,
 			$this->urlGenerator,
 			$this->systemConfig,
 			$this->certificateEngineHandler,
@@ -109,8 +109,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testGetFooterWithSuccess() {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig
 			->method('getAppValue')
 			->willReturnCallback(function ($appid, $key, $default) {
 				switch ($key) {
@@ -124,7 +124,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			});
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
-			$this->config,
+			$this->appConfig,
 			$this->urlGenerator,
 			$this->systemConfig,
 			$this->certificateEngineHandler,
