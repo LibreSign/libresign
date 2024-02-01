@@ -351,7 +351,7 @@ export default {
 			}
 			if (this.needClickToSign) {
 				this.signatureMethods.clickToSign.modal = true
-				return
+
 			}
 		},
 		onModalClose(methodId) {
