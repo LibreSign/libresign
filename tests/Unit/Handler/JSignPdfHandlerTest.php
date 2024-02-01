@@ -4,7 +4,7 @@ namespace OCA\Libresign\Tests\Unit\Service;
 
 use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Handler\JSignPdfHandler;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -12,11 +12,11 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JSignPdfHandler $class;
-	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	public function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->class = new JSignPdfHandler(
-			$this->config
+			$this->appConfig
 		);
 	}
 
