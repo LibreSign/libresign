@@ -112,11 +112,8 @@ class Password extends AbstractIdentifyMethod {
 			}
 		}
 
-		$this->settings = $this->getSettingsFromDatabase(
-			default: [
-				'enabled_as_signature_method' => $isEnabledAsSignatueMethod,
-			]
-		);
+		$this->settings = $this->getSettingsFromDatabase();
+		$this->settings['enabled_as_signature_method'] = $isEnabledAsSignatueMethod;
 
 		return $this->settings;
 	}
