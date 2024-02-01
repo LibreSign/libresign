@@ -25,39 +25,36 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Migration;
 
-use OCA\Libresign\AppInfo\Application;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 class Version7000Date20221026003343 extends SimpleMigrationStep {
-	/** @var IConfig */
-	protected $config;
-
-	public function __construct(IConfig $config) {
-		$this->config = $config;
+	public function __construct(
+		protected IAppConfig $appConfig,
+	) {
 	}
 
 	public function preSchemaChange(IOutput $output, \Closure $schemaClosure, array $options): void {
 		$rootCert = [];
-		if ($commonName = $this->config->getAppValue(Application::APP_ID, 'commonName')) {
+		if ($commonName = $this->appConfig->getAppValue('commonName')) {
 			$rootCert['commonName'] = $commonName;
-			$this->config->deleteAppValue(Application::APP_ID, 'commonName');
+			$this->appConfig->deleteAppValue('commonName');
 		}
-		if ($country = $this->config->getAppValue(Application::APP_ID, 'country')) {
+		if ($country = $this->appConfig->getAppValue('country')) {
 			$rootCert['names']['C'] = $country;
-			$this->config->deleteAppValue(Application::APP_ID, 'country');
+			$this->appConfig->deleteAppValue('country');
 		}
-		if ($organization = $this->config->getAppValue(Application::APP_ID, 'organization')) {
+		if ($organization = $this->appConfig->getAppValue('organization')) {
 			$rootCert['names']['O'] = $organization;
-			$this->config->deleteAppValue(Application::APP_ID, 'organization');
+			$this->appConfig->deleteAppValue('organization');
 		}
-		if ($organizationUnit = $this->config->getAppValue(Application::APP_ID, 'organizationUnit')) {
+		if ($organizationUnit = $this->appConfig->getAppValue('organizationUnit')) {
 			$rootCert['names']['OU'] = $organizationUnit;
-			$this->config->deleteAppValue(Application::APP_ID, 'organizationUnit');
+			$this->appConfig->deleteAppValue('organizationUnit');
 		}
 		if ($rootCert) {
-			$this->config->setAppValue(Application::APP_ID, 'rootCert', json_encode($rootCert));
+			$this->appConfig->setAppValue('rootCert', json_encode($rootCert));
 		}
 	}
 }

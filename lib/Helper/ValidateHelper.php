@@ -26,7 +26,6 @@ namespace OCA\Libresign\Helper;
 
 use InvalidArgumentException;
 use OC\AppFramework\Http;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileElement;
@@ -43,11 +42,11 @@ use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -82,7 +81,7 @@ class ValidateHelper {
 		private SignatureMethodService $signatureMethodService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IGroupManager $groupManager,
 		private IUserManager $userManager,
 		private IRootFolder $root,
@@ -438,7 +437,7 @@ class ValidateHelper {
 	}
 
 	public function canRequestSign(IUser $user): void {
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'groups_request_sign', '["admin"]'), true);
+		$authorized = json_decode($this->appConfig->getAppValue('groups_request_sign', '["admin"]'), true);
 		if (empty($authorized)) {
 			$authorized = ['admin'];
 		}
@@ -771,7 +770,7 @@ class ValidateHelper {
 			return false;
 		}
 
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'approval_group', '["admin"]'));
+		$authorized = json_decode($this->appConfig->getAppValue('approval_group', '["admin"]'));
 		if (!$authorized) {
 			$authorized = ['admin'];
 		}

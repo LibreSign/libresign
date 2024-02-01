@@ -32,6 +32,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
@@ -46,7 +47,7 @@ use Psr\Log\LoggerInterface;
 class Email extends AbstractIdentifyMethod {
 	public const ID = 'email';
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private MailService $mail,
 		private SignRequestMapper $signRequestMapper,
@@ -65,7 +66,7 @@ class Email extends AbstractIdentifyMethod {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->l10n->t('Email token');
 		parent::__construct(
-			$config,
+			$appConfig,
 			$l10n,
 			$identifyMethodMapper,
 			$signRequestMapper,

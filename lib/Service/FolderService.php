@@ -24,8 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
@@ -34,7 +34,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -44,7 +43,7 @@ class FolderService {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		protected IAppDataFactory $appDataFactory,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private ?string $userId,
 	) {
@@ -116,12 +115,12 @@ class FolderService {
 		if (!$this->userId) {
 			return 'unauthenticated';
 		}
-		$path = $this->config->getUserValue($this->userId, 'libresign', 'folder');
+		$path = $this->appConfig->getUserValue($this->userId, 'folder');
 
 		if (empty($path)) {
-			$defaultFolder = $this->config->getAppValue(Application::APP_ID, 'default_user_folder', 'LibreSign');
+			$defaultFolder = $this->appConfig->getAppValue('default_user_folder', 'LibreSign');
 			$path = '/' . $defaultFolder;
-			$this->config->setUserValue($this->userId, 'libresign', 'folder', $path);
+			$this->appConfig->setUserValue($this->userId, 'folder', $path);
 		}
 
 		return $path;

@@ -15,11 +15,9 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithInvalidFileToSign() {
 		$this->createUser('allowrequestsign', 'password', 'testGroup');
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]',
-				'notifyUnsignedUser' => 0
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
+			'notifyUnsignedUser' => 0,
 		]);
 		$this->request
 			->withMethod('POST')
@@ -189,17 +187,15 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithEmptyCertificatePassword() {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$this->mockConfig([
-			'libresign' => [
-				'cfssl_bin' => '',
-				'java_path' => __FILE__,
-				'rootCert' => json_encode([
-					'commonName' => 'LibreCode',
-					'names' => [
-						'C' => ['value' => 'BR'],
-					]
-				]),
-			],
+		$this->mockAppConfig([
+			'cfssl_bin' => '',
+			'java_path' => __FILE__,
+			'rootCert' => json_encode([
+				'commonName' => 'LibreCode',
+				'names' => [
+					'C' => ['value' => 'BR'],
+				]
+			]),
 		]);
 
 		$user = $this->createUser('username', 'password');
@@ -249,17 +245,15 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithSuccess() {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$this->mockConfig([
-			'libresign' => [
-				'cfssl_bin' => '',
-				'java_path' => __FILE__,
-				'rootCert' => json_encode([
-					'commonName' => 'LibreCode',
-					'names' => [
-						'C' => ['value' => 'BR'],
-					]
-				]),
-			],
+		$this->mockAppConfig([
+			'cfssl_bin' => '',
+			'java_path' => __FILE__,
+			'rootCert' => json_encode([
+				'commonName' => 'LibreCode',
+				'names' => [
+					'C' => ['value' => 'BR'],
+				]
+			]),
 		]);
 
 		$user = $this->createUser('username', 'password');
@@ -340,11 +334,9 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testPostRegisterWithSuccess() {
 		$this->createUser('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]',
-				'notifyUnsignedUser' => 0
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
+			'notifyUnsignedUser' => 0,
 		]);
 
 		$this->request
@@ -402,11 +394,9 @@ final class SignFileControllerTest extends ApiTestCase {
 	public function testPatchRegisterWithSuccess() {
 		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
 
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]',
-				'notifyUnsignedUser' => 0
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
+			'notifyUnsignedUser' => 0,
 		]);
 
 		$user->setEMailAddress('person@test.coop');
@@ -458,22 +448,20 @@ final class SignFileControllerTest extends ApiTestCase {
 			file_get_contents(__DIR__ . '/../../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockConfig([
-			'libresign' => [
-				'notifyUnsignedUser' => 0,
-				'rootCert' => json_encode([
-					'commonName' => 'LibreCode',
-					'names' => [
-						'C' => ['value' => 'BR'],
-						'ST' => ['value' => 'RJ'],
-						'L' => ['value' => 'Rio de Janeiro'],
-						'O' => ['value' => 'LibreCode Coop'],
-						'OU' => ['value' => 'LibreSign']
-					]
-				]),
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
-				'cfssl_bin' => '',
-			]
+		$this->mockAppConfig([
+			'notifyUnsignedUser' => 0,
+			'rootCert' => json_encode([
+				'commonName' => 'LibreCode',
+				'names' => [
+					'C' => ['value' => 'BR'],
+					'ST' => ['value' => 'RJ'],
+					'L' => ['value' => 'Rio de Janeiro'],
+					'O' => ['value' => 'LibreCode Coop'],
+					'OU' => ['value' => 'LibreSign']
+				]
+			]),
+			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
+			'cfssl_bin' => '',
 		]);
 
 		$this->request
@@ -532,10 +520,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]'
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
 		]);
 
 		$this->request
@@ -583,10 +569,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]'
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
 		]);
 
 		$this->request

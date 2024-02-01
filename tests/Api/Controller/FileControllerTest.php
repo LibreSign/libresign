@@ -13,7 +13,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateUsignUuidWithInvalidData() {
-		$this->mockConfig(['libresign' => []]);
+		$this->mockAppConfig([]);
 
 		$this->request
 			->withPath('/file/validate/uuid/invalid')
@@ -73,13 +73,11 @@ final class FileControllerTest extends ApiTestCase {
 	public function testValidateWithSuccessUsingSigner() {
 		$user = $this->createUser('username', 'password');
 		$user->setEMailAddress('person@test.coop');
-		$this->mockConfig([
-			'libresign' => [
-				'identify_methods' => [
-					[
-						'name' => 'email',
-						'enabled' => 1,
-					],
+		$this->mockAppConfig([
+			'identify_methods' => [
+				[
+					'name' => 'email',
+					'enabled' => 1,
 				],
 			],
 		]);
@@ -132,10 +130,8 @@ final class FileControllerTest extends ApiTestCase {
 	 */
 	public function testSendNewFile() {
 		$this->createUser('allowrequestsign', 'password');
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]',
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
 		]);
 		$this->request
 			->withRequestHeader([

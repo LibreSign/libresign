@@ -4,12 +4,13 @@ namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
+use OC\AppFramework\Services\AppConfig;
 use OC\SystemConfig;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AllConfigOverwrite;
 use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\ConfigOverwrite;
-use OCP\IAppConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IConfig;
 
 class TestCase extends \Test\TestCase {
@@ -18,21 +19,22 @@ class TestCase extends \Test\TestCase {
 	private array $users = [];
 
 	public function mockAppConfig($config) {
-		$service = \OC::$server->get(\OCP\IAppConfig::class);
+		$service = \OC::$server->get(\OC\AppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
-				return new AppConfigOverwrite(\OC::$server->get(\OC\DB\Connection::class));
+			\OC::$server->registerService(\OC\AppConfig::class, function () {
+				return new AppConfigOverwrite(
+					\OC::$server->get(\OCP\IDBConnection::class),
+					\OC::$server->get(\Psr\Log\LoggerInterface::class),
+				);
 			});
-			$service = \OC::$server->get(\OCP\IAppConfig::class);
+			$service = \OC::$server->get(\OC\AppConfig::class);
 		}
-		if (is_subclass_of($service, IAppConfig::class)) {
-			foreach ($config as $app => $keys) {
-				foreach ($keys as $key => $value) {
-					if (is_array($value) || is_object($value)) {
-						$value = json_encode($value);
-					}
-					$service->setValue($app, $key, $value);
+		if (is_subclass_of($service, \OC\AppConfig::class)) {
+			foreach ($config as $key => $value) {
+				if (is_array($value) || is_object($value)) {
+					$value = json_encode($value);
 				}
+				$service->setValue('libresign', $key, $value);
 			}
 			return;
 		}
@@ -230,21 +232,19 @@ class TestCase extends \Test\TestCase {
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
 
-		$this->mockConfig([
-			'libresign' => [
-				'identify_methods' => [
-					[
-						'name' => 'email',
-						'enabled' => 1,
-					],
+		$this->mockAppConfig([
+			'identify_methods' => [
+				[
+					'name' => 'email',
+					'enabled' => 1,
 				],
-				'notifyUnsignedUser' => 0,
-				'commonName' => 'CommonName',
-				'country' => 'Brazil',
-				'organization' => 'Organization',
-				'organizationUnit' => 'organizationUnit',
-				'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
-			]
+			],
+			'notifyUnsignedUser' => 0,
+			'commonName' => 'CommonName',
+			'country' => 'Brazil',
+			'organization' => 'Organization',
+			'organizationUnit' => 'organizationUnit',
+			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 		]);
 
 		if (!isset($data['settings'])) {

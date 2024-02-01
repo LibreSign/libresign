@@ -25,7 +25,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use InvalidArgumentException;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
@@ -34,10 +33,10 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\SessionService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -56,7 +55,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected array $settings = [];
 	protected bool $willNotify = true;
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private SignRequestMapper $signRequestMapper,
@@ -146,7 +145,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int) $this->config->getAppValue(Application::APP_ID, 'maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = (int) $this->appConfig->getAppValue('maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
@@ -171,7 +170,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	protected function renewSession(): void {
 		$this->sessionService->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int) $this->appConfig->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -188,7 +187,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int) $this->config->getAppValue(Application::APP_ID, 'renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int) $this->appConfig->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
@@ -301,7 +300,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function getSavedIdentifyMethodsSettings(): array {
-		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
+		$config = $this->appConfig->getAppValue('identify_methods', '[]');
 		$config = json_decode($config, true);
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			return [];
@@ -316,7 +315,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function getSavedSignatureMethodsSettings(): array {
-		$config = $this->config->getAppValue(Application::APP_ID, 'signature_methods', '[]');
+		$config = $this->appConfig->getAppValue('signature_methods', '[]');
 		$config = json_decode($config, true);
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			return [];

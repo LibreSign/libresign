@@ -26,8 +26,7 @@ namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
-use OCA\Libresign\AppInfo\Application;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 
 class JSignPdfHandler extends SignEngineHandler {
 	/** @var JSignPDF */
@@ -37,7 +36,7 @@ class JSignPdfHandler extends SignEngineHandler {
 	public const VERSION = '2.2.2';
 
 	public function __construct(
-		private IConfig $config
+		private IAppConfig $appConfig,
 	) {
 	}
 
@@ -59,14 +58,14 @@ class JSignPdfHandler extends SignEngineHandler {
 	 */
 	public function getJSignParam(): JSignParam {
 		if (!$this->jSignParam) {
-			$javaPath = $this->config->getAppValue(Application::APP_ID, 'java_path');
+			$javaPath = $this->appConfig->getAppValue('java_path');
 			$this->jSignParam = (new JSignParam())
 				->setTempPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
+					$this->appConfig->getAppValue('jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
 				)
 				->setIsUseJavaInstalled(empty($javaPath))
 				->setjSignPdfJarPath(
-					$this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
+					$this->appConfig->getAppValue('jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
 				);
 			if (!empty($javaPath)) {
 				if (!file_exists($javaPath)) {
