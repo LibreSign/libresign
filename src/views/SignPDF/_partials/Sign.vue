@@ -45,14 +45,14 @@
 		</div>
 		<NcModal v-if="signatureMethods.clickToSign.modal"
 			:can-close="!loading"
-			@close="onModalClose('clicKToSign')">
+			@close="onModalClose('clickToSign')">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm') }}
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="signatureMethods.clickToSign.modal = false">
+					<NcButton @click="onModalClose('clickToSign')">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
