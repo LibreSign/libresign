@@ -181,6 +181,7 @@ export default {
 			} catch (err) {
 				this.error = err.response.data.errors
 				this.loading = false
+				onError(err)
 				return
 			}
 			await this.closeModalUploadFromUrl()
