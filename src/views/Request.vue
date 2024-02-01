@@ -319,4 +319,8 @@ button {
 	background-position-x: 8%;
 	padding: 13px 13px 13px 45px;
 }
+
+h2 {
+	font-weight: bold;
+}
 </style>
