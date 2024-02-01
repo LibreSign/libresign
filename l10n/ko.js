@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "사용자를 찾을 수 없습니다.",
     "document to sign" : "서명할 문서",
     "visible element" : "가시적 요소",
+    "File is too big" : "파일이 너무 큼",
     "Already asked to sign this document" : "이미 이 문서에 서명하도록 요청했습니다.",
     "Visible elements need to be an array" : "보이는 요소는 배열이어야 합니다.",
     "Element must be associated with a user" : "요소는 사용자와 연결되어야 합니다.",
@@ -79,15 +80,13 @@ OC.L10N.register(
     "Invalid URL file" : "잘못된 URL 파일",
     "Visible element file must be png." : "보이는 요소 파일은 png여야 합니다.",
     "Empty file" : "빈 파일",
-    "File is too big" : "파일이 너무 큼",
     "Invalid file identifier" : "잘못된 파일 식별자",
     "You need to sign this document" : "이 문서에 서명해야 합니다.",
     "You cannot request signature for this document, please contact your administrator" : "이 문서에 대한 서명을 요청할 수 없습니다. 관리자에게 문의하십시오.",
     "Account" : "계정",
-    "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
-    "User already exists. Please login." : "사용자가 이미 있습니다. 로그인하십시오.",
     "Invalid user" : "잘못된 사용자",
     "You are not logged in. Please log in." : "로그인하지 않았습니다. 로그인하세요.",
+    "User already exists. Please login." : "사용자가 이미 있습니다. 로그인하십시오.",
     "User already exists" : "사용자가 이미 있습니다.",
     "This is not your file" : "이것은 당신의 파일이 아닙니다.",
     "Invalid password" : "잘못된 암호",
@@ -267,6 +266,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "브라우저에서는 이 iframe이 지원되지 않습니다.",
     "%s is not a valid sign method" : "%s은 올바른 사인 방법이 아닙니다.",
     "Document Informations" : "문서 정보",
-    "Validate Subscription." : "구독 유효성 확인"
+    "Validate Subscription." : "구독 유효성 확인",
+    "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다."
 },
 "nplurals=1; plural=0;");

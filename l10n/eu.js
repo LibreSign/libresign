@@ -35,6 +35,7 @@ OC.L10N.register(
     "User not found." : "Ez da erabiltzailea aurkitu.",
     "document to sign" : "sinatzeko dokumentua",
     "visible element" : "elementu ikusgarria",
+    "File is too big" : "Fitxategia handiegia da",
     "Already asked to sign this document" : "Dagoeneko dokumentu hau sinatzeko eskatu duzu ",
     "Visible elements need to be an array" : "Elementu ikusgarriak matrize bat izan behar dira",
     "Element must be associated with a user" : "Elementua erabiltzaile bati lotuta egon behar da",
@@ -83,15 +84,13 @@ OC.L10N.register(
     "Invalid URL file" : "URL fitxategi baliogabea",
     "Visible element file must be png." : "Elementu ikusgarriaren fitxategia png izan behar da.",
     "Empty file" : "Fitxategi hutsa",
-    "File is too big" : "Fitxategia handiegia da",
     "Invalid file identifier" : "Fitxategi identifikatzaile baliogabea",
     "You need to sign this document" : "Dokumentu hau sinatu behar duzu",
     "You cannot request signature for this document, please contact your administrator" : "Ezin duzu dokumentu honen sinadura eskatu, mesedez, jarri harremanetan administratzailearekin",
     "Account" : "Kontua",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
-    "User already exists. Please login." : "Erabiltzailea dagoeneko existitzen da. Mesedez hasi saioa.",
     "Invalid user" : "Erabiltzaile baliogabea",
     "You are not logged in. Please log in." : "Ez duzu saioa hasi. Mesedez, hasi saioa.",
+    "User already exists. Please login." : "Erabiltzailea dagoeneko existitzen da. Mesedez hasi saioa.",
     "User already exists" : "Erabiltzailea dagoeneko existitzen da",
     "This is not your file" : "Hau ez da zure fitxategia",
     "Invalid password" : "Pasahitz baliogabea",
@@ -325,6 +324,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
     "%s is not a valid sign method" : "%s ez da baliozko sinatze metodo bat",
     "Document Informations" : "Dokumentuen informazioa",
-    "Validate Subscription." : "Egiaztapen harpidetza."
+    "Validate Subscription." : "Egiaztapen harpidetza.",
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
 },
 "nplurals=2; plural=(n != 1);");

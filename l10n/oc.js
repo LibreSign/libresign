@@ -19,6 +19,7 @@ OC.L10N.register(
     "User not found." : "Utilizaire pas trobat.",
     "document to sign" : "document de signar",
     "visible element" : "element visible",
+    "File is too big" : "Fichièr tròp pesuc",
     "This file cannot be signed. Invalid status: %s" : "Aqueste fichièrs se pòt pas signat. Estat invalid : %s",
     "Invalid fileID" : "fileID invalid",
     "You are not allowed to request signing" : "Avètz pas l'autorizacion de demandar una signatura",
@@ -38,13 +39,11 @@ OC.L10N.register(
     "File already exists" : "Lo fichièr existís ja",
     "Invalid URL file" : "URL del fichièr invalida",
     "Empty file" : "Fichièr void",
-    "File is too big" : "Fichièr tròp pesuc",
     "You need to sign this document" : "Devètz signar aqueste document",
     "Account" : "Compte",
-    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
-    "User already exists. Please login." : "L’utilizaire existís ja. Volgatz vos autentificar.",
     "Invalid user" : "Utilizaire invalid",
     "You are not logged in. Please log in." : "Sètz pas autentificat. Volgatz vos connectar.",
+    "User already exists. Please login." : "L’utilizaire existís ja. Volgatz vos autentificar.",
     "User already exists" : "L’utilizaire existís ja",
     "This is not your file" : "Aquò es pas vòstre fichièr",
     "File to sign" : "Fichièr a signar",
@@ -115,6 +114,7 @@ OC.L10N.register(
     "Select a file" : "Select a file",
     "Add users" : "Apondre utilizaires",
     "Remove" : "Suprimir",
-    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador."
+    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
+    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr."
 },
 "nplurals=2; plural=(n > 1);");

@@ -31,6 +31,7 @@ OC.L10N.register(
     "User not found." : "Korisnik nije pronađen.",
     "document to sign" : "dokument za potpisivanje",
     "visible element" : "vidljiv element",
+    "File is too big" : "Datoteka je prevelika",
     "Already asked to sign this document" : "Već je zatraženo da potpišete ovaj dokument",
     "Visible elements need to be an array" : "Vidljivi elementi moraju biti niz",
     "Element must be associated with a user" : "Element mora biti povezan s korisnikom",
@@ -75,15 +76,13 @@ OC.L10N.register(
     "Invalid URL file" : "Neispravna datoteka URL-a",
     "Visible element file must be png." : "Datoteka vidljivog elementa mora biti u formatu png.",
     "Empty file" : "Prazna datoteka",
-    "File is too big" : "Datoteka je prevelika",
     "Invalid file identifier" : "Nevažeći identifikator datoteke",
     "You need to sign this document" : "Morate potpisati ovaj dokument",
     "You cannot request signature for this document, please contact your administrator" : "Ne možete tražiti potpisivanje ovog dokumenta, obratite se svom administratoru",
     "Account" : "Račun",
-    "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku.",
-    "User already exists. Please login." : "Korisnik već postoji. Prijavite se.",
     "Invalid user" : "Nevažeći korisnik",
     "You are not logged in. Please log in." : "Niste prijavljeni. Prijavite se.",
+    "User already exists. Please login." : "Korisnik već postoji. Prijavite se.",
     "User already exists" : "Korisnik već postoji",
     "This is not your file" : "Ovo nije vaša datoteka",
     "Invalid password" : "Netočna zaporka",
@@ -238,6 +237,7 @@ OC.L10N.register(
     "Remove" : "Ukloni",
     "This iframe is not supported in your browser." : "Vaš preglednik ne podržava ovaj iframe.",
     "Document Informations" : "Podaci o dokumentu",
-    "Validate Subscription." : "Potvrdite valjanost pretplate."
+    "Validate Subscription." : "Potvrdite valjanost pretplate.",
+    "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku."
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

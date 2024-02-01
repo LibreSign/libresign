@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "User not found.",
     "document to sign" : "document to sign",
     "visible element" : "visible element",
+    "File is too big" : "فایل خیلی بزرگ است",
     "Already asked to sign this document" : "Already asked to sign this document",
     "Visible elements need to be an array" : "Visible elements need to be an array",
     "Element must be associated with a user" : "Element must be associated with a user",
@@ -81,15 +82,13 @@ OC.L10N.register(
     "Invalid URL file" : "Invalid URL file",
     "Visible element file must be png." : "Visible element file must be png.",
     "Empty file" : "پرونده خالی",
-    "File is too big" : "فایل خیلی بزرگ است",
     "Invalid file identifier" : "Invalid file identifier",
     "You need to sign this document" : "You need to sign this document",
     "You cannot request signature for this document, please contact your administrator" : "You cannot request signature for this document, please contact your administrator",
     "Account" : "حساب",
-    "You need to create an account to sign this file." : "You need to create an account to sign this file.",
-    "User already exists. Please login." : "User already exists. Please login.",
     "Invalid user" : "کاربر نامعتبر",
     "You are not logged in. Please log in." : "You are not logged in. Please log in.",
+    "User already exists. Please login." : "User already exists. Please login.",
     "User already exists" : "User already exists",
     "This is not your file" : "This is not your file",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Changes into a file for you to sign",
@@ -321,6 +320,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "This iframe is not supported in your browser.",
     "%s is not a valid sign method" : "%s is not a valid sign method",
     "Document Informations" : "Document Informations",
-    "Validate Subscription." : "Validate Subscription."
+    "Validate Subscription." : "Validate Subscription.",
+    "You need to create an account to sign this file." : "You need to create an account to sign this file."
 },
 "nplurals=2; plural=(n > 1);");

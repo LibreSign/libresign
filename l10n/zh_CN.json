@@ -33,6 +33,7 @@
     "User not found." : "未找到用户",
     "document to sign" : "要签名的文档",
     "visible element" : "可见元素",
+    "File is too big" : "文件太大",
     "Already asked to sign this document" : "已被请求在这份文件上签字",
     "Visible elements need to be an array" : "可见元素需为一个数组",
     "Element must be associated with a user" : "元素必须与用户关联",
@@ -80,15 +81,13 @@
     "Invalid URL file" : "无效的 URL 文件",
     "Visible element file must be png." : "可见元素文件必须是 png",
     "Empty file" : "空文件",
-    "File is too big" : "文件太大",
     "Invalid file identifier" : "无效的文件标识符",
     "You need to sign this document" : "你需要在这份文件上签字",
     "You cannot request signature for this document, please contact your administrator" : "你不能请求此文档签名，请与管理员联系",
     "Account" : "账户",
-    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。",
-    "User already exists. Please login." : "用户已存在。请登录。 ",
     "Invalid user" : "无效用户",
     "You are not logged in. Please log in." : "你未登录。请先登录。",
+    "User already exists. Please login." : "用户已存在。请登录。 ",
     "User already exists" : "用户已存在",
     "This is not your file" : "这不是你的文件",
     "Invalid password" : "无效的密码",
@@ -272,6 +271,7 @@
     "This iframe is not supported in your browser." : "你的浏览器不支持这个 iframe",
     "%s is not a valid sign method" : "%s 非有效签名方式",
     "Document Informations" : "文档信息",
-    "Validate Subscription." : "验证订阅"
+    "Validate Subscription." : "验证订阅",
+    "You need to create an account to sign this file." : "你需要创建一个账户来签署此文件。"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

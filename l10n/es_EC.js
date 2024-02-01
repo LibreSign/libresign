@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "Usuario no encontrado.",
     "document to sign" : "documento a firmar",
     "visible element" : "elemento visible",
+    "File is too big" : "El archivo es demasiado grande.",
     "Already asked to sign this document" : "Ya se solicitó firmar este documento",
     "Visible elements need to be an array" : "Los elementos visibles deben ser una matriz",
     "Element must be associated with a user" : "El elemento debe estar asociado con un usuario",
@@ -81,15 +82,13 @@ OC.L10N.register(
     "Invalid URL file" : "Archivo URL inválido",
     "Visible element file must be png." : "El archivo del elemento visible debe ser en formato png.",
     "Empty file" : "Archivo vacío",
-    "File is too big" : "El archivo es demasiado grande.",
     "Invalid file identifier" : "Identificador de archivo inválido",
     "You need to sign this document" : "Necesitas firmar este documento",
     "You cannot request signature for this document, please contact your administrator" : "No puedes solicitar la firma de este documento, por favor contacta a tu administrador",
     "Account" : "Cuenta",
-    "You need to create an account to sign this file." : "Necesitas crear una cuenta para firmar este archivo",
-    "User already exists. Please login." : "El usuario ya existe. Por favor, inicia sesión.",
     "Invalid user" : "Usuario inválido",
     "You are not logged in. Please log in." : "No has iniciado sesión. Por favor, inicia sesión.",
+    "User already exists. Please login." : "El usuario ya existe. Por favor, inicia sesión.",
     "User already exists" : "El usuario ya existe",
     "This is not your file" : "Este archivo no es tuyo",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Cambios en un archivo que debes firmar",
@@ -320,6 +319,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Este iframe no es compatible con tu navegador.",
     "%s is not a valid sign method" : "%s no es un método de firma válido",
     "Document Informations" : "Información del documento",
-    "Validate Subscription." : "Validar suscripción"
+    "Validate Subscription." : "Validar suscripción",
+    "You need to create an account to sign this file." : "Necesitas crear una cuenta para firmar este archivo"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -39,6 +39,7 @@
     "document to sign" : "documento para assinar ",
     "visible element" : "elemento visível",
     "File type: %s. Invalid Base64 file." : "Tipo de arquivo: %s. Arquivo Base64 inválido.",
+    "File is too big" : "Arquivo muito grande",
     "Already asked to sign this document" : "Já pedi para assinar este documento ",
     "Visible elements need to be an array" : "Os elementos visíveis precisam ser uma matriz",
     "Element must be associated with a user" : "O elemento deve ser associado a um usuário",
@@ -90,18 +91,16 @@
     "Empty file" : "Arquivo vazio",
     "No certificate file provided" : "Nenhum arquivo de certificado fornecido",
     "Invalid file provided. Need to be a .pfx file." : "Arquivo inválido fornecido. Precisa ser um arquivo .pfx.",
-    "File is too big" : "Arquivo muito grande",
     "Invalid file identifier" : "Identificador de arquivo inválido",
     "You need to sign this document" : "Você precisa assinar este documento",
     "You cannot request signature for this document, please contact your administrator" : "Você não pode solicitar assinatura para este documento, por favor, contate o seu administrador",
     "Account" : "Conta",
-    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
-    "User already exists. Please login." : "Usuário já existe. Por favor, autentique-se.",
     "Invalid user" : "Usuário inválido",
-    "It is not possible to create new accounts." : "Não é possível criar novas contas.",
     "You are not logged in. Please log in." : "Você não está autenticado. Autentique-se.",
+    "User already exists. Please login." : "Usuário já existe. Por favor, autentique-se.",
     "User already exists" : "Usuário já existe",
     "This is not your file" : "Este arquivo não é seu",
+    "It is not possible to create new accounts." : "Não é possível criar novas contas.",
     "Certificate with password" : "Certificado com senha",
     "Invalid password" : "Senha inválida",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: Transformar em um arquivo para você assinar",
@@ -359,6 +358,7 @@
     "This iframe is not supported in your browser." : "Este iframe não é compatível com seu navegador. ",
     "%s is not a valid sign method" : "%s não é um método de assinatura válido",
     "Document Informations" : "Informações do Documento",
-    "Validate Subscription." : "Validar Assinatura. "
+    "Validate Subscription." : "Validar Assinatura. ",
+    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento."
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

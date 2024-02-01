@@ -1,8 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Ֆայլը չգտնվեց",
     "File is too big" : "Նիշքը չափազանց մեծ է",
+    "File not found" : "Ֆայլը չգտնվեց",
     "Files" : "Ֆայլեր",
     "Settings" : "կարգավորումներ",
     "Password" : "Գաղտնաբառ",

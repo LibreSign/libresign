@@ -32,6 +32,7 @@ OC.L10N.register(
     "User not found." : "Пользователь не найден.",
     "document to sign" : "документ для подписания",
     "visible element" : "видимый элемент",
+    "File is too big" : "Файл слишком большой",
     "Already asked to sign this document" : "Подпись документа уже запрошена",
     "Visible elements need to be an array" : "Видимые элементы должны быть массивом",
     "Element must be associated with a user" : "Объект должен быть связан с пользователем",
@@ -76,15 +77,13 @@ OC.L10N.register(
     "Invalid URL file" : "Неверный адрес файла",
     "Visible element file must be png." : "Файл видимого элемента должен быть в формате png.",
     "Empty file" : "Пустой файл",
-    "File is too big" : "Файл слишком большой",
     "Invalid file identifier" : "Недопустимый идентификатор файла",
     "You need to sign this document" : "Вам необходимо подписать этот документ",
     "You cannot request signature for this document, please contact your administrator" : "Вы не можете запросить подпись для этого документа, пожалуйста, свяжитесь с вашим администратором",
     "Account" : "Учётная запись",
-    "You need to create an account to sign this file." : "Вам необходимо создать учетную запись, чтобы подписать этот файл.",
-    "User already exists. Please login." : "Пользователь уже существует. Войдите в систему.",
     "Invalid user" : "Неверный пользователь",
     "You are not logged in. Please log in." : "Войдите в систему.",
+    "User already exists. Please login." : "Пользователь уже существует. Войдите в систему.",
     "User already exists" : "Пользователь уже существует",
     "This is not your file" : "Этот файл не ваш",
     "Invalid password" : "Неверный пароль",
@@ -245,6 +244,7 @@ OC.L10N.register(
     "Remove" : "Удалить",
     "This iframe is not supported in your browser." : "Этот iframe не поддерживается вашим браузером.",
     "Document Informations" : "Информация о документе",
-    "Validate Subscription." : "Подтвердить подписку."
+    "Validate Subscription." : "Подтвердить подписку.",
+    "You need to create an account to sign this file." : "Вам необходимо создать учетную запись, чтобы подписать этот файл."
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

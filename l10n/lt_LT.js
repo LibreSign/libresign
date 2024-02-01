@@ -10,6 +10,7 @@ OC.L10N.register(
     "deleted" : "Ištrintas",
     "File type: %s. Empty file." : "Failo tipas: %s. Tuščias failas.",
     "User not found." : "Naudotojas nerastas.",
+    "File is too big" : "Failas yra per didelis",
     "User %s has no email address." : "Naudotojas %s neturi el. pašto adreso.",
     "Invalid email" : "Neteisingas el. pašto adresas",
     "File not loaded" : "Failas neįkeltas",
@@ -23,12 +24,10 @@ OC.L10N.register(
     "You must have an email. You can define the email in your profile." : "Jūs privalote turėti el. paštą. Galite apibrėžti el. paštą savo profilyje.",
     "File already exists" : "Failas jau yra",
     "Empty file" : "Tuščias failas",
-    "File is too big" : "Failas yra per didelis",
     "Account" : "Paskyra",
-    "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą.",
-    "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "Invalid user" : "Neteisingas naudotojas",
     "You are not logged in. Please log in." : "Jūs nesate prisijungę. Prisijunkite.",
+    "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "User already exists" : "Naudotojas jau yra",
     "This is not your file" : "Tai ne jūsų failas",
     "Document already signed" : "Dokumentas jau pasirašytas",
@@ -104,6 +103,7 @@ OC.L10N.register(
     "Reset password" : "Atstatyti slaptažodį",
     "Select a file" : "Pasirinkti failą",
     "Add users" : "Pridėti naudotojus",
-    "Remove" : "Šalinti"
+    "Remove" : "Šalinti",
+    "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą."
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

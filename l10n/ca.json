@@ -33,6 +33,7 @@
     "User not found." : "No s'ha trobat l'usuari.",
     "document to sign" : "document a signar",
     "visible element" : "element visible",
+    "File is too big" : "El fitxer és massa gran",
     "Already asked to sign this document" : "Ja s'ha demanat signar aquest document",
     "Visible elements need to be an array" : "Els elements visibles han de ser un vector",
     "Element must be associated with a user" : "L'element ha d'estar associat a un usuari",
@@ -79,15 +80,13 @@
     "Invalid URL file" : "Fitxer URL no vàlid",
     "Visible element file must be png." : "El fitxer d'element visible ha de ser png.",
     "Empty file" : "Fitxer buit",
-    "File is too big" : "El fitxer és massa gran",
     "Invalid file identifier" : "Identificador de fitxer no vàlid",
     "You need to sign this document" : "Heu de signar aquest document",
     "You cannot request signature for this document, please contact your administrator" : "No podeu sol·licitar la signatura d'aquest document, poseu-vos en contacte amb el vostre administrador",
     "Account" : "Compte",
-    "You need to create an account to sign this file." : "Heu de crear un compte per signar aquest fitxer.",
-    "User already exists. Please login." : "L'usuari ja existeix. Si us plau inicieu sessió.",
     "Invalid user" : "Usuari no vàlid",
     "You are not logged in. Please log in." : "No heu iniciat sessió. Si us plau, inicieu sessió.",
+    "User already exists. Please login." : "L'usuari ja existeix. Si us plau inicieu sessió.",
     "User already exists" : "L'usuari ja existeix",
     "This is not your file" : "Aquest no és el vostre fitxer",
     "Invalid password" : "Contrasenya no vàlida",
@@ -320,6 +319,7 @@
     "This iframe is not supported in your browser." : "Aquest iframe no és compatible amb el vostre navegador.",
     "%s is not a valid sign method" : "%s no és un mètode de signatura vàlid",
     "Document Informations" : "Informació del document",
-    "Validate Subscription." : "Valida la subscripció."
+    "Validate Subscription." : "Valida la subscripció.",
+    "You need to create an account to sign this file." : "Heu de crear un compte per signar aquest fitxer."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
