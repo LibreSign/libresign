@@ -34,7 +34,6 @@ use OCA\Libresign\Service\IdentifyMethod\Password;
 use OCP\Accounts\IAccountManager;
 use OCP\App\IAppManager;
 use OCP\AppFramework\OCS\OCSForbiddenException;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -58,7 +57,6 @@ class SignatureMethodService {
 		private IdentifyMethodService $identifyMethodService,
 		private IAccountManager $accountManager,
 		private IAppManager $appManager,
-		private IConfig $config,
 		private IL10N $l10n,
 		private ISecureRandom $secureRandom,
 		private IHasher $hasher,

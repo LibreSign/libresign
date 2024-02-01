@@ -3,10 +3,10 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Service\FolderService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -21,14 +21,14 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getMountsForFileId')
 			->willreturn([]);
 		$appDataFactory = $this->createMock(IAppDataFactory::class);
-		$config = $this->createMock(IConfig::class);
+		$appConfig = $this->createMock(IAppConfig::class);
 		$l10n = $this->createMock(IL10N::class);
 
 		$service = new FolderService(
 			$root,
 			$userMountCache,
 			$appDataFactory,
-			$config,
+			$appConfig,
 			$l10n,
 			171
 		);
@@ -49,14 +49,14 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$root->method('getById')
 			->willReturn([$node]);
 		$appDataFactory = $this->createMock(IAppDataFactory::class);
-		$config = $this->createMock(IConfig::class);
+		$appConfig = $this->createMock(IAppConfig::class);
 		$l10n = $this->createMock(IL10N::class);
 
 		$service = new FolderService(
 			$root,
 			$userMountCache,
 			$appDataFactory,
-			$config,
+			$appConfig,
 			$l10n,
 			1
 		);

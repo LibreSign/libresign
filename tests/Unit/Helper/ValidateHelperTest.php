@@ -14,10 +14,10 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureMethodService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
@@ -38,7 +38,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignatureMethodService|MockObject $signatureMethodService;
 	private IMimeTypeDetector $mimeTypeDetector;
 	private IHasher $hasher;
-	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	private IGroupManager|MockObject $groupManager;
 	private IUserManager $userManager;
 	private IRootFolder|MockObject $root;
@@ -60,7 +60,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->signatureMethodService = $this->createMock(SignatureMethodService::class);
 		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
-		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->root = $this->createMock(IRootFolder::class);
@@ -81,7 +81,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->signatureMethodService,
 			$this->mimeTypeDetector,
 			$this->hasher,
-			$this->config,
+			$this->appConfig,
 			$this->groupManager,
 			$this->userManager,
 			$this->root,
@@ -215,7 +215,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutUserManager() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
@@ -225,8 +225,8 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function testCanRequestSignWithoutPermission() {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
-		$this->config = $this->createMock(IConfig::class);
-		$this->config
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('["admin"]');
 		$this->groupManager
