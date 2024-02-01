@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import { showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
@@ -234,7 +234,7 @@ export default {
 						})
 					})
 				})
-				await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
+				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					users: [],
 					// Only add to array if not empty
 					...(this.file.uuid && { uuid: this.file.uuid }),
@@ -243,6 +243,7 @@ export default {
 					status: 0,
 				})
 				this.showConfirm = false
+				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
 			} catch (err) {
 				this.onError(err)
