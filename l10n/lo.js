@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Success" : "ຄວາມສໍາເລັດ",
     "deleted" : "ລຶບແລ້ວ",
-    "File not found" : " ບໍ່ພົບຟາຍ",
     "File is too big" : "ຟາຍໃຫຍ່ໂພດ",
+    "File not found" : " ບໍ່ພົບຟາຍ",
     "Files" : "ຟາຍ",
     "Settings" : "ການຕັ້ງຄ່າ",
     "Authentication required" : "ການຢັ້ງຢືນທີ່ຈໍາເປັນ",

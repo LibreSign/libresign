@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "Užívateľ nenájdený",
     "document to sign" : "dokument na podpis",
     "visible element" : "viditeľný prvok",
+    "File is too big" : "Súbor je príliš veľký",
     "Already asked to sign this document" : "Už ste požiadali o podpísanie tohoto dokumentu",
     "Visible elements need to be an array" : "Viditeľné prvky musia byť pole",
     "Element must be associated with a user" : "Prvok musí byť asociovaný z užívateľom",
@@ -80,15 +81,13 @@ OC.L10N.register(
     "Invalid URL file" : "Neplatný súbor URL",
     "Visible element file must be png." : "Súbor viditeľného prvku musí byť png.",
     "Empty file" : "Prázdny súbor",
-    "File is too big" : "Súbor je príliš veľký",
     "Invalid file identifier" : "Neplatný identifikátor súboru",
     "You need to sign this document" : "Tento dokument musíte podpísať",
     "You cannot request signature for this document, please contact your administrator" : "Pre tento dokument nemôžete žiadať podpis, kontaktujte svojho správcu",
     "Account" : "Účet",
-    "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
-    "User already exists. Please login." : "Používateľ už existuje. Prihláste sa, prosím.",
     "Invalid user" : "Neplatný užívateľ",
     "You are not logged in. Please log in." : "Nie ste prihlásený. Prosím prihláste sa.",
+    "User already exists. Please login." : "Používateľ už existuje. Prihláste sa, prosím.",
     "User already exists" : "Používateľ už existuje",
     "This is not your file" : "Toto nie je váš súbor",
     "Invalid password" : "Neplatné heslo",
@@ -294,6 +293,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Váš prehliadač nepodporuje tento iframe.",
     "%s is not a valid sign method" : "%s nie je platná podpisová metóda",
     "Document Informations" : "Informácie o dokumente",
-    "Validate Subscription." : "Overiť predplatné."
+    "Validate Subscription." : "Overiť predplatné.",
+    "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet."
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

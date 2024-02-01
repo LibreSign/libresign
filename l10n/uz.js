@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Success" : "Success",
     "Settings saved" : "Settings saved",
-    "File not found" : "File not found",
     "File is too big" : "File is too big",
+    "File not found" : "File not found",
     "Files" : "Files",
     "Settings" : "Settings",
     "Authentication required" : "Authentication required",

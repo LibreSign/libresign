@@ -3,11 +3,11 @@ OC.L10N.register(
     {
     "Settings saved" : "Seaded salvestatud",
     "deleted" : "kustutatud",
+    "File is too big" : "Fail on liiga suur",
     "File sharing" : "Faide jagamine",
     "File not found" : "Faili ei leitud",
     "File already exists" : "Fail on juba olemas",
     "Empty file" : "Tühi fail",
-    "File is too big" : "Fail on liiga suur",
     "Account" : "Konto",
     "Invalid user" : "Vigane kasutaja",
     "Invalid password" : "Vale salasõna",

@@ -1,12 +1,12 @@
 { "translations": {
     "Settings saved" : "Agordoj konservitaj",
     "deleted" : "forigita",
+    "File is too big" : "Dosiero tro grandas",
     "File sharing" : "Kunhavigo de dosieroj",
     "View" : "Vidi",
     "File not found" : "Netrovita dosiero",
     "File already exists" : "La dosiero jam ekzistas",
     "Empty file" : "Malplena dosiero",
-    "File is too big" : "Dosiero tro grandas",
     "Account" : "Konto",
     "Invalid user" : "Nevalida uzanto",
     "Invalid password" : "Nevalida pasvorto",

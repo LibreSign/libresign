@@ -3,11 +3,11 @@ OC.L10N.register(
     {
     "Settings saved" : "Iestatījumi saglabāti",
     "deleted" : "dzēsts",
+    "File is too big" : "Datne ir par lielu",
     "File sharing" : "Datņu koplietošana",
     "View" : "Skats",
     "File not found" : "Datne nav atrasta",
     "File already exists" : "Datne jau pastāv",
-    "File is too big" : "Datne ir par lielu",
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Files" : "Datnes",

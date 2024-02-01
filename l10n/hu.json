@@ -34,6 +34,7 @@
     "User not found." : "A felhasználó nem található.",
     "document to sign" : "aláírandó dokumentum",
     "visible element" : "látható elem",
+    "File is too big" : "A fájl túl nagy",
     "Already asked to sign this document" : "Már kérte a dokumentum aláírását",
     "Visible elements need to be an array" : "A látható elemeknek tömbnek kell lennie",
     "Element must be associated with a user" : "Az elemnek egy felhasználóhoz kell kapcsolódnia",
@@ -83,18 +84,16 @@
     "Invalid URL file" : "Érvénytelen URL fájl",
     "Visible element file must be png." : "A látható elem fájljának png-nek kell lennie.",
     "Empty file" : "Üres fájl",
-    "File is too big" : "A fájl túl nagy",
     "Invalid file identifier" : "Érvénytelen fájlazonosító",
     "You need to sign this document" : "Alá kell írnia ezt a dokumentumot",
     "You cannot request signature for this document, please contact your administrator" : "Nem kérhet aláírást erre a dokumentumra, lépjen kapcsolatba a rendszergazdával",
     "Account" : "Fiók",
-    "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot.",
-    "User already exists. Please login." : "A felhasználó már létezik. Jelentkezzen be.",
     "Invalid user" : "Érvénytelen felhasználó",
-    "It is not possible to create new accounts." : "Nem lehetséges új fiókot létrehozni.",
     "You are not logged in. Please log in." : "Nincs bejelentkezve. Jelentkezzen be.",
+    "User already exists. Please login." : "A felhasználó már létezik. Jelentkezzen be.",
     "User already exists" : "A felhasználó már létezik",
     "This is not your file" : "Ez nem az Ön fájlja",
+    "It is not possible to create new accounts." : "Nem lehetséges új fiókot létrehozni.",
     "Invalid password" : "Érvénytelen jelszó",
     "LibreSign: Changes into a file for you to sign" : "LibreSign: egy aláírandó fájl megváltozott",
     "File to sign" : "Aláírandó fájl",
@@ -339,6 +338,7 @@
     "This iframe is not supported in your browser." : "Ez az iframe nem támogatott az Ön böngészőjében.",
     "%s is not a valid sign method" : "A(z) %s nem egy érvényes aláírási mód",
     "Document Informations" : "Dokumentuminformációk",
-    "Validate Subscription." : "Aláírás ellenőrzése."
+    "Validate Subscription." : "Aláírás ellenőrzése.",
+    "You need to create an account to sign this file." : "A fájl aláírásához létre kell hoznia egy fiókot."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

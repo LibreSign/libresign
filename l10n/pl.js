@@ -35,6 +35,7 @@ OC.L10N.register(
     "User not found." : "Użytkownik nie znaleziony.",
     "document to sign" : "dokument do podpisania",
     "visible element" : "widoczny element",
+    "File is too big" : "Plik jest za duży",
     "Already asked to sign this document" : "Poprosiłem już o podpisanie tego dokumentu",
     "Visible elements need to be an array" : "Widoczne elementy muszą być tablicą",
     "Element must be associated with a user" : "Element musi być powiązany z użytkownikiem",
@@ -82,15 +83,13 @@ OC.L10N.register(
     "Invalid URL file" : "Nieprawidłowy plik URL",
     "Visible element file must be png." : "Widoczny plik elementu musi być w formacie png.",
     "Empty file" : "Pusty plik",
-    "File is too big" : "Plik jest za duży",
     "Invalid file identifier" : "Nieprawidłowy identyfikator pliku",
     "You need to sign this document" : "Musisz podpisać ten dokument",
     "You cannot request signature for this document, please contact your administrator" : "Nie możesz poprosić o podpis dla tego dokumentu, skontaktuj się z administratorem",
     "Account" : "Konto",
-    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto.",
-    "User already exists. Please login." : "Użytkownik już istnieje. Zaloguj się.",
     "Invalid user" : "Nieprawidłowy użytkownik",
     "You are not logged in. Please log in." : "Nie jesteś zalogowany. Zaloguj się.",
+    "User already exists. Please login." : "Użytkownik już istnieje. Zaloguj się.",
     "User already exists" : "Użytkownik już istnieje",
     "This is not your file" : "To nie jest Twój plik",
     "Invalid password" : "Nieprawidłowe hasło",
@@ -285,6 +284,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Wbudowana ramka (iframe) nie jest obsługiwana w Twojej przeglądarce.",
     "%s is not a valid sign method" : "%s nie jest prawidłową metodą podpisywania",
     "Document Informations" : "Informacje o dokumencie",
-    "Validate Subscription." : "Zatwierdź subskrypcję."
+    "Validate Subscription." : "Zatwierdź subskrypcję.",
+    "You need to create an account to sign this file." : "Aby podpisać ten plik, musisz utworzyć konto."
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

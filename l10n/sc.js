@@ -13,6 +13,7 @@ OC.L10N.register(
     "Invalid data to sign file" : "Datos pro firmare is archìvios non bàlidos",
     "signed" : "firmadu",
     "deleted" : "cantzelladu",
+    "File is too big" : "S'archìviu est tropu mannu",
     "Already asked to sign this document" : "Giai fata sa dimanda pro firmare custu documentu",
     "Invalid fileID" : "fileID non bàlidu",
     "You are not allowed to request signing" : "Non tenes su permissu pro rechèdere sa firma",
@@ -39,12 +40,10 @@ OC.L10N.register(
     "File already exists" : "S'archìviu b'est giai",
     "Invalid URL file" : "URL de s'archìviu no est bàlidu",
     "Empty file" : "Archìviu bòidu",
-    "File is too big" : "S'archìviu est tropu mannu",
     "Account" : "Contu",
-    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
-    "User already exists. Please login." : "S'utente b'est giai. Intra, pro praghere.",
     "Invalid user" : "Utente non bàlidu",
     "You are not logged in. Please log in." : "Non ses in intro. Intra, pro praghere.",
+    "User already exists. Please login." : "S'utente b'est giai. Intra, pro praghere.",
     "User already exists" : "S'utente b'est giai",
     "This is not your file" : "Custu no est s'archìviu tuo",
     "Invalid password" : "Crae non bàlida",
@@ -175,6 +174,7 @@ OC.L10N.register(
     "Remove" : "Boga",
     "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo.",
     "Document Informations" : "Informatziones de su documentu",
-    "Validate Subscription." : "Cunvàlida sutaiscritzione."
+    "Validate Subscription." : "Cunvàlida sutaiscritzione.",
+    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu."
 },
 "nplurals=2; plural=(n != 1);");

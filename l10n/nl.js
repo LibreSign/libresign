@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "Gebruiker niet gevonden.",
     "document to sign" : "document om te ondertekenen",
     "visible element" : "zichtbaar element",
+    "File is too big" : "Bestand te groot",
     "Already asked to sign this document" : "Altijd vragen om dit document te tekenen",
     "Visible elements need to be an array" : "Zichtbare elementen moeten een reeks zijn",
     "Element must be associated with a user" : "Elementen moeten geassocieerd zijn met een gebruiker",
@@ -81,15 +82,13 @@ OC.L10N.register(
     "Invalid URL file" : "Ongeldig URL bestand",
     "Visible element file must be png." : "Zichtbaar elementbestand moet een png zijn.",
     "Empty file" : "Leeg bestand",
-    "File is too big" : "Bestand te groot",
     "Invalid file identifier" : "Ongeldige bestandsidentificator",
     "You need to sign this document" : "Je moet dit document signeren",
     "You cannot request signature for this document, please contact your administrator" : "Je kunt geen handtekening vragen voor dit document, neem alsjeblieft contact op met je beheerder",
     "Account" : "Account",
-    "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen.",
-    "User already exists. Please login." : "Gebruiker bestaat al. Inloggen.",
     "Invalid user" : "Ongeldige gebruiker",
     "You are not logged in. Please log in." : "Je bent niet ingelogd. Graag inloggen.",
+    "User already exists. Please login." : "Gebruiker bestaat al. Inloggen.",
     "User already exists" : "Gebruiker bestaat al",
     "This is not your file" : "Dit is niet jouw bestand",
     "Invalid password" : "Ongeldig wachtwoord",
@@ -279,6 +278,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Dit iframe wordt niet ondersteund door je browser.",
     "%s is not a valid sign method" : "%sis geen geldige ondertekeningsmethode",
     "Document Informations" : "Documentinformatie",
-    "Validate Subscription." : "Abonnement valideren"
+    "Validate Subscription." : "Abonnement valideren",
+    "You need to create an account to sign this file." : "Je moet een account maken om het bestand te tekenen."
 },
 "nplurals=2; plural=(n != 1);");

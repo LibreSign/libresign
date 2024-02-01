@@ -3,11 +3,11 @@ OC.L10N.register(
     {
     "Success" : "สำเร็จ",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
+    "File is too big" : "ไฟล์ใหญ่เกินไป",
     "View" : "มุมมอง",
     "File not found" : "ไม่พบไฟล์",
     "File already exists" : "มีไฟล์นี้อยู่แล้ว",
     "Empty file" : "ไฟล์ว่าง",
-    "File is too big" : "ไฟล์ใหญ่เกินไป",
     "Account" : "บัญชี",
     "Invalid user" : "ผู้ใช้ไม่ถูกต้อง",
     "Invalid password" : "รหัสผ่านไม่ถูกต้อง",

@@ -1,9 +1,9 @@
 { "translations": {
     "Success" : "සාර්ථකයි",
+    "File is too big" : "ගොනුව ඉතා විශාලයි",
     "File not found" : "ගොනුව හමු නොවිණි",
     "File already exists" : "ගොනුව දැනටමත් පවතී",
     "Empty file" : "හිස් ගොනුවකි",
-    "File is too big" : "ගොනුව ඉතා විශාලයි",
     "Account" : "ගිණුම",
     "Files" : "ගොනු",
     "Settings" : "සැකසුම්",
