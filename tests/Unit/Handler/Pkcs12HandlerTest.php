@@ -114,9 +114,9 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('getAppValue')
 			->willReturnCallback(function ($key, $default) {
 				switch ($key) {
-					case 'add_footer': return 1;
+					case 'add_footer': return '1';
 					case 'validation_site': return 'http://test.coop';
-					case 'write_qrcode_on_footer': return 1;
+					case 'write_qrcode_on_footer': return '1';
 					case 'footer_link_to_site': return 'https://libresign.coop';
 					case 'footer_first_row': return 'Digital signed by LibreSign.';
 					case 'footer_second_row': return 'Validate in %s.';
