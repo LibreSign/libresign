@@ -42,7 +42,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<NcButton @click="showModal">
+			<NcButton type="primary" @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
 			<NcModal v-if="modal"
@@ -92,6 +92,7 @@
 					:disabled="formDisabled" />
 			</div>
 			<NcButton :disabled="formDisabled"
+				type="primary"
 				@click="generateCertificate">
 				{{ submitLabel }}
 			</NcButton>
