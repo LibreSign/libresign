@@ -160,7 +160,6 @@ export default {
 		}
 		signatureMethods.createSignature = { modal: false }
 		signatureMethods.sms = { modal: false }
-		signatureMethods.clickToSign.necessary = signatureMethods.clickToSign.enabled
 		return {
 			loading: true,
 			user: {
