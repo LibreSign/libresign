@@ -30,6 +30,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -48,6 +49,7 @@ class FileController extends Controller {
 		private IL10N $l10n,
 		private LoggerInterface $logger,
 		private IUserSession $userSession,
+		private SessionService $sessionService,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper
 	) {
@@ -121,6 +123,7 @@ class FileController extends Controller {
 		$return = array_merge($return,
 			$this->fileService
 				->setMe($this->userSession->getUser())
+				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->showVisibleElements()
 				->showPages()
 				->showSigners()

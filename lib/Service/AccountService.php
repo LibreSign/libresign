@@ -47,8 +47,10 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -305,6 +307,19 @@ class AccountService {
 		return $file;
 	}
 
+	public function getFileByNodeIdAndSessionId(int $nodeId, string $sessionId): File {
+		$rootSignatureFolder = $this->folderService->getFolder();
+		if (!$rootSignatureFolder->nodeExists($sessionId)) {
+			throw new DoesNotExistException('Not found');
+		}
+		$nodes = $rootSignatureFolder->getById($nodeId);
+		if (empty($nodes)) {
+			throw new DoesNotExistException('Not found');
+		}
+		$file = current($nodes);
+		return $file;
+	}
+
 	public function canRequestSign(?IUser $user = null): bool {
 		if (!$user) {
 			return false;
@@ -352,19 +367,21 @@ class AccountService {
 		$this->accountFileService->deleteFile($accountFile->getFileId(), $user->getUID());
 	}
 
-	public function saveVisibleElements(array $elements, ?IUser $user): void {
+	public function saveVisibleElements(array $elements, string $sessionId, ?IUser $user): void {
 		foreach ($elements as $element) {
-			$this->saveVisibleElement($element, $user);
+			$this->saveVisibleElement($element, $sessionId, $user);
 		}
 	}
 
-	public function saveVisibleElement(array $data, ?IUser $user): void {
+	public function saveVisibleElement(array $data, string $sessionId, ?IUser $user): void {
 		if (isset($data['elementId'])) {
 			$this->updateFileOfVisibleElement($data);
 			$this->updateDataOfVisibleElement($data);
-		} else {
-			$file = $this->insertFileOfVisibleElement($data, $user);
+		} elseif ($user instanceof IUser) {
+			$file = $this->saveFileOfVisibleElementUsingUser($data, $user);
 			$this->insertVisibleElement($data, $user, $file);
+		} else {
+			$file = $this->saveFileOfVisibleElementUsingSession($data, $sessionId);
 		}
 	}
 
@@ -388,14 +405,31 @@ class AccountService {
 		$this->userElementMapper->update($userElement);
 	}
 
-	private function insertFileOfVisibleElement(array $data, ?IUser $user): File {
-		$userFolder = $this->folderService->getFolder();
+	private function saveFileOfVisibleElementUsingUser(array $data, IUser $user): File {
+		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $this->folderService->getFolderName($data, $user);
-		if ($userFolder->nodeExists($folderName)) {
+		if ($rootSignatureFolder->nodeExists($folderName)) {
 			throw new \Exception($this->l10n->t('File already exists'));
 		}
-		$folderToFile = $userFolder->newFolder($folderName);
+		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		return $folderToFile->newFile(UUIDUtil::getUUID() . '.png', $this->getFileRaw($data));
+	}
+
+	private function saveFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
+		$rootSignatureFolder = $this->folderService->getFolder();
+		$folderName = $sessionId;
+		if ($rootSignatureFolder->nodeExists($folderName)) {
+			throw new \Exception($this->l10n->t('File already exists'));
+		}
+		$folderToFile = $rootSignatureFolder->newFolder($folderName);
+		$filename = implode(
+			'_',
+			[
+				$data['type'],
+				$this->timeFactory->getDateTime()->getTimestamp(),
+			]
+		) . '.png';
+		return $folderToFile->newFile($filename, $this->getFileRaw($data));
 	}
 
 	private function insertVisibleElement(array $data, IUser $user, File $file): void {
@@ -428,8 +462,9 @@ class AccountService {
 			if (!$content) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
-			$this->validateHelper->validateBase64($content);
+			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
 		} else {
+			$this->validateHelper->validateBase64($data['file']['base64'], ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$withMime = explode(',', $data['file']['base64']);
 			if (count($withMime) === 2) {
 				$content = base64_decode($withMime[1]);
@@ -438,6 +473,34 @@ class AccountService {
 			}
 		}
 		return $content;
+	}
+
+	public function getElementsFromSession(string $sessionId): array {
+		$folder = $this->folderService->getFolder();
+		try {
+			/** @var Folder $signerFolder */
+			$signerFolder = $folder->get($sessionId);
+		} catch (NotFoundException $th) {
+			return [];
+		}
+		$fileList = $signerFolder->getDirectoryListing();
+		$return = [];
+		foreach ($fileList as $fileElement) {
+			list($type, $timestamp) = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
+			$return[] = [
+				'type' => $type,
+				'file' => [
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.account.getSignatureElementPreview', [
+						'apiVersion' => 'v1',
+						'fileId' => $fileElement->getId(),
+					]),
+					'fileId' => $fileElement->getId(),
+				],
+				'starred' => 0,
+				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
+			];
+		}
+		return $return;
 	}
 
 	/**
