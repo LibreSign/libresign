@@ -22,6 +22,7 @@
     "User not found." : "Käyttäjää ei löytynyt.",
     "document to sign" : "allekirjoitettava asiakirja",
     "visible element" : "näkyvä elementti",
+    "File is too big" : "Tiedosto on liian suuri",
     "Already asked to sign this document" : "Pyydetty jo asiakirjan allekirjoitusta",
     "Page number must be an integer" : "Sivunumeron tulee olla kokonaisluku",
     "Page must be equal to or greater than 1" : "Sivun tulee olla yhtä suuri tai suurempi kuin 1",
@@ -52,13 +53,11 @@
     "Invalid URL file" : "Virheellinen URL-tiedosto",
     "Visible element file must be png." : "Näkyvän elementtitiedoston tulee olla png.",
     "Empty file" : "Tyhjä tiedosto",
-    "File is too big" : "Tiedosto on liian suuri",
     "You need to sign this document" : "Sinun tulee allekirjoittaa tämä asiakirja",
     "Account" : "Tili",
-    "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
-    "User already exists. Please login." : "Käyttäjä on jo olemassa. Kirjaudu sisään.",
     "Invalid user" : "Virheellinen käyttäjä",
     "You are not logged in. Please log in." : "Et ole kirjautunut sisään. Kirjaudu sisään.",
+    "User already exists. Please login." : "Käyttäjä on jo olemassa. Kirjaudu sisään.",
     "User already exists" : "Käyttäjä on jo olemassa",
     "This is not your file" : "Tämä ei ole tiedostosi",
     "Invalid password" : "Virheellinen salasana",
@@ -198,6 +197,7 @@
     "Add users" : "Lisää käyttäjiä",
     "Generate root certificate." : "Luo juurivarmenne.",
     "Remove" : "Poista",
-    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea."
+    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea.",
+    "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -1,10 +1,10 @@
 OC.L10N.register(
     "libresign",
     {
+    "File is too big" : "El ficheru ye mui grande",
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
     "View" : "Ver",
-    "File is too big" : "El ficheru ye mui grande",
     "Account" : "Cuenta",
     "User already exists" : "L'usuariu yá esiste",
     "Invalid password" : "La contraseña ye inválida",

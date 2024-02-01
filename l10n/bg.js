@@ -34,6 +34,7 @@ OC.L10N.register(
     "User not found." : "Потребителят не е намерен.",
     "document to sign" : "документ за подпис",
     "visible element" : "видим елемент",
+    "File is too big" : "Файлът е твърде голям",
     "Already asked to sign this document" : "Вече поискаха да подпишат този документ",
     "Visible elements need to be an array" : "Видимите елементи трябва да са масив",
     "Element must be associated with a user" : "Елементът трябва да бъде свързан с потребител",
@@ -81,15 +82,13 @@ OC.L10N.register(
     "Invalid URL file" : "Невалиден URL файл",
     "Visible element file must be png." : "Файлът на видимия елемент трябва да е png.",
     "Empty file" : "Празен файл",
-    "File is too big" : "Файлът е твърде голям",
     "Invalid file identifier" : "Невалиден идентификатор на файл",
     "You need to sign this document" : "Трябва да подпишете този документ",
     "You cannot request signature for this document, please contact your administrator" : "Не можете да поискате подпис за този документ, моля, свържете се с вашия администратор",
     "Account" : "Профил",
-    "You need to create an account to sign this file." : "Трябва да създадете профил, за да подпишете този файл.",
-    "User already exists. Please login." : "Вече съществува потребител. Моля влезте.",
     "Invalid user" : "Невалиден потребител",
     "You are not logged in. Please log in." : "Не сте влезли. Моля, впишете се.",
+    "User already exists. Please login." : "Вече съществува потребител. Моля влезте.",
     "User already exists" : "Вече съществува потребител",
     "This is not your file" : "Това не е вашият файл",
     "Invalid password" : "Невалидна парола",
@@ -323,6 +322,7 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Тази iframe не се поддържа във вашия браузър.",
     "%s is not a valid sign method" : "%s не е валиден метод за подпис",
     "Document Informations" : "Информация за документ",
-    "Validate Subscription." : "Проверка на абонамент."
+    "Validate Subscription." : "Проверка на абонамент.",
+    "You need to create an account to sign this file." : "Трябва да създадете профил, за да подпишете този файл."
 },
 "nplurals=2; plural=(n != 1);");

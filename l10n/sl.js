@@ -33,6 +33,7 @@ OC.L10N.register(
     "User not found." : "Uporabnika ni mogoče najti.",
     "document to sign" : "dokument za podpis",
     "visible element" : "vidni znak",
+    "File is too big" : "Datoteka je prevelika",
     "Already asked to sign this document" : "Zahteva za popis je bila že podana.",
     "Visible elements need to be an array" : "Vidni predmeti morajo biti zabeleženi kot polje",
     "Element must be associated with a user" : "Predmet mora biti povezan z uporabnikom",
@@ -78,15 +79,13 @@ OC.L10N.register(
     "Invalid URL file" : "Neveljavna datoteka naslova URL",
     "Visible element file must be png." : "Datoteka vidnega predmeta mora biti v zapisu PNG.",
     "Empty file" : "Prazna datoteka",
-    "File is too big" : "Datoteka je prevelika",
     "Invalid file identifier" : "Neveljavno določilo datoteke.",
     "You need to sign this document" : "Ta dokument je treba podpisati",
     "You cannot request signature for this document, please contact your administrator" : "Za ta dokument ni mogoče zahtevati podpisa. Stopite v stik s skrbnikom sistema.",
     "Account" : "Račun",
-    "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun.",
-    "User already exists. Please login." : "Uporabnik že obstaja. Poskusite se prijaviti.",
     "Invalid user" : "Neveljaven uporabnik",
     "You are not logged in. Please log in." : "Niste prijavljeni v oblak. Pred nadaljevanjem se prijavite.",
+    "User already exists. Please login." : "Uporabnik že obstaja. Poskusite se prijaviti.",
     "User already exists" : "Uporabnik že obstaja",
     "This is not your file" : "To ni vaša datoteka",
     "Invalid password" : "Neveljavno geslo",
@@ -295,6 +294,7 @@ OC.L10N.register(
     "Remove" : "Odstrani",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
     "Document Informations" : "Podrobnosti dokumenta",
-    "Validate Subscription." : "Potrdi naročnino"
+    "Validate Subscription." : "Potrdi naročnino",
+    "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun."
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

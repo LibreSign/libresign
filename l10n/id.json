@@ -1,10 +1,10 @@
 { "translations": {
     "Settings saved" : "Setelan tersimpan",
     "deleted" : "terhapus",
+    "File is too big" : "Berkas terlalu besar",
     "View" : "Tampilan",
     "File not found" : "Berkas tidak ditemukan",
     "File already exists" : "Berkas sudah ada",
-    "File is too big" : "Berkas terlalu besar",
     "Account" : "Akun",
     "Invalid user" : "Pengguna salah",
     "Files" : "Berkas",

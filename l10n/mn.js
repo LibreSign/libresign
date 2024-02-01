@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "deleted" : "Устгагдсан",
-    "File not found" : "Файл олдсонгүй",
     "File is too big" : "Файлын хэмжээ хэт их байна",
+    "File not found" : "Файл олдсонгүй",
     "Account" : "аккаунт",
     "Invalid user" : "Буруу хэрэглэгч",
     "Files" : "файлууд",

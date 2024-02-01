@@ -1,8 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "Fann ikkje fila",
     "File is too big" : "Fila er for stor",
+    "File not found" : "Fann ikkje fila",
     "Invalid password" : "Feil passord",
     "Files" : "Filer",
     "Settings" : "Innstillingar",

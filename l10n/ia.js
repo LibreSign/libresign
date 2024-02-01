@@ -2,8 +2,8 @@ OC.L10N.register(
     "libresign",
     {
     "Settings saved" : "Configurationes salveguardate",
-    "View" : "Vider",
     "File is too big" : "File es troppo grande",
+    "View" : "Vider",
     "Invalid user" : "Usator invalide",
     "Files" : "Files",
     "Settings" : "Configurationes",

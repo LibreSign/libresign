@@ -32,6 +32,7 @@
     "User not found." : "Utente non trovato.",
     "document to sign" : "documento da firmare",
     "visible element" : "elemento visibile",
+    "File is too big" : "Il file è troppo grande",
     "Already asked to sign this document" : "Già chiesto di firmare questo documento",
     "Visible elements need to be an array" : "Gli elementi visibili devono essere un vettore",
     "Element must be associated with a user" : "L'elemento deve essere associato ad un utente",
@@ -79,15 +80,13 @@
     "Invalid URL file" : "File URL non valido",
     "Visible element file must be png." : "L'elemento visibile deve essere un png.",
     "Empty file" : "File vuoto",
-    "File is too big" : "Il file è troppo grande",
     "Invalid file identifier" : "Identificatore file non valido",
     "You need to sign this document" : "È necessario firmare questo documento",
     "You cannot request signature for this document, please contact your administrator" : "Non è possibile richiedere una firma per questo documento, si prega di contattare l'amministratore.",
     "Account" : "Account",
-    "You need to create an account to sign this file." : "Devi creare un account per firmare questo file.",
-    "User already exists. Please login." : "L'utente esiste già. Esegui l'accesso.",
     "Invalid user" : "Utente non valido",
     "You are not logged in. Please log in." : "Non sei connesso. Esegui l'accesso.",
+    "User already exists. Please login." : "L'utente esiste già. Esegui l'accesso.",
     "User already exists" : "L'utente esiste già",
     "This is not your file" : "Questo non è il tuo file",
     "Invalid password" : "Password non valida",
@@ -283,6 +282,7 @@
     "This iframe is not supported in your browser." : "Questo iframe non è supportato nel tuo browser.",
     "%s is not a valid sign method" : "%s non è un metodo di firma valido",
     "Document Informations" : "Informazioni sul documento",
-    "Validate Subscription." : "Convalida sottoscrizione."
+    "Validate Subscription." : "Convalida sottoscrizione.",
+    "You need to create an account to sign this file." : "Devi creare un account per firmare questo file."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

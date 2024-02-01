@@ -2,8 +2,8 @@ OC.L10N.register(
     "libresign",
     {
     "deleted" : "air sguabadh às",
-    "File not found" : "Cha deach am faidhle a lorg",
     "File is too big" : "Tha am faidhle ro mhòr",
+    "File not found" : "Cha deach am faidhle a lorg",
     "Files" : "Faidhlichean",
     "Settings" : "Roghainnean",
     "Password" : "Facal-faire",

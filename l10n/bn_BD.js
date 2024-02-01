@@ -1,8 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
-    "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
     "File is too big" : "ফাইল খুব বড়",
+    "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
     "Files" : "ফাইল",
     "Settings" : "সেটিংস",
     "Password" : "কূটশব্দ",
