@@ -25,14 +25,14 @@ declare(strict_types=1);
 namespace OCA\Libresign\Helper;
 
 final class JSActions {
-	public const ACTION_REDIRECT = 100;
-	public const ACTION_CREATE_USER = 150;
-	public const ACTION_DO_NOTHING = 200;
-	public const ACTION_SIGN = 250;
-	public const ACTION_SIGN_ACCOUNT_FILE = 275;
-	public const ACTION_SHOW_ERROR = 300;
-	public const ACTION_SIGNED = 350;
-	public const ACTION_CREATE_SIGNATURE_PASSWORD = 400;
-	public const ACTION_RENEW_EMAIL = 450;
-	public const ACTION_INCOMPLETE_SETUP = 500;
+	public const ACTION_REDIRECT = 1000;
+	public const ACTION_CREATE_USER = 1500;
+	public const ACTION_DO_NOTHING = 2000;
+	public const ACTION_SIGN = 2500;
+	public const ACTION_SIGN_ACCOUNT_FILE = 2750;
+	public const ACTION_SHOW_ERROR = 3000;
+	public const ACTION_SIGNED = 3500;
+	public const ACTION_CREATE_SIGNATURE_PASSWORD = 4000;
+	public const ACTION_RENEW_EMAIL = 4500;
+	public const ACTION_INCOMPLETE_SETUP = 5000;
 }
