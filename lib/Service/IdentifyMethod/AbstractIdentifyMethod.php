@@ -333,8 +333,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	private function getDefaultValues(array $customConfig, array $default): array {
 		foreach ($default as $key => $value) {
-			if (!isset($customConfig[$key]) || gettype($value) !== gettype($customConfig[$key])) {
+			if (!isset($customConfig[$key])) {
 				$customConfig[$key] = $value;
+			} elseif (gettype($value) !== gettype($customConfig[$key])) {
+				$customConfig[$key] = $value;
+			} elseif(gettype($value) === 'array') {
+				$customConfig[$key] = $this->getDefaultValues($customConfig[$key], $value);
 			}
 		}
 		return $customConfig;
