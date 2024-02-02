@@ -158,6 +158,22 @@ class IdentifyMethodService {
 		return $return;
 	}
 
+	public function getSignMethodsOfIdentifiedFactors(int $signRequestId): array {
+		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		$return = [];
+		foreach ($matrix as $methods) {
+			foreach ($methods as $method) {
+				if (empty($method->getEntity()->getIdentifiedAtDate())) {
+					continue;
+				}
+				$return[$method->getName()] = [
+					'label' => $method->getFriendlyName(),
+				];
+			}
+		}
+		return $return;
+	}
+
 	public function save(SignRequest $signRequest, bool $notify = true): void {
 		foreach ($this->identifyMethods as $methods) {
 			foreach ($methods as $identifyMethod) {

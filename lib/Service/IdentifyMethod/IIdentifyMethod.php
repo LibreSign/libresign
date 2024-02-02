@@ -29,6 +29,7 @@ use OCP\IUser;
 
 interface IIdentifyMethod {
 	public function getName(): string;
+	public function getFriendlyName(): string;
 	public function isEnabledAsSignatueMethod(): bool;
 	public function setCodeSentByUser(string $code): void;
 	public function setUser(?IUser $user): void;
