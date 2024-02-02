@@ -17,22 +17,23 @@ class TestCase extends \Test\TestCase {
 	private array $users = [];
 
 	public function mockAppConfig($config) {
-		$service = \OC::$server->get(\OC\AppConfig::class);
+		\OC::$server->registerParameter('appName', 'libresign');
+		$service = \OC::$server->get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OC\AppConfig::class, function () {
+			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
 				return new AppConfigOverwrite(
 					\OC::$server->get(\OCP\IDBConnection::class),
 					\OC::$server->get(\Psr\Log\LoggerInterface::class),
 				);
 			});
-			$service = \OC::$server->get(\OC\AppConfig::class);
+			$service = \OC::$server->get(\OCP\IAppConfig::class);
 		}
-		if (is_subclass_of($service, \OC\AppConfig::class)) {
+		if (is_subclass_of($service, \OCP\IAppConfig::class)) {
 			foreach ($config as $key => $value) {
 				if (is_array($value) || is_object($value)) {
 					$value = json_encode($value);
 				}
-				$service->setValue('libresign', $key, $value);
+				$service->setValueMixed('libresign', $key, $value);
 			}
 			return;
 		}
@@ -90,6 +91,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function setUp(): void {
+		$this->mockAppConfig([]);
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;
