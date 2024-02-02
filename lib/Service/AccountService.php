@@ -62,12 +62,9 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	/** @var SignRequest */
-	private $signRequest;
-	/** @var \OCA\Libresign\Db\File */
-	private $fileData;
-	/** @var \OCA\Files\Node\File */
-	private $fileToSign;
+	private SignRequest $signRequest;
+	private \OCA\Libresign\Db\File $fileData;
+	private \OCP\Files\File $fileToSign;
 
 	public const ELEMENT_SIGN_WIDTH = 350;
 	public const ELEMENT_SIGN_HEIGHT = 100;
