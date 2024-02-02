@@ -43,7 +43,7 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="signatureMethods.clickToSign.modal"
+		<NcModal v-if="needClickToSign && signatureMethods.clickToSign.modal"
 			:can-close="!loading"
 			@close="onModalClose('clickToSign')">
 			<div class="modal__content">
@@ -205,7 +205,8 @@ export default {
 			return this.userSignatures?.length > 0
 		},
 		needCreatePassword() {
-			return this.signatureMethods.password.enabled
+			return Object.hasOwn(this.signatureMethods, 'password')
+				&& this.signatureMethods.password.enabled
 				&& !this.hasSignatureFile
 		},
 		needSignature() {
@@ -217,12 +218,13 @@ export default {
 				&& this.signatureMethods.email.validateCode
 		},
 		needClickToSign() {
-			return this.signatureMethods.clickToSign.enabled
+			return Object.hasOwn(this.signatureMethods, 'clickToSign')
+				&& this.signatureMethods.clickToSign.enabled
 		},
 		needSmsCode() {
-			return (this.signatureMethods.sms?.enabled
-				&& this.signatureMethods.sms?.validateCode)
-				?? false
+			return Object.hasOwn(this.signatureMethods, 'sms')
+				&& this.signatureMethods.sms.enabled
+				&& this.signatureMethods.sms.validateCode
 		},
 		ableToSign() {
 			if (this.needCreatePassword) {
@@ -346,7 +348,10 @@ export default {
 				this.signatureMethods.sms.modal = true
 				return
 			}
-			if (this.signatureMethods.password.enabled && !this.needCreatePassword) {
+			if (Object.hasOwn(this.signatureMethods, 'password')
+				&& this.signatureMethods.password.enabled
+				&& !this.needCreatePassword
+			) {
 				this.modalSignWithPassword = true
 			}
 			if (this.needClickToSign) {
