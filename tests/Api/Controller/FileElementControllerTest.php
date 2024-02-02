@@ -29,7 +29,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		]);
 		$file['users'][0]->setSigned(time());
 
-		$this->mockConfig(['libresign' => []]);
+		$this->mockAppConfig([]);
 		$this->request
 			->withPath('/file-element/' . $file['uuid'])
 			->withMethod('POST')

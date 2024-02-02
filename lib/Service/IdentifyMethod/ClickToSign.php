@@ -30,10 +30,10 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -42,7 +42,7 @@ use Psr\Log\LoggerInterface;
 
 class ClickToSign extends AbstractIdentifyMethod {
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private MailService $mail,
 		private SignRequestMapper $signRequestMapper,
@@ -61,7 +61,7 @@ class ClickToSign extends AbstractIdentifyMethod {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer only need to click to sign after was identified
 		$this->friendlyName = $this->l10n->t('Click to sign');
 		parent::__construct(
-			$config,
+			$appConfig,
 			$l10n,
 			$identifyMethodMapper,
 			$signRequestMapper,

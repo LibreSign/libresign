@@ -24,11 +24,11 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\EmptyRootCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
@@ -74,6 +74,7 @@ class AEngineHandler {
 
 	public function __construct(
 		protected IConfig $config,
+		protected IAppConfig $appConfig,
 		protected IAppDataFactory $appDataFactory,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
@@ -134,18 +135,18 @@ class AEngineHandler {
 	}
 
 	public function setEngine(string $engine): void {
-		$this->config->setAppValue(Application::APP_ID, 'certificate_engine', $engine);
+		$this->appConfig->setAppValue('certificate_engine', $engine);
 		$this->engine = $engine;
 	}
 
 	public function getEngine(): string {
-		$this->engine = $this->config->getAppValue(Application::APP_ID, 'certificate_engine', 'openssl');
+		$this->engine = $this->appConfig->getAppValue('certificate_engine', 'openssl');
 		return $this->engine;
 	}
 
 	public function populateInstance(array $rootCert): self {
 		if (empty($rootCert)) {
-			$rootCert = $this->config->getAppValue(Application::APP_ID, 'root_cert');
+			$rootCert = $this->appConfig->getAppValue('root_cert');
 			$rootCert = json_decode($rootCert, true);
 		}
 		if (!$rootCert) {
@@ -167,7 +168,7 @@ class AEngineHandler {
 		if ($this->configPath) {
 			return $this->configPath;
 		}
-		$this->configPath = $this->config->getAppValue(Application::APP_ID, 'config_path');
+		$this->configPath = $this->appConfig->getAppValue('config_path');
 		if ($this->configPath && str_ends_with($this->configPath, $this->getName() . '_config')) {
 			return $this->configPath;
 		}
@@ -201,9 +202,9 @@ class AEngineHandler {
 
 	public function setConfigPath(string $configPath): void {
 		if (!$configPath) {
-			$this->config->deleteAppValue(Application::APP_ID, 'config_path');
+			$this->appConfig->deleteAppValue('config_path');
 		} else {
-			$this->config->setAppValue(Application::APP_ID, 'config_path', $configPath);
+			$this->appConfig->setAppValue('config_path', $configPath);
 		}
 		$this->configPath = $configPath;
 	}
@@ -230,7 +231,7 @@ class AEngineHandler {
 	}
 
 	public function isSetupOk(): bool {
-		return $this->config->getAppValue(Application::APP_ID, 'authkey') ? true : false;
+		return $this->appConfig->getAppValue('authkey') ? true : false;
 	}
 
 	public function toArray(): array {

@@ -27,7 +27,6 @@ namespace OCA\Libresign\Service;
 use InvalidArgumentException;
 use mikehaertl\pdftk\Command;
 use OC\AppFramework\Http as AppFrameworkHttp;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\DataObjects\VisibleElementAssoc;
 use OCA\Libresign\Db\AccountFile;
 use OCA\Libresign\Db\AccountFileMapper;
@@ -49,6 +48,7 @@ use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
@@ -57,7 +57,6 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\Http\Client\IClientService;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\ITempManager;
 use OCP\IURLGenerator;
@@ -95,7 +94,7 @@ class SignFileService {
 		private IClientService $client,
 		private IUserManager $userManager,
 		protected LoggerInterface $logger,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		protected ValidateHelper $validateHelper,
 		private IRootFolder $root,
 		private IUserSession $userSession,
@@ -142,7 +141,7 @@ class SignFileService {
 	public function notifyCallback(File $file): void {
 		$uri = $this->libreSignFile->getCallback();
 		if (!$uri) {
-			$uri = $this->config->getAppValue(Application::APP_ID, 'webhook_sign_url');
+			$uri = $this->appConfig->getAppValue('webhook_sign_url');
 			if (!$uri) {
 				return;
 			}
@@ -304,7 +303,7 @@ class SignFileService {
 	}
 
 	public function storeUserMetadata(array $metadata = []): self {
-		$collectMetadata = $this->config->getAppValue(Application::APP_ID, 'collect_metadata') ? true : false;
+		$collectMetadata = $this->appConfig->getAppValue('collect_metadata') ? true : false;
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
@@ -500,7 +499,7 @@ class SignFileService {
 				$dest = $this->tempManager->getTemporaryFile('signed.pdf');
 				file_put_contents($dest, $originalFile->getContent());
 
-				$pdftkPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+				$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 				$pdf = new Pdf();
 				$command = new Command();
 				$command->setCommand($pdftkPath);

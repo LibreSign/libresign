@@ -33,12 +33,11 @@ use Endroid\QrCode\Matrix\Matrix;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use TCPDI;
@@ -54,7 +53,7 @@ class Pkcs12Handler extends SignEngineHandler {
 
 	public function __construct(
 		private FolderService $folderService,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IURLGenerator $urlGenerator,
 		private SystemConfig $systemConfig,
 		private CertificateEngineHandler $certificateEngineHandler,
@@ -122,7 +121,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function getHandler(): SignEngineHandler {
-		$sign_engine = $this->config->getAppValue(Application::APP_ID, 'sign_engine', 'JSignPdf');
+		$sign_engine = $this->appConfig->getAppValue('sign_engine', 'JSignPdf');
 		$property = lcfirst($sign_engine) . 'Handler';
 		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
@@ -149,11 +148,11 @@ class Pkcs12Handler extends SignEngineHandler {
 	 * @psalm-suppress MixedReturnStatement
 	 */
 	public function getFooter(File $file, string $uuid): string {
-		$add_footer = $this->config->getAppValue(Application::APP_ID, 'add_footer', 1);
+		$add_footer = (bool) $this->appConfig->getAppValue('add_footer', '1');
 		if (!$add_footer) {
 			return '';
 		}
-		$validation_site = $this->config->getAppValue(Application::APP_ID, 'validation_site');
+		$validation_site = $this->appConfig->getAppValue('validation_site');
 		if ($validation_site) {
 			$validation_site = rtrim($validation_site, '/').'/'.$uuid;
 		} else {
@@ -190,7 +189,7 @@ class Pkcs12Handler extends SignEngineHandler {
 			$pdf->SetAutoPageBreak(false);
 
 			$x = 10;
-			if ($this->config->getAppValue(Application::APP_ID, 'write_qrcode_on_footer', 1)) {
+			if ($this->appConfig->getAppValue('write_qrcode_on_footer', '1')) {
 				$this->writeQrCode($validation_site, $pdf);
 				$x += $this->qrCode->getSize();
 			}
@@ -201,12 +200,12 @@ class Pkcs12Handler extends SignEngineHandler {
 				iconv(
 					'UTF-8',
 					'windows-1252',
-					$this->config->getAppValue(Application::APP_ID, 'footer_first_row', $this->l10n->t('Digital signed by LibreSign.'))
+					$this->appConfig->getAppValue('footer_first_row', $this->l10n->t('Digital signed by LibreSign.'))
 				),
-				$this->config->getAppValue(Application::APP_ID, 'footer_link_to_site', 'https://libresign.coop')
+				$this->appConfig->getAppValue('footer_link_to_site', 'https://libresign.coop')
 			);
 
-			$footerSecondRow = $this->config->getAppValue(Application::APP_ID, 'footer_second_row', 'Validate in %s.');
+			$footerSecondRow = $this->appConfig->getAppValue('footer_second_row', 'Validate in %s.');
 			if ($footerSecondRow === 'Validate in %s.') {
 				$footerSecondRow = $this->l10n->t('Validate in %s.', $validation_site);
 			}

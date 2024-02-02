@@ -24,19 +24,26 @@ declare(strict_types=1);
 namespace OCA\Libresign\Tests\lib;
 
 use OC\AppConfig;
-use OC\DB\Connection;
+use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 
 class AppConfigOverwrite extends AppConfig {
 	/** @var string[][] */
 	private $overWrite = [];
 
 	public function __construct(
-		Connection $conn
+		IDBConnection $conn,
+		LoggerInterface $logger,
 	) {
-		parent::__construct($conn);
+		parent::__construct($conn, $logger);
 	}
 
-	public function getValue($app, $key, $default = null) {
+	public function getValueMixed(
+		string $app,
+		string $key,
+		string $default = '',
+		?bool $lazy = false
+	): string {
 		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
 			return $this->overWrite[$app][$key];
 		}
@@ -44,7 +51,14 @@ class AppConfigOverwrite extends AppConfig {
 		return parent::getValue($app, $key, $default);
 	}
 
-	public function setValue($app, $key, $value) {
+	public function setValueMixed(
+		string $app,
+		string $key,
+		string $value,
+		bool $lazy = false,
+		bool $sensitive = false
+	): bool {
 		$this->overWrite[$app][$key] = $value;
+		return true;
 	}
 }

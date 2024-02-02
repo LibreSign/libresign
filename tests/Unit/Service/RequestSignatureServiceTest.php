@@ -37,7 +37,6 @@ use OCP\Files\IMimeTypeDetector;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -53,7 +52,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	private IClientService|MockObject $clientService;
 	private IUserManager|MockObject $userManager;
 	private FolderService|MockObject $folderService;
-	private IConfig $config;
 	private ValidateHelper|MockObject $validateHelper;
 	private FileElementMapper|MockObject $fileElementMapper;
 	private FileElementService|MockObject $fileElementService;
@@ -77,7 +75,6 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->folderService = $this->createMock(FolderService::class);
-		$this->config = $this->createMock(IConfig::class);
 		$this->validateHelper = $this->createMock(ValidateHelper::class);
 		$this->fileElementMapper = $this->createMock(FileElementMapper::class);
 		$this->fileElementService = $this->createMock(FileElementService::class);

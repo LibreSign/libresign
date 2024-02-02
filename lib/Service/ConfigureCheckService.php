@@ -25,15 +25,14 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service;
 
 use OC\SystemConfig;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 
 class ConfigureCheckService {
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private SystemConfig $systemConfig,
 		private JSignPdfHandler $jSignPdfHandler,
 		private CertificateEngine $certificateEngine
@@ -71,7 +70,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkJSignPdf(): array {
-		$jsignpdJarPath = $this->config->getAppValue(Application::APP_ID, 'jsignpdf_jar_path');
+		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
 				if (!$this->isJavaOk()) {
@@ -131,7 +130,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkPdftk(): array {
-		$pdftkPath = $this->config->getAppValue(Application::APP_ID, 'pdftk_path');
+		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
 			if (file_exists($pdftkPath)) {
 				\exec($pdftkPath . " --version 2>&1", $version);
@@ -182,7 +181,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	private function checkJava(): array {
-		$javaPath = $this->config->getAppValue(Application::APP_ID, 'java_path');
+		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
 				\exec($javaPath . " -version 2>&1", $javaVersion);
