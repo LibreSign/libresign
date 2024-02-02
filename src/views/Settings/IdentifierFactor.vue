@@ -9,7 +9,7 @@
 				{{ option.friendly_name }}
 			</NcCheckboxRadioSwitch>
 			<div v-if="option.enabled">
-				<fieldset v-if="option.name === 'email' && option.enabled" class="settings-section__sub-section">
+				<fieldset v-if="option.name === 'email'" class="settings-section__sub-section">
 					<NcCheckboxRadioSwitch :checked.sync="option.can_create_account"
 						@change="save()">
 						{{ t('libresign', 'Request to create account when the user does not have an account') }}
