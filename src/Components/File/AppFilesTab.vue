@@ -48,6 +48,7 @@ export default {
 			this.signers = []
 			this.file = {
 				nodeId: fileInfo.id,
+				name: fileInfo.name
 			}
 			this.requestedBy = {}
 			this.requestDate = ''

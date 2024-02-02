@@ -168,7 +168,7 @@ export default {
 		},
 		async save() {
 			const params = {
-				name: this.name,
+				name: this.name.length > 0 ? this.name : this.file?.name,
 				users: [],
 			}
 			this.dataSigners.forEach(signer => {
