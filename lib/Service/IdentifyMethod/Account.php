@@ -24,20 +24,18 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -47,39 +45,31 @@ use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
 	public function __construct(
-		private IAppConfig $appConfig,
-		private IL10N $l10n,
+		protected IdentifyMethodService $identifyMethodService,
 		private IUserManager $userManager,
-		private SignRequestMapper $signRequestMapper,
 		private IEventDispatcher $eventDispatcher,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private FileMapper $fileMapper,
 		private IUserSession $userSession,
 		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
 		private IHasher $hasher,
-		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
 		private SessionService $sessionService,
-		private MailService $mail
+		private MailService $mail,
+		private Password $password,
+		private ClickToSign $clickToSign,
+		private EmailToken $emailToken,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Nextcloud acccount
-		$this->friendlyName = $this->l10n->t('Account');
+		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Account');
+		$this->signatureMethods = [
+			$this->password->getName() => $this->password,
+			$this->clickToSign->getName() => $this->clickToSign,
+			$this->emailToken->getName() => $this->emailToken,
+		];
 		parent::__construct(
-			$appConfig,
-			$l10n,
-			$identifyMethodMapper,
-			$signRequestMapper,
-			$fileMapper,
-			$root,
-			$hasher,
-			$userManager,
-			$urlGenerator,
-			$userMountCache,
-			$timeFactory,
-			$logger,
-			$sessionService,
+			$identifyMethodService,
 		);
 		$this->getSettings();
 	}
@@ -88,7 +78,7 @@ class Account extends AbstractIdentifyMethod {
 		if (!$this->willNotify) {
 			return;
 		}
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
 			$signRequest,
 			$this,
@@ -99,7 +89,7 @@ class Account extends AbstractIdentifyMethod {
 	public function validateToRequest(): void {
 		$signer = $this->userManager->get($this->entity->getIdentifierValue());
 		if (!$signer) {
-			throw new LibresignException($this->l10n->t('User not found.'));
+			throw new LibresignException($this->identifyMethodService->getL10n()->t('User not found.'));
 		}
 	}
 
@@ -123,7 +113,7 @@ class Account extends AbstractIdentifyMethod {
 			if (empty($signer) || count($signer) > 1) {
 				throw new LibresignException(json_encode([
 					'action' => JSActions::ACTION_DO_NOTHING,
-					'errors' => [$this->l10n->t('Invalid user')],
+					'errors' => [$this->identifyMethodService->getL10n()->t('Invalid user')],
 				]));
 			}
 			$signer = current($signer);
@@ -135,17 +125,17 @@ class Account extends AbstractIdentifyMethod {
 		if ($user !== $signer) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid user')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('Invalid user')],
 			]));
 		}
 	}
 
 	private function throwIfNotAuthenticated(?IUser $user = null): void {
 		if (!$user instanceof IUser) {
-			$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+			$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,
-				'errors' => [$this->l10n->t('You are not logged in. Please log in.')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('You are not logged in. Please log in.')],
 				'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 					'redirect_url' => $this->urlGenerator->linkToRoute(
 						'libresign.page.sign',
@@ -169,7 +159,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function isEnabledByDefault(): bool {
-		$config = $this->appConfig->getAppValue('identify_methods', '[]');
+		$config = $this->identifyMethodService->getAppConfig()->getAppValue('identify_methods', '[]');
 		$config = json_decode($config, true);
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			return true;

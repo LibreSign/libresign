@@ -24,56 +24,16 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Services\IAppConfig;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Files\Config\IUserMountCache;
-use OCP\Files\IRootFolder;
-use OCP\IL10N;
-use OCP\IURLGenerator;
-use OCP\IUserManager;
-use OCP\Security\IHasher;
-use Psr\Log\LoggerInterface;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
 class ClickToSign extends AbstractSignatureMethod {
 	public function __construct(
-		private IAppConfig $appConfig,
-		private IL10N $l10n,
-		private MailService $mail,
-		private SignRequestMapper $signRequestMapper,
-		private IdentifyMethodMapper $identifyMethodMapper,
-		private FileMapper $fileMapper,
-		private IUserManager $userManager,
-		private IURLGenerator $urlGenerator,
-		private IRootFolder $root,
-		private IHasher $hasher,
-		private IUserMountCache $userMountCache,
-		private ITimeFactory $timeFactory,
-		private LoggerInterface $logger,
-		private SessionService $sessionService,
-		private Pkcs12Handler $pkcs12Handler,
+		protected IdentifyMethodService $identifyMethodService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer only need to click to sign after was identified
-		$this->friendlyName = $this->l10n->t('Click to sign');
+		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Click to sign');
 		parent::__construct(
-			$appConfig,
-			$l10n,
-			$identifyMethodMapper,
-			$signRequestMapper,
-			$fileMapper,
-			$root,
-			$hasher,
-			$userManager,
-			$urlGenerator,
-			$userMountCache,
-			$timeFactory,
-			$logger,
-			$sessionService,
+			$identifyMethodService,
 		);
 	}
 }
