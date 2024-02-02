@@ -164,7 +164,7 @@ Feature: request-signature
     Then the response should have a status code 200
     And the response should contain the initial state "libresign-action" with the following values:
       """
-      250
+      2500
       """
 
   Scenario: Request to sign with error using account as identifier when the user don't exists
