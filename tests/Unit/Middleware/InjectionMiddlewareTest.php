@@ -117,7 +117,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public static function providerAfterException(): array {
 		return [
 			[
-				json_encode(['action' => 100]), 1, LibresignException::class,
+				json_encode(['action' => 1000]), 1, LibresignException::class,
 				function (self $self, $message, int $code, $actual) {
 					/** @var JSONResponse $actual */
 					$self->assertInstanceOf(
@@ -182,7 +182,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				},
 			],
 			[
-				json_encode(['action' => 100]), 1, PageException::class,
+				json_encode(['action' => 1000]), 1, PageException::class,
 				function (self $self, $message, int $code, $actual) {
 					/** @var TemplateResponse $actual */
 					$self->assertInstanceOf(
