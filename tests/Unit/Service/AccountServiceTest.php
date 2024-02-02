@@ -334,43 +334,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	private function mockValidateWithSuccess() {
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getId')],
-				[$this->equalTo('getFileId')],
-				[$this->equalTo('getUserId')],
-				[$this->equalTo('getNodeId')],
-			)
-			->will($this->returnValueMap([
-				['getId', [], 1],
-				['getFileId', [], 171],
-				['getUserId', [], 'username'],
-				['getNodeId', [], 171],
-			]));
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$this->fileMapper
-			->method('getById')
-			->will($this->returnValue($libresignFile));
-		$this->signRequestMapper
-			->method('getByUuid')
-			->will($this->returnValue($signRequest));
-
-		$this->root
-			->method('getById')
-			->will($this->returnValue(['fileToSign']));
-		$file = $this->createMock(\OCP\Files\File::class);
-		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder
-			->method('getById')
-			->willReturn([$file]);
-		$this->root
-			->method('getUserFolder')
-			->willReturn($folder);
-	}
-
 	public function testCreateToSignWithErrorInSendingEmail() {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
@@ -436,7 +399,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithoutGroups() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
@@ -445,7 +408,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithUserOutOfAuthorizedGroups() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('["admin"]');
 		$this->groupManager
@@ -457,7 +420,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithSuccess() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('["admin"]');
 		$this->groupManager
