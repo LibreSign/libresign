@@ -193,7 +193,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					$states = $self->initialStateService->getInitialStates();
 					$self->assertJsonStringEqualsJsonString(
 						json_encode([
-							'libresign-action' => '100',
+							'libresign-action' => '1000',
 						]),
 						json_encode($states),
 						'Invalid response params content'
