@@ -91,7 +91,7 @@ Feature: page/sign_identify_account
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:
       """
-      250
+      2500
       """
     And the response should contain the initial state "libresign-pdf" with the following values:
       """
