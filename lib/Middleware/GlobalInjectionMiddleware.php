@@ -31,8 +31,7 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Middleware;
 
 class GlobalInjectionMiddleware extends Middleware {
-	public function afterController(Controller $controller, string $methodName, Response $response)
-	{
+	public function afterController(Controller $controller, string $methodName, Response $response) {
 		if ($controller instanceof ViewController) {
 			$policy = new ContentSecurityPolicy();
 			$policy->allowEvalScript(true);
