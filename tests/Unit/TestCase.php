@@ -7,7 +7,6 @@ use donatj\MockWebServer\Response as MockWebServerResponse;
 use OC\SystemConfig;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AllConfigOverwrite;
-use OCA\Libresign\Tests\lib\AppConfigOverwrite;
 use OCA\Libresign\Tests\lib\ConfigOverwrite;
 use OCP\IConfig;
 
@@ -17,25 +16,7 @@ class TestCase extends \Test\TestCase {
 	private array $users = [];
 
 	public function mockAppConfig($config) {
-		$service = \OC::$server->get(\OC\AppConfig::class);
-		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OC\AppConfig::class, function () {
-				return new AppConfigOverwrite(
-					\OC::$server->get(\OCP\IDBConnection::class),
-					\OC::$server->get(\Psr\Log\LoggerInterface::class),
-				);
-			});
-			$service = \OC::$server->get(\OC\AppConfig::class);
-		}
-		if (is_subclass_of($service, \OC\AppConfig::class)) {
-			foreach ($config as $key => $value) {
-				if (is_array($value) || is_object($value)) {
-					$value = json_encode($value);
-				}
-				$service->setValue('libresign', $key, $value);
-			}
-			return;
-		}
+		$this->mockConfig(['libresign' => $config]);
 	}
 
 	public function mockConfig($config) {
@@ -90,6 +71,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function setUp(): void {
+		$this->mockAppConfig([]);
 		$this->getBinariesFromCache();
 		if ($this->iDependOnOthers() || !$this->IsDatabaseAccessAllowed()) {
 			return;

@@ -23,30 +23,29 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Tests\lib;
 
-use OC\AppConfig;
-use OCP\IDBConnection;
-use Psr\Log\LoggerInterface;
+use OC\AppFramework\Services\AppConfig;
+use OCP\IConfig;
 
 class AppConfigOverwrite extends AppConfig {
 	/** @var string[][] */
 	private $overWrite = [];
 
 	public function __construct(
-		IDBConnection $conn,
-		LoggerInterface $logger,
+		IConfig $config,
+		private string $appName,
 	) {
-		parent::__construct($conn, $logger);
+		parent::__construct($config, $appName);
 	}
 
-	public function getValue($app, $key, $default = null) {
-		if (isset($this->overWrite[$app]) && isset($this->overWrite[$app][$key])) {
-			return $this->overWrite[$app][$key];
+	public function getAppValue(string $key, string $default = ''): string {
+		if (isset($this->overWrite[$this->appName]) && isset($this->overWrite[$this->appName][$key])) {
+			return $this->overWrite[$this->appName][$key];
 		}
 
-		return parent::getValue($app, $key, $default);
+		return parent::getAppValue($this->appName, $key, $default);
 	}
 
-	public function setValue($app, $key, $value) {
-		$this->overWrite[$app][$key] = $value;
+	public function setAppValue(string $key, string $value): void {
+		$this->overWrite[$this->appName][$key] = $value;
 	}
 }

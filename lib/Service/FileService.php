@@ -430,7 +430,7 @@ class FileService {
 	}
 
 	public function getPage(string $uuid, int $page, string $uid): string {
-		$canPreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0');
+		$canPreviewAsImage = (bool) $this->appConfig->getAppValue('page_preview_as_image', '0');
 		if (!$canPreviewAsImage) {
 			throw new LibresignException($this->l10n->t('Page not found.'));
 		}

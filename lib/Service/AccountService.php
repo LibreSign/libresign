@@ -344,7 +344,7 @@ class AccountService {
 	}
 
 	private function canPreviewPageAsImage(): bool {
-		if ((bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0')) {
+		if ((bool) $this->appConfig->getAppValue('page_preview_as_image', '0')) {
 			return true;
 		}
 		return false;

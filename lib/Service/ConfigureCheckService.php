@@ -72,7 +72,7 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function canPreview(): array {
-		$pagePreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0');
+		$pagePreviewAsImage = (bool) $this->appConfig->getAppValue('page_preview_as_image', '0');
 		if (!$pagePreviewAsImage) {
 			return [];
 		}
