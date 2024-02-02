@@ -21,7 +21,7 @@ Feature: account/create_to_sign
     And the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value |
-      | action | 150   |
+      | action | 1500  |
     Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
       | uuid     | <SIGN_UUID>         |
       | email    | invalid@domain.test |
@@ -30,7 +30,7 @@ Feature: account/create_to_sign
     And the response should be a JSON array with the following mandatory values
       | key     | value                 |
       | message | This is not your file |
-      | action  | 200                   |
+      | action  | 2000                  |
 
 
   Scenario: Create with valid data
@@ -42,7 +42,7 @@ Feature: account/create_to_sign
     And the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value |
-      | action | 150   |
+      | action | 1500  |
     Then sending "post" to ocs "/apps/libresign/api/v1/account/create/<SIGN_UUID>"
       | uuid | <SIGN_UUID> |
       | email | signer1@domain.test |
