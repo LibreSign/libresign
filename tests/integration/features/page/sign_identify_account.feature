@@ -38,7 +38,7 @@ Feature: page/sign_identify_account
     Then the response should have a status code 404
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | action | 200 |
+      | action | 2000 |
       | errors | ["Invalid UUID"] |
     # invalid user
     When as user "admin"
@@ -46,7 +46,7 @@ Feature: page/sign_identify_account
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | action | 200 |
+      | action | 2000 |
       | errors | ["Invalid user"] |
     # unauthenticated user
     When as user ""
@@ -54,7 +54,7 @@ Feature: page/sign_identify_account
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | action | 100 |
+      | action | 1000 |
       | errors | ["You are not logged in. Please log in."] |
 
   Scenario: Open sign file with all data valid

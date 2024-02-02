@@ -12,7 +12,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                      |
-      | action | 200                                        |
+      | action | 2000                                       |
       | errors | ["You are not allowed to request signing"] |
 
   Scenario: Get error when try to request to sign without file name
@@ -45,7 +45,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value            |
-      | action | 200              |
+      | action | 2000             |
       | errors | ["Invalid user"] |
 
   Scenario: Request to sign with error when the user is not authenticated
@@ -65,7 +65,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                     |
-      | action | 100                                       |
+      | action | 1000                                      |
       | errors | ["You are not logged in. Please log in."] |
 
   Scenario: Request to sign with error when the authenticated user have an email different of signer
@@ -89,7 +89,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value                                  |
-      | action | 100                                    |
+      | action | 1000                                   |
       | errors | ["User already exists. Please login."] |
 
   Scenario: Request to sign with error when the link was expired
@@ -112,7 +112,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value             |
-      | action | 200               |
+      | action | 2000              |
       | errors | ["Link expired."] |
 
   Scenario: Request to sign with success when is necessary to renew the link
@@ -138,7 +138,7 @@ Feature: request-signature
     Then the response should have a status code 422
     And the response should be a JSON array with the following mandatory values
       | key    | value       |
-      | action | 450         |
+      | action | 4500        |
       | title | Link expired |
     Given my inbox is empty
     When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
