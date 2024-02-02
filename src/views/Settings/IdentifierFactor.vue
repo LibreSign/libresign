@@ -92,13 +92,15 @@ export default {
 			this.flagFirstSignatureMethodIfAllDisabled()
 			// Get only enabled
 			let props = this.options.filter(item => item.enabled)
-			// Save only enabled property, removing other properties
+			// Remove label from signature method, we don't need to save this
 			props = JSON.parse(JSON.stringify(props))
 				.map(item => {
 					Object.keys(item.signatureMethods).forEach(id => {
-						item.signatureMethods[id] = {
-							enabled: item.signatureMethods[id].enabled,
-						}
+						Object.keys(item.signatureMethods[id]).forEach(signatureMethdoPropName => {
+							if (signatureMethdoPropName === 'label') {
+								delete item.signatureMethods[id][signatureMethdoPropName]
+							}
+						})
 					})
 					return item
 				})
