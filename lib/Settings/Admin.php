@@ -29,8 +29,8 @@ use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
-use OCP\IConfig;
 use OCP\Settings\ISettings;
 use OCP\Util;
 
@@ -39,7 +39,7 @@ class Admin implements ISettings {
 		private IInitialState $initialState,
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private SignatureMethodService $SignatureMethodService,
 	) {
 	}
@@ -59,7 +59,7 @@ class Admin implements ISettings {
 		);
 		$this->initialState->provideInitialState(
 			'config_path',
-			$this->config->getAppValue(Application::APP_ID, 'config_path')
+			$this->appConfig->getAppValue('config_path')
 		);
 		return new TemplateResponse(Application::APP_ID, 'admin_settings');
 	}

@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod;
 
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequestMapper;
@@ -33,11 +32,11 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -49,7 +48,7 @@ use Psr\Log\LoggerInterface;
 class Account extends AbstractIdentifyMethod {
 	public const ID = 'account';
 	public function __construct(
-		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private IUserManager $userManager,
 		private SignRequestMapper $signRequestMapper,
@@ -69,7 +68,7 @@ class Account extends AbstractIdentifyMethod {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Nextcloud acccount
 		$this->friendlyName = $this->l10n->t('Account');
 		parent::__construct(
-			$config,
+			$appConfig,
 			$l10n,
 			$identifyMethodMapper,
 			$signRequestMapper,
@@ -171,7 +170,7 @@ class Account extends AbstractIdentifyMethod {
 	}
 
 	private function isEnabledByDefault(): bool {
-		$config = $this->config->getAppValue(Application::APP_ID, 'identify_methods', '[]');
+		$config = $this->appConfig->getAppValue('identify_methods', '[]');
 		$config = json_decode($config, true);
 		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
 			return true;

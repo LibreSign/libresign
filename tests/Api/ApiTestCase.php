@@ -47,10 +47,8 @@ class ApiTestCase extends TestCase {
 		$systemConfig->setValue('auth.bruteforce.protection.enabled', false);
 
 		// Reset settings
-		$this->mockConfig([
-			'libresign' => [
-				'identification_documents' => '0'
-			]
+		$this->mockAppConfig([
+			'identification_documents' => '0',
 		]);
 
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();

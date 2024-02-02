@@ -21,6 +21,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -50,6 +51,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private SignFileService|MockObject $signFile;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	private IMountProviderCollection|MockObject $mountProviderCollection;
 	private NewUserMailHelper|MockObject $newUserMail;
 	private IdentifyMethodService|MockObject $identifyMethodService;
@@ -83,6 +85,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->requestSignatureService = $this->createMock(RequestSignatureService::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->mountProviderCollection = $this->createMock(IMountProviderCollection::class);
 		$this->newUserMail = $this->createMock(NewUserMailHelper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -113,6 +116,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->requestSignatureService,
 			$this->certificateEngineHandler,
 			$this->config,
+			$this->appConfig,
 			$this->mountProviderCollection,
 			$this->newUserMail,
 			$this->identifyMethodService,
@@ -330,43 +334,6 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	private function mockValidateWithSuccess() {
-		$signRequest = $this->createMock(SignRequest::class);
-		$signRequest
-			->method('__call')
-			->withConsecutive(
-				[$this->equalTo('getId')],
-				[$this->equalTo('getFileId')],
-				[$this->equalTo('getUserId')],
-				[$this->equalTo('getNodeId')],
-			)
-			->will($this->returnValueMap([
-				['getId', [], 1],
-				['getFileId', [], 171],
-				['getUserId', [], 'username'],
-				['getNodeId', [], 171],
-			]));
-		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
-		$this->fileMapper
-			->method('getById')
-			->will($this->returnValue($libresignFile));
-		$this->signRequestMapper
-			->method('getByUuid')
-			->will($this->returnValue($signRequest));
-
-		$this->root
-			->method('getById')
-			->will($this->returnValue(['fileToSign']));
-		$file = $this->createMock(\OCP\Files\File::class);
-		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$folder
-			->method('getById')
-			->willReturn([$file]);
-		$this->root
-			->method('getUserFolder')
-			->willReturn($folder);
-	}
-
 	public function testCreateToSignWithErrorInSendingEmail() {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
@@ -432,7 +399,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithoutGroups() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('');
 		$user = $this->createMock(\OCP\IUser::class);
@@ -441,7 +408,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithUserOutOfAuthorizedGroups() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('["admin"]');
 		$this->groupManager
@@ -453,7 +420,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	}
 
 	public function testCanRequestSignWithSuccess() {
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
 			->willReturn('["admin"]');
 		$this->groupManager

@@ -49,7 +49,7 @@ final class AdminControllerTest extends ApiTestCase {
 			'cfssl_uri' => self::$server->getServerRoot() . '/api/v1/cfssl/',
 			'config_path' => 'vfs://home/'
 		];
-		$this->mockConfig(['libresign' => $cfsslConfig]);
+		$this->mockAppConfig($cfsslConfig);
 		$cfsslConfig['rootCert'] = json_decode($cfsslConfig['rootCert'], true);
 
 		// Configure request

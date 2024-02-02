@@ -38,11 +38,9 @@ final class NotifyControllerTest extends ApiTestCase {
 	 */
 	public function testNotifySignersWithSuccess() {
 		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
-		$this->mockConfig([
-			'libresign' => [
-				'groups_request_sign' => '["admin","testGroup"]',
-				'notifyUnsignedUser' => 0
-			]
+		$this->mockAppConfig([
+			'groups_request_sign' => '["admin","testGroup"]',
+			'notifyUnsignedUser' => 0,
 		]);
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],

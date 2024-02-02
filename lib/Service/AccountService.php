@@ -26,7 +26,6 @@ namespace OCA\Libresign\Service;
 
 use InvalidArgumentException;
 use OC\Files\Filesystem;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\FileMapper;
@@ -43,6 +42,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
@@ -87,6 +87,7 @@ class AccountService {
 		private RequestSignatureService $requestSignatureService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IConfig $config,
+		private IAppConfig $appConfig,
 		private IMountProviderCollection $mountProviderCollection,
 		private NewUserMailHelper $newUserMail,
 		private IdentifyMethodService $identifyMethodService,
@@ -253,7 +254,7 @@ class AccountService {
 	 * @return array[]
 	 */
 	public function getConfig(?IUser $user): array {
-		$info['identificationDocumentsFlow'] = $this->config->getAppValue(Application::APP_ID, 'identification_documents') ? true : false;
+		$info['identificationDocumentsFlow'] = $this->appConfig->getAppValue('identification_documents') ? true : false;
 		$info['hasSignatureFile'] = $this->hasSignatureFile($user);
 		$info['phoneNumber'] = $this->getPhoneNumber($user);
 		$info['isApprover'] = $this->validateHelper->userCanApproveValidationDocuments($user, false);
@@ -324,7 +325,7 @@ class AccountService {
 		if (!$user) {
 			return false;
 		}
-		$authorized = json_decode($this->config->getAppValue(Application::APP_ID, 'groups_request_sign', '["admin"]'));
+		$authorized = json_decode($this->appConfig->getAppValue('groups_request_sign', '["admin"]'));
 		if (empty($authorized)) {
 			return false;
 		}
@@ -343,7 +344,7 @@ class AccountService {
 	}
 
 	private function canPreviewPageAsImage(): bool {
-		if ((bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0')) {
+		if ((bool) $this->appConfig->getAppValue('page_preview_as_image', '0')) {
 			return true;
 		}
 		return false;
@@ -458,8 +459,8 @@ class AccountService {
 			if ($contentType !== 'image/png') {
 				throw new \Exception($this->l10n->t('Visible element file must be png.'));
 			}
-			$content = $response->getBody();
-			if (!$content) {
+			$content = (string) $response->getBody();
+			if (empty($content)) {
 				throw new \Exception($this->l10n->t('Empty file'));
 			}
 			$this->validateHelper->validateBase64($content, ValidateHelper::TYPE_VISIBLE_ELEMENT_USER);

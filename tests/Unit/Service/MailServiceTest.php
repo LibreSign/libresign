@@ -7,7 +7,7 @@ use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Service\MailService;
-use OCP\IConfig;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Mail\IMailer;
@@ -23,7 +23,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private FileMapper|MockObject $fileMapper;
 	private IL10N|MockObject $l10n;
 	private IURLGenerator|MockObject $urlGenerator;
-	private IConfig|MockObject $config;
+	private IAppConfig|MockObject $appConfig;
 	private MailService $service;
 
 	public function setUp(): void {
@@ -36,14 +36,14 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->service = new MailService(
 			$this->logger,
 			$this->mailer,
 			$this->fileMapper,
 			$this->l10n,
 			$this->urlGenerator,
-			$this->config
+			$this->appConfig
 		);
 	}
 
@@ -59,7 +59,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				['getUuid', [], 'asdfg'],
 				['getFileId', [], 1]
 			]));
-		
+
 		$file = $this->createMock(File::class);
 		$file
 			->method('__call')
@@ -68,9 +68,9 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileMapper
 			->method('getById')
 			->will($this->returnValue($file));
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
-			->willReturn(true);
+			->willReturn('1');
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
@@ -103,9 +103,9 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturnCallback(function () {
 				throw new \Exception("Error Processing Request", 1);
 			});
-		$this->config
+		$this->appConfig
 			->method('getAppValue')
-			->will($this->returnValue(true));
+			->will($this->returnValue('1'));
 		$actual = $this->service->notifyUnsignedUser($signRequest, 'a@b.coop');
 		$this->assertNull($actual);
 	}
