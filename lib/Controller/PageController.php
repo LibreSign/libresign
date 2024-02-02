@@ -165,7 +165,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->signatureMethodService->getMethods();
+		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
 		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
@@ -255,7 +255,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('visibleElements', []);
 		$this->initialState->provideInitialState('signers', []);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->signatureMethodService->getMethods();
+		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
 		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);

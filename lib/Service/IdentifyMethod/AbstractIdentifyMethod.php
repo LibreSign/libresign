@@ -38,7 +38,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
-	public string $friendlyName;
+	protected string $friendlyName;
 	protected ?IUser $user = null;
 	protected string $codeSentByUser = '';
 	protected array $settings = [];
@@ -57,6 +57,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 
 	public function getName(): string {
 		return $this->name;
+	}
+
+	public function getFriendlyName(): string {
+		return $this->friendlyName;
 	}
 
 	public function isEnabledAsSignatueMethod(): bool {
