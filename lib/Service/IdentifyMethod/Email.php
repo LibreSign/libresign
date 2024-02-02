@@ -25,58 +25,37 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\FileElementMapper;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
-use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUser;
-use OCP\IUserManager;
-use OCP\Security\IHasher;
-use Psr\Log\LoggerInterface;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
-		private IAppConfig $appConfig,
-		private IL10N $l10n,
+		protected IdentifyMethodService $identifyMethodService,
 		private MailService $mail,
-		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
-		private FileMapper $fileMapper,
-		private IUserManager $userManager,
-		private IURLGenerator $urlGenerator,
 		private IRootFolder $root,
-		private IHasher $hasher,
-		private IUserMountCache $userMountCache,
 		private ITimeFactory $timeFactory,
-		private LoggerInterface $logger,
 		private SessionService $sessionService,
 		private FileElementMapper $fileElementMapper,
+		private ClickToSign $clickToSign,
+		private EmailToken $emailToken,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->l10n->t('Email');
+		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Email');
+		$this->signatureMethods = [
+			$this->clickToSign->getName() => $this->clickToSign,
+			$this->emailToken->getName() => $this->emailToken,
+		];
 		parent::__construct(
-			$appConfig,
-			$l10n,
-			$identifyMethodMapper,
-			$signRequestMapper,
-			$fileMapper,
-			$root,
-			$hasher,
-			$userManager,
-			$urlGenerator,
-			$userMountCache,
-			$timeFactory,
-			$logger,
-			$sessionService,
+			$identifyMethodService,
 		);
 		$this->getSettings();
 	}
@@ -85,7 +64,7 @@ class Email extends AbstractIdentifyMethod {
 		if (!$this->willNotify) {
 			return;
 		}
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		if ($isNew) {
 			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
 			return;
@@ -121,7 +100,7 @@ class Email extends AbstractIdentifyMethod {
 			}
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Invalid user')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('Invalid user')],
 			]));
 		}
 	}
@@ -131,7 +110,7 @@ class Email extends AbstractIdentifyMethod {
 			return;
 		}
 		$email = $this->entity->getIdentifierValue();
-		$signer = $this->userManager->getByEmail($email);
+		$signer = $this->identifyMethodService->getUserManager()->getByEmail($email);
 		if (!$signer) {
 			return;
 		}
@@ -140,12 +119,12 @@ class Email extends AbstractIdentifyMethod {
 				return;
 			}
 		}
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		throw new LibresignException(json_encode([
 			'action' => JSActions::ACTION_REDIRECT,
-			'errors' => [$this->l10n->t('User already exists. Please login.')],
-			'redirect' => $this->urlGenerator->linkToRoute('core.login.showLoginForm', [
-				'redirect_url' => $this->urlGenerator->linkToRoute(
+			'errors' => [$this->identifyMethodService->getL10n()->t('User already exists. Please login.')],
+			'redirect' => $this->identifyMethodService->getUrlGenerator()->linkToRoute('core.login.showLoginForm', [
+				'redirect_url' => $this->identifyMethodService->getUrlGenerator()->linkToRoute(
 					'libresign.page.sign',
 					['uuid' => $signRequest->getUuid()]
 				),
@@ -156,11 +135,11 @@ class Email extends AbstractIdentifyMethod {
 	public function validateToCreateAccount(string $value): void {
 		$this->throwIfInvalidEmail();
 		$this->throwIfNotAllowedToCreateAccount();
-		if ($this->userManager->userExists($value)) {
-			throw new LibresignException($this->l10n->t('User already exists'));
+		if ($this->identifyMethodService->getUserManager()->userExists($value)) {
+			throw new LibresignException($this->identifyMethodService->getL10n()->t('User already exists'));
 		}
 		if ($this->getEntity()->getIdentifierValue() !== $value) {
-			throw new LibresignException($this->l10n->t('This is not your file'));
+			throw new LibresignException($this->identifyMethodService->getL10n()->t('This is not your file'));
 		}
 	}
 
@@ -168,14 +147,14 @@ class Email extends AbstractIdentifyMethod {
 		if (!$this->canCreateAccount) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('It is not possible to create new accounts.')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('It is not possible to create new accounts.')],
 			]));
 		}
 	}
 
 	private function throwIfInvalidEmail(): void {
 		if (!filter_var($this->entity->getIdentifierValue(), FILTER_VALIDATE_EMAIL)) {
-			throw new LibresignException($this->l10n->t('Invalid email'));
+			throw new LibresignException($this->identifyMethodService->getL10n()->t('Invalid email'));
 		}
 	}
 
@@ -189,7 +168,7 @@ class Email extends AbstractIdentifyMethod {
 				'can_create_account' => $this->canCreateAccount,
 			],
 			immutable: [
-				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
+				'test_url' => $this->identifyMethodService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
 		$this->canCreateAccount = $this->settings['can_create_account'];

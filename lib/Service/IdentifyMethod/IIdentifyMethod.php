@@ -35,6 +35,7 @@ interface IIdentifyMethod {
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
+	public function getSignatureMethods(): array;
 	public function getSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
 	public function notify(bool $isNew): void;

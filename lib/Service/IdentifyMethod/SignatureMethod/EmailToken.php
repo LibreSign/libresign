@@ -24,73 +24,17 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Db\FileElementMapper;
-use OCA\Libresign\Db\FileMapper;
-use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequestMapper;
-use OCA\Libresign\Service\MailService;
-use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Files\Config\IUserMountCache;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
-use OCP\IL10N;
-use OCP\IURLGenerator;
-use OCP\IUserManager;
-use OCP\Security\IHasher;
-use Psr\Log\LoggerInterface;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
 class EmailToken extends AbstractSignatureMethod {
 	public const ID = 'email';
 	public function __construct(
-		private IConfig $config,
-		private IL10N $l10n,
-		private MailService $mail,
-		private SignRequestMapper $signRequestMapper,
-		private IdentifyMethodMapper $identifyMethodMapper,
-		private FileMapper $fileMapper,
-		private IUserManager $userManager,
-		private IURLGenerator $urlGenerator,
-		private IRootFolder $root,
-		private IHasher $hasher,
-		private IUserMountCache $userMountCache,
-		private ITimeFactory $timeFactory,
-		private LoggerInterface $logger,
-		private SessionService $sessionService,
-		private FileElementMapper $fileElementMapper,
+		protected IdentifyMethodService $identifyMethodService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->l10n->t('Email token');
+		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Email token');
 		parent::__construct(
-			$config,
-			$l10n,
-			$identifyMethodMapper,
-			$signRequestMapper,
-			$fileMapper,
-			$root,
-			$hasher,
-			$userManager,
-			$urlGenerator,
-			$userMountCache,
-			$timeFactory,
-			$logger,
-			$sessionService,
+			$identifyMethodService,
 		);
-		$this->getSettings();
-	}
-
-	public function getSettings(): array {
-		if (!empty($this->settings)) {
-			return $this->settings;
-		}
-		$this->settings = parent::getSettingsFromDatabase(
-			default: [
-				'enabled' => false,
-			],
-			immutable: [
-				'test_url' => $this->urlGenerator->linkToRoute('settings.MailSettings.sendTestMail'),
-			]
-		);
-		return $this->settings;
 	}
 }
