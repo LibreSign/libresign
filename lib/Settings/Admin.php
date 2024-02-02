@@ -50,10 +50,6 @@ class Admin implements ISettings {
 			$this->identifyMethodService->getIdentifyMethodsSettings()
 		);
 		$this->initialState->provideInitialState(
-			'signature_methods',
-			$this->SignatureMethodService->getMethods()
-		);
-		$this->initialState->provideInitialState(
 			'certificate_engine',
 			$this->certificateEngineHandler->getEngine()->getName()
 		);
