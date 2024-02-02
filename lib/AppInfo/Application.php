@@ -32,6 +32,7 @@ use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedListener;
+use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
 use OCA\Libresign\Middleware\InjectionMiddleware;
 use OCA\Libresign\Notification\Notifier;
 use OCP\AppFramework\App;
@@ -61,6 +62,7 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function register(IRegistrationContext $context): void {
+		$context->registerMiddleWare(GlobalInjectionMiddleware::class, true);
 		$context->registerMiddleWare(InjectionMiddleware::class);
 
 		$context->registerNotifierService(Notifier::class);
