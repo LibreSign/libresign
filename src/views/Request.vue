@@ -181,6 +181,7 @@ export default {
 			} catch (err) {
 				this.error = err.response.data.errors
 				this.loading = false
+				onError(err)
 				return
 			}
 			await this.closeModalUploadFromUrl()
@@ -318,5 +319,9 @@ export default {
 button {
 	background-position-x: 8%;
 	padding: 13px 13px 13px 45px;
+}
+
+h2 {
+	font-weight: bold;
 }
 </style>

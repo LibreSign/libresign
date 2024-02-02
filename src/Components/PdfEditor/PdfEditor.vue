@@ -82,4 +82,8 @@ export default {
 audio, canvas, embed, iframe, img, object, svg, video {
 	display: unset;
 }
+
+canvas {
+	border-bottom: 2px solid #eee;
+}
 </style>
