@@ -54,7 +54,7 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 
 class ValidateHelper {
-	/** @var \OCP\Files\File[] */
+	/** @var \OCP\Files\Node[] */
 	private $file = [];
 
 	public const TYPE_TO_SIGN = 1;
@@ -429,11 +429,12 @@ class ValidateHelper {
 		$libresignFile = $this->fileMapper->getByFileId($nodeId);
 
 		$userFolder = $this->root->getUserFolder($libresignFile->getUserId());
-		$this->file[$nodeId] = $userFolder->getById($nodeId);
-		if (!empty($this->file[$nodeId])) {
-			$this->file[$nodeId] = $this->file[$nodeId][0];
+		$files = $userFolder->getById($nodeId);
+		if (!empty($files)) {
+			$this->file[$nodeId] = $files[0];
+			return $this->file[$nodeId];
 		}
-		return $this->file[$nodeId];
+		return [];
 	}
 
 	public function canRequestSign(IUser $user): void {
