@@ -72,6 +72,11 @@
       <code>LoadSidebar</code>
     </UndefinedClass>
   </file>
+  <file src="lib/Middleware/GlobalInjectionMiddleware.php">
+    <UndefinedClass occurrences="1">
+      <code>ViewController</code>
+    </UndefinedClass>
+  </file>
   <file src="lib/Migration/Version2040Date20211027183759.php">
     <MissingDependency occurrences="3">
       <code>$this-&gt;root</code>
