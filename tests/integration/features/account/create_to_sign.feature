@@ -30,7 +30,7 @@ Feature: account/create_to_sign
     And the response should be a JSON array with the following mandatory values
       | key     | value                 |
       | message | This is not your file |
-      | action  | 200                   |
+      | action  | 2000                  |
 
 
   Scenario: Create with valid data
