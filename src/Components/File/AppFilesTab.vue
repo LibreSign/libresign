@@ -24,7 +24,6 @@ export default {
 		return {
 			file: {},
 			signers: [],
-			name: '',
 			requestedBy: {},
 			requestDate: '',
 		}
@@ -50,13 +49,11 @@ export default {
 			this.file = {
 				nodeId: fileInfo.id,
 			}
-			this.name = fileInfo.name
 			this.requestedBy = {}
 			this.requestDate = ''
 			try {
 				const response = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${fileInfo.id}`))
 				this.signers = response.data.signers
-				this.name = response.data.name
 				this.file.uuid = response.data.uuid
 				this.requestedBy = response.data.requested_by
 				this.requestDate = response.data.request_date
