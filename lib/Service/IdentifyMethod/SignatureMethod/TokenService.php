@@ -25,10 +25,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\MailService;
-use OCP\Accounts\IAccountManager;
-use OCP\AppFramework\OCS\OCSForbiddenException;
-use OCP\IUser;
-use OCP\IUserSession;
 use OCP\Security\IHasher;
 use OCP\Security\ISecureRandom;
 
@@ -51,27 +47,27 @@ class TokenService {
 	 * @todo check this code and put to work
 	 */
 	public function sendCodeByGateway(string $code, string $gatewayName): void {
-	// 	$user = \OC::$server->get(IUserSession::class)->getUser();
-	// 	$gateway = $this->getGateway($user, $gatewayName);
+		// 	$user = \OC::$server->get(IUserSession::class)->getUser();
+		// 	$gateway = $this->getGateway($user, $gatewayName);
 
-	// 	$userAccount = $this->accountManager->getAccount($user);
-	// 	$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
-	// 	$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
-	// }
+		// 	$userAccount = $this->accountManager->getAccount($user);
+		// 	$identifier = $userAccount->getProperty(IAccountManager::PROPERTY_PHONE)->getValue();
+		// 	$gateway->send($user, $identifier, $this->l10n->t('%s is your LibreSign verification code.', $code));
+		// }
 
-	// /**
-	//  * @throws OCSForbiddenException
-	//  */
-	// private function getGateway(IUser $user, string $gatewayName): \OCA\TwoFactorGateway\Service\Gateway\IGateway {
-	// 	if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
-	// 		throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
-	// 	}
-	// 	$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
-	// 	$gateway = $factory->getGateway($gatewayName);
-	// 	if (!$gateway->getConfig()->isComplete()) {
-	// 		throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
-	// 	}
-	// 	return $gateway;
+		// /**
+		//  * @throws OCSForbiddenException
+		//  */
+		// private function getGateway(IUser $user, string $gatewayName): \OCA\TwoFactorGateway\Service\Gateway\IGateway {
+		// 	if (!$this->appManager->isEnabledForUser('twofactor_gateway', $user)) {
+		// 		throw new OCSForbiddenException($this->l10n->t('Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.', $gatewayName));
+		// 	}
+		// 	$factory = $this->serverContainer->get('\OCA\TwoFactorGateway\Service\Gateway\Factory');
+		// 	$gateway = $factory->getGateway($gatewayName);
+		// 	if (!$gateway->getConfig()->isComplete()) {
+		// 		throw new OCSForbiddenException($this->l10n->t('Gateway %s not configured on Two-Factor Gateway.', $gatewayName));
+		// 	}
+		// 	return $gateway;
 	}
 
 	public function sendCodeByEmail(string $email, string $displayName): string {
