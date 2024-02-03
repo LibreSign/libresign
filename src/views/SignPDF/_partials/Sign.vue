@@ -51,11 +51,16 @@
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('clickToSign')">
+					<NcButton @click="signMethodsStore.closeModal('clickToSign')"
+						:disabled="loading">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
+						:disabled="loading"
 						@click="signWithClick">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Confirm') }}
 					</NcButton>
 				</div>
@@ -110,6 +115,7 @@
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -129,6 +135,7 @@ export default {
 	components: {
 		NcModal,
 		NcButton,
+		NcLoadingIcon,
 		NcPasswordField,
 		CreatePassword,
 		SMSManager,
