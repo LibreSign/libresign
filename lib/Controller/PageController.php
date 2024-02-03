@@ -37,6 +37,7 @@ use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -66,6 +67,7 @@ class PageController extends AEnvironmentPageAwareController {
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
+		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
 		private IAppConfig $appConfig,
@@ -181,9 +183,9 @@ class PageController extends AEnvironmentPageAwareController {
 	private function provideSignerSignatues(): void {
 		$signatures = [];
 		if ($this->userSession->getUser()) {
-			$signatures = $this->accountService->getUserElements($this->userSession->getUser()->getUID());
+			$signatures = $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID());
 		} else {
-			$signatures = $this->accountService->getElementsFromSession($this->sessionService->getSessionId());
+			$signatures = $this->signerElementsService->getElementsFromSessionAsArray();
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
 	}

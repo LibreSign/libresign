@@ -97,6 +97,7 @@ class SignFileService {
 		protected LoggerInterface $logger,
 		private IAppConfig $appConfig,
 		protected ValidateHelper $validateHelper,
+		private SignerElementsService $signerElementsService,
 		private IRootFolder $root,
 		private IUserSession $userSession,
 		private IUserMountCache $userMountCache,
@@ -247,12 +248,17 @@ class SignFileService {
 				$nodeId = $userElement->getFileId();
 			}
 			try {
-				$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-				foreach ($mountsContainingFile as $fileInfo) {
-					$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+				if ($this->user instanceof IUser) {
+					$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+					foreach ($mountsContainingFile as $fileInfo) {
+						$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+					}
+					/** @var \OCP\Files\File[] */
+					$node = $this->root->getById($nodeId);
+				} else {
+					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+					$node = array_filter($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 				}
-				/** @var \OCP\Files\File[] */
-				$node = $this->root->getById($nodeId);
 				if (!$node) {
 					throw new \Exception('empty');
 				}
