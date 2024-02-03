@@ -691,14 +691,6 @@ class ValidateHelper {
 		}
 	}
 
-	public function canRequestCode(): void {
-		// @todo make the sign method to say if he can request code
-		$signatureMethods = $this->signatureMethodService->getMethods();
-		if (!array_key_exists('email', $signatureMethods)) {
-			throw new LibresignException($this->l10n->t('You do not have permission for this action.'));
-		}
-	}
-
 	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
 		// User that can approve validation documents don't need to have a valid
 		// document attached to their profile. If this were required, nobody

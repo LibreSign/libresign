@@ -412,8 +412,27 @@ class SignFileService {
 		}, $identifyMethods[$method]);
 	}
 
-	public function requestCode(SignRequestEntity $signRequest, string $method, string $identify = ''): string {
-		return $this->signMethod->requestCode($signRequest, $method, $identify);
+	public function requestCode(
+		SignRequestEntity $signRequest,
+		string $identifyMethodName,
+		string $signMethodName,
+		string $identify = ''
+	): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (empty($identifyMethods[$identifyMethodName])) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+		foreach ($identifyMethods[$identifyMethodName] as $identifyMethod) {
+			$signatureMethods = $identifyMethod->getSignatureMethods();
+			if (empty($signatureMethods[$signMethodName])) {
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
+			/** @var EmailToken $signatureMethod */
+			$signatureMethod = $signatureMethods[$signMethodName];
+			$signatureMethod->requestCode($identify);
+			return;
+		}
+		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
 	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
