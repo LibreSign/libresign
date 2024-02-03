@@ -169,6 +169,18 @@ class IdentifyMethodService {
 		return $return;
 	}
 
+	public function getIdentifiedMethod(int $signRequestId): IIdentifyMethod {
+		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($matrix as $identifyMethods) {
+			foreach ($identifyMethods as $identifyMethod) {
+				if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
+					return $identifyMethod;
+				}
+			}
+		}
+		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
+	}
+
 	public function getSignMethodsOfIdentifiedFactors(int $signRequestId): array {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
 		$return = [];
