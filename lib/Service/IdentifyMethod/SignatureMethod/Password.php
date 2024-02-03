@@ -47,4 +47,19 @@ class Password extends AbstractSignatureMethod {
 			throw new LibresignException($this->identifyMethodService->getL10n()->t('Invalid password'));
 		}
 	}
+
+	public function toArray(): array {
+		$return = parent::toArray();
+		$return['hasSignatureFile'] = $this->hasSignatureFile();
+		return $return;
+	}
+
+	private function hasSignatureFile(): bool {
+		try {
+			$this->pkcs12Handler->getPfx($this->user->getUID());
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
+	}
 }

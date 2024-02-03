@@ -8,10 +8,10 @@
 			</h2>
 
 			<div class="code-request">
-				<div v-if="email" class="email">
-					{{ email }}
+				<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
+					{{ signMethodsStore.blurredEmail() }}
 				</div>
-				<div v-if="needConfirmCode">
+				<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode">
 					{{ t('libresign', 'Enter the code you received') }}
 					<NcTextField maxlength="6"
 						:value.sync="token"
@@ -25,24 +25,29 @@
 					:disabled="loading"
 					:label="t('libresign', 'Email')"
 					:placeholder="t('libresign', 'Email')"
-					:value.sync="sendTo" />
+					:helper-text="errorMessage"
+					:error="errorMessage.length > 0"
+					:value.sync="sendTo"
+					@input="onChangeEmail" />
 
 				<div class="modal__button-row">
-					<NcButton v-if="needConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
+					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
 						{{ t('libresign', 'Request new code') }}
 					</NcButton>
-					<NcButton v-if="!needConfirmCode" :disabled="loading || !canRequestCode" @click="requestCode"
-						type="primary">
+					<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
+						:disabled="loading || !canRequestCode"
+						type="primary"
+						@click="requestCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
 						{{ t('libresign', 'Request code.') }}
 					</NcButton>
 
-					<NcButton v-if="needConfirmCode" :disabled="!canSendCode" @click="sendCode">
+					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="!canSendCode" @click="sendCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
@@ -63,8 +68,10 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
+import md5 from 'blueimp-md5'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
+import { useSignMethodsStore } from '../../../store/signMethods.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -80,16 +87,6 @@ export default {
 		NcButton,
 	},
 	props: {
-		email: {
-			type: String,
-			required: true,
-			default: '',
-		},
-		confirmCode: {
-			type: Boolean,
-			required: true,
-			default: false,
-		},
 		fileId: {
 			type: Number,
 			required: false,
@@ -101,38 +98,48 @@ export default {
 			default: '',
 		},
 	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
+	},
 	data: () => ({
 		token: '',
-		tokenRequested: false,
 		loading: false,
 		tokenLength: loadState('libresign', 'token_length', 6),
+		errorMessage: '',
 		sendTo: '',
 	}),
 	computed: {
 		canRequestCode() {
 			if (validateEmail(this.sendTo)) {
+				if (md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
+					return false
+				}
 				return true
 			}
 			return false
 		},
-		needConfirmCode() {
-			return this.tokenRequested
-		},
 		canSendCode() {
-			return this.tokenRequested && !this.loading && this.token.length === this.tokenLength
+			return this.signMethodsStore.settings.emailToken.hasConfirmCode && !this.loading && this.token.length === this.tokenLength
 		},
-	},
-	mounted() {
-		this.tokenRequested = this.confirmCode
 	},
 	methods: {
+		onChangeEmail() {
+			if (validateEmail(this.sendTo)) {
+				if (md5(this.sendTo) !== this.signMethodsStore.settings.emailToken.hashOfEmail) {
+					this.errorMessage = t('libresign', 'Invalid email')
+					return
+				}
+				this.errorMessage = ''
+			}
+		},
 		requestNewCode() {
-			this.tokenRequested = false
+			this.signMethodsStore.hasEmailConfirmCode(false)
 			this.token = ''
 		},
 		async requestCode() {
 			this.loading = true
-			this.tokenRequested = false
+			this.signMethodsStore.hasEmailConfirmCode(false)
 
 			await this.$nextTick()
 
@@ -158,7 +165,7 @@ export default {
 					)
 					showSuccess(data.message)
 				}
-				this.tokenRequested = true
+				this.signMethodsStore.hasEmailConfirmCode(true)
 			} catch (err) {
 				onError(err)
 			} finally {
