@@ -33,7 +33,6 @@ use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
@@ -57,7 +56,6 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
-use Wobeto\EmailBlur\Blur;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -163,7 +161,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
 		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
-		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
@@ -189,25 +186,6 @@ class PageController extends AEnvironmentPageAwareController {
 			$signatures = $this->accountService->getElementsFromSession($this->sessionService->getSessionId());
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
-	}
-
-	private function provideBlurredEmail(array $signatureMethods, ?string $email): void {
-		if (empty($email)) {
-			foreach ($signatureMethods as $id => $method) {
-				if ($id === EmailToken::getId()) {
-					$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($this->getSignRequestEntity()->getId());
-					if (isset($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL])) {
-						$method = current($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL]);
-						$email = $method->getEntity()->getIdentifierValue();
-						break;
-					}
-				}
-			}
-		}
-		if (!empty($email)) {
-			$blur = new Blur($email);
-			$this->initialState->provideInitialState('blurred_email', $blur->make());
-		}
 	}
 
 	/**
@@ -253,7 +231,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('signers', []);
 		$this->provideSignerSignatues();
 		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
-		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', '');

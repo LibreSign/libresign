@@ -181,6 +181,9 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return $this->getCode(null, $fileId);
 	}
 
+	/**
+	 * @todo validate if can request code
+	 */
 	private function getCode(string $uuid = null, int $fileId = null): JSONResponse {
 		try {
 			try {
