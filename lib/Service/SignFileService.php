@@ -82,7 +82,7 @@ class SignFileService {
 	private ?Node $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
-	private IUser $user;
+	private ?IUser $user;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -215,7 +215,7 @@ class SignFileService {
 		return $this;
 	}
 
-	public function setCurrentUser(IUser $user): self {
+	public function setCurrentUser(?IUser $user): self {
 		$this->user = $user;
 		return $this;
 	}
@@ -231,16 +231,22 @@ class SignFileService {
 			});
 			if ($element) {
 				$c = current($element);
-				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
+				if (!empty($c['profileElementId'])) {
+					$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
+					$nodeId = $userElement->getFileId();
+				} elseif (!empty($c['profileFileId'])) {
+					$nodeId = $c['profileFileId'];
+				} else {
+					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+				}
 			} else {
 				$userElement = $this->userElementMapper->findOne([
 					'user_id' => $this->user->getUID(),
 					'type' => $fileElement->getType(),
 				]);
+				$nodeId = $userElement->getFileId();
 			}
 			try {
-				$nodeId = $userElement->getFileId();
-
 				$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
 				foreach ($mountsContainingFile as $fileInfo) {
 					$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());

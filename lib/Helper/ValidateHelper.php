@@ -721,7 +721,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateCredentials(SignRequest $signRequest, IUser $user, string $identifyMethodName, string $identifyValue, string $token): void {
+	public function validateCredentials(SignRequest $signRequest, ?IUser $user, string $identifyMethodName, string $identifyValue, string $token): void {
 		$this->validateIfIdentifyMethodExists($identifyMethodName);
 		if ($signRequest->getId()) {
 			$multidimensionalList = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
@@ -737,7 +737,7 @@ class ValidateHelper {
 		} else {
 			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
 		}
-		if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
+		if ($signRequest->getSigned()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
 		}
 		$identifyMethod->setUser($user);
