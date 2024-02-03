@@ -33,6 +33,7 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
+use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
@@ -72,6 +73,8 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
 	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
