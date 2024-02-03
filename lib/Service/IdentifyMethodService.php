@@ -93,6 +93,9 @@ class IdentifyMethodService {
 
 	private function getNewInstanceOfMethod(string $name): IIdentifyMethod {
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
+		if (!class_exists($className)) {
+			$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
+		}
 		$identifyMethod = clone \OC::$server->get($className);
 		if (empty($this->currentIdentifyMethod)) {
 			$identifyMethod->cleanEntity();
