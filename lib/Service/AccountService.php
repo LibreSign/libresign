@@ -61,7 +61,7 @@ use Throwable;
 
 class AccountService {
 	private ?SignRequest $signRequest = null;
-	private \OCA\Libresign\Db\File $fileData;
+	private ?\OCA\Libresign\Db\File $fileData = null;
 	private \OCP\Files\File $fileToSign;
 
 	public function __construct(
@@ -127,7 +127,7 @@ class AccountService {
 
 	public function getFileByUuid(string $uuid): array {
 		$signRequest = $this->getSignRequestByUuid($uuid);
-		if (!$this->fileData) {
+		if (!$this->fileData instanceof \OCA\Libresign\Db\File) {
 			$this->fileData = $this->fileMapper->getById($signRequest->getFileId());
 
 			$nodeId = $this->fileData->getNodeId();
