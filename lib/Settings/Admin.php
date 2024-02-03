@@ -27,7 +27,6 @@ namespace OCA\Libresign\Settings;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Services\IInitialState;
@@ -40,7 +39,6 @@ class Admin implements ISettings {
 		private IdentifyMethodService $identifyMethodService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IAppConfig $appConfig,
-		private SignatureMethodService $SignatureMethodService,
 	) {
 	}
 	public function getForm(): TemplateResponse {

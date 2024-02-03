@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\Db\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Exception\LibresignException;
@@ -50,6 +51,7 @@ class IdentifyMethodService {
 		self::IDENTIFY_PASSWORD,
 		self::IDENTIFY_CLICK_TO_SIGN,
 	];
+	private ?IdentifyMethod $currentIdentifyMethod = null;
 	private array $identifyMethodsSettings = [];
 	/**
 	 * @var array<string,array<IIdentifyMethod>>
@@ -76,9 +78,11 @@ class IdentifyMethodService {
 		$identifyMethod = $this->getNewInstanceOfMethod($name);
 
 		$entity = $identifyMethod->getEntity();
-		$entity->setIdentifierKey($name);
-		$entity->setIdentifierValue($identifyValue);
-		$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+		if (!$entity->getId()) {
+			$entity->setIdentifierKey($name);
+			$entity->setIdentifierValue($identifyValue);
+			$entity->setMandatory($this->isMandatoryMethod($name) ? 1 : 0);
+		}
 		if ($identifyValue) {
 			$identifyMethod->validateToRequest();
 		}
@@ -90,7 +94,11 @@ class IdentifyMethodService {
 	private function getNewInstanceOfMethod(string $name): IIdentifyMethod {
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
 		$identifyMethod = clone \OC::$server->get($className);
-		$identifyMethod->cleanEntity();
+		if (empty($this->currentIdentifyMethod)) {
+			$identifyMethod->cleanEntity();
+		} else {
+			$identifyMethod->setEntity($this->currentIdentifyMethod);
+		}
 		return $identifyMethod;
 	}
 
@@ -141,11 +149,11 @@ class IdentifyMethodService {
 	public function getIdentifyMethodsFromSignRequestId(int $signRequestId): array {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($entities as $entity) {
-			$identifyMethod = $this->getInstanceOfIdentifyMethod(
+			$this->currentIdentifyMethod = $entity;
+			$this->getInstanceOfIdentifyMethod(
 				$entity->getIdentifierKey(),
 				$entity->getIdentifierValue(),
 			);
-			$identifyMethod->setEntity($entity);
 		}
 		$return = [];
 		foreach ($this->identifyMethods as $methodName => $list) {
@@ -170,9 +178,7 @@ class IdentifyMethodService {
 					if (!$signatureMethod->isEnabled()) {
 						continue;
 					}
-					$return[$signatureMethod->getName()] = [
-						'label' => $signatureMethod->getFriendlyName(),
-					];
+					$return[$signatureMethod->getName()] = $signatureMethod->toArray();
 				}
 			}
 		}

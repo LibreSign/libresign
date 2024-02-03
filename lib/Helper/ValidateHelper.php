@@ -40,7 +40,6 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
@@ -78,7 +77,6 @@ class ValidateHelper {
 		private UserElementMapper $userElementMapper,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IdentifyMethodService $identifyMethodService,
-		private SignatureMethodService $signatureMethodService,
 		private IMimeTypeDetector $mimeTypeDetector,
 		private IHasher $hasher,
 		private IAppConfig $appConfig,

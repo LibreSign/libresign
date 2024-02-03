@@ -29,7 +29,6 @@ use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
 class Password extends AbstractSignatureMethod {
-	public const ID = 'password';
 	public function __construct(
 		protected IdentifyMethodService $identifyMethodService,
 		protected Pkcs12Handler $pkcs12Handler,

@@ -11,7 +11,6 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -50,7 +49,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private UserElementMapper|MockObject $userElementMapper;
 	private IEventDispatcher|MockObject $eventDispatcher;
 	private IURLGenerator|MockObject $urlGenerator;
-	private SignatureMethodService|MockObject $signMethod;
 	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private ITempManager|MockObject $tempManager;
 	private IdentifyMethodService $identifyMethodService;
@@ -80,7 +78,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$this->signMethod = $this->createMock(SignatureMethodService::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->tempManager = $this->createMock(ITempManager::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -108,7 +105,6 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userElementMapper,
 			$this->eventDispatcher,
 			$this->urlGenerator,
-			$this->signMethod,
 			$this->identifyMethodMapper,
 			$this->tempManager,
 			$this->identifyMethodService,

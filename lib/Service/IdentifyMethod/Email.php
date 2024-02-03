@@ -57,7 +57,6 @@ class Email extends AbstractIdentifyMethod {
 		parent::__construct(
 			$identifyMethodService,
 		);
-		$this->getSettings();
 	}
 
 	public function notify(bool $isNew): void {
@@ -87,6 +86,22 @@ class Email extends AbstractIdentifyMethod {
 		$this->throwIfAlreadySigned();
 		$this->renewSession();
 		$this->updateIdentifiedAt();
+	}
+
+	protected function throwIfNeedToCreateAccount() {
+		$settings = $this->getSettings();
+		if (!$settings['can_create_account']) {
+			return;
+		}
+		if ($this->identifyMethodService->getSessionService()->getSignStartTime()) {
+			return;
+		}
+		$email = $this->getEntity()->getIdentifierValue();
+		throw new LibresignException(json_encode([
+			'action' => JSActions::ACTION_CREATE_USER,
+			'settings' => ['accountHash' => md5($email)],
+			'message' => $this->identifyMethodService->getL10n()->t('You need to create an account to sign this file.'),
+		]));
 	}
 
 	private function throwIfIsAuthenticatedWithDifferentAccount(?IUser $user): void {
@@ -144,7 +159,8 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	private function throwIfNotAllowedToCreateAccount(): void {
-		if (!$this->canCreateAccount) {
+		$settings = $this->getSettings();
+		if (!$settings['can_create_account']) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
 				'errors' => [$this->identifyMethodService->getL10n()->t('It is not possible to create new accounts.')],
@@ -165,13 +181,12 @@ class Email extends AbstractIdentifyMethod {
 		$this->settings = parent::getSettingsFromDatabase(
 			default: [
 				'enabled' => false,
-				'can_create_account' => $this->canCreateAccount,
+				'can_create_account' => true,
 			],
 			immutable: [
 				'test_url' => $this->identifyMethodService->getUrlGenerator()->linkToRoute('settings.MailSettings.sendTestMail'),
 			]
 		);
-		$this->canCreateAccount = $this->settings['can_create_account'];
 		return $this->settings;
 	}
 }

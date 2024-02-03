@@ -71,7 +71,6 @@ class Account extends AbstractIdentifyMethod {
 		parent::__construct(
 			$identifyMethodService,
 		);
-		$this->getSettings();
 	}
 
 	public function notify(bool $isNew): void {

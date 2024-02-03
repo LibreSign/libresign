@@ -27,4 +27,5 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 interface ISignatureMethod {
 	public function enable(): void;
 	public function isEnabled(): bool;
+	public function toArray(): array;
 }

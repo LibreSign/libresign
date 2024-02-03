@@ -13,7 +13,6 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethodService;
-use OCA\Libresign\Service\SignatureMethodService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IMimeTypeDetector;
@@ -35,7 +34,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private UserElementMapper|MockObject $userElementMapper;
 	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
 	private IdentifyMethodService $identifyMethodService;
-	private SignatureMethodService|MockObject $signatureMethodService;
 	private IMimeTypeDetector $mimeTypeDetector;
 	private IHasher $hasher;
 	private IAppConfig|MockObject $appConfig;
@@ -57,7 +55,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$this->signatureMethodService = $this->createMock(SignatureMethodService::class);
 		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -78,7 +75,6 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->userElementMapper,
 			$this->identifyMethodMapper,
 			$this->identifyMethodService,
-			$this->signatureMethodService,
 			$this->mimeTypeDetector,
 			$this->hasher,
 			$this->appConfig,
