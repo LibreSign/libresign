@@ -81,7 +81,7 @@
 				</div>
 			</div>
 		</NcModal>
-		<Draw v-if="signatureMethods.createSignature.modal"
+		<Draw v-if="signatureMethods?.createSignature?.modal"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
@@ -91,7 +91,7 @@
 			<CreatePassword @password:created="onPasswordCreate"
 				@close="modalCreatePassword = false" />
 		</NcModal>
-		<SMSManager v-if="signatureMethods.sms.modal"
+		<SMSManager v-if="signatureMethods?.sms?.modal"
 			:phone-number="user?.account?.phoneNumber"
 			:uuid="uuid"
 			:file-id="document.fileId"
@@ -100,7 +100,7 @@
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
-		<EmailManager v-if="signatureMethods.email.modal"
+		<EmailManager v-if="signatureMethods?.email?.modal"
 			:email="blurredEmail"
 			:uuid="uuid"
 			:file-id="document.fileId"
@@ -158,8 +158,6 @@ export default {
 		for (const methodId of Object.keys(signatureMethods)) {
 			signatureMethods[methodId].modal = false
 		}
-		signatureMethods.createSignature = { modal: false }
-		signatureMethods.sms = { modal: false }
 		return {
 			loading: true,
 			user: {
@@ -206,7 +204,6 @@ export default {
 		},
 		needCreatePassword() {
 			return Object.hasOwn(this.signatureMethods, 'password')
-				&& this.signatureMethods.password.enabled
 				&& !this.hasSignatureFile
 		},
 		needSignature() {
@@ -214,16 +211,14 @@ export default {
 				&& !this.hasSignatures
 		},
 		needEmailCode() {
-			return this.signatureMethods.email.enabled
+			return Object.hasOwn(this.signatureMethods, 'email')
 				&& this.signatureMethods.email.validateCode
 		},
 		needClickToSign() {
 			return Object.hasOwn(this.signatureMethods, 'clickToSign')
-				&& this.signatureMethods.clickToSign.enabled
 		},
 		needSmsCode() {
 			return Object.hasOwn(this.signatureMethods, 'sms')
-				&& this.signatureMethods.sms.enabled
 				&& this.signatureMethods.sms.validateCode
 		},
 		ableToSign() {
