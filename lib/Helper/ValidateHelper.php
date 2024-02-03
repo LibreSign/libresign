@@ -312,7 +312,7 @@ class ValidateHelper {
 		$this->validateUserHasNecessaryElements($signRequest, $user, $list);
 	}
 
-	private function validateUserHasNecessaryElements(SignRequest $signRequest, IUser $user, array $list = []): void {
+	private function validateUserHasNecessaryElements(SignRequest $signRequest, ?IUser $user, array $list = []): void {
 		$fileElements = $this->fileElementMapper->getByFileIdAndSignRequestId($signRequest->getFileId(), $signRequest->getId());
 		$total = array_filter($fileElements, function (FileElement $fileElement) use ($list, $user, $signRequest): bool {
 			$found = array_filter($list, function ($item) use ($fileElement): bool {
@@ -320,6 +320,9 @@ class ValidateHelper {
 			});
 			if (!$found) {
 				try {
+					if (!$user instanceof $user) {
+						throw new \Exception();
+					}
 					$this->userElementMapper->findMany([
 						'user_id' => $user->getUID(),
 						'type' => $fileElement->getType(),
