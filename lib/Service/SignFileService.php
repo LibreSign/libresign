@@ -270,7 +270,6 @@ class SignFileService {
 			file_put_contents($tempFile, $node->getContent());
 			$visibleElements = new VisibleElementAssoc(
 				$fileElement,
-				$userElement,
 				$tempFile
 			);
 			$this->elements[] = $visibleElements;
