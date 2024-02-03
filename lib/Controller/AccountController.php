@@ -37,6 +37,7 @@ use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\ApiController;
@@ -68,6 +69,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 		private AccountFileService $accountFileService,
 		private AccountFileMapper $accountFileMapper,
 		protected SignFileService $signFileService,
+		private SignerElementsService $signerElementsService,
 		private Pkcs12Handler $pkcs12Handler,
 		private Chain $loginChain,
 		private IURLGenerator $urlGenerator,
@@ -280,8 +282,8 @@ class AccountController extends ApiController implements ISignatureUuid {
 				'elements' =>
 					(
 						$this->userSession->getUser() instanceof IUser
-						? $this->accountService->getUserElements($this->userSession->getUser()->getUID())
-						: $this->accountService->getElementsFromSession($this->sessionService->getSessionId())
+						? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())
+						: $this->signerElementsService->getElementsFromSessionAsArray()
 					),
 			],
 			Http::STATUS_OK
@@ -298,8 +300,8 @@ class AccountController extends ApiController implements ISignatureUuid {
 					'elements' =>
 						(
 							$userId
-							? $this->accountService->getUserElements($userId)
-							: $this->accountService->getElementsFromSession($this->sessionService->getSessionId())
+							? $this->signerElementsService->getUserElements($userId)
+							: $this->signerElementsService->getElementsFromSessionAsArray()
 						)
 				],
 				Http::STATUS_OK
@@ -328,8 +330,8 @@ class AccountController extends ApiController implements ISignatureUuid {
 		}
 		$preview = $this->preview->getPreview(
 			file: $node,
-			width: AccountService::ELEMENT_SIGN_WIDTH,
-			height: AccountService::ELEMENT_SIGN_HEIGHT,
+			width: SignerElementsService::ELEMENT_SIGN_WIDTH,
+			height: SignerElementsService::ELEMENT_SIGN_HEIGHT,
 		);
 		$response = new FileDisplayResponse($preview, Http::STATUS_OK, [
 			'Content-Type' => $preview->getMimeType(),
@@ -343,7 +345,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
-				$this->accountService->getUserElementByElementId($userId, $elementId),
+				$this->signerElementsService->getUserElementByElementId($userId, $elementId),
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
