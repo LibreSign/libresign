@@ -26,7 +26,7 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
-class EmailToken extends AbstractSignatureMethod {
+class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function __construct(
 		protected IdentifyMethodService $identifyMethodService,
 		protected TokenService $tokenService,
@@ -43,5 +43,17 @@ class EmailToken extends AbstractSignatureMethod {
 		$entity = $this->getEntity();
 		$return['needCode'] = empty($entity->getCode());
 		return $return;
+	}
+
+	public function requestCode(string $identify): void {
+		$signRequestMapper = $this->identifyMethodService->getSignRequestMapper();
+		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
+		$displayName = $signRequest->getDisplayName();
+		if ($identify === $displayName) {
+			$displayName = '';
+		}
+		$code = $this->tokenService->sendCodeByEmail($identify, $displayName);
+		$this->getEntity()->setCode($code);
+		$this->identifyMethodService->save($this->getEntity());
 	}
 }

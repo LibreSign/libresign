@@ -168,6 +168,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
 	}
@@ -190,12 +191,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
-			$this->validateHelper->canRequestCode();
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
-				method: $this->request->getParam('method', ''),
+				identifyMethodName: $this->request->getParam('identifyMethod', ''),
+				signMethodName: $this->request->getParam('signMethod', ''),
 				identify: $this->request->getParam('identify', ''),
 			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
