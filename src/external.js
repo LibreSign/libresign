@@ -24,6 +24,7 @@
 import { generateFilePath } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
 import Vue from 'vue'
+import { createPinia, PiniaVuePlugin } from 'pinia'
 
 import External from './External.vue'
 import router from './router/router.js'
@@ -51,9 +52,14 @@ Vue.prototype.n = n
 Vue.prototype.OC = OC
 Vue.prototype.OCA = OCA
 
+Vue.use(PiniaVuePlugin)
+
+const pinia = createPinia()
+
 export default new Vue({
 	el: '#content',
 	router,
 	store,
+	pinia,
 	render: h => h(External),
 })

@@ -32,4 +32,7 @@
             </errorLevel>
         </UndefinedDocblockClass>
     </issueHandlers>
+    <stubs>
+        <file name="tests/stubs/oc_hooks_emitter.php" />
+    </stubs>
 </psalm>

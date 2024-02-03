@@ -34,7 +34,6 @@ use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\FileService;
-use OCA\Libresign\Service\SignatureMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\Http;
@@ -57,7 +56,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		protected SignFileService $signFileService,
-		protected SignatureMethodService $signatureMethodService,
 		private FileService $fileService,
 		protected LoggerInterface $logger
 	) {
@@ -67,6 +65,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[PublicPage]
 	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
@@ -74,6 +73,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
 	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
@@ -83,16 +83,16 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
 				$user,
-				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
+				$this->fileService->getIdentificationDocumentsStatus($user?->getUID())
 			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
-			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $user);
+			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
 			$this->validateHelper->validateCredentials($signRequest, $user, $method, $identifyValue, $token);
 			if ($method === 'password') {
 				$this->signFileService->setPassword($identifyValue);
 			} else {
-				$this->signFileService->setSignWithoutPassword(false);
+				$this->signFileService->setSignWithoutPassword(true);
 			}
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
@@ -170,6 +170,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
 	public function getCodeUsingUuid(string $uuid): JSONResponse {
 		return $this->getCode($uuid);
 	}
@@ -177,10 +178,14 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
 	public function getCodeUsingFileId(int $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);
 	}
 
+	/**
+	 * @todo validate if can request code
+	 */
 	private function getCode(string $uuid = null, int $fileId = null): JSONResponse {
 		try {
 			try {
@@ -192,12 +197,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 			}
-			$this->validateHelper->canRequestCode();
 			$libreSignFile = $this->fileMapper->getById($signRequest->getFileId());
 			$this->validateHelper->fileCanBeSigned($libreSignFile);
 			$this->signFileService->requestCode(
 				signRequest: $signRequest,
-				method: $this->request->getParam('method', ''),
+				identifyMethodName: $this->request->getParam('identifyMethod', ''),
+				signMethodName: $this->request->getParam('signMethod', ''),
 				identify: $this->request->getParam('identify', ''),
 			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');

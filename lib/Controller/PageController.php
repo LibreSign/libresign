@@ -33,10 +33,11 @@ use OCA\Libresign\Middleware\Attribute\RequireSetupOk;
 use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\TokenService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Service\SessionService;
-use OCA\Libresign\Service\SignatureMethodService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -56,7 +57,6 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
-use Wobeto\EmailBlur\Blur;
 
 class PageController extends AEnvironmentPageAwareController {
 	public function __construct(
@@ -67,9 +67,9 @@ class PageController extends AEnvironmentPageAwareController {
 		private AccountService $accountService,
 		protected SignFileService $signFileService,
 		protected RequestSignatureService $requestSignatureService,
+		private SignerElementsService $signerElementsService,
 		protected IL10N $l10n,
 		private IdentifyMethodService $identifyMethodService,
-		private SignatureMethodService $signatureMethodService,
 		private IAppConfig $appConfig,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper,
@@ -148,9 +148,6 @@ class PageController extends AEnvironmentPageAwareController {
 				$this->getSignRequestEntity(),
 			)
 		);
-		$this->initialState->provideInitialState('identifyMethods',
-			$this->signFileService->getAvailableIdentifyMethodsFromSignRequest($this->getSignRequestEntity())
-		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
 			->setFile($this->getFileEntity())
@@ -165,10 +162,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->signatureMethodService->getMethods();
-		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
+		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
-		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
+		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
@@ -187,30 +183,11 @@ class PageController extends AEnvironmentPageAwareController {
 	private function provideSignerSignatues(): void {
 		$signatures = [];
 		if ($this->userSession->getUser()) {
-			$signatures = $this->accountService->getUserElements($this->userSession->getUser()->getUID());
+			$signatures = $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID());
 		} else {
-			$signatures = $this->accountService->getElementsFromSession($this->sessionService->getSessionId());
+			$signatures = $this->signerElementsService->getElementsFromSessionAsArray();
 		}
 		$this->initialState->provideInitialState('user_signatures', $signatures);
-	}
-
-	private function provideBlurredEmail(array $signatureMethods, ?string $email): void {
-		if (empty($email)) {
-			foreach ($signatureMethods as $id => $method) {
-				if ($id === IdentifyMethodService::IDENTIFY_EMAIL) {
-					$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($this->getSignRequestEntity()->getId());
-					if (isset($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL])) {
-						$method = current($identifyMethods[IdentifyMethodService::IDENTIFY_EMAIL]);
-						$email = $method->getEntity()->getIdentifierValue();
-						break;
-					}
-				}
-			}
-		}
-		if (!empty($email)) {
-			$blur = new Blur($email);
-			$this->initialState->provideInitialState('blurred_email', $blur->make());
-		}
 	}
 
 	/**
@@ -255,10 +232,9 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('visibleElements', []);
 		$this->initialState->provideInitialState('signers', []);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->signatureMethodService->getMethods();
-		$this->provideBlurredEmail($signatureMethods, $this->userSession->getUser()?->getEMailAddress());
+		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
 		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
-		$this->initialState->provideInitialState('token_length', SignatureMethodService::TOKEN_LENGTH);
+		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', '');
 		$nextcloudFile = $this->signFileService->getNextcloudFile($fileEntity->getNodeId());
 		$this->initialState->provideInitialState('pdf',

@@ -25,22 +25,29 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
 use OCP\IUser;
 
 interface IIdentifyMethod {
+	public static function getId(): string;
 	public function getName(): string;
-	public function isEnabledAsSignatueMethod(): bool;
+	public function getFriendlyName(): string;
 	public function setCodeSentByUser(string $code): void;
 	public function setUser(?IUser $user): void;
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
+	/**
+	 * @return AbstractSignatureMethod[]
+	 */
+	public function getSignatureMethods(): array;
+	public function signatureMethodsToArray(): array;
 	public function getSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
 	public function notify(bool $isNew): void;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;
-	public function validateToSign(): void;
+	public function validateToIdentify(): void;
 	public function validateToRenew(?IUser $user = null): void;
 	public function save(): void;
 	public function delete(): void;
