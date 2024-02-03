@@ -298,7 +298,7 @@ class ValidateHelper {
 			if (!array_key_exists('profileElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
 			}
-			$this->validateUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $user->getUID());
+			$this->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
 			try {
 				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
 			} catch (\Throwable $th) {
@@ -332,7 +332,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
+	public function validateAuthenticatedUserIsOwnerOfPdfVisibleElement(int $documentElementId, string $uid): void {
 		try {
 			$documentElement = $this->fileElementMapper->getById($documentElementId);
 			$signRequest = $this->signRequestMapper->getById($documentElement->getSignRequestId());
