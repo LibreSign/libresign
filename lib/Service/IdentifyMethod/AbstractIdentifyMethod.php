@@ -63,11 +63,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->friendlyName;
 	}
 
-	public function isEnabledAsSignatueMethod(): bool {
-		$settings = $this->getSettings();
-		return $settings['enabled_as_signature_method'];
-	}
-
 	public function setCodeSentByUser(string $code): void {
 		$this->codeSentByUser = $code;
 	}
@@ -89,13 +84,17 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->entity;
 	}
 
-	public function getSignatureMethods(): array {
+	public function signatureMethodsToArray(): array {
 		return array_map(function (AbstractSignatureMethod $method) {
 			return [
 				'label' => $method->friendlyName,
-				'enabled' => $method->isEnabledAsSignatueMethod(),
+				'enabled' => $method->isEnabled(),
 			];
 		}, $this->signatureMethods);
+	}
+
+	public function getSignatureMethods(): array {
+		return $this->signatureMethods;
 	}
 
 	public function getSettings(): array {
@@ -272,7 +271,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				'friendly_name' => $this->friendlyName,
 				'enabled' => true,
 				'mandatory' => true,
-				'signatureMethods' => $this->getSignatureMethods(),
+				'signatureMethods' => $this->signatureMethodsToArray(),
 			],
 			$default
 		);
@@ -287,18 +286,18 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	private function loadSavedSettings(): void {
-		$config = $this->identifyMethodService->getAppConfig()->getAppValue('identify_methods', '[]');
-		$config = json_decode($config, true);
-		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
-			$this->settings = [];
-			return;
-		}
+		$config = $this->identifyMethodService->getSavedSettings();
 		$this->settings = array_reduce($config, function ($carry, $config) {
 			if ($config['name'] === $this->name) {
 				return $config;
 			}
 			return $carry;
 		}, []);
+		foreach ($this->settings['signatureMethods'] as $method => $settings) {
+			if (is_object($this->signatureMethods[$method]) && isset($settings['enabled']) && $settings['enabled']) {
+				$this->signatureMethods[$method]->enable();
+			}
+		}
 	}
 
 	private function applyDefault(array $customConfig, array $default): array {

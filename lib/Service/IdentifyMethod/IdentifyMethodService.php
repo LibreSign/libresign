@@ -40,6 +40,7 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class IdentifyMethodService {
+	private array $savedSettings = [];
 	public function __construct(
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private SessionService $sessionService,
@@ -93,6 +94,18 @@ class IdentifyMethodService {
 		}
 		$exists = current($exists);
 		$identifyMethod->setId($exists->getId());
+	}
+
+	public function getSavedSettings(): array {
+		if (!empty($this->savedSettings)) {
+			return $this->savedSettings;
+		}
+		$config = $this->getAppConfig()->getAppValue('identify_methods', '[]');
+		$config = json_decode($config, true);
+		if (is_array($config)) {
+			$this->savedSettings = $config;
+		}
+		return $this->savedSettings;
 	}
 
 	public function getSessionService(): SessionService {

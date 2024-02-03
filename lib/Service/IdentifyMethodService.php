@@ -161,14 +161,19 @@ class IdentifyMethodService {
 	public function getSignMethodsOfIdentifiedFactors(int $signRequestId): array {
 		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
 		$return = [];
-		foreach ($matrix as $methods) {
-			foreach ($methods as $method) {
-				if (empty($method->getEntity()->getIdentifiedAtDate())) {
+		foreach ($matrix as $identifyMethods) {
+			foreach ($identifyMethods as $identifyMethod) {
+				if (empty($identifyMethod->getEntity()->getIdentifiedAtDate())) {
 					continue;
 				}
-				$return[$method->getName()] = [
-					'label' => $method->getFriendlyName(),
-				];
+				foreach ($identifyMethod->getSignatureMethods() as $signatureMethod) {
+					if (!$signatureMethod->isEnabled()) {
+						continue;
+					}
+					$return[$signatureMethod->getName()] = [
+						'label' => $signatureMethod->getFriendlyName(),
+					];
+				}
 			}
 		}
 		return $return;

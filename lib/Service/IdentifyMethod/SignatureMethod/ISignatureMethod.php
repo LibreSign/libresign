@@ -24,16 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
-
-abstract class AbstractSignatureMethod extends AbstractIdentifyMethod implements ISignatureMethod {
-	private bool $enabled = false;
-
-	public function enable(): void {
-		$this->enabled = true;
-	}
-
-	public function isEnabled(): bool {
-		return $this->enabled;
-	}
+interface ISignatureMethod {
+	public function enable(): void;
+	public function isEnabled(): bool;
 }
