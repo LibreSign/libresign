@@ -282,6 +282,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			}
 			return $carry;
 		}, []);
+		if (!isset($this->settings['signatureMethods']) || !is_array($this->settings['signatureMethods'])) {
+			return;
+		}
 		foreach ($this->settings['signatureMethods'] as $method => $settings) {
 			$this->signatureMethods[$method]->setEntity($this->getEntity());
 			if (is_object($this->signatureMethods[$method]) && isset($settings['enabled']) && $settings['enabled']) {

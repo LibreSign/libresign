@@ -176,6 +176,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
+	#[PublicPage]
 	public function getCodeUsingFileId(int $fileId): JSONResponse {
 		return $this->getCode(null, $fileId);
 	}
