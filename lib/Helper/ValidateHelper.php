@@ -290,19 +290,23 @@ class ValidateHelper {
 		}
 	}
 
-	public function validateVisibleElementsRelation(array $list, SignRequest $signRequest, IUser $user): void {
+	public function validateVisibleElementsRelation(array $list, SignRequest $signRequest, ?IUser $user): void {
 		foreach ($list as $elements) {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
-			if (!array_key_exists('profileElementId', $elements)) {
-				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId']));
+			if (!array_key_exists('profileElementId', $elements)
+				&& !array_key_exists('profileFileId', $elements)
+			) {
+				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId, profileFileId']));
 			}
-			$this->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
-			try {
-				$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
-			} catch (\Throwable $th) {
-				throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
+			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
+			if ($user instanceof IUser) {
+				try {
+					$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
+				} catch (\Throwable $th) {
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
+				}
 			}
 		}
 		$this->validateUserHasNecessaryElements($signRequest, $user, $list);
@@ -329,6 +333,13 @@ class ValidateHelper {
 		});
 		if (count($total) !== count($fileElements)) {
 			throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
+		}
+	}
+
+	private function validateSignerIsOwnerOfPdfVisibleElement(int $documentElementId, SignRequest $signRequest): void {
+		$documentElement = $this->fileElementMapper->getById($documentElementId);
+		if ($documentElement->getSignRequestId() !== $signRequest->getId()) {
+			throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 		}
 	}
 
