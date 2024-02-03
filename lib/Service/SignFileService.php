@@ -103,7 +103,6 @@ class SignFileService {
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
-		private SignatureMethodService $signMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
@@ -608,19 +607,6 @@ class SignFileService {
 		} elseif ($user) {
 			$return['user']['name'] = $user->getDisplayName();
 		}
-		return $return;
-	}
-
-	public function getAvailableIdentifyMethodsFromSignRequest(SignRequestEntity $signRequest): array {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		$return = array_map(function (IdentifyMethod $identifyMethod): array {
-			return [
-				'mandatory' => $identifyMethod->getMandatory(),
-				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
-				'validateCode' => $identifyMethod->getCode() && empty($identifyMethod->getIdentifiedAtDate()) ? true : false,
-				'method' => $identifyMethod->getIdentifierKey(),
-			];
-		}, $identifyMethods);
 		return $return;
 	}
 

@@ -36,4 +36,10 @@ abstract class AbstractSignatureMethod extends AbstractIdentifyMethod implements
 	public function isEnabled(): bool {
 		return $this->enabled;
 	}
+
+	public function toArray(): array {
+		return [
+			'label' => $this->getFriendlyName(),
+		];
+	}
 }

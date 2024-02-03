@@ -35,7 +35,6 @@ use OCP\IUser;
 use Wobeto\EmailBlur\Blur;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
-	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
 	protected string $friendlyName;
@@ -53,6 +52,11 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
 		$this->cleanEntity();
+	}
+
+	public static function getId(): string {
+		$id = lcfirst(substr(strrchr(get_called_class(), '\\'), 1));
+		return $id;
 	}
 
 	public function getName(): string {
@@ -224,21 +228,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 	}
 
-	protected function throwIfNeedToCreateAccount() {
-		if (!$this->canCreateAccount) {
-			return;
-		}
-		if ($this->identifyMethodService->getSessionService()->getSignStartTime()) {
-			return;
-		}
-		$email = $this->getEntity()->getIdentifierValue();
-		throw new LibresignException(json_encode([
-			'action' => JSActions::ACTION_CREATE_USER,
-			'settings' => ['accountHash' => md5($email)],
-			'message' => $this->identifyMethodService->getL10n()->t('You need to create an account to sign this file.'),
-		]));
-	}
-
 	private function getRenewAction(): int {
 		switch ($this->name) {
 			case 'email':
@@ -294,6 +283,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return $carry;
 		}, []);
 		foreach ($this->settings['signatureMethods'] as $method => $settings) {
+			$this->signatureMethods[$method]->setEntity($this->getEntity());
 			if (is_object($this->signatureMethods[$method]) && isset($settings['enabled']) && $settings['enabled']) {
 				$this->signatureMethods[$method]->enable();
 			}

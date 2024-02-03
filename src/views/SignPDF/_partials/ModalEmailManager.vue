@@ -34,7 +34,8 @@
 						</template>
 						{{ t('libresign', 'Request new code') }}
 					</NcButton>
-					<NcButton v-if="!needConfirmCode" :disabled="loading || !canRequestCode" @click="requestCode">
+					<NcButton v-if="!needConfirmCode" :disabled="loading || !canRequestCode" @click="requestCode"
+						type="primary">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>

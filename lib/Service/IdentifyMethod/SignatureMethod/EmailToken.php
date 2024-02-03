@@ -27,14 +27,21 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
 class EmailToken extends AbstractSignatureMethod {
-	public const ID = 'email';
 	public function __construct(
 		protected IdentifyMethodService $identifyMethodService,
+		protected TokenService $tokenService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Email token');
 		parent::__construct(
 			$identifyMethodService,
 		);
+	}
+
+	public function toArray(): array {
+		$return = parent::toArray();
+		$entity = $this->getEntity();
+		$return['needCode'] = empty($entity->getCode());
+		return $return;
 	}
 }

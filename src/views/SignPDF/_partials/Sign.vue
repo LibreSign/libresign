@@ -100,11 +100,11 @@
 			@update:phone="val => $emit('update:phone', val)"
 			@close="onModalClose('sms')" />
 
-		<EmailManager v-if="signatureMethods?.email?.modal"
+		<EmailManager v-if="signatureMethods?.emailToken?.modal"
 			:email="blurredEmail"
 			:uuid="uuid"
 			:file-id="document.fileId"
-			:confirm-code="signatureMethods.email.necessary"
+			:confirm-code="signatureMethods.emailToken.needToken"
 			@change="signWithEmailToken"
 			@close="onModalClose('email')" />
 	</div>
@@ -211,15 +211,15 @@ export default {
 				&& !this.hasSignatures
 		},
 		needEmailCode() {
-			return Object.hasOwn(this.signatureMethods, 'email')
-				&& this.signatureMethods.email.validateCode
+			return Object.hasOwn(this.signatureMethods, 'emailToken')
+				&& this.signatureMethods.emailToken.needCode
 		},
 		needClickToSign() {
 			return Object.hasOwn(this.signatureMethods, 'clickToSign')
 		},
 		needSmsCode() {
 			return Object.hasOwn(this.signatureMethods, 'sms')
-				&& this.signatureMethods.sms.validateCode
+				&& this.signatureMethods.sms.needCode
 		},
 		ableToSign() {
 			if (this.needCreatePassword) {
@@ -332,7 +332,7 @@ export default {
 		},
 		confirmSignDocument() {
 			if (this.needEmailCode) {
-				this.signatureMethods.email.modal = true
+				this.signatureMethods.emailToken.modal = true
 				return
 			}
 			if (this.needSignature) {
@@ -344,7 +344,6 @@ export default {
 				return
 			}
 			if (Object.hasOwn(this.signatureMethods, 'password')
-				&& this.signatureMethods.password.enabled
 				&& !this.needCreatePassword
 			) {
 				this.modalSignWithPassword = true
