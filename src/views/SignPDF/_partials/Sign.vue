@@ -269,10 +269,10 @@ export default {
 				token,
 			})
 		},
-		async signWithEmailToken(token) {
+		async signWithEmailToken() {
 			return this.signDocument({
 				method: 'email',
-				token,
+				token: this.signMethodsStore.settings.emailToken.token,
 			})
 		},
 		async signDocument(payload = {}) {

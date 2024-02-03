@@ -48,6 +48,9 @@ export const useSignMethodsStore = defineStore('signMethods', {
 		hasEmailConfirmCode(hasConfirmCode) {
 			set(this.settings.emailToken, 'hasConfirmCode', hasConfirmCode)
 		},
+		setEmailToken(token) {
+			set(this.settings.emailToken, 'token', token)
+		},
 		hasSignatureFile(hasSignatureFile) {
 			set(this.signMethodsStore.settings.password, 'hasSignatureFile', hasSignatureFile)
 		},

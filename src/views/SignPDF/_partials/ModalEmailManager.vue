@@ -103,10 +103,10 @@ export default {
 		return { signMethodsStore }
 	},
 	data: () => ({
-		token: '',
 		loading: false,
 		tokenLength: loadState('libresign', 'token_length', 6),
 		errorMessage: '',
+		token: '',
 		sendTo: '',
 	}),
 	computed: {
@@ -120,7 +120,14 @@ export default {
 			return false
 		},
 		canSendCode() {
-			return this.signMethodsStore.settings.emailToken.hasConfirmCode && !this.loading && this.token.length === this.tokenLength
+			return this.signMethodsStore.settings.emailToken.hasConfirmCode
+				&& !this.loading
+				&& this.token.length === this.tokenLength
+		},
+	},
+	watch: {
+		token(token) {
+			this.signMethodsStore.setEmailToken(token)
 		},
 	},
 	methods: {
@@ -135,7 +142,7 @@ export default {
 		},
 		requestNewCode() {
 			this.signMethodsStore.hasEmailConfirmCode(false)
-			this.token = ''
+			this.signMethodsStore.setEmailToken('')
 		},
 		async requestCode() {
 			this.loading = true
@@ -173,7 +180,7 @@ export default {
 			}
 		},
 		sendCode() {
-			this.$emit('change', this.token)
+			this.$emit('change')
 			this.close()
 		},
 		close() {
