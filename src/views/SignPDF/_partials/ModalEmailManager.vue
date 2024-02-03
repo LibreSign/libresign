@@ -19,7 +19,9 @@
 						:label="t('libresign', 'Enter your code')"
 						:placeholder="t('libresign', 'Enter your code')"
 						name="code"
-						type="text" />
+						type="text">
+						<FormTextboxPasswordIcon :size="20" />
+					</NcTextField>
 				</div>
 				<NcTextField v-else
 					:disabled="loading"
@@ -28,7 +30,9 @@
 					:helper-text="errorMessage"
 					:error="errorMessage.length > 0"
 					:value.sync="sendTo"
-					@input="onChangeEmail" />
+					@input="onChangeEmail">
+					<EmailIcon :size="20" />
+				</NcTextField>
 
 				<div class="modal__button-row">
 					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
@@ -47,7 +51,10 @@
 						{{ t('libresign', 'Request code.') }}
 					</NcButton>
 
-					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="!canSendCode" @click="sendCode">
+					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
+						:disabled="!canSendCode"
+						type="primary"
+						@click="sendCode">
 						<template #icon>
 							<NcLoadingIcon v-if="loading" :size="20" />
 						</template>
@@ -68,6 +75,8 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
+import FormTextboxPasswordIcon from 'vue-material-design-icons/FormTextboxPassword.vue'
+import EmailIcon from 'vue-material-design-icons/Email.vue'
 import md5 from 'blueimp-md5'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
@@ -84,6 +93,8 @@ export default {
 		NcModal,
 		NcTextField,
 		NcLoadingIcon,
+		FormTextboxPasswordIcon,
+		EmailIcon,
 		NcButton,
 	},
 	props: {
