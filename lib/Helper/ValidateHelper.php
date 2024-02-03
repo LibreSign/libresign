@@ -732,10 +732,10 @@ class ValidateHelper {
 				}
 			}
 		}
-		if (!empty($identifyMethods)) {
-			$identifyMethod = current($identifyMethods);
-		} else {
+		if (empty($identifyMethods)) {
 			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
+		} else {
+			$identifyMethod = current($identifyMethods);
 		}
 		if ($signRequest->getSigned()) {
 			throw new LibresignException($this->l10n->t('File already signed.'));
