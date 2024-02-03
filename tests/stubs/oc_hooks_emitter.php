@@ -22,22 +22,12 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\DataObjects;
+namespace OC\Hooks {
+	class Emitter {
+		public function emit(string $class, string $value, array $option) {
+		}
 
-use OCA\Libresign\Db\FileElement;
-
-class VisibleElementAssoc {
-	public function __construct(
-		private FileElement $fileElement,
-		private string $tempFile,
-	) {
-	}
-
-	public function getFileElement(): FileElement {
-		return $this->fileElement;
-	}
-
-	public function getTempFile(): string {
-		return $this->tempFile;
+		public function listen(string $class, string $value, $closure) {
+		}
 	}
 }

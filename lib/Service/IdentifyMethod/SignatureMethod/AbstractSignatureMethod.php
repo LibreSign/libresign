@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ * @copyright Copyright (c) 2024 Vitor Mattos <vitor@php.rio>
  *
  * @author Vitor Mattos <vitor@php.rio>
  *
@@ -22,22 +22,24 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\DataObjects;
+namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Service\IdentifyMethod\AbstractIdentifyMethod;
 
-class VisibleElementAssoc {
-	public function __construct(
-		private FileElement $fileElement,
-		private string $tempFile,
-	) {
+abstract class AbstractSignatureMethod extends AbstractIdentifyMethod implements ISignatureMethod {
+	private bool $enabled = false;
+
+	public function enable(): void {
+		$this->enabled = true;
 	}
 
-	public function getFileElement(): FileElement {
-		return $this->fileElement;
+	public function isEnabled(): bool {
+		return $this->enabled;
 	}
 
-	public function getTempFile(): string {
-		return $this->tempFile;
+	public function toArray(): array {
+		return [
+			'label' => $this->getFriendlyName(),
+		];
 	}
 }

@@ -47,10 +47,8 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -62,15 +60,9 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	/** @var SignRequest */
-	private $signRequest;
-	/** @var \OCA\Libresign\Db\File */
-	private $fileData;
-	/** @var \OCA\Files\Node\File */
-	private $fileToSign;
-
-	public const ELEMENT_SIGN_WIDTH = 350;
-	public const ELEMENT_SIGN_HEIGHT = 100;
+	private ?SignRequest $signRequest = null;
+	private ?\OCA\Libresign\Db\File $fileData = null;
+	private \OCP\Files\File $fileToSign;
 
 	public function __construct(
 		private IL10N $l10n,
@@ -135,7 +127,7 @@ class AccountService {
 
 	public function getFileByUuid(string $uuid): array {
 		$signRequest = $this->getSignRequestByUuid($uuid);
-		if (!$this->fileData) {
+		if (!$this->fileData instanceof \OCA\Libresign\Db\File) {
 			$this->fileData = $this->fileMapper->getById($signRequest->getFileId());
 
 			$nodeId = $this->fileData->getNodeId();
@@ -200,7 +192,7 @@ class AccountService {
 	 * Get signRequest by Uuid
 	 */
 	public function getSignRequestByUuid($uuid): SignRequest {
-		if (!$this->signRequest) {
+		if (!$this->signRequest instanceof SignRequest) {
 			$this->signRequest = $this->signRequestMapper->getByUuid($uuid);
 		}
 		return $this->signRequest;
@@ -466,96 +458,6 @@ class AccountService {
 			}
 		}
 		return $content;
-	}
-
-	public function getElementsFromSession(string $sessionId): array {
-		$folder = $this->folderService->getFolder();
-		try {
-			/** @var Folder $signerFolder */
-			$signerFolder = $folder->get($sessionId);
-		} catch (NotFoundException $th) {
-			return [];
-		}
-		$fileList = $signerFolder->getDirectoryListing();
-		$return = [];
-		foreach ($fileList as $fileElement) {
-			list($type, $timestamp) = explode('_', pathinfo($fileElement->getName(), PATHINFO_FILENAME));
-			$return[] = [
-				'type' => $type,
-				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.account.getSignatureElementPreview', [
-						'apiVersion' => 'v1',
-						'fileId' => $fileElement->getId(),
-					]),
-					'fileId' => $fileElement->getId(),
-				],
-				'starred' => 0,
-				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
-			];
-		}
-		return $return;
-	}
-
-	/**
-	 * @return ((int|string)[]|\DateTime|int|string)[][]
-	 *
-	 * @psalm-return list<array{id: int, type: string, file: array{url: string, fileId: int}, uid: string, starred: 0|1, createdAt: \DateTime}>
-	 */
-	public function getUserElements(string $userId): array {
-		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
-		$return = [];
-		foreach ($elements as $element) {
-			$exists = $this->signatureFileExists($element);
-			if (!$exists) {
-				continue;
-			}
-			$return[] = [
-				'id' => $element->getId(),
-				'type' => $element->getType(),
-				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
-					'fileId' => $element->getFileId()
-				],
-				'uid' => $element->getUserId(),
-				'starred' => $element->getStarred() ? 1 : 0,
-				'createdAt' => $element->getCreatedAt()
-			];
-		}
-		return $return;
-	}
-
-	private function signatureFileExists(UserElement $userElement): bool {
-		try {
-			$this->folderService->getFolder($userElement->getFileId());
-		} catch (\Exception $e) {
-			$this->userElementMapper->delete($userElement);
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * @return ((int|string)[]|\DateTime|int|string)[]
-	 *
-	 * @psalm-return array{id?: int, type?: string, file?: array{url: string, fileId: int}, uid?: string, starred?: 0|1, createdAt?: \DateTime}
-	 */
-	public function getUserElementByElementId(string $userId, $elementId): array {
-		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
-		$exists = $this->signatureFileExists($element);
-		if (!$exists) {
-			return [];
-		}
-		return [
-			'id' => $element->getId(),
-			'type' => $element->getType(),
-			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
-				'fileId' => $element->getFileId()
-			],
-			'uid' => $element->getUserId(),
-			'starred' => $element->getStarred() ? 1 : 0,
-			'createdAt' => $element->getCreatedAt()
-		];
 	}
 
 	public function deleteSignatureElement(string $userId, int $elementId): void {

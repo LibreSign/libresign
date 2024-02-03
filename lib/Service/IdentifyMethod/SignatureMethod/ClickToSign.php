@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ * @copyright Copyright (c) 2024 Vitor Mattos <vitor@php.rio>
  *
  * @author Vitor Mattos <vitor@php.rio>
  *
@@ -22,22 +22,18 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\DataObjects;
+namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Db\FileElement;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 
-class VisibleElementAssoc {
+class ClickToSign extends AbstractSignatureMethod {
 	public function __construct(
-		private FileElement $fileElement,
-		private string $tempFile,
+		protected IdentifyMethodService $identifyMethodService,
 	) {
-	}
-
-	public function getFileElement(): FileElement {
-		return $this->fileElement;
-	}
-
-	public function getTempFile(): string {
-		return $this->tempFile;
+		// TRANSLATORS Name of possible authenticator method. This signalize that the signer only need to click to sign after was identified
+		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Click to sign');
+		parent::__construct(
+			$identifyMethodService,
+		);
 	}
 }

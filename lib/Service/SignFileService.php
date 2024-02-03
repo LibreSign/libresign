@@ -47,6 +47,7 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -81,7 +82,7 @@ class SignFileService {
 	private ?Node $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
-	private IUser $user;
+	private ?IUser $user;
 
 	public function __construct(
 		protected IL10N $l10n,
@@ -96,6 +97,7 @@ class SignFileService {
 		protected LoggerInterface $logger,
 		private IAppConfig $appConfig,
 		protected ValidateHelper $validateHelper,
+		private SignerElementsService $signerElementsService,
 		private IRootFolder $root,
 		private IUserSession $userSession,
 		private IUserMountCache $userMountCache,
@@ -103,7 +105,6 @@ class SignFileService {
 		private UserElementMapper $userElementMapper,
 		private IEventDispatcher $eventDispatcher,
 		private IURLGenerator $urlGenerator,
-		private SignatureMethodService $signMethod,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private ITempManager $tempManager,
 		private IdentifyMethodService $identifyMethodService,
@@ -215,7 +216,7 @@ class SignFileService {
 		return $this;
 	}
 
-	public function setCurrentUser(IUser $user): self {
+	public function setCurrentUser(?IUser $user): self {
 		$this->user = $user;
 		return $this;
 	}
@@ -231,22 +232,33 @@ class SignFileService {
 			});
 			if ($element) {
 				$c = current($element);
-				$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
+				if (!empty($c['profileElementId'])) {
+					$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
+					$nodeId = $userElement->getFileId();
+				} elseif (!empty($c['profileFileId'])) {
+					$nodeId = $c['profileFileId'];
+				} else {
+					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
+				}
 			} else {
 				$userElement = $this->userElementMapper->findOne([
 					'user_id' => $this->user->getUID(),
 					'type' => $fileElement->getType(),
 				]);
+				$nodeId = $userElement->getFileId();
 			}
 			try {
-				$nodeId = $userElement->getFileId();
-
-				$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-				foreach ($mountsContainingFile as $fileInfo) {
-					$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+				if ($this->user instanceof IUser) {
+					$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+					foreach ($mountsContainingFile as $fileInfo) {
+						$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+					}
+					/** @var \OCP\Files\File[] */
+					$node = $this->root->getById($nodeId);
+				} else {
+					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
+					$node = array_filter($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
 				}
-				/** @var \OCP\Files\File[] */
-				$node = $this->root->getById($nodeId);
 				if (!$node) {
 					throw new \Exception('empty');
 				}
@@ -258,7 +270,6 @@ class SignFileService {
 			file_put_contents($tempFile, $node->getContent());
 			$visibleElements = new VisibleElementAssoc(
 				$fileElement,
-				$userElement,
 				$tempFile
 			);
 			$this->elements[] = $visibleElements;
@@ -413,38 +424,61 @@ class SignFileService {
 		}, $identifyMethods[$method]);
 	}
 
-	public function requestCode(SignRequestEntity $signRequest, string $method, string $identify = ''): string {
-		return $this->signMethod->requestCode($signRequest, $method, $identify);
+	public function requestCode(
+		SignRequestEntity $signRequest,
+		string $identifyMethodName,
+		string $signMethodName,
+		string $identify = ''
+	): void {
+		$identifyMethods = $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+		if (empty($identifyMethods[$identifyMethodName])) {
+			throw new LibresignException($this->l10n->t('Invalid identification method'));
+		}
+		foreach ($identifyMethods[$identifyMethodName] as $identifyMethod) {
+			$signatureMethods = $identifyMethod->getSignatureMethods();
+			if (empty($signatureMethods[$signMethodName])) {
+				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			}
+			/** @var EmailToken $signatureMethod */
+			$signatureMethod = $signatureMethods[$signMethodName];
+			$signatureMethod->requestCode($identify);
+			return;
+		}
+		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
-	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
+	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
 			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
 
-			$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
-				$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-				$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
-					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
-						&& (
-							$identifyMethod->getIdentifierValue() === $user->getUID()
-							|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
-						)
-					) {
-						return true;
+			if (!empty($signRequestUuid)) {
+				$signRequest = $this->getSignRequest($signRequestUuid);
+			} else {
+				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
+					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+					$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
+						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
+							&& (
+								$identifyMethod->getIdentifierValue() === $user->getUID()
+								|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
+							)
+						) {
+							return true;
+						}
+						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
+							&& $identifyMethod->getIdentifierValue() === $user->getUID()
+						) {
+							return true;
+						}
+						return false;
+					});
+					if (count($found) > 0) {
+						return $signRequest;
 					}
-					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
-						&& $identifyMethod->getIdentifierValue() === $user->getUID()
-					) {
-						return true;
-					}
-					return false;
+					return $carry;
 				});
-				if (count($found) > 0) {
-					return $signRequest;
-				}
-				return $carry;
-			});
+			}
 
 			if (!$signRequest) {
 				throw new DoesNotExistException('Sign request not found');
@@ -608,19 +642,6 @@ class SignFileService {
 		} elseif ($user) {
 			$return['user']['name'] = $user->getDisplayName();
 		}
-		return $return;
-	}
-
-	public function getAvailableIdentifyMethodsFromSignRequest(SignRequestEntity $signRequest): array {
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-		$return = array_map(function (IdentifyMethod $identifyMethod): array {
-			return [
-				'mandatory' => $identifyMethod->getMandatory(),
-				'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate(),
-				'validateCode' => $identifyMethod->getCode() && empty($identifyMethod->getIdentifiedAtDate()) ? true : false,
-				'method' => $identifyMethod->getIdentifierKey(),
-			];
-		}, $identifyMethods);
 		return $return;
 	}
 

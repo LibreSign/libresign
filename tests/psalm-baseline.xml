@@ -55,18 +55,6 @@
       <code>LoadSidebar</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Helper/ValidateHelper.php">
-    <MissingDependency occurrences="8">
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>private</code>
-    </MissingDependency>
-  </file>
   <file src="lib/Listener/LoadSidebarListener.php">
     <UndefinedClass occurrences="1">
       <code>LoadSidebar</code>
@@ -77,26 +65,12 @@
       <code>ViewController</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Migration/Version2040Date20211027183759.php">
-    <MissingDependency occurrences="3">
-      <code>$this-&gt;root</code>
-      <code>IRootFolder</code>
-      <code>IRootFolder</code>
-    </MissingDependency>
-  </file>
   <file src="lib/Migration/Version8000Date20231103003922.php">
     <UndefinedDocblockClass occurrences="1">
       <code>$schema-&gt;dropTable('libresign_file_user')</code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
-    <MissingDependency occurrences="5">
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>private</code>
-    </MissingDependency>
     <UndefinedClass occurrences="5">
       <code>$this-&gt;newUserMail</code>
       <code>$this-&gt;newUserMail</code>
@@ -104,55 +78,8 @@
       <code>UUIDUtil</code>
       <code>private</code>
     </UndefinedClass>
-    <UndefinedDocblockClass occurrences="1">
-      <code>\OCA\Files\Node\File</code>
-    </UndefinedDocblockClass>
-  </file>
-  <file src="lib/Service/FileService.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/FolderService.php">
-    <MissingDependency occurrences="5">
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/IdentifyMethod/AbstractIdentifyMethod.php">
-    <MissingDependency occurrences="3">
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/IdentifyMethod/Account.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/IdentifyMethod/ClickToSign.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/IdentifyMethod/Email.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
-  </file>
-  <file src="lib/Service/IdentifyMethod/Password.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
   </file>
   <file src="lib/Service/InstallService.php">
-    <MissingDependency occurrences="1">
-      <code>private</code>
-    </MissingDependency>
     <UndefinedClass occurrences="1">
       <code>Process</code>
     </UndefinedClass>
@@ -164,18 +91,6 @@
     </UndefinedClass>
   </file>
   <file src="lib/Service/SignFileService.php">
-    <MissingDependency occurrences="10">
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>$this-&gt;root</code>
-      <code>private</code>
-    </MissingDependency>
     <UndefinedClass occurrences="2">
       <code>UUIDUtil</code>
       <code>UUIDUtil</code>

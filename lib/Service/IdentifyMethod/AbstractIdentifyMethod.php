@@ -26,61 +26,45 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 
 use InvalidArgumentException;
 use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\IdentifyMethod;
-use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Services\IAppConfig;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Files\Config\IUserMountCache;
-use OCP\Files\IRootFolder;
-use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUser;
-use OCP\IUserManager;
-use OCP\Security\IHasher;
-use Psr\Log\LoggerInterface;
 use Wobeto\EmailBlur\Blur;
 
 abstract class AbstractIdentifyMethod implements IIdentifyMethod {
-	protected bool $canCreateAccount = true;
 	protected IdentifyMethod $entity;
 	protected string $name;
-	public string $friendlyName;
+	protected string $friendlyName;
 	protected ?IUser $user = null;
 	protected string $codeSentByUser = '';
 	protected array $settings = [];
 	protected bool $willNotify = true;
+	/**
+	 * @var AbstractSignatureMethod[]
+	 */
+	protected array $signatureMethods = [];
 	public function __construct(
-		private IAppConfig $appConfig,
-		private IL10N $l10n,
-		private IdentifyMethodMapper $identifyMethodMapper,
-		private SignRequestMapper $signRequestMapper,
-		private FileMapper $fileMapper,
-		private IRootFolder $root,
-		private IHasher $hasher,
-		private IUserManager $userManager,
-		private IURLGenerator $urlGenerator,
-		private IUserMountCache $userMountCache,
-		private ITimeFactory $timeFactory,
-		private LoggerInterface $logger,
-		private SessionService $sessionService,
+		protected IdentifyMethodService $identifyMethodService,
 	) {
 		$className = (new \ReflectionClass($this))->getShortName();
 		$this->name = lcfirst($className);
 		$this->cleanEntity();
 	}
 
+	public static function getId(): string {
+		$id = lcfirst(substr(strrchr(get_called_class(), '\\'), 1));
+		return $id;
+	}
+
 	public function getName(): string {
 		return $this->name;
 	}
 
-	public function isEnabledAsSignatueMethod(): bool {
-		$settings = $this->getSettings();
-		return $settings['enabled_as_signature_method'];
+	public function getFriendlyName(): string {
+		return $this->friendlyName;
 	}
 
 	public function setCodeSentByUser(string $code): void {
@@ -104,6 +88,19 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->entity;
 	}
 
+	public function signatureMethodsToArray(): array {
+		return array_map(function (AbstractSignatureMethod $method) {
+			return [
+				'label' => $method->friendlyName,
+				'enabled' => $method->isEnabled(),
+			];
+		}, $this->signatureMethods);
+	}
+
+	public function getSignatureMethods(): array {
+		return $this->signatureMethods;
+	}
+
 	public function getSettings(): array {
 		$this->getSettingsFromDatabase();
 		return $this->settings;
@@ -122,39 +119,39 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	public function validateToCreateAccount(string $value): void {
 	}
 
-	public function validateToSign(): void {
+	public function validateToIdentify(): void {
 	}
 
 	protected function throwIfFileNotFound(): void {
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->identifyMethodService->getFileMapper()->getById($signRequest->getFileId());
 
 		$nodeId = $fileEntity->getNodeId();
 
-		$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
+		$mountsContainingFile = $this->identifyMethodService->getUserMountCache()->getMountsForFileId($nodeId);
 		foreach ($mountsContainingFile as $fileInfo) {
-			$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
+			$this->identifyMethodService->getRootFolder()->getByIdInPath($nodeId, $fileInfo->getMountPoint());
 		}
-		$fileToSign = $this->root->getById($nodeId);
+		$fileToSign = $this->identifyMethodService->getRootFolder()->getById($nodeId);
 		if (count($fileToSign) < 1) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('File not found')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('File not found')],
 			]));
 		}
 	}
 
 	protected function throwIfMaximumValidityExpired(): void {
-		$maximumValidity = (int) $this->appConfig->getAppValue('maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
+		$maximumValidity = (int) $this->identifyMethodService->getAppConfig()->getAppValue('maximum_validity', (string) SessionService::NO_MAXIMUM_VALIDITY);
 		if ($maximumValidity <= 0) {
 			return;
 		}
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$now = $this->timeFactory->getTime();
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$now = $this->identifyMethodService->getTimeFactory()->getTime();
 		if ($signRequest->getCreatedAt() + $maximumValidity < $now) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->l10n->t('Link expired.')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('Link expired.')],
 			]));
 		}
 	}
@@ -163,36 +160,37 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if (empty($this->codeSentByUser)) {
 			return;
 		}
-		if (!$this->hasher->verify($this->codeSentByUser, $this->getEntity()->getCode())) {
-			throw new LibresignException($this->l10n->t('Invalid code.'));
+		if (!$this->identifyMethodService->getHasher()->verify($this->codeSentByUser, $this->getEntity()->getCode())) {
+			throw new LibresignException($this->identifyMethodService->getL10n()->t('Invalid code.'));
 		}
 	}
 
 	protected function renewSession(): void {
-		$this->sessionService->setIdentifyMethodId($this->getEntity()->getId());
-		$renewalInterval = (int) $this->appConfig->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$this->identifyMethodService->getSessionService()->setIdentifyMethodId($this->getEntity()->getId());
+		$renewalInterval = (int) $this->identifyMethodService->getAppConfig()->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
-		$this->sessionService->resetDurationOfSignPage();
+		$this->identifyMethodService->getSessionService()->resetDurationOfSignPage();
 	}
 
 	protected function updateIdentifiedAt(): void {
 		if ($this->getEntity()->getCode() && !$this->getEntity()->getIdentifiedAtDate()) {
 			return;
 		}
-		$this->getEntity()->setIdentifiedAtDate($this->timeFactory->getDateTime());
+		$this->getEntity()->setIdentifiedAtDate($this->identifyMethodService->getTimeFactory()->getDateTime());
 		$this->willNotify = false;
-		$this->save();
+		$isNew = $this->identifyMethodService->save($this->getEntity());
+		$this->notify($isNew);
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
-		$renewalInterval = (int) $this->appConfig->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
+		$renewalInterval = (int) $this->identifyMethodService->getAppConfig()->getAppValue('renewal_interval', (string) SessionService::NO_RENEWAL_INTERVAL);
 		if ($renewalInterval <= 0) {
 			return;
 		}
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$startTime = $this->sessionService->getSignStartTime();
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$startTime = $this->identifyMethodService->getSessionService()->getSignStartTime();
 		$createdAt = $signRequest->getCreatedAt();
 		$lastAttempt = $this->getEntity()->getLastAttemptDate()?->format('U');
 		$lastActionDate = max(
@@ -200,8 +198,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			$createdAt,
 			$lastAttempt,
 		);
-		$now = $this->timeFactory->getTime();
-		$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
+		$now = $this->identifyMethodService->getTimeFactory()->getTime();
+		$this->identifyMethodService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Times', [
 			'renewalInterval' => $renewalInterval,
 			'startTime' => $startTime,
 			'createdAt' => $createdAt,
@@ -210,13 +208,13 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			'now' => $now,
 		]);
 		if ($lastActionDate + $renewalInterval < $now) {
-			$this->logger->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
+			$this->identifyMethodService->getLogger()->debug('AbstractIdentifyMethod::throwIfRenewalIntervalExpired Exception');
 			$blur = new Blur($this->getEntity()->getIdentifierValue());
 			throw new LibresignException(json_encode([
 				'action' => $this->getRenewAction(),
 				// TRANSLATORS title that is displayed at screen to notify the signer that the link to sign the document expired
-				'title' => $this->l10n->t('Link expired'),
-				'body' => $this->l10n->t(<<<'BODY'
+				'title' => $this->identifyMethodService->getL10n()->t('Link expired'),
+				'body' => $this->identifyMethodService->getL10n()->t(<<<'BODY'
 					The link to sign the document has expired.
 					We will send a new link to the email %1$s.
 					Click below to receive the new link and be able to sign the document.
@@ -225,24 +223,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 				),
 				'uuid' => $signRequest->getUuid(),
 				// TRANSLATORS Button to renew the link to sign the document. Renew is the action to generate a new sign link when the link expired.
-				'renewButton' => $this->l10n->t('Renew'),
+				'renewButton' => $this->identifyMethodService->getL10n()->t('Renew'),
 			]));
 		}
-	}
-
-	protected function throwIfNeedToCreateAccount() {
-		if (!$this->canCreateAccount) {
-			return;
-		}
-		if ($this->sessionService->getSignStartTime()) {
-			return;
-		}
-		$email = $this->getEntity()->getIdentifierValue();
-		throw new LibresignException(json_encode([
-			'action' => JSActions::ACTION_CREATE_USER,
-			'settings' => ['accountHash' => md5($email)],
-			'message' => $this->l10n->t('You need to create an account to sign this file.'),
-		]));
 	}
 
 	private function getRenewAction(): int {
@@ -254,14 +237,14 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	protected function throwIfAlreadySigned(): void {
-		$signRequest = $this->signRequestMapper->getById($this->getEntity()->getSignRequestId());
-		$fileEntity = $this->fileMapper->getById($signRequest->getFileId());
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$fileEntity = $this->identifyMethodService->getFileMapper()->getById($signRequest->getFileId());
 		if ($fileEntity->getStatus() === FileEntity::STATUS_SIGNED
 			|| (!is_null($signRequest) && $signRequest->getSigned())
 		) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_SHOW_ERROR,
-				'errors' => [$this->l10n->t('File already signed.')],
+				'errors' => [$this->identifyMethodService->getL10n()->t('File already signed.')],
 			]));
 		}
 	}
@@ -270,124 +253,78 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if ($this->settings) {
 			return $this->settings;
 		}
+		$this->loadSavedSettings();
 		$default = array_merge(
 			[
 				'name' => $this->name,
 				'friendly_name' => $this->friendlyName,
 				'enabled' => true,
-				'enabled_as_signature_method' => false,
 				'mandatory' => true,
+				'signatureMethods' => $this->signatureMethodsToArray(),
 			],
 			$default
 		);
-		$customConfig = $this->getSavedSettings();
-		$customConfig = $this->removeKeysThatDontExists($customConfig, $default);
-		$customConfig = $this->overrideImmutable($customConfig, $immutable);
-		$customConfig = $this->getDefaultValues($customConfig, $default);
-		$this->settings = $customConfig;
+		$this->removeKeysThatDontExists($default);
+		$this->overrideImmutable($immutable);
+		$this->settings = $this->applyDefault($this->settings, $default);
 		return $this->settings;
 	}
 
-	private function overrideImmutable(array $customConfig, array $immutable) {
-		return array_merge($customConfig, $immutable);
+	private function overrideImmutable(array $immutable): void {
+		$this->settings = array_merge($this->settings, $immutable);
 	}
 
-	private function getSavedSettings(): array {
-		return array_merge(
-			$this->getSavedIdentifyMethodsSettings(),
-			$this->getSavedSignatureMethodsSettings(),
-		);
-	}
-
-	private function getSavedIdentifyMethodsSettings(): array {
-		$config = $this->appConfig->getAppValue('identify_methods', '[]');
-		$config = json_decode($config, true);
-		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
-			return [];
-		}
-		$current = array_reduce($config, function ($carry, $config) {
+	private function loadSavedSettings(): void {
+		$config = $this->identifyMethodService->getSavedSettings();
+		$this->settings = array_reduce($config, function ($carry, $config) {
 			if ($config['name'] === $this->name) {
 				return $config;
 			}
 			return $carry;
 		}, []);
-		return $current;
-	}
-
-	private function getSavedSignatureMethodsSettings(): array {
-		$config = $this->appConfig->getAppValue('signature_methods', '[]');
-		$config = json_decode($config, true);
-		if (json_last_error() !== JSON_ERROR_NONE || !is_array($config)) {
-			return [];
+		if (!isset($this->settings['signatureMethods']) || !is_array($this->settings['signatureMethods'])) {
+			return;
 		}
-		foreach ($config as $id => $method) {
-			if ($id !== $this->name) {
-				continue;
+		foreach ($this->settings['signatureMethods'] as $method => $settings) {
+			$this->signatureMethods[$method]->setEntity($this->getEntity());
+			if (is_object($this->signatureMethods[$method]) && isset($settings['enabled']) && $settings['enabled']) {
+				$this->signatureMethods[$method]->enable();
 			}
-			return [
-				'enabled_as_signature_method' => array_key_exists('enabled', $method) && $method['enabled'],
-			];
 		}
-		return [];
 	}
 
-	private function getDefaultValues(array $customConfig, array $default): array {
+	private function applyDefault(array $customConfig, array $default): array {
 		foreach ($default as $key => $value) {
-			if (!isset($customConfig[$key]) || gettype($value) !== gettype($customConfig[$key])) {
+			if (!isset($customConfig[$key])) {
 				$customConfig[$key] = $value;
+			} elseif (gettype($value) !== gettype($customConfig[$key])) {
+				$customConfig[$key] = $value;
+			} elseif (gettype($value) === 'array') {
+				$customConfig[$key] = $this->applyDefault($customConfig[$key], $value);
 			}
 		}
 		return $customConfig;
 	}
 
-	private function removeKeysThatDontExists(array $customConfig, array $default): array {
-		$diff = array_diff_key($customConfig, $default);
+	public function save(): void {
+		$isNew = $this->identifyMethodService->save($this->getEntity());
+		$this->notify($isNew);
+	}
+
+	public function delete(): void {
+		$this->identifyMethodService->delete($this->getEntity());
+	}
+
+	private function removeKeysThatDontExists(array $default): void {
+		$diff = array_diff_key($this->settings, $default);
 		foreach (array_keys($diff) as $invalidKey) {
-			unset($customConfig[$invalidKey]);
+			unset($this->settings[$invalidKey]);
 		}
-		return $customConfig;
 	}
 
 	public function validateToRenew(?IUser $user = null): void {
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfAlreadySigned();
 		$this->throwIfFileNotFound();
-	}
-
-	public function save(): void {
-		$this->refreshIdFromDatabaseIfNecessary();
-		if ($this->getEntity()->getId()) {
-			$this->identifyMethodMapper->update($this->getEntity());
-			$this->notify(false);
-		} else {
-			$this->identifyMethodMapper->insertOrUpdate($this->getEntity());
-			$this->notify(true);
-		}
-	}
-
-	public function delete(): void {
-		if ($this->getEntity()->getId()) {
-			$this->identifyMethodMapper->delete($this->getEntity());
-		}
-	}
-
-	private function refreshIdFromDatabaseIfNecessary(): void {
-		$entity = $this->getEntity();
-		if ($entity->getId()) {
-			return;
-		}
-		if (!$entity->getSignRequestId() || !$entity->getIdentifierKey()) {
-			return;
-		}
-
-		$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($entity->getSignRequestId());
-		$exists = array_filter($identifyMethods, function (IdentifyMethod $current) use ($entity): bool {
-			return $current->getIdentifierKey() === $entity->getIdentifierKey();
-		});
-		if (!$exists) {
-			return;
-		}
-		$exists = current($exists);
-		$entity->setId($exists->getId());
 	}
 }
