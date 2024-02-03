@@ -33,7 +33,6 @@ use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
-use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
@@ -66,6 +65,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
+	#[PublicPage]
 	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
@@ -74,7 +74,6 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
 	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
 		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
@@ -87,7 +86,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				$this->fileService->getIdentificationDocumentsStatus($user?->getUID())
 			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
-			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $user);
+			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $signRequestUuid, $user);
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
 			$this->validateHelper->validateCredentials($signRequest, $user, $method, $identifyValue, $token);
 			if ($method === 'password') {

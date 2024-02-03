@@ -436,34 +436,38 @@ class SignFileService {
 		throw new LibresignException($this->l10n->t('Sending authorization code not enabled.'));
 	}
 
-	public function getSignRequestToSign(FileEntity $libresignFile, IUser $user): SignRequestEntity {
+	public function getSignRequestToSign(FileEntity $libresignFile, ?string $signRequestUuid, ?IUser $user): SignRequestEntity {
 		$this->validateHelper->fileCanBeSigned($libresignFile);
 		try {
 			$signRequests = $this->signRequestMapper->getByFileId($libresignFile->getId());
 
-			$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
-				$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
-				$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
-					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
-						&& (
-							$identifyMethod->getIdentifierValue() === $user->getUID()
-							|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
-						)
-					) {
-						return true;
+			if (!empty($signRequestUuid)) {
+				$signRequest = $this->getSignRequest($signRequestUuid);
+			} else {
+				$signRequest = array_reduce($signRequests, function (?SignRequestEntity $carry, SignRequestEntity $signRequest) use ($user): ?SignRequestEntity {
+					$identifyMethods = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequest->getId());
+					$found = array_filter($identifyMethods, function (IdentifyMethod $identifyMethod) use ($user) {
+						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL
+							&& (
+								$identifyMethod->getIdentifierValue() === $user->getUID()
+								|| $identifyMethod->getIdentifierValue() === $user->getEMailAddress()
+							)
+						) {
+							return true;
+						}
+						if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
+							&& $identifyMethod->getIdentifierValue() === $user->getUID()
+						) {
+							return true;
+						}
+						return false;
+					});
+					if (count($found) > 0) {
+						return $signRequest;
 					}
-					if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT
-						&& $identifyMethod->getIdentifierValue() === $user->getUID()
-					) {
-						return true;
-					}
-					return false;
+					return $carry;
 				});
-				if (count($found) > 0) {
-					return $signRequest;
-				}
-				return $carry;
-			});
+			}
 
 			if (!$signRequest) {
 				throw new DoesNotExistException('Sign request not found');
