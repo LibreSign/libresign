@@ -84,7 +84,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
 				$user,
-				$this->fileService->getIdentificationDocumentsStatus($user->getUID())
+				$this->fileService->getIdentificationDocumentsStatus($user?->getUID())
 			);
 			$libreSignFile = $this->signFileService->getLibresignFile($fileId, $signRequestUuid);
 			$signRequest = $this->signFileService->getSignRequestToSign($libreSignFile, $user);
