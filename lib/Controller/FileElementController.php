@@ -94,7 +94,7 @@ class FileElementController extends Controller {
 				'uuid' => $uuid,
 				'userManager' => $this->userSession->getUser()
 			]);
-			$this->validateHelper->validateUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
+			$this->validateHelper->validateAuthenticatedUserIsOwnerOfPdfVisibleElement($elementId, $this->userSession->getUser()->getUID());
 			$this->fileElementService->deleteVisibleElement($elementId);
 			$return = [];
 			$statusCode = Http::STATUS_OK;
