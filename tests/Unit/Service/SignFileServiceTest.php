@@ -11,6 +11,7 @@ use OCA\Libresign\Handler\Pkcs7Handler;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -42,6 +43,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private LoggerInterface|MockObject $logger;
 	private IAppConfig $appConfig;
 	private ValidateHelper|MockObject $validateHelper;
+	private SignerElementsService|MockObject $signerElementsService;
 	private IRootFolder|MockObject $root;
 	private IUserSession|MockObject $userSession;
 	private IUserMountCache|MockObject $userMountCache;
@@ -71,6 +73,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->validateHelper = $this->createMock(\OCA\Libresign\Helper\ValidateHelper::class);
+		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->root = $this->createMock(\OCP\Files\IRootFolder::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userMountCache = $this->createMock(IUserMountCache::class);
@@ -98,6 +101,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->logger,
 			$this->appConfig,
 			$this->validateHelper,
+			$this->signerElementsService,
 			$this->root,
 			$this->userSession,
 			$this->userMountCache,

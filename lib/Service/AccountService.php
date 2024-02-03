@@ -60,7 +60,7 @@ use Sabre\DAV\UUIDUtil;
 use Throwable;
 
 class AccountService {
-	private SignRequest $signRequest;
+	private ?SignRequest $signRequest = null;
 	private \OCA\Libresign\Db\File $fileData;
 	private \OCP\Files\File $fileToSign;
 
@@ -192,7 +192,7 @@ class AccountService {
 	 * Get signRequest by Uuid
 	 */
 	public function getSignRequestByUuid($uuid): SignRequest {
-		if (!$this->signRequest) {
+		if (!$this->signRequest instanceof SignRequest) {
 			$this->signRequest = $this->signRequestMapper->getByUuid($uuid);
 		}
 		return $this->signRequest;
