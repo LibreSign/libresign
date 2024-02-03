@@ -328,13 +328,15 @@ class FileService {
 		return $this->settings;
 	}
 
-	public function getIdentificationDocumentsStatus(string $userId): int {
+	public function getIdentificationDocumentsStatus(?string $userId): int {
 		if (!$this->appConfig->getAppValue('identification_documents', '')) {
 			return self::IDENTIFICATION_DOCUMENTS_DISABLED;
 		}
 
-		$files = $this->fileMapper->getFilesOfAccount($userId);
-		if (!count($files)) {
+		if (!empty($userId)) {
+			$files = $this->fileMapper->getFilesOfAccount($userId);
+		}
+		if (empty($files) || !count($files)) {
 			return self::IDENTIFICATION_DOCUMENTS_NEED_SEND;
 		}
 		$deleted = array_filter($files, function (File $file) {

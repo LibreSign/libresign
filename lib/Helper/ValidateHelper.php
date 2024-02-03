@@ -691,7 +691,7 @@ class ValidateHelper {
 		}
 	}
 
-	public function canSignWithIdentificationDocumentStatus(IUser $user, int $status): void {
+	public function canSignWithIdentificationDocumentStatus(?IUser $user, int $status): void {
 		// User that can approve validation documents don't need to have a valid
 		// document attached to their profile. If this were required, nobody
 		// would be able to sign any document
