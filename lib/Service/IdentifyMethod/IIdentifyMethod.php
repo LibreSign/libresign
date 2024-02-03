@@ -30,13 +30,13 @@ use OCP\IUser;
 interface IIdentifyMethod {
 	public function getName(): string;
 	public function getFriendlyName(): string;
-	public function isEnabledAsSignatueMethod(): bool;
 	public function setCodeSentByUser(string $code): void;
 	public function setUser(?IUser $user): void;
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
 	public function getSignatureMethods(): array;
+	public function signatureMethodsToArray(): array;
 	public function getSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
 	public function notify(bool $isNew): void;
