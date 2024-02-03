@@ -125,7 +125,6 @@ class FileController extends Controller {
 				->setMe($this->userSession->getUser())
 				->setIdentifyMethodId($this->sessionService->getIdentifyMethodId())
 				->showVisibleElements()
-				->showPages()
 				->showSigners()
 				->showSettings()
 				->showMessages()
