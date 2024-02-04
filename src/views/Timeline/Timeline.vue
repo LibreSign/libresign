@@ -16,7 +16,7 @@
 				<File v-for="file in filterFile"
 					:key="file.uuid"
 					:node-id="file.file.nodeId"
-					class="file-details" />
+					:class="{'file-details': true, 'active': file.uuid === filesStore.file.uuid}" />
 			</ul>
 			<NcEmptyContent v-else
 				:name="t('libresign', 'There are no documents')">
@@ -164,6 +164,18 @@ export default {
 			.active {
 				background: darken(rgba(206, 206, 206, 0.3), 20%)
 			}
+		}
+
+		.active {
+			// WCAG AA compliant
+			background-color: var(--color-background-hover);
+			// text-maxcontrast have been designed to pass WCAG AA over
+			// a white background, we need to adjust then.
+			--color-text-maxcontrast: var(--color-main-text);
+			> * {
+				--color-border: var(--color-border-dark);
+			}
+			border-radius: 10px;
 		}
 
 		ul{
