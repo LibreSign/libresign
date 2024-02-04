@@ -1,4 +1,5 @@
 { "translations": {
+    "Email" : "تورخەت",
     "Files" : "ھۆججەتلەر",
     "Settings" : "تەڭشەكلەر",
     "Password" : "ئىم",
@@ -6,7 +7,6 @@
     "Cancel" : "ۋاز كەچ",
     "Save" : "ساقلا",
     "Name" : "ئاتى",
-    "Email" : "تورخەت",
     "Update" : "يېڭىلا",
     "Description" : "چۈشەندۈرۈش",
     "Add" : "قوش",

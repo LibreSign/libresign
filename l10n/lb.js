@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "Email",
     "Files" : "Fichieren",
     "Settings" : "Astellungen",
     "Authentication required" : "Authentifizéierung néideg",
@@ -10,7 +11,6 @@ OC.L10N.register(
     "Cancel" : "Ofbriechen",
     "Save" : "Späicheren",
     "Name" : "Numm",
-    "Email" : "Email",
     "Update" : "Update",
     "Description" : "Beschreiwung",
     "Add" : "Derbäimaachen",

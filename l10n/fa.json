@@ -86,6 +86,8 @@
     "Account" : "حساب",
     "Invalid user" : "کاربر نامعتبر",
     "You are not logged in. Please log in." : "You are not logged in. Please log in.",
+    "Email" : "رایانامه",
+    "You need to create an account to sign this file." : "You need to create an account to sign this file.",
     "User already exists. Please login." : "User already exists. Please login.",
     "User already exists" : "User already exists",
     "This is not your file" : "This is not your file",
@@ -102,11 +104,8 @@
     "Empty users list" : "Empty users list",
     "User list needs to be an array" : "User list needs to be an array",
     "Document already signed" : "Document already signed",
-    "File already signed by you" : "File already signed by you",
     "Sending authorization code not enabled." : "Sending authorization code not enabled.",
-    "%s is your LibreSign verification code." : "%s is your LibreSign verification code.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Gateway %s not configured on Two-Factor Gateway.",
+    "File already signed by you" : "File already signed by you",
     "Invalid PDF" : "Invalid PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre digital signature app for Nextcloud",
@@ -141,7 +140,6 @@
     "Name" : "نام",
     "Searching …" : "جستجوکردن …",
     "No signers." : "No signers.",
-    "Email" : "رایانامه",
     "Update" : "به‌روز رسانی",
     "Description" : "توضیحات",
     "Add" : "افزودن",
@@ -293,6 +291,9 @@
     "You must not sign this file." : "You must not sign this file.",
     "Page not found." : "Page not found.",
     "Remove duplicated users, email address need to be unique" : "Remove duplicated users, email address need to be unique",
+    "%s is your LibreSign verification code." : "%s is your LibreSign verification code.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Gateway %s not configured on Two-Factor Gateway.",
     "Validate File" : "Validate File",
     "Signatures" : "Signatures",
     "Add visible signatures" : "Add visible signatures",
@@ -318,7 +319,6 @@
     "This iframe is not supported in your browser." : "This iframe is not supported in your browser.",
     "%s is not a valid sign method" : "%s is not a valid sign method",
     "Document Informations" : "Document Informations",
-    "Validate Subscription." : "Validate Subscription.",
-    "You need to create an account to sign this file." : "You need to create an account to sign this file."
+    "Validate Subscription." : "Validate Subscription."
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

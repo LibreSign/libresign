@@ -97,6 +97,8 @@
     "Account" : "Conta",
     "Invalid user" : "Usuário inválido",
     "You are not logged in. Please log in." : "Você não está autenticado. Autentique-se.",
+    "Email" : "Email",
+    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento.",
     "User already exists. Please login." : "Usuário já existe. Por favor, autentique-se.",
     "User already exists" : "Usuário já existe",
     "This is not your file" : "Este arquivo não é seu",
@@ -120,11 +122,8 @@
     "Empty root certificate data" : "Dados vazios do certificado raiz",
     "Invalid data to generate certificate" : "Dados inválidos para gerar certificado",
     "Failure on generate certificate" : "Falha ao gerar certificado",
-    "File already signed by you" : "Arquivo já assinado por você",
     "Sending authorization code not enabled." : "Envio de código de autorização não habilitado.",
-    "%s is your LibreSign verification code." : "%s é o seu código de verificação LibreSign.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Autorizar assinatura usando 1%s token está desativado porque o Nextcloud Two-Factor Gateway não está ativado.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Gateway 1%s não configurado para dois fatores.",
+    "File already signed by you" : "Arquivo já assinado por você",
     "Invalid PDF" : "PDF inválido",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ App livre para assinatura digital de documentos no Nextcloud",
@@ -160,7 +159,6 @@
     "Name" : "Nome",
     "Searching …" : "Pesquisando...",
     "No signers." : "Sem signatários.",
-    "Email" : "Email",
     "Update" : "Atualizar",
     "Description" : "Descrição",
     "Add" : "Adicionar",
@@ -333,6 +331,9 @@
     "You must not sign this file." : "Você não deve assinar este arquivo.",
     "Page not found." : "Página não encontrada.",
     "Remove duplicated users, email address need to be unique" : "Remova os usuários duplicados, endereço de e-mail precisa ser único",
+    "%s is your LibreSign verification code." : "%s é o seu código de verificação LibreSign.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Autorizar assinatura usando 1%s token está desativado porque o Nextcloud Two-Factor Gateway não está ativado.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Gateway 1%s não configurado para dois fatores.",
     "Validate File" : "Validar Arquivo",
     "Signatures" : "Assinaturas",
     "Add visible signatures" : "Adicionar assinaturas visíveis",
@@ -358,7 +359,6 @@
     "This iframe is not supported in your browser." : "Este iframe não é compatível com seu navegador. ",
     "%s is not a valid sign method" : "%s não é um método de assinatura válido",
     "Document Informations" : "Informações do Documento",
-    "Validate Subscription." : "Validar Assinatura. ",
-    "You need to create an account to sign this file." : "Você precisa criar uma conta para assinar este documento."
+    "Validate Subscription." : "Validar Assinatura. "
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

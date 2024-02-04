@@ -97,6 +97,8 @@
     "Account" : "Účet",
     "Invalid user" : "Neplatný uživatel",
     "You are not logged in. Please log in." : "Nejste přihlášení. Napravte to.",
+    "Email" : "E-mail",
+    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet.",
     "User already exists. Please login." : "Uživatel už existuje – přihlaste se jím.",
     "User already exists" : "Uživatel už existuje",
     "This is not your file" : "Toto není váš soubor",
@@ -120,11 +122,8 @@
     "Empty root certificate data" : "Vyprázdnit údaje kořenového certifikátu",
     "Invalid data to generate certificate" : "Neplatné údaje pro vytvoření certifikátu",
     "Failure on generate certificate" : "Nezdar při vytváření certifikátu",
-    "File already signed by you" : "Soubor jste už podepsali",
     "Sending authorization code not enabled." : "Posílání autorizačního kódu není aktivní.",
-    "%s is your LibreSign verification code." : "%s je váš LibreSign ověřovací kód.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Pověření k podepisování s použitím tokenu %s je vypnuté, protože aplikace Two-Factor Gateway není aktivována.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Brána %s nenastavena v aplikaci Two-Factor Gateway",
+    "File already signed by you" : "Soubor jste už podepsali",
     "Invalid PDF" : "Neplatné PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Svobodná aplikace pro digitální podepisování, určená pro Nextcloud",
@@ -162,7 +161,6 @@
     "Name" : "Název",
     "Searching …" : "Hledání…",
     "No signers." : "Nikdo není podepsaný.",
-    "Email" : "E-mail",
     "Update" : "Aktualizovat",
     "Description" : "Popis",
     "Add" : "Přidat",
@@ -337,6 +335,9 @@
     "You must not sign this file." : "Je třeba, abyste tento soubor nepodepisovali.",
     "Page not found." : "Stránka nenalezena.",
     "Remove duplicated users, email address need to be unique" : "Odeberte duplicitní uživatele, e-mailová adresa se nemůže opakovat",
+    "%s is your LibreSign verification code." : "%s je váš LibreSign ověřovací kód.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Pověření k podepisování s použitím tokenu %s je vypnuté, protože aplikace Two-Factor Gateway není aktivována.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Brána %s nenastavena v aplikaci Two-Factor Gateway",
     "Validate File" : "Ověřit soubor",
     "Signatures" : "Podpisy",
     "Add visible signatures" : "Přidat viditelné podpisy",
@@ -362,7 +363,6 @@
     "This iframe is not supported in your browser." : "Tento iframe prvek není podporován vaším prohlížečem.",
     "%s is not a valid sign method" : "%s není platná metoda pro podepisování",
     "Document Informations" : "Informace o dokumentu",
-    "Validate Subscription." : "Ověřit předplatné.",
-    "You need to create an account to sign this file." : "Pro podepsání tohoto souboru je třeba vytvořit si účet."
+    "Validate Subscription." : "Ověřit předplatné."
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }

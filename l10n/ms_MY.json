@@ -1,4 +1,5 @@
 { "translations": {
+    "Email" : "Email",
     "Files" : "Fail",
     "Settings" : "Tetapan",
     "Password" : "Kata laluan",
@@ -6,7 +7,6 @@
     "Cancel" : "Batal",
     "Save" : "Simpan",
     "Name" : "Nama",
-    "Email" : "Email",
     "Update" : "Kemaskini",
     "Description" : "Keterangan",
     "Add" : "Tambah",

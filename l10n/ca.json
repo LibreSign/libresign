@@ -86,6 +86,8 @@
     "Account" : "Compte",
     "Invalid user" : "Usuari no vàlid",
     "You are not logged in. Please log in." : "No heu iniciat sessió. Si us plau, inicieu sessió.",
+    "Email" : "Correu",
+    "You need to create an account to sign this file." : "Heu de crear un compte per signar aquest fitxer.",
     "User already exists. Please login." : "L'usuari ja existeix. Si us plau inicieu sessió.",
     "User already exists" : "L'usuari ja existeix",
     "This is not your file" : "Aquest no és el vostre fitxer",
@@ -103,11 +105,8 @@
     "Empty users list" : "Llista d'usuaris buida",
     "User list needs to be an array" : "La llista d'usuaris ha de ser un vector",
     "Document already signed" : "Document ja signat",
-    "File already signed by you" : "Fitxer ja signat per tu",
     "Sending authorization code not enabled." : "Enviament del codi d'autorització no habilitat.",
-    "%s is your LibreSign verification code." : "%s és el vostre codi de verificació de LibreSign.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "La signatura d'autorització mitjançant el testimoni %s està desactivada perquè la pasarel·la de doble factor de Nextcloud no està habilitat.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Pasarel·la %s no configurada a Pasarel·la de doble factor.",
+    "File already signed by you" : "Fitxer ja signat per tu",
     "Invalid PDF" : "PDF no vàlid",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplicació de signatura digital lliure per a Nextcloud",
@@ -142,7 +141,6 @@
     "Name" : "Nom",
     "Searching …" : "S'està cercant…",
     "No signers." : "Sense signants.",
-    "Email" : "Correu",
     "Update" : "Actualitza",
     "Description" : "Descripció",
     "Add" : "Afegeix",
@@ -294,6 +292,9 @@
     "You must not sign this file." : "No heu de signar aquest fitxer.",
     "Page not found." : "No s'ha trobat la pàgina.",
     "Remove duplicated users, email address need to be unique" : "Elimina els usuaris duplicats, l'adreça electrònica ha de ser única",
+    "%s is your LibreSign verification code." : "%s és el vostre codi de verificació de LibreSign.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "La signatura d'autorització mitjançant el testimoni %s està desactivada perquè la pasarel·la de doble factor de Nextcloud no està habilitat.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Pasarel·la %s no configurada a Pasarel·la de doble factor.",
     "Validate File" : "Valida el fitxer",
     "Signatures" : "Signatures",
     "Add visible signatures" : "Afegiu signatures visibles",
@@ -319,7 +320,6 @@
     "This iframe is not supported in your browser." : "Aquest iframe no és compatible amb el vostre navegador.",
     "%s is not a valid sign method" : "%s no és un mètode de signatura vàlid",
     "Document Informations" : "Informació del document",
-    "Validate Subscription." : "Valida la subscripció.",
-    "You need to create an account to sign this file." : "Heu de crear un compte per signar aquest fitxer."
+    "Validate Subscription." : "Valida la subscripció."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

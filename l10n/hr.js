@@ -82,6 +82,8 @@ OC.L10N.register(
     "Account" : "Račun",
     "Invalid user" : "Nevažeći korisnik",
     "You are not logged in. Please log in." : "Niste prijavljeni. Prijavite se.",
+    "Email" : "E-pošta",
+    "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku.",
     "User already exists. Please login." : "Korisnik već postoji. Prijavite se.",
     "User already exists" : "Korisnik već postoji",
     "This is not your file" : "Ovo nije vaša datoteka",
@@ -125,7 +127,6 @@ OC.L10N.register(
     "Name" : "Naziv",
     "Searching …" : "Traženje…",
     "No signers." : "Nema potpisnika.",
-    "Email" : "E-pošta",
     "Update" : "Ažuriraj",
     "Description" : "Opis",
     "Add" : "Dodaj",
@@ -237,7 +238,6 @@ OC.L10N.register(
     "Remove" : "Ukloni",
     "This iframe is not supported in your browser." : "Vaš preglednik ne podržava ovaj iframe.",
     "Document Informations" : "Podaci o dokumentu",
-    "Validate Subscription." : "Potvrdite valjanost pretplate.",
-    "You need to create an account to sign this file." : "Morate stvoriti račun kako biste potpisali ovu datoteku."
+    "Validate Subscription." : "Potvrdite valjanost pretplate."
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");
