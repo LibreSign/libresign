@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "File not found" : "Datoteka nije pronađena",
     "Invalid user" : "Nevažeči korisnik",
+    "Email" : "E-pošta",
     "Files" : "Datoteke",
     "Settings" : "Podešavanje",
     "Authentication required" : "Potrebna autentifikacija",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Cancel" : "Otkaži",
     "Save" : "Spremi",
     "Name" : "Ime",
-    "Email" : "E-pošta",
     "Update" : "Ažuriraj",
     "Description" : "Opis",
     "Add" : "Dodaj",

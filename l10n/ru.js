@@ -83,6 +83,8 @@ OC.L10N.register(
     "Account" : "Учётная запись",
     "Invalid user" : "Неверный пользователь",
     "You are not logged in. Please log in." : "Войдите в систему.",
+    "Email" : "Электронная почта",
+    "You need to create an account to sign this file." : "Вам необходимо создать учетную запись, чтобы подписать этот файл.",
     "User already exists. Please login." : "Пользователь уже существует. Войдите в систему.",
     "User already exists" : "Пользователь уже существует",
     "This is not your file" : "Этот файл не ваш",
@@ -127,7 +129,6 @@ OC.L10N.register(
     "Name" : "Имя",
     "Searching …" : "Поиск…",
     "No signers." : "Подписанты отсутствуют.",
-    "Email" : "Электронная почта",
     "Update" : "Изменение",
     "Description" : "Описание",
     "Add" : "Добавить",
@@ -244,7 +245,6 @@ OC.L10N.register(
     "Remove" : "Удалить",
     "This iframe is not supported in your browser." : "Этот iframe не поддерживается вашим браузером.",
     "Document Informations" : "Информация о документе",
-    "Validate Subscription." : "Подтвердить подписку.",
-    "You need to create an account to sign this file." : "Вам необходимо создать учетную запись, чтобы подписать этот файл."
+    "Validate Subscription." : "Подтвердить подписку."
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

@@ -85,6 +85,8 @@
     "Account" : "Účet",
     "Invalid user" : "Neplatný užívateľ",
     "You are not logged in. Please log in." : "Nie ste prihlásený. Prosím prihláste sa.",
+    "Email" : "Email",
+    "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet.",
     "User already exists. Please login." : "Používateľ už existuje. Prihláste sa, prosím.",
     "User already exists" : "Používateľ už existuje",
     "This is not your file" : "Toto nie je váš súbor",
@@ -102,11 +104,8 @@
     "Empty users list" : "Prázdny zoznam používateľov",
     "User list needs to be an array" : "Zoznam používateľov musí byť pole",
     "Document already signed" : "Dokument je už podpísaný",
-    "File already signed by you" : "Súbor je už od vás podpísaný",
     "Sending authorization code not enabled." : "Odosielanie autorizačného kódu nie je povolené.",
-    "%s is your LibreSign verification code." : "%s je váš overovací kód LibreSign.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Autorizácia podpisovania pomocou %s tokenu je zakázaná, pretože nie je povolená dvojfaktorová brána Nextcloud.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Brána %s nie je nakonfigurovaná na dvojfaktorovej bráne.",
+    "File already signed by you" : "Súbor je už od vás podpísaný",
     "Invalid PDF" : "Neplatné PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre aplikácia pre digitálny podpis pre Nextcloud",
@@ -141,7 +140,6 @@
     "Name" : "Meno",
     "Searching …" : "Hľadá sa…",
     "No signers." : "Žiadni podpisujúci.",
-    "Email" : "Email",
     "Update" : "Aktualizovať",
     "Description" : "Popis",
     "Add" : "Pridať",
@@ -269,6 +267,9 @@
     "You must not sign this file." : "Tento súbor nesmiete podpísať.",
     "Page not found." : "Stránka nenájdená.",
     "Remove duplicated users, email address need to be unique" : "Odstráňte duplikáty užívateľov, emailové adresy musia byť unikátne",
+    "%s is your LibreSign verification code." : "%s je váš overovací kód LibreSign.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Autorizácia podpisovania pomocou %s tokenu je zakázaná, pretože nie je povolená dvojfaktorová brána Nextcloud.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Brána %s nie je nakonfigurovaná na dvojfaktorovej bráne.",
     "Validate File" : "Overiť súbor",
     "Signatures" : "Podpisy",
     "Add visible signatures" : "Pridať viditeľné podpisy",
@@ -291,7 +292,6 @@
     "This iframe is not supported in your browser." : "Váš prehliadač nepodporuje tento iframe.",
     "%s is not a valid sign method" : "%s nie je platná podpisová metóda",
     "Document Informations" : "Informácie o dokumente",
-    "Validate Subscription." : "Overiť predplatné.",
-    "You need to create an account to sign this file." : "Pre podpísanie tohoto súboru si musíte vytvoriť účet."
+    "Validate Subscription." : "Overiť predplatné."
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
 }

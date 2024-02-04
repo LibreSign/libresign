@@ -43,6 +43,8 @@ OC.L10N.register(
     "Account" : "Compte",
     "Invalid user" : "Utilizaire invalid",
     "You are not logged in. Please log in." : "Sètz pas autentificat. Volgatz vos connectar.",
+    "Email" : "Email",
+    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr.",
     "User already exists. Please login." : "L’utilizaire existís ja. Volgatz vos autentificar.",
     "User already exists" : "L’utilizaire existís ja",
     "This is not your file" : "Aquò es pas vòstre fichièr",
@@ -69,7 +71,6 @@ OC.L10N.register(
     "Name" : "Nom",
     "Searching …" : "Recèrca…",
     "No signers." : "Cap de signaires.",
-    "Email" : "Email",
     "Update" : "Actualizar",
     "Description" : "Descripcion",
     "Add" : "Apondre",
@@ -114,7 +115,6 @@ OC.L10N.register(
     "Select a file" : "Select a file",
     "Add users" : "Apondre utilizaires",
     "Remove" : "Suprimir",
-    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
-    "You need to create an account to sign this file." : "Devètz crear un compte per signar aqueste fichièr."
+    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador."
 },
 "nplurals=2; plural=(n > 1);");

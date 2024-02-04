@@ -43,6 +43,8 @@ OC.L10N.register(
     "Account" : "Contu",
     "Invalid user" : "Utente non bàlidu",
     "You are not logged in. Please log in." : "Non ses in intro. Intra, pro praghere.",
+    "Email" : "Posta eletrònica",
+    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu.",
     "User already exists. Please login." : "S'utente b'est giai. Intra, pro praghere.",
     "User already exists" : "S'utente b'est giai",
     "This is not your file" : "Custu no est s'archìviu tuo",
@@ -81,7 +83,6 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Peruna racumandatzione. Cumintza a iscrìere.",
     "Name" : "Nùmene",
     "Searching …" : "Chirchende …",
-    "Email" : "Posta eletrònica",
     "Update" : "Agiorna",
     "Description" : "Descritzione",
     "Add" : "Agiunghe",
@@ -174,7 +175,6 @@ OC.L10N.register(
     "Remove" : "Boga",
     "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo.",
     "Document Informations" : "Informatziones de su documentu",
-    "Validate Subscription." : "Cunvàlida sutaiscritzione.",
-    "You need to create an account to sign this file." : "Depes creare unu contu pro firmare custu documentu."
+    "Validate Subscription." : "Cunvàlida sutaiscritzione."
 },
 "nplurals=2; plural=(n != 1);");

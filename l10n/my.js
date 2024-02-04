@@ -9,6 +9,7 @@ OC.L10N.register(
     "Invalid data to sign file" : "ဖိုင်အား အမှတ်အသားပြုရန် အချက်အလက် မှားယွင်းနေသည်",
     "View" : "ကြည့်ရန်",
     "Empty file" : "ဗလာဖိုင်",
+    "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။",
     "File already signed by you" : "ဖိုင်အား သင် အမှတ်အသားပြုလုပ်ပြီးပါပြီ",
     "Status" : "အခြေအနေ",
     "Password Creation" : "လျှို့ဝှက်ကုဒ် ဖန်တီးရန်",
@@ -28,7 +29,6 @@ OC.L10N.register(
     "Root certificate data." : "Root Certificate အချက်အလက်",
     "Generate root certificate." : "Root Certificate ဖန်တီးရန်။",
     "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
-    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။",
-    "You need to create an account to sign this file." : "ဤဖိုင်အား အမှတ်အသားထိုးရန် အကောင့်ဖွင့်ရန်လိုအပ်သည်။"
+    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။"
 },
 "nplurals=1; plural=0;");

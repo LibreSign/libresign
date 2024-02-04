@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "File is too big" : "ফাইল খুব বড়",
     "File not found" : "ফাইল খুঁজে পাওয়া গেল না",
+    "Email" : "ইমেইল",
     "Files" : "ফাইল",
     "Settings" : "সেটিংস",
     "Password" : "কূটশব্দ",
@@ -10,7 +11,6 @@ OC.L10N.register(
     "Cancel" : "বাতির",
     "Save" : "সংরক্ষণ",
     "Name" : "নাম",
-    "Email" : "ইমেইল",
     "Update" : "পরিবর্ধন",
     "Description" : "বিবরণ",
     "Add" : "যোগ করুন",

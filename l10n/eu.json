@@ -88,6 +88,8 @@
     "Account" : "Kontua",
     "Invalid user" : "Erabiltzaile baliogabea",
     "You are not logged in. Please log in." : "Ez duzu saioa hasi. Mesedez, hasi saioa.",
+    "Email" : "E-posta",
+    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu.",
     "User already exists. Please login." : "Erabiltzailea dagoeneko existitzen da. Mesedez hasi saioa.",
     "User already exists" : "Erabiltzailea dagoeneko existitzen da",
     "This is not your file" : "Hau ez da zure fitxategia",
@@ -105,11 +107,8 @@
     "Empty users list" : "Erabiltzaile zerrenda hutsik",
     "User list needs to be an array" : "Erabiltzaileen zerrenda matrizea izan behar da",
     "Document already signed" : "Dokumentua dagoeneko sinatuta",
-    "File already signed by you" : "Fitxategia dagoeneko sinatu duzu",
     "Sending authorization code not enabled." : "Ez dago gaituta bidaltzeko baimen-kodea.",
-    "%s is your LibreSign verification code." : "Zure LibreSign berrespen kodea %s da.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "%s token bidez sinatzea baimentzea desgaituta dago Nextcloud bi faktoreko atebidea gaituta ez dagoelako.",
-    "Gateway %s not configured on Two-Factor Gateway." : "Atebidea%sez dago bi faktoreko atebidean konfiguratuta.",
+    "File already signed by you" : "Fitxategia dagoeneko sinatu duzu",
     "Invalid PDF" : "Baliogabeko PDFa",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Sinadura digitaleko aplikazio librea Nextcloud-erako",
@@ -144,7 +143,6 @@
     "Name" : "Izena",
     "Searching …" : "Bilatzen…",
     "No signers." : "Sinatzailerik ez.",
-    "Email" : "E-posta",
     "Update" : "Eguneratu",
     "Description" : "Deskribapena",
     "Add" : "Gehitu",
@@ -297,6 +295,9 @@
     "You must not sign this file." : "Ez duzu fitxategi hau sinatu behar.",
     "Page not found." : "Orria ez da aurkitu.",
     "Remove duplicated users, email address need to be unique" : "Kendu erabiltzaile bikoiztuak, e-posta helbideak bakarrak izan behar dira",
+    "%s is your LibreSign verification code." : "Zure LibreSign berrespen kodea %s da.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "%s token bidez sinatzea baimentzea desgaituta dago Nextcloud bi faktoreko atebidea gaituta ez dagoelako.",
+    "Gateway %s not configured on Two-Factor Gateway." : "Atebidea%sez dago bi faktoreko atebidean konfiguratuta.",
     "Validate File" : "Balidatu fitxategia",
     "Signatures" : "Sinadurak",
     "Add visible signatures" : "Gehitu sinadura ikusgarriak",
@@ -322,7 +323,6 @@
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
     "%s is not a valid sign method" : "%s ez da baliozko sinatze metodo bat",
     "Document Informations" : "Dokumentuen informazioa",
-    "Validate Subscription." : "Egiaztapen harpidetza.",
-    "You need to create an account to sign this file." : "Fitxategi hau sinatzeko kontu bat sortu behar duzu."
+    "Validate Subscription." : "Egiaztapen harpidetza."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

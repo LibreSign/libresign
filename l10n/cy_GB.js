@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "View" : "Golwg",
     "Account" : "Cyfrif",
+    "Email" : "E-bost",
     "Files" : "Ffeiliau",
     "Settings" : "Gosodiadau",
     "Password" : "Cyfrinair",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Cancel" : "Diddymu",
     "Save" : "Cadw",
     "Name" : "Enw",
-    "Email" : "E-bost",
     "Update" : "Diweddaru",
     "Description" : "Disgrifiad",
     "Add" : "Ychwanegu",
