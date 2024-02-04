@@ -51,8 +51,8 @@
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('clickToSign')"
-						:disabled="loading">
+					<NcButton :disabled="loading"
+						@click="signMethodsStore.closeModal('clickToSign')">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
@@ -300,7 +300,7 @@ export default {
 				}
 
 				const { data } = await axios.post(url, payload)
-				if (data?.action === 350) { // ACTION_SIGNED
+				if (data?.action === 3500) { // ACTION_SIGNED
 					this.$emit('signed', data)
 				}
 			} catch (err) {
