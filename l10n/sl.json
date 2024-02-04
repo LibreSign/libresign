@@ -83,6 +83,8 @@
     "Account" : "Račun",
     "Invalid user" : "Neveljaven uporabnik",
     "You are not logged in. Please log in." : "Niste prijavljeni v oblak. Pred nadaljevanjem se prijavite.",
+    "Email" : "Elektronski naslov",
+    "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun.",
     "User already exists. Please login." : "Uporabnik že obstaja. Poskusite se prijaviti.",
     "User already exists" : "Uporabnik že obstaja",
     "This is not your file" : "To ni vaša datoteka",
@@ -100,9 +102,8 @@
     "Empty users list" : "Prazen seznam uporabnikov",
     "User list needs to be an array" : "Seznam uporabnikov mora biti podatkovno polje",
     "Document already signed" : "Dokument je že podpisan",
-    "File already signed by you" : "Datoteka je že podpisana",
     "Sending authorization code not enabled." : "Pošiljanje overitvene kode ni omogočeno.",
-    "%s is your LibreSign verification code." : "Vaša overitvena koda LibreSign je %s.",
+    "File already signed by you" : "Datoteka je že podpisana",
     "Invalid PDF" : "Neveljavna datoteka PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Libre – program za digitalno podpisovanje datotek v okolju Nextcloud",
@@ -135,7 +136,6 @@
     "Name" : "Ime",
     "Searching …" : "Poteka iskanje ...",
     "No signers." : "Ni določenih podpisnikov.",
-    "Email" : "Elektronski naslov",
     "Update" : "Posodobi",
     "Description" : "Opis",
     "Add" : "Dodaj",
@@ -270,6 +270,7 @@
     "You must not sign this file." : "Te datoteke ni dovoljeno podpisati.",
     "Page not found." : "Strani ni mogoče najti.",
     "Remove duplicated users, email address need to be unique" : "Odstranite podvojene uporabnike, elektronski naslovi morajo biti enoznačne vrednosti",
+    "%s is your LibreSign verification code." : "Vaša overitvena koda LibreSign je %s.",
     "Validate File" : "Overi datoteko",
     "Signatures" : "Podpisi",
     "Add visible signatures" : "Dodaj vidne podpise",
@@ -292,7 +293,6 @@
     "Remove" : "Odstrani",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
     "Document Informations" : "Podrobnosti dokumenta",
-    "Validate Subscription." : "Potrdi naročnino",
-    "You need to create an account to sign this file." : "Za podpisovanje datoteke je treba imetii ustvarjen račun."
+    "Validate Subscription." : "Potrdi naročnino"
 },"pluralForm" :"nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);"
 }

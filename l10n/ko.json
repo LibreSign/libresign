@@ -84,6 +84,8 @@
     "Account" : "계정",
     "Invalid user" : "잘못된 사용자",
     "You are not logged in. Please log in." : "로그인하지 않았습니다. 로그인하세요.",
+    "Email" : "이메일",
+    "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다.",
     "User already exists. Please login." : "사용자가 이미 있습니다. 로그인하십시오.",
     "User already exists" : "사용자가 이미 있습니다.",
     "This is not your file" : "이것은 당신의 파일이 아닙니다.",
@@ -101,11 +103,8 @@
     "Empty users list" : "빈 사용자 목록",
     "User list needs to be an array" : "사용자 목록은 배열이어야 합니다.",
     "Document already signed" : "문서가 이미 서명되었습니다.",
-    "File already signed by you" : "사용자가 이미 서명한 파일",
     "Sending authorization code not enabled." : "전송 승인 코드가 활성화되지 않았습니다.",
-    "%s is your LibreSign verification code." : "%s은 LibreSign 인증 코드입니다.",
-    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Nextcloud Two-Factor Gateway가 사용하도록 설정되어 있지 않기 때문에 %s토큰을 사용한 인증 서명을 사용할 수 없습니다.",
-    "Gateway %s not configured on Two-Factor Gateway." : "게이트웨이%s가 이중 요인 게이트웨이에 구성되지 않았습니다.",
+    "File already signed by you" : "사용자가 이미 서명한 파일",
     "Invalid PDF" : "잘못된 PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍Next Cloud용 Libre 디지털 서명 앱 사용",
@@ -134,7 +133,6 @@
     "Name" : "이름",
     "Searching …" : "검색 중...",
     "No signers." : "서명자 없음.",
-    "Email" : "이메일",
     "Update" : "업데이트",
     "Description" : "설명",
     "Add" : "추가",
@@ -243,6 +241,9 @@
     "You must not sign this file." : "이 파일에 서명하면 안 됩니다.",
     "Page not found." : "페이지를 찾을 수 없습니다.",
     "Remove duplicated users, email address need to be unique" : "고유해야 하는 중복된 사용자, 전자 메일 주소를 제거하십시오.",
+    "%s is your LibreSign verification code." : "%s은 LibreSign 인증 코드입니다.",
+    "Authorize signing using %s token is disabled because Nextcloud Two-Factor Gateway is not enabled." : "Nextcloud Two-Factor Gateway가 사용하도록 설정되어 있지 않기 때문에 %s토큰을 사용한 인증 서명을 사용할 수 없습니다.",
+    "Gateway %s not configured on Two-Factor Gateway." : "게이트웨이%s가 이중 요인 게이트웨이에 구성되지 않았습니다.",
     "Validate File" : "파일 인증",
     "Signatures" : "서명",
     "Are you sure you want to exclude user {email} from the request?" : "요청에서 {email} 사용자를 제외하시겠습니까?",
@@ -264,7 +265,6 @@
     "This iframe is not supported in your browser." : "브라우저에서는 이 iframe이 지원되지 않습니다.",
     "%s is not a valid sign method" : "%s은 올바른 사인 방법이 아닙니다.",
     "Document Informations" : "문서 정보",
-    "Validate Subscription." : "구독 유효성 확인",
-    "You need to create an account to sign this file." : "이 파일에 서명하려면 계정을 만들어야 합니다."
+    "Validate Subscription." : "구독 유효성 확인"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -59,6 +59,8 @@ OC.L10N.register(
     "Account" : "Tili",
     "Invalid user" : "Virheellinen käyttäjä",
     "You are not logged in. Please log in." : "Et ole kirjautunut sisään. Kirjaudu sisään.",
+    "Email" : "Sähköposti",
+    "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston.",
     "User already exists. Please login." : "Käyttäjä on jo olemassa. Kirjaudu sisään.",
     "User already exists" : "Käyttäjä on jo olemassa",
     "This is not your file" : "Tämä ei ole tiedostosi",
@@ -71,8 +73,8 @@ OC.L10N.register(
     "LibreSign: Signature request cancelled" : "LibreSign: Allekirjoituspyyntö peruttu",
     "The signature request has been canceled." : "Allekirjoituspyyntö on peruttu.",
     "Document already signed" : "Asiakirja on jo allekirjoitettu",
-    "File already signed by you" : "Olet jo allekirjoittanut tiedoston",
     "Sending authorization code not enabled." : "Valtuutuskoodin lähettäminen ei ole käytössä.",
+    "File already signed by you" : "Olet jo allekirjoittanut tiedoston",
     "Invalid PDF" : "Virheellinen PDF",
     "LibreSign" : "LibreSign",
     "Request" : "Pyyntö",
@@ -102,7 +104,6 @@ OC.L10N.register(
     "Name" : "Nimi",
     "Searching …" : "Haetaan…",
     "No signers." : "Ei allekirjoittajia.",
-    "Email" : "Sähköposti",
     "Update" : "Päivitä",
     "Description" : "Kuvaus",
     "Add" : "Lisää",
@@ -199,7 +200,6 @@ OC.L10N.register(
     "Add users" : "Lisää käyttäjiä",
     "Generate root certificate." : "Luo juurivarmenne.",
     "Remove" : "Poista",
-    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea.",
-    "You need to create an account to sign this file." : "Sinun tulee luoda tili, jotta voit allekirjoittaa tämän tiedoston."
+    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea."
 },
 "nplurals=2; plural=(n != 1);");

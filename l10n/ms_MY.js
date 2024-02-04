@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "Email",
     "Files" : "Fail",
     "Settings" : "Tetapan",
     "Password" : "Kata laluan",
@@ -8,7 +9,6 @@ OC.L10N.register(
     "Cancel" : "Batal",
     "Save" : "Simpan",
     "Name" : "Nama",
-    "Email" : "Email",
     "Update" : "Kemaskini",
     "Description" : "Keterangan",
     "Add" : "Tambah",

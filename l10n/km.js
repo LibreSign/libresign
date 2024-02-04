@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Email" : "អ៊ីមែល",
     "Files" : "ឯកសារ",
     "Settings" : "ការកំណត់",
     "Password" : "ពាក្យសម្ងាត់",
@@ -9,7 +10,6 @@ OC.L10N.register(
     "Cancel" : "បោះបង់",
     "Save" : "រក្សាទុក",
     "Name" : "ឈ្មោះ",
-    "Email" : "អ៊ីមែល",
     "Update" : "ធ្វើ​បច្ចុប្បន្នភាព",
     "Description" : "ការ​អធិប្បាយ",
     "Add" : "បញ្ចូល",

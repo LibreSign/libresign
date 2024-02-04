@@ -1,4 +1,5 @@
 { "translations": {
+    "Email" : "Email",
     "Files" : "Fichieren",
     "Settings" : "Astellungen",
     "Authentication required" : "Authentifizéierung néideg",
@@ -8,7 +9,6 @@
     "Cancel" : "Ofbriechen",
     "Save" : "Späicheren",
     "Name" : "Numm",
-    "Email" : "Email",
     "Update" : "Update",
     "Description" : "Beschreiwung",
     "Add" : "Derbäimaachen",

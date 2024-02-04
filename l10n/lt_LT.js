@@ -27,6 +27,8 @@ OC.L10N.register(
     "Account" : "Paskyra",
     "Invalid user" : "Neteisingas naudotojas",
     "You are not logged in. Please log in." : "Jūs nesate prisijungę. Prisijunkite.",
+    "Email" : "El. paštas",
+    "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą.",
     "User already exists. Please login." : "Naudotojas jau yra. Prisijunkite.",
     "User already exists" : "Naudotojas jau yra",
     "This is not your file" : "Tai ne jūsų failas",
@@ -47,7 +49,6 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Rekomendacijų nėra. Pradėkite rašyti.",
     "Name" : "Vardas",
     "Searching …" : "Ieškoma…",
-    "Email" : "El. paštas",
     "Update" : "Atnaujinti",
     "Description" : "Aprašas",
     "Add" : "Pridėti",
@@ -103,7 +104,6 @@ OC.L10N.register(
     "Reset password" : "Atstatyti slaptažodį",
     "Select a file" : "Pasirinkti failą",
     "Add users" : "Pridėti naudotojus",
-    "Remove" : "Šalinti",
-    "You need to create an account to sign this file." : "Norėdami pasirašyti šį failą, turite susikurti paskyrą."
+    "Remove" : "Šalinti"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");
