@@ -129,7 +129,7 @@ class JSignPdfHandler extends SignEngineHandler {
 			return $jSignPDF->sign();
 		} catch (\Throwable $th) {
 			$rows = str_getcsv($th->getMessage());
-			$hashAlgorithm = array_filter($rows, fn($r) => str_contains($r, 'The chosen hash algorithm'));
+			$hashAlgorithm = array_filter($rows, fn ($r) => str_contains($r, 'The chosen hash algorithm'));
 			if (!empty($hashAlgorithm)) {
 				$hashAlgorithm = current($hashAlgorithm);
 				$hashAlgorithm = trim($hashAlgorithm, 'INFO ');
