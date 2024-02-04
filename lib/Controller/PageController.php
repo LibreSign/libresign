@@ -304,7 +304,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 5, period: 120)]
+	#[AnonRateLimit(limit: 12, period: 60)]
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
@@ -340,7 +340,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 5, period: 120)]
+	#[AnonRateLimit(limit: 12, period: 60)]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		$this->throwIfValidationPageNotAccessible();
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
@@ -372,7 +372,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 5, period: 120)]
+	#[AnonRateLimit(limit: 12, period: 60)]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		try {
