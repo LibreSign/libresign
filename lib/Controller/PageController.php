@@ -376,14 +376,13 @@ class PageController extends AEnvironmentPageAwareController {
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		try {
-			$fileEntity = $this->signFileService->getFileByUuid($uuid);
-			$this->signFileService->getAccountFileById($fileEntity->getId());
+			$this->signFileService->getFileByUuid($uuid);
 		} catch (DoesNotExistException $e) {
 			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
 			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
 		}
 		$this->initialState->provideInitialState('config',
-			$this->accountService->getConfig($this->userSession->getUser())
+			$this->accountService->getConfig($this->userSession?->getUser())
 		);
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
