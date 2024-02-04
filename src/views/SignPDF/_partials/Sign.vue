@@ -260,7 +260,7 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
-			return this.signDocument({
+			this.signDocument({
 				method: 'clickToSign',
 			})
 		},
