@@ -16,7 +16,7 @@
 				<File v-for="file in filterFile"
 					:key="file.uuid"
 					:node-id="file.file.nodeId"
-					:class="{'file-details': true, 'active': file.uuid === filesStore.file.uuid}" />
+					:class="{'file-details': true, 'active': file.file.nodeId === filesStore.file?.file?.nodeId}" />
 			</ul>
 			<NcEmptyContent v-else
 				:name="t('libresign', 'There are no documents')">
