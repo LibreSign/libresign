@@ -29,9 +29,10 @@
 									<b>{{ document.name }}</b>
 								</p>
 
-								<span class="legal-information">
-									{{ legalInformation }}
-								</span>
+								<NcRichText
+									class="legal-information"
+									:text="legalInformation"
+									:use-markdown="true" />
 
 								<NcButton type="primary"
 									@click="viewDocument(document.file)">
@@ -78,6 +79,7 @@ import axios from '@nextcloud/axios'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
 import { loadState } from '@nextcloud/initial-state'
 import BackgroundImage from '../../img/logo-gray.svg'
 import iconA from '../../img/info-circle-solid.svg'
@@ -94,6 +96,7 @@ export default {
 
 	components: {
 		Moment,
+		NcRichText,
 		NcContent,
 		NcButton,
 		NcLoadingIcon,
