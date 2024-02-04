@@ -188,7 +188,7 @@ export default {
 		onSelectSigner(signer) {
 			signer.element = {
 				coordinates: {
-					page: 1,
+					page: this.$refs.pdfEditor.$refs.vuePdfEditor.selectedPageIndex + 1,
 					llx: 100,
 					ury: 100,
 					height: SignatureImageDimensions.height,

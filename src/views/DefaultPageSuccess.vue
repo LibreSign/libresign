@@ -37,7 +37,7 @@
 <script>
 import icon from '../../img/logo-white.svg'
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
+import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 export default {
 	name: 'DefaultPageSuccess',
@@ -58,9 +58,14 @@ export default {
 	},
 	methods: {
 		sendToView() {
-			const rootUrl = window.location.href.split('libresign')[0]
-			const url = `${rootUrl}libresign${generateUrl(`f/validation/${this.myUuid}`)}`
-			window.location.href = url
+			const name = getCurrentUser() ? 'validationFile' : 'validationFilePublic'
+			const url = this.$router.resolve({
+				name,
+				params: {
+					uuid: this.myUuid,
+				},
+			})
+			window.location.href = url.href
 		},
 	},
 }

@@ -51,11 +51,16 @@
 				</h2>
 				{{ t('libresign', 'Confirm your signature') }}
 				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('clickToSign')">
+					<NcButton :disabled="loading"
+						@click="signMethodsStore.closeModal('clickToSign')">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary"
+						:disabled="loading"
 						@click="signWithClick">
+						<template #icon>
+							<NcLoadingIcon v-if="loading" :size="20" />
+						</template>
 						{{ t('libresign', 'Confirm') }}
 					</NcButton>
 				</div>
@@ -110,6 +115,7 @@
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -129,6 +135,7 @@ export default {
 	components: {
 		NcModal,
 		NcButton,
+		NcLoadingIcon,
 		NcPasswordField,
 		CreatePassword,
 		SMSManager,
@@ -253,7 +260,7 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
-			return this.signDocument({
+			this.signDocument({
 				method: 'clickToSign',
 			})
 		},
@@ -293,7 +300,7 @@ export default {
 				}
 
 				const { data } = await axios.post(url, payload)
-				if (data?.action === 350) { // ACTION_SIGNED
+				if (data?.action === 3500) { // ACTION_SIGNED
 					this.$emit('signed', data)
 				}
 			} catch (err) {

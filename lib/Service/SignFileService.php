@@ -342,7 +342,10 @@ class SignFileService {
 			$this->setPassword($tempPassword);
 			try {
 				return $this->pkcs12Handler->generateCertificate(
-					['identify' => $this->userUniqueIdentifier, 'name' => $this->friendlyName],
+					[
+						'identify' => $this->userUniqueIdentifier,
+						'name' => $this->friendlyName,
+					],
 					$tempPassword,
 					$this->friendlyName,
 					true

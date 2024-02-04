@@ -26,7 +26,9 @@ namespace OCA\Libresign\Handler;
 
 use Jeidison\JSignPDF\JSignPDF;
 use Jeidison\JSignPDF\Sign\JSignParam;
+use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
 class JSignPdfHandler extends SignEngineHandler {
 	/** @var JSignPDF */
@@ -37,6 +39,7 @@ class JSignPdfHandler extends SignEngineHandler {
 
 	public function __construct(
 		private IAppConfig $appConfig,
+		private LoggerInterface $logger,
 	) {
 	}
 
@@ -92,7 +95,7 @@ class JSignPdfHandler extends SignEngineHandler {
 		}
 		$jSignPdf = $this->getJSignPdf();
 		$jSignPdf->setParam($param);
-		return $jSignPdf->sign();
+		return $this->signWrapper($jSignPdf);
 	}
 
 	private function signUsingVisibleElements(): string {
@@ -114,10 +117,28 @@ class JSignPdfHandler extends SignEngineHandler {
 						' --bg-path ' . $element->getTempFile()
 					);
 				$jSignPdf->setParam($param);
-				$signed = $jSignPdf->sign();
+				$signed = $this->signWrapper($jSignPdf);
 			}
 			return $signed;
 		}
 		return '';
+	}
+
+	private function signWrapper(JSignPDF $jSignPDF): string {
+		try {
+			return $jSignPDF->sign();
+		} catch (\Throwable $th) {
+			$rows = str_getcsv($th->getMessage());
+			$hashAlgorithm = array_filter($rows, fn ($r) => str_contains($r, 'The chosen hash algorithm'));
+			if (!empty($hashAlgorithm)) {
+				$hashAlgorithm = current($hashAlgorithm);
+				$hashAlgorithm = trim($hashAlgorithm, 'INFO ');
+				$hashAlgorithm = str_replace('\"', '"', $hashAlgorithm);
+				$hashAlgorithm = preg_replace('/\.( )/', ".\n", $hashAlgorithm);
+				throw new LibresignException($hashAlgorithm);
+			}
+			$this->logger->error('Error at JSignPdf side. LibreSign can not do nothing. Follow the error message: ' . $th->getMessage());
+			throw new \Exception($th->getMessage());
+		}
 	}
 }
