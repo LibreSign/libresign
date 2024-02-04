@@ -93,6 +93,9 @@ class IdentifyMethodService {
 
 	private function getNewInstanceOfMethod(string $name): IIdentifyMethod {
 		$className = 'OCA\Libresign\Service\IdentifyMethod\\' . ucfirst($name);
+		if (!class_exists($className)) {
+			$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
+		}
 		$identifyMethod = clone \OC::$server->get($className);
 		if (empty($this->currentIdentifyMethod)) {
 			$identifyMethod->cleanEntity();
@@ -164,6 +167,18 @@ class IdentifyMethodService {
 			}
 		}
 		return $return;
+	}
+
+	public function getIdentifiedMethod(int $signRequestId): IIdentifyMethod {
+		$matrix = $this->getIdentifyMethodsFromSignRequestId($signRequestId);
+		foreach ($matrix as $identifyMethods) {
+			foreach ($identifyMethods as $identifyMethod) {
+				if ($identifyMethod->getEntity()->getIdentifiedAtDate()) {
+					return $identifyMethod;
+				}
+			}
+		}
+		throw new LibresignException($this->l10n->t('Invalid identification method'), 1);
 	}
 
 	public function getSignMethodsOfIdentifiedFactors(int $signRequestId): array {

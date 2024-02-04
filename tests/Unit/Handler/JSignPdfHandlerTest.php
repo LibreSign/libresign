@@ -6,6 +6,7 @@ use Jeidison\JSignPDF\JSignPDF;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCP\AppFramework\Services\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 /**
  * @internal
@@ -13,10 +14,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JSignPdfHandler $class;
 	private IAppConfig|MockObject $appConfig;
+	private LoggerInterface|MockObject $loggerInterface;
 	public function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 		$this->class = new JSignPdfHandler(
-			$this->appConfig
+			$this->appConfig,
+			$this->loggerInterface,
 		);
 	}
 

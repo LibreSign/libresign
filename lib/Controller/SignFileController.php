@@ -34,6 +34,7 @@ use OCA\Libresign\Middleware\Attribute\CanSignRequestUuid;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\Http;
@@ -56,6 +57,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		protected IUserSession $userSession,
 		private ValidateHelper $validateHelper,
 		protected SignFileService $signFileService,
+		private IdentifyMethodService $identifyMethodService,
 		private FileService $fileService,
 		protected LoggerInterface $logger
 	) {
@@ -94,9 +96,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			} else {
 				$this->signFileService->setSignWithoutPassword(true);
 			}
+			$identifyMethod = $this->identifyMethodService->getIdentifiedMethod($signRequest->getId());
 			$this->signFileService
 				->setLibreSignFile($libreSignFile)
 				->setSignRequest($signRequest)
+				->setUserUniqueIdentifier($identifyMethod->getEntity()->getIdentifierValue())
+				->setFriendlyName($signRequest->getDisplayName())
 				->storeUserMetadata([
 					'user-agent' => $this->request->getHeader('User-Agent'),
 					'remote-address' => $this->request->getRemoteAddress(),

@@ -45,7 +45,6 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
-import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
@@ -70,7 +69,6 @@ export default {
 	data() {
 		return {
 			loading: true,
-			action: loadState('libresign', 'action'),
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
 			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
@@ -124,9 +122,12 @@ export default {
 			window.location.href = url.href
 		},
 		onSigned(data) {
-			showSuccess(data.message)
-			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
-			window.location.href = url.href
+			this.$router.push({
+				name: 'DefaultPageSuccess',
+				params: {
+					uuid: data.file.uuid,
+				},
+			})
 		},
 	},
 }

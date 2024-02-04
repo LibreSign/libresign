@@ -52,8 +52,6 @@ class FileService {
 	/** @var bool */
 	private $showSettings = false;
 	/** @var bool */
-	private $showPages = false;
-	/** @var bool */
 	private $showVisibleElements = false;
 	/** @var bool */
 	private $showMessages = false;
@@ -62,7 +60,7 @@ class FileService {
 	private ?SignRequest $signRequest = null;
 	/** @var IUser|null */
 	private $me;
-	private ?int $identifyMethodId;
+	private ?int $identifyMethodId = null;
 	/** @var array */
 	private $signers = [];
 	/** @var array */
@@ -111,14 +109,6 @@ class FileService {
 	 */
 	public function showSettings(bool $show = true): self {
 		$this->showSettings = $show;
-		return $this;
-	}
-
-	/**
-	 * @return static
-	 */
-	public function showPages(bool $show = true): self {
-		$this->showPages = $show;
 		return $this;
 	}
 
@@ -376,9 +366,6 @@ class FileService {
 			->format('Y-m-d H:i:s');
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
-		}
-		if ($this->showPages) {
-			$return['pages'] = $this->getPages();
 		}
 		if ($this->showVisibleElements) {
 			$visibleElements = $this->getVisibleElements();
