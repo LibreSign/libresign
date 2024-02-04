@@ -61,7 +61,7 @@ class FileService {
 	private ?SignRequest $signRequest = null;
 	/** @var IUser|null */
 	private $me;
-	private ?int $identifyMethodId;
+	private ?int $identifyMethodId = null;
 	/** @var array */
 	private $signers = [];
 	/** @var array */
