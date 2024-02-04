@@ -47,6 +47,7 @@ import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
 import { showSuccess } from '@nextcloud/dialogs'
 import { loadState } from '@nextcloud/initial-state'
+import { getCurrentUser } from '@nextcloud/auth'
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import Chip from '../../Components/Chip.vue'
@@ -125,7 +126,8 @@ export default {
 		},
 		onSigned(data) {
 			showSuccess(data.message)
-			const url = this.$router.resolve({ name: 'validationFile', params: { uuid: this.uuid } })
+			const name = getCurrentUser() ? 'validationFile' : 'validationFilePublic'
+			const url = this.$router.resolve({ name, params: { uuid: data.file.uuid } })
 			window.location.href = url.href
 		},
 	},
