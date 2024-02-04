@@ -59,9 +59,12 @@ export default {
 	methods: {
 		sendToView() {
 			const name = getCurrentUser() ? 'validationFile' : 'validationFilePublic'
-			const url = this.$router.resolve({ name, params: {
-				uuid: this.myUuid
-			}})
+			const url = this.$router.resolve({
+				name,
+				params: {
+					uuid: this.myUuid,
+				},
+			})
 			window.location.href = url.href
 		},
 	},
