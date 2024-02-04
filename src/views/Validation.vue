@@ -29,8 +29,7 @@
 									<b>{{ document.name }}</b>
 								</p>
 
-								<NcRichText
-									class="legal-information"
+								<NcRichText class="legal-information"
 									:text="legalInformation"
 									:use-markdown="true" />
 
