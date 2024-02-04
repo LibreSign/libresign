@@ -73,7 +73,7 @@ export default {
 				y: signer.element.coordinates.ury,
 			}
 			this.$refs.vuePdfEditor.allObjects = this.$refs.vuePdfEditor.allObjects.map((objects, pIndex) => {
-				if (pIndex === object.signer.element.coordinates.page -1) {
+				if (pIndex === signer.element.coordinates.page - 1) {
 					return [...objects, object]
 				}
 				return objects
