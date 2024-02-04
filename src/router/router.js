@@ -177,13 +177,12 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
 	const action = selectAction(loadState('libresign', 'action', ''))
-	if (action !== undefined && to.name !== action) {
+	if (action !== undefined) {
+		document.querySelector('#initial-state-libresign-action').remove()
 		next({
 			name: action,
 			params: to.params,
 		})
-	} else if (to.query.redirect === 'CreatePassword') {
-		next({ name: 'CreatePassword' })
 	} else {
 		next()
 	}

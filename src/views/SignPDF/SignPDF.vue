@@ -71,7 +71,6 @@ export default {
 	data() {
 		return {
 			loading: true,
-			action: loadState('libresign', 'action'),
 			errors: loadState('libresign', 'errors', []),
 			pdf: loadState('libresign', 'pdf'),
 			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
