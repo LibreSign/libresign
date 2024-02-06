@@ -48,7 +48,7 @@ export default {
 	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
