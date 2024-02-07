@@ -17,8 +17,9 @@
 				</small>
 			</p>
 			<ul class="view-sign-detail__sidebar">
-				<Signer v-for="signer in document.signers"
-					:key="signer.id"
+				<Signer v-for="(signer, key) in document.signers"
+					:key="key"
+					:currentSigner="key"
 					:signer="signer"
 					event="libresign:visible-elements-select-signer">
 					<slot v-bind="{signer}" slot="actions" name="actions" />
