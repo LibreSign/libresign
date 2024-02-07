@@ -6,12 +6,11 @@
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
-				<File v-show="!isEmptyFile"
-					:node-id="filesStore.file?.file?.nodeId"
+				<File v-show="filesStore.selectedNodeId > 0"
 					status="0"
 					status-text="none" />
 				<NcButton :wide="true"
-					@click="showModalUploadFromUrl">
+					@click="showModalUploadFromUrl()">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
 						<LinkIcon :size="20" />
@@ -133,9 +132,6 @@ export default {
 				callback: (nodes) => this.handleFileChoose(nodes),
 				type: 'primary',
 			}]
-		},
-		isEmptyFile() {
-			return Object.keys(this.filesStore.file).length === 0
 		},
 		canRequest() {
 			return this.signers.length > 0

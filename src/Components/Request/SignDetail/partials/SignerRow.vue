@@ -11,7 +11,7 @@
 				:user="signer.email"
 				:display-name="displayName" />
 		</template>
-		<template #subtitle>
+		<template #subname>
 			<span class="signer-status">{{ status }}</span>
 		</template>
 		<slot v-if="$slots.actions" slot="actions" name="actions" />
