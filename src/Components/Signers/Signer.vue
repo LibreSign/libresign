@@ -37,6 +37,10 @@ export default {
 		Bullet,
 	},
 	props: {
+		currentSigner: {
+			type: Number,
+			required: true,
+		},
 		event: {
 			type: String,
 			required: false,
@@ -54,7 +58,7 @@ export default {
 	},
 	computed: {
 		signer() {
-			return this.filesStore.getFile().signers[this.$vnode.key]
+			return this.filesStore.getFile().signers[this.currentSigner]
 		},
 		identifyMethodsNames() {
 			return this.signer.identifyMethods.map(method => method.method)
