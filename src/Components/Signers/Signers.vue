@@ -1,8 +1,8 @@
 <template>
 	<ul>
-		<Signer v-for="(signer, index) in filesStore.files[this.filesStore.selectedNodeId].signers"
+		<Signer v-for="(signer, index) in filesStore.files[filesStore.selectedNodeId].signers"
 			:key="index"
-			:currentSigner="index"
+			:current-signer="index"
 			:event="event">
 			<slot v-bind="{signer}" slot="actions" name="actions" />
 		</Signer>
