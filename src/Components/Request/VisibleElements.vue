@@ -109,13 +109,13 @@ export default {
 	},
 	computed: {
 		typeOfRequestButton() {
-			if (canSave) {
+			if (this.canSave) {
 				return 'primary'
 			}
 			return 'secondary'
 		},
 		typeOfSignButton() {
-			if (canSave) {
+			if (this.canSave) {
 				return 'secondary'
 			}
 			return 'primary'
