@@ -153,7 +153,6 @@ export default {
 				return
 			}
 			this.modal = true
-			this.loadDocument()
 		},
 		closeModal() {
 			this.modal = false
