@@ -25,14 +25,14 @@
 				</Signer>
 			</ul>
 			<NcButton v-if="canSave"
-				:type="canSave?'primary':'secondary'"
+				:type="typeOfRequestButton"
 				:wide="true"
 				@click="showConfirm = true">
 				{{ t('libresign', 'Request') }}
 			</NcButton>
 
 			<NcButton v-if="canSign"
-				:type="!canSave?'primary':'secondary'"
+				:type="typeOfSignButton"
 				:wide="true"
 				@click="goToSign">
 				{{ t('libresign', 'Sign') }}
@@ -107,6 +107,18 @@ export default {
 		}
 	},
 	computed: {
+		typeOfRequestButton() {
+			if (canSave) {
+				return 'primary'
+			}
+			return 'secondary'
+		},
+		typeOfSignButton() {
+			if (canSave) {
+				return 'secondary'
+			}
+			return 'primary'
+		},
 		document() {
 			return this.filesStore.getFile()
 		},
