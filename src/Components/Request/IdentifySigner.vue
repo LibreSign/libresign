@@ -6,11 +6,18 @@
 			:placeholder="placeholder"
 			@update:account="updateAccount"
 			@update:email="updateEmail" />
-		<SignerName :name="name"
-			@update:name="updateName" />
+		<label for="name-input">{{ t('libresign', 'Signer name') }}</label>
+		<NcTextField aria-describedby="name-input"
+			autocapitalize="none"
+			:value.sync="displayName"
+			:label="t('libresign', 'Signer name')"
+			:required="true"
+			:error="nameHaveError"
+			:helper-text="nameHelperText"
+			@update:value="onNameChange" />
 		<div class="identifySigner__footer">
 			<div class="button-group">
-				<NcButton @click="$emit('cancel-identify-signer')">
+				<NcButton @click="filesStore.disableIdentifySigner()">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
 				<NcButton type="primary" @click="saveSigner">
@@ -23,15 +30,16 @@
 <script>
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import AccountOrEmail from './AccountOrEmail.vue'
-import SignerName from './SignerName.vue'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import { loadState } from '@nextcloud/initial-state'
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'IdentifySigner',
 	components: {
 		NcButton,
+		NcTextField,
 		AccountOrEmail,
-		SignerName,
 	},
 	props: {
 		signerToEdit: {
@@ -44,10 +52,16 @@ export default {
 			required: false,
 		},
 	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
+	},
 	data() {
 		return {
 			id: null,
-			name: '',
+			nameHelperText: '',
+			nameHaveError: false,
+			displayName: '',
 			identify: '',
 			methods: {
 				account: {
@@ -81,6 +95,10 @@ export default {
 		},
 	},
 	beforeMount() {
+		this.displayName = ''
+		this.identify = ''
+		this.methods.account.value = {}
+		this.methods.email.value = {}
 		if (Object.keys(this.signerToEdit).length > 0) {
 			this.name = this.signerToEdit.displayName
 			this.identify = this.signerToEdit.identify ?? this.signerToEdit.signRequestId
@@ -111,7 +129,7 @@ export default {
 	methods: {
 		saveSigner() {
 			const signer = {
-				displayName: this.name,
+				displayName: this.displayName,
 				identify: this.identify,
 				identifyMethods: [],
 			}
@@ -135,8 +153,12 @@ export default {
 				}
 			}
 			if (canSave) {
-				this.$emit('save-identify-signer', signer)
+				this.filesStore.signerUpdate(signer)
 			}
+			this.displayName = ''
+			this.identify = ''
+			this.identifyMethods = []
+			this.filesStore.disableIdentifySigner()
 		},
 		updateEmail(email) {
 			this.methods.email.value = email
@@ -151,7 +173,17 @@ export default {
 			this.methods.account.value = account
 		},
 		updateName(name) {
-			this.name = name
+			this.displayName = name
+		},
+		onNameChange() {
+			const name = this.displayName.trim()
+			if (name.length > 2) {
+				this.nameHelperText = ''
+				this.nameHaveError = false
+				return
+			}
+			this.nameHelperText = t('libresign', 'Please enter signer name.')
+			this.nameHaveError = true
 		},
 	},
 }

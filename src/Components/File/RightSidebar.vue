@@ -1,15 +1,13 @@
 <template>
 	<NcAppSidebar v-show="opened"
-		:name="filesStore.file.name"
+		:name="fileName"
 		:subtitle="subTitle"
-		:active="filesStore.file.name"
+		:active="fileName"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="filesStore.file.name"
+		<NcAppSidebarTab v-if="fileName"
 			id="request-signature-list-signers"
-			:name="filesStore.file.name">
-			<RequestSignature :file="filesStore.file.file"
-				:signers="filesStore.file.signers"
-				:name="filesStore.file.name" />
+			:name="fileName">
+			<RequestSignature />
 		</NcAppSidebarTab>
 	</NcAppSidebar>
 </template>
@@ -18,7 +16,6 @@
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import RequestSignature from '../Request/RequestSignature.vue'
-import Moment from '@nextcloud/moment'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -33,21 +30,22 @@ export default {
 		return { filesStore }
 	},
 	computed: {
+		fileName() {
+			return this.filesStore.getFile()?.name ?? ''
+		},
 		subTitle() {
-			if (this.filesStore.file.requested_by?.uid) {
-				return t('libresign', 'Requested by {name}, at {date}', {
-					name: this.filesStore.file.requested_by.uid,
-					date: Moment(Date.parse(this.filesStore.file.request_date)).format('LL LTS'),
-				})
+			if (!this.opened) {
+				return t('libresign', 'Enter who will receive the request')
 			}
-			return t('libresign', 'Enter who will receive the request')
+			return this.filesStore.getSubtitle()
 		},
 		opened() {
-			return Object.keys(this.filesStore.file).length > 0
+			return this.filesStore.selectedNodeId > 0
 		},
 	},
 	methods: {
 		closeSidebar() {
+			this.filesStore.selectFile()
 			this.$emit('close')
 		},
 	},

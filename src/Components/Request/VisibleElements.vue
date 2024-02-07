@@ -38,7 +38,7 @@
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
 		</div>
-		<div v-if="loading"
+		<div v-if="filesStore.loading"
 			class="image-page">
 			<NcLoadingIcon :size="64" name="Loading" />
 			<p>{{ t('libresign', 'Loading file') }}</p>
@@ -82,6 +82,7 @@ import { SignatureImageDimensions } from '../Draw/index.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'VisibleElements',
@@ -94,29 +95,21 @@ export default {
 		NcLoadingIcon,
 		PdfEditor,
 	},
-	props: {
-		file: {
-			type: Object,
-			default: () => {},
-			require: true,
-		},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
-			document: {
-				id: '',
-				name: '',
-				signers: [],
-				pages: [],
-				visibleElements: [],
-				loading: false,
-			},
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 			modal: false,
 			showConfirm: false,
 		}
 	},
 	computed: {
+		document() {
+			return this.filesStore.getFile()
+		},
 		canSign() {
 			if (this.status !== SIGN_STATUS.ABLE_TO_SIGN) {
 				return false
@@ -237,8 +230,8 @@ export default {
 				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					users: [],
 					// Only add to array if not empty
-					...(this.file.uuid && { uuid: this.file.uuid }),
-					...(this.file.nodeId && { file: { fileId: this.file.nodeId } }),
+					...(this.filesStore.getFile().uuid && { uuid: this.filesStore.getFile().uuid }),
+					...(this.filesStore.getFile().nodeId && { file: { fileId: this.filesStore.getFile().nodeId } }),
 					visibleElements,
 					status: 0,
 				})
@@ -246,17 +239,6 @@ export default {
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
 			} catch (err) {
-				this.onError(err)
-			}
-		},
-		async loadDocument() {
-			try {
-				this.loading = true
-				const document = await axios.get(generateOcsUrl(`/apps/libresign/api/v1/file/validate/file_id/${this.file.nodeId}`))
-				this.document = document.data
-				this.loading = false
-			} catch (err) {
-				this.loading = false
 				this.onError(err)
 			}
 		},
