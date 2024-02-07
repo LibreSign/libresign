@@ -126,9 +126,12 @@ export default {
 
 		},
 		async save() {
-			const params = {
-				name: this.filesStore.getFile()?.name,
-				users: [],
+			const config = {
+				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
+				data: {
+					name: this.filesStore.getFile()?.name,
+					users: [],
+				},
 			}
 			this.dataSigners.forEach(signer => {
 				const user = {
@@ -142,22 +145,26 @@ export default {
 						user.identify.email = method?.value?.id ?? method?.value ?? signer.email
 					}
 				})
-				params.users.push(user)
+				config.data.users.push(user)
 			})
 
-			try {
-				if (this.filesStore.getFile().uuid) {
-					params.uuid = this.filesStore.getFile().uuid
-					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
-				} else {
-					params.file = {
-						fileId: this.filesStore.selectedNodeId,
-					}
-					await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+			if (this.filesStore.getFile().uuid) {
+				config.data.uuid = this.filesStore.getFile().uuid
+				config.method = 'patch'
+			} else {
+				config.data.file = {
+					fileId: this.filesStore.selectedNodeId,
 				}
-			} catch (e) {
+				config.method = 'post'
 			}
-			emit('libresign:show-visible-elements')
+			await axios(config)
+				.then(({ data }) => {
+					this.filesStore.files[this.filesStore.selectedNodeId].uuid = data.data.uuid
+					emit('libresign:show-visible-elements')
+				})
+				.catch(({ error }) => {
+					showError(error.message)
+				})
 		},
 	},
 }
