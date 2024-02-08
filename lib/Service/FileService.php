@@ -353,7 +353,7 @@ class FileService {
 		}
 		$return['status'] = $this->file->getStatus();
 		$return['statusText'] = $this->fileMapper->getTextOfStatus($this->file->getStatus());
-		$return['fileId'] = $this->file->getNodeId();
+		$return['nodeId'] = $this->file->getNodeId();
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
