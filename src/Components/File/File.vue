@@ -59,7 +59,7 @@ export default {
 			}
 			try {
 				const previewUrl = generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.filesStore.files[this.currentNodeId].file.nodeId,
+					fileid: this.currentNodeId,
 				})
 				const url = new URL(window.location.origin + previewUrl)
 

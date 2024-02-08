@@ -168,9 +168,7 @@ export default {
 					},
 				})
 				this.filesStore.addFile({
-					file: {
-						nodeId: response.data.id,
-					},
+					nodeId: response.data.id,
 					name: response.data.name,
 				})
 				this.filesStore.selectFile(response.data.id)
@@ -195,9 +193,7 @@ export default {
 				const res = await filesService.uploadFile({ name, file: data })
 
 				this.filesStore.addFile({
-					file: {
-						nodeId: res.id,
-					},
+					nodeId: res.id,
 					name: res.name,
 				})
 				this.filesStore.selectFile(res.id)
@@ -238,9 +234,7 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
 				this.filesStore.addFile({
-					file: {
-						nodeId: response.data.id,
-					},
+					nodeId: response.data.id,
 					name: response.data.name,
 				})
 				this.filesStore.selectFile(response.data.id)

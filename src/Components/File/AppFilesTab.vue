@@ -31,9 +31,7 @@ export default {
 	methods: {
 		async update(fileInfo) {
 			this.filesStore.addFile({
-				file: {
-					nodeId: fileInfo.id,
-				},
+				nodeId: fileInfo.id,
 				name: fileInfo.name,
 			})
 		},

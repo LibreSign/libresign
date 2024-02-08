@@ -37,8 +37,8 @@ export const useFilesStore = defineStore('files', {
 
 	actions: {
 		addFile(file) {
-			set(this.files, file.file.nodeId, file)
-			this.hydrateFile(file.file.nodeId)
+			set(this.files, file.nodeId, file)
+			this.hydrateFile(file.nodeId)
 		},
 		selectFile(nodeId) {
 			this.selectedNodeId = nodeId ?? 0
@@ -80,7 +80,7 @@ export const useFilesStore = defineStore('files', {
 			}
 			this.loading = true
 			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
-				fileId: this.files[nodeId].file.nodeId,
+				fileId: nodeId,
 			}))
 				.then(() => {
 					set(this.files, nodeId, response.data)
