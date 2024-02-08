@@ -331,7 +331,6 @@ export default {
 			}
 			if (this.signMethodsStore.needClickToSign()) {
 				this.signMethodsStore.showModal('clickToSign')
-				return
 			}
 		},
 	},
