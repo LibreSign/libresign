@@ -82,7 +82,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		$signers = $this->getSignersFromFileId($file->getId());
 		$signers[0]->setSigned(time());
 		$signRequest = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
-		$signRequest->update($file['users'][0]);
+		$signRequest->update($signers[0]);
 
 		$this->request
 			->withMethod('POST')
