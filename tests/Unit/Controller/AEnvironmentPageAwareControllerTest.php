@@ -101,7 +101,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 		$this->userSession->setUser($user);
 
 		$root = \OC::$server->get(IRootFolder::class);
-		$nextcloudFile = $root->getById($file['nodeId']);
+		$nextcloudFile = $root->getById($file->getUuid());
 		$trashManager = \OC::$server->get(ITrashManager::class);
 		$trashManager->pauseTrash();
 		$nextcloudFile[0]->delete();
@@ -113,6 +113,7 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 			'errors' => ['File not found'],
 		]));
 
-		$this->controller->loadNextcloudFileFromSignRequestUuid($file['users'][0]->getUuid());
+		$signers = $this->getSignersFromFileId($file->getId());
+		$this->controller->loadNextcloudFileFromSignRequestUuid($signers[0]->getUuid());
 	}
 }
