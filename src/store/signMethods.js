@@ -52,7 +52,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			set(this.settings.emailToken, 'token', token)
 		},
 		hasSignatureFile(hasSignatureFile) {
-			set(this.signMethodsStore.settings.password, 'hasSignatureFile', hasSignatureFile)
+			set(this.settings.password, 'hasSignatureFile', hasSignatureFile)
 		},
 		needCreatePassword() {
 			return Object.hasOwn(this.settings, 'password')
