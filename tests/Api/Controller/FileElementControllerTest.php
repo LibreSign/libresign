@@ -64,6 +64,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	public function testPatchSuccess($params) {
 		$this->createUser('username', 'password');
 		extract($params);
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withPath('/file-element/' . $file->getUuid() . '/' . $fileElementId)
 			->withMethod('PATCH')
@@ -80,7 +81,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'page' => 1,
 				],
 				'type' => 'signature',
-				'signRequestId' => $file['users'][0]->getId(),
+				'signRequestId' => $signers[0]->getId(),
 			]);
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
