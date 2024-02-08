@@ -159,7 +159,7 @@ export default {
 			}
 			await axios(config)
 				.then(({ data }) => {
-					this.filesStore.files[this.filesStore.selectedNodeId].uuid = data.data.uuid
+					this.filesStore.addFile(data.data)
 					emit('libresign:show-visible-elements')
 				})
 				.catch(({ error }) => {
