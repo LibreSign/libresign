@@ -284,9 +284,9 @@ class TestCase extends \Test\TestCase {
 	/**
 	 * @return \OCA\Libresign\Db\signRequestMapper
 	 */
-	private function getSignRequestMapper(): \OCA\Libresign\Db\signRequestMapper {
+	private function getSignRequestMapper(): \OCA\Libresign\Db\SignRequestMapper {
 		if (!isset($this->signRequestMapper)) {
-			$this->signRequestMapper = \OC::$server->get(\OCA\Libresign\Db\signRequestMapper::class);
+			$this->signRequestMapper = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
 		}
 		return $this->signRequestMapper;
 	}
