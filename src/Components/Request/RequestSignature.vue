@@ -1,8 +1,11 @@
 <template>
-	<div v-if="listSigners"
-		id="request-signature-list-signers"
-		:name="name">
-		<NcButton v-if="canRequestSign && !signed"
+	<div v-if="filesStore.identifyingSigner"
+		id="request-signature-identify-signer">
+		<IdentifySigner :signer-to-edit="signerToEdit" />
+	</div>
+	<div v-else
+		id="request-signature-list-signers">
+		<NcButton v-if="canRequestSign && !filesStore.isSigned()"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
@@ -12,7 +15,7 @@
 				<NcActionButton v-if="canRequestSign && !signer.sign_date"
 					aria-label="Delete"
 					:close-after-click="true"
-					@click="deleteSigner(signer)">
+					@click="filesStore.deleteSigner(signer)">
 					<template #icon>
 						<Delete :size="20" />
 					</template>
@@ -31,17 +34,11 @@
 			@click="save()">
 			{{ t('libresign', 'Next') }}
 		</NcButton>
-		<NcButton v-if="signed"
+		<NcButton v-if="filesStore.isSigned()"
 			@click="validationFile()">
 			{{ t('libresign', 'Validate') }}
 		</NcButton>
-		<VisibleElements :file="file" />
-	</div>
-	<div v-else
-		id="request-signature-identify-signer">
-		<IdentifySigner :signer-to-edit="signerToEdit"
-			@cancel-identify-signer="cancelIdentifySigner"
-			@save-identify-signer="signerUpdate" />
+		<VisibleElements />
 	</div>
 </template>
 <script>
@@ -57,6 +54,7 @@ import Signers from '../Signers/Signers.vue'
 import IdentifySigner from './IdentifySigner.vue'
 import VisibleElements from './VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'RequestSignature',
@@ -68,37 +66,22 @@ export default {
 		IdentifySigner,
 		VisibleElements,
 	},
-	props: {
-		name: {
-			type: String,
-			default: '',
-			required: false,
-		},
-		file: {
-			type: Object,
-			default: () => {},
-			required: false,
-		},
-		signers: {
-			type: Array,
-			default: () => [],
-			required: false,
-		},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
 	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
-			listSigners: true,
 			signerToEdit: {},
-			dataSigners: [],
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
 		canSave() {
-			return this.canRequestSign && !this.signed && this.dataSigners.length > 0
+			return this.canRequestSign && !this.filesStore.isSigned() && this.filesStore.getFile()?.signers?.length > 0
 		},
-		signed() {
-			return this.signers.filter(signer => signer.sign_date?.length > 0).length > 0
+		dataSigners() {
+			return this.filesStore.files[this.filesStore.selectedNodeId].signers
 		},
 	},
 	watch: {
@@ -108,51 +91,27 @@ export default {
 	},
 	async mounted() {
 		subscribe('libresign:edit-signer', this.editSigner)
-		this.init(this.signers)
+		this.filesStore.disableIdentifySigner()
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
-		init(signers) {
-			this.addIdentifierToAll(signers)
-			this.dataSigners = signers
-			this.listSigners = true
-		},
 		validationFile() {
-			this.$router.push({ name: 'validationFile', params: { uuid: this.file.uuid } })
-		},
-		addIdentifierToAll(signers) {
-			signers.map(signer => this.addIdentifierToSigner(signer))
-		},
-		addIdentifierToSigner(signer) {
-			// generate unique code to new signer to be possible delete or edit
-			if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
-				signer.identify = btoa(JSON.stringify(signer))
-			}
-			if (signer.signRequestId) {
-				signer.identify = signer.signRequestId
-			}
-			return signer
+			this.$router.push({ name: 'validationFile', params: { uuid: this.filesStore.getFile().uuid } })
 		},
 		addSigner() {
 			this.signerToEdit = {}
-			this.listSigners = false
-		},
-		cancelIdentifySigner() {
-			this.toggleAddSigner()
+			this.filesStore.enableIdentifySigner()
 		},
 		editSigner(signer) {
 			this.signerToEdit = signer
-			this.toggleAddSigner()
-		},
-		toggleAddSigner() {
-			this.listSigners = !this.listSigners
+			this.filesStore.enableIdentifySigner()
 		},
 		async sendNotify(signer) {
 			try {
 				const body = {
-					fileId: this.file.nodeId,
+					fileId: this.filesStore.selectedNodeId,
 					signRequestId: signer.signRequestId,
 				}
 
@@ -167,9 +126,12 @@ export default {
 
 		},
 		async save() {
-			const params = {
-				name: this.name.length > 0 ? this.name : this.file?.name,
-				users: [],
+			const config = {
+				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
+				data: {
+					name: this.filesStore.getFile()?.name,
+					users: [],
+				},
 			}
 			this.dataSigners.forEach(signer => {
 				const user = {
@@ -183,44 +145,26 @@ export default {
 						user.identify.email = method?.value?.id ?? method?.value ?? signer.email
 					}
 				})
-				params.users.push(user)
+				config.data.users.push(user)
 			})
 
-			try {
-				if (this.file.uuid) {
-					params.uuid = this.file.uuid
-					await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
-				} else {
-					params.file = {
-						fileId: this.file.nodeId,
-					}
-					await axios.post(generateOcsUrl('/apps/libresign/api/v1/request-signature'), params)
+			if (this.filesStore.getFile().uuid) {
+				config.data.uuid = this.filesStore.getFile().uuid
+				config.method = 'patch'
+			} else {
+				config.data.file = {
+					fileId: this.filesStore.selectedNodeId,
 				}
-			} catch (e) {
+				config.method = 'post'
 			}
-			emit('libresign:show-visible-elements')
-		},
-		async signerUpdate(signer) {
-			this.toggleAddSigner()
-			signer = this.addIdentifierToSigner(signer)
-			// Remove if already exists
-			for (let i = this.dataSigners.length - 1; i >= 0; i--) {
-				if (this.dataSigners[i].identify === signer.identify) {
-					this.dataSigners.splice(i, 1)
-					break
-				}
-				if (this.dataSigners[i].signRequestId === signer.identify) {
-					this.dataSigners.splice(i, 1)
-					break
-				}
-			}
-			this.dataSigners.push(signer)
-		},
-		async deleteSigner(signer) {
-			if (!isNaN(this.file?.nodeId) && !isNaN(signer.signRequestId)) {
-				await axios.delete(generateOcsUrl(`/apps/libresign/api/v1/sign/file_id/${this.file.nodeId}/${signer.signRequestId}`))
-			}
-			this.dataSigners = this.dataSigners.filter((i) => i.identify !== signer.identify)
+			await axios(config)
+				.then(({ data }) => {
+					this.filesStore.addFile(data.data)
+					emit('libresign:show-visible-elements')
+				})
+				.catch(({ error }) => {
+					showError(error.message)
+				})
 		},
 	},
 }

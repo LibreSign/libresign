@@ -23,23 +23,117 @@ import { defineStore } from 'pinia'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
+import Moment from '@nextcloud/moment'
 
 export const useFilesStore = defineStore('files', {
-	state: () => ({
-		files: {},
-		file: {},
-	}),
+	state: () => {
+		return {
+			files: {},
+			selectedNodeId: 0,
+			identifyingSigner: false,
+			loading: false,
+		}
+	},
 
 	actions: {
 		addFile(file) {
-			set(this.files, file.file.nodeId, file)
+			set(this.files, file.nodeId, file)
+			this.hydrateFile(file.nodeId)
 		},
 		selectFile(nodeId) {
-			if (isNaN(nodeId)) {
-				this.file = {}
+			this.selectedNodeId = nodeId ?? 0
+		},
+		getFile() {
+			return this.files[this.selectedNodeId]
+		},
+		enableIdentifySigner() {
+			this.identifyingSigner = true
+		},
+		disableIdentifySigner() {
+			this.identifyingSigner = false
+		},
+		isSigned() {
+			if (this.selectedNodeId === 0) {
+				return false
+			}
+			if (!Object.hasOwn(this.getFile(), 'signers')) {
+				return false
+			}
+			return this.files[this.selectedNodeId].signers.filter(signer => signer.sign_date?.length > 0).length > 0
+		},
+		getSubtitle() {
+			if (this.selectedNodeId === 0) {
+				return ''
+			}
+			const file = this.files[this.selectedNodeId]
+			if ((file?.requestedBy?.uid ?? '').length === 0 || file?.requestDate.length === 0) {
+				return ''
+			}
+			return t('libresign', 'Requested by {name}, at {date}', {
+				name: file.requestedBy.uid,
+				date: Moment(Date.parse(file.requestDate)).format('LL LTS'),
+			})
+		},
+		async hydrateFile(nodeId) {
+			if (Object.hasOwn(this.files[nodeId], 'uuid')) {
 				return
 			}
-			this.file = this.files[nodeId]
+			this.loading = true
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
+				fileId: nodeId,
+			}))
+				.then(() => {
+					set(this.files, nodeId, response.data)
+					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
+				})
+				.catch(() => {
+					set(this.files[nodeId], 'signers', [])
+				})
+			this.loading = false
+		},
+		addUniqueIdentifierToAllSigners(signers) {
+			if (signers === undefined) {
+				return
+			}
+			signers.map(signer => this.addIdentifierToSigner(signer))
+		},
+		addIdentifierToSigner(signer) {
+			// generate unique code to new signer to be possible delete or edit
+			if ((signer.identify === undefined || signer.identify === '') && signer.signRequestId === undefined) {
+				signer.identify = btoa(JSON.stringify(signer))
+			}
+			if (signer.signRequestId) {
+				signer.identify = signer.signRequestId
+			}
+		},
+		signerUpdate(signer) {
+			this.addIdentifierToSigner(signer)
+			// Remove if already exists
+			for (let i = this.files[this.selectedNodeId].signers.length - 1; i >= 0; i--) {
+				if (this.files[this.selectedNodeId].signers[i].identify === signer.identify) {
+					this.files[this.selectedNodeId].signers.splice(i, 1)
+					break
+				}
+				if (this.files[this.selectedNodeId].signers[i].signRequestId === signer.identify) {
+					this.files[this.selectedNodeId].signers.splice(i, 1)
+					break
+				}
+			}
+			this.files[this.selectedNodeId].signers.push(signer)
+		},
+		async deleteSigner(signer) {
+			if (!isNaN(signer.signRequestId)) {
+				await axios.delete(generateOcsUrl('/apps/libresign/api/{apiVersion}/sign/file_id/{fileId}/{signRequestId}', {
+					apiVersion: 'v1',
+					fileId: this.selectedNodeId,
+					signRequestId: signer.signRequestId,
+				}))
+			}
+			set(
+				this.files[this.selectedNodeId],
+				'signers',
+				this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
+			)
 		},
 		async getAllFiles() {
 			try {

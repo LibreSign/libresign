@@ -14,9 +14,9 @@
 			</div>
 			<ul v-if="emptyContentFile ===false">
 				<File v-for="file in filterFile"
-					:key="file.uuid"
-					:node-id="file.file.nodeId"
-					:class="{'file-details': true, 'active': file.file.nodeId === filesStore.file?.file?.nodeId}" />
+					:key="file.nodeId"
+					:node-id="file.nodeId"
+					:class="{'file-details': true, 'active': file.nodeId === filesStore.file?.file?.nodeId}" />
 			</ul>
 			<NcEmptyContent v-else
 				:name="t('libresign', 'There are no documents')">
@@ -29,12 +29,8 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
 import File from '../../Components/File/File.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
 import { useFilesStore } from '../../store/files.js'
 
@@ -51,16 +47,12 @@ export default {
 	},
 	data() {
 		return {
-			sidebar: false,
 			loading: false,
 			fileFilter: [],
 			filterActive: 3,
 		}
 	},
 	computed: {
-		...mapState({
-			statusSidebar: state => state.sidebar.status,
-		}),
 		filterFile: {
 			get() {
 				if (this.fileFilter.length === 0) {
@@ -81,18 +73,7 @@ export default {
 	created() {
 		this.filesStore.getAllFiles()
 	},
-	async mounted() {
-		subscribe('libresign:delete-signer', this.deleteSigner)
-	},
-	beforeUnmount() {
-		unsubscribe('libresign:delete-signer')
-	},
-
 	methods: {
-		...mapActions({
-			setSidebarStatus: 'sidebar/setStatus',
-			resetSidebarStatus: 'sidebar/RESET',
-		}),
 		changeFilter(filter) {
 			switch (filter) {
 			case 1:
@@ -109,21 +90,6 @@ export default {
 				break
 			default:
 				break
-			}
-		},
-		async deleteSigner(signer) {
-			for (const fileKey in this.filterFile) {
-				for (const signerKey in this.filterFile[fileKey].signers) {
-					if (this.filterFile[fileKey].signers[signerKey].signRequestId === signer.signRequestId) {
-						const fileId = this.filterFile[fileKey].file.nodeId
-						await axios.delete(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/' + fileId + '/' + signer.signRequestId))
-						this.filterFile[fileKey].signers.splice(signerKey, 1)
-						if (this.filterFile[fileKey].signers.length === 0) {
-							this.filterFile[fileKey].file.status_text = t('libresign', 'no signers')
-						}
-						return
-					}
-				}
 			}
 		},
 	},

@@ -122,7 +122,7 @@ export default {
 	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 			config: loadState('libresign', 'config', {
 				hasSignatureFile: false,
 				identificationDocumentsFlow: false,

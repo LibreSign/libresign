@@ -66,6 +66,7 @@ final class AccountControllerTest extends ApiTestCase {
 		]);
 		$this->deleteUserIfExists('guest-user@test.coop');
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -77,7 +78,7 @@ final class AccountControllerTest extends ApiTestCase {
 				'password' => 'secret',
 				'signPassword' => 'secretToSign'
 			])
-			->withPath('/account/create/' . $file['users'][0]->getUuid());
+			->withPath('/account/create/' . $signers[0]->getUuid());
 		$this->markUserExists('guest-user@test.coop');
 
 		$this->assertRequest();

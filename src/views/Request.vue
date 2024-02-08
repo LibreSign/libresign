@@ -6,12 +6,11 @@
 				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
-				<File v-show="!isEmptyFile"
-					:node-id="filesStore.file?.file?.nodeId"
+				<File v-show="filesStore.selectedNodeId > 0"
 					status="0"
 					status-text="none" />
 				<NcButton :wide="true"
-					@click="showModalUploadFromUrl">
+					@click="showModalUploadFromUrl()">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
 						<LinkIcon :size="20" />
@@ -134,9 +133,6 @@ export default {
 				type: 'primary',
 			}]
 		},
-		isEmptyFile() {
-			return Object.keys(this.filesStore.file).length === 0
-		},
 		canRequest() {
 			return this.signers.length > 0
 		},
@@ -172,9 +168,7 @@ export default {
 					},
 				})
 				this.filesStore.addFile({
-					file: {
-						nodeId: response.data.id,
-					},
+					nodeId: response.data.id,
 					name: response.data.name,
 				})
 				this.filesStore.selectFile(response.data.id)
@@ -199,9 +193,7 @@ export default {
 				const res = await filesService.uploadFile({ name, file: data })
 
 				this.filesStore.addFile({
-					file: {
-						nodeId: res.id,
-					},
+					nodeId: res.id,
 					name: res.name,
 				})
 				this.filesStore.selectFile(res.id)
@@ -242,9 +234,7 @@ export default {
 					name: path.match(/([^/]*?)(?:\.[^.]*)?$/)[1] ?? '',
 				})
 				this.filesStore.addFile({
-					file: {
-						nodeId: response.data.id,
-					},
+					nodeId: response.data.id,
 					name: response.data.name,
 				})
 				this.filesStore.selectFile(response.data.id)
