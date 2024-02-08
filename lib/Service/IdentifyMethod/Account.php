@@ -94,8 +94,8 @@ class Account extends AbstractIdentifyMethod {
 
 	public function validateToIdentify(): void {
 		$signer = $this->getSigner();
-		$this->throwIfNotAuthenticated($this->user);
-		$this->authenticatedUserIsTheSigner($this->user, $signer);
+		$this->throwIfNotAuthenticated();
+		$this->authenticatedUserIsTheSigner($signer);
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfAlreadySigned();
@@ -120,8 +120,8 @@ class Account extends AbstractIdentifyMethod {
 		return $signer;
 	}
 
-	private function authenticatedUserIsTheSigner(IUser $user, IUser $signer): void {
-		if ($user !== $signer) {
+	private function authenticatedUserIsTheSigner(IUser $signer): void {
+		if ($this->userSession->getUser() !== $signer) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
 				'errors' => [$this->identifyMethodService->getL10n()->t('Invalid user')],
@@ -129,8 +129,8 @@ class Account extends AbstractIdentifyMethod {
 		}
 	}
 
-	private function throwIfNotAuthenticated(?IUser $user = null): void {
-		if (!$user instanceof IUser) {
+	private function throwIfNotAuthenticated(): void {
+		if (!$this->userSession->getUser() instanceof IUser) {
 			$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_REDIRECT,

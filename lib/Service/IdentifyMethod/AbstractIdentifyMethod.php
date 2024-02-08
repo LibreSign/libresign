@@ -71,10 +71,6 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->codeSentByUser = $code;
 	}
 
-	public function setUser(?IUser $user): void {
-		$this->user = $user;
-	}
-
 	public function cleanEntity(): void {
 		$this->entity = new IdentifyMethod();
 		$this->entity->setIdentifierKey($this->name);

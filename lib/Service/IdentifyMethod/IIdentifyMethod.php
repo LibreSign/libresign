@@ -33,7 +33,6 @@ interface IIdentifyMethod {
 	public function getName(): string;
 	public function getFriendlyName(): string;
 	public function setCodeSentByUser(string $code): void;
-	public function setUser(?IUser $user): void;
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
