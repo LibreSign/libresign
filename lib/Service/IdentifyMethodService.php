@@ -102,6 +102,7 @@ class IdentifyMethodService {
 		} else {
 			$identifyMethod->setEntity($this->currentIdentifyMethod);
 		}
+		$identifyMethod->getSettings();
 		return $identifyMethod;
 	}
 
