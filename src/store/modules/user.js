@@ -41,6 +41,9 @@ const actions = {
 			}
 
 			commit('setPdfData', response.data, { root: true })
+			/**
+			 * @todo set file to store from response.data if necessary
+			 */
 			dispatch('files/SET_FILE_TO_SIGN', response.data, { root: true })
 			showSuccess(t('libresign', 'User created!'))
 		} catch (err) {

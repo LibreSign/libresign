@@ -80,11 +80,7 @@ export default {
 				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
 
 				response.data.elements.forEach(current => {
-					this.signs[current.type] = {
-						id: current.id,
-						fileId: current.file.fileId,
-						value: current.file.url,
-					}
+					this.signs[current.type] = current
 				})
 			} catch (err) {
 				showError(err.response.data.message)

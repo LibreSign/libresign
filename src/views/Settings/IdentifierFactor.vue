@@ -1,34 +1,36 @@
 <template>
 	<NcSettingsSection :name="name" :description="description">
-		<div v-for="(option, index) in options"
-			:key="index">
+		<div v-for="(identifyMethod, index) in identifyMethods"
+			:key="identifyMethod.name">
 			<hr v-if="index != 0">
 			<NcCheckboxRadioSwitch type="switch"
-				:checked.sync="option.enabled"
+				:checked.sync="identifyMethod.enabled"
 				@update:checked="save()">
-				{{ option.friendly_name }}
+				{{ identifyMethod.friendly_name }}
 			</NcCheckboxRadioSwitch>
-			<div v-if="option.enabled">
-				<fieldset v-if="option.name === 'email'" class="settings-section__sub-section">
-					<NcCheckboxRadioSwitch :checked.sync="option.can_create_account"
+			<div v-if="identifyMethod.enabled">
+				<fieldset v-if="identifyMethod.name === 'email'" class="settings-section__sub-section">
+					<NcCheckboxRadioSwitch :checked.sync="identifyMethod.can_create_account"
 						@update:checked="save()">
 						{{ t('libresign', 'Request to create account when the user does not have an account') }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
 				<fieldset v-if="false" class="settings-section__sub-section">
-					<NcCheckboxRadioSwitch :checked.sync="option.mandatory"
+					<NcCheckboxRadioSwitch :checked.sync="identifyMethod.mandatory"
 						@update:checked="save()">
 						{{ t('libresign', 'Make this method required') }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
 				<fieldset class="settings-section__sub-section">
 					{{ t('libresign', 'Signature methods') }}
-					<NcCheckboxRadioSwitch v-for="(method, id) in option.signatureMethods"
-						:key="id"
-						type="switch"
-						:checked.sync="method.enabled"
+					<NcCheckboxRadioSwitch v-for="(signatureMethod, signatureMethodName) in identifyMethod.signatureMethods"
+						:key="signatureMethodName"
+						type="radio"
+						:name="identifyMethod.name"
+						:value="signatureMethodName"
+						:checked.sync="identifyMethods[index].signatureMethodEnabled"
 						@update:checked="save()">
-						{{ method.label }}
+						{{ signatureMethod.label }}
 					</NcCheckboxRadioSwitch>
 				</fieldset>
 			</div>
@@ -40,6 +42,7 @@ import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 import { loadState } from '@nextcloud/initial-state'
+import { set } from 'vue'
 
 export default {
 	name: 'IdentifierFactor',
@@ -48,61 +51,56 @@ export default {
 		NcCheckboxRadioSwitch,
 	},
 	data() {
-		const identifyMethod = loadState('libresign', 'identify_methods')
-
 		return {
 			name: t('libresign', 'Identify factors'),
 			description: t('libresign', 'Ways to identify a person who will sign a document.'),
-			isEmpty: identifyMethod.length === 0,
-			options: identifyMethod,
+			identifyMethods: loadState('libresign', 'identify_methods', []),
 		}
 	},
 	mounted() {
-		this.flagAccountIfAllDisabled()
-		this.flagFirstSignatureMethodIfAllDisabled()
+		this.updateSignatureMethodsEnabled()
 	},
 	methods: {
-		flagAccountIfAllDisabled() {
-			const allDisabled = this.options
-				.filter(item => item.enabled)
-				.length === 0
-			if (allDisabled) {
-				this.options
-					.filter(item => item.name === 'account')
-					.reduce(o => o)
-					.enabled = true
-			}
-		},
-		flagFirstSignatureMethodIfAllDisabled() {
-			this.options.forEach(item => {
-				const allDisabled = Object.values(item.signatureMethods)
-					.filter(item => item.enabled)
-					.length === 0
-				if (allDisabled) {
-					// Enable the first signature method
-					Object.keys(item.signatureMethods).every(methodId => {
-						item.signatureMethods[methodId].enabled = true
-						return false
-					})
+		updateSignatureMethodsEnabled() {
+			this.identifyMethods.forEach((identifyMethod) => {
+				if (!Object.hasOwn(identifyMethod, 'signatureMethodEnabled')) {
+					set(identifyMethod, 'signatureMethodEnabled', '')
 				}
+				if (identifyMethod.signatureMethodEnabled.length === 0) {
+					const signatureMethodEnabled = Object.keys(identifyMethod.signatureMethods)
+						.reduce((signatureMethodEnabled, signatureMethodName) => {
+							if (signatureMethodEnabled.length === 0 && identifyMethod.signatureMethods[signatureMethodName].enabled) {
+								signatureMethodEnabled = signatureMethodName
+							}
+							return signatureMethodEnabled
+						}, identifyMethod.signatureMethodEnabled)
+					if (signatureMethodEnabled.length > 0) {
+						set(identifyMethod, 'signatureMethodEnabled', signatureMethodEnabled)
+					} else {
+						set(identifyMethod, 'signatureMethodEnabled', Object.keys(identifyMethod.signatureMethods)[0])
+					}
+				}
+				Object.keys(identifyMethod.signatureMethods).forEach(signatureMethodName => {
+					identifyMethod.signatureMethods[signatureMethodName].enabled
+						= identifyMethod.signatureMethodEnabled === signatureMethodName
+				})
 			})
 		},
 		save() {
-			this.flagAccountIfAllDisabled()
-			this.flagFirstSignatureMethodIfAllDisabled()
+			this.updateSignatureMethodsEnabled()
 			// Get only enabled
-			let props = this.options.filter(item => item.enabled)
+			let props = this.identifyMethods.filter(identifyMethod => identifyMethod.enabled)
 			// Remove label from signature method, we don't need to save this
 			props = JSON.parse(JSON.stringify(props))
-				.map(item => {
-					Object.keys(item.signatureMethods).forEach(id => {
-						Object.keys(item.signatureMethods[id]).forEach(signatureMethdoPropName => {
+				.map(identifyMethod => {
+					Object.keys(identifyMethod.signatureMethods).forEach(id => {
+						Object.keys(identifyMethod.signatureMethods[id]).forEach(signatureMethdoPropName => {
 							if (signatureMethdoPropName === 'label') {
-								delete item.signatureMethods[id][signatureMethdoPropName]
+								delete identifyMethod.signatureMethods[id][signatureMethdoPropName]
 							}
 						})
 					})
-					return item
+					return identifyMethod
 				})
 			OCP.AppConfig.setValue('libresign', 'identify_methods',
 				JSON.stringify(props),

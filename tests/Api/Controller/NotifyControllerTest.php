@@ -61,7 +61,7 @@ final class NotifyControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'fileId' => $file['nodeId'],
+				'fileId' => $file->getNodeId(),
 				'signers' => [
 					[
 						'email' => 'person@test.coop'

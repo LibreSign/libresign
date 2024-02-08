@@ -1,5 +1,5 @@
 <template>
-	<div v-if="nodeId !== 0" class="content-file" @click="openSidebar">
+	<div v-if="currentNodeId > 0" class="content-file" @click="openSidebar">
 		<img v-if="previewUrl && backgroundFailed !== true"
 			ref="previewImg"
 			alt=""
@@ -11,10 +11,10 @@
 			@load="backgroundFailed = false">
 		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
-			<div :class="filesStore.files[nodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[nodeId].status) : '' " />
-			<span>{{ filesStore.files[nodeId].status_text !== 'none' ? filesStore.files[nodeId].status_text : '' }}</span>
+			<div :class="filesStore.files[currentNodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentNodeId].status) : '' " />
+			<span>{{ filesStore.files[currentNodeId].status_text !== 'none' ? filesStore.files[currentNodeId].status_text : '' }}</span>
 		</div>
-		<h1>{{ filesStore.files[nodeId].name }}</h1>
+		<h1>{{ filesStore.files[currentNodeId].name }}</h1>
 	</div>
 </template>
 
@@ -32,7 +32,7 @@ export default {
 		nodeId: {
 			type: Number,
 			default: 0,
-			required: true,
+			required: false,
 		},
 	},
 	setup() {
@@ -47,13 +47,19 @@ export default {
 		}
 	},
 	computed: {
+		currentNodeId() {
+			if (this.nodeId) {
+				return this.nodeId
+			}
+			return this.filesStore.selectedNodeId
+		},
 		previewUrl() {
 			if (this.backgroundFailed === true) {
 				return null
 			}
 			try {
 				const previewUrl = generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.filesStore.files[this.nodeId].file.nodeId,
+					fileid: this.currentNodeId,
 				})
 				const url = new URL(window.location.origin + previewUrl)
 
@@ -72,7 +78,7 @@ export default {
 	},
 	methods: {
 		openSidebar() {
-			this.filesStore.selectFile(this.nodeId)
+			this.filesStore.selectFile(this.currentNodeId)
 		},
 		statusToClass(status) {
 			switch (Number(status)) {

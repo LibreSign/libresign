@@ -58,7 +58,7 @@ final class FileControllerTest extends ApiTestCase {
 		]);
 
 		$this->request
-			->withPath('/file/validate/uuid/' . $file['uuid']);
+			->withPath('/file/validate/uuid/' . $file->getUuid());
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -100,7 +100,7 @@ final class FileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
 			])
-			->withPath('/file/validate/uuid/' . $file['uuid']);
+			->withPath('/file/validate/uuid/' . $file->getUuid());
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);

@@ -63,13 +63,11 @@ class RequestSignatureService {
 	) {
 	}
 
-	public function save(array $data): array {
+	public function save(array $data): FileEntity {
 		$file = $this->saveFile($data);
 		$this->saveVisibleElements($data, $file);
-		$return['uuid'] = $file->getUuid();
-		$return['nodeId'] = $file->getNodeId();
-		$return['users'] = $this->associateToSigners($data, $file->getId());
-		return $return;
+		$this->associateToSigners($data, $file->getId());
+		return $file;
 	}
 
 	/**

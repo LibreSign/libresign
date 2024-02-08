@@ -150,7 +150,7 @@ const router = new Router({
 			path: '/f/request',
 			name: 'requestFiles',
 			beforeEnter: (to, from, next) => {
-				if (!loadState('libresign', 'can_request_sign')) {
+				if (!loadState('libresign', 'can_request_sign', false)) {
 					return { path: '/' }
 				}
 				next()

@@ -517,11 +517,6 @@ class SignRequestMapper extends QBMapper {
 		return $files;
 	}
 
-	/**
-	 * @return ((int|string)[]|mixed|string)[]
-	 *
-	 * @psalm-return array{status_date: string, file: array{type: 'pdf', url: string, nodeId: int}}
-	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['id'] = (int) $row['id'];
 		$row['requested_by'] = [
@@ -536,12 +531,10 @@ class SignRequestMapper extends QBMapper {
 				->setTimestamp((int) $row['status_date'])
 				->format('Y-m-d H:i:s');
 		}
-		$row['file'] = [
-			'type' => 'pdf',
-			'url' => $url . $row['uuid'],
-			'nodeId' => (int) $row['node_id'],
-			'uuid' => $row['uuid'],
-		];
+		$row['type'] = 'pdf';
+		$row['url'] = $url . $row['uuid'];
+		$row['nodeId'] = (int) $row['node_id'];
+		$row['uuid'] = $row['uuid'];
 		unset(
 			$row['node_id'],
 			$row['requested_by_uid'],

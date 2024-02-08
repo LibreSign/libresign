@@ -5,6 +5,8 @@ namespace OCA\Libresign\Tests\Unit;
 use donatj\MockWebServer\MockWebServer;
 use donatj\MockWebServer\Response as MockWebServerResponse;
 use OC\SystemConfig;
+use OCA\Libresign\Db\File;
+use OCA\Libresign\Db\signRequestMapper;
 use OCA\Libresign\Service\RequestSignatureService;
 use OCA\Libresign\Tests\lib\AllConfigOverwrite;
 use OCA\Libresign\Tests\lib\ConfigOverwrite;
@@ -13,6 +15,7 @@ use OCP\IConfig;
 class TestCase extends \Test\TestCase {
 	protected static MockWebServer $server;
 	private RequestSignatureService $requestSignatureService;
+	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
 	public function mockAppConfig($config) {
@@ -207,7 +210,7 @@ class TestCase extends \Test\TestCase {
 		}
 	}
 
-	public function requestSignFile($data): array {
+	public function requestSignFile($data): File {
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new MockWebServerResponse(
 			file_get_contents(__DIR__ . '/../fixtures/cfssl/newcert-with-success.json')
 		));
@@ -247,10 +250,24 @@ class TestCase extends \Test\TestCase {
 	/**
 	 * @return \OCA\Libresign\Service\RequestSignatureService
 	 */
-	public function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
+	private function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
 		if (!isset($this->requestSignatureService)) {
 			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
 		}
 		return $this->requestSignatureService;
+	}
+
+	public function getSignersFromFileId(int $fileId): array {
+		return $this->getSignRequestMapper()->getByFileId($fileId);
+	}
+
+	/**
+	 * @return \OCA\Libresign\Db\signRequestMapper
+	 */
+	private function getSignRequestMapper(): \OCA\Libresign\Db\SignRequestMapper {
+		if (!isset($this->signRequestMapper)) {
+			$this->signRequestMapper = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+		}
+		return $this->signRequestMapper;
 	}
 }

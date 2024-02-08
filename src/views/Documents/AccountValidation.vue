@@ -58,16 +58,7 @@ export default {
 
 			try {
 				const { data } = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/files/approval/list'))
-				this.documentList = data.data.map(entry => {
-					return {
-						uuid: entry.file.uuid,
-						nodeId: entry.file.file.nodeId,
-						file_type: entry.file_type,
-						name: entry.file.name,
-						status: entry.file.status,
-						status_text: entry.file.status_text,
-					}
-				})
+				this.documentList = data.data
 			} catch (err) {
 				onError(err)
 			} finally {

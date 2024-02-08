@@ -27,11 +27,9 @@ Feature: file-list
               "uid": "admin",
               "displayName": null
             },
-            "file": {
-              "type": "pdf",
-              "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
-              "nodeId": "<IGNORED>"
-            },
+            "type": "pdf",
+            "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
+            "nodeId": "<IGNORED>",
             "signers": [
               {
                 "email": "signer1@domain.test",
@@ -98,11 +96,9 @@ Feature: file-list
               "uid": "admin",
               "displayName": null
             },
-            "file": {
-              "type": "pdf",
-              "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
-              "nodeId": "<IGNORED>"
-            },
+            "type": "pdf",
+            "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
+            "nodeId": "<IGNORED>",
             "signers": [
               {
                 "email": "",

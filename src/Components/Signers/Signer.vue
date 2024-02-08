@@ -6,7 +6,7 @@
 			<template #icon>
 				<NcAvatar :size="44" :display-name="signer.displayName" />
 			</template>
-			<template #subtitle>
+			<template #subname>
 				<Bullet v-for="method in identifyMethodsNames" :key="method" :name="method" />
 			</template>
 			<slot v-if="$slots.actions" slot="actions" name="actions" />
@@ -26,6 +26,7 @@ import Bullet from '../Bullet/Bullet.vue'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import Moment from '@nextcloud/moment'
+import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Signer',
@@ -36,8 +37,8 @@ export default {
 		Bullet,
 	},
 	props: {
-		signer: {
-			type: Object,
+		currentSigner: {
+			type: Number,
 			required: true,
 		},
 		event: {
@@ -46,12 +47,19 @@ export default {
 			default: '',
 		},
 	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
+	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign'),
+			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
 	computed: {
+		signer() {
+			return this.filesStore.getFile().signers[this.currentSigner]
+		},
 		identifyMethodsNames() {
 			return this.signer.identifyMethods.map(method => method.method)
 		},
