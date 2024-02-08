@@ -35,6 +35,7 @@ use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
 use OCP\IUser;
+use OCP\IUserSession;
 
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
@@ -47,6 +48,7 @@ class Email extends AbstractIdentifyMethod {
 		private FileElementMapper $fileElementMapper,
 		private ClickToSign $clickToSign,
 		private EmailToken $emailToken,
+		private IUserSession $userSession,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Email');
@@ -76,8 +78,8 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	public function validateToIdentify(): void {
-		$this->throwIfAccountAlreadyExists($this->user);
-		$this->throwIfIsAuthenticatedWithDifferentAccount($this->user);
+		$this->throwIfAccountAlreadyExists();
+		$this->throwIfIsAuthenticatedWithDifferentAccount();
 		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
@@ -104,7 +106,8 @@ class Email extends AbstractIdentifyMethod {
 		]));
 	}
 
-	private function throwIfIsAuthenticatedWithDifferentAccount(?IUser $user): void {
+	private function throwIfIsAuthenticatedWithDifferentAccount(): void {
+		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
 			return;
 		}
@@ -120,7 +123,8 @@ class Email extends AbstractIdentifyMethod {
 		}
 	}
 
-	private function throwIfAccountAlreadyExists(?IUser $user): void {
+	private function throwIfAccountAlreadyExists(): void {
+		$user = $this->userSession->getUser();
 		if (!$user instanceof IUser) {
 			return;
 		}
