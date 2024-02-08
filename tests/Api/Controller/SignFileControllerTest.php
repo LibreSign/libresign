@@ -79,7 +79,8 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$file['users'][0]->setSigned(time());
+		$signers = $this->getSignersFromFileId($file->getId());
+		$signers[0]->setSigned(time());
 		$signRequest = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
 		$signRequest->update($file['users'][0]);
 
@@ -89,7 +90,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withPath('/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -125,13 +126,14 @@ final class SignFileControllerTest extends ApiTestCase {
 		$libresignFolder = $folderService->getFolder();
 		$libresignFolder->delete();
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withPath('/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -164,13 +166,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withPath('/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'password' => ''
 			])
@@ -223,13 +226,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			'username'
 		);
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withPath('/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'password' => ''
 			])
@@ -289,13 +293,14 @@ final class SignFileControllerTest extends ApiTestCase {
 			return $jsignHandler;
 		});
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
 				'Content-Type' => 'application/json'
 			])
-			->withPath('/sign/uuid/' . $file['users'][0]->getUuid())
+			->withPath('/sign/uuid/' . $signers[0]->getUuid())
 			->withRequestBody([
 				'identifyValue' => 'secretPassword',
 				'method' => 'password',
@@ -421,7 +426,7 @@ final class SignFileControllerTest extends ApiTestCase {
 				'Content-Type' => 'application/json'
 			])
 			->withRequestBody([
-				'uuid' => $file['uuid'],
+				'uuid' => $file->getUuid(),
 				'users' => [
 					[
 						'identify' => [
@@ -524,12 +529,13 @@ final class SignFileControllerTest extends ApiTestCase {
 			'groups_request_sign' => '["admin","testGroup"]',
 		]);
 
+		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
 			->withMethod('DELETE')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/sign/file_id/' . $file['nodeId'] . '/' . $file['users'][0]->getId());
+			->withPath('/sign/file_id/' . $file->getNodeId() . '/' . $signers[0]->getId());
 
 		$this->assertRequest();
 	}
@@ -578,7 +584,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('allowrequestsign:password')
 			])
-			->withPath('/sign/file_id/' . $file['nodeId']);
+			->withPath('/sign/file_id/' . $file->getNodeId());
 
 		$this->assertRequest();
 	}

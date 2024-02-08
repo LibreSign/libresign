@@ -27,11 +27,12 @@ final class FileElementControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$file['users'][0]->setSigned(time());
+		$signers = $this->getSignersFromFileId($file->getId());
+		$signers[0]->setSigned(time());
 
 		$this->mockAppConfig([]);
 		$this->request
-			->withPath('/file-element/' . $file['uuid'])
+			->withPath('/file-element/' . $file->getUuid())
 			->withMethod('POST')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
@@ -46,7 +47,7 @@ final class FileElementControllerTest extends ApiTestCase {
 					'page' => 1,
 				],
 				'type' => 'signature',
-				'signRequestId' => $file['users'][0]->getId(),
+				'signRequestId' => $signers[0]->getId(),
 			]);
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
@@ -64,7 +65,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		$this->createUser('username', 'password');
 		extract($params);
 		$this->request
-			->withPath('/file-element/' . $file['uuid'] . '/' . $fileElementId)
+			->withPath('/file-element/' . $file->getUuid() . '/' . $fileElementId)
 			->withMethod('PATCH')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
@@ -98,7 +99,7 @@ final class FileElementControllerTest extends ApiTestCase {
 		$this->createUser('username', 'password');
 		extract($params);
 		$this->request
-			->withPath('/file-element/' . $file['uuid'] . '/' . $fileElementId)
+			->withPath('/file-element/' . $file->getUuid() . '/' . $fileElementId)
 			->withMethod('DELETE')
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password'),
