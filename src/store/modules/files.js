@@ -50,7 +50,6 @@ const getters = {
 		return state.file
 	},
 	getFileToSign: state => state.fileToSign,
-	fileToBeSigned: state => state.file.file,
 }
 
 export default {
