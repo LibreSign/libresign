@@ -33,6 +33,7 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'CreatePassword',
@@ -41,6 +42,10 @@ export default {
 		NcPasswordField,
 		NcButton,
 		NcLoadingIcon,
+	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
 	},
 	data() {
 		return {
@@ -58,13 +63,12 @@ export default {
 					signPassword: this.password,
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
-				if (this.$store) {
-					this.$store.commit('setHasPfx', true)
-				}
+				this.signMethodsStore.hasSignatureFile(true)
 				this.clear()
 				this.$emit('close', true)
 				this.$emit('password:created', true)
 			} catch (err) {
+				this.signMethodsStore.hasSignatureFile(false)
 				if (err.response.data.message) {
 					showError(err.response.data.message)
 				} else {
