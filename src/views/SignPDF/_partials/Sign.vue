@@ -68,7 +68,7 @@
 		</NcModal>
 		<NcModal v-if="signMethodsStore.modal.password"
 			:can-close="!loading"
-			@close="signMethodsStore.closeModal('signPassword')">
+			@close="signMethodsStore.closeModal('password')">
 			<div class="modal__content">
 				<h2 class="modal__header">
 					{{ t('libresign', 'Confirm your signature') }}
@@ -76,7 +76,7 @@
 				{{ t('libresign', 'Subscription password.') }}
 				<NcPasswordField :value.sync="signPassword" type="password" />
 				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('signPassword')">
+					<NcButton @click="signMethodsStore.closeModal('password')">
 						{{ t('libresign', 'Cancel') }}
 					</NcButton>
 					<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
@@ -322,11 +322,16 @@ export default {
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
-				this.signMethodsStore.showModal('signPassword')
+				this.signMethodsStore.showModal('password')
+				return
+			}
+			if (this.signMethodsStore.needSignWithPassword()) {
+				this.signMethodsStore.showModal('password')
+				return
 			}
 			if (this.signMethodsStore.needClickToSign()) {
 				this.signMethodsStore.showModal('clickToSign')
-
+				return
 			}
 		},
 	},
