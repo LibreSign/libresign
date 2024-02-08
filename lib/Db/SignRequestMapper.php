@@ -517,11 +517,6 @@ class SignRequestMapper extends QBMapper {
 		return $files;
 	}
 
-	/**
-	 * @return ((int|string)[]|mixed|string)[]
-	 *
-	 * @psalm-return array{status_date: string, file: array{type: 'pdf', url: string, nodeId: int}}
-	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['id'] = (int) $row['id'];
 		$row['requested_by'] = [
