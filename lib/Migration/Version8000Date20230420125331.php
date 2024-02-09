@@ -27,6 +27,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
@@ -100,8 +101,11 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 				'length' => 20,
 				'unsigned' => true,
 			]);
-			$identifyMethod->addUniqueIndex(['file_user_id', 'identifier_key'], 'identify_method_unique_index');
 			$identifyMethod->setPrimaryKey(['id'], 'identify_pk_idx');
+			$changed = true;
+		} else {
+			$table = $schema->getTable('libresign_identify_method');
+			$table->dropIndex('identify_method_unique_index');
 			$changed = true;
 		}
 		if ($changed) {
@@ -115,7 +119,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		$query->select('*')
 			->from('libresign_file_user', 'fu')
 			->where(
-				$query->expr()->isNotNull('user_id')
+				$query->expr()->nonEmptyString('user_id')
 			);
 		$result = $query->executeQuery();
 		$insert = $this->connection->getQueryBuilder()
@@ -123,14 +127,13 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		while ($row = $result->fetch()) {
 			$insert
 				->values([
-					'file_user_id' => $row['file_user_id'],
-					'method' => 'account',
-					'mandatory' => 1,
-					'identifier_key' => 'uid',
-					'identifier_value' => $row['user_id'],
-					'attempts' => $row['signed'] ? 1 : 0,
-					'identified_at' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
-					'last_attempt_date' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+					'file_user_id' => $insert->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
+					'mandatory' => $insert->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+					'identifier_key' => $insert->createNamedParameter('uid'),
+					'identifier_value' => $insert->createNamedParameter($row['user_id'], IQueryBuilder::PARAM_INT),
+					'attempts' => $insert->createNamedParameter($row['signed'] ? 1 : 0, IQueryBuilder::PARAM_INT),
+					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
+					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
 				])
 				->executeStatement();
 		}
@@ -139,7 +142,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		$query->select('*')
 			->from('libresign_file_user', 'fu')
 			->where(
-				$query->expr()->isNotNull('email')
+				$query->expr()->nonEmptyString('email')
 			);
 		$result = $query->executeQuery();
 		$insert = $this->connection->getQueryBuilder()
@@ -147,14 +150,13 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 		while ($row = $result->fetch()) {
 			$insert
 				->values([
-					'file_user_id' => $row['file_user_id'],
-					'method' => 'account',
-					'mandatory' => 1,
-					'identifier_key' => 'email',
-					'identifier_value' => $row['email'],
-					'attempts' => $row['signed'] ? 1 : 0,
-					'identified_at' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
-					'last_attempt_date' => $row['signed'] ? new \DateTime('@' . $row['signed']): null,
+					'file_user_id' => $insert->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
+					'mandatory' => $insert->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+					'identifier_key' => $insert->createNamedParameter('email'),
+					'identifier_value' => $insert->createNamedParameter($row['email']),
+					'attempts' => $insert->createNamedParameter($row['signed'] ? 1 : 0, IQueryBuilder::PARAM_INT),
+					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
+					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
 				])
 				->executeStatement();
 		}
