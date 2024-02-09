@@ -17,9 +17,6 @@ OC.L10N.register(
     "Save" : "සුරකින්න",
     "Name" : "නම",
     "Update" : "යාවත්කාල",
-    "Description" : "විස්තරය",
-    "Add" : "එකතු කරන්න",
-    "Users" : "පරිශීලකයින්",
     "Next" : "ඊළඟ",
     "Previous" : "පෙර",
     "Details" : "විස්තර",
@@ -34,6 +31,9 @@ OC.L10N.register(
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Loading …" : "පූරණය වෙමින් …",
+    "Description" : "විස්තරය",
+    "Add" : "එකතු කරන්න",
+    "Users" : "පරිශීලකයින්",
     "Remove" : "ඉවත් කරන්න"
 },
 "nplurals=2; plural=(n != 1);");

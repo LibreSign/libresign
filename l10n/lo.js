@@ -16,8 +16,6 @@ OC.L10N.register(
     "Cancel" : "ຍົກເລີກ",
     "Save" : "ບັນທຶກ",
     "Name" : "ຊື່",
-    "Add" : "ເພີ່ມ",
-    "Users" : "ຜູ້ໃຊ້",
     "Delete" : "ລຶບ",
     "Next" : "ທັດໄປ",
     "Previous" : "ກ່ອນໜ້າ",
@@ -33,6 +31,8 @@ OC.L10N.register(
     "Loading …" : "ກຳລັງໂຫຼດ",
     "Pending" : "ທີ່ກໍາລັງລໍຖ້າ",
     "No date" : "ບໍ່ມີວັນທີ",
+    "Add" : "ເພີ່ມ",
+    "Users" : "ຜູ້ໃຊ້",
     "Reset password" : "ຕັ້ງລະຫັດຄືນໃຫມ່",
     "Remove" : "ຍ້າຍອອກ"
 },

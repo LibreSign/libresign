@@ -20,9 +20,6 @@
     "Cancel" : "Cancelar",
     "Save" : "Guardar",
     "Name" : "Nombre",
-    "Description" : "Descripción",
-    "Add" : "Agregar",
-    "Users" : "Usuarios",
     "Delete" : "Borrar",
     "Next" : "Siguiente",
     "Previous" : "Anterior",
@@ -49,6 +46,9 @@
     "Dependencies" : "Dependencias",
     "Pending" : "Pendiente",
     "No date" : "Sin fecha",
+    "Description" : "Descripción",
+    "Add" : "Agregar",
+    "Users" : "Usuarios",
     "Reset password" : "Restablecer contraseña",
     "Remove" : "Eliminar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

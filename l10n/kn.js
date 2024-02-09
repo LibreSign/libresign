@@ -12,8 +12,6 @@ OC.L10N.register(
     "Cancel" : "﻿ರದ್ದು",
     "Save" : "﻿ಉಳಿಸಿ",
     "Name" : "﻿ಹೆಸರು",
-    "Add" : "﻿ಸೇರಿಸಿ",
-    "Users" : "﻿ಬಳಕೆದಾರರು",
     "Delete" : "﻿ಅಳಿಸಿ",
     "Next" : "ಮುಂದೆ",
     "Type" : "Type",
@@ -26,6 +24,8 @@ OC.L10N.register(
     "New password" : "﻿ಹೊಸ ಗುಪ್ತಪದ",
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
     "No date" : "No date",
+    "Add" : "﻿ಸೇರಿಸಿ",
+    "Users" : "﻿ಬಳಕೆದಾರರು",
     "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
     "Select a file" : "Select a file",
     "Remove" : "ತೆಗೆದುಹಾಕಿ"

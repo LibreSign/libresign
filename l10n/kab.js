@@ -15,8 +15,6 @@ OC.L10N.register(
     "Cancel" : "Sefsex",
     "Save" : "Sekles",
     "Name" : "Nom",
-    "Add" : "Rnu",
-    "Users" : "Iseqdacen",
     "Delete" : "Kkes",
     "Next" : "Uḍfir",
     "Previous" : "Ɣer deffir",
@@ -34,6 +32,8 @@ OC.L10N.register(
     "Message" : "Izen",
     "Loading …" : "Asali ...",
     "Pending" : "Yegguni",
+    "Add" : "Rnu",
+    "Users" : "Iseqdacen",
     "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
     "Remove" : "Kkes"
 },

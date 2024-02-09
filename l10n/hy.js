@@ -12,8 +12,6 @@ OC.L10N.register(
     "Save" : "Պահպանել",
     "Name" : "Անուն",
     "Update" : "Թարմացնել",
-    "Description" : "Նկարագրություն",
-    "Add" : "Ավելացնել",
     "Delete" : "հեռացնել",
     "Next" : "Հաջորդ",
     "Previous" : "Նախորդ",
@@ -28,6 +26,8 @@ OC.L10N.register(
     "New password" : "Նոր գաղտնաբառ",
     "Resource" : "Ռեսուրս",
     "No date" : "No date",
+    "Description" : "Նկարագրություն",
+    "Add" : "Ավելացնել",
     "Select a file" : "Select a file"
 },
 "nplurals=2; plural=(n != 1);");

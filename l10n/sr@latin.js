@@ -11,8 +11,6 @@ OC.L10N.register(
     "Cancel" : "Otkaži",
     "Save" : "Sačuvaj",
     "Name" : "Ime",
-    "Description" : "Opis",
-    "Add" : "Dodaj",
     "Delete" : "Obriši",
     "Details" : "Detalji",
     "Type" : "Tip",
@@ -24,6 +22,8 @@ OC.L10N.register(
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
     "No date" : "No date",
+    "Description" : "Opis",
+    "Add" : "Dodaj",
     "Select a file" : "Select a file",
     "Remove" : "Ukloni"
 },
