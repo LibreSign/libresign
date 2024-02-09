@@ -28,6 +28,7 @@ namespace OCA\Libresign\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
@@ -48,6 +49,22 @@ class Version8000Date20231103003922 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
+		$table = $schema->getTable('libresign_file_element');
+		$table->modifyColumn('sign_request_id', [
+			'notnull' => true,
+			'unsigned' => true,
+		]);
+		$table = $schema->getTable('libresign_identify_method');
+		$table->modifyColumn('sign_request_id', [
+			'notnull' => true,
+			'unsigned' => true,
+		]);
+
+		$table = $schema->getTable('libresign_identify_method');
+		if (!$table->hasIndex('identify_method_unique_index')) {
+			$table->addUniqueIndex(['sign_request_id', 'identifier_key', 'identifier_value'], 'identify_method_unique_index');
+		}
+
 		$table = $schema->getTable('libresign_identify_method');
 		if ($table->hasColumn('file_user_id')) {
 			$table->dropColumn('file_user_id');
@@ -59,8 +76,8 @@ class Version8000Date20231103003922 extends SimpleMigrationStep {
 		}
 
 		$table = $schema->getTable('libresign_sign_request');
-		if (!$table->hasIndex('file_user_uuid_index')) {
-			$table->addUniqueIndex(['uuid'], 'file_user_uuid_index');
+		if (!$table->hasIndex('sign_request_uuid_index')) {
+			$table->addUniqueIndex(['uuid'], 'sign_request_uuid_index');
 		}
 
 		if ($schema->hasTable('libresign_file_user')) {
