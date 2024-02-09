@@ -16,8 +16,6 @@ OC.L10N.register(
     "Save" : "Save",
     "Name" : "Name",
     "Update" : "Update",
-    "Add" : "Add",
-    "Users" : "Users",
     "Delete" : "Delete",
     "Details" : "Details",
     "Change password" : "Change password",
@@ -31,6 +29,8 @@ OC.L10N.register(
     "Current password" : "Current password",
     "New password" : "New password",
     "Pending" : "Pending",
+    "Add" : "Add",
+    "Users" : "Users",
     "Reset password" : "Reset password",
     "Remove" : "Remove"
 },

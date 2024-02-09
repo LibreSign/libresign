@@ -11,9 +11,6 @@
     "Save" : "Spremi",
     "Name" : "Ime",
     "Update" : "Ažuriraj",
-    "Description" : "Opis",
-    "Add" : "Dodaj",
-    "Users" : "Korisnici",
     "Delete" : "Obriši",
     "Next" : "Sljedeće",
     "Previous" : "Prethodno",
@@ -30,6 +27,9 @@
     "New password" : "Nova lozinka",
     "Pending" : "Na čekanju",
     "No date" : "No date",
+    "Description" : "Opis",
+    "Add" : "Dodaj",
+    "Users" : "Korisnici",
     "Reset password" : "Resetuj lozinku",
     "Select a file" : "Select a file"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"

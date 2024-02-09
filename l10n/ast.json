@@ -19,8 +19,6 @@
     "Name" : "Nome",
     "Searching …" : "Buscando…",
     "Update" : "Anovar",
-    "Description" : "Descripción",
-    "Add" : "Amestar",
     "Delete" : "Desaniciar",
     "Next" : "Siguiente",
     "Previous" : "Anterior",
@@ -39,6 +37,8 @@
     "Dependencies" : "Dependencies",
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
-    "Signatures" : "Firmes"
+    "Signatures" : "Firmes",
+    "Description" : "Descripción",
+    "Add" : "Amestar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

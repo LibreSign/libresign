@@ -19,9 +19,6 @@
     "Cancel" : "Kanselleer",
     "Save" : "Bewaar",
     "Update" : "Werk by",
-    "Description" : "Beskrywing",
-    "Add" : "Voeg by",
-    "Users" : "Gebruikers",
     "Delete" : "Skrap",
     "Next" : "Volgende",
     "Previous" : "Vorige",
@@ -47,6 +44,9 @@
     "Loading …" : "Laai …",
     "Pending" : "Hangend",
     "No date" : "Geen datum",
+    "Description" : "Beskrywing",
+    "Add" : "Voeg by",
+    "Users" : "Gebruikers",
     "Reset password" : "Herstel wagwoord",
     "Remove" : "Verwyder"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

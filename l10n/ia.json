@@ -14,9 +14,6 @@
     "Cancel" : "Cancellar",
     "Save" : "Salveguardar",
     "Update" : "Actualisation",
-    "Description" : "Description",
-    "Add" : "Adder",
-    "Users" : "Usatores",
     "Delete" : "Deler",
     "Next" : "Sequente",
     "Previous" : "Previe",
@@ -33,6 +30,9 @@
     "Resource" : "Ressource",
     "Pending" : "Pendente",
     "No date" : "No date",
+    "Description" : "Description",
+    "Add" : "Adder",
+    "Users" : "Usatores",
     "Select a file" : "Select a file"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
