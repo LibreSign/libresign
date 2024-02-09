@@ -13,7 +13,12 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 8.0.0-dev
+## 8.0.0
+### Big changes to a new moment
+* Allow you to sign documents without creating an account
+* Create root certificate with OpenSSL
+* Possibility to send and sign with your own certificate
+* Removed dependency on Imagemagick to read PDF
 
 ## 7.1.1 - 2023-04-12
 ### Changed
