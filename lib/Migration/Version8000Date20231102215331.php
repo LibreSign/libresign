@@ -54,7 +54,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 			$table = $schema->getTable('libresign_file_element');
 			if ($table->hasColumn('file_user_id') && !$table->hasColumn('sign_request_id')) {
 				$table->addColumn('sign_request_id', Types::BIGINT, [
-					'notnull' => true,
+					'notnull' => false,
 					'unsigned' => true,
 				]);
 			}
@@ -63,15 +63,17 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 			$table = $schema->getTable('libresign_identify_method');
 			if ($table->hasColumn('file_user_id') && !$table->hasColumn('sign_request_id')) {
 				$table->addColumn('sign_request_id', Types::BIGINT, [
-					'notnull' => true,
+					'notnull' => false,
 					'unsigned' => true,
 				]);
 			}
 		}
 
 		$table = $schema->getTable('libresign_identify_method');
-		$table->dropIndex('identify_method_unique_index');
-		$table->addUniqueIndex(['sign_request_id', 'identifier_key'], 'identify_method_unique_index');
+		if ($table->hasIndex('identify_method_unique_index')) {
+			$table->dropIndex('identify_method_unique_index');
+		}
+		$table->addUniqueIndex(['sign_request_id', 'identifier_key', 'identifier_value'], 'identify_method_unique_index');
 
 		if (!$schema->hasTable('libresign_sign_request')) {
 			$table = $schema->createTable('libresign_sign_request');
@@ -128,8 +130,10 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$qbFetch = $this->connection->getQueryBuilder();
 		$qbRestore = $this->connection->getQueryBuilder();
-		$qbFetch->select('id', 'file_id', 'uuid', 'display_name', 'description', 'created_at', 'signed', 'metadata')
-			->from('libresign_file_user');
+		$qbFetch->select('fu.id', 'fu.file_id', 'fu.uuid', 'fu.display_name', 'fu.description', 'fu.created_at', 'fu.signed', 'fu.metadata')
+			->from('libresign_file_user', 'fu')
+			->leftJoin('fu', 'libresign_sign_request', 'sr', 'fu.id = sr.id')
+			->where('sr.id IS NULL');
 		$cursor = $qbFetch->executeQuery();
 		while ($row = $cursor->fetch()) {
 			$qbRestore->insert('libresign_sign_request')
@@ -152,6 +156,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 			->set('sign_request_id', 'file_user_id')
 			->executeStatement();
 
+		$qb = $this->connection->getQueryBuilder();
 		$qb->update('libresign_identify_method')
 			->set('sign_request_id', 'file_user_id')
 			->executeStatement();
