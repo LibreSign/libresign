@@ -16,9 +16,6 @@ OC.L10N.register(
     "Cancel" : "Cancellar",
     "Save" : "Salveguardar",
     "Update" : "Actualisation",
-    "Description" : "Description",
-    "Add" : "Adder",
-    "Users" : "Usatores",
     "Delete" : "Deler",
     "Next" : "Sequente",
     "Previous" : "Previe",
@@ -35,6 +32,9 @@ OC.L10N.register(
     "Resource" : "Ressource",
     "Pending" : "Pendente",
     "No date" : "No date",
+    "Description" : "Description",
+    "Add" : "Adder",
+    "Users" : "Usatores",
     "Select a file" : "Select a file"
 },
 "nplurals=2; plural=(n != 1);");

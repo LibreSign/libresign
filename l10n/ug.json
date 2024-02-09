@@ -8,9 +8,6 @@
     "Save" : "ساقلا",
     "Name" : "ئاتى",
     "Update" : "يېڭىلا",
-    "Description" : "چۈشەندۈرۈش",
-    "Add" : "قوش",
-    "Users" : "ئىشلەتكۈچىلەر",
     "Delete" : "ئۆچۈر",
     "Next" : "كېيىنكى",
     "Previous" : "ئالدىنقى",
@@ -24,6 +21,9 @@
     "New password" : "يېڭى ئىم",
     "Pending" : "كۈتۈۋاتىدۇ",
     "No date" : "No date",
+    "Description" : "چۈشەندۈرۈش",
+    "Add" : "قوش",
+    "Users" : "ئىشلەتكۈچىلەر",
     "Select a file" : "Select a file",
     "Remove" : "چىقىرىۋەت"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

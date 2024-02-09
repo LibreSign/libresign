@@ -21,8 +21,6 @@ OC.L10N.register(
     "Name" : "Nome",
     "Searching …" : "Buscando…",
     "Update" : "Anovar",
-    "Description" : "Descripción",
-    "Add" : "Amestar",
     "Delete" : "Desaniciar",
     "Next" : "Siguiente",
     "Previous" : "Anterior",
@@ -41,6 +39,8 @@ OC.L10N.register(
     "Dependencies" : "Dependencies",
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
-    "Signatures" : "Firmes"
+    "Signatures" : "Firmes",
+    "Description" : "Descripción",
+    "Add" : "Amestar"
 },
 "nplurals=2; plural=(n != 1);");

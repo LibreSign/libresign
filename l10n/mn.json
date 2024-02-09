@@ -15,9 +15,6 @@
     "Cancel" : "болиулах",
     "Save" : "Хадгалах",
     "Name" : "Нэр",
-    "Description" : "Тайлбар",
-    "Add" : "нэмэх",
-    "Users" : "хэрэглэгч",
     "Delete" : "Устгах",
     "Next" : "дараагийх",
     "Previous" : "өмнөх",
@@ -41,6 +38,9 @@
     "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
     "No date" : "No date",
+    "Description" : "Тайлбар",
+    "Add" : "нэмэх",
+    "Users" : "хэрэглэгч",
     "Select a file" : "Select a file",
     "Remove" : "Устгах"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
