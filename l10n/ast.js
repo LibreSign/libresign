@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Settings saved" : "Guardóse la configuración",
     "File is too big" : "El ficheru ye mui grande",
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
