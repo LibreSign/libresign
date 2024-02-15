@@ -9,9 +9,7 @@ Nextcloud app to sign PDF documents.
 ## Setup
 
 After installing LibreSign, go to `Administration Settings > LibreSign` and:
-* Click in the `Download binaries` button. When it show status `successful` to all items, except `CFSSL not configured`, is time to configure root certificate in the next section.
-
-> To use the LibreSign is necessary to have the email configured. Do it in  `Administration Settings > Basic Settings > Email server`.
+* Click in the `Download binaries` button. When it show status `successful` to all items, except `root certificate not configured`, is time to configure root certificate in the next section.
 
 ## Integrations
 
