@@ -245,8 +245,9 @@ export default {
 					...(this.filesStore.getFile().uuid && { uuid: this.filesStore.getFile().uuid }),
 					...(this.filesStore.getFile().nodeId && { file: { fileId: this.filesStore.getFile().nodeId } }),
 					visibleElements,
-					status: 0,
+					status: 1,
 				})
+				this.filesStore.addFile(response.data.data)
 				this.showConfirm = false
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
