@@ -31,7 +31,11 @@
 		</Signers>
 		<NcButton v-if="canSave"
 			type="primary"
+			:disabled="hasLoading"
 			@click="save()">
+			<template #icon>
+				<NcLoadingIcon v-if="hasLoading" :size="20" />
+			</template>
 			{{ t('libresign', 'Next') }}
 		</NcButton>
 		<NcButton v-if="filesStore.isSigned()"
@@ -47,6 +51,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { showResponseError } from '../../helpers/errors.js'
@@ -61,6 +66,7 @@ export default {
 	components: {
 		NcActionButton,
 		NcButton,
+		NcLoadingIcon,
 		Delete,
 		Signers,
 		IdentifySigner,
@@ -72,6 +78,7 @@ export default {
 	},
 	data() {
 		return {
+			hasLoading: false,
 			signerToEdit: {},
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
@@ -126,6 +133,7 @@ export default {
 
 		},
 		async save() {
+			this.hasLoading = true
 			const config = {
 				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 				data: {
@@ -165,6 +173,7 @@ export default {
 				.catch(({ error }) => {
 					showError(error.message)
 				})
+			this.hasLoading = false
 		},
 	},
 }
