@@ -93,6 +93,7 @@ appstore:
 	mkdir -p $(appstore_sign_dir)/$(app_name)
 	cp -r \
 		appinfo \
+		composer \
 		img \
 		js \
 		l10n \
@@ -136,6 +137,7 @@ appstore-local: clean
 	npm run build
 	cp -r \
 		appinfo \
+		composer \
 		img \
 		js \
 		l10n \
