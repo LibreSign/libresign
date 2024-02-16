@@ -21,7 +21,7 @@
 						{{ doc.file_type.name }}
 					</td>
 					<td>
-						{{ doc.status_text }}
+						{{ doc.statusText }}
 					</td>
 					<td class="actions">
 						<button @click="openApprove(doc)">

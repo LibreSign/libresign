@@ -77,7 +77,8 @@ class RequestSignatureService {
 	 */
 	public function saveFile(array $data): FileEntity {
 		if (!empty($data['uuid'])) {
-			return $this->fileMapper->getByUuid($data['uuid']);
+			$file = $this->fileMapper->getByUuid($data['uuid']);
+			return $this->updateStatus($file, $data['status'] ?? 0);
 		}
 		$fileId = null;
 		if (isset($data['file']['fileNode']) && $data['file']['fileNode'] instanceof Node) {
@@ -88,11 +89,7 @@ class RequestSignatureService {
 		if (!is_null($fileId)) {
 			try {
 				$file = $this->fileMapper->getByFileId($fileId);
-				if (!empty($data['status']) && $data['status'] > $file->getStatus()) {
-					$file->setStatus($data['status']);
-					return $this->fileMapper->update($file);
-				}
-				return $file;
+				return $this->updateStatus($file, $data['status'] ?? 0);
 			} catch (\Throwable $th) {
 			}
 		}
@@ -115,6 +112,14 @@ class RequestSignatureService {
 			$file->setStatus(FileEntity::STATUS_ABLE_TO_SIGN);
 		}
 		$this->fileMapper->insert($file);
+		return $file;
+	}
+
+	private function updateStatus(FileEntity $file, int $status): FileEntity {
+		if ($status > $file->getStatus()) {
+			$file->setStatus($status);
+			return $this->fileMapper->update($file);
+		}
 		return $file;
 	}
 
