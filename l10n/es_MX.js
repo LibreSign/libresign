@@ -49,6 +49,7 @@ OC.L10N.register(
     "Repeat password" : "Repetir contraseña",
     "Message" : "Mensaje",
     "Resource" : "Recurso",
+    "Status of setup" : "Estado de la configuración",
     "Dependencies" : "Dependencias",
     "Pending" : "Pendiente",
     "No date" : "Sin fecha",
