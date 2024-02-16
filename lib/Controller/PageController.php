@@ -260,7 +260,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 12, period: 60)]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	public function getPdf($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		try {
@@ -285,7 +285,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[RequireSignRequestUuid]
 	#[PublicPage]
 	#[RequireSetupOk]
-	#[AnonRateLimit(limit: 12, period: 60)]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	public function getPdfUser($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
@@ -304,7 +304,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 12, period: 60)]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	public function validation(): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		if ($this->getFileEntity()) {
@@ -340,7 +340,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 12, period: 60)]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	public function validationFileWithShortUrl(): RedirectResponse {
 		$this->throwIfValidationPageNotAccessible();
 		return new RedirectResponse($this->url->linkToRoute('libresign.page.validationFile', ['uuid' => $this->request->getParam('uuid')]));
@@ -372,7 +372,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'validation')]
 	#[PublicPage]
-	#[AnonRateLimit(limit: 12, period: 60)]
+	#[AnonRateLimit(limit: 30, period: 60)]
 	public function validationFile(string $uuid): TemplateResponse {
 		$this->throwIfValidationPageNotAccessible();
 		try {

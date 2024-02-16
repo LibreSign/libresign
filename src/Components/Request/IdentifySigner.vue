@@ -5,7 +5,8 @@
 			:signer="methods.account.value || methods.email.value"
 			:placeholder="placeholder"
 			@update:account="updateAccount"
-			@update:email="updateEmail" />
+			@update:email="updateEmail"
+			@update:display-name="updateDisplayName" />
 		<label for="name-input">{{ t('libresign', 'Signer name') }}</label>
 		<NcTextField aria-describedby="name-input"
 			autocapitalize="none"
@@ -160,15 +161,20 @@ export default {
 			this.identifyMethods = []
 			this.filesStore.disableIdentifySigner()
 		},
+		updateDisplayName(name) {
+			this.displayName = name
+		},
 		updateEmail(email) {
+			if (typeof email === 'object' && Object.hasOwn(email, 'displayName')) {
+				email = email.displayName
+			} else if (typeof email === 'boolean') {
+				email = ''
+			}
 			this.methods.email.value = email
-			this.updateName(email.displayName ?? this.name)
 		},
 		updateAccount(account) {
 			if (typeof account !== 'object') {
 				account = {}
-			} else {
-				this.updateName(account.displayName ?? this.name)
 			}
 			this.methods.account.value = account
 		},
