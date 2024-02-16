@@ -81,6 +81,9 @@ jobs:
       - name: Set up PHP dependencies
         working-directory: apps/${{ env.APP_NAME }}
         run: composer i
+      - name: Prevent Nextcloud OCP outdated
+        working-directory: apps/${{ env.APP_NAME }}
+        run: make updateocp
 
       - name: Set up Nextcloud
         env:

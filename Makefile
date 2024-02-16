@@ -86,6 +86,9 @@ clean-dev:
 test: composer
 	$(CURDIR)/vendor/bin/phpunit -c phpunit.xml
 
+updateocp:
+	php -r 'if (shell_exec("diff -qr ../../lib/public/ vendor/nextcloud/ocp/OCP/")) {\exec("rm -rf vendor/nextcloud/ocp/OCP/");\exec("cp -r ../../lib/public vendor/nextcloud/ocp/OCP/");}'
+
 # Builds the source package for the app store, ignores php and js tests
 .PHONY: appstore
 appstore:

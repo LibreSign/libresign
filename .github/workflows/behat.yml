@@ -86,7 +86,7 @@ jobs:
       - name: Set up dependencies
         working-directory: apps/${{ env.APP_NAME }}
         run: |
-          composer install
+          composer install --no-dev
           composer --working-dir=tests/integration install
 
       - name: Set up Nextcloud
