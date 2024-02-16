@@ -24,7 +24,7 @@ Feature: page/sign_identify_account
       | uuid | <IGNORE> |
       | name | document |
       | callback | |
-      | status | 2 |
+      | status | 1 |
       | statusText | pending |
     And the signer contains
       | key | value |
@@ -79,7 +79,7 @@ Feature: page/sign_identify_account
       | uuid | <IGNORE> |
       | name | document |
       | callback | |
-      | status | 2 |
+      | status | 1 |
       | statusText | pending |
     And the signer contains
       | key | value |
