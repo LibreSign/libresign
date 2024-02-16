@@ -20,12 +20,12 @@ Feature: page/sign_identify_account
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
     And the file to sign contains
-      | key | value |
-      | uuid | <IGNORE> |
-      | name | document |
-      | callback | |
-      | status | 1 |
-      | statusText | pending |
+      | key        | value                   |
+      | uuid       | <IGNORE>                |
+      | name       | document                |
+      | callback   |                         |
+      | status     | 1                       |
+      | statusText | available for signature |
     And the signer contains
       | key | value |
       | uid | signer1 |
@@ -75,12 +75,12 @@ Feature: page/sign_identify_account
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
     And the file to sign contains
-      | key | value |
-      | uuid | <IGNORE> |
-      | name | document |
-      | callback | |
-      | status | 1 |
-      | statusText | pending |
+      | key        | value                   |
+      | uuid       | <IGNORE>                |
+      | name       | document                |
+      | callback   |                         |
+      | status     | 1                       |
+      | statusText | available for signature |
     And the signer contains
       | key | value |
       | uid | signer1 |
