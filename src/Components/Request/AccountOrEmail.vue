@@ -74,12 +74,15 @@ export default {
 			if (selected === null) {
 				this.$emit('update:email', false)
 				this.$emit('update:account', false)
+				this.$emit('update:display-name', '')
 			} else if (selected.isNoUser && selected.icon === 'icon-mail') {
 				this.$emit('update:email', selected)
 				this.$emit('update:account', false)
+				this.$emit('update:display-name', selected.displayName)
 			} else {
 				this.$emit('update:email', false)
 				this.$emit('update:account', selected)
+				this.$emit('update:display-name', selected.displayName)
 			}
 		},
 	},
