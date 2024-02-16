@@ -11,8 +11,8 @@
 			@load="backgroundFailed = false">
 		<FileIcon v-else v-once :size="128" />
 		<div class="enDot">
-			<div :class="filesStore.files[currentNodeId].status_text !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentNodeId].status) : '' " />
-			<span>{{ filesStore.files[currentNodeId].status_text !== 'none' ? filesStore.files[currentNodeId].status_text : '' }}</span>
+			<div :class="filesStore.files[currentNodeId].statusText !== 'none' ? 'dot ' + statusToClass(filesStore.files[currentNodeId].status) : '' " />
+			<span>{{ filesStore.files[currentNodeId].statusText !== 'none' ? filesStore.files[currentNodeId].statusText : '' }}</span>
 		</div>
 		<h1>{{ filesStore.files[currentNodeId].name }}</h1>
 	</div>
