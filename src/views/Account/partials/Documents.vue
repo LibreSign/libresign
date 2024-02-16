@@ -24,7 +24,7 @@
 						{{ doc.file_type.name }}
 					</td>
 					<td>
-						{{ doc.status_text }}
+						{{ doc.statusText }}
 					</td>
 					<td class="actions">
 						<template v-if="doc.status === -1">
@@ -76,7 +76,7 @@ const findDocumentByType = (list, type) => {
 		nodeId: 0,
 		uuid: '',
 		status: -1,
-		status_text: t('libresign', 'Not sent yet'),
+		statusText: t('libresign', 'Not sent yet'),
 		name: t('libresign', 'Not defined yet'),
 		file_type: FILE_TYPE_INFO[type] || { type },
 	}

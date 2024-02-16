@@ -67,7 +67,7 @@ Feature: file-list
               }
             ],
             "status": 2,
-            "status_text": "pending"
+            "statusText": "pending"
           }
         ],
         "pagination": {
@@ -119,7 +119,7 @@ Feature: file-list
               }
             ],
             "status": 2,
-            "status_text": "pending"
+            "statusText": "pending"
           }
         ],
         "pagination": {

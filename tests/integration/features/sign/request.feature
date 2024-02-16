@@ -370,7 +370,7 @@ Feature: request-signature
               }
             ],
             "status": 2,
-            "status_text": "pending"
+            "statusText": "pending"
           }
         ],
         "pagination": {
@@ -428,7 +428,7 @@ Feature: request-signature
               }
             ],
             "status": 2,
-            "status_text": "pending"
+            "statusText": "pending"
           }
         ],
         "pagination": {

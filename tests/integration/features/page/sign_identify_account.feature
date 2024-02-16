@@ -25,7 +25,7 @@ Feature: page/sign_identify_account
       | name | document |
       | callback | |
       | status | 2 |
-      | status_text | pending |
+      | statusText | pending |
     And the signer contains
       | key | value |
       | uid | signer1 |
@@ -80,7 +80,7 @@ Feature: page/sign_identify_account
       | name | document |
       | callback | |
       | status | 2 |
-      | status_text | pending |
+      | statusText | pending |
     And the signer contains
       | key | value |
       | uid | signer1 |

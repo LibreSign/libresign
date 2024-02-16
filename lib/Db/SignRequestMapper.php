@@ -49,6 +49,7 @@ class SignRequestMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 		protected IL10N $l10n,
+		protected FileMapper $fileMapper,
 	) {
 		parent::__construct($db, 'libresign_sign_request');
 	}
@@ -373,6 +374,7 @@ class SignRequestMapper extends QBMapper {
 			'f.uuid',
 			'f.name',
 			'f.callback',
+			'f.status',
 			'f.node_id'
 		)
 			->selectAlias('u.uid_lower', 'requested_by_uid')
@@ -503,14 +505,9 @@ class SignRequestMapper extends QBMapper {
 			}
 			if (empty($files[$key]['signers'])) {
 				$files[$key]['signers'] = [];
-				$files[$key]['status'] = 0;
-				$files[$key]['status_text'] = $this->l10n->t('no signers');
-			} elseif ($totalSigned === count($files[$key]['signers'])) {
-				$files[$key]['status'] = 1;
-				$files[$key]['status_text'] = $this->l10n->t('signed');
+				$files[$key]['statusText'] = $this->l10n->t('no signers');
 			} else {
-				$files[$key]['status'] = 2;
-				$files[$key]['status_text'] = $this->l10n->t('pending');
+				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int) $files[$key]['status']);
 			}
 			unset($files[$key]['id']);
 		}
