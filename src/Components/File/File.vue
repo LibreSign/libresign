@@ -85,9 +85,10 @@ export default {
 			case 0:
 				return 'no-signers'
 			case 1:
-				return 'signed'
 			case 2:
 				return 'pending'
+			case 3:
+				return 'signed'
 			default:
 				return ''
 			}

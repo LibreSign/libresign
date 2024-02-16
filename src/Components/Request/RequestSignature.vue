@@ -137,6 +137,7 @@ export default {
 			const config = {
 				url: generateOcsUrl('/apps/libresign/api/v1/request-signature'),
 				data: {
+					status: this.filesStore.getFile()?.status ?? 0,
 					name: this.filesStore.getFile()?.name,
 					users: [],
 				},
