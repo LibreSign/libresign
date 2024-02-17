@@ -41,6 +41,7 @@
     "lodash-es": "^4.17.21",
     "pinia": "^2.1.7",
     "style-loader": "^3.3.4",
+    "v-perfect-signature": "^1.4.0",
     "vue": "^2.7.16",
     "vue-advanced-cropper": "^1.11.6",
     "vue-drag-resize": "^1.5.4",
