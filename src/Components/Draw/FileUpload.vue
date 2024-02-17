@@ -1,14 +1,17 @@
 <template>
 	<div class="draw-file-input">
 		<div class="file-input-container">
-			<label for="signature-file">
+			<NcButton type="primary"
+				:wide="true"
+				@click="$refs.file.click()">
 				{{
 					hasImage
 						? t('libresign', 'Select other file')
 						: t('libresign', 'Select your signature file.')
 				}}
-			</label>
+			</NcButton>
 			<input id="signature-file"
+				ref="file"
 				type="file"
 				name="signature-file"
 				accept="image/*"
@@ -17,19 +20,20 @@
 
 		<div v-if="hasImage" class="cropper-container">
 			<Cropper :src="image"
-				v-bind="{ stencilSize }"
+				:stencil-size="stencilSize"
+				image-restriction="none"
 				@change="change" />
 			<p>
 				{{ t('libresign', 'Use your mouse wheel to zoom in or out on the image and find the best view of your signature.') }}
 			</p>
 
 			<div class="action-buttons">
-				<button class="primary" @click="confirmSave">
+				<NcButton type="primary" @click="confirmSave">
 					{{ t('libresign', 'Save') }}
-				</button>
-				<button class="danger" @click="close">
+				</NcButton>
+				<NcButton @click="close">
 					{{ t('libresign', 'Cancel') }}
-				</button>
+				</NcButton>
 			</div>
 		</div>
 
@@ -38,12 +42,12 @@
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
 				<div class="actions-modal">
-					<button class="primary" @click="saveSignature">
+					<NcButton type="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
-					</button>
-					<button @click="cancel">
+					</NcButton>
+					<NcButton @click="cancel">
 						{{ t('libresign', 'Cancel') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
 		</NcModal>
@@ -54,10 +58,12 @@
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { Cropper } from 'vue-advanced-cropper'
 import { SignatureImageDimensions } from './options.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { isEmpty } from 'lodash-es'
 export default {
 	name: 'FileUpload',
 	components: {
+		NcButton,
 		Cropper,
 		NcModal,
 	},
@@ -67,17 +73,15 @@ export default {
 			loading: false,
 			image: '',
 			imageData: '',
+			stencilSize: {
+				height: SignatureImageDimensions.height,
+				width: SignatureImageDimensions.width,
+			},
 		}
 	},
 	computed: {
 		hasImage() {
 			return !isEmpty(this.image)
-		},
-		stencilSize() {
-			return {
-				height: SignatureImageDimensions.height,
-				width: SignatureImageDimensions.width,
-			}
 		},
 	},
 	methods: {
@@ -136,24 +140,20 @@ export default {
 	input[type='file'] {
 		display: none;
 	}
-
-	label {
-		padding: 1em;
-		display: block;
-		background-color: var(--color-primary);
-		color: var(--color-primary-text);
-		text-align: center;
-		cursor: pointer;
-	}
 }
-
-.action-buttons, .actions-modal {
-	margin-top: 1em;
+.action-buttons{
+	justify-content: end;
+	display: flex;
+	box-sizing: border-box;
+	grid-gap: 10px;
+}
+.actions-modal{
 	display: flex;
 	flex-direction: row;
-	justify-content: flex-end;
+	align-self: flex-end;
+	box-sizing: border-box;
+	grid-gap: 10px;
 }
-
 .modal-confirm{
 	z-index: 100000;
 	display: flex;
