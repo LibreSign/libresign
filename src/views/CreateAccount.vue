@@ -1,0 +1,256 @@
+<!--
+- @copyright Copyright (c) 2021 Lyseon Tech <contato@lt.coop.br>
+-
+- @author Lyseon Tech <contato@lt.coop.br>
+- @author Vinicios Gomes <viniciusgomesvaian@gmail.com>
+-
+- @license GNU AGPL version 3 or any later version
+-
+- This program is free software: you can redistribute it and/or modify
+- it under the terms of the GNU Affero General Public License as
+- published by the Free Software Foundation, either version 3 of the
+- License, or (at your option) any later version.
+-
+- This program is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU Affero General Public License for more details.
+-
+- You should have received a copy of the GNU Affero General Public License
+- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-->
+
+<template>
+	<div class="wrapper">
+		<header>
+			<div class="logo" />
+		</header>
+		<div class="create-account">
+			<h2 class="create-account__headline">
+				{{ t('libresign', 'Create account') }}
+			</h2>
+			<NcNoteCard type="info">
+				{{ t('libresign', 'You need to create an account with the same email address you received the invitation from.') }}
+			</NcNoteCard>
+			<NcNoteCard v-if="errorMessage" type="error">
+				{{ errorMessage }}
+			</NcNoteCard>
+			<fieldset class="create-account__fieldset">
+				<NcTextField :label="t('libresign', 'Email')"
+					:value.sync="email"
+					autocapitalize="none"
+					:spellchecking="false"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="emailError"
+					:error="showErrorEmail"
+					required>
+					<EmailIcon :size="20" />
+				</NcTextField>
+				<NcPasswordField :value.sync="password"
+					:label="t('libresign', 'Password')"
+					:spellchecking="false"
+					autocapitalize="none"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="passwordError"
+					:error="passwordError.length > 0"
+					required />
+				<NcPasswordField :value.sync="passwordConfirm"
+					:label="t('libresign', 'Confirm password')"
+					:spellchecking="false"
+					autocapitalize="none"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="confirmPasswordError"
+					:error="confirmPasswordError.length > 0"
+					required />
+				<NcButton :wide="true"
+					type="primary"
+					:disabled="!canSave"
+					@click="createAccount">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<RightIcon v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Next') }}
+				</NcButton>
+			</fieldset>
+		</div>
+	</div>
+</template>
+
+<script>
+// eslint-disable-next-line n/no-missing-import
+import md5 from 'crypto-js/md5'
+import { showWarning } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
+
+// eslint-disable-next-line n/no-missing-import
+import { required, email, minLength } from 'vuelidate/lib/validators'
+
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import EmailIcon from 'vue-material-design-icons/Email.vue'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
+import { loadState } from '@nextcloud/initial-state'
+
+export default {
+	name: 'CreateAccount',
+	components: {
+		NcNoteCard,
+		NcTextField,
+		EmailIcon,
+		NcPasswordField,
+		NcButton,
+		NcLoadingIcon,
+		RightIcon,
+	},
+
+	data() {
+		return {
+			loading: false,
+			email: '',
+			password: '',
+			passwordConfirm: '',
+			settings: loadState('libresign', 'settings'),
+			message: loadState('libresign', 'message'),
+			errorMessage: '',
+			enabledFeatures: [],
+		}
+	},
+
+	validations: {
+		email: { required, email },
+		password: { required, minLength: minLength(4) },
+		passwordConfirm: { required, minLength: minLength(4) },
+	},
+
+	computed: {
+		emailError() {
+			if (this.$v.email.$model) {
+				if (this.$v.email.$error) {
+					return t('libresign', 'This is not a valid email')
+				} else if (this.isEqualEmail === false) {
+					return t('libresign', 'The email entered is not the same as the email in the invitation')
+				}
+			}
+			return ''
+		},
+		showErrorEmail() {
+			return this.emailError.length > 2
+		},
+		passwordError() {
+			if (this.password && this.passwordConfirm) {
+				if (this.password.length <= 4) {
+					return t('libresign', 'Your password must be greater than 4 digits')
+				}
+			}
+			return ''
+		},
+		confirmPasswordError() {
+			if (this.password && this.passwordConfirm) {
+				if (this.password !== this.passwordConfirm) {
+					return t('libresign', 'Passwords does not match')
+				}
+			}
+			return ''
+		},
+		canSave() {
+			return this.password.length > 0
+				&& this.passwordConfirm.length > 0
+				&& this.passwordError.length === 0
+				&& this.confirmPasswordError.length === 0
+				&& this.email.length > 0
+				&& !this.showErrorEmail
+				&& !this.loading
+		},
+		isEqualEmail() {
+			return this.settings.accountHash === md5(this.email).toString()
+		},
+	},
+
+	created() {
+		showWarning(t('libresign', this.message))
+	},
+
+	methods: {
+		async createAccount() {
+			this.loading = true
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
+				uuid: this.$route.params.uuid,
+				email: this.email,
+				password: this.password,
+			})
+				.then(({ data }) => {
+					const url = this.$router.resolve({ name: 'SignPDF' })
+					window.location.href = url.href
+				})
+				.catch(({ response }) => {
+					this.errorMessage = response.data.message
+				})
+			this.loading = false
+		},
+	},
+}
+</script>
+
+<style lang="scss">
+body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+</style>
+<style lang="scss" scoped>
+.wrapper {
+	max-width: 700px;
+	margin-block: 10vh auto;
+
+	header {
+		text-align: center;
+		.logo {
+			height: 120px;
+			background-image: var(--image-logo, url('../../img/logo-white.svg'));
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: contain;
+			position: relative;
+			margin-bottom: 10px;
+			width: 175px;
+			display: inline-flex;
+		}
+	}
+	.create-account {
+		--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
+		color: var(--color-main-text);
+		background-color: var(--color-main-background-blur);
+		padding: 16px;
+		border-radius: var(--border-radius-rounded);
+		box-shadow: 0 0 10px var(--color-box-shadow);
+		display: inline-block;
+		backdrop-filter: var(--filter-background-blur);
+		width: 320px;
+		box-sizing: border-box;
+		&__headline{
+			text-align: center;
+			overflow-wrap: anywhere;
+		}
+		&__fieldset{
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			gap: .5rem;
+		}
+		.button-vue{
+			margin-top: 0.5rem;
+		}
+	}
+}
+</style>

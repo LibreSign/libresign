@@ -26,7 +26,7 @@ namespace OCA\Libresign\Helper;
 
 final class JSActions {
 	public const ACTION_REDIRECT = 1000;
-	public const ACTION_CREATE_USER = 1500;
+	public const ACTION_CREATE_ACCOUNT = 1500;
 	public const ACTION_DO_NOTHING = 2000;
 	public const ACTION_SIGN = 2500;
 	public const ACTION_SIGN_ACCOUNT_FILE = 2750;

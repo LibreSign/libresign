@@ -91,6 +91,10 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	protected function throwIfNeedToCreateAccount() {
+		$user = $this->userSession->getUser();
+		if ($user instanceof IUser) {
+			return;
+		}
 		$settings = $this->getSettings();
 		if (!$settings['can_create_account']) {
 			return;
@@ -100,7 +104,7 @@ class Email extends AbstractIdentifyMethod {
 		}
 		$email = $this->getEntity()->getIdentifierValue();
 		throw new LibresignException(json_encode([
-			'action' => JSActions::ACTION_CREATE_USER,
+			'action' => JSActions::ACTION_CREATE_ACCOUNT,
 			'settings' => ['accountHash' => md5($email)],
 			'message' => $this->identifyMethodService->getL10n()->t('You need to create an account to sign this file.'),
 		]));
