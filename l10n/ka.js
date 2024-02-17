@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Settings saved" : "Settings saved",
     "deleted" : "deleted",
-    "pending" : "pending",
     "File is too big" : "File is too big",
     "File sharing" : "File sharing",
     "View" : "View",
@@ -31,6 +30,7 @@ OC.L10N.register(
     "Delete" : "Delete",
     "Next" : "Next",
     "Previous" : "Previous",
+    "pending" : "pending",
     "Details" : "Details",
     "Certificate" : "Certificate",
     "Delete certificate" : "Delete certificate",
