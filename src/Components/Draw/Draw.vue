@@ -46,6 +46,7 @@ import TextInput from './TextInput.vue'
 import SignatureTextIcon from 'vue-material-design-icons/SignatureText.vue'
 import FileUpload from './FileUpload.vue'
 import UploadIcon from 'vue-material-design-icons/Upload.vue'
+import { useSignatureElementsStore } from '../../store/signatureElements.js'
 
 export default {
 	name: 'Draw',
@@ -76,14 +77,22 @@ export default {
 			required: false,
 			default: false,
 		},
+		type: {
+			type: String,
+			required: true,
+		},
 	},
-
+	setup() {
+		const signatureElementsStore = useSignatureElementsStore()
+		return { signatureElementsStore }
+	},
 	methods: {
 		close() {
 			this.$emit('close')
 		},
-		save(base64) {
-			this.$emit('save', base64)
+		async save(base64) {
+			await this.signatureElementsStore.save(this.type, base64)
+			this.$emit('save')
 			this.close()
 		},
 	},
