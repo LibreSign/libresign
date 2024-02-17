@@ -91,6 +91,10 @@ class Email extends AbstractIdentifyMethod {
 	}
 
 	protected function throwIfNeedToCreateAccount() {
+		$user = $this->userSession->getUser();
+		if ($user instanceof IUser) {
+			return;
+		}
 		$settings = $this->getSettings();
 		if (!$settings['can_create_account']) {
 			return;
