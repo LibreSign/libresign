@@ -1,43 +1,55 @@
 <template>
 	<div class="container-draw">
-		<div class="canva">
-			<div class="actions">
-				<ul>
-					<li>{{ t('libresign','Colors:') }} </li>
-					<li class="action-color black" @click="chooseColor('#000')" />
-					<li class="action-color red" @click="chooseColor('#ff0000')" />
-					<li class="action-color blue" @click="chooseColor('#0000ff')" />
-					<li class="action-color green" @click="chooseColor('#008000')" />
-				</ul>
-				<div class="action-delete icon-delete" @click="$refs.signaturePad.clear()" />
-			</div>
-			<VPerfectSignature ref="signaturePad"
-				:width="canvasWidth.toString()"
-				:height="canvasHeight.toString()"
-				class="canvas"
-				:pen-color="color"
-				:style="{ 'width': `${canvasWidth}px`, 'height': `${canvasHeight}px` }"
-				:stroke-options="strokeOptions" />
+		<div class="actions">
+			<NcColorPicker :value.sync="color"
+				ref="colorPicker"
+				v-model="color"
+				:palette="customPalette"
+				:paletteOnly="true"
+				@input="refresh">
+				<NcButton>
+					<template #icon>
+						<PaletteIcon :size="20" />
+					</template>
+					{{ t('libresign', 'Change color') }}
+				</NcButton>
+			</NcColorPicker>
+			<NcButton @click="clear"
+				:aria-label="t('libresign', 'Delete')">
+				<template #icon>
+					<DeleteIcon :size="20" />
+				</template>
+			</NcButton>
 		</div>
+		<VPerfectSignature v-if="mounted"
+			ref="signaturePad"
+			class="canvas"
+			:width="canvasWidth + 'px'"
+			:height="canvasHeight + 'px'"
+			:pen-color="color"
+			:stroke-options="strokeOptions"
+			@onEnd="updateCanSave" />
 		<div class="action-buttons">
-			<button class="primary" @click="confirmationDraw">
-				{{ t('libresign', 'Apply') }}
-			</button>
-			<button class="danger" @click="close">
+			<NcButton type="primary"
+				:disabled="!canSave"
+				@click="confirmationDraw">
+				{{ t('libresign', 'Save') }}
+			</NcButton>
+			<NcButton @click="close">
 				{{ t('libresign', 'Cancel') }}
-			</button>
+			</NcButton>
 		</div>
 		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<PreviewSignature :src="imageData" />
 				<div class="actions-modal">
-					<button class="primary" @click="saveSignature">
+					<NcButton type="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
-					</button>
-					<button @click="handleModal(false)">
+					</NcButton>
+					<NcButton @click="handleModal(false)">
 						{{ t('libresign', 'Cancel') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
 		</NcModal>
@@ -46,6 +58,10 @@
 
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcColorPicker from '@nextcloud/vue/dist/Components/NcColorPicker.js'
+import PaletteIcon from 'vue-material-design-icons/Palette.vue'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
 import { VPerfectSignature } from 'v-perfect-signature'
 import { SignatureImageDimensions } from './options.js'
@@ -55,6 +71,10 @@ export default {
 
 	components: {
 		NcModal,
+		NcColorPicker,
+		PaletteIcon,
+		DeleteIcon,
+		NcButton,
 		PreviewSignature,
 		VPerfectSignature,
 	},
@@ -63,8 +83,16 @@ export default {
 		canvasWidth: SignatureImageDimensions.width,
 		canvasHeight: SignatureImageDimensions.height,
 		color: '#000000',
+		customPalette: [
+			'#000000',
+			'#ff0000',
+			'#0000ff',
+			'#008000',
+		],
 		imageData: null,
 		modal: false,
+		mounted: false,
+		canSave: false,
 		strokeOptions: {
 			size: 7,
 			thinning: 0.75,
@@ -72,12 +100,43 @@ export default {
 			streamline: 0.5,
 		},
 	}),
+	mounted() {
+		this.mounted = true
+		this.$nextTick(() => {
+			const canvas = this.$refs.signaturePad.getCanvasElement()
+			const padding = 20
+			if (SignatureImageDimensions.width > window.innerWidth - padding) {
+				this.canvasWidth = window.innerWidth - padding
+			} else {
+				this.canvasWidth = SignatureImageDimensions.width
+			}
+			if (SignatureImageDimensions.height > window.innerHeight) {
+				this.canvasHeight = window.innerHeight
+			} else {
+				this.canvasHeight = SignatureImageDimensions.height
+			}
+			canvas.width = this.canvasWidth
+			canvas.height = this.canvasHeight
+			this.$refs.signaturePad.$forceUpdate()
+		})
+	},
 	beforeDestroy() {
+		this.mounted = false
 		this.$refs.signaturePad.clear()
+		this.imageData = null
 	},
 	methods: {
-		chooseColor(value) {
-			this.color = value
+		updateCanSave() {
+			this.canSave = !this.$refs.signaturePad.isEmpty()
+		},
+		refresh() {
+			this.$nextTick(() => {
+				this.$refs.signaturePad.inputPointsHandler()
+			})
+		},
+		clear() {
+			this.$refs.signaturePad.clear()
+			this.canSave = false
 		},
 		createDataImage() {
 			this.imageData = this.$refs.signaturePad.toDataURL('image/png')
@@ -105,87 +164,30 @@ export default {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	width: calc(100% - 20px);
 	height: 100%;
-	margin: 10px;
 
-	.canva{
+	.actions{
 		display: flex;
-		flex-direction: column;
-		align-items: center;
+		flex-direction: row;
+		justify-content: space-between;
 		width: 100%;
-		height: 100%;
-
-		.actions{
-			display: flex;
-			flex-direction: row;
-			justify-content: space-between;
-			width: 100%;
-
-			ul{
-				display: flex;
-				flex-direction: row;
-				justify-content: center;
-				align-items: center;
-
-				.action-color{
-					width: 10px;
-					height: 10px;
-					margin: 0 5px;
-					cursor: pointer;
-					border-radius: 50%;
-
-					&:first-child{
-						margin: 0 15px;
-					}
-				}
-
-				.black{
-					background-color: #000000;
-				}
-
-				.red{
-					background-color: #ff0000;
-				}
-
-				.blue{
-					background-color: #0000ff;
-				}
-
-				.green{
-					background-color: #008000;
-				}
-			}
-			.action-delete{
-				cursor: pointer;
-				margin-right: 20px;
-			}
+		.action-delete{
+			cursor: pointer;
+			margin-right: 20px;
 		}
 	}
-
-	.action-buttons{
-		align-self: flex-end;
-
-		button{
-			margin: 0 20px 10px 0;
-
-			&:first-child{
-				margin: 0px 10px 10px 0px;
-			}
-		}
-	}
-
 	.canvas{
+		position: relative;
 		border: 1px solid #dbdbdb;
-		width: var(--draw-canvas-width);
-		height: var(--draw-canvas-height);
 		background-color: #cecece;
 		border-radius: 10px;
 		margin-bottom: 5px;
-
-		@media screen and (max-width: 650px) {
-			width: 100%;
-		}
+	}
+	.action-buttons{
+		justify-content: end;
+		display: flex;
+		box-sizing: border-box;
+		grid-gap: 10px;
 	}
 }
 
@@ -215,6 +217,8 @@ export default {
 		display: flex;
 		flex-direction: row;
 		align-self: flex-end;
+		box-sizing: border-box;
+		grid-gap: 10px;
 	}
 }
 </style>
