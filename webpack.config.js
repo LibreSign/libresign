@@ -23,12 +23,7 @@ module.exports = merge(nextcloudWebpackConfig, {
 		rules: [
 			{
 				test: /\.(ttf|otf|eot|woff|woff2)$/,
-				use: {
-					loader: 'file-loader',
-					options: {
-					name: 'fonts/[name].[ext]',
-					},
-				},
+				type: 'asset/inline',
 			},
 			// Load raw SVGs to be able to inject them via v-html
 			{
