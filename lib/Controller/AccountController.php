@@ -33,7 +33,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
-use OCA\Libresign\Middleware\Attribute\RequireSignRequestUuid;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
@@ -255,8 +254,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
-	public function createSignatureElement(array $elements, string $uuid): JSONResponse {
+	public function createSignatureElement(array $elements): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements(
