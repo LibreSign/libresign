@@ -41,7 +41,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateWithSuccessUsingUnloggedUser() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -71,7 +71,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testValidateWithSuccessUsingSigner() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$this->mockAppConfig([
 			'identify_methods' => [
@@ -113,7 +113,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testControllerListWithEmptyData() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withRequestHeader([
 				'Authorization' => 'Basic ' . base64_encode('username:password')
@@ -129,7 +129,7 @@ final class FileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSendNewFile() {
-		$this->createUser('allowrequestsign', 'password');
+		$this->createAccount('allowrequestsign', 'password');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
 		]);

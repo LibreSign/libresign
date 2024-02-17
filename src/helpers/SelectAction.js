@@ -30,8 +30,8 @@ export const selectAction = (action) => {
 	case 1000: // ACTION_REDIRECT
 		window.location.replace(redirectURL.toString())
 		break
-	case 1500: // ACTION_CREATE_USER
-		return 'CreateUser'
+	case 1500: // ACTION_CREATE_ACCOUNT
+		return 'CreateAccount'
 	case 2000: // ACTION_DO_NOTHING
 		return 'DefaultPageError'
 	case 2500: // ACTION_SIGN
