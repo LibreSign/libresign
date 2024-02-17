@@ -4,33 +4,32 @@
 			<canvas id="canvas-text"
 				ref="canvas"
 				class="canvas"
-				:width="canvasWidth"
-				:height="canvasHeight"
-				:style="{ '--draw-canvas-width': `${canvasWidth}px`, '--draw-canvas-height': `${canvasHeight}px` }" />
-			<label>
-				{{ t('libresign', 'Enter your Full Name or Initials to create Signature') }}
-				<input ref="input" v-model="value" type="text">
-			</label>
+				:width="canvasWidth + 'px'"
+				:height="canvasHeight + 'px'" />
+			<NcTextField id="text"
+				ref="input"
+				:label="t('libresign', 'Enter your Full Name or Initials to create Signature')"
+				:value.sync="value" />
 		</div>
 		<div class="action-buttons">
-			<button :disabled="!isValid" class="primary" @click="confirmSignature">
-				{{ t('libresign', 'Apply') }}
-			</button>
-			<button class="danger" @click="close">
+			<NcButton :disabled="!isValid" type="primary" @click="confirmSignature">
+				{{ t('libresign', 'Save') }}
+			</NcButton>
+			<NcButton @click="close">
 				{{ t('libresign', 'Cancel') }}
-			</button>
+			</NcButton>
 		</div>
 		<NcModal v-if="modal" @close="handleModal(false)">
 			<div class="modal-confirm">
 				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
 				<img :src="imageData">
 				<div class="actions-modal">
-					<button class="primary" @click="saveSignature">
+					<NcButton type="primary" @click="saveSignature">
 						{{ t('libresign', 'Save') }}
-					</button>
-					<button @click="cancelConfirm">
+					</NcButton>
+					<NcButton @click="cancelConfirm">
 						{{ t('libresign', 'Cancel') }}
-					</button>
+					</NcButton>
 				</div>
 			</div>
 		</NcModal>
@@ -38,7 +37,9 @@
 </template>
 
 <script>
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import '@fontsource/dancing-script'
 import { SignatureImageDimensions } from './options.js'
 import { isEmpty } from 'lodash-es'
@@ -46,7 +47,9 @@ import { isEmpty } from 'lodash-es'
 export default {
 	name: 'TextInput',
 	components: {
+		NcTextField,
 		NcModal,
+		NcButton,
 	},
 
 	data: () => ({
@@ -72,6 +75,19 @@ export default {
 	},
 	mounted() {
 		this.$canvas = this.$refs.canvas.getContext('2d')
+		const padding = 20
+		if (SignatureImageDimensions.width > window.innerWidth - padding) {
+			this.canvasWidth = window.innerWidth - padding
+		} else {
+			this.canvasWidth = SignatureImageDimensions.width
+		}
+		if (SignatureImageDimensions.height > window.innerHeight) {
+			this.canvasHeight = window.innerHeight
+		} else {
+			this.canvasHeight = SignatureImageDimensions.height
+		}
+		this.$canvas.width = this.canvasWidth
+		this.$canvas.height = this.canvasHeight
 		this.setFocus()
 	},
 
@@ -124,43 +140,29 @@ export default {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	width: calc(100% - 20px);
+	width: 100%;
 	height: 100%;
-	margin: 10px;
 	.action-buttons{
-		align-self: flex-end;
-
-		button{
-			margin: 0 20px 10px 0;
-
-			&:first-child{
-				margin: 0px 10px 10px 0px;
-			}
-		}
+		justify-content: end;
+		display: flex;
+		box-sizing: border-box;
+		grid-gap: 10px;
 	}
 }
 
 .canvas{
 	border: 1px solid #dbdbdb;
-	width: var(--draw-canvas-width);
-	height: var(--draw-canvas-height);
 	background-color: #cecece;
 	border-radius: 10px;
 	margin-bottom: 5px;
-	margin-top: 5px;
-	@media screen and (max-width: 650px) {
-		width: 100%;
-	}
 }
 
 .canva-container {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin: 0 0.5em;
-	label input {
-		display: block;
-		width: 100%;
+	label {
+		word-wrap: break-word;
 	}
 }
 
