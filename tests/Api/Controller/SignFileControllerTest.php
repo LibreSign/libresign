@@ -374,7 +374,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPatchRegisterWithValidationFailure() {
-		$this->createAccountunt('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('PATCH')
 			->withPath('/request-signature')
