@@ -89,6 +89,7 @@
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
+			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
 		<NcModal v-if="signMethodsStore.modal.createPassword"
@@ -119,16 +120,16 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
-import { loadState } from '@nextcloud/initial-state'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import CreatePassword from '../../../views/CreatePassword.vue'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
 export default {
 	name: 'Sign',
@@ -160,9 +161,11 @@ export default {
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
+		const signatureElementsStore = useSignatureElementsStore()
+		return { signMethodsStore, signatureElementsStore }
 	},
 	data() {
+		this.signatureElementsStore.loadSignatures()
 		return {
 			loading: true,
 			user: {
@@ -171,18 +174,10 @@ export default {
 			modalCreatePassword: false,
 			modalSignWithPassword: false,
 			signPassword: '',
-			userSignatures: loadState('libresign', 'user_signatures'),
 		}
 	},
 	computed: {
 		elements() {
-			const signature = this.userSignatures?.find(row => {
-				return row.type === 'signature'
-			}) ?? {}
-			if (Object.keys(signature).length === 0) {
-				return []
-			}
-
 			const signer = this.document?.signers.find(row => row.me) || {}
 
 			if (!signer.signRequestId) {
@@ -190,19 +185,20 @@ export default {
 			}
 
 			const visibleElements = (this.document?.visibleElements || [])
-				.filter(row => row.signRequestId === signer.signRequestId)
-
-			const url = signature.file.url
+				.filter(row => {
+					return this.signatureElementsStore.hasSignatureOfType(row.type)
+						&& row.signRequestId === signer.signRequestId
+				})
 			const element = visibleElements
 				.map(el => ({
 					documentElementId: el.elementId,
-					profileFileId: signature.file.fileId,
-					url: `${url}?_t=${Date.now()}`,
+					profileFileId: this.signatureElementsStore.signs[el.type].file.fileId,
+					url: this.signatureElementsStore.signs[el.type].file.url + '?_t=' + Date.now(),
 				}))
 			return element
 		},
 		hasSignatures() {
-			return this.userSignatures?.length > 0
+			return this.elements.length > 0
 		},
 		needCreateSignature() {
 			return this.document?.visibleElements.length > 0
@@ -239,23 +235,11 @@ export default {
 				}
 			}
 		},
-		async saveSignature(value) {
-			try {
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'), {
-					elements: [
-						{
-							file: {
-								base64: value,
-							},
-							type: 'signature',
-						},
-					],
-					uuid: this.uuid,
-				})
-				this.userSignatures = response.data.elements
-				showSuccess(response.data.message)
-			} catch (err) {
-				onError(err)
+		saveSignature() {
+			if (this.signatureElementsStore.success.length) {
+				showSuccess(this.signatureElementsStore.success)
+			} else if (this.signatureElementsStore.error.length) {
+				showError(this.signatureElementsStore.error)
 			}
 			this.signMethodsStore.closeModal('createSignature')
 		},

@@ -1,11 +1,11 @@
 <template>
 	<div class="container-draw">
 		<div class="actions">
-			<NcColorPicker :value.sync="color"
-				ref="colorPicker"
+			<NcColorPicker ref="colorPicker"
 				v-model="color"
+				:value.sync="color"
 				:palette="customPalette"
-				:paletteOnly="true"
+				:palette-only="true"
 				@input="refresh">
 				<NcButton>
 					<template #icon>
@@ -14,8 +14,8 @@
 					{{ t('libresign', 'Change color') }}
 				</NcButton>
 			</NcColorPicker>
-			<NcButton @click="clear"
-				:aria-label="t('libresign', 'Delete')">
+			<NcButton :aria-label="t('libresign', 'Delete')"
+				@click="clear">
 				<template #icon>
 					<DeleteIcon :size="20" />
 				</template>
