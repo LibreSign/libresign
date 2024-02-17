@@ -177,7 +177,7 @@ class ValidateHelper {
 		}
 		$string = base64_decode($base64);
 		if (in_array($type, [self::TYPE_VISIBLE_ELEMENT_USER, self::TYPE_VISIBLE_ELEMENT_PDF])) {
-			if (strlen($string) > 10 * 1024) {
+			if (strlen($string) > 5000 * 1024) { // 5Mb
 				// TRANSLATORS Error when the visible element to add to document, like a signature or initial is bigger than normal
 				throw new InvalidArgumentException($this->l10n->t('File is too big'));
 			}
