@@ -501,7 +501,7 @@ class ValidateHelper {
 				}
 			}
 			if (isset($file)) {
-				if ($data['status'] >= $file->getStatus()) {
+				if ($data['status'] > $file->getStatus()) {
 					if ($file->getStatus() >= File::STATUS_ABLE_TO_SIGN) {
 						if ($data['status'] !== File::STATUS_DELETED) {
 							throw new LibresignException($this->l10n->t('Sign process already started. Unable to change status.'));
