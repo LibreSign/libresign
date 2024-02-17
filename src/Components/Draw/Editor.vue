@@ -11,7 +11,7 @@
 				</ul>
 				<div class="action-delete icon-delete" @click="$refs.signaturePad.clear()" />
 			</div>
-			<VPerfectSignature ref="canvas"
+			<VPerfectSignature ref="signaturePad"
 				:width="canvasWidth.toString()"
 				:height="canvasHeight.toString()"
 				class="canvas"
