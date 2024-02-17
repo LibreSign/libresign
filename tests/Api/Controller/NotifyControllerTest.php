@@ -12,7 +12,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testNotifySignersWithError() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -37,7 +37,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testNotifySignersWithSuccess() {
-		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
 			'notifyUnsignedUser' => 0,

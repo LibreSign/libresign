@@ -67,7 +67,7 @@
 				<NcButton :wide="true"
 					type="primary"
 					:disabled="!canSave"
-					@click="createUser">
+					@click="createAccount">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" :size="20" />
 						<RightIcon v-else :size="20" />
@@ -99,7 +99,7 @@ import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
 import { loadState } from '@nextcloud/initial-state'
 
 export default {
-	name: 'CreateUser',
+	name: 'CreateAccount',
 	components: {
 		NcNoteCard,
 		NcTextField,
@@ -178,7 +178,7 @@ export default {
 	},
 
 	methods: {
-		async createUser() {
+		async createAccount() {
 			this.loading = true
 			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
 				uuid: this.$route.params.uuid,

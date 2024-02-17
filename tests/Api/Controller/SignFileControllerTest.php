@@ -14,7 +14,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithInvalidFileToSign() {
-		$this->createUser('allowrequestsign', 'password', 'testGroup');
+		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
 			'notifyUnsignedUser' => 0,
@@ -41,7 +41,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithInvalidUuidToSign() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
 			->withRequestHeader([
@@ -64,7 +64,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testSignUsingFileIdWithAlreadySignedFile() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -107,7 +107,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithNotFoundFile() {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -150,7 +150,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testSignUsingFileIdWithoutPfx() {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -201,7 +201,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			]),
 		]);
 
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -260,7 +260,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			]),
 		]);
 
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -313,7 +313,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostRegisterWithValidationFailure() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
 			->withPath('/request-signature')
@@ -337,7 +337,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostRegisterWithSuccess() {
-		$this->createUser('allowrequestsign', 'password', 'testGroup');
+		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
@@ -374,7 +374,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPatchRegisterWithValidationFailure() {
-		$this->createUser('username', 'password');
+		$this->createAccountunt('username', 'password');
 		$this->request
 			->withMethod('PATCH')
 			->withPath('/request-signature')
@@ -397,7 +397,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPatchRegisterWithSuccess() {
-		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
@@ -446,7 +446,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 */
 	public function testAccountSignatureEndpointWithSuccess() {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure');
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 
 		self::$server->setResponseOfPath('/api/v1/cfssl/newcert', new Response(
@@ -490,7 +490,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testAccountSignatureEndpointWithFailure() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('POST')
@@ -511,7 +511,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteSignFileIdSignRequestIdWithSuccess() {
-		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
@@ -544,7 +544,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteSignFileIdSignRequestIdWithError() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('DELETE')
@@ -561,7 +561,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteUsingSignFileIdWithSuccess() {
-		$user = $this->createUser('allowrequestsign', 'password', 'testGroup');
+		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
@@ -593,7 +593,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testDeleteUsingSignFileIdWithError() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('DELETE')

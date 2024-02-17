@@ -12,7 +12,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testAccountCreateWithInvalidUuid() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('POST')
@@ -49,7 +49,7 @@ final class AccountControllerTest extends ApiTestCase {
 			'certificate_engine' => 'openssl',
 		]);
 
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -88,7 +88,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostProfileFilesWithInvalidData() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('POST')
@@ -116,7 +116,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostAccountAddFilesWithSuccess() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 
 		$this->request
 			->withMethod('POST')
@@ -154,7 +154,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testMeWithAuthenticatedUser() {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		$this->request
 			->withPath('/account/me')
 			->withRequestHeader([
@@ -168,7 +168,7 @@ final class AccountControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testApprovalListWithSuccess() {
-		$this->createUser('allowapprove', 'password', 'testGroup');
+		$this->createAccount('allowapprove', 'password', 'testGroup');
 
 		$this->mockAppConfig([
 			'approval_group' => '["testGroup"]'

@@ -13,7 +13,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 */
 	public function testPostSuccess() {
-		$user = $this->createUser('username', 'password');
+		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -62,7 +62,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @depends testPostSuccess
 	 */
 	public function testPatchSuccess($params) {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		extract($params);
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
@@ -97,7 +97,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @depends testPatchSuccess
 	 */
 	public function testDeleteSuccess($params) {
-		$this->createUser('username', 'password');
+		$this->createAccount('username', 'password');
 		extract($params);
 		$this->request
 			->withPath('/file-element/' . $file->getUuid() . '/' . $fileElementId)
