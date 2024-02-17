@@ -33,7 +33,9 @@
 			<NcNoteCard type="info">
 				{{ t('libresign', 'You need to create an account with the same email address you received the invitation from.') }}
 			</NcNoteCard>
-			<NcNoteCard type="error" v-if="errorMessage">{{ errorMessage }}</NcNoteCard>
+			<NcNoteCard v-if="errorMessage" type="error">
+				{{ errorMessage }}
+			</NcNoteCard>
 			<fieldset class="create-account__fieldset">
 				<NcTextField :label="t('libresign', 'Email')"
 					:value.sync="email"
@@ -186,7 +188,6 @@ export default {
 				password: this.password,
 			})
 				.then(({ data }) => {
-					debugger
 					const url = this.$router.resolve({ name: 'SignPDF' })
 					window.location.href = url.href
 				})
