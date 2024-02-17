@@ -9,18 +9,15 @@
 					<li class="action-color blue" @click="chooseColor('#0000ff')" />
 					<li class="action-color green" @click="chooseColor('#008000')" />
 				</ul>
-				<div class="action-delete icon-delete" @click="clearCanvas" />
+				<div class="action-delete icon-delete" @click="$refs.signaturePad.clear()" />
 			</div>
-			<canvas id="canvas-editor"
-				ref="canvas"
+			<VPerfectSignature ref="canvas"
+				:width="canvasWidth.toString()"
+				:height="canvasHeight.toString()"
 				class="canvas"
-				:width="canvasWidth"
-				:height="canvasHeight"
-				:style="{ '--draw-canvas-width': `${canvasWidth}px`, '--draw-canvas-height': `${canvasHeight}px` }"
-				@mousedown="beginDrawing"
-				@mousemove="keepDrawing"
-				@mouseleave="stopDrawing"
-				@mouseup="stopDrawing" />
+				:pen-color="color"
+				:style="{ 'width': `${canvasWidth}px`, 'height': `${canvasHeight}px` }"
+				:stroke-options="strokeOptions" />
 		</div>
 		<div class="action-buttons">
 			<button class="primary" @click="confirmationDraw">
@@ -50,6 +47,7 @@
 <script>
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import PreviewSignature from '../PreviewSignature/PreviewSignature.vue'
+import { VPerfectSignature } from 'v-perfect-signature'
 import { SignatureImageDimensions } from './options.js'
 
 export default {
@@ -58,105 +56,39 @@ export default {
 	components: {
 		NcModal,
 		PreviewSignature,
+		VPerfectSignature,
 	},
 
 	data: () => ({
 		canvasWidth: SignatureImageDimensions.width,
 		canvasHeight: SignatureImageDimensions.height,
-		canvas: null,
-		isDrawing: false,
 		color: '#000000',
 		imageData: null,
 		modal: false,
-	}),
-
-	mounted() {
-		this.$canvas = this.$refs.canvas.getContext('2d')
-
-		const canvas = this.$refs.canvas
-
-		canvas.addEventListener('touchstart', this.beginDrawing)
-		canvas.addEventListener('touchmove', this.keepDrawing)
-		canvas.addEventListener('touchend', this.stopDrawing)
-	},
-
-	beforeDestroy() {
-		this.clearCanvas()
-	},
-
-	methods: {
-		drawLine(x1, y1, x2, y2) {
-			const ctx = this.$canvas
-			ctx.beginPath()
-			ctx.strokeStyle = this.color
-			ctx.lineWidth = 1
-			ctx.moveTo(x1, y1)
-			ctx.lineTo(x2, y2)
-			ctx.stroke()
-			ctx.closePath()
+		strokeOptions: {
+			size: 7,
+			thinning: 0.75,
+			smoothing: 0.5,
+			streamline: 0.5,
 		},
-
+	}),
+	beforeDestroy() {
+		this.$refs.signaturePad.clear()
+	},
+	methods: {
 		chooseColor(value) {
 			this.color = value
 		},
-
-		beginDrawing(e) {
-			e.preventDefault()
-			const mousepos = this.getMousePositionOnCanvas(e)
-
-			this.$canvas.beginPath()
-			this.$canvas.moveTo(mousepos.x, mousepos.y)
-			this.$canvas.lineWidth = 1
-			this.$canvas.strokeStyle = this.color
-			this.$canvas.fill()
-			this.isDrawing = true
-		},
-
-		getMousePositionOnCanvas(e) {
-			const clientX = e.clientX || e.touches[0].clientX
-			const clientY = e.clientY || e.touches[0].clientY
-			const offsetLeft = e.target.getBoundingClientRect().left
-			const offsetTop = e.target.getBoundingClientRect().top
-			const canvasX = clientX - offsetLeft
-			const canvasY = clientY - offsetTop
-			return { x: canvasX, y: canvasY }
-		},
-
-		keepDrawing(e) {
-			e.preventDefault()
-
-			if (this.isDrawing) {
-				const mousepos = this.getMousePositionOnCanvas(e)
-				this.$canvas.lineTo(mousepos.x, mousepos.y)
-				this.$canvas.stroke()
-			}
-		},
-
-		stopDrawing(e) {
-			e.preventDefault()
-			if (this.isDrawing) {
-				this.$canvas.stroke()
-			}
-			this.isDrawing = false
-		},
-
-		clearCanvas() {
-			this.$canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
-		},
-
 		createDataImage() {
-			this.imageData = this.$refs.canvas.toDataURL('image/png')
+			this.imageData = this.$refs.signaturePad.toDataURL('image/png')
 		},
-
 		confirmationDraw() {
 			this.createDataImage()
 			this.handleModal(true)
 		},
-
 		handleModal(status) {
 			this.modal = status
 		},
-
 		close() {
 			this.$emit('close')
 		},
