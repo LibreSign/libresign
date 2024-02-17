@@ -171,8 +171,8 @@ export default {
 					this.filesStore.addFile(data.data)
 					emit('libresign:show-visible-elements')
 				})
-				.catch(({ error }) => {
-					showError(error.message)
+				.catch(({ response }) => {
+					showError(response.data.message)
 				})
 			this.hasLoading = false
 		},
