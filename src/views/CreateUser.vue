@@ -22,141 +22,103 @@
 -->
 
 <template>
-	<NcContent app-name="libresign" class="jumbotron">
-		<div id="container">
-			<div class="bg">
-				<form>
-					<NcAvatar v-show="controllerView !==3"
-						id="avatar"
-						:is-guest="true"
-						:disable-menu="true"
-						:user="email.length ? email : ''"
-						:size="sizeAvatar" />
-
-					<div v-show="controllerView === 0" class="form-account">
-						<h2>{{ t('libresign', 'You need to create an account with the same email address you received the invitation from.') }}</h2>
-
-						<div class="group">
-							<input v-model.trim="$v.email.$model"
-								type="email"
-								:placeholder="t('libresign', 'Email')">
-							<span v-show="showErrorEmail" class="error">
-								{{ emailError }}
-							</span>
-						</div>
-
-						<div v-show="!passwordSign" class="group">
-							<input v-model.trim="$v.password.$model"
-								type="password"
-								:placeholder="t('libresign', 'Password')">
-							<span v-show="$v.password.$error">
-								{{ t('libresign', 'Your password must be greater than 4 digits') }}
-							</span>
-						</div>
-
-						<div v-show="!passwordSign" class="group">
-							<input v-model.trim="$v.passwordConfirm.$model"
-								type="password"
-								:placeholder="t('libresign', 'Confirm password')">
-							<span v-show="!isEqualPassword">
-								{{ t('libresign', 'Passwords does not match') }}
-							</span>
-						</div>
-
-						<div class="buttons">
-							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'"
-								:disabled="!hableCreateUserButton"
-								type="submit"
-								@click.prevent="createUser">
-								{{ t('libresign', 'Next') }}
-							</button>
-						</div>
-					</div>
-
-					<div v-show="controllerView === 1" class="form-password">
-						<h2>{{ t('libresign', 'Set a password to sign the document') }}</h2>
-						<div class="group">
-							<input v-model="$v.pfx.$model"
-								type="password"
-								:placeholder="t('libresign', 'Password to sign the document.')">
-							<span v-show="showPfxError">{{ t('libresign', 'Your password must be greater than 4 digits') }} </span>
-						</div>
-						<div class="buttons">
-							<button ref="btn"
-								:class="hasLoading ? 'btn-load primary loading':'btn'"
-								:disabled="hableCreatePfx"
-								@click.prevent="createPfx">
-								{{ t('libresign', 'Create password to sign document') }}
-							</button>
-						</div>
-					</div>
-
-					<div v-show="controllerView === 2" v-if="enabledFeatures.includes('manage_signatures')" class="form-signatures-initials">
-						<div class="group">
-							<h2 v-show="!viewDraw">
-								{{ t('libresign', 'Do you want to create your signature and initials now?') }}
-							</h2>
-							<NcModal v-show="viewDraw" @close="createSuccess">
-								<Draw @close="createSuccess" @save="saveSignatureAndInitials" />
-							</NcModal>
-						</div>
-
-						<div v-show="!viewDraw" class="actions-buttons">
-							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="handleDraw(true)">
-								{{ t('libresign', 'Yes') }}
-							</button>
-							<button :class="hasLoading ? 'btn-load primary loading' : 'btn'" @click.prevent="createSuccess">
-								{{ t('libresign', 'No') }}
-							</button>
-						</div>
-					</div>
-					<div v-show="controllerView === 3" class="form-sucess">
-						<h2>{{ t('libresign', 'Congratulations, you have created your account. Please wait, we will redirect you to the requested signature file.') }}</h2>
-					</div>
-				</form>
-			</div>
+	<div class="wrapper">
+		<header>
+			<div class="logo" />
+		</header>
+		<div class="create-account">
+			<h2 class="create-account__headline">
+				{{ t('libresign', 'Create account') }}
+			</h2>
+			<NcNoteCard type="info">
+				{{ t('libresign', 'You need to create an account with the same email address you received the invitation from.') }}
+			</NcNoteCard>
+			<NcNoteCard type="error" v-if="errorMessage">{{ errorMessage }}</NcNoteCard>
+			<fieldset class="create-account__fieldset">
+				<NcTextField :label="t('libresign', 'Email')"
+					:value.sync="email"
+					autocapitalize="none"
+					:spellchecking="false"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="emailError"
+					:error="showErrorEmail"
+					required>
+					<EmailIcon :size="20" />
+				</NcTextField>
+				<NcPasswordField :value.sync="password"
+					:label="t('libresign', 'Password')"
+					:spellchecking="false"
+					autocapitalize="none"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="passwordError"
+					:error="passwordError.length > 0"
+					required />
+				<NcPasswordField :value.sync="passwordConfirm"
+					:label="t('libresign', 'Confirm password')"
+					:spellchecking="false"
+					autocapitalize="none"
+					autocomplete="off"
+					:disabled="loading"
+					:helper-text="confirmPasswordError"
+					:error="confirmPasswordError.length > 0"
+					required />
+				<NcButton :wide="true"
+					type="primary"
+					:disabled="!canSave"
+					@click="createUser">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+						<RightIcon v-else :size="20" />
+					</template>
+					{{ t('libresign', 'Next') }}
+				</NcButton>
+			</fieldset>
 		</div>
-	</NcContent>
+	</div>
 </template>
 
 <script>
 // eslint-disable-next-line n/no-missing-import
 import md5 from 'crypto-js/md5'
-import { translate as t } from '@nextcloud/l10n'
-import { showError } from '@nextcloud/dialogs'
-import { mapActions, mapGetters } from 'vuex'
+import { showWarning } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import { generateOcsUrl } from '@nextcloud/router'
 
 // eslint-disable-next-line n/no-missing-import
 import { required, email, minLength } from 'vuelidate/lib/validators'
 
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import Draw from '../Components/Draw/index.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
+import EmailIcon from 'vue-material-design-icons/Email.vue'
+import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import RightIcon from 'vue-material-design-icons/ArrowRight.vue'
 import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'CreateUser',
 	components: {
-		NcContent,
-		NcAvatar,
-		Draw,
-		NcModal,
+		NcNoteCard,
+		NcTextField,
+		EmailIcon,
+		NcPasswordField,
+		NcButton,
+		NcLoadingIcon,
+		RightIcon,
 	},
 
 	data() {
 		return {
-			hasLoading: false,
+			loading: false,
 			email: '',
 			password: '',
 			passwordConfirm: '',
-			pfx: '',
-			sizeAvatar: 100,
-			passwordSign: false,
 			settings: loadState('libresign', 'settings'),
 			message: loadState('libresign', 'message'),
-			controllerView: 0,
-			viewDraw: false,
+			errorMessage: '',
 			enabledFeatures: [],
 		}
 	},
@@ -165,19 +127,9 @@ export default {
 		email: { required, email },
 		password: { required, minLength: minLength(4) },
 		passwordConfirm: { required, minLength: minLength(4) },
-		pfx: { required, minLength: minLength(4) },
 	},
 
 	computed: {
-		...mapGetters({
-			errorCreateUser: 'user/getError',
-			// enabledFeatures: 'featureController/getEnabledFeatures',
-		}),
-		isValidCreateUser() {
-			return this.$v.email.$invalid && !this.$v.password.$invalid
-						&& (this.$v.password.$model === this.$v.passwordConfirm.$model
-						)
-		},
 		emailError() {
 			if (this.$v.email.$model) {
 				if (this.$v.email.$error) {
@@ -189,128 +141,115 @@ export default {
 			return ''
 		},
 		showErrorEmail() {
-			if (this.$v.email.$dirty) {
-				return this.emailError.length > 2
-			}
-			return 0
+			return this.emailError.length > 2
 		},
 		passwordError() {
-			if (this.$v.password.$model && this.$v.passwordConfirm.$model) {
-				return t('libresign', 'Your password must be greater than 4 digits')
+			if (this.password && this.passwordConfirm) {
+				if (this.password.length <= 4) {
+					return t('libresign', 'Your password must be greater than 4 digits')
+				}
 			}
 			return ''
 		},
-		showErrorPassword() {
-			if (this.$v.password.$model) {
-				return this.$v.password.$error
+		confirmPasswordError() {
+			if (this.password && this.passwordConfirm) {
+				if (this.password !== this.passwordConfirm) {
+					return t('libresign', 'Passwords does not match')
+				}
 			}
-			return 0
+			return ''
 		},
-		showPfxError() {
-			if (this.$v.pfx.$model) {
-				return this.$v.pfx.$error
-			}
-			return false
-		},
-		isEqualPassword() {
-			return this.password === this.passwordConfirm
+		canSave() {
+			return this.password.length > 0
+				&& this.passwordConfirm.length > 0
+				&& this.passwordError.length === 0
+				&& this.confirmPasswordError.length === 0
+				&& this.email.length > 0
+				&& !this.showErrorEmail
+				&& !this.loading
 		},
 		isEqualEmail() {
 			return this.settings.accountHash === md5(this.email).toString()
 		},
-		hableCreateUserButton() {
-			if (this.$v.email.$model) {
-				if (this.isEqualEmail) {
-					if (this.isEqualPassword) {
-						return true
-					}
-					return false
-				}
-			}
-			return false
-		},
-		hableCreatePfx() {
-			return this.$v.pfx.$model ? this.$v.pfx.$error : false
-		},
 	},
 
 	created() {
-		this.changeSizeAvatar()
-		showError(t('libresign', this.message))
+		showWarning(t('libresign', this.message))
 	},
 
 	methods: {
-		...mapActions({
-			createUSER: 'user/CREATE',
-			createPFXAction: 'user/CREATE_PFX',
-		}),
-		isEqual(val1, val2) {
-			return val1 === val2
-		},
-
-		handleDraw(status) {
-			this.viewDraw = status
-		},
-
-		createSuccess() {
-			this.controllerView = 3
-
-			setTimeout(() => {
-				const url = this.$router.resolve({ name: 'SignPDF' })
-
-				window.location.href = url.href
-			}, 3000)
-		},
-
-		handleViews(view) {
-			this.controllerView = view
-		},
-
-		saveSignatureAndInitials(param) {
-			console.info(param)
-		},
-
-		cancelCreateDraw() {
-			this.$router.push({ name: 'SignPDF' })
-		},
-
 		async createUser() {
-			this.hasLoading = true
-			await this.createUSER({
+			this.loading = true
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/create/{uuid}'), {
+				uuid: this.$route.params.uuid,
 				email: this.email,
 				password: this.password,
-				uuid: this.$route.params.uuid,
 			})
-
-			if (this.errorCreateUser) {
-				this.passwordSign = false
-				this.hasLoading = false
-			} else {
-				this.passwordSign = true
-				this.hasLoading = false
-				this.controllerView = 1
-			}
-		},
-
-		async createPfx() {
-			this.hasLoading = true
-			await this.createPFXAction({ signPassword: this.pfx })
-
-			if (this.errorCreateUser) {
-				this.hasLoading = false
-			} else if (this.enabledFeatures.includes('manage_signatures')) {
-				this.controllerView = 2
-			} else {
-				this.createSuccess()
-			}
-		},
-		changeSizeAvatar() {
-			screen.width >= 534 ? this.sizeAvatar = 150 : this.sizeAvatar = 100
+				.then(({ data }) => {
+					debugger
+					const url = this.$router.resolve({ name: 'SignPDF' })
+					window.location.href = url.href
+				})
+				.catch(({ response }) => {
+					this.errorMessage = response.data.message
+				})
+			this.loading = false
 		},
 	},
 }
 </script>
 
+<style lang="scss">
+body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+</style>
 <style lang="scss" scoped>
-@import '../assets/styles/CreateUser';
+.wrapper {
+	max-width: 700px;
+	margin-block: 10vh auto;
+
+	header {
+		text-align: center;
+		.logo {
+			height: 120px;
+			background-image: var(--image-logo, url('../../img/logo-white.svg'));
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: contain;
+			position: relative;
+			margin-bottom: 10px;
+			width: 175px;
+			display: inline-flex;
+		}
+	}
+	.create-account {
+		--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
+		color: var(--color-main-text);
+		background-color: var(--color-main-background-blur);
+		padding: 16px;
+		border-radius: var(--border-radius-rounded);
+		box-shadow: 0 0 10px var(--color-box-shadow);
+		display: inline-block;
+		backdrop-filter: var(--filter-background-blur);
+		width: 320px;
+		box-sizing: border-box;
+		&__headline{
+			text-align: center;
+			overflow-wrap: anywhere;
+		}
+		&__fieldset{
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			gap: .5rem;
+		}
+		.button-vue{
+			margin-top: 0.5rem;
+		}
+	}
+}
 </style>
