@@ -25,7 +25,7 @@
 
 			<div class="action-buttons">
 				<button class="primary" @click="confirmSave">
-					{{ t('libresign', 'Apply') }}
+					{{ t('libresign', 'Save') }}
 				</button>
 				<button class="danger" @click="close">
 					{{ t('libresign', 'Cancel') }}
@@ -125,8 +125,6 @@ export default {
 
 <style lang="scss" scoped>
 .draw-file-input {
-	padding: 0.5em;
-
 	> img {
 		max-width: 100%;
 	}

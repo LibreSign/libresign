@@ -29,6 +29,7 @@
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
+			:type="type"
 			@save="save"
 			@close="close" />
 	</div>
@@ -42,9 +43,8 @@ import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
 import { startsWith } from 'lodash-es'
 import Draw from '../../../Components/Draw/Draw.vue'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
 export default {
 	name: 'Signature',
@@ -61,30 +61,23 @@ export default {
 			type: String,
 			required: true,
 		},
-		value: {
-			type: String,
-			required: false,
-			default: () => '',
-		},
-		id: {
-			type: Number,
-			required: false,
-			default: 0,
-		},
+	},
+	setup() {
+		const signatureElementsStore = useSignatureElementsStore()
+		return { signatureElementsStore }
 	},
 	data: () => ({
 		isEditing: false,
 	}),
 	computed: {
 		hasSignature() {
-			return !!this.value
+			return this.signatureElementsStore.hasSignatureOfType(this.type)
 		},
 		imgSrc() {
-			if (startsWith('data:', this.value)) {
-				return this.value
+			if (startsWith('data:', this.signatureElementsStore.signs[this.type].value)) {
+				return this.signatureElementsStore.signs[this.type].value
 			}
-
-			return `${this.value}&_t=${Date.now()}`
+			return `${this.signatureElementsStore.signs[this.type].file.url}&_t=${Date.now()}`
 		},
 	},
 	methods: {
@@ -92,57 +85,22 @@ export default {
 			this.isEditing = true
 		},
 		async removeSignature() {
-			try {
-				const response = await axios.delete(
-					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-						elementId: this.id,
-					}),
-				)
-				showSuccess(response.data.message)
-				this.$emit('signature:delete', {
-					type: this.type,
-				})
-			} catch (err) {
-				showError(err.response.data.message)
+			this.signatureElementsStore.delete(this.type)
+			if (this.signatureElementsStore.success.length) {
+				showSuccess(this.signatureElementsStore.success)
+			} else if (this.signatureElementsStore.error.length) {
+				showError(this.signatureElementsStore.error)
 			}
 		},
 		close() {
 			this.isEditing = false
 		},
-		async save(base64) {
-			try {
-				if (this.id > 0) {
-					const response = await axios.patch(
-						generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-							elementId: this.id,
-						}),
-						{
-							type: this.type,
-							file: { base64 },
-						},
-					)
-					showSuccess(response.data.message)
-				} else {
-					const response = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'),
-						{
-							elements: [
-								{
-									type: this.type,
-									file: { base64 },
-								},
-							],
-						},
-					)
-					showSuccess(response.data.message)
-				}
-			} catch (err) {
-				showError(err.response.data.message)
+		save() {
+			if (this.signatureElementsStore.success.length) {
+				showSuccess(this.signatureElementsStore.success)
+			} else if (this.signatureElementsStore.error.length) {
+				showError(this.signatureElementsStore.error)
 			}
-			this.$emit('save', {
-				base64,
-				type: this.type,
-			})
 			this.close()
 		},
 	},

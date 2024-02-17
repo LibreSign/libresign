@@ -5,37 +5,14 @@
 </template>
 
 <script>
-
-import { SignatureImageDimensions } from '../Draw/options.js'
-
 export default {
 	name: 'PreviewSignature',
-	components: {
-	},
 	props: {
 		src: {
 			type: String,
 			default: () => '',
 			required: true,
 		},
-	},
-
-	data: () => ({
-		canvasWidth: SignatureImageDimensions.width,
-		canvasHeight: SignatureImageDimensions.height,
-		canvas: null,
-		isDrawing: false,
-		color: '#000000',
-	}),
-
-	mounted() {
-
-	},
-
-	beforeDestroy() {
-	},
-
-	methods: {
 	},
 }
 </script>
