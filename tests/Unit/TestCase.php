@@ -125,7 +125,7 @@ class TestCase extends \Test\TestCase {
 
 		$user = $userManager->get($username);
 		if (!$user) {
-			$user = $userManager->createAccount($username, $password);
+			$user = $userManager->createUser($username, $password);
 		}
 		$group = $groupManager->get($groupName);
 		if (!$group) {
