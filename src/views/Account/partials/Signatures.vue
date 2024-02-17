@@ -2,11 +2,7 @@
 	<div class="signatures">
 		<h1>{{ t('libresign', 'Your signatures') }}</h1>
 
-		<Signature :id="signs.signature.id"
-			type="signature"
-			:value="signs.signature.value"
-			@signature:delete="signatureDelete"
-			v-on="{ save }">
+		<Signature type="signature">
 			<template slot="title">
 				{{ t('libresign', 'Signature') }}
 			</template>
@@ -16,11 +12,7 @@
 			</span>
 		</Signature>
 
-		<Signature v-if="false"
-			:id="signs.initial.id"
-			type="initial"
-			:value="signs.initial.value"
-			v-on="{ save }">
+		<Signature v-if="false" type="initial">
 			<template slot="title">
 				{{ t('libresign', 'Initials') }}
 			</template>
@@ -33,59 +25,20 @@
 </template>
 
 <script>
-import { showError } from '@nextcloud/dialogs'
 import Signature from './Signature.vue'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
+import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
 export default {
 	name: 'Signatures',
 	components: {
 		Signature,
 	},
-	data() {
-		return {
-			signs: {
-				signature: {
-					id: 0,
-					fileId: 0,
-					value: '',
-				},
-				initial: {
-					id: 0,
-					fileId: 0,
-					value: '',
-				},
-			},
-		}
+	setup() {
+		const signatureElementsStore = useSignatureElementsStore()
+		return { signatureElementsStore }
 	},
 	mounted() {
-		this.loadSignatures()
-	},
-	methods: {
-		async save({ base64, type }) {
-			this.signs[type].value = base64
-			this.loadSignatures()
-		},
-		signatureDelete({ type }) {
-			this.signs[type] = {
-				id: 0,
-				fileId: 0,
-				value: '',
-			}
-			this.loadSignatures()
-		},
-		async loadSignatures() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
-
-				response.data.elements.forEach(current => {
-					this.signs[current.type] = current
-				})
-			} catch (err) {
-				showError(err.response.data.message)
-			}
-		},
+		this.signatureElementsStore.loadSignatures()
 	},
 }
 </script>
