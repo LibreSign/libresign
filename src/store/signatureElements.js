@@ -103,7 +103,11 @@ export const useSignatureElementsStore = defineStore('signatureElements', {
 					this.success = data.message
 				})
 				.catch(({ response }) => {
-					this.error = response.data.errors[0]
+					if (Object.hasOwn(response.data, 'errors')) {
+						this.error = response.data.errors[0]
+					} else {
+						this.error = response.data.message
+					}
 				})
 		},
 		async delete(type) {
