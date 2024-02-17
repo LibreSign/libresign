@@ -132,7 +132,7 @@ class TestCase extends \Test\TestCase {
 	 * @param string $password
 	 * @return \OC\User\User
 	 */
-	public function createUser($username, $password, $groupName = 'testGroup') {
+	public function createAccount($username, $password, $groupName = 'testGroup') {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [

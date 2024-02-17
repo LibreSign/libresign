@@ -72,8 +72,8 @@ const router = new Router({
 		},
 		{
 			path: '/p/sign/:uuid/sign-in',
-			name: 'CreateUser',
-			component: () => import('../views/CreateUser.vue'),
+			name: 'CreateAccount',
+			component: () => import('../views/CreateAccount.vue'),
 			props: true,
 		},
 		{
