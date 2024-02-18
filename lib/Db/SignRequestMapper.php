@@ -377,13 +377,10 @@ class SignRequestMapper extends QBMapper {
 			'f.status',
 			'f.node_id'
 		)
-			->selectAlias('u.uid_lower', 'requested_by_uid')
-			->selectAlias('u.displayname', 'requested_by_dislpayname')
 			->selectAlias('f.created_at', 'request_date')
 			->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
-			->join('f', 'users', 'u', 'f.user_id = u.uid')
 			->groupBy(
 				'f.id',
 				'f.uuid',
@@ -391,8 +388,6 @@ class SignRequestMapper extends QBMapper {
 				'f.callback',
 				'f.node_id',
 				'f.created_at',
-				'u.uid_lower',
-				'u.displayname'
 			);
 
 		$or = [
@@ -515,10 +510,7 @@ class SignRequestMapper extends QBMapper {
 
 	private function formatListRow(array $row, string $url): array {
 		$row['id'] = (int) $row['id'];
-		$row['requested_by'] = [
-			'uid' => $row['requested_by_uid'],
-			'displayName' => $row['requested_by_dislpayname']
-		];
+		$row['status'] = (int) $row['status'];
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
@@ -528,8 +520,6 @@ class SignRequestMapper extends QBMapper {
 		$row['uuid'] = $row['uuid'];
 		unset(
 			$row['node_id'],
-			$row['requested_by_uid'],
-			$row['requested_by_dislpayname']
 		);
 		return $row;
 	}
