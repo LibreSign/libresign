@@ -38,6 +38,15 @@
 			</template>
 			{{ t('libresign', 'Next') }}
 		</NcButton>
+		<NcButton v-else-if="canSign"
+			type="primary"
+			:disabled="hasLoading"
+			@click="sign()">
+			<template #icon>
+				<NcLoadingIcon v-if="hasLoading" :size="20" />
+			</template>
+			{{ t('libresign', 'Sign') }}
+		</NcButton>
 		<NcButton v-if="filesStore.isSigned()"
 			@click="validationFile()">
 			{{ t('libresign', 'Validate') }}
@@ -87,6 +96,10 @@ export default {
 		canSave() {
 			return this.canRequestSign && !this.filesStore.isSigned() && this.filesStore.getFile()?.signers?.length > 0
 		},
+		canSign() {
+			return !this.filesStore.isSigned()
+				&& this.filesStore.getFile().signers.filter(signer => signer.me).length > 0
+		},
 		dataSigners() {
 			return this.filesStore.files[this.filesStore.selectedNodeId].signers
 		},
@@ -131,6 +144,17 @@ export default {
 				return showError(err.message)
 			}
 
+		},
+		async sign() {
+			const uuid = this.filesStore.getFile().signers
+				.reduce((accumulator, signer) => {
+					if (signer.me) {
+						return signer.sign_uuid
+					}
+					return accumulator
+				}, '')
+			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
+			window.location.href = route.href
 		},
 		async save() {
 			this.hasLoading = true
