@@ -22,10 +22,6 @@ Feature: file-list
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "requested_by": {
-              "uid": "admin",
-              "displayName": null
-            },
             "type": "pdf",
             "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
             "nodeId": "<IGNORED>",
@@ -90,10 +86,6 @@ Feature: file-list
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "requested_by": {
-              "uid": "admin",
-              "displayName": null
-            },
             "type": "pdf",
             "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
             "nodeId": "<IGNORED>",

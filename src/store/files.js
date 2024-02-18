@@ -66,11 +66,11 @@ export const useFilesStore = defineStore('files', {
 				return ''
 			}
 			const file = this.files[this.selectedNodeId]
-			if ((file?.requestedBy?.uid ?? '').length === 0 || file?.requestDate.length === 0) {
+			if ((file?.requested_by?.uid ?? '').length === 0 || file?.requestDate.length === 0) {
 				return ''
 			}
 			return t('libresign', 'Requested by {name}, at {date}', {
-				name: file.requestedBy.uid,
+				name: file.requested_by.uid,
 				date: Moment(Date.parse(file.requestDate)).format('LL LTS'),
 			})
 		},
