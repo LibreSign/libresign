@@ -156,12 +156,23 @@ class RequestSignatureService {
 
 	private function identifyMethodExists(array $users, IIdentifyMethod $identifyMethod): bool {
 		foreach ($users as $user) {
-			foreach ($user['identify'] as $method => $value) {
-				if ($identifyMethod->getEntity()->getIdentifierKey() !== $method) {
-					continue;
+			if (!empty($user['identifyMethods'])) {
+				foreach ($user['identifyMethods'] as $data) {
+					if ($identifyMethod->getEntity()->getIdentifierKey() !== $data['method']) {
+						continue;
+					}
+					if ($identifyMethod->getEntity()->getIdentifierValue() === $data['value']) {
+						return true;
+					}
 				}
-				if ($identifyMethod->getEntity()->getIdentifierValue() === $value) {
-					return true;
+			} else {
+				foreach ($user['identify'] as $method => $value) {
+					if ($identifyMethod->getEntity()->getIdentifierKey() !== $method) {
+						continue;
+					}
+					if ($identifyMethod->getEntity()->getIdentifierValue() === $value) {
+						return true;
+					}
 				}
 			}
 		}
@@ -178,22 +189,42 @@ class RequestSignatureService {
 		if (!empty($data['users'])) {
 			$this->deleteIdentifyMethodIfNotExits($data['users'], $fileId);
 			foreach ($data['users'] as $user) {
-				$identifyMethods = $this->identifyMethod->getByUserData($user['identify']);
-				$signRequest = $this->getSignRequestByIdentifyMethod(
-					current($identifyMethods),
-					$fileId
-				);
-				$this->setDataToUser($signRequest, $user, $fileId);
-				$this->saveSignRequest($signRequest);
-				foreach ($identifyMethods as $identifyMethod) {
-					$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-					$identifyMethod->willNotifyUser($user['notify'] ?? true);
-					$identifyMethod->save();
+				if (isset($user['identifyMethods'])) {
+					foreach ($user['identifyMethods'] as $identifyMethod) {
+						$return[] = $this->associateToSigner(
+							data: [
+								$identifyMethod['method'] => $identifyMethod['value'],
+							],
+							user: $user,
+							fileId: $fileId,
+						);
+					}
+				} else {
+					$return[] = $this->associateToSigner(
+						data: $user['identify'],
+						user: $user,
+						fileId: $fileId,
+					);
 				}
-				$return[] = $signRequest;
 			}
 		}
 		return $return;
+	}
+
+	private function associateToSigner(array $data, array $user, int $fileId): SignRequestEntity {
+		$identifyMethods = $this->identifyMethod->getByUserData($data);
+		$signRequest = $this->getSignRequestByIdentifyMethod(
+			current($identifyMethods),
+			$fileId
+		);
+		$this->setDataToUser($signRequest, $user, $fileId);
+		$this->saveSignRequest($signRequest);
+		foreach ($identifyMethods as $identifyMethod) {
+			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
+			$identifyMethod->willNotifyUser($user['notify'] ?? true);
+			$identifyMethod->save();
+		}
+		return $signRequest;
 	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
