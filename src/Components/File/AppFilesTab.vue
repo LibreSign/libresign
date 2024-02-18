@@ -24,7 +24,7 @@ export default {
 		return {
 			file: {},
 			signers: [],
-			requestedBy: {},
+			requested_by: {},
 			requestDate: '',
 		}
 	},

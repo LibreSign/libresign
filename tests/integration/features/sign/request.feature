@@ -323,10 +323,6 @@ Feature: request-signature
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "requested_by": {
-              "uid": "admin",
-              "displayName": null
-            },
             "file": {
               "type": "pdf",
               "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
@@ -397,10 +393,6 @@ Feature: request-signature
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "requested_by": {
-              "uid": "admin",
-              "displayName": null
-            },
             "file": {
               "type": "pdf",
               "url": "\/index.php\/apps\/libresign\/pdf\/user\/<IGNORED>",
