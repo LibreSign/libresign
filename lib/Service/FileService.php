@@ -183,7 +183,6 @@ class FileService {
 			$signatureToShow = [
 				'signed' => $signer->getSigned(),
 				'displayName' => $signer->getDisplayName(),
-				'fullName' => $signer->getFullName(),
 				'me' => false,
 				'signRequestId' => $signer->getId(),
 				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),

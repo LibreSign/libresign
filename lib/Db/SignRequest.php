@@ -42,8 +42,6 @@ use OCP\DB\Types;
  * @method int getSigned()
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
- * @method void setFullName(string $fullName)
- * @method string getFullName()
  * @method void setMetadata(array $metadata)
  * @method string getMetadata()
  */
@@ -65,9 +63,6 @@ class SignRequest extends Entity {
 	protected $displayName;
 
 	/** @var string */
-	protected $fullName;
-
-	/** @var string */
 	protected $description;
 
 	/** @var int */
@@ -84,11 +79,9 @@ class SignRequest extends Entity {
 		$this->addType('fileId', 'integer');
 		$this->addType('uuid', 'string');
 		$this->addType('displayName', 'string');
-		$this->addType('fullName', 'string');
 		$this->addType('description', 'string');
 		$this->addType('createdAt', 'integer');
 		$this->addType('signed', 'integer');
-		$this->addType('code', 'string');
 		$this->addType('metadata', Types::JSON);
 	}
 }
