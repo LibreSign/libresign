@@ -54,10 +54,6 @@ export default {
 				return signer.displayName
 			}
 
-			if (signer.fullName) {
-				return signer.fullName
-			}
-
 			if (signer.email) {
 				return signer.email
 			}
