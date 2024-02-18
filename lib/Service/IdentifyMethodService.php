@@ -142,6 +142,7 @@ class IdentifyMethodService {
 	public function getByUserData(array $data) {
 		$return = [];
 		foreach ($data as $method => $identifyValue) {
+			$this->currentIdentifyMethod = null;
 			$return[] = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
 		}
 		return $return;
