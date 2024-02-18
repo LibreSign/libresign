@@ -323,7 +323,6 @@ Feature: request-signature
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "status_date": null,
             "requested_by": {
               "uid": "admin",
               "displayName": null
@@ -398,7 +397,6 @@ Feature: request-signature
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "status_date": null,
             "requested_by": {
               "uid": "admin",
               "displayName": null

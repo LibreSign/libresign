@@ -22,7 +22,6 @@ Feature: file-list
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "status_date": null,
             "requested_by": {
               "uid": "admin",
               "displayName": null
@@ -91,7 +90,6 @@ Feature: file-list
             "name": "document",
             "callback": null,
             "request_date": "<IGNORED>",
-            "status_date": null,
             "requested_by": {
               "uid": "admin",
               "displayName": null
