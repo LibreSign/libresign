@@ -54,12 +54,20 @@
 		</div>
 		<NcDialog :open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
+			:can-close="!loading"
 			:message="t('libresign', 'Request signatures?')">
 			<template #actions>
-				<NcButton type="secondary" @click="showConfirm = false">
+				<NcButton type="secondary"
+					:disabled="loading"
+					@click="showConfirm = false">
 					{{ t('libresign', 'Cancel') }}
 				</NcButton>
-				<NcButton type="primary" @click="save">
+				<NcButton type="primary"
+					:disabled="loading"
+					@click="save">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" name="Loading" />
+					</template>
 					{{ t('libresign', 'Request') }}
 				</NcButton>
 			</template>
@@ -105,6 +113,7 @@ export default {
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
 			modal: false,
 			showConfirm: false,
+			loading: false,
 		}
 	},
 	computed: {
@@ -219,6 +228,7 @@ export default {
 		},
 		async save() {
 			try {
+				this.loading = true
 				const visibleElements = []
 				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
 					const [pageNumber, page] = entry
@@ -240,7 +250,7 @@ export default {
 					})
 				})
 				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
-					users: [],
+					users: this.filesStore.getFile().signers,
 					// Only add to array if not empty
 					...(this.filesStore.getFile().uuid && { uuid: this.filesStore.getFile().uuid }),
 					...(this.filesStore.getFile().nodeId && { file: { fileId: this.filesStore.getFile().nodeId } }),
@@ -254,6 +264,7 @@ export default {
 			} catch (err) {
 				this.onError(err)
 			}
+			this.loading = false
 		},
 	},
 }
