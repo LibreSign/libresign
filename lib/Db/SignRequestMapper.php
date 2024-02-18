@@ -380,7 +380,6 @@ class SignRequestMapper extends QBMapper {
 			->selectAlias('u.uid_lower', 'requested_by_uid')
 			->selectAlias('u.displayname', 'requested_by_dislpayname')
 			->selectAlias('f.created_at', 'request_date')
-			->selectAlias($qb->func()->max('sr.signed'), 'status_date')
 			->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
@@ -523,11 +522,6 @@ class SignRequestMapper extends QBMapper {
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
-		if (!empty($row['status_date'])) {
-			$row['status_date'] = (new \DateTime())
-				->setTimestamp((int) $row['status_date'])
-				->format('Y-m-d H:i:s');
-		}
 		$row['type'] = 'pdf';
 		$row['url'] = $url . $row['uuid'];
 		$row['nodeId'] = (int) $row['node_id'];
