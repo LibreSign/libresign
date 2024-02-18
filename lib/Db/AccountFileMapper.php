@@ -175,7 +175,7 @@ class AccountFileMapper extends QBMapper {
 	/**
 	 * @return (((int|mixed|string)[]|false|mixed|null|string)[]|mixed)[]
 	 *
-	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, request_date: false|string, requested_by: array{displayName: mixed, uid: mixed}, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
+	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, request_date: false|string, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
 	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['account'] = [
@@ -195,10 +195,6 @@ class AccountFileMapper extends QBMapper {
 			'status' => $row['status'],
 			'statusText' => $this->fileMapper->getTextOfStatus((int) $row['status']),
 			'request_date' => $row['request_date'],
-			'requested_by' => [
-				'displayName' => $row['account_displayname'],
-				'uid' => $row['account_uid'],
-			],
 			'file' => [
 				'type' => 'pdf',
 				'nodeId' => (int) $row['node_id'],
@@ -217,7 +213,6 @@ class AccountFileMapper extends QBMapper {
 			$row['callback'],
 			$row['uuid'],
 			$row['account_uid'],
-			$row['account_displayname']
 		);
 		return $row;
 	}
