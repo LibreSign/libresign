@@ -51,7 +51,7 @@
 						<div class="infor-content">
 							<div v-for="item in document.signers"
 								id="sign"
-								:key="item.fullName"
+								:key="item.displayName"
 								class="scroll">
 								<div class="subscriber">
 									<span><b>{{ getName(item) }}</b></span>
@@ -174,9 +174,7 @@ export default {
 			this.legalInformation = loadState('libresign', 'legal_information', '')
 		},
 		getName(user) {
-			if (user.fullName) {
-				return user.fullName
-			} else if (user.displayName) {
+			if (user.displayName) {
 				return user.displayName
 			} else if (user.email) {
 				return user.email
