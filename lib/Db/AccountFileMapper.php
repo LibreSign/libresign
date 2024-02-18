@@ -127,7 +127,6 @@ class AccountFileMapper extends QBMapper {
 			->selectAlias('u.uid_lower', 'account_uid')
 			->selectAlias('u.displayname', 'account_displayname')
 			->selectAlias('f.created_at', 'request_date')
-			->selectAlias($qb->func()->max('sr.signed'), 'status_date')
 			->from($this->getTableName(), 'af')
 			->join('af', 'libresign_file', 'f', 'f.id = af.file_id')
 			->join('af', 'users', 'u', 'af.user_id = u.uid')
@@ -176,7 +175,7 @@ class AccountFileMapper extends QBMapper {
 	/**
 	 * @return (((int|mixed|string)[]|false|mixed|null|string)[]|mixed)[]
 	 *
-	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, status_date: false|mixed|string, request_date: false|string, requested_by: array{displayName: mixed, uid: mixed}, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
+	 * @psalm-return array{file: array{name: mixed, status: mixed, statusText: null|string, request_date: false|string, requested_by: array{displayName: mixed, uid: mixed}, file: array{type: 'pdf', nodeId: int, url: string}, callback: mixed, uuid: mixed}}
 	 */
 	private function formatListRow(array $row, string $url): array {
 		$row['account'] = [
@@ -191,16 +190,10 @@ class AccountFileMapper extends QBMapper {
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
-		if (!empty($row['status_date'])) {
-			$row['status_date'] = (new \DateTime())
-				->setTimestamp((int) $row['status_date'])
-				->format('Y-m-d H:i:s');
-		}
 		$row['file'] = [
 			'name' => $row['name'],
 			'status' => $row['status'],
 			'statusText' => $this->fileMapper->getTextOfStatus((int) $row['status']),
-			'status_date' => $row['status_date'],
 			'request_date' => $row['request_date'],
 			'requested_by' => [
 				'displayName' => $row['account_displayname'],
@@ -218,7 +211,6 @@ class AccountFileMapper extends QBMapper {
 			$row['node_id'],
 			$row['name'],
 			$row['status'],
-			$row['status_date'],
 			$row['request_date'],
 			$row['account_displayname'],
 			$row['account_uid'],
