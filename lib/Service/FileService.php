@@ -473,12 +473,12 @@ class FileService {
 		$page = $page ?? 1;
 		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
 
-		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
-		$url = str_replace('_replace_', '', $url);
+		$pdfAccountFile = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => '_replace_']);
+		$pdfAccountFile = str_replace('_replace_', '', $pdfAccountFile);
 
 		$data = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
-			$url,
+			$pdfAccountFile,
 			$page,
 			$length
 		);
