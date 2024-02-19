@@ -21,6 +21,7 @@ OC.L10N.register(
     "Actions" : "Radnje",
     "Choose" : "Izaberite",
     "Profile picture" : "Slika profila",
+    "Create account" : "Kreiraj račun",
     "Enter a password" : "Enter a password",
     "Send" : "Pošalji",
     "Current password" : "Trenutna lozinka",

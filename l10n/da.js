@@ -41,6 +41,7 @@ OC.L10N.register(
     "Choose" : "Vælg",
     "Signature" : "Underskrift",
     "Profile picture" : "Profilbillede",
+    "Create account" : "Opret konto",
     "Confirm password" : "Bekræft kodeord",
     "Enter a password" : "Enter a password",
     "Page not found" : "Siden blev ikke fundet",
