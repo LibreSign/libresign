@@ -23,6 +23,7 @@ OC.L10N.register(
     "Actions" : "Gweithredoedd",
     "Choose" : "Dewisa",
     "Signature" : "Llofnod",
+    "Create account" : "Creu cyfrif",
     "Confirm password" : "Cadarnhau'r cyfrinair",
     "Enter a password" : "Enter a password",
     "Page not found" : "Heb ganfod y dudalen",

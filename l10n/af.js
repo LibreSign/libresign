@@ -32,6 +32,7 @@ OC.L10N.register(
     "Choose" : "Kies",
     "Signature" : "Handtekening",
     "Profile picture" : "Profielprent",
+    "Create account" : "Skep rekening",
     "Confirm password" : "Bevestig wagwoord",
     "Enter a password" : "Gee ’n wagwoord",
     "Page not found" : "Blad nie gevind nie",
