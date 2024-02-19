@@ -290,9 +290,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
 		$resp->addHeader('Content-Type', 'application/pdf');
-		$csp = new ContentSecurityPolicy();
-		$csp->addAllowedFrameDomain('\'self\'');
-		$resp->setContentSecurityPolicy($csp);
 
 		return $resp;
 	}
