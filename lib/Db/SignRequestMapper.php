@@ -312,7 +312,7 @@ class SignRequestMapper extends QBMapper {
 	 */
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
-		string $url,
+		string $pdfAccountFile,
 		int $page = null,
 		int $length = null
 	): array {
@@ -326,7 +326,7 @@ class SignRequestMapper extends QBMapper {
 
 		foreach ($currentPageResults as $row) {
 			$fileIds[] = $row['id'];
-			$data[] = $this->formatListRow($row, $url);
+			$data[] = $this->formatListRow($row, $pdfAccountFile);
 		}
 		$signers = $this->getByMultipleFileId($fileIds);
 		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
@@ -508,14 +508,14 @@ class SignRequestMapper extends QBMapper {
 		return $files;
 	}
 
-	private function formatListRow(array $row, string $url): array {
+	private function formatListRow(array $row, string $pdfAccountFile): array {
 		$row['id'] = (int) $row['id'];
 		$row['status'] = (int) $row['status'];
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
 		$row['type'] = 'pdf';
-		$row['url'] = $url . $row['uuid'];
+		$row['url'] = $pdfAccountFile . $row['uuid'];
 		$row['nodeId'] = (int) $row['node_id'];
 		$row['uuid'] = $row['uuid'];
 		unset(
