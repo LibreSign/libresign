@@ -427,7 +427,7 @@ class FileService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
+	public function listAssociatedFilesOfSignFlow($page = null, $length = null): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
 
@@ -435,7 +435,7 @@ class FileService {
 		$url = str_replace('_replace_', '', $url);
 
 		$data = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
-			$user,
+			$this->me,
 			$url,
 			$page,
 			$length

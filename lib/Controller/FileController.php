@@ -136,7 +136,9 @@ class FileController extends Controller {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function list($page = null, $length = null): JSONResponse {
-		$return = $this->fileService->listAssociatedFilesOfSignFlow($this->userSession->getUser(), $page, $length);
+		$return = $this->fileService
+			->setMe($this->userSession->getUser())
+			->listAssociatedFilesOfSignFlow($page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
 	}
 
