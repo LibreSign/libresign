@@ -27,6 +27,7 @@ OC.L10N.register(
     "Choose" : "Seç",
     "Signature" : "İmza",
     "Profile picture" : "Profil şəkli",
+    "Create account" : "Hesab yarat",
     "Enter a password" : "Enter a password",
     "Send" : "Göndər",
     "Password reset" : "Parolun sıfırlanması",

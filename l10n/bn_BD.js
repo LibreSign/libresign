@@ -19,6 +19,7 @@ OC.L10N.register(
     "Type" : "ধরণ",
     "Actions" : "পদক্ষেপসমূহ",
     "Choose" : "বেছে নিন",
+    "Create account" : "একাউন্ট তেরী কর",
     "Enter a password" : "Enter a password",
     "Send" : "পাঠাও",
     "Current password" : "বর্তমান কূটশব্দ",
