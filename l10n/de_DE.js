@@ -205,7 +205,7 @@ OC.L10N.register(
     "Initials" : "Initialen",
     "No initials, click here to create a new" : "Keine Initialen, klicken Sie hier um neue zu erstellen",
     "Profile picture" : "Profilbild",
-    "Create account" : "Benutzerkonto erstellen",
+    "Create account" : "Konto erstellen",
     "You need to create an account with the same email address you received the invitation from." : "Sie müssen ein Konto mit derselben E-Mail-Adresse erstellen, über die Sie die Einladung erhalten haben.",
     "Confirm password" : "Passwort bestätigen",
     "This is not a valid email" : "Dies ist keine gültige E-Mail-Adresse",
