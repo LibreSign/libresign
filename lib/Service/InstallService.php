@@ -161,6 +161,8 @@ class InstallService {
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
 			$this->setCache($resource, $data);
+		} else {
+			$this->logger->error('Error to get PID of background install proccess. Command: ' . OC::$SERVERROOT . '/occ libresign:install --' . $resource);
 		}
 	}
 
@@ -210,7 +212,12 @@ class InstallService {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
+			} catch (NotFoundException $th) {
 			} catch (\Throwable $th) {
+				$this->logger->error('Unexpected error when get setup-cache.json file', [
+					'app' => Application::APP_ID,
+					'exception' => $th,
+				]);
 			}
 			return;
 		}
