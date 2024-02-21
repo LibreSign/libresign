@@ -156,6 +156,7 @@ class InstallService {
 		$resource = $this->resource;
 		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
 		$process->setOptions(['create_new_console' => true]);
+		$process->setTimeout(null);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
