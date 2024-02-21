@@ -89,17 +89,19 @@ export default {
 	methods: {
 		async downloadAllBinaries() {
 			this.changeState('in progress')
-			try {
-				axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
-				)
-					.then(() => {
-						this.downloadStatusSse()
-					})
-			} catch (e) {
-				showError(t('libresign', 'Could not download binaries.'))
-				this.changeState('need download')
-			}
+			axios.get(
+				generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
+			)
+				.then(() => {
+					this.downloadStatusSse()
+				})
+				.catch(({ response }) => {
+					showError(t('libresign', 'Could not download binaries.'))
+					if (typeof response?.data === 'object' && response?.data.message.length > 0) {
+						showError(t('libresign', response.data.message))
+					}
+					this.changeState('need download')
+				})
 		},
 		changeState(state) {
 			if (state === 'in progress') {
