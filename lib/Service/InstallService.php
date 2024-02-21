@@ -294,8 +294,7 @@ class InstallService {
 		return false;
 	}
 
-	private function getInstallPid(string $resource): int
-	{
+	private function getInstallPid(string $resource): int {
 		$cmd = 'ps -eo pid,command|' .
 			'grep "libresign:install --' . $resource . '"|' .
 			'grep -v grep|' .
