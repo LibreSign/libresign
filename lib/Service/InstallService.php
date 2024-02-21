@@ -229,7 +229,15 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
-				$file->delete();
+				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
+				if (isset($json[$key])) {
+					unset($json[$key]);
+				}
+				if (!$json) {
+					$file->delete();
+				} else {
+					$file->putContent(json_encode($json));
+				}
 			} catch (\Throwable $th) {
 			}
 			return;
