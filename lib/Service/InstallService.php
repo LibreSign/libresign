@@ -277,7 +277,7 @@ class InstallService {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
 			if (empty($progressData['pid'])) {
-				$progressData['pid'] = $this->getInstallPid($resource);
+				$progressData['pid'] = $this->getInstallPid();
 				if ($progressData['pid'] === 0) {
 					$this->removeDownloadProgress();
 					continue;
@@ -294,9 +294,9 @@ class InstallService {
 		return false;
 	}
 
-	private function getInstallPid(string $resource): int {
+	private function getInstallPid(): int {
 		$cmd = 'ps -eo pid,command|' .
-			'grep "libresign:install --' . $resource . '"|' .
+			'grep "libresign:install --' . $this->resource . '"|' .
 			'grep -v grep|' .
 			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
 		$output = shell_exec($cmd);
