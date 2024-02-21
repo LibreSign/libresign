@@ -18,20 +18,13 @@
 			</NcButton>
 		</div>
 
-		<label v-if="downloadStatus.java > 0">Java</label>
-		<NcProgressBar v-if="downloadStatus.java > 0"
-			size="medium"
-			:value="downloadStatus.java" />
-
-		<label v-if="downloadStatus.cfssl > 0">cfssl</label>
-		<NcProgressBar v-if="downloadStatus.cfssl > 0"
-			size="medium"
-			:value="downloadStatus.cfssl" />
-
-		<label v-if="downloadStatus.jsignpdf > 0">jsignpdf</label>
-		<NcProgressBar v-if="downloadStatus.jsignpdf > 0"
-			size="medium"
-			:value="downloadStatus.jsignpdf" />
+		<div v-for="(progress, service) in downloadStatus"
+			:key="service">
+			<label v-if="progress > 0">{{ service }}</label>
+			<NcProgressBar v-if="progress > 0"
+				size="medium"
+				:value="progress" />
+		</div>
 	</NcSettingsSection>
 </template>
 <script>
