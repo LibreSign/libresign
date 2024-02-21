@@ -276,7 +276,7 @@ class InstallService {
 		foreach ($this->availableResources as $resource) {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
-			if (!count($progressData)) {
+			if (empty($progressData['pid'])) {
 				$progressData['pid'] = $this->getInstallPid($resource);
 				if ($progressData['pid'] === 0) {
 					$this->removeDownloadProgress();
