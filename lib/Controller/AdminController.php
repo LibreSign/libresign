@@ -164,7 +164,7 @@ class AdminController extends Controller {
 			if ($errors = $this->installService->getErrorMessages()) {
 				$this->eventSource->send('errors', json_encode($errors));
 			}
-			usleep(50000);
+			usleep(200000); // 0.2 seconds
 		}
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
