@@ -37,6 +37,7 @@ import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { set } from 'vue'
 
 export default {
 	name: 'DownloadBinaries',
@@ -122,7 +123,7 @@ export default {
 			updateEventSource.listen('total_size', function(message) {
 				const downloadStatus = JSON.parse(message)
 				Object.keys(downloadStatus).map(function(service) {
-					self.downloadStatus[service] = downloadStatus[service]
+					set(self.downloadStatus, service, downloadStatus[service])
 				})
 			})
 			updateEventSource.listen('errors', function(message) {
