@@ -18,20 +18,13 @@
 			</NcButton>
 		</div>
 
-		<label v-if="downloadStatus.java > 0">Java</label>
-		<NcProgressBar v-if="downloadStatus.java > 0"
-			size="medium"
-			:value="downloadStatus.java" />
-
-		<label v-if="downloadStatus.cfssl > 0">cfssl</label>
-		<NcProgressBar v-if="downloadStatus.cfssl > 0"
-			size="medium"
-			:value="downloadStatus.cfssl" />
-
-		<label v-if="downloadStatus.jsignpdf > 0">jsignpdf</label>
-		<NcProgressBar v-if="downloadStatus.jsignpdf > 0"
-			size="medium"
-			:value="downloadStatus.jsignpdf" />
+		<div v-for="(progress, service) in downloadStatus"
+			:key="service">
+			<label v-if="progress > 0">{{ service }}</label>
+			<NcProgressBar v-if="progress > 0"
+				size="medium"
+				:value="progress" />
+		</div>
 	</NcSettingsSection>
 </template>
 <script>
@@ -44,6 +37,7 @@ import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { set } from 'vue'
 
 export default {
 	name: 'DownloadBinaries',
@@ -89,17 +83,19 @@ export default {
 	methods: {
 		async downloadAllBinaries() {
 			this.changeState('in progress')
-			try {
-				axios.get(
-					generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
-				)
-					.then(() => {
-						this.downloadStatusSse()
-					})
-			} catch (e) {
-				showError(t('libresign', 'Could not download binaries.'))
-				this.changeState('need download')
-			}
+			axios.get(
+				generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
+			)
+				.then(() => {
+					this.downloadStatusSse()
+				})
+				.catch(({ response }) => {
+					showError(t('libresign', 'Could not download binaries.'))
+					if (typeof response?.data === 'object' && response?.data.message.length > 0) {
+						showError(t('libresign', response.data.message))
+					}
+					this.changeState('need download')
+				})
 		},
 		changeState(state) {
 			if (state === 'in progress') {
@@ -125,7 +121,10 @@ export default {
 			const self = this
 			const updateEventSource = new OC.EventSource(generateUrl('/apps/libresign/api/v1/admin/download-status-sse'))
 			updateEventSource.listen('total_size', function(message) {
-				self.downloadStatus = JSON.parse(message)
+				const downloadStatus = JSON.parse(message)
+				Object.keys(downloadStatus).forEach(service => {
+					set(self.downloadStatus, service, downloadStatus[service])
+				})
 			})
 			updateEventSource.listen('errors', function(message) {
 				self.errors = JSON.parse(message)

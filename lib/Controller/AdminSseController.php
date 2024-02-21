@@ -24,5 +24,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Controller;
 
-$controller = \OC::$server->get(AdminController::class);
-$controller->downloadStatusSse();
+if (isset($parameters)) {
+	/**
+	 * Nextcloud's default route handling does not support SSE and injects
+	 * headers into requests that cause an SSE route to not work correctly.
+	 * In the OC\Route::match method there is a way to circumvent this header
+	 * injection using a route that points directly to a file. In the
+	 * routesAdminController.php file the SSE route is pointing directly to a
+	 * file.
+	 */
+	$controller = \OC::$server->get(AdminController::class);
+	$controller->downloadStatusSse();
+} else {
+	/**
+	 * As of Nextcloud 29, the OC\Route::getAttributeRoutes method was implemented,
+	 * which loads the routes by reflection and no longer just through the
+	 * routes.php file, which is why this conditional was necessary to create a
+	 * real class and not break the getAttributeRoutes method.
+	 */
+	class AdminSseController extends AdminController {
+	}
+}

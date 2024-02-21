@@ -156,10 +156,13 @@ class InstallService {
 		$resource = $this->resource;
 		$process = new Process([OC::$SERVERROOT . '/occ', 'libresign:install', '--' . $resource]);
 		$process->setOptions(['create_new_console' => true]);
+		$process->setTimeout(null);
 		$process->start();
 		$data['pid'] = $process->getPid();
 		if ($data['pid']) {
 			$this->setCache($resource, $data);
+		} else {
+			$this->logger->error('Error to get PID of background install proccess. Command: ' . OC::$SERVERROOT . '/occ libresign:install --' . $resource);
 		}
 	}
 
@@ -209,7 +212,12 @@ class InstallService {
 				$file = $appFolder->getFile('setup-cache.json');
 				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
 				return $json[$key] ?? null;
+			} catch (NotFoundException $th) {
 			} catch (\Throwable $th) {
+				$this->logger->error('Unexpected error when get setup-cache.json file', [
+					'app' => Application::APP_ID,
+					'exception' => $th,
+				]);
 			}
 			return;
 		}
@@ -221,7 +229,15 @@ class InstallService {
 			$appFolder = $this->getFolder();
 			try {
 				$file = $appFolder->getFile('setup-cache.json');
-				$file->delete();
+				$json = $file->getContent() ? json_decode($file->getContent(), true) : [];
+				if (isset($json[$key])) {
+					unset($json[$key]);
+				}
+				if (!$json) {
+					$file->delete();
+				} else {
+					$file->putContent(json_encode($json));
+				}
 			} catch (\Throwable $th) {
 			}
 			return;
@@ -268,8 +284,13 @@ class InstallService {
 		foreach ($this->availableResources as $resource) {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
-			if (!count($progressData)) {
-				continue;
+			if (empty($progressData['pid'])) {
+				$progressData['pid'] = $this->getInstallPid();
+				if ($progressData['pid'] === 0) {
+					$this->removeDownloadProgress();
+					continue;
+				}
+				return true;
 			}
 			exec('ps -p ' . $progressData['pid'], $output, $exitCode);
 			if (count($output) <= 1) {
@@ -279,6 +300,19 @@ class InstallService {
 			return true;
 		}
 		return false;
+	}
+
+	private function getInstallPid(): int {
+		$cmd = 'ps -eo pid,command|' .
+			'grep "libresign:install --' . $this->resource . '"|' .
+			'grep -v grep|' .
+			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$output = shell_exec($cmd);
+		if (!is_string($output)) {
+			return 0;
+		}
+		$pid = trim($output);
+		return (int) $pid;
 	}
 
 	public function setResource(string $resource): self {
