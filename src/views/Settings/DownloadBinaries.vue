@@ -127,7 +127,10 @@ export default {
 			const self = this
 			const updateEventSource = new OC.EventSource(generateUrl('/apps/libresign/api/v1/admin/download-status-sse'))
 			updateEventSource.listen('total_size', function(message) {
-				self.downloadStatus = JSON.parse(message)
+				const downloadStatus = JSON.parse(message)
+				Object.keys(downloadStatus).map(function(service) {
+					self.downloadStatus[service] = downloadStatus[service]
+				})
 			})
 			updateEventSource.listen('errors', function(message) {
 				self.errors = JSON.parse(message)
