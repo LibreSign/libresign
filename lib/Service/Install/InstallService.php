@@ -346,7 +346,10 @@ class InstallService {
 	}
 
 	public function installJava(?bool $async = false): void {
-
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return;
+		}
 		$this->setResource('java');
 		if ($async) {
 			$this->runAsync();
