@@ -59,19 +59,19 @@ export const useFilesStore = defineStore('files', {
 			if (!Object.hasOwn(this.getFile(), 'signers')) {
 				return false
 			}
-			return this.files[this.selectedNodeId].signers.filter(signer => signer.sign_date?.length > 0).length > 0
+			return this.files[this.selectedNodeId].signers.filter(signer => signer.signed?.length > 0).length > 0
 		},
 		getSubtitle() {
 			if (this.selectedNodeId === 0) {
 				return ''
 			}
 			const file = this.files[this.selectedNodeId]
-			if ((file?.requested_by?.uid ?? '').length === 0 || file?.requestDate.length === 0) {
+			if ((file?.requested_by?.uid ?? '').length === 0 || file?.request_date.length === 0) {
 				return ''
 			}
 			return t('libresign', 'Requested by {name}, at {date}', {
 				name: file.requested_by.uid,
-				date: Moment(Date.parse(file.requestDate)).format('LL LTS'),
+				date: Moment(Date.parse(file.request_date)).format('LL LTS'),
 			})
 		},
 		async hydrateFile(nodeId) {
