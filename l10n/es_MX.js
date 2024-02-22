@@ -26,6 +26,7 @@ OC.L10N.register(
     "No recommendations. Start typing." : "Sin recomendaciones. Empiece a escribir.",
     "Name" : "Nombre",
     "Searching …" : "Buscando  …",
+    "Update" : "Actualizar",
     "Next" : "Siguiente",
     "Previous" : "Previo",
     "Details" : "Detalles",
