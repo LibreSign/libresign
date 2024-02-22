@@ -64,7 +64,7 @@ export default {
 			return this.signer.identifyMethods.map(method => method.method)
 		},
 		statusColor() {
-			if (this.signer.sign_date) {
+			if (this.signer.signed) {
 				return '#008000'
 			}
 			// Pending
@@ -75,9 +75,9 @@ export default {
 			return '#dbdbdb'
 		},
 		statusText() {
-			if (this.signer.sign_date) {
+			if (this.signer.signed) {
 				return t('libresign', 'signed at {date}', {
-					date: Moment(this.signer.request_sign_date).format('LLL'),
+					date: Moment(this.signer.request_signed).format('LLL'),
 				})
 			}
 			// Pending
@@ -96,7 +96,7 @@ export default {
 			if (this.event.length === 0) {
 				return
 			}
-			if (this.signer.sign_date) {
+			if (this.signer.signed) {
 				return
 			}
 			emit(this.event, this.signer)

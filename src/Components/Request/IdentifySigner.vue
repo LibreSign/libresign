@@ -2,7 +2,7 @@
 	<div class="identifySigner">
 		<AccountOrEmail v-if="methods.account.enabled || methods.email.enabled"
 			:required="methods.account.required || methods.email.required"
-			:signer="methods.account.value || methods.email.value"
+			:signer="signer"
 			:placeholder="placeholder"
 			@update:account="updateAccount"
 			@update:email="updateEmail"
@@ -68,17 +68,36 @@ export default {
 				account: {
 					enabled: false,
 					required: false,
-					value: {},
+					value: '',
 				},
 				email: {
 					enabled: false,
 					required: false,
-					value: {},
+					value: '',
 				},
 			},
 		}
 	},
 	computed: {
+		signer() {
+			if (this.methods.account.value.length > 0) {
+				return {
+					id: this.methods.account.value,
+					icon: 'icon-user',
+					isNoUser: false,
+					displayName: this.signerToEdit.displayName,
+				}
+			} else if (this.methods.email.value.length > 0) {
+				return {
+					id: this.methods.email.value,
+					icon: 'icon-mail',
+					isNoUser: true,
+					displayName: this.signerToEdit.displayName,
+				}
+			} else {
+				return {}
+			}
+		},
 		isNewSigner() {
 			return this.id === null || this.id === undefined
 		},
@@ -98,21 +117,16 @@ export default {
 	beforeMount() {
 		this.displayName = ''
 		this.identify = ''
-		this.methods.account.value = {}
-		this.methods.email.value = {}
+		this.methods.account.value = ''
+		this.methods.email.value = ''
 		if (Object.keys(this.signerToEdit).length > 0) {
-			this.name = this.signerToEdit.displayName
 			this.identify = this.signerToEdit.identify ?? this.signerToEdit.signRequestId
+			this.updateDisplayName(this.signerToEdit.displayName)
 			this.signerToEdit.identifyMethods.forEach(method => {
-				this.updateName(method.value?.displayName ?? this.name)
 				if (method.method === 'email') {
-					this.methods.email.value = method.value ?? this.signerToEdit.email
+					this.methods.email.value = method.value
 				} else if (method.method === 'account') {
-					this.updateName(this.signerToEdit.displayName ?? this.name)
-					this.methods.account.value = method.value ?? {
-						account: this.signerToEdit.uid,
-						displayName: this.signerToEdit.displayName,
-					}
+					this.methods.account.value = method.value
 				}
 			})
 		}
@@ -162,24 +176,21 @@ export default {
 			this.filesStore.disableIdentifySigner()
 		},
 		updateDisplayName(name) {
-			this.displayName = name
+			this.displayName = name ?? ''
 		},
 		updateEmail(email) {
-			if (typeof email === 'object' && Object.hasOwn(email, 'displayName')) {
-				email = email.displayName
-			} else if (typeof email === 'boolean') {
-				email = ''
+			if (typeof email !== 'object') {
+				this.methods.email.value = ''
+			} else {
+				this.methods.email.value = email.id
 			}
-			this.methods.email.value = email
 		},
 		updateAccount(account) {
 			if (typeof account !== 'object') {
-				account = {}
+				this.methods.account.value = ''
+			} else {
+				this.methods.account.value = account.id
 			}
-			this.methods.account.value = account
-		},
-		updateName(name) {
-			this.displayName = name
 		},
 		onNameChange() {
 			const name = this.displayName.trim()

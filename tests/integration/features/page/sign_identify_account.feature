@@ -23,15 +23,13 @@ Feature: page/sign_identify_account
       | key        | value                   |
       | uuid       | <IGNORE>                |
       | name       | document                |
-      | callback   |                         |
       | status     | 1                       |
       | statusText | available for signature |
     And the signer contains
       | key | value |
-      | uid | signer1 |
       | email | |
       | me | true |
-      | identifyMethods | [{"method":"account","mandatory":1,"identifiedAtDate":null}] |
+      | identifyMethods | [{"method":"account","value":"signer1","mandatory":1}] |
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
@@ -78,15 +76,13 @@ Feature: page/sign_identify_account
       | key        | value                   |
       | uuid       | <IGNORE>                |
       | name       | document                |
-      | callback   |                         |
       | status     | 1                       |
       | statusText | available for signature |
     And the signer contains
       | key | value |
-      | uid | signer1 |
       | email | |
       | me | true |
-      | identifyMethods | [{"method":"account","mandatory":1,"identifiedAtDate":null}] |
+      | identifyMethods | [{"method":"account","value":"signer1","mandatory":1}] |
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:

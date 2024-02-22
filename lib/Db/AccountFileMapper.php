@@ -97,7 +97,7 @@ class AccountFileMapper extends QBMapper {
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
 
-		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
+		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
 		$data = [];
