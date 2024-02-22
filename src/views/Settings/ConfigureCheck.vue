@@ -45,9 +45,11 @@ export default {
 			this.checkSetup()
 		})
 		subscribe('libresign:certificate-engine:changed', this.checkSetup)
+		subscribe('libresign:signature-engine:changed', this.checkSetup)
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:certificate-engine:changed')
+		unsubscribe('libresign:signature-engine:changed')
 	},
 	methods: {
 		async checkSetup() {

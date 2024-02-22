@@ -121,8 +121,8 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	private function getHandler(): SignEngineHandler {
-		$sign_engine = $this->appConfig->getAppValue('sign_engine', 'JSignPdf');
-		$property = lcfirst($sign_engine) . 'Handler';
+		$signature_engine = $this->appConfig->getAppValue('signature_engine', 'JSignPdf');
+		$property = lcfirst($signature_engine) . 'Handler';
 		if (!property_exists($this, $property)) {
 			throw new LibresignException($this->l10n->t('Invalid Sign engine.'), 400);
 		}
