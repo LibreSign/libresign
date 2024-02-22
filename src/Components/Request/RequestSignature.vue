@@ -12,7 +12,7 @@
 		<Signers :signers="dataSigners"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
-				<NcActionButton v-if="canRequestSign && !signer.sign_date"
+				<NcActionButton v-if="canRequestSign && !signer.signed"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="filesStore.deleteSigner(signer)">
@@ -21,7 +21,7 @@
 					</template>
 					{{ t('libresign', 'Delete') }}
 				</NcActionButton>
-				<NcActionButton v-if="canRequestSign && !signer.sign_date && signer.signRequestId && !signer.me"
+				<NcActionButton v-if="canRequestSign && !signer.signed && signer.signRequestId && !signer.me"
 					icon="icon-comment"
 					:close-after-click="true"
 					@click="sendNotify(signer)">
