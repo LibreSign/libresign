@@ -181,14 +181,24 @@ class FileService {
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		foreach ($signers as $signer) {
 			$signatureToShow = [
-				'signed' => $signer->getSigned(),
+				'signed' => null,
 				'displayName' => $signer->getDisplayName(),
 				'me' => false,
 				'signRequestId' => $signer->getId(),
+				'description' => $signer->getDescription(),
 				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),
+				'request_sign_date' => (new \DateTime())
+					->setTimestamp($signer->getCreatedAt())
+					->format('Y-m-d H:i:s'),
 			];
+			if ($signer->getSigned()) {
+				$data['sign_date'] = (new \DateTime())
+					->setTimestamp($signer->getSigned())
+					->format('Y-m-d H:i:s');
+			}
 			// @todo refactor this code
 			if ($this->me || $this->identifyMethodId) {
+				$signatureToShow['sign_uuid'] = $signer->getUuid();
 				$identifyMethodServices = $signatureToShow['identifyMethods'];
 				// Identifi if I'm file owner
 				if ($this->me?->getUID() === $this->file->getUserId()) {
@@ -197,7 +207,7 @@ class FileService {
 							$carry = $identifyMethod->getEntity()->getIdentifierValue();
 						}
 						return $carry;
-					});
+					}, '');
 					$signatureToShow['email'] = $email;
 					$user = $this->userManager->getByEmail($email);
 					if ($user && count($user) === 1) {
@@ -226,10 +236,12 @@ class FileService {
 					$carry[] = [
 						'method' => $identifyMethod->getEntity()->getIdentifierKey(),
 						'value' => $identifyMethod->getEntity()->getIdentifierValue(),
+						'mandatory' => $identifyMethod->getEntity()->getMandatory(),
 					];
 				}
 				return $carry;
 			}, []);
+			ksort($signatureToShow);
 			$this->signers[] = $signatureToShow;
 		}
 		return $this->signers;
@@ -349,20 +361,21 @@ class FileService {
 		if (!$this->file) {
 			return $return;
 		}
-		$return['status'] = $this->file->getStatus();
-		$return['statusText'] = $this->fileMapper->getTextOfStatus($this->file->getStatus());
-		$return['nodeId'] = $this->file->getNodeId();
 		$return['uuid'] = $this->file->getUuid();
 		$return['name'] = $this->file->getName();
-		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
+		$return['status'] = $this->file->getStatus();
+		$return['request_date'] = (new \DateTime())
+			->setTimestamp($this->file->getCreatedAt())
+			->format('Y-m-d H:i:s');
+		$return['statusText'] = $this->fileMapper->getTextOfStatus($this->file->getStatus());
+		$return['nodeId'] = $this->file->getNodeId();
 
 		$return['requested_by'] = [
 			'uid' => $this->file->getUserId(),
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
-		$return['request_date'] = (new \DateTime())
-			->setTimestamp($this->file->getCreatedAt())
-			->format('Y-m-d H:i:s');
+		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
+		$return['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $this->file->getUuid()]);
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}
@@ -372,6 +385,7 @@ class FileService {
 				$return['visibleElements'] = $visibleElements;
 			}
 		}
+		ksort($return);
 		return $return;
 	}
 
@@ -427,16 +441,12 @@ class FileService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function listAssociatedFilesOfSignFlow(IUser $user, $page = null, $length = null): array {
+	public function listAssociatedFilesOfSignFlow($page = null, $length = null): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
 
-		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfUser', ['uuid' => '_replace_']);
-		$url = str_replace('_replace_', '', $url);
-
 		$data = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
-			$user,
-			$url,
+			$this->me,
 			$page,
 			$length
 		);

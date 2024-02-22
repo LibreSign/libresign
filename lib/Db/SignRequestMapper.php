@@ -33,7 +33,9 @@ use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use OCP\IL10N;
+use OCP\IURLGenerator;
 use OCP\IUser;
+use OCP\IUserManager;
 
 /**
  * Class SignRequestMapper
@@ -50,6 +52,8 @@ class SignRequestMapper extends QBMapper {
 		IDBConnection $db,
 		protected IL10N $l10n,
 		protected FileMapper $fileMapper,
+		private IUserManager $userManager,
+		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct($db, 'libresign_sign_request');
 	}
@@ -312,7 +316,6 @@ class SignRequestMapper extends QBMapper {
 	 */
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
-		string $url,
 		int $page = null,
 		int $length = null
 	): array {
@@ -326,7 +329,7 @@ class SignRequestMapper extends QBMapper {
 
 		foreach ($currentPageResults as $row) {
 			$fileIds[] = $row['id'];
-			$data[] = $this->formatListRow($row, $url);
+			$data[] = $this->formatListRow($row);
 		}
 		$signers = $this->getByMultipleFileId($fileIds);
 		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
@@ -371,11 +374,11 @@ class SignRequestMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'f.id',
+			'f.node_id',
+			'f.user_id',
 			'f.uuid',
 			'f.name',
-			'f.callback',
-			'f.status',
-			'f.node_id'
+			'f.status'
 		)
 			->selectAlias('f.created_at', 'request_date')
 			->from('libresign_file', 'f')
@@ -383,10 +386,11 @@ class SignRequestMapper extends QBMapper {
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
 			->groupBy(
 				'f.id',
+				'f.node_id',
+				'f.user_id',
 				'f.uuid',
 				'f.name',
-				'f.callback',
-				'f.node_id',
+				'f.status',
 				'f.created_at',
 			);
 
@@ -451,13 +455,7 @@ class SignRequestMapper extends QBMapper {
 						'request_sign_date' => (new \DateTime())
 							->setTimestamp($signer->getCreatedAt())
 							->format('Y-m-d H:i:s'),
-						'sign_date' => null,
-						'uid' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-								return $identifyMethod->getIdentifierValue();
-							}
-							return $carry;
-						}, ''),
+						'signed' => null,
 						'signRequestId' => $signer->getId(),
 						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
 							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
@@ -477,8 +475,8 @@ class SignRequestMapper extends QBMapper {
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
 								'method' => $identifyMethod->getIdentifierKey(),
+								'value' => $identifyMethod->getIdentifierValue(),
 								'mandatory' => $identifyMethod->getMandatory(),
-								'identifiedAtDate' => $identifyMethod->getIdentifiedAtDate()
 							];
 						}, array_values($identifyMethodsOfSigner)),
 					];
@@ -488,11 +486,12 @@ class SignRequestMapper extends QBMapper {
 					}
 
 					if ($signer->getSigned()) {
-						$data['sign_date'] = (new \DateTime())
+						$data['signed'] = (new \DateTime())
 							->setTimestamp($signer->getSigned())
 							->format('Y-m-d H:i:s');
 						$totalSigned++;
 					}
+					ksort($data);
 					$files[$key]['signers'][] = $data;
 					unset($signers[$signerKey]);
 				}
@@ -504,21 +503,31 @@ class SignRequestMapper extends QBMapper {
 				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int) $files[$key]['status']);
 			}
 			unset($files[$key]['id']);
+			ksort($files[$key]);
 		}
 		return $files;
 	}
 
-	private function formatListRow(array $row, string $url): array {
+	private function formatListRow(array $row): array {
 		$row['id'] = (int) $row['id'];
 		$row['status'] = (int) $row['status'];
+		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
+		$row['nodeId'] = (int) $row['node_id'];
+		$row['uuid'] = $row['uuid'];
+		$row['name'] = $row['name'];
+		$row['requested_by'] = [
+			'uid' => $row['user_id'],
+			'displayName' => $this->userManager->get($row['user_id'])->getDisplayName(),
+		];
 		$row['request_date'] = (new \DateTime())
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
-		$row['type'] = 'pdf';
-		$row['url'] = $url . $row['uuid'];
+		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
+		$row['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int) $row['node_id'];
 		$row['uuid'] = $row['uuid'];
 		unset(
+			$row['user_id'],
 			$row['node_id'],
 		);
 		return $row;
