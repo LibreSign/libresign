@@ -164,6 +164,12 @@ class ConfigureCheckService {
 		if (!empty($this->result['jsignpdf'])) {
 			return $this->result['jsignpdf'];
 		}
+
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
+
 		$jsignpdJarPath = $this->appConfig->getValueString(Application::APP_ID, 'jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			$resultOfVerify = $this->verify('jsignpdf');
@@ -379,6 +385,12 @@ class ConfigureCheckService {
 		if (!empty($this->result['java'])) {
 			return $this->result['java'];
 		}
+
+		$signatureEngine = $this->appConfig->getValueString(Application::APP_ID, 'signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
+
 		$javaPath = $this->javaHelper->getJavaPath();
 		if ($javaPath) {
 			$resultOfVerify = $this->verify('java');
