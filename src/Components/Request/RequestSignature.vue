@@ -98,7 +98,7 @@ export default {
 		},
 		canSign() {
 			return !this.filesStore.isSigned()
-				&& this.filesStore.getFile().signers.filter(signer => signer.me).length > 0
+				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length > 0
 		},
 		dataSigners() {
 			return this.filesStore.files[this.filesStore.selectedNodeId].signers
