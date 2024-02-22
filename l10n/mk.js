@@ -34,6 +34,7 @@ OC.L10N.register(
     "Name" : "Име",
     "Searching …" : "Пребарување ...",
     "Update" : "Ажурирај",
+    "Send reminder" : "Испрати потсетник",
     "Next" : "Следна",
     "Sign" : "Знак",
     "Previous" : "Предходна",
