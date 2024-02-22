@@ -47,6 +47,32 @@ export default {
 		const configureCheckStore = useConfigureCheckStore()
 		return { t, configureCheckStore }
 	},
+	data: () => ({
+		name: t('libresign', 'Configuration check'),
+		description: t('libresign', 'Status of setup'),
+		items: [],
+	}),
+	mounted() {
+		this.checkSetup()
+		this.$root.$on('config-check', data => {
+			this.checkSetup()
+		})
+		subscribe('libresign:certificate-engine:changed', this.checkSetup)
+		subscribe('libresign:signature-engine:changed', this.checkSetup)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:certificate-engine:changed')
+		unsubscribe('libresign:signature-engine:changed')
+	},
+	methods: {
+		async checkSetup() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
+			)
+			this.items = response.data
+			this.$root.$emit('after-config-check', response.data)
+		},
+	},
 }
 </script>
 <style lang="scss" scoped>
