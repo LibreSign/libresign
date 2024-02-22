@@ -185,7 +185,8 @@ class ConfigureCheckService {
 		$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 		if ($pdftkPath) {
 			if (file_exists($pdftkPath)) {
-				\exec($pdftkPath . " --version 2>&1", $version);
+				$javaPath = $this->appConfig->getAppValue('java_path');
+				\exec($javaPath . ' -jar ' . $pdftkPath . " --version 2>&1", $version);
 				if (isset($version[0])) {
 					preg_match('/pdftk port to java (?<version>.*) a Handy Tool/', $version[0], $matches);
 					if (isset($matches['version'])) {
