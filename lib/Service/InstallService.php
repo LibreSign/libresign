@@ -448,7 +448,20 @@ class InstallService {
 			$this->runAsync();
 			return;
 		}
+		$architecture = php_uname('m');
+		if ($architecture === 'x86_64') {
+			$fullPath = $this->installPdfTk64();
+		} elseif ($architecture === 'aarch64') {
+			$fullPath = $this->installPdfTkArm();
+		} else {
+			throw new RuntimeException(sprintf('Architecture %s is incompatible with LibreSign.', $architecture));
+		}
+		chmod($fullPath, 0700);
+		$this->appConfig->setAppValue('pdftk_path', $fullPath);
+		$this->removeDownloadProgress();
+	}
 
+	private function installPdfTk64():string {
 		try {
 			$file = $this->getFolder()->getFile('pdftk');
 		} catch (\Throwable $th) {
@@ -460,11 +473,31 @@ class InstallService {
 		$hash = 'dc5abe9885b26c616821ba1f24f03195';
 
 		$this->download($url, 'pdftk', $fullPath, $hash);
+		return $fullPath;
+	}
 
-		chmod($fullPath, 0700);
+	private function installPdfTkArm():string {
+		if (!extension_loaded('zip')) {
+			throw new RuntimeException('Zip extension is not available');
+		}
 
-		$this->appConfig->setAppValue('pdftk_path', $fullPath);
-		$this->removeDownloadProgress();
+		$extractDir = $this->getFullPath();
+		$compressedFileName = 'pdftk-' . self::PDFTK_VERSION . '-aarch64.zip';
+		try {
+			$file = $this->getFolder()->getFile($compressedFileName);
+		} catch (\Throwable $th) {
+			$file = $this->getFolder()->newFile($compressedFileName);
+		}
+		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
+		$url = 'https://gitlab.com/pdftk-java/pdftk/uploads/2b32d1c2f855f92cea379f566a882ac3/native-image.zip';
+		/** WHEN UPDATE version: generate this hash handmade and update here */
+		$hash = '3a60ab7d631e2e2cd155fbe73bfa126d';
+
+		$this->download($url, 'pdftk', $fullPath, $hash);
+
+		$zip = new ZIP($extractDir . DIRECTORY_SEPARATOR . $compressedFileName);
+		$zip->extractFile('native-image/pdftk', $extractDir . DIRECTORY_SEPARATOR . 'pdftk');
+		return $fullPath;
 	}
 
 	public function uninstallPdftk(): void {
