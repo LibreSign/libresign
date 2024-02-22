@@ -54,6 +54,10 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	public function checkJSignPdf(): array {
+		$signatureEngine = $this->appConfig->getAppValue('signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
 		$jsignpdJarPath = $this->appConfig->getAppValue('jsignpdf_jar_path');
 		if ($jsignpdJarPath) {
 			if (file_exists($jsignpdJarPath)) {
@@ -166,6 +170,10 @@ class ConfigureCheckService {
 	 * @return ConfigureCheckHelper[]
 	 */
 	private function checkJava(): array {
+		$signatureEngine = $this->appConfig->getAppValue('signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
 		$javaPath = $this->appConfig->getAppValue('java_path');
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
