@@ -23,7 +23,6 @@ Feature: page/sign_identify_account
       | key        | value                   |
       | uuid       | <IGNORE>                |
       | name       | document                |
-      | callback   |                         |
       | status     | 1                       |
       | statusText | available for signature |
     And the signer contains
@@ -78,7 +77,6 @@ Feature: page/sign_identify_account
       | key        | value                   |
       | uuid       | <IGNORE>                |
       | name       | document                |
-      | callback   |                         |
       | status     | 1                       |
       | statusText | available for signature |
     And the signer contains
