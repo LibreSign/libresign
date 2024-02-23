@@ -536,10 +536,11 @@ class SignFileService {
 				$dest = $this->tempManager->getTemporaryFile('signed.pdf');
 				file_put_contents($dest, $originalFile->getContent());
 
+				$javaPath = $this->appConfig->getAppValue('java_path');
 				$pdftkPath = $this->appConfig->getAppValue('pdftk_path');
 				$pdf = new Pdf();
 				$command = new Command();
-				$command->setCommand($pdftkPath);
+				$command->setCommand($javaPath . ' -jar ' . $pdftkPath);
 				$pdf->setCommand($command);
 				$pdf->addFile($dest);
 				$buffer = $pdf->stamp($background)

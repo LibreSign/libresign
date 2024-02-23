@@ -450,18 +450,16 @@ class InstallService {
 		}
 
 		try {
-			$file = $this->getFolder()->getFile('pdftk');
+			$file = $this->getFolder()->getFile('pdftk.jar');
 		} catch (\Throwable $th) {
-			$file = $this->getFolder()->newFile('pdftk');
+			$file = $this->getFolder()->newFile('pdftk.jar');
 		}
 		$fullPath = $this->getDataDir() . DIRECTORY_SEPARATOR . $this->getInternalPathOfFile($file);
-		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk';
+		$url = 'https://gitlab.com/api/v4/projects/5024297/packages/generic/pdftk-java/v' . self::PDFTK_VERSION . '/pdftk-all.jar';
 		/** WHEN UPDATE version: generate this hash handmade and update here */
-		$hash = 'dc5abe9885b26c616821ba1f24f03195';
+		$hash = '59a28bed53b428595d165d52988bf4cf';
 
 		$this->download($url, 'pdftk', $fullPath, $hash);
-
-		chmod($fullPath, 0700);
 
 		$this->appConfig->setAppValue('pdftk_path', $fullPath);
 		$this->removeDownloadProgress();
