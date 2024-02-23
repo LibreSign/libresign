@@ -284,6 +284,9 @@ class InstallService {
 		foreach ($this->availableResources as $resource) {
 			$this->setResource($resource);
 			$progressData = $this->getProressData();
+			if (empty($progressData)) {
+				return false;
+			}
 			if (empty($progressData['pid'])) {
 				$progressData['pid'] = $this->getInstallPid();
 				if ($progressData['pid'] === 0) {
