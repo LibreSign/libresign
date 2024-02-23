@@ -186,6 +186,16 @@ class ConfigureCheckService {
 		if ($javaPath) {
 			if (file_exists($javaPath)) {
 				\exec($javaPath . " -version 2>&1", $javaVersion);
+				if (empty($javaVersion)) {
+					return [
+						(new ConfigureCheckHelper())
+							->setErrorMessage(
+								'Failed to execute Java. Sounds that your operational system is blocking the JVM.'
+							)
+							->setResource('java')
+							->setTip('https://github.com/LibreSign/libresign/issues/2327#issuecomment-1961988790'),
+					];
+				}
 				$javaVersion = current($javaVersion);
 				if ($javaVersion !== InstallService::JAVA_VERSION) {
 					return [
