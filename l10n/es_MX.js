@@ -9,6 +9,7 @@ OC.L10N.register(
     "View" : "Ver",
     "File not found" : "Archivo no encontrado",
     "File already exists" : "El archivo ya existe",
+    "Empty file" : "Archivo vacío",
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
