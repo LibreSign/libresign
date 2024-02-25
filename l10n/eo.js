@@ -26,6 +26,7 @@ OC.L10N.register(
     "Cancel" : "Nuligi",
     "No recommendations. Start typing." : "Neniu propono. Ektajpu.",
     "Name" : "Nomo",
+    "Searching …" : "Serĉado ...",
     "Update" : "Ĝisdatigi",
     "Next" : "Sekva",
     "Previous" : "Antaŭa",
