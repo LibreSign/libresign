@@ -93,7 +93,7 @@ class Notifier implements INotifier {
 			->setPrimary(true)
 			->setLink(
 				$this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
-				IAction::TYPE_GET
+				IAction::TYPE_WEB
 			);
 		$notification->addParsedAction($signAction);
 		return $notification;
