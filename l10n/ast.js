@@ -44,6 +44,7 @@ OC.L10N.register(
     "No" : "Non",
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
+    "Pending" : "Pendiente",
     "Signatures" : "Firmes",
     "Description" : "Descripción",
     "Add" : "Amestar"
