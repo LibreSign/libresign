@@ -34,9 +34,9 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Http\Response;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
+use OCP\IL10N;
 use OCP\IRequest;
 
 class AdminController extends Controller {
@@ -47,6 +47,7 @@ class AdminController extends Controller {
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IEventSourceFactory $eventSourceFactory,
+		private IL10N $l10n,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -128,29 +129,6 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function downloadBinaries(): Response {
-		try {
-			$async = \function_exists('proc_open');
-			$this->installService->installJava($async);
-			$this->installService->installJSignPdf($async);
-			$this->installService->installPdftk($async);
-			$this->installService->installCfssl($async);
-			return new DataResponse([]);
-		} catch (\Exception $exception) {
-			return new DataResponse(
-				[
-					'message' => $exception->getMessage()
-				],
-				Http::STATUS_UNAUTHORIZED
-			);
-		}
-	}
-
-	public function downloadStatus(): DataResponse {
-		$return = $this->installService->getTotalSize();
-		return new DataResponse($return);
-	}
-
 	public function configureCheck(): DataResponse {
 		return new DataResponse(
 			$this->configureCheckService->checkAll()
@@ -158,15 +136,37 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function downloadStatusSse(): void {
-		while ($this->installService->isDownloadWip()) {
-			$totalSize = $this->installService->getTotalSize();
-			$this->eventSource->send('total_size', json_encode($totalSize));
-			if ($errors = $this->installService->getErrorMessages()) {
-				$this->eventSource->send('errors', json_encode($errors));
+	public function installAndValidate(): void {
+		try {
+			$async = \function_exists('proc_open');
+			$this->installService->installJava($async);
+			$this->installService->installJSignPdf($async);
+			$this->installService->installPdftk($async);
+			$this->installService->installCfssl($async);
+
+			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+			$seconds = 0;
+			while ($this->installService->isDownloadWip()) {
+				$totalSize = $this->installService->getTotalSize();
+				$this->eventSource->send('total_size', json_encode($totalSize));
+				if ($errors = $this->installService->getErrorMessages()) {
+					$this->eventSource->send('errors', json_encode($errors));
+				}
+				usleep(200000); // 0.2 seconds
+				$seconds += 0.2;
+				if ($seconds === 5) {
+					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+					$seconds = 0;
+				}
 			}
-			usleep(200000); // 0.2 seconds
+		} catch (\Exception $exception) {
+			$this->eventSource->send('errors', json_encode([
+				$this->l10n->t('Could not download binaries.'),
+				$exception->getMessage(),
+			]));
 		}
+
+		$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
 		// Nextcloud inject a lot of headers that is incompatible with SSE

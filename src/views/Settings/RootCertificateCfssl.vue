@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && loaded && cfsslBinariesOk"
+	<NcSettingsSection v-if="isThisEngine && loaded && configureCheckStore.cfsslBinariesOk()"
 		:name="name"
 		:description="description">
 		<div v-if="configureOk" id="tableRootCertificateCfssl" class="form-libresign">
@@ -125,6 +125,7 @@ import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import { selectCustonOption } from '../../helpers/certification.js'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'RootCertificateCfssl',
@@ -136,11 +137,12 @@ export default {
 		NcTextField,
 		CertificateCustonOptions,
 	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
+	},
 	data() {
 		return {
-			cfsslBinariesOk: false,
-			loaded: false,
-			configureOk: false,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'cfssl',
 			modal: false,
 			certificate: {
@@ -150,6 +152,7 @@ export default {
 				},
 				cfsslUri: '',
 				configPath: '',
+				generated: false,
 			},
 			error: false,
 			customData: false,
@@ -159,15 +162,18 @@ export default {
 			formDisabled: false,
 		}
 	},
+	computed: {
+		configureOk() {
+			return this.configureCheckStore.isConfigureOk('cfssl') || this.certificate.generated
+		},
+		loaded() {
+			return this.configureCheckStore.items.length > 0
+		},
+	},
 	async mounted() {
 		this.loadRootCertificate()
 		subscribe('libresign:certificate-engine:changed', this.changeEngine)
 		subscribe('libresign:update:certificateToSave', this.updateNames)
-		this.$root.$on('after-config-check', data => {
-			this.cfsslBinariesOk = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
-			this.configureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
-			this.loaded = true
-		})
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:certificate-engine:changed')
@@ -193,12 +199,16 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.certificate.rootCert.commonName = ''
-			this.certificate.rootCert.names = []
-			this.certificate.cfsslUri = ''
-			this.certificate.configPath = ''
+			this.certificate = {
+				rootCert: {
+					commonName: '',
+					names: [],
+				},
+				cfsslUri: '',
+				configPath: '',
+				generated: false,
+			}
 			this.customData = false
-			this.configureOk = false
 			this.formDisabled = false
 			this.modal = false
 			this.submitLabel = t('libresign', 'Generate root certificate')
@@ -251,9 +261,8 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
-				this.configureOk = this.certificate.generated
 				this.customData = loadState('libresign', 'config_path').length > 0 && (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
-				if (this.configureOk) {
+				if (this.certificate.generated) {
 					this.afterCertificateGenerated()
 					return
 				}

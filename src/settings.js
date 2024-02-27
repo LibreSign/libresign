@@ -22,11 +22,17 @@
  */
 
 import Vue from 'vue'
+import { createPinia, PiniaVuePlugin } from 'pinia'
 import Settings from './views/Settings/Settings.vue'
 
 Vue.mixin({ methods: { t, n } })
 
+Vue.use(PiniaVuePlugin)
+
+const pinia = createPinia()
+
 export default new Vue({
 	el: '#libresign-admin-settings',
+	pinia,
 	render: h => h(Settings),
 })
