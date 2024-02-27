@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Success" : "Успіх",
+    "Invalid user or password" : "Неправильне ім'я користувача або пароль",
     "Settings saved" : "Налаштування збережено",
     "deleted" : "вилучено",
     "File is too big" : "Файл занадто великий",
