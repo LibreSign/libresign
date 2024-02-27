@@ -10,7 +10,7 @@
 					<th>{{ t('libresign', 'Resource') }}</th>
 					<th>{{ t('libresign', 'Tip') }}</th>
 				</tr>
-				<tr v-for="(row, index) in items" :key="index">
+				<tr v-for="(row, index) in configureCheckStore.items" :key="index">
 					<td :class="row.status">
 						{{ row.status }}
 					</td>
@@ -25,39 +25,21 @@
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
-import { generateOcsUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'ConfigureCheck',
 	components: {
 		NcSettingsSection,
 	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
+	},
 	data: () => ({
 		name: t('libresign', 'Configuration check'),
 		description: t('libresign', 'Status of setup'),
-		items: [],
 	}),
-	mounted() {
-		this.checkSetup()
-		this.$root.$on('config-check', data => {
-			this.checkSetup()
-		})
-		subscribe('libresign:certificate-engine:changed', this.checkSetup)
-	},
-	beforeUnmount() {
-		unsubscribe('libresign:certificate-engine:changed')
-	},
-	methods: {
-		async checkSetup() {
-			const response = await axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'),
-			)
-			this.items = response.data
-			this.$root.$emit('after-config-check', response.data)
-		},
-	},
 }
 </script>
 <style lang="scss" scoped>

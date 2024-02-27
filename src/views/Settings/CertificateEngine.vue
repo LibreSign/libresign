@@ -16,12 +16,17 @@ import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import { emit } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'CertificateEngine',
 	components: {
 		NcSettingsSection,
 		NcSelect,
+	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
 	},
 	data() {
 		return {
@@ -51,7 +56,8 @@ export default {
 		saveEngine(selected) {
 			this.value = selected
 			OCP.AppConfig.setValue('libresign', 'certificate_engine', selected.id, {
-				success() {
+				success: () => {
+					this.configureCheckStore.checkSetup()
 					emit('libresign:certificate-engine:changed', selected.id)
 				},
 			})

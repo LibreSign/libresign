@@ -362,7 +362,6 @@ class InstallService {
 
 		$this->download($url, 'java', $comporessedInternalFileName, $hash, 'sha256');
 
-		$this->appConfig->deleteAppValue('java_path');
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 

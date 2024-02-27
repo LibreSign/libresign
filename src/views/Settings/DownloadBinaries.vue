@@ -5,18 +5,16 @@
 				{{ error }}
 			</p>
 		</NcNoteCard>
-		<div class="settings-section">
-			<NcButton class="primary"
-				type="primary"
-				native-type="submit"
-				:disabled="downloadInProgress"
-				@click="downloadAllBinaries">
-				<template #icon>
-					<NcLoadingIcon v-if="downloadInProgress" :size="20" />
-				</template>
-				{{ labelDownloadAllBinaries }}
-			</NcButton>
-		</div>
+		<NcButton class="primary"
+			type="primary"
+			native-type="submit"
+			:disabled="downloadInProgress"
+			@click="installAndValidate">
+			<template #icon>
+				<NcLoadingIcon v-if="downloadInProgress" :size="20" />
+			</template>
+			{{ labelDownloadAllBinaries }}
+		</NcButton>
 
 		<div v-for="(progress, service) in downloadStatus"
 			:key="service">
@@ -35,9 +33,10 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
 import { showError } from '@nextcloud/dialogs'
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { set } from 'vue'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'DownloadBinaries',
@@ -47,6 +46,10 @@ export default {
 		NcButton,
 		NcNoteCard,
 		NcProgressBar,
+	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
 	},
 	data() {
 		return {
@@ -87,7 +90,7 @@ export default {
 				generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
 			)
 				.then(() => {
-					this.downloadStatusSse()
+					this.installAndValidate()
 				})
 				.catch(({ response }) => {
 					showError(t('libresign', 'Could not download binaries.'))
@@ -117,25 +120,27 @@ export default {
 				this.description = t('libresign', 'Binaries downloaded')
 			}
 		},
-		downloadStatusSse() {
+		installAndValidate() {
 			const self = this
-			const updateEventSource = new OC.EventSource(generateUrl('/apps/libresign/api/v1/admin/download-status-sse'))
+			const updateEventSource = new OC.EventSource(generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'))
+			this.changeState('in progress')
 			updateEventSource.listen('total_size', function(message) {
 				const downloadStatus = JSON.parse(message)
 				Object.keys(downloadStatus).forEach(service => {
 					set(self.downloadStatus, service, downloadStatus[service])
 				})
 			})
+			updateEventSource.listen('configure_check', function(items) {
+				set(self.configureCheckStore, 'items', items)
+			})
 			updateEventSource.listen('errors', function(message) {
 				self.errors = JSON.parse(message)
+				self.changeState('need download')
 			})
 			updateEventSource.listen('done', function() {
 				self.downloadStatus = {}
 				self.changeState('waiting check')
-				self.$root.$emit('config-check')
 			})
-
-			this.$root.$emit('config-check')
 		},
 	},
 }
