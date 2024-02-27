@@ -157,6 +157,7 @@ class AdminController extends Controller {
 		);
 	}
 
+	#[NoCSRFRequired]
 	public function downloadStatusSse(): void {
 		while ($this->installService->isDownloadWip()) {
 			$totalSize = $this->installService->getTotalSize();
@@ -168,5 +169,7 @@ class AdminController extends Controller {
 		}
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
+		// Nextcloud inject a lot of headers that is incompatible with SSE
+		exit();
 	}
 }
