@@ -140,7 +140,6 @@ export default {
 					names: [],
 				},
 				configPath: '',
-				generated: false,
 			},
 			error: false,
 			customData: false,
@@ -152,7 +151,7 @@ export default {
 	},
 	computed: {
 		configureOk() {
-			return this.configureCheckStore.isConfigureOk('openssl') || this.certificate.generated
+			return this.configureCheckStore.isConfigureOk('openssl') || this.certificate.configPath.length > 0
 		},
 		loaded() {
 			return this.configureCheckStore.items.length > 0
@@ -193,7 +192,6 @@ export default {
 					names: [],
 				},
 				configPath: '',
-				generated: false,
 			}
 			this.customData = false
 			this.formDisabled = false
@@ -248,10 +246,7 @@ export default {
 				}
 				this.certificate = response.data
 				this.customData = loadState('libresign', 'config_path').length > 0 && this.certificate.configPath.length > 0
-				if (this.certificate.generated) {
-					this.afterCertificateGenerated()
-					return
-				}
+				this.afterCertificateGenerated()
 			} catch (e) {
 				console.error(e)
 			}
