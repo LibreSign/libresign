@@ -283,8 +283,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return false;
 		};
 		$configPath = $this->getConfigPath();
-		$certificate = file_get_contents($configPath . '/ca.pem');
-		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		$certificate = file_exists($configPath . '/ca.pem');
+		$privateKey = file_exists($configPath . '/ca-key.pem');
 		if (!$certificate || !$privateKey) {
 			return false;
 		}
