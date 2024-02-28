@@ -106,7 +106,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 				'id' => $item['value']['shareWith'],
 				'isNoUser' => $item['value']['shareType'] !== IShare::TYPE_USER ?? false,
 				'displayName' => $item['label'],
-				'subname' => $item['shareWithDisplayNameUnique'],
+				'subname' => $item['shareWithDisplayNameUnique'] ?? '',
 				'shareType' => $item['value']['shareType'],
 			];
 			if ($item['value']['shareType'] === IShare::TYPE_EMAIL) {
