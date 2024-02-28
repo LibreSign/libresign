@@ -164,7 +164,7 @@ export default {
 	},
 	computed: {
 		configureOk() {
-			return this.configureCheckStore.isConfigureOk('cfssl') || this.certificate.generated
+			return this.configureCheckStore.isConfigureOk('cfssl') || this.certificate.configPath.length > 0
 		},
 		loaded() {
 			return this.configureCheckStore.items.length > 0
@@ -206,7 +206,6 @@ export default {
 				},
 				cfsslUri: '',
 				configPath: '',
-				generated: false,
 			}
 			this.customData = false
 			this.formDisabled = false
