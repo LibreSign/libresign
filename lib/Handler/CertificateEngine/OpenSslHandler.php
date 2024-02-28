@@ -75,6 +75,17 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $pkeyout;
 	}
 
+	public function isSetupOk(): bool {
+		$ok = parent::isSetupOk();
+		if (!$ok) {
+			return false;
+		}
+		$configPath = $this->getConfigPath();
+		$certificate = file_get_contents($configPath . '/ca.pem');
+		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		return $certificate && $privateKey;
+	}
+
 	public function configureCheck(): array {
 		if ($this->isSetupOk()) {
 			return [(new ConfigureCheckHelper())
