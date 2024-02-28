@@ -1,7 +1,7 @@
 Feature: account/create_to_sign
   Background:
     Given as user "admin"
-    And run the command "config:app:set libresign authkey --value dummy"
+    And run the command "libresign:configure:openssl --cn test"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
     And my inbox is empty

@@ -183,7 +183,13 @@ class AEngineHandler {
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		$this->configPath = $dataDir . '/' . $this->getInternalPathOfFolder($folder);
 		if (!is_dir($this->configPath)) {
-			exec('mkdir -p "' . $this->configPath . '"');
+			$currentFile = realpath(__DIR__);
+			$owner = posix_getpwuid(fileowner($currentFile));
+			$fullCommand = 'mkdir -p "' . $this->configPath . '"';
+			if (posix_getuid() !== $owner['uid']) {
+				$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
+			}
+			exec($fullCommand);
 		}
 		return $this->configPath;
 	}
