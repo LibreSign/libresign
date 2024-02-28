@@ -66,11 +66,6 @@ class SignerElementsService {
 		];
 	}
 
-	/**
-	 * @return ((int|string)[]|\DateTime|int|string)[][]
-	 *
-	 * @psalm-return list<array{id: int, type: string, file: array{url: string, fileId: int}, starred: 0|1, createdAt: \DateTime}>
-	 */
 	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
