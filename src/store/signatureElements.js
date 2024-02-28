@@ -25,108 +25,115 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import { set } from 'vue'
 
-export const useSignatureElementsStore = defineStore('signatureElements', {
-	state: () => ({
-		signs: {
-			signature: {
-				id: 0,
-				fileId: 0,
-				value: '',
+export const useSignatureElementsStore = function(...args) {
+	const emptyElement = {
+		id: 0,
+		type: '',
+		file: {
+			url: '',
+			fileId: 0,
+		},
+		starred: 0,
+		createdAt: '',
+	}
+	const store = defineStore('signatureElements', {
+		state: () => ({
+			signs: {
+				signature: emptyElement,
+				initial: emptyElement,
 			},
-			initial: {
-				id: 0,
-				fileId: 0,
-				value: '',
-			},
-		},
-		currentType: '',
-		uuid: null,
-		success: '',
-		error: '',
-	}),
+			currentType: '',
+			uuid: null,
+			success: '',
+			error: '',
+		}),
 
-	actions: {
-		async loadSignatures() {
-			const userSignatures = loadState('libresign', 'user_signatures', false)
-			if (userSignatures) {
-				userSignatures.forEach(element => {
-					set(this.signs, element.type, element)
-				})
-				return
-			}
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
-
-				response.data.elements.forEach(current => {
-					set(this.signs, current.type, current)
-				})
-			} catch (err) {
-				this.error = err.response.data.message
-			}
-		},
-		hasSignatureOfType(type) {
-			return this.signs[type].id > 0
-		},
-		async save(type, base64) {
-			const config = {}
-			if (this.signs[type].id > 0) {
-				config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-					elementId: this.signs[type].id,
-				})
-				config.data = {
-					type,
-					file: { base64 },
+		actions: {
+			async loadSignatures() {
+				const userSignatures = loadState('libresign', 'user_signatures', false)
+				if (userSignatures) {
+					userSignatures.forEach(element => {
+						set(this.signs, element.type, element)
+					})
+					return
 				}
-				config.method = 'patch'
-			} else {
-				config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements')
-				config.data = {
-					elements: [
-						{
-							type,
-							file: { base64 },
-						},
-					],
-					// Only add UUID if is not null
-					...this.uuid,
-				}
-				config.method = 'post'
-			}
-			await axios(config)
-				.then(({ data }) => {
-					if (Object.hasOwn(data, 'elements')) {
-						data.elements.forEach(element => {
-							set(this.signs, element.type, element)
+				await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
+					.then(({ data }) => {
+						data.elements.forEach(current => {
+							set(this.signs, current.type, current)
 						})
+					})
+					.catch(({ data }) => {
+						this.error = data.message
+					})
+			},
+			hasSignatureOfType(type) {
+				return this.signs[type].createdAt.length > 0
+			},
+			async save(type, base64) {
+				const config = {}
+				if (this.signs[type].id > 0) {
+					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
+						elementId: this.signs[type].id,
+					})
+					config.data = {
+						type,
+						file: { base64 },
 					}
-					set(this.signs[type], 'value', base64)
-					this.success = data.message
-				})
-				.catch(({ response }) => {
-					if (Object.hasOwn(response.data, 'errors')) {
-						this.error = response.data.errors[0]
-					} else {
-						this.error = response.data.message
+					config.method = 'patch'
+				} else {
+					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements')
+					config.data = {
+						elements: [
+							{
+								type,
+								file: { base64 },
+							},
+						],
+						// Only add UUID if is not null
+						...this.uuid,
 					}
-				})
+					config.method = 'post'
+				}
+				await axios(config)
+					.then(({ data }) => {
+						if (Object.hasOwn(data, 'elements')) {
+							data.elements.forEach(element => {
+								set(this.signs, element.type, element)
+							})
+						}
+						set(this.signs[type], 'value', base64)
+						this.success = data.message
+					})
+					.catch(({ response }) => {
+						if (Object.hasOwn(response.data, 'errors')) {
+							this.error = response.data.errors[0]
+						} else {
+							this.error = response.data.message
+						}
+					})
+			},
+			async delete(type) {
+				await axios.delete(
+					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
+						elementId: this.signs[type].id,
+					}),
+				)
+					.then(({ data }) => {
+						this.signs[type] = emptyElement
+						this.success = data.message
+					})
+					.catch(({ data }) => {
+						this.error = data.message
+					})
+			},
 		},
-		async delete(type) {
-			await axios.delete(
-				generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-					elementId: this.signs[type].id,
-				}),
-			)
-				.then(({ data }) => {
-					this.signs[type] = {
-						id: 0,
-						fileId: 0,
-						value: '',
-					}
-					this.success = data.message
-				})
-				.catch(({ data }) => {
-					this.error = data.message
-				})
-		},
-	},
-})
+	})
+	const configureCheckStore = store(...args)
+	// Make sure we only register the initialize once
+	if (!configureCheckStore._initialized) {
+		configureCheckStore.loadSignatures()
+		configureCheckStore._initialized = true
+	}
+	return configureCheckStore
+}
