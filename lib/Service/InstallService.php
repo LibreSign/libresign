@@ -57,7 +57,7 @@ class InstallService {
 	/**
 	 * When update, verify the hash of all architectures
 	 */
-	public const CFSSL_VERSION = '1.6.3';
+	public const CFSSL_VERSION = '1.6.4';
 	/** @var ICache */
 	private $cache;
 	/** @var OutputInterface */
