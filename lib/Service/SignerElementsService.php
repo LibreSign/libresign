@@ -66,11 +66,6 @@ class SignerElementsService {
 		];
 	}
 
-	/**
-	 * @return ((int|string)[]|\DateTime|int|string)[][]
-	 *
-	 * @psalm-return list<array{id: int, type: string, file: array{url: string, fileId: int}, uid: string, starred: 0|1, createdAt: \DateTime}>
-	 */
 	public function getUserElements(string $userId): array {
 		$elements = $this->userElementMapper->findMany(['user_id' => $userId]);
 		$return = [];
@@ -86,9 +81,8 @@ class SignerElementsService {
 					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
 					'fileId' => $element->getFileId()
 				],
-				'uid' => $element->getUserId(),
 				'starred' => $element->getStarred() ? 1 : 0,
-				'createdAt' => $element->getCreatedAt()
+				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 			];
 		}
 		return $return;

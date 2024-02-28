@@ -37,9 +37,6 @@ export default {
 		const signatureElementsStore = useSignatureElementsStore()
 		return { signatureElementsStore }
 	},
-	mounted() {
-		this.signatureElementsStore.loadSignatures()
-	},
 }
 </script>
 
