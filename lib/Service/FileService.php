@@ -275,6 +275,9 @@ class FileService {
 	 */
 	private function getVisibleElements(): array {
 		$return = [];
+		if (!$this->showVisibleElements) {
+			return $return;
+		}
 		try {
 			if (is_object($this->signRequest)) {
 				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $this->signRequest->getId());
@@ -380,9 +383,7 @@ class FileService {
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}
-		if ($this->showVisibleElements) {
-			$return['visibleElements'] = $this->getVisibleElements();
-		}
+		$return['visibleElements'] = $this->getVisibleElements();
 		ksort($return);
 		return $return;
 	}
