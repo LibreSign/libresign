@@ -87,7 +87,7 @@ class SignerElementsService {
 					'fileId' => $element->getFileId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
-				'createdAt' => $element->getCreatedAt()
+				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
 			];
 		}
 		return $return;
