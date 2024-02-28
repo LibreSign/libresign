@@ -165,7 +165,6 @@ export default {
 		return { signMethodsStore, signatureElementsStore }
 	},
 	data() {
-		this.signatureElementsStore.loadSignatures()
 		return {
 			loading: true,
 			user: {
