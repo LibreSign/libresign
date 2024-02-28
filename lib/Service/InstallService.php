@@ -51,8 +51,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
 class InstallService {
-	public const JAVA_VERSION = 'openjdk version "17.0.5" 2022-10-18';
-	private const JAVA_PARTIAL_VERSION = '17.0.5_8';
+	public const JAVA_VERSION = 'openjdk version "21.0.2" 2024-01-16 LTS';
+	private const JAVA_PARTIAL_VERSION = '21.0.2_13';
 	public const PDFTK_VERSION = '3.3.3';
 	/**
 	 * When update, verify the hash of all architectures
@@ -340,11 +340,11 @@ class InstallService {
 		if (PHP_OS_FAMILY === 'Linux') {
 			$architecture = php_uname('m');
 			if ($architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK17U-jre_x64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
+				$compressedFileName = 'OpenJDK21U-jre_x64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
 			} elseif ($architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK17U-jre_aarch64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
-				$url = 'https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.5%2B8/' . $compressedFileName;
+				$compressedFileName = 'OpenJDK21U-jre_aarch64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
 			}
 			$class = TAR::class;
 		} else {
@@ -365,7 +365,7 @@ class InstallService {
 		$extractor = new $class($comporessedInternalFileName);
 		$extractor->extract($extractDir);
 
-		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-17.0.5+8-jre/bin/java');
+		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-21.0.2+13-jre/bin/java');
 		$this->removeDownloadProgress();
 	}
 
