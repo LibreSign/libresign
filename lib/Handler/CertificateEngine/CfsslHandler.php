@@ -282,6 +282,12 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		if (!parent::isSetupOk()) {
 			return false;
 		};
+		$configPath = $this->getConfigPath();
+		$certificate = file_get_contents($configPath . '/ca.pem');
+		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		if (!$certificate || !$privateKey) {
+			return false;
+		}
 		try {
 			$this->getClient();
 			return true;
