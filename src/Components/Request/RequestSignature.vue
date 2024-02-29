@@ -179,6 +179,7 @@ export default {
 					identify: {},
 				}
 				signer.identifyMethods.forEach(method => {
+					user.notify = false
 					if (method.method === 'account') {
 						user.identify.account = method?.value?.id ?? method?.value ?? signer.uid
 					} else if (method.method === 'email') {
