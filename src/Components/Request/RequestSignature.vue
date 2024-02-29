@@ -61,6 +61,7 @@ import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import { getCurrentUser } from '@nextcloud/auth'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { showResponseError } from '../../helpers/errors.js'
@@ -94,7 +95,10 @@ export default {
 	},
 	computed: {
 		canSave() {
-			return this.canRequestSign && !this.filesStore.isSigned() && this.filesStore.getFile()?.signers?.length > 0
+			return this.canRequestSign
+				&& this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+				&& !this.filesStore.isSigned()
+				&& this.filesStore.getFile()?.signers?.length > 0
 		},
 		canSign() {
 			return !this.filesStore.isSigned()
