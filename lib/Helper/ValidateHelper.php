@@ -732,7 +732,9 @@ class ValidateHelper {
 			}
 		}
 		if (empty($identifyMethods)) {
-			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
+			$identifyMethod = $this->identifyMethodService
+				->setCurrentIdentifyMethod()
+				->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
 		} else {
 			$identifyMethod = current($identifyMethods);
 		}
