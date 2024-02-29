@@ -200,7 +200,11 @@ export default {
 					emit('libresign:show-visible-elements')
 				})
 				.catch(({ response }) => {
-					showError(response.data.message)
+					if (response.data.message) {
+						showError(response.data.message)
+					} else if (response.data.errors) {
+						response.data.errors.forEach(error => showError(error))
+					}
 				})
 			this.hasLoading = false
 		},
