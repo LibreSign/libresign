@@ -46,6 +46,7 @@
     "Pending" : "Pendiente",
     "Signatures" : "Firmes",
     "Description" : "Descripción",
-    "Add" : "Amestar"
+    "Add" : "Amestar",
+    "Users" : "Usuarios"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

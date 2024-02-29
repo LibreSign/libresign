@@ -155,6 +155,7 @@
     "No initials, click here to create a new" : "이니셜이 없습니다. 새로 만들려면 여기를 클릭하십시오.",
     "Profile picture" : "프로필 사진",
     "Create account" : "회원 등록",
+    "You need to create an account with the same email address you received the invitation from." : "초대장을 수신한 이메일 주소를 사용하여 계정을 만드십시오.",
     "Confirm password" : "암호 확인",
     "This is not a valid email" : "잘못된 이메일입니다.",
     "The email entered is not the same as the email in the invitation" : "입력한 이메일이 초대장의 이메일과 다릅니다.",
