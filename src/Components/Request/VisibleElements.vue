@@ -265,6 +265,7 @@ export default {
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
 			} catch (err) {
+				this.loading = false
 				this.onError(err)
 				return false
 			}
