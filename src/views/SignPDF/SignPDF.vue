@@ -101,13 +101,15 @@ export default {
 			return SIGN_STATUS.ABLE_TO_SIGN === this.document.status
 				|| SIGN_STATUS.PARTIAL_SIGNED === this.document.status
 		},
-		updateSigners() {
+		updateSigners(data) {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
 					this.document.visibleElements.forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
 							object.readOnly = true
+							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
+								- element.coordinates.ury
 							object.element = element
 							this.$refs.pdfEditor.addSigner(object)
 						}
