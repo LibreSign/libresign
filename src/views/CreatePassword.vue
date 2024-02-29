@@ -63,12 +63,12 @@ export default {
 					signPassword: this.password,
 				})
 				showSuccess(t('libresign', 'New password to sign documents has been created'))
-				this.signMethodsStore.hasSignatureFile(true)
+				this.signMethodsStore.setHasSignatureFile(true)
 				this.clear()
 				this.$emit('close', true)
 				this.$emit('password:created', true)
 			} catch (err) {
-				this.signMethodsStore.hasSignatureFile(false)
+				this.signMethodsStore.setHasSignatureFile(false)
 				if (err.response.data.message) {
 					showError(err.response.data.message)
 				} else {
