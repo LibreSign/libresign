@@ -116,6 +116,16 @@ class FileElementService {
 		} else {
 			$translated['urx'] = 0;
 		}
+		if ($translated['ury'] < $translated['lly']) {
+			$temp = $translated['ury'];
+			$translated['ury'] = $translated['lly'];
+			$translated['lly'] = $temp;
+		}
+		if ($translated['urx'] < $translated['llx']) {
+			$temp = $translated['urx'];
+			$translated['urx'] = $translated['llx'];
+			$translated['llx'] = $temp;
+		}
 
 		return $translated;
 	}
