@@ -478,6 +478,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 		);
 	}
 
+	#[NoAdminRequired]
 	public function deletePfx(): JSONResponse {
 		$this->accountService->deletePfx($this->userSession->getUser());
 		return new JSONResponse(
