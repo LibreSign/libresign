@@ -182,7 +182,7 @@ class FileService {
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		foreach ($signers as $signer) {
 			$signatureToShow = [
-				'signed' => null,
+				'signed' => $signer->getSigned(),
 				'displayName' => $signer->getDisplayName(),
 				'me' => false,
 				'signRequestId' => $signer->getId(),
