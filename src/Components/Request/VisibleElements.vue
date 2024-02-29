@@ -223,10 +223,10 @@ export default {
 			}))
 		},
 		async goToSign() {
-			await this.save()
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
-
-			window.location.href = route.href
+			if (await this.save()) {
+				const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
+				window.location.href = route.href
+			}
 		},
 		async save() {
 			try {
@@ -266,8 +266,10 @@ export default {
 				this.closeModal()
 			} catch (err) {
 				this.onError(err)
+				return false
 			}
 			this.loading = false
+			return true
 		},
 	},
 }
