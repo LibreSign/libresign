@@ -234,7 +234,7 @@ export default {
 				const visibleElements = []
 				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
 					const [pageNumber, page] = entry
-					const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page'+pageNumber][0].getCanvasMeasurement()
+					const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
 					page.forEach(function(element) {
 						visibleElements.push({
 							type: 'signature',
