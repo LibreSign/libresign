@@ -56,7 +56,7 @@
 								<div class="subscriber">
 									<span><b>{{ getName(item) }}</b></span>
 									<span v-if="item.signed" class="data-signed">
-										<Moment :timestamp="item.signed" />
+										<Moment :date-time="item.signed" />
 									</span>
 									<span v-else>{{ noDateMessage }}</span>
 								</div>

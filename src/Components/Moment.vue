@@ -21,10 +21,10 @@ export default {
 	},
 	computed: {
 		title() {
-			return moment.unix(this.timestamp).format(this.format)
+			return moment(this.timestamp).format(this.format)
 		},
 		formatted() {
-			return moment.unix(this.timestamp).fromNow()
+			return moment(this.timestamp).fromNow()
 		},
 	},
 }
