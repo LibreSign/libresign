@@ -43,20 +43,38 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			set(this.modal, modalCode, true)
 		},
 		blurredEmail() {
-			return this.settings.emailToken.blurredEmail
+			return this.settings?.emailToken?.blurredEmail ?? ''
 		},
 		hasEmailConfirmCode(hasConfirmCode) {
+			if (!Object.hasOwn(this.settings, 'emailToken')) {
+				set(this.settings, 'emailToken', {})
+			}
 			set(this.settings.emailToken, 'hasConfirmCode', hasConfirmCode)
 		},
 		setEmailToken(token) {
+			if (!Object.hasOwn(this.settings, 'emailToken')) {
+				set(this.settings, 'emailToken', {})
+			}
 			set(this.settings.emailToken, 'token', token)
 		},
-		hasSignatureFile(hasSignatureFile) {
+		hasSignatureFile() {
+			return Object.hasOwn(this.settings, 'password')
+				&& Object.hasOwn(this.settings.password, 'hasSignatureFile')
+				&& this.settings.password.hasSignatureFile
+		},
+		setHasSignatureFile(hasSignatureFile) {
+			if (!Object.hasOwn(this.settings, 'password')) {
+				set(this.settings, 'password', {})
+			}
 			set(this.settings.password, 'hasSignatureFile', hasSignatureFile)
 		},
 		needCreatePassword() {
 			return this.needSignWithPassword()
-				&& !this.settings.password.hasSignatureFile
+				&& (
+					!Object.hasOwn(this.settings, 'password')
+					|| !Object.hasOwn(this.settings.password, 'hasSignatureFile')
+					|| !this.settings.password.hasSignatureFile
+				)
 		},
 		needSignWithPassword() {
 			return Object.hasOwn(this.settings, 'password')

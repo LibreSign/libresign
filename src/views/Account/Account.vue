@@ -16,20 +16,20 @@
 							<NcButton @click="uploadCertificate()">
 								{{ t('libresign', 'Upload certificate') }}
 							</NcButton>
-							<NcButton v-if="getHasPfx" @click="deleteCertificate()">
+							<NcButton v-if="signMethodsStore.hasSignatureFile()" @click="deleteCertificate()">
 								{{ t('libresign', 'Delete certificate') }}
 							</NcButton>
-							<NcButton v-if="certificateEngine !== 'none' && !getHasPfx" @click="handleModal(true)">
+							<NcButton v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()" @click="handleModal(true)">
 								{{ t('libresign', 'Create certificate') }}
 							</NcButton>
-							<NcButton v-else-if="getHasPfx" @click="handleModal(true)">
+							<NcButton v-else-if="signMethodsStore.hasSignatureFile()" @click="handleModal(true)">
 								{{ t('librsign', 'Change password') }}
 							</NcButton>
 						</div>
 						<NcModal v-if="modal"
 							@close="handleModal(false)">
-							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
-							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
+							<CreatePassword v-if="!signMethodsStore.hasSignatureFile()" @close="handleModal(false)" />
+							<ResetPassword v-if="signMethodsStore.hasSignatureFile()" @close="handleModal(false)" />
 						</NcModal>
 					</div>
 				</div>
@@ -52,12 +52,12 @@ import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { mapGetters } from 'vuex'
 import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
 import Signatures from './partials/Signatures.vue'
 import Documents from './partials/Documents.vue'
+import { useSignMethodsStore } from '../../store/signMethods.js'
 
 export default {
 	name: 'Account',
@@ -72,6 +72,10 @@ export default {
 		UserImage,
 		Documents,
 	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
+	},
 
 	data() {
 		return {
@@ -80,14 +84,8 @@ export default {
 			certificateEngine: loadState('libresign', 'certificate_engine', ''),
 		}
 	},
-
-	computed: {
-		...mapGetters({
-			getHasPfx: 'getHasPfx',
-		}),
-	},
 	mounted() {
-		this.$store.commit('setHasPfx', loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
+		this.signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
 	},
 	methods: {
 		uploadCertificate() {
@@ -114,9 +112,7 @@ export default {
 				formData.append('file', file)
 				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
 				showSuccess(response.data.message)
-				if (this.$store) {
-					this.$store.commit('setHasPfx', true)
-				}
+				this.signMethodsStore.setHasSignatureFile(true)
 			} catch (err) {
 				showError(err.response.data.message)
 			}
@@ -124,9 +120,7 @@ export default {
 		async deleteCertificate() {
 			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
 			showSuccess(response.data.message)
-			if (this.$store) {
-				this.$store.commit('setHasPfx', false)
-			}
+			this.signMethodsStore.setHasSignatureFile(false)
 		},
 		handleModal(status) {
 			this.modal = status

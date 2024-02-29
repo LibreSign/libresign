@@ -27,7 +27,6 @@ import sidebar from './modules/sidebar.js'
 import files from './modules/files.js'
 import error from './modules/errors.js'
 import settings from './modules/settings.js'
-import user from './modules/user.js'
 
 Vue.use(Vuex)
 
@@ -82,6 +81,5 @@ export default new Store({
 		sidebar,
 		files,
 		error,
-		user,
 	},
 })
