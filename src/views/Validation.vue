@@ -56,7 +56,7 @@
 								<div class="subscriber">
 									<span><b>{{ getName(item) }}</b></span>
 									<span v-if="item.signed" class="data-signed">
-										<Moment :date-time="item.signed" />
+										{{ item.signed }}
 									</span>
 									<span v-else>{{ noDateMessage }}</span>
 								</div>
@@ -86,7 +86,6 @@ import iconB from '../../img/file-signature-solid.svg'
 import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import Moment from './../Components/Moment.vue'
 import logger from '../logger.js'
 
 export default {
@@ -94,7 +93,6 @@ export default {
 	name: 'Validation',
 
 	components: {
-		Moment,
 		NcRichText,
 		NcContent,
 		NcButton,

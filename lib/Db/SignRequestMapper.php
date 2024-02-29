@@ -31,6 +31,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IDateTimeFormatter;
 use OCP\IDBConnection;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -53,6 +54,7 @@ class SignRequestMapper extends QBMapper {
 		protected IL10N $l10n,
 		protected FileMapper $fileMapper,
 		private IUserManager $userManager,
+		private IDateTimeFormatter $dateTimeFormatter,
 		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct($db, 'libresign_sign_request');
@@ -486,9 +488,7 @@ class SignRequestMapper extends QBMapper {
 					}
 
 					if ($signer->getSigned()) {
-						$data['signed'] = (new \DateTime())
-							->setTimestamp($signer->getSigned())
-							->format('Y-m-d H:i:s');
+						$data['signed'] = $this->dateTimeFormatter->formatDateTime($signer->getSigned());
 						$totalSigned++;
 					}
 					ksort($data);
