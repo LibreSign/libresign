@@ -37,6 +37,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
+use OCP\IDateTimeFormatter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -87,6 +88,7 @@ class FileService {
 		private IUserManager $userManager,
 		private IAccountManager $accountManager,
 		protected IClientService $client,
+		private IDateTimeFormatter $dateTimeFormatter,
 		private IAppConfig $appConfig,
 		private IRootFolder $rootFolder,
 		private IURLGenerator $urlGenerator,
@@ -181,7 +183,9 @@ class FileService {
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
 		foreach ($signers as $signer) {
 			$signatureToShow = [
-				'signed' => $signer->getSigned(),
+				'signed' => $signer->getSigned() ?
+					$this->dateTimeFormatter->formatDateTime($signer->getSigned())
+					: '',
 				'displayName' => $signer->getDisplayName(),
 				'me' => false,
 				'signRequestId' => $signer->getId(),
