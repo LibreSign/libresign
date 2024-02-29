@@ -186,12 +186,14 @@ export default {
 
 			return showError(err.message)
 		},
-		updateSigners() {
+		updateSigners(data) {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
 					this.document.visibleElements.forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
+							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
+								- element.coordinates.ury
 							object.element = element
 							this.$refs.pdfEditor.addSigner(object)
 						}
@@ -232,6 +234,7 @@ export default {
 				const visibleElements = []
 				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
 					const [pageNumber, page] = entry
+					const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page'+pageNumber][0].getCanvasMeasurement()
 					page.forEach(function(element) {
 						visibleElements.push({
 							type: 'signature',
@@ -242,13 +245,13 @@ export default {
 								width: element.width,
 								height: element.height,
 								llx: element.x,
-								lly: element.y + element.height,
-								ury: element.y,
+								lly: measurement.canvasHeight - element.y,
+								ury: measurement.canvasHeight - element.y - element.height,
 								urx: element.x + element.width,
 							},
 						})
 					})
-				})
+				}, this)
 				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					users: this.filesStore.getFile().signers,
 					// Only add to array if not empty
