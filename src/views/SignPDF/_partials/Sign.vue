@@ -94,7 +94,7 @@
 			@close="signMethodsStore.closeModal('createSignature')" />
 		<NcModal v-if="signMethodsStore.modal.createPassword"
 			@close="signMethodsStore.closeModal('createPassword')">
-			<CreatePassword @password:created="signMethodsStore.hasSignatureFile"
+			<CreatePassword @password:created="signMethodsStore.setHasSignatureFile"
 				@close="signMethodsStore.closeModal('createPassword')" />
 		</NcModal>
 		<SMSManager v-if="signMethodsStore.modal.sms"
