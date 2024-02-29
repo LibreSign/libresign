@@ -48,6 +48,7 @@ OC.L10N.register(
     "Pending" : "Pendiente",
     "Signatures" : "Firmes",
     "Description" : "Descripción",
-    "Add" : "Amestar"
+    "Add" : "Amestar",
+    "Users" : "Usuarios"
 },
 "nplurals=2; plural=(n != 1);");
