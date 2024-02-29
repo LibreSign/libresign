@@ -96,7 +96,10 @@ export default {
 	computed: {
 		canSave() {
 			return this.canRequestSign
-				&& this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+				&& (
+					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
+					|| this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+				)
 				&& !this.filesStore.isSigned()
 				&& this.filesStore.getFile()?.signers?.length > 0
 		},
