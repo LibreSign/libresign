@@ -185,7 +185,7 @@ class FileService {
 			$signatureToShow = [
 				'signed' => $signer->getSigned() ?
 					$this->dateTimeFormatter->formatDateTime($signer->getSigned())
-					: '',
+					: null,
 				'displayName' => $signer->getDisplayName(),
 				'me' => false,
 				'signRequestId' => $signer->getId(),
