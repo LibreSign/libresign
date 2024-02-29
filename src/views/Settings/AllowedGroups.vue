@@ -77,7 +77,10 @@ export default {
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/groups_request_sign'),
 			)
 			if (response.data.ocs.data.data !== '') {
-				this.groupsSelected = JSON.parse(response.data.ocs.data.data)
+				const groupsSelected = JSON.parse(response.data.ocs.data.data)
+				this.groupsSelected = this.groups.filter(group => {
+					return groupsSelected.indexOf(group.id) !== -1
+				})
 			}
 			this.loadingGroups = false
 		},
