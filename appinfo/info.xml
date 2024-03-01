@@ -11,7 +11,7 @@
     </description>
     <version>9.0.0-rc6</version>
     <licence>agpl</licence>
-    <author mail="contact@librecode.coop" homepage="https://librecode.coop">Libre Code</author>
+    <author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
     <documentation>
         <admin>https://github.com/LibreSign/libresign/blob/master/README.md</admin>
     </documentation>
