@@ -338,8 +338,6 @@
     "Name of an organization" : "Namn på en organisation",
     "Name of an organizational unit" : "Namn på en organisationsenhet",
     "Requested by {name}, at {date}" : "Begärd av {name}, den {date}",
-    "User created!" : "Användare skapad!",
-    "Password created!" : "Lösenord skapat!",
     "able to sign" : "kan signera",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Filtyp: %s. Ange en URL, en Base64-sträng eller ett filID.",
     "File type: %s. Invalid base64 file." : "Filtyp: %s. Ogiltig Base64-fil.",
@@ -386,6 +384,8 @@
     "This iframe is not supported in your browser." : "Denna iframe stöds inte i din webbläsare.",
     "%s is not a valid sign method" : "%s är inte en giltig signeringsmetod.",
     "Document Informations" : "Dokumentinformation",
-    "Validate Subscription." : "Validera prenumeration."
+    "Validate Subscription." : "Validera prenumeration.",
+    "User created!" : "Användare skapad!",
+    "Password created!" : "Lösenord skapat!"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

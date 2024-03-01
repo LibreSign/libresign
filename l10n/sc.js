@@ -151,8 +151,6 @@ OC.L10N.register(
     "This document is valid" : "Custu documentu est bàlidu",
     "Open in LibreSign" : "Aberi in LibreSign",
     "Requested by {name}, at {date}" : "Rechertu dae {name}, su {date}",
-    "User created!" : "Utente creadu!",
-    "Password created!" : "Crae creada!",
     "Remove duplicated users, email address need to be unique" : "Boga ·nche is utentes dòpios, is indiritzos de posta eletrònica devet èssere ùnicos",
     "Apply" : "Àplica",
     "Signatures" : "Firmas",
@@ -177,6 +175,8 @@ OC.L10N.register(
     "Remove" : "Boga",
     "This iframe is not supported in your browser." : "Custu iframe no est suportadu dae su navigadore tuo.",
     "Document Informations" : "Informatziones de su documentu",
-    "Validate Subscription." : "Cunvàlida sutaiscritzione."
+    "Validate Subscription." : "Cunvàlida sutaiscritzione.",
+    "User created!" : "Utente creadu!",
+    "Password created!" : "Crae creada!"
 },
 "nplurals=2; plural=(n != 1);");

@@ -340,8 +340,6 @@ OC.L10N.register(
     "Name of an organization" : "Navn på en organisasjon",
     "Name of an organizational unit" : "Navn på en organisatorisk enhet",
     "Requested by {name}, at {date}" : "Bedt av {name}, den {date}",
-    "User created!" : "Bruker opprettet!",
-    "Password created!" : "Passord opprettet!",
     "able to sign" : "er i stand til å signere",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Filtype: %s. Spesifiser en URL, en Base64-streng eller en fil-ID.",
     "File type: %s. Invalid base64 file." : "Filtype: %s. Ugyldig base64-fil.",
@@ -388,6 +386,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Denne iframen støttes ikke i nettleseren din.",
     "%s is not a valid sign method" : "%s er ikke en gyldig signeringsmetode",
     "Document Informations" : "Dokumentinformasjon",
-    "Validate Subscription." : "Valider abonnement."
+    "Validate Subscription." : "Valider abonnement.",
+    "User created!" : "Bruker opprettet!",
+    "Password created!" : "Passord opprettet!"
 },
 "nplurals=2; plural=(n != 1);");

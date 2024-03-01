@@ -104,7 +104,6 @@ OC.L10N.register(
     "Return" : "Tornar",
     "No date" : "Cap de data",
     "This document is valid" : "Aqueste document es valid",
-    "User created!" : "Utilizaire creat !",
     "You must not sign this file." : "Devètz pas signar aqueste fichièr.",
     "Page not found." : "Pagina pas trobada",
     "Apply" : "Aplicar",
@@ -116,6 +115,7 @@ OC.L10N.register(
     "Select a file" : "Select a file",
     "Add users" : "Apondre utilizaires",
     "Remove" : "Suprimir",
-    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador."
+    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
+    "User created!" : "Utilizaire creat !"
 },
 "nplurals=2; plural=(n > 1);");

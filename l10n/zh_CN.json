@@ -230,8 +230,6 @@
     "This document is valid" : "该文档有效",
     "Open in LibreSign" : "在 LibreSign 中打开",
     "Requested by {name}, at {date}" : "{name} 请求于 {date}",
-    "User created!" : "用户已创建！",
-    "Password created!" : "已创建密码！",
     "able to sign" : "可以签署",
     "File type: %s. Invalid base64 file." : "文件类型：%s。无效的 base64 文件",
     "Coordinate %s must be equal to or greater than 0" : "坐标 %s 必须等于或大于 0",
@@ -274,6 +272,8 @@
     "This iframe is not supported in your browser." : "你的浏览器不支持这个 iframe",
     "%s is not a valid sign method" : "%s 非有效签名方式",
     "Document Informations" : "文档信息",
-    "Validate Subscription." : "验证订阅"
+    "Validate Subscription." : "验证订阅",
+    "User created!" : "用户已创建！",
+    "Password created!" : "已创建密码！"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

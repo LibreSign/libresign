@@ -134,6 +134,7 @@ OC.L10N.register(
     "Sign" : "Знак",
     "Previous" : "Назад",
     "Account not exist" : "Учётная запись не существует",
+    "pending" : "ожидается",
     "Details" : "Свойства",
     "Certificate" : "Сертификат",
     "Delete certificate" : "Удалить сертификат",
@@ -211,8 +212,6 @@ OC.L10N.register(
     "This document is valid" : "Этот документ действителен",
     "Open in LibreSign" : "Открыть в LibreSign",
     "Requested by {name}, at {date}" : "Запрошено у {name} {date}",
-    "User created!" : "Пользователь создан",
-    "Password created!" : "Пароль создан!",
     "able to sign" : "можно подписать",
     "File type: %s. Invalid base64 file." : "Тип файла: %s. Недопустимый файл base64.",
     "Coordinate %s must be equal to or greater than 0" : "Координата %s должна быть больше или равна 0",
@@ -247,6 +246,8 @@ OC.L10N.register(
     "Remove" : "Удалить",
     "This iframe is not supported in your browser." : "Этот iframe не поддерживается вашим браузером.",
     "Document Informations" : "Информация о документе",
-    "Validate Subscription." : "Подтвердить подписку."
+    "Validate Subscription." : "Подтвердить подписку.",
+    "User created!" : "Пользователь создан",
+    "Password created!" : "Пароль создан!"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

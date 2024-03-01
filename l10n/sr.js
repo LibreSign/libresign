@@ -340,8 +340,6 @@ OC.L10N.register(
     "Name of an organization" : "Име организације",
     "Name of an organizational unit" : "Име организационе јединице",
     "Requested by {name}, at {date}" : "Захтевао {name}, дана {date}",
-    "User created!" : "Корисник је креиран!",
-    "Password created!" : "Лозинка је креирана!",
     "able to sign" : "може да се потпише",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Тип фајла: %s. Наведите URL,  base64 стринг или fileID.",
     "File type: %s. Invalid base64 file." : "Тип фајла: %s. Неисправан base64 фајл.",
@@ -388,6 +386,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Ваш прегледач не подржава овај iframe.",
     "%s is not a valid sign method" : "%s није исправна метода за потписивање",
     "Document Informations" : "Информације о документу",
-    "Validate Subscription." : "Потврди претплату."
+    "Validate Subscription." : "Потврди претплату.",
+    "User created!" : "Корисник је креиран!",
+    "Password created!" : "Лозинка је креирана!"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

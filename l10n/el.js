@@ -93,7 +93,6 @@ OC.L10N.register(
     "Return" : "Επιστροφή",
     "Validation" : "Επικύρωση",
     "No date" : "Καμία ημερομηνία",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!",
     "Apply" : "Εφαρμογή",
     "Signatures" : "Υπογραφές",
     "Description" : "Περιγραφή",
@@ -104,6 +103,7 @@ OC.L10N.register(
     "Password for sign document." : "Συνθηματικό για υπογραφή του εγγράφου.",
     "Add users" : "Προσθήκη χρηστών",
     "Remove" : "Αφαίρεση",
-    "Validate Subscription." : "Επικύρωση συνδρομής."
+    "Validate Subscription." : "Επικύρωση συνδρομής.",
+    "User created!" : "Ο χρήστης δημιουργήθηκε!"
 },
 "nplurals=2; plural=(n != 1);");

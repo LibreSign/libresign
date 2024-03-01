@@ -338,8 +338,6 @@
     "Name of an organization" : "組織名稱",
     "Name of an organizational unit" : "組織單位名稱",
     "Requested by {name}, at {date}" : "由 {name} 請求於 {date}",
-    "User created!" : "使用者已建立！",
-    "Password created!" : "已建立密碼！",
     "able to sign" : "可以簽署",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "檔案類型：%s。指定 URL，一個 base64 字串或 fileID。",
     "File type: %s. Invalid base64 file." : "檔案類型：%s。無效的 base64 檔案。",
@@ -386,6 +384,8 @@
     "This iframe is not supported in your browser." : "您的瀏覽器不支援此 iframe。",
     "%s is not a valid sign method" : "%s 不是有效的簽章方式",
     "Document Informations" : "文件資訊",
-    "Validate Subscription." : "驗證訂閱"
+    "Validate Subscription." : "驗證訂閱",
+    "User created!" : "使用者已建立！",
+    "Password created!" : "已建立密碼！"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

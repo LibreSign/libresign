@@ -252,8 +252,6 @@ OC.L10N.register(
     "This document is valid" : "Dokument je pravý",
     "Open in LibreSign" : "Otvoriť v LibreSign",
     "Requested by {name}, at {date}" : "Vyžiadané od {name}, o {date}",
-    "User created!" : "Užívateľ vytvorený!",
-    "Password created!" : "Heslo bolo vytvorené!",
     "able to sign" : "schopný podpísať",
     "File type: %s. Invalid base64 file." : "Typ súboru: %s. Neplatný base64 súbor.",
     "Coordinate %s must be equal to or greater than 0" : "Súradnica %s musí byť číslo väčšie alebo rovné 0",
@@ -296,6 +294,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Váš prehliadač nepodporuje tento iframe.",
     "%s is not a valid sign method" : "%s nie je platná podpisová metóda",
     "Document Informations" : "Informácie o dokumente",
-    "Validate Subscription." : "Overiť predplatné."
+    "Validate Subscription." : "Overiť predplatné.",
+    "User created!" : "Užívateľ vytvorený!",
+    "Password created!" : "Heslo bolo vytvorené!"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
