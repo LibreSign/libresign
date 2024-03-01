@@ -277,8 +277,6 @@ OC.L10N.register(
     "Name of an organization" : "Име на организация",
     "Name of an organizational unit" : "Име на организационна единица",
     "Requested by {name}, at {date}" : "Поискано от {name}, на {date}",
-    "User created!" : "Потребителят е създаден!",
-    "Password created!" : "Паролата е създадена! ",
     "able to sign" : "в състояние да подпише",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Тип на файла: %s. Посочете URL адрес, низ base64 или идентификатор на файла.",
     "File type: %s. Invalid base64 file." : "Тип на файла: %s. Невалиден файл base64.",
@@ -325,6 +323,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Тази iframe не се поддържа във вашия браузър.",
     "%s is not a valid sign method" : "%s не е валиден метод за подпис",
     "Document Informations" : "Информация за документ",
-    "Validate Subscription." : "Проверка на абонамент."
+    "Validate Subscription." : "Проверка на абонамент.",
+    "User created!" : "Потребителят е създаден!",
+    "Password created!" : "Паролата е създадена! "
 },
 "nplurals=2; plural=(n != 1);");

@@ -227,8 +227,6 @@ OC.L10N.register(
     "This document is valid" : "이 문서는 유효합니다.",
     "Open in LibreSign" : "LibreSign으로 열기",
     "Requested by {name}, at {date}" : "{날짜}에 {이름}에 의해 요청됨",
-    "User created!" : "사용자가 생성되었습니다!",
-    "Password created!" : "암호가 생성되었습니다!",
     "able to sign" : "서명할 수 있는",
     "File type: %s. Invalid base64 file." : "파일 종류: %s. 잘못된 base64 파일",
     "Coordinate %s must be equal to or greater than 0" : "좌표 %s는 0보다 크거나 같아야 합니다.",
@@ -270,6 +268,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "브라우저에서는 이 iframe이 지원되지 않습니다.",
     "%s is not a valid sign method" : "%s은 올바른 사인 방법이 아닙니다.",
     "Document Informations" : "문서 정보",
-    "Validate Subscription." : "구독 유효성 확인"
+    "Validate Subscription." : "구독 유효성 확인",
+    "User created!" : "사용자가 생성되었습니다!",
+    "Password created!" : "암호가 생성되었습니다!"
 },
 "nplurals=1; plural=0;");

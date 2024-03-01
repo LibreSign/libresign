@@ -174,8 +174,6 @@ OC.L10N.register(
     "This document is valid" : "Asiakirja on kelvollinen",
     "Open in LibreSign" : "Avaa LibreSignissa",
     "Requested by {name}, at {date}" : "Pyytänyt {name} {date}",
-    "User created!" : "Käyttäjä luotu!",
-    "Password created!" : "Salasana luotu!",
     "able to sign" : "kykenevä allekirjoittamaan",
     "File type: %s. Invalid base64 file." : "Tiedostotyyppi: %s. Virheellinen base64-tiedosto.",
     "You must not sign this file." : "Sinun ei pidä allekirjoittaa tätä tiedostoa.",
@@ -202,6 +200,8 @@ OC.L10N.register(
     "Add users" : "Lisää käyttäjiä",
     "Generate root certificate." : "Luo juurivarmenne.",
     "Remove" : "Poista",
-    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea."
+    "This iframe is not supported in your browser." : "Selaimesi ei tue tätä iframea.",
+    "User created!" : "Käyttäjä luotu!",
+    "Password created!" : "Salasana luotu!"
 },
 "nplurals=2; plural=(n != 1);");

@@ -293,8 +293,6 @@
     "Name of an organization" : "Egy szervezet neve",
     "Name of an organizational unit" : "Egy szervezeti egység neve",
     "Requested by {name}, at {date}" : "{name} kérte, ekkor: {date}",
-    "User created!" : "Felhasználó létrehozva.",
-    "Password created!" : "Jelszó létrehozva.",
     "able to sign" : "aláírható",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Fájltípus: %s. Adjon meg egy URL-t, egy base64 karakterláncot vagy egy fájlazonosítót.",
     "File type: %s. Invalid base64 file." : "Fájltípus: %s. Érvénytelen base64 fájl.",
@@ -341,6 +339,8 @@
     "This iframe is not supported in your browser." : "Ez az iframe nem támogatott az Ön böngészőjében.",
     "%s is not a valid sign method" : "A(z) %s nem egy érvényes aláírási mód",
     "Document Informations" : "Dokumentuminformációk",
-    "Validate Subscription." : "Aláírás ellenőrzése."
+    "Validate Subscription." : "Aláírás ellenőrzése.",
+    "User created!" : "Felhasználó létrehozva.",
+    "Password created!" : "Jelszó létrehozva."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

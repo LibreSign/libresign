@@ -276,8 +276,6 @@ OC.L10N.register(
     "Name of an organization" : "Nom d'una organització",
     "Name of an organizational unit" : "Nom d'una unitat organitzativa",
     "Requested by {name}, at {date}" : "Sol·licitat per {name}, a {date}",
-    "User created!" : "Usuari creat!",
-    "Password created!" : "Contrasenya creada!",
     "able to sign" : "capaç de signar",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Tipus de fitxer: %s. Especifiqueu un URL, una cadena base64 o un ID de fitxer.",
     "File type: %s. Invalid base64 file." : "Tipus de fitxer: %s. Fitxer base64 no vàlid.",
@@ -324,6 +322,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Aquest iframe no és compatible amb el vostre navegador.",
     "%s is not a valid sign method" : "%s no és un mètode de signatura vàlid",
     "Document Informations" : "Informació del document",
-    "Validate Subscription." : "Valida la subscripció."
+    "Validate Subscription." : "Valida la subscripció.",
+    "User created!" : "Usuari creat!",
+    "Password created!" : "Contrasenya creada!"
 },
 "nplurals=2; plural=(n != 1);");

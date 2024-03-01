@@ -338,8 +338,6 @@
     "Name of an organization" : "اسم المؤسسة",
     "Name of an organizational unit" : "اسم الوحدة الإدارية",
     "Requested by {name}, at {date}" : "مطلوب من قبل {name}، في {date}",
-    "User created!" : "تم إنشاء المستخدم!",
-    "Password created!" : "تم إنشاء كلمة المرور!",
     "able to sign" : "قادر على التوقيع",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "نوع الملف:%sحدد عنوان URL أو سلسلة base64 أو معرّف الملف.",
     "File type: %s. Invalid base64 file." : "نوع الملف:%s. ملف base64 غير صالح.",
@@ -386,6 +384,8 @@
     "This iframe is not supported in your browser." : "إطار iframe هذا غير مدعوم في متصفحك.",
     "%s is not a valid sign method" : "%sليست طريقة تسجيل صالحة",
     "Document Informations" : "معلومات الوثيقة",
-    "Validate Subscription." : "التحقق من صحة الاشتراك."
+    "Validate Subscription." : "التحقق من صحة الاشتراك.",
+    "User created!" : "تم إنشاء المستخدم!",
+    "Password created!" : "تم إنشاء كلمة المرور!"
 },"pluralForm" :"nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;"
 }

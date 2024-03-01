@@ -319,8 +319,6 @@ OC.L10N.register(
     "Name of an organization" : "Název organizace",
     "Name of an organizational unit" : "Název organizační jednotky",
     "Requested by {name}, at {date}" : "Požádal(a) {name}, v {date}",
-    "User created!" : "Uživatel vytvořen!",
-    "Password created!" : "Heslo vytvořeno!",
     "able to sign" : "možné podepsat",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Typ souboru: %s. Zadejte URL, řetězec base64 nebo identif. souboru.",
     "File type: %s. Invalid base64 file." : "Typ souboru: %s. Neplatný base64 soubor.",
@@ -367,6 +365,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Tento iframe prvek není podporován vaším prohlížečem.",
     "%s is not a valid sign method" : "%s není platná metoda pro podepisování",
     "Document Informations" : "Informace o dokumentu",
-    "Validate Subscription." : "Ověřit předplatné."
+    "Validate Subscription." : "Ověřit předplatné.",
+    "User created!" : "Uživatel vytvořen!",
+    "Password created!" : "Heslo vytvořeno!"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
