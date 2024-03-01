@@ -255,8 +255,6 @@ OC.L10N.register(
     "Full name of states or provinces" : "Polno ime države ali province",
     "Name of an organization" : "Naziv organizacije",
     "Name of an organizational unit" : "Naziv organizacijske enote v podjetju",
-    "User created!" : "Uporabnik je ustvarjen!",
-    "Password created!" : "Geslo je uspešno ustvarjeno!",
     "able to sign" : "mogoče podpisati",
     "File type: %s. Invalid base64 file." : "Vrsta datoteke: %s. Neveljavna datoteka base64.",
     "Coordinate %s must be equal to or greater than 0" : "Koordinata %s mora biti enaka ali večja od vrednosti 0.",
@@ -297,6 +295,8 @@ OC.L10N.register(
     "Remove" : "Odstrani",
     "This iframe is not supported in your browser." : "To polje iframe v uporabljenem brskalniku ni podprto.",
     "Document Informations" : "Podrobnosti dokumenta",
-    "Validate Subscription." : "Potrdi naročnino"
+    "Validate Subscription." : "Potrdi naročnino",
+    "User created!" : "Uporabnik je ustvarjen!",
+    "Password created!" : "Geslo je uspešno ustvarjeno!"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

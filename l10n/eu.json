@@ -277,8 +277,6 @@
     "Name of an organization" : "Erakunde baten izena",
     "Name of an organizational unit" : "Erakunde bateko sail baten izena",
     "Requested by {name}, at {date}" : "{Name} -k eskatu du, {date} egunean",
-    "User created!" : "Erabiltzailea sortuta!",
-    "Password created!" : "Pasahitza sortu da!",
     "able to sign" : "sinatu daiteke",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Fitxategi mota: %s. Idatzi URL, base64 edo fileID bat.",
     "File type: %s. Invalid base64 file." : "Fitxategi mota: %s. Base64 fitxategi baliogabea.",
@@ -325,6 +323,8 @@
     "This iframe is not supported in your browser." : "Iframe hau ez da zure nabigatzailean onartzen.",
     "%s is not a valid sign method" : "%s ez da baliozko sinatze metodo bat",
     "Document Informations" : "Dokumentuen informazioa",
-    "Validate Subscription." : "Egiaztapen harpidetza."
+    "Validate Subscription." : "Egiaztapen harpidetza.",
+    "User created!" : "Erabiltzailea sortuta!",
+    "Password created!" : "Pasahitza sortu da!"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -73,8 +73,6 @@ OC.L10N.register(
     "Pending" : "保留中",
     "No date" : "日付なし",
     "Open in LibreSign" : "LibreSignで開く",
-    "User created!" : "ユーザーが作成しました！",
-    "Password created!" : "パスワードが作成しました！",
     "Page not found." : "ページが見つかりません。",
     "Colors:" : "色：",
     "Apply" : "適用",
@@ -85,6 +83,8 @@ OC.L10N.register(
     "Reset password" : "パスワードをリセット",
     "Select a file" : "Select a file",
     "Add users" : "ユーザーを追加",
-    "Remove" : "削除"
+    "Remove" : "削除",
+    "User created!" : "ユーザーが作成しました！",
+    "Password created!" : "パスワードが作成しました！"
 },
 "nplurals=1; plural=0;");

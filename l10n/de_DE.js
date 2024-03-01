@@ -340,8 +340,6 @@ OC.L10N.register(
     "Name of an organization" : "Name einer Organisation",
     "Name of an organizational unit" : "Name einer Organisationseinheit",
     "Requested by {name}, at {date}" : "Angefordert von {name}, am {date}",
-    "User created!" : "Benutzer erstellt!",
-    "Password created!" : "Passwort erstellt!",
     "able to sign" : "kann signieren",
     "File type: %s. Specify a URL, a base64 string or a fileID." : "Dateityp: %s. Eine URL, Base64-Zeichenfolge oder Datei-ID angeben.",
     "File type: %s. Invalid base64 file." : "Dateityp: %s. Ungültige Base64-Datei.",
@@ -388,6 +386,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Dieser iframe wird von Ihrem Browser nicht unterstützt.",
     "%s is not a valid sign method" : "%s ist keine gültige Signiermethode",
     "Document Informations" : "Dokumentinformationen",
-    "Validate Subscription." : "Abonnement überprüfen"
+    "Validate Subscription." : "Abonnement überprüfen",
+    "User created!" : "Benutzer erstellt!",
+    "Password created!" : "Passwort erstellt!"
 },
 "nplurals=2; plural=(n != 1);");

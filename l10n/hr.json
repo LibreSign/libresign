@@ -202,8 +202,6 @@
     "This document is valid" : "Ovaj dokument je važeći",
     "Open in LibreSign" : "Otvori u sustavu LibreSign",
     "Requested by {name}, at {date}" : "Zatražio {name} na dan {date}",
-    "User created!" : "Korisnik je stvoren!",
-    "Password created!" : "Zaporka je stvorena!",
     "able to sign" : "moguće potpisati",
     "File type: %s. Invalid base64 file." : "Vrsta datoteke: %s. Nevažeća datoteka base64.",
     "Coordinate %s must be equal to or greater than 0" : "Koordinata %s mora biti jednaka ili veća od 0",
@@ -238,6 +236,8 @@
     "Remove" : "Ukloni",
     "This iframe is not supported in your browser." : "Vaš preglednik ne podržava ovaj iframe.",
     "Document Informations" : "Podaci o dokumentu",
-    "Validate Subscription." : "Potvrdite valjanost pretplate."
+    "Validate Subscription." : "Potvrdite valjanost pretplate.",
+    "User created!" : "Korisnik je stvoren!",
+    "Password created!" : "Zaporka je stvorena!"
 },"pluralForm" :"nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;"
 }

@@ -241,8 +241,6 @@
     "This document is valid" : "Ten dokument jest prawidłowy",
     "Open in LibreSign" : "Otwórz w LibreSign",
     "Requested by {name}, at {date}" : "Prośba złożona przez {name}, dnia {date}",
-    "User created!" : "Utworzono użytkownika!",
-    "Password created!" : "Utworzono hasło!",
     "able to sign" : "do podpisu",
     "File type: %s. Invalid base64 file." : "Typ pliku: %s. Nieprawidłowy plik base64.",
     "Coordinate %s must be equal to or greater than 0" : "Koordynata %s musi być równa lub większa od 0",
@@ -285,6 +283,8 @@
     "This iframe is not supported in your browser." : "Wbudowana ramka (iframe) nie jest obsługiwana w Twojej przeglądarce.",
     "%s is not a valid sign method" : "%s nie jest prawidłową metodą podpisywania",
     "Document Informations" : "Informacje o dokumencie",
-    "Validate Subscription." : "Zatwierdź subskrypcję."
+    "Validate Subscription." : "Zatwierdź subskrypcję.",
+    "User created!" : "Utworzono użytkownika!",
+    "Password created!" : "Utworzono hasło!"
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }

@@ -242,8 +242,6 @@ OC.L10N.register(
     "This document is valid" : "Questo documento è valido",
     "Open in LibreSign" : "Apri in LibreSign",
     "Requested by {name}, at {date}" : "Richiesta da {name}, il {date}",
-    "User created!" : "Utente creato!",
-    "Password created!" : "Password creato!",
     "able to sign" : "in grado di firmare",
     "File type: %s. Invalid base64 file." : "Tipo di file: %s. Base64 file non valido.",
     "Coordinate %s must be equal to or greater than 0" : "Le coordinate %s devono essere maggiori o uguali a 0",
@@ -287,6 +285,8 @@ OC.L10N.register(
     "This iframe is not supported in your browser." : "Questo iframe non è supportato nel tuo browser.",
     "%s is not a valid sign method" : "%s non è un metodo di firma valido",
     "Document Informations" : "Informazioni sul documento",
-    "Validate Subscription." : "Convalida sottoscrizione."
+    "Validate Subscription." : "Convalida sottoscrizione.",
+    "User created!" : "Utente creato!",
+    "Password created!" : "Password creato!"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
