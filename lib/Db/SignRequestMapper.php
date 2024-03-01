@@ -148,10 +148,6 @@ class SignRequestMapper extends QBMapper {
 	 * @return SignRequest[]
 	 */
 	public function getByFileId(int $fileId): array {
-		$signers = array_filter($this->signers, fn ($f) => $f->getFileId() === $fileId);
-		if (!empty($signers)) {
-			return $signers;
-		}
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -230,10 +226,6 @@ class SignRequestMapper extends QBMapper {
 	 * @return SignRequest[]
 	 */
 	public function getByFileUuid(string $uuid) {
-		$signers = array_filter($this->signers, fn ($f) => $f->getUuid() === $uuid);
-		if (count($signers)) {
-			return $signers;
-		}
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('sr.*')
