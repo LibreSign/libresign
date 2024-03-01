@@ -213,12 +213,16 @@ $date-signed-font: .7rem;
 
 .jumbotron{
 	padding: 0;
+	margin: unset;
+	width: unset;
+	height: 100%;
 }
 
 .container{
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	overflow-y: auto;
 	width: 100%;
 
 	.image{
@@ -309,6 +313,7 @@ button{
 }
 
 .infor-container{
+	width: 100%;
 	margin-right: 20px;
 }
 
@@ -334,7 +339,6 @@ button{
 	flex-direction: column;
 	width: 100%;
 	margin-left: 30px;
-	max-height: 250px;
 	justify-content: center;
 	overflow: scroll;
 
@@ -350,7 +354,7 @@ button{
 }
 
 .signed {
-	width: 700px;
+	width: 100%;
 	margin-top: 10px;
 	padding-right: 2px;
 	strong {
