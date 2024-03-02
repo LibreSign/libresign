@@ -48,9 +48,11 @@ OC.L10N.register(
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente",
+    "Apply" : "Aplicar",
     "Signatures" : "Firmes",
     "Description" : "Descripción",
     "Add" : "Amestar",
-    "Users" : "Usuarios"
+    "Users" : "Usuarios",
+    "Remove" : "Quitar"
 },
 "nplurals=2; plural=(n != 1);");

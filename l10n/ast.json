@@ -46,9 +46,11 @@
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente",
+    "Apply" : "Aplicar",
     "Signatures" : "Firmes",
     "Description" : "Descripción",
     "Add" : "Amestar",
-    "Users" : "Usuarios"
+    "Users" : "Usuarios",
+    "Remove" : "Quitar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
