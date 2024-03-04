@@ -103,10 +103,25 @@ class Email extends AbstractIdentifyMethod {
 			return;
 		}
 		$email = $this->getEntity()->getIdentifierValue();
+
+		$signer = $this->identifyMethodService->getUserManager()->getByEmail($email);
+		if (!$signer) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_CREATE_ACCOUNT,
+				'settings' => ['accountHash' => md5($email)],
+				'message' => $this->identifyMethodService->getL10n()->t('You need to create an account to sign this file.'),
+			]));
+		}
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
 		throw new LibresignException(json_encode([
-			'action' => JSActions::ACTION_CREATE_ACCOUNT,
-			'settings' => ['accountHash' => md5($email)],
-			'message' => $this->identifyMethodService->getL10n()->t('You need to create an account to sign this file.'),
+			'action' => JSActions::ACTION_REDIRECT,
+			'errors' => [$this->identifyMethodService->getL10n()->t('User already exists. Please login.')],
+			'redirect' => $this->identifyMethodService->getUrlGenerator()->linkToRoute('core.login.showLoginForm', [
+				'redirect_url' => $this->identifyMethodService->getUrlGenerator()->linkToRoute(
+					'libresign.page.sign',
+					['uuid' => $signRequest->getUuid()]
+				),
+			]),
 		]));
 	}
 
