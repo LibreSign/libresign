@@ -485,19 +485,30 @@ class FileService {
 	 *
 	 * @psalm-return array{data: array, pagination: array}
 	 */
-	public function listAssociatedFilesOfSignFlow($page = null, $length = null): array {
+	public function listAssociatedFilesOfSignFlow($page = null, $length = null, array $filter = []): array {
 		$page = $page ?? 1;
 		$length = $length ?? (int) $this->appConfig->getAppValue('length_of_page', '100');
 
 		$data = $this->signRequestMapper->getFilesAssociatedFilesWithMeFormatted(
 			$this->me,
 			$page,
-			$length
+			$length,
+			$filter,
 		);
 		$data['pagination']->setRootPath('/file/list');
 		return [
 			'data' => $data['data'],
 			'pagination' => $data['pagination']->getPagination($page, $length)
 		];
+	}
+
+	public function getMyLibresignFile(int $nodeId): File {
+		return $this->signRequestMapper->getMyLibresignFile(
+			userId: $this->me->getUID(),
+			email: $this->me->getEMailAddress(),
+			filter: [
+				'nodeId' => $nodeId,
+			],
+		);
 	}
 }

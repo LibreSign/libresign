@@ -364,18 +364,25 @@ class SignRequestMapper extends QBMapper {
 		return $return;
 	}
 
-	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?string $email): Pagination {
+	public function getMyLibresignFile(string $userId, ?string $email, ?array $filter = []): File {
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder(
+			userId: $userId,
+			email: $email,
+			filter: $filter,
+		);
+		$qb->select('f.*');
+		$cursor = $qb->executeQuery();
+		$row = $cursor->fetch();
+		if (!$row) {
+			throw new DoesNotExistException('LibreSign file not found');
+		}
+		$file = new File();
+		return $file->fromRow($row);
+	}
+
+	private function getFilesAssociatedFilesWithMeQueryBuilder(string $userId, ?string $email, ?array $filter = []): IQueryBuilder {
 		$qb = $this->db->getQueryBuilder();
-		$qb->select(
-			'f.id',
-			'f.node_id',
-			'f.user_id',
-			'f.uuid',
-			'f.name',
-			'f.status'
-		)
-			->selectAlias('f.created_at', 'request_date')
-			->from('libresign_file', 'f')
+		$qb->from('libresign_file', 'f')
 			->leftJoin('f', 'libresign_sign_request', 'sr', 'sr.file_id = f.id')
 			->leftJoin('f', 'libresign_identify_method', 'im', $qb->expr()->eq('sr.id', 'im.sign_request_id'))
 			->groupBy(
@@ -402,6 +409,27 @@ class SignRequestMapper extends QBMapper {
 			);
 		}
 		$qb->where($qb->expr()->orX(...$or));
+		if ($filter) {
+			if (isset($filter['nodeId'])) {
+				$qb->andWhere(
+					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($filter['nodeId'], IQueryBuilder::PARAM_INT))
+				);
+			}
+		}
+		return $qb;
+	}
+
+	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?string $email, ?array $filter = []): Pagination {
+		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $email, $filter);
+		$qb->selectAlias('f.created_at', 'request_date');
+		$qb->select(
+			'f.id',
+			'f.node_id',
+			'f.user_id',
+			'f.uuid',
+			'f.name',
+			'f.status'
+		);
 
 		$countQueryBuilderModifier = function (IQueryBuilder &$qb): void {
 			/** @todo improve this to don't do two queries */
