@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\AppInfo;
 
 use OCA\Files\Event\LoadSidebar;
+use OCA\Libresign\Activity\Listener as ActivityListener;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
@@ -70,6 +71,11 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(LoadSidebar::class, LoadSidebarListener::class);
 		$context->registerEventListener(BeforeNodeDeletedEvent::class, BeforeNodeDeletedListener::class);
 		$context->registerEventListener(SignedEvent::class, SignedListener::class);
+
+		// Activity listeners
+		$context->registerEventListener(SendSignNotificationEvent::class, ActivityListener::class);
+
+		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
 	}
 }
