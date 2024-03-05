@@ -181,6 +181,7 @@ Feature: request-signature
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
+    And run the command "libresign:developer:reset --all"
     And run the command "libresign:configure:openssl --cn test"
     And set the email of user "signer1" to "signer1@domain.test"
     And reset notifications of user "signer1"
