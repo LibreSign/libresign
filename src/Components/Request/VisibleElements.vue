@@ -264,6 +264,7 @@ export default {
 				this.showConfirm = false
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
+				this.filesStore.selectFile()
 			} catch (err) {
 				this.loading = false
 				this.onError(err)
