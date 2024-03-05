@@ -181,10 +181,12 @@ Feature: request-signature
 
   Scenario: Request to sign with success using account as identifier
     Given as user "admin"
+    And run the command "libresign:developer:reset --all"
     And run the command "libresign:configure:openssl --cn test"
     And set the email of user "signer1" to "signer1@domain.test"
     And reset notifications of user "signer1"
     And my inbox is empty
+    And run the command "user:setting signer1 activity notify_email_libresign 1"
     When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
       | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
       | users | [{"identify":{"account":"signer1"}}] |
@@ -193,7 +195,10 @@ Feature: request-signature
     And user signer1 has the following notifications
       | app       | object_type | object_id | subject                         |
       | libresign | sign        | document  | There is a file for you to sign |
-    And there should be 0 emails in my inbox
+    And wait for 2 second
+    And run the command "activity:send-mails"
+    And there should be 1 emails in my inbox
+    And I open the latest email to "signer1@domain.test" with subject "Activity at Nextcloud"
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
