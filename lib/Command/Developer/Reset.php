@@ -63,6 +63,12 @@ class Reset extends Base {
 				description: 'Reset notifications'
 			)
 			->addOption(
+				name: 'activity',
+				shortcut: null,
+				mode: InputOption::VALUE_OPTIONAL,
+				description: 'Reset activity'
+			)
+			->addOption(
 				name: 'identify',
 				shortcut: null,
 				mode: InputOption::VALUE_NONE,
@@ -110,6 +116,10 @@ class Reset extends Base {
 				$this->resetNotifications((string) $input->getOption('notifications'));
 				$ok = true;
 			}
+			if ($input->getOption('activity') || $all) {
+				$this->resetActivity((string) $input->getOption('activity'));
+				$ok = true;
+			}
 			if ($input->getOption('identify') || $all) {
 				$this->resetIdentifyMethods();
 				$ok = true;
@@ -155,6 +165,19 @@ class Reset extends Base {
 				->where($delete->expr()->eq('app', $delete->createNamedParameter(Application::APP_ID)));
 			if ($user) {
 				$delete->andWhere($delete->expr()->eq('user', $delete->createNamedParameter($user)));
+			}
+			$delete->executeStatement();
+		} catch (\Throwable $e) {
+		}
+	}
+
+	private function resetActivity(string $user): void {
+		try {
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('activity_mq')
+				->where($delete->expr()->eq('amq_appid', $delete->createNamedParameter(Application::APP_ID)));
+			if ($user) {
+				$delete->andWhere($delete->expr()->eq('amq_affecteduser', $delete->createNamedParameter($user)));
 			}
 			$delete->executeStatement();
 		} catch (\Throwable $e) {

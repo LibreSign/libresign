@@ -41,6 +41,14 @@
         <admin>OCA\Libresign\Settings\Admin</admin>
         <admin-section>OCA\Libresign\Settings\AdminSettings</admin-section>
     </settings>
+    <activity>
+        <settings>
+            <setting>OCA\Libresign\Activity\Setting</setting>
+        </settings>
+        <providers>
+            <provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
+        </providers>
+    </activity>
     <navigations>
         <navigation>
             <name>LibreSign</name>
