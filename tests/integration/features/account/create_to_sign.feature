@@ -1,6 +1,7 @@
 Feature: account/create_to_sign
   Background:
     Given as user "admin"
+    And run the command "libresign:developer:reset --all"
     And run the command "libresign:configure:openssl --cn test"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
@@ -15,6 +16,7 @@ Feature: account/create_to_sign
   Scenario: Try to create with invalid data
     Given as user ""
     And run the command "user:delete signer1@domain.test"
+    And run the command "user:delete signer1"
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And follow the link on opened email
