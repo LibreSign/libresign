@@ -49,10 +49,10 @@ export default {
 		return {
 			name: t('libresign', 'Validation URL'),
 			paternValidadeUrl: 'https://validador.librecode.coop/',
-			makeValidationUrlPrivate: false,
+			makeValidationUrlPrivate: '0',
 			url: null,
-			addFooter: false,
-			writeQrcodeOnFooter: false,
+			addFooter: '0',
+			writeQrcodeOnFooter: '0',
 		}
 	},
 	created() {
@@ -72,19 +72,19 @@ export default {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private'),
 			)
-			this.makeValidationUrlPrivate = !!response.data.ocs.data.data
+			this.makeValidationUrlPrivate = response.data.ocs.data.data === '1'
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer'),
 			)
-			this.addFooter = !!response.data.ocs.data.data
+			this.addFooter = response.data.ocs.data.data === '1'
 		},
 		async getWriteQrcodeOnFooter() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer'),
 			)
-			this.writeQrcodeOnFooter = !!response.data.ocs.data.data
+			this.writeQrcodeOnFooter = response.data.ocs.data.data === '1'
 		},
 		async getValidationUrlData() {
 			const response = await axios.get(
