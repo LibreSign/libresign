@@ -55,9 +55,6 @@ export default {
 	computed: {
 		filterFile: {
 			get() {
-				if (this.fileFilter.length === 0) {
-					return this.filesStore.orderFiles()
-				}
 				return this.fileFilter.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1,
 				)
@@ -70,8 +67,9 @@ export default {
 			return this.filterFile.length <= 0
 		},
 	},
-	created() {
-		this.filesStore.getAllFiles()
+	async created() {
+		await this.filesStore.getAllFiles()
+		this.changeFilter(3)
 	},
 	methods: {
 		changeFilter(filter) {
