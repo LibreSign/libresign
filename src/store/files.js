@@ -52,6 +52,15 @@ export const useFilesStore = defineStore('files', {
 		disableIdentifySigner() {
 			this.identifyingSigner = false
 		},
+		hasSigners() {
+			if (this.selectedNodeId === 0) {
+				return false
+			}
+			if (!Object.hasOwn(this.getFile(), 'signers')) {
+				return false
+			}
+			return this.files[this.selectedNodeId].signers.length > 0
+		},
 		isPartialSigned() {
 			if (this.selectedNodeId === 0) {
 				return false
