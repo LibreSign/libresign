@@ -1,4 +1,5 @@
 { "translations": {
+    "Other activities" : "Andere Aktivitäten",
     "Success" : "Erfolgreich",
     "Invalid user or password" : "Ungültiger Benutzername oder Passwort",
     "_Element created with success_::_Elements created with success_" : ["Element erfolgreich erstellt","Elemente erfolgreich erstellt"],

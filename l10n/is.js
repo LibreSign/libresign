@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Aðrar athafnir",
     "Success" : "Tókst",
     "Settings saved" : "Stillingar vistaðar",
     "Name is mandatory" : "Nafn er nauðsynlegt",

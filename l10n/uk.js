@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Інша активність",
     "Success" : "Успіх",
     "Invalid user or password" : "Неправильне ім'я користувача або пароль",
     "Settings saved" : "Налаштування збережено",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "다른 활동",
     "Success" : "성공",
     "Invalid user or password" : "잘못된 사용자 또는 암호",
     "_Element created with success_::_Elements created with success_" : ["성공적으로 생성된 요소"],

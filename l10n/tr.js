@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Diğer işlemler",
     "Success" : "Tamamlandı",
     "Invalid user or password" : "Kullanıcı adı ya da parola geçersiz",
     "_Element created with success_::_Elements created with success_" : ["Bileşen oluşturuldu","Bileşen oluşturuldu"],

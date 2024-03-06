@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Outras atividades",
     "Success" : "Sucesso",
     "Settings saved" : "Definições guardadas",
     "deleted" : "eliminado",
