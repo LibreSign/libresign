@@ -186,6 +186,9 @@ class FileController extends Controller {
 		$nodes = $userFolder->getById($nodeId);
 
 		$node = array_pop($nodes);
+		if (!$node) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
 
 		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
 	}
