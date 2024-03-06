@@ -69,8 +69,9 @@ export const useFilesStore = defineStore('files', {
 			if (!Object.hasOwn(this.getFile(), 'signers')) {
 				return false
 			}
-			return this.files[this.selectedNodeId].signers
-				.filter(signer => signer.signed?.length > 0).length === this.files[this.selectedNodeId].signers.length
+			return this.files[this.selectedNodeId].signers.length > 0
+				&& this.files[this.selectedNodeId].signers
+					.filter(signer => signer.signed?.length > 0).length === this.files[this.selectedNodeId].signers.length
 		},
 		getSubtitle() {
 			if (this.selectedNodeId === 0) {
