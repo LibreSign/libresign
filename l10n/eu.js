@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Beste jarduerak",
     "Success" : "Arrakasta",
     "Invalid user or password" : "Erabiltzailea edo pasahitza baliogabea da",
     "_Element created with success_::_Elements created with success_" : ["Elementua ondo sortu da","Elementuak ondo sortu dira"],

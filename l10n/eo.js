@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Alia aktivado",
     "Settings saved" : "Agordoj konservitaj",
     "deleted" : "forigita",
     "File is too big" : "Dosiero tro grandas",

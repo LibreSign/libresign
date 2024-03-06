@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Druge dejavnosti",
     "Success" : "Uspešno končano",
     "Invalid user or password" : "Neveljaven uporabnik oziroma napačno geslo",
     "_Element created with success_::_Elements created with success_" : ["Predmet je uspešno ustvarjen.","Predmeta sta uspešno ustvarjena.","Predmeti so uspešno ustvarjeni.","Predmeti so uspešno ustvarjeni."],

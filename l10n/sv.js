@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Andra aktiviteter",
     "Success" : "Lyckades",
     "Invalid user or password" : "Ogiltig användare eller lösenord",
     "_Element created with success_::_Elements created with success_" : ["Element skapades","Element skapades"],

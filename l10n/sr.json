@@ -1,4 +1,5 @@
 { "translations": {
+    "Other activities" : "Остале активности",
     "Success" : "Успешно",
     "Invalid user or password" : "Неисправно корисничко име или лозинка",
     "_Element created with success_::_Elements created with success_" : ["Елемент је успешно креиран","Елемента је успешно креирано","Елемената је успешно креирано"],

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Other activities",
     "Settings saved" : "Settings saved",
     "deleted" : "deleted",
     "File is too big" : "File is too big",
