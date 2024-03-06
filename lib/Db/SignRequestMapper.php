@@ -421,7 +421,6 @@ class SignRequestMapper extends QBMapper {
 
 	private function getFilesAssociatedFilesWithMeStmt(string $userId, ?string $email, ?array $filter = []): Pagination {
 		$qb = $this->getFilesAssociatedFilesWithMeQueryBuilder($userId, $email, $filter);
-		$qb->selectAlias('f.created_at', 'request_date');
 		$qb->select(
 			'f.id',
 			'f.node_id',
@@ -430,6 +429,7 @@ class SignRequestMapper extends QBMapper {
 			'f.name',
 			'f.status'
 		);
+		$qb->selectAlias('f.created_at', 'request_date');
 
 		$countQueryBuilderModifier = function (IQueryBuilder &$qb): void {
 			/** @todo improve this to don't do two queries */
