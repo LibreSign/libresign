@@ -58,24 +58,25 @@ export default {
 	methods: {
 		async send() {
 			this.hasLoading = true
-			try {
-				await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
-					signPassword: this.password,
+			await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/signature'), {
+				signPassword: this.password,
+			})
+				.then(() => {
+					showSuccess(t('libresign', 'New password to sign documents has been created'))
+					this.signMethodsStore.setHasSignatureFile(true)
+					this.clear()
+					this.$emit('close', true)
+					this.$emit('password:created', true)
 				})
-				showSuccess(t('libresign', 'New password to sign documents has been created'))
-				this.signMethodsStore.setHasSignatureFile(true)
-				this.clear()
-				this.$emit('close', true)
-				this.$emit('password:created', true)
-			} catch (err) {
-				this.signMethodsStore.setHasSignatureFile(false)
-				if (err.response.data.message) {
-					showError(err.response.data.message)
-				} else {
-					showError(t('libresign', 'Error creating new password, please contact the administrator'))
-				}
-				this.$emit('password:created', false)
-			}
+				.catch(({ response }) => {
+					this.signMethodsStore.setHasSignatureFile(false)
+					if (response.data.message) {
+						showError(response.data.message)
+					} else {
+						showError(t('libresign', 'Error creating new password, please contact the administrator'))
+					}
+					this.$emit('password:created', false)
+				})
 			this.hasLoading = false
 		},
 		clear() {
