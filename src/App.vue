@@ -40,8 +40,8 @@
 						<FileSignIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
-				<NcAppNavigationItem id="sign-files"
-					:to="{ name: 'signFiles' }"
+				<NcAppNavigationItem id="timeline"
+					:to="{ name: 'timeline' }"
 					:name="t('libresign', 'Files')"
 					@click="unselectFile">
 					<template #icon>
