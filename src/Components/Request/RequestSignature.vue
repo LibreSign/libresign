@@ -57,6 +57,9 @@
 			</NcButton>
 		</div>
 		<VisibleElements />
+		<NcModal v-if="showSignModal" @close="closeModal()" size="full">
+			<iframe :src="modalSrc" class="iframe"></iframe>
+		</NcModal>
 	</div>
 </template>
 <script>
@@ -66,6 +69,7 @@ import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import { getCurrentUser } from '@nextcloud/auth'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -82,6 +86,7 @@ export default {
 		NcActionButton,
 		NcButton,
 		NcLoadingIcon,
+		NcModal,
 		Delete,
 		Signers,
 		IdentifySigner,
@@ -95,6 +100,8 @@ export default {
 		return {
 			hasLoading: false,
 			signerToEdit: {},
+			modalSrc: '',
+			showSignModal: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
@@ -129,6 +136,9 @@ export default {
 		unsubscribe('libresign:edit-signer')
 	},
 	methods: {
+		closeModal() {
+			this.showSignModal = false
+		},
 		validationFile() {
 			this.$router.push({ name: 'validationFile', params: { uuid: this.filesStore.getFile().uuid } })
 		},
@@ -166,7 +176,8 @@ export default {
 					return accumulator
 				}, '')
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
-			window.location.href = route.href
+			this.modalSrc = route.href
+			this.showSignModal = true
 		},
 		async save() {
 			this.hasLoading = true
@@ -226,5 +237,10 @@ export default {
 	display: flex;
 	box-sizing: border-box;
 	grid-gap: 10px;
+}
+
+.iframe {
+	width: 100%;
+	height: 100%;
 }
 </style>
