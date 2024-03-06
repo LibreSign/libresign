@@ -34,6 +34,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -43,6 +44,7 @@ class FolderService {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		protected IAppDataFactory $appDataFactory,
+		protected IGroupManager $groupManager,
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private ?string $userId,
@@ -91,14 +93,26 @@ class FolderService {
 	 */
 	private function getOrCreateFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
+		$withoutPermission = false;
 		if ($this->getUserId()) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
+			// TODO: retrieve guest group name from app once exposed
+			if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
+				$withoutPermission = true;
+			} elseif (!$containerFolder->isUpdateable()) {
+				$withoutPermission = true;
+			}
 		} else {
+			$withoutPermission = true;
+		}
+		if ($withoutPermission) {
 			$containerFolder = $this->appData->getFolder('/');
 			$reflection = new \ReflectionClass($containerFolder);
 			$reflectionProperty = $reflection->getProperty('folder');
 			$reflectionProperty->setAccessible(true);
 			$containerFolder = $reflectionProperty->getValue($containerFolder);
+		} else {
+			$containerFolder = $this->root->getUserFolder($this->getUserId());
 		}
 		if ($containerFolder->nodeExists($path)) {
 			$folder = $containerFolder->get($path);
@@ -114,6 +128,10 @@ class FolderService {
 	public function getLibreSignDefaultPath(): string {
 		if (!$this->userId) {
 			return 'unauthenticated';
+		}
+		// TODO: retrieve guest group name from app once exposed
+		if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
+			return 'guest_app/' . $this->getUserId();
 		}
 		$path = $this->appConfig->getUserValue($this->userId, 'folder');
 
