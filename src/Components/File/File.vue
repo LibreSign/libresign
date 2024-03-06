@@ -58,13 +58,13 @@ export default {
 				return null
 			}
 			let previewUrl = ''
-			if (Object.hasOwn(this.filesStore.getFile(), 'uuid')) {
+			if (this.filesStore.files[this.currentNodeId]?.uuid?.length > 0) {
 				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
 					nodeId: this.currentNodeId,
 				})
 			} else {
 				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
-					fileid: this.filesStore.getFile().nodeId,
+					fileid: this.currentNodeId,
 				})
 			}
 

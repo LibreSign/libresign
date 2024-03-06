@@ -6,7 +6,7 @@
 	<div v-else
 		id="request-signature-list-signers">
 		<NcButton v-if="canRequestSign && !filesStore.isFullSigned()"
-			:type="hasSigners ? 'primary' : 'secondary'"
+			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
 		</NcButton>
