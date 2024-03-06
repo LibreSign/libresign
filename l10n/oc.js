@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Autras activitats",
     "Success" : "Succès",
     "Invalid user or password" : "Nom d’utilizaire o senhal marrit",
     "Elements not found" : "Elements pas trobats",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "其它活動",
     "Success" : "成功",
     "Invalid user or password" : "無效的用戶或密碼",
     "_Element created with success_::_Elements created with success_" : ["成功建立元素"],

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Hoạt động khác",
     "Success" : "Thành công",
     "Settings saved" : "Cấu hình đã được lưu",
     "deleted" : "đã xóa",

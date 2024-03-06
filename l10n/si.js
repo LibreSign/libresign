@@ -1,6 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "වෙනත්  ක්‍රියාකාරකම්",
     "Success" : "සාර්ථකයි",
     "File is too big" : "ගොනුව ඉතා විශාලයි",
     "File not found" : "ගොනුව හමු නොවිණි",
