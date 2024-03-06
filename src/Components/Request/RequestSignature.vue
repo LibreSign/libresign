@@ -29,28 +29,33 @@
 				</NcActionButton>
 			</template>
 		</Signers>
-		<NcButton v-if="canSave"
-			type="primary"
-			:disabled="hasLoading"
-			@click="save()">
-			<template #icon>
-				<NcLoadingIcon v-if="hasLoading" :size="20" />
-			</template>
-			{{ t('libresign', 'Next') }}
-		</NcButton>
-		<NcButton v-else-if="canSign"
-			type="primary"
-			:disabled="hasLoading"
-			@click="sign()">
-			<template #icon>
-				<NcLoadingIcon v-if="hasLoading" :size="20" />
-			</template>
-			{{ t('libresign', 'Sign') }}
-		</NcButton>
-		<NcButton v-if="filesStore.isSigned()"
-			@click="validationFile()">
-			{{ t('libresign', 'Validate') }}
-		</NcButton>
+		<div class="action-buttons">
+			<NcButton v-if="canSave"
+				:type="{
+					primary: !canSign,
+					secondary: canSign
+				}"
+				:disabled="hasLoading"
+				@click="save()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+				</template>
+				{{ t('libresign', 'Next') }}
+			</NcButton>
+			<NcButton v-if="canSign"
+				type="primary"
+				:disabled="hasLoading"
+				@click="sign()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+				</template>
+				{{ t('libresign', 'Sign') }}
+			</NcButton>
+			<NcButton v-if="filesStore.isSigned()"
+				@click="validationFile()">
+				{{ t('libresign', 'Validate') }}
+			</NcButton>
+		</div>
 		<VisibleElements />
 	</div>
 </template>
@@ -215,3 +220,11 @@ export default {
 	},
 }
 </script>
+<style lang="scss" scoped>
+
+.action-buttons{
+	display: flex;
+	box-sizing: border-box;
+	grid-gap: 10px;
+}
+</style>
