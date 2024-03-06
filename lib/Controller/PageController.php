@@ -110,6 +110,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$policy = new ContentSecurityPolicy();
 		$policy->allowEvalScript(true);
+		$policy->addAllowedFrameDomain('\'self\'');
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
