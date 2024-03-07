@@ -32,8 +32,8 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
-import { showError } from '@nextcloud/dialogs'
 import { generateOcsUrl } from '@nextcloud/router'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import axios from '@nextcloud/axios'
 import { set } from 'vue'
 import { useConfigureCheckStore } from '../../store/configureCheck.js'
@@ -66,38 +66,28 @@ export default {
 		}
 	},
 	mounted() {
-		this.$root.$on('after-config-check', data => {
-			if (this.downloadInProgress) {
-				return
-			}
-			const java = data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
-			const jsignpdf = data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
-			const cfssl = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
-			if (!java
-				|| !jsignpdf
-				|| !cfssl
-			) {
-				this.changeState('need download')
-			} else {
-				this.changeState('done')
-			}
-		})
+		subscribe('libresign:config-check', this.configureCheck)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:config-check')
 	},
 	methods: {
-		async downloadAllBinaries() {
+		async configureCheck() {
 			this.changeState('in progress')
-			axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
-			)
-				.then(() => {
-					this.installAndValidate()
-				})
-				.catch(({ response }) => {
-					showError(t('libresign', 'Could not download binaries.'))
-					if (typeof response?.data === 'object' && response?.data.message.length > 0) {
-						showError(t('libresign', response.data.message))
+			axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'))
+				.then(({ data }) => {
+					this.configureCheckStore.items = data
+					const java = data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
+					const jsignpdf = data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
+					const cfssl = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
+					if (!java
+						|| !jsignpdf
+						|| !cfssl
+					) {
+						this.changeState('need download')
+					} else {
+						this.changeState('done')
 					}
-					this.changeState('need download')
 				})
 		},
 		changeState(state) {
