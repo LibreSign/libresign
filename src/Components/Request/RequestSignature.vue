@@ -5,7 +5,7 @@
 	</div>
 	<div v-else
 		id="request-signature-list-signers">
-		<NcButton v-if="canSave"
+		<NcButton v-if="canAddSigner"
 			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
@@ -49,7 +49,7 @@
 				</template>
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
-			<NcButton v-if="filesStore.isFullSigned() || !canSave"
+			<NcButton v-if="canValidate"
 				type="primary"
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
@@ -105,6 +105,15 @@ export default {
 		}
 	},
 	computed: {
+		canAddSigner() {
+			return this.canRequestSign
+				&& (
+					!Object.hasOwn(this.filesStore.getFile(), 'requested_by')
+					|| this.filesStore.getFile().requested_by.uid === getCurrentUser().uid
+				)
+				&& !this.filesStore.isPartialSigned()
+				&& !this.filesStore.isFullSigned()
+		},
 		canSave() {
 			return this.canRequestSign
 				&& (
@@ -118,7 +127,13 @@ export default {
 		canSign() {
 			return !this.filesStore.isFullSigned()
 				&& this.filesStore.getFile().status > 0
-				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length === 0
+				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length > 0
+				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me)
+					.filter(signer => signer.signed?.length > 0).length === 0
+		},
+		canValidate() {
+			return this.filesStore.isPartialSigned()
+				|| this.filesStore.isFullSigned()
 		},
 		dataSigners() {
 			return this.filesStore.files[this.filesStore.selectedNodeId].signers
