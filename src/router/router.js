@@ -122,11 +122,8 @@ const router = new Router({
 						})
 						return
 					}
-					next()
 				}
-				next({
-					name: 'requestFiles',
-				})
+				next()
 			},
 			component: () => import('../views/IncompleteCertification.vue'),
 		},
