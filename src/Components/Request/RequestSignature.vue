@@ -5,7 +5,7 @@
 	</div>
 	<div v-else
 		id="request-signature-list-signers">
-		<NcButton v-if="canRequestSign && !filesStore.isFullSigned()"
+		<NcButton v-if="canSave"
 			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
 			{{ t('libresign', 'Add signer') }}
@@ -13,7 +13,7 @@
 		<Signers :signers="dataSigners"
 			event="libresign:edit-signer">
 			<template #actions="{signer}">
-				<NcActionButton v-if="canRequestSign && !signer.signed"
+				<NcActionButton v-if="canSave && !signer.signed"
 					aria-label="Delete"
 					:close-after-click="true"
 					@click="filesStore.deleteSigner(signer)">
@@ -118,7 +118,7 @@ export default {
 		canSign() {
 			return !this.filesStore.isFullSigned()
 				&& this.filesStore.getFile().status > 0
-				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length > 0
+				&& this.filesStore.getFile()?.signers?.filter(signer => signer.me).length === 0
 		},
 		dataSigners() {
 			return this.filesStore.files[this.filesStore.selectedNodeId].signers
