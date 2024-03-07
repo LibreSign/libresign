@@ -289,6 +289,9 @@ class InstallService {
 			}
 			$pid = isset($progressData['pid']) ? $progressData['pid'] : 0;
 			if ($this->getInstallPid($pid) === 0) {
+				if (!array_key_exists('error', $progressData)) {
+					$this->removeDownloadProgress();
+				}
 				continue;
 			}
 			return true;
