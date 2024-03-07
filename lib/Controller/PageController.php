@@ -375,9 +375,16 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->throwIfValidationPageNotAccessible();
 		try {
 			$this->signFileService->getFileByUuid($uuid);
+			$this->fileService->setFileByType('uuid', $uuid);
 		} catch (DoesNotExistException $e) {
-			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
-			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+			try {
+				$signRequest = $this->signFileService->getSignRequest($uuid);
+				$libresignFile = $this->signFileService->getFile($signRequest->getFileId());
+				$this->fileService->setFile($libresignFile);
+			} catch (DoesNotExistException $e) {
+				$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+				$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+			}
 		}
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession?->getUser())
@@ -385,9 +392,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
-		$this->fileService
-			->setFileByType('uuid', $uuid)
-			->showSigners();
+		$this->fileService->showSigners();
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');
