@@ -31,6 +31,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
@@ -64,6 +65,7 @@ class FileController extends Controller {
 		private SessionService $sessionService,
 		private SignRequestMapper $signRequestMapper,
 		private IdentifyMethodService $identifyMethodService,
+		private AccountService $accountService,
 		private IRootFolder $root,
 		private IPreview $preview,
 		private IMimeIconProvider $mimeIconProvider,
@@ -179,14 +181,8 @@ class FileController extends Controller {
 			$myLibreSignFile = $this->fileService
 				->setMe($this->userSession->getUser())
 				->getMyLibresignFile($nodeId);
+			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
 		} catch (DoesNotExistException $e) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
-		}
-		$userFolder = $this->root->getUserFolder($myLibreSignFile->getUserId());
-		$nodes = $userFolder->getById($nodeId);
-
-		$node = array_pop($nodes);
-		if (!$node) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
