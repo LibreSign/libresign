@@ -159,6 +159,9 @@ class AdminController extends Controller {
 					$seconds = 0;
 				}
 			}
+			if ($errors = $this->installService->getErrorMessages()) {
+				$this->eventSource->send('errors', json_encode($errors));
+			}
 		} catch (\Exception $exception) {
 			$this->eventSource->send('errors', json_encode([
 				$this->l10n->t('Could not download binaries.'),
