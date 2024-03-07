@@ -1,10 +1,13 @@
 OC.L10N.register(
     "libresign",
     {
+    "Other activities" : "Otres actividaes",
     "Settings saved" : "Guardóse la configuración",
+    "Failed to send code." : "Nun se pue unviar el códigu.",
     "File is too big" : "El ficheru ye mui grande",
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
+    "File sharing" : "Compartición de ficheros",
     "View" : "Ver",
     "File not found" : "Nun s'atopó'l ficheru",
     "File already exists" : "El ficheru yá esiste",
@@ -21,6 +24,7 @@ OC.L10N.register(
     "Draw" : "Dibuxar",
     "Text" : "Testu",
     "Upload" : "Xunir",
+    "Change color" : "Camudar el color",
     "Delete" : "Desaniciar",
     "Save" : "Guardar",
     "Cancel" : "Encaboxar",
