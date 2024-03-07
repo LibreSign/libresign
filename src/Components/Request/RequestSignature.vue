@@ -49,7 +49,7 @@
 				</template>
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
-			<NcButton v-if="filesStore.isFullSigned()"
+			<NcButton v-if="filesStore.isFullSigned() || !canSave"
 				type="primary"
 				@click="validationFile()">
 				{{ t('libresign', 'Validate') }}
