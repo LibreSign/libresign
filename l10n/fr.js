@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} vous a invité à signer un fichier",
+    "You have a <strong>file to sign</strong>" : "Vous avez un <strong>fichier à signer</strong>",
     "Other activities" : "Autres activités",
     "Success" : "Succès",
     "Invalid user or password" : "Nom d'utilisateur ou mot de passe incorrect",
@@ -112,6 +114,7 @@ OC.L10N.register(
     "This is not your file" : "Ce fichier ne vous appartient pas",
     "It is not possible to create new accounts." : "Il n'est pas possible de créer de nouveaux comptes.",
     "Click to sign" : "Cliquer pour signer",
+    "Email token" : "Jeton par courriel",
     "Certificate with password" : "Certificat avec mot de passe",
     "Invalid password" : "Mot de passe incorrect",
     "LibreSign: Changes into a file for you to sign" : "LibreSign : Modifications dans un fichier à signer par vous",
@@ -296,6 +299,7 @@ OC.L10N.register(
     "Write QR code on footer with validation URL" : "Insérer le QR code de l'URL de validation en bas de page",
     "To validate signature of the documents. Only change this value if you want to replace the default validation URL by other." : "Pour valider la signature des documents. Changez cette valeur uniquement si vous voulez remplacer l'URL de validation par défaut par une autre.",
     "Validation URL" : "URL de validation",
+    "Signature tab" : "Onglet Signature",
     "Loading …" : "Chargement …",
     "Document not available for signature." : "Document non disponible pour signature.",
     "Sign with your email." : "Connectez-vous avec votre e-mail.",
