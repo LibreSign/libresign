@@ -27,6 +27,7 @@ class TestCase extends \Test\TestCase {
 				return new AppConfigOverwrite(
 					\OC::$server->get(\OCP\IDBConnection::class),
 					\OC::$server->get(\Psr\Log\LoggerInterface::class),
+					\OC::$server->get(\OCP\Security\ICrypto::class),
 				);
 			});
 			$service = \OC::$server->get(\OCP\IAppConfig::class);
