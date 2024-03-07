@@ -118,11 +118,6 @@ export default {
 			})
 			this.loading = false
 		},
-		gotoAccount() {
-			const url = this.$router.resolve({ name: 'Account' })
-
-			window.location.href = url.href
-		},
 		onSigned(data) {
 			this.$router.push({
 				name: 'DefaultPageSuccess',
