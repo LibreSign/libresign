@@ -12,18 +12,33 @@
 					</div>
 					<div class="user-password">
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
-						<div class="user-display-password icon-password">
-							<NcButton @click="uploadCertificate()">
+						<LockIcon :size="20" />
+						<div class="user-display-password">
+							<NcButton @click="uploadCertificate()"
+								:wide="true">
 								{{ t('libresign', 'Upload certificate') }}
+								<template #icon>
+									<CloudUploadIcon :size="20" />
+								</template>
 							</NcButton>
-							<NcButton v-if="signMethodsStore.hasSignatureFile()" @click="deleteCertificate()">
+							<NcButton v-if="signMethodsStore.hasSignatureFile()"
+								@click="deleteCertificate()"
+								:wide="true">
 								{{ t('libresign', 'Delete certificate') }}
+								<template #icon>
+									<DeleteIcon :size="20" />
+								</template>
 							</NcButton>
 							<NcButton v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()" @click="handleModal(true)">
 								{{ t('libresign', 'Create certificate') }}
 							</NcButton>
-							<NcButton v-else-if="signMethodsStore.hasSignatureFile()" @click="handleModal(true)">
+							<NcButton v-else-if="signMethodsStore.hasSignatureFile()"
+								@click="handleModal(true)"
+								:wide="true">
 								{{ t('librsign', 'Change password') }}
+								<template #icon>
+									<FileReplaceIcon :size="20" />
+								</template>
 							</NcButton>
 						</div>
 						<NcModal v-if="modal"
@@ -52,6 +67,10 @@ import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
+import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
+import DeleteIcon from 'vue-material-design-icons/Delete.vue'
+import FileReplaceIcon from 'vue-material-design-icons/FileReplace.vue'
 import CreatePassword from '../CreatePassword.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
@@ -66,6 +85,10 @@ export default {
 		NcModal,
 		NcContent,
 		NcButton,
+		LockIcon,
+		CloudUploadIcon,
+		DeleteIcon,
+		FileReplaceIcon,
 		CreatePassword,
 		ResetPassword,
 		Signatures,
@@ -189,21 +212,10 @@ export default {
 				display: flex;
 				flex-direction: column;
 
-				.user-display-password[class*='icon']{
+				.user-display-password{
 					display: flex;
-					background-position: 0px 10px;
-					opacity: 0.7;
-					margin-right: 10%;
-					margin-bottom: 12px;
-					margin-top: 12px;
-					width: 100%;
-					padding-left: 30px;
-					margin-left: 15px;
-					align-items: center;
-
-					button {
-						min-width: 150px;
-					}
+					flex-direction: column;
+					gap: 12px;
 				}
 			}
 		}
