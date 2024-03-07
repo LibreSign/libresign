@@ -112,7 +112,9 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 			);
 		$signRequest = $this->findEntity($qb);
-		$this->signers[] = $signRequest;
+		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			$this->signers[] = $signRequest;
+		}
 		return $signRequest;
 	}
 
@@ -156,8 +158,10 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
 		$signers = $this->findEntities($qb);
-		foreach ($signers as $signer) {
-			$this->signers[] = $signer;
+		foreach ($signers as $signRequest) {
+			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+				$this->signers[] = $signRequest;
+			}
 		}
 		return $signers;
 	}
@@ -179,7 +183,9 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
 			);
 		$signRequest = $this->findEntity($qb);
-		$this->signers[] = $signRequest;
+		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			$this->signers[] = $signRequest;
+		}
 		return $signRequest;
 	}
 
@@ -236,7 +242,11 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		$signers = $this->findEntities($qb);
-		$this->signers = array_merge($this->signers, $signers);
+		foreach ($signers as $signRequest) {
+			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+				$this->signers[] = $signRequest;
+			}
+		}
 		return $signers;
 	}
 
@@ -250,7 +260,9 @@ class SignRequestMapper extends QBMapper {
 			);
 
 		$signRequest = $this->findEntity($qb);
-		$this->signers[] = $signRequest;
+		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			$this->signers[] = $signRequest;
+		}
 		return $signRequest;
 	}
 
@@ -300,7 +312,10 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('sr.id', $qb->createNamedParameter($signRequestId))
 			);
 
-		$this->signers[] = $this->findEntity($qb);
+		$signRequest = $this->findEntity($qb);
+		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
+			$this->signers[] = $signRequest;
+		}
 		return end($this->signers);
 	}
 
