@@ -239,8 +239,12 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			|| (!is_null($signRequest) && $signRequest->getSigned())
 		) {
 			throw new LibresignException(json_encode([
-				'action' => JSActions::ACTION_SHOW_ERROR,
+				'action' => JSActions::ACTION_REDIRECT,
 				'errors' => [$this->identifyMethodService->getL10n()->t('File already signed.')],
+				'redirect' => $this->identifyMethodService->getUrlGenerator()->linkToRoute(
+					'libresign.page.validationFile',
+					['uuid' => $signRequest->getUuid()]
+				),
 			]));
 		}
 	}
