@@ -283,7 +283,7 @@ class AccountService {
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 
-		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
+		if (in_array($fileData->getStatus(), [FileEntity::STATUS_PARTIAL_SIGNED, FileEntity::STATUS_SIGNED])) {
 			$nodeId = $fileData->getSignedNodeId();
 		} else {
 			$nodeId = $fileData->getNodeId();

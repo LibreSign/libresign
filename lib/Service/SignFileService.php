@@ -329,7 +329,15 @@ class SignFileService {
 			$carry += $signer->getSigned() ? 1 : 0;
 			return $carry;
 		});
-		if (count($signers) === $total && $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED) {
+		if ($total > 0
+			&& count($signers) !== $total
+			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_PARTIAL_SIGNED
+		) {
+			$this->libreSignFile->setStatus(FileEntity::STATUS_PARTIAL_SIGNED);
+			return true;
+		} elseif (count($signers) === $total
+			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_SIGNED
+		) {
 			$this->libreSignFile->setStatus(FileEntity::STATUS_SIGNED);
 			return true;
 		}
