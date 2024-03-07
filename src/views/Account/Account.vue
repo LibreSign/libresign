@@ -14,16 +14,16 @@
 						<h3>{{ t('libresign', 'Certificate') }}</h3>
 						<LockIcon :size="20" />
 						<div class="user-display-password">
-							<NcButton @click="uploadCertificate()"
-								:wide="true">
+							<NcButton :wide="true"
+								@click="uploadCertificate()">
 								{{ t('libresign', 'Upload certificate') }}
 								<template #icon>
 									<CloudUploadIcon :size="20" />
 								</template>
 							</NcButton>
 							<NcButton v-if="signMethodsStore.hasSignatureFile()"
-								@click="deleteCertificate()"
-								:wide="true">
+								:wide="true"
+								@click="deleteCertificate()">
 								{{ t('libresign', 'Delete certificate') }}
 								<template #icon>
 									<DeleteIcon :size="20" />
@@ -33,8 +33,8 @@
 								{{ t('libresign', 'Create certificate') }}
 							</NcButton>
 							<NcButton v-else-if="signMethodsStore.hasSignatureFile()"
-								@click="handleModal(true)"
-								:wide="true">
+								:wide="true"
+								@click="handleModal(true)">
 								{{ t('librsign', 'Change password') }}
 								<template #icon>
 									<FileReplaceIcon :size="20" />
