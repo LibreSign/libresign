@@ -1,6 +1,9 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} دعاك إلى توقيع ملف",
+    "You have a <strong>file to sign</strong>" : "لديك<strong>ملفات لتوقيعها</strong>",
+    "Other activities" : "حركات أخرى",
     "Success" : "نجاح",
     "Invalid user or password" : "مستخدم أو كلمة مرور غير صالحة",
     "_Element created with success_::_Elements created with success_" : ["تم إنشاء العناصر بنجاح","تم إنشاء العنصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح","تم إنشاء العناصر بنجاح"],

@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} bittet Sie eine Datei zu signieren",
+    "You have a <strong>file to sign</strong>" : "Sie haben eine <strong>Datei zum Signieren</strong>",
     "Other activities" : "Andere Aktivitäten",
     "Success" : "Erfolgreich",
     "Invalid user or password" : "Ungültiger Benutzername oder Passwort",
