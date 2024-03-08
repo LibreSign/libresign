@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout server
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: nextcloud/server
           ref: ${{ matrix.server-versions }}
@@ -71,12 +71,12 @@ jobs:
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
 
       - name: Checkout app
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@d30ad8b1843ace22e6698ab99bbafaa747b6bd0d # 2.24.0
+        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # 2.30.0
         with:
           php-version: ${{ matrix.php-versions }}
           tools: phpunit
