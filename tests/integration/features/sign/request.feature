@@ -198,7 +198,7 @@ Feature: request-signature
     And wait for 2 second
     And run the command "activity:send-mails"
     And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "Activity at Nextcloud"
+    And I open the latest email to "signer1@domain.test" with subject "Activity at Nextcloud" and body "admin invited you to sign a file"
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
