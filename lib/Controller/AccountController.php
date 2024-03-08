@@ -478,6 +478,8 @@ class AccountController extends ApiController implements ISignatureUuid {
 		);
 	}
 
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function deletePfx(): JSONResponse {
 		$this->accountService->deletePfx($this->userSession->getUser());
 		return new JSONResponse(
@@ -494,6 +496,9 @@ class AccountController extends ApiController implements ISignatureUuid {
 	public function uploadPfx(): JSONResponse {
 		$file = $this->request->getUploadedFile('file');
 		try {
+			if (empty($file)) {
+				throw new LibresignException($this->l10n->t('No certificate file provided'));
+			}
 			$this->accountService->uploadPfx($file, $this->userSession->getUser());
 		} catch (InvalidArgumentException|LibresignException $e) {
 			return new JSONResponse(
@@ -512,6 +517,8 @@ class AccountController extends ApiController implements ISignatureUuid {
 		);
 	}
 
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function updatePfxPassword($current, $new): JSONResponse {
 		try {
 			$this->accountService->updatePfxPassword($this->userSession->getUser(), $current, $new);
