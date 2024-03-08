@@ -153,6 +153,7 @@ OC.L10N.register(
     "Request signatures?" : "Vyžiadať podpisy?",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",
+    "Delete certificate" : "Vymazať certifikát",
     "Change password" : "Zmeniť heslo",
     "Your profile documents" : "Dokumenty vášho profilu",
     "Type" : "Typ",

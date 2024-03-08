@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} је од вас затражио да потпишете фајл",
+    "You have a <strong>file to sign</strong>" : "Постоји <strong>фајл који треба да потпишете</strong>",
     "Other activities" : "Остале активности",
     "Success" : "Успешно",
     "Invalid user or password" : "Неисправно корисничко име или лозинка",

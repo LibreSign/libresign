@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} 邀請您簽署一個檔案",
+    "You have a <strong>file to sign</strong>" : "您有一個<strong>檔案要簽署</strong>",
     "Other activities" : "其它活動",
     "Success" : "成功",
     "Invalid user or password" : "無效的使用者或密碼",
