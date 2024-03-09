@@ -91,6 +91,6 @@ class FileToSign extends ActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function isDefaultEnabledNotification(): bool {
-		return $this->isDefaultEnabledMail() && $this->canChangeMail();
+		return false;
 	}
 }

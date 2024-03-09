@@ -193,9 +193,11 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And user signer1 has the following notifications
-      | app       | object_type | object_id | subject                         |
-      | libresign | sign        | document  | There is a file for you to sign |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                         |
+      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
     And sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                             |
