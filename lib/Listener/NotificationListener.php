@@ -33,6 +33,8 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserSession;
 use OCP\Notification\IManager;
 
 /**
@@ -41,6 +43,7 @@ use OCP\Notification\IManager;
 class NotificationListener implements IEventListener {
 	public function __construct(
 		private IManager $notificationManager,
+		protected IUserSession $userSession,
 		private ITimeFactory $timeFactory,
 		protected IURLGenerator $url,
 	) {
@@ -63,21 +66,32 @@ class NotificationListener implements IEventListener {
 		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
+		$actor = $this->userSession->getUser();
+		if (!$actor instanceof IUser) {
+			return;
+		}
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
-			->setObject('sign', 'document')
+			->setObject('signRequest', (string) $signRequest->getId())
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		if ($isNew) {
-			$notification->setSubject('new_sign_request', [
-				'file' => $this->getFileParameter($signRequest, $libreSignFile),
-			]);
+			$subject = 'new_sign_request';
 		} else {
-			$notification->setSubject('update_sign_request', [
-				'file' => $this->getFileParameter($signRequest, $libreSignFile),
-			]);
+			$subject = 'update_sign_request';
 		}
+		$notification->setSubject($subject, [
+			'from' => $this->getUserParameter(
+				$actor->getUID(),
+				$actor->getDisplayName(),
+			),
+			'file' => $this->getFileParameter($signRequest, $libreSignFile),
+			'signRequest' => [
+				'type' => 'sign-request',
+				'id' => $signRequest->getId(),
+			],
+		]);
 		$this->notificationManager->notify($notification);
 	}
 
@@ -88,6 +102,17 @@ class NotificationListener implements IEventListener {
 			'name' => $libreSignFile->getName(),
 			'path' => $libreSignFile->getName(),
 			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+		];
+	}
+
+	protected function getUserParameter(
+		string $userId,
+		$displayName,
+	): array {
+		return [
+			'type' => 'user',
+			'id' => $userId,
+			'name' => $displayName,
 		];
 	}
 }

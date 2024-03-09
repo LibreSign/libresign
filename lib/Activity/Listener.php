@@ -89,7 +89,7 @@ class Listener implements IEventListener {
 				->setApp(Application::APP_ID)
 				->setType('file_to_sign')
 				->setAuthor($actorId)
-				->setObject('sign', $signRequest->getId(), 'signRequest')
+				->setObject('signRequest', $signRequest->getId())
 				->setTimestamp($this->timeFactory->getTime())
 				->setAffectedUser($identifyMethod->getEntity()->getIdentifierValue());
 			if ($isNew) {
@@ -107,6 +107,10 @@ class Listener implements IEventListener {
 					$identifyMethod->getEntity()->getIdentifierValue(),
 					$signRequest->getDisplayName(),
 				),
+				'signRequest' => [
+					'type' => 'sign-request',
+					'id' => $signRequest->getId(),
+				],
 			]);
 			$this->activityManager->publish($event);
 		} catch (\InvalidArgumentException $e) {

@@ -31,11 +31,13 @@ use OCP\Activity\IProvider;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\L10N\IFactory;
+use OCP\RichObjectStrings\Definitions;
 
 class SignRequest implements IProvider {
 	public function __construct(
 		protected IFactory $languageFactory,
 		protected IURLGenerator $url,
+		protected Definitions $definitions,
 		protected IManager $activityManager,
 		protected IUserManager $userManager,
 	) {
@@ -45,6 +47,19 @@ class SignRequest implements IProvider {
 		if ($event->getApp() !== Application::APP_ID) {
 			throw new \InvalidArgumentException('Wrong app');
 		}
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				]
+			]
+		];
 
 		if ($this->activityManager->getRequirePNG()) {
 			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.png')));

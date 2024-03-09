@@ -33,11 +33,13 @@ use OCP\L10N\IFactory;
 use OCP\Notification\IAction;
 use OCP\Notification\INotification;
 use OCP\Notification\INotifier;
+use OCP\RichObjectStrings\Definitions;
 
 class Notifier implements INotifier {
 	public function __construct(
 		private IFactory $factory,
-		private IURLGenerator $urlGenerator,
+		private IURLGenerator $url,
+		private Definitions $definitions,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper
 	) {
@@ -55,6 +57,19 @@ class Notifier implements INotifier {
 		if ($notification->getApp() !== Application::APP_ID) {
 			throw new \InvalidArgumentException();
 		}
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				]
+			]
+		];
 
 		$l = $this->factory->get(Application::APP_ID, $languageCode);
 
@@ -75,9 +90,19 @@ class Notifier implements INotifier {
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
 		$notification
-			->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')))
+			->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')))
 			->setLink($parameters['file']['link']);
-		$notification->setParsedSubject($l->t('There is a file for you to sign'));
+		$subject = $l->t('{from} invited you to sign {file}');
+		$notification->setParsedSubject(
+			str_replace(
+				['{from}', '{file}'],
+				[
+					$parameters['from']['name'],
+					$parameters['file']['name'],
+				],
+				$subject
+			))
+			->setRichSubject($subject, $parameters);
 		if ($update) {
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
 		}
@@ -90,6 +115,20 @@ class Notifier implements INotifier {
 				IAction::TYPE_WEB
 			);
 		$notification->addParsedAction($signAction);
+		$dismissAction = $notification->createAction()
+			->setParsedLabel($l->t('Dismiss notification'))
+			->setLink(
+				$this->url->linkToOCSRouteAbsolute(
+					'libresign.notify.notificationDismiss',
+					[
+						'apiVersion' => 'v1',
+						'timestamp' => $notification->getDateTime()->getTimestamp(),
+						'signRequestId' => $parameters['signRequest']['id'],
+					],
+				),
+				IAction::TYPE_DELETE
+			);
+		$notification->addParsedAction($dismissAction);
 		return $notification;
 	}
 }
