@@ -43,8 +43,11 @@
     </settings>
     <activity>
         <settings>
-            <setting>OCA\Libresign\Activity\Setting</setting>
+            <setting>OCA\Libresign\Activity\FileToSign</setting>
         </settings>
+        <filters>
+            <filter>OCA\Libresign\Activity\Filter</filter>
+        </filters>
         <providers>
             <provider>OCA\Libresign\Activity\Provider\SignRequest</provider>
         </providers>

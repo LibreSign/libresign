@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ * @copyright Copyright (c) 2024 Vitor Mattos <vitor@php.rio>
  *
  * @author Vitor Mattos <vitor@php.rio>
  *
@@ -22,35 +22,46 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\Events;
+namespace OCA\Libresign\Activity;
 
-use OCA\Libresign\Db\File as FileEntity;
-use OCA\Libresign\Db\SignRequest;
-use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
-use OCP\EventDispatcher\Event;
+use OCA\Libresign\AppInfo\Application;
+use OCP\Activity\IFilter;
+use OCP\IL10N;
+use OCP\IURLGenerator;
 
-class SendSignNotificationEvent extends Event {
+class Filter implements IFilter {
 	public function __construct(
-		private SignRequest $signRequest,
-		private FileEntity $libreSignFile,
-		private IIdentifyMethod $identifyMethod,
-		private bool $isNew
+		protected IL10N $l,
+		protected IURLGenerator $url,
 	) {
+		$this->l = $l;
+		$this->url = $url;
 	}
 
-	public function getLibreSignFile(): FileEntity {
-		return $this->libreSignFile;
+	public function getIdentifier() {
+		return Application::APP_ID;
 	}
 
-	public function getSignRequest(): SignRequest {
-		return $this->signRequest;
+	public function getName() {
+		return 'LibreSign';
 	}
 
-	public function isNew(): bool {
-		return $this->isNew;
+	public function getPriority() {
+		return 31;
 	}
 
-	public function getIdentifyMethod(): IIdentifyMethod {
-		return $this->identifyMethod;
+	public function getIcon() {
+		return $this->url->getAbsoluteURL($this->url->imagePath('libresign', 'app-dark.svg'));
+	}
+
+	public function filterTypes(array $types) {
+		return ['file_to_sign'];
+	}
+
+	public function allowedApps() {
+		return [
+			'file_to_sign',
+			Application::APP_ID,
+		];
 	}
 }

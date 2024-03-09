@@ -27,7 +27,6 @@ namespace OCA\Libresign\Notification;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
@@ -75,14 +74,9 @@ class Notifier implements INotifier {
 		bool $update
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
-		try {
-			$signRequest = $this->signRequestMapper->getById($parameters['signRequest']);
-		} catch (DoesNotExistException $th) {
-			throw new \InvalidArgumentException();
-		}
 		$notification
 			->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')))
-			->setLink($this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]));
+			->setLink($parameters['file']['link']);
 		$notification->setParsedSubject($l->t('There is a file for you to sign'));
 		if ($update) {
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
@@ -92,7 +86,7 @@ class Notifier implements INotifier {
 			->setParsedLabel($l->t('View'))
 			->setPrimary(true)
 			->setLink(
-				$this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+				$parameters['file']['link'],
 				IAction::TYPE_WEB
 			);
 		$notification->addParsedAction($signAction);

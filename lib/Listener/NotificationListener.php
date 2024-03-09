@@ -25,12 +25,14 @@ declare(strict_types=1);
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IURLGenerator;
 use OCP\Notification\IManager;
 
 /**
@@ -39,7 +41,8 @@ use OCP\Notification\IManager;
 class NotificationListener implements IEventListener {
 	public function __construct(
 		private IManager $notificationManager,
-		private ITimeFactory $timeFactory
+		private ITimeFactory $timeFactory,
+		protected IURLGenerator $url,
 	) {
 	}
 
@@ -47,6 +50,7 @@ class NotificationListener implements IEventListener {
 		if ($event instanceof SendSignNotificationEvent) {
 			$this->sendNewSignNotification(
 				$event->getSignRequest(),
+				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 				$event->isNew()
 			);
@@ -55,6 +59,7 @@ class NotificationListener implements IEventListener {
 
 	private function sendNewSignNotification(
 		SignRequest $signRequest,
+		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
@@ -66,13 +71,23 @@ class NotificationListener implements IEventListener {
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		if ($isNew) {
 			$notification->setSubject('new_sign_request', [
-				'signRequest' => $signRequest->getId(),
+				'file' => $this->getFileParameter($signRequest, $libreSignFile),
 			]);
 		} else {
 			$notification->setSubject('update_sign_request', [
-				'signRequest' => $signRequest->getId(),
+				'file' => $this->getFileParameter($signRequest, $libreSignFile),
 			]);
 		}
 		$this->notificationManager->notify($notification);
+	}
+
+	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile) {
+		return [
+			'type' => 'file',
+			'id' => $libreSignFile->getNodeId(),
+			'name' => $libreSignFile->getName(),
+			'path' => $libreSignFile->getName(),
+			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+		];
 	}
 }
