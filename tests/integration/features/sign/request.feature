@@ -257,9 +257,11 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And user signer1 has the following notifications
-      | app       | object_type | object_id | subject                         |
-      | libresign | sign        | document  | There is a file for you to sign |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                         |
+      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
     And there should be 0 emails in my inbox
 
   Scenario: Request to sign with success using email as identifier
@@ -313,9 +315,11 @@ Feature: request-signature
       | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And user signer1 has the following notifications
-      | app       | object_type | object_id | subject                         |
-      | libresign | sign        | document  | There is a file for you to sign |
+    When as user "signer1"
+    And sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                         |
+      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
