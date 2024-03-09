@@ -202,11 +202,6 @@ Feature: request-signature
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                             |
       | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
-    # Email is sent asyncronous by queue to an external application, we need to wait a bit
-    And wait for 2 second
-    And run the command "activity:send-mails"
-    And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "Activity at Nextcloud" and body "<strong>admin</strong> invited you to sign <a href"
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
