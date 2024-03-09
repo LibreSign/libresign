@@ -52,27 +52,31 @@ class SignRequest implements IProvider {
 			$event->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
 		}
 
-		if ($event->getSubject() === 'new_sign_request') {
+		if (in_array($event->getSubject(), ['new_sign_request', 'update_sign_request'])) {
 			$l = $this->languageFactory->get(Application::APP_ID, $language);
 			$parameters = $event->getSubjectParameters();
 
-			$subject = $l->t('{from} invited you to sign a file');
+			$subject = $this->getParsedSubject($l, $event->getSubject());
 			$event->setParsedSubject(
 				str_replace(
-					'{from}',
-					$this->userManager->getDisplayName($parameters['from']) ?? $parameters['from'],
+					['{from}', '{file}'],
+					[
+						$parameters['from']['name'],
+						$parameters['file']['name'],
+					],
 					$subject
-				));
+				))
+				->setRichSubject($subject, $parameters);
 		}
 
 		return $event;
 	}
 
-	protected function getUser(string $uid): array {
-		return [
-			'type' => 'user',
-			'id' => $uid,
-			'name' => $this->userManager->getDisplayName($uid) ?? $uid,
-		];
+	private function getParsedSubject($l, $subject) {
+		if ($subject === 'new_sign_request') {
+			return $l->t('{from} invited you to sign {file}');
+		} elseif ($subject === 'update_sign_request') {
+			return $l->t('{from} made changes on {file}');
+		}
 	}
 }

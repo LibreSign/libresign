@@ -192,17 +192,21 @@ class RequestSignatureService {
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
 						$return[] = $this->associateToSigner(
-							data: [
+							identifyMethods: [
 								$identifyMethod['method'] => $identifyMethod['value'],
 							],
-							user: $user,
+							displayName: $user['displayName'] ?? '',
+							description: $user['description'] ?? '',
+							notify: $user['notify'] ?? true,
 							fileId: $fileId,
 						);
 					}
 				} else {
 					$return[] = $this->associateToSigner(
-						data: $user['identify'],
-						user: $user,
+						identifyMethods: $user['identify'],
+						displayName: $user['displayName'] ?? '',
+						description: $user['description'] ?? '',
+						notify: $user['notify'] ?? true,
 						fileId: $fileId,
 					);
 				}
@@ -211,20 +215,43 @@ class RequestSignatureService {
 		return $return;
 	}
 
-	private function associateToSigner(array $data, array $user, int $fileId): SignRequestEntity {
-		$identifyMethods = $this->identifyMethod->getByUserData($data);
+	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
+		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
 		$signRequest = $this->getSignRequestByIdentifyMethod(
-			current($identifyMethods),
+			current($identifyMethodsIncances),
 			$fileId
 		);
-		$this->setDataToUser($signRequest, $user, $fileId);
+		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsIncances, $displayName);
+		$this->setDataToUser($signRequest, $displayName, $description, $fileId);
 		$this->saveSignRequest($signRequest);
-		foreach ($identifyMethods as $identifyMethod) {
+		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($user['notify'] ?? true);
+			$identifyMethod->willNotifyUser($notify);
 			$identifyMethod->save();
 		}
 		return $signRequest;
+	}
+
+	/**
+	 * @param IIdentifyMethod[] $identifyMethodsIncances
+	 * @param string $displayName
+	 * @return string
+	 */
+	private function getDisplayNameFromIdentifyMethodIfEmpty(array $identifyMethodsIncances, string $displayName): string {
+		if (!empty($displayName)) {
+			return $displayName;
+		}
+		foreach ($identifyMethodsIncances as $identifyMethod) {
+			if ($identifyMethod->getName() === 'account') {
+				return $this->userManager->get($identifyMethod->getEntity()->getIdentifierValue())->getDisplayName();
+			}
+		}
+		foreach ($identifyMethodsIncances as $identifyMethod) {
+			if ($identifyMethod->getName() !== 'account') {
+				return $identifyMethod->getEntity()->getIdentifierValue();
+			}
+		}
+		return '';
 	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
@@ -279,16 +306,16 @@ class RequestSignatureService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	private function setDataToUser(SignRequestEntity $signRequest, array $user, int $fileId): void {
+	private function setDataToUser(SignRequestEntity $signRequest, string $displayName, string $description, int $fileId): void {
 		$signRequest->setFileId($fileId);
 		if (!$signRequest->getUuid()) {
 			$signRequest->setUuid(UUIDUtil::getUUID());
 		}
-		if (!empty($user['displayName'])) {
-			$signRequest->setDisplayName($user['displayName']);
+		if (!empty($displayName)) {
+			$signRequest->setDisplayName($displayName);
 		}
-		if (!empty($user['description'])) {
-			$signRequest->setDescription($user['description']);
+		if (!empty($description)) {
+			$signRequest->setDescription($description);
 		}
 		if (!$signRequest->getId()) {
 			$signRequest->setCreatedAt(time());

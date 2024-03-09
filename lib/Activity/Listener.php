@@ -25,13 +25,16 @@ declare(strict_types=1);
 namespace OCA\Libresign\Activity;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Events\SendSignNotificationEvent;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Activity\IManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -45,13 +48,17 @@ class Listener implements IEventListener {
 		protected IUserSession $userSession,
 		protected LoggerInterface $logger,
 		protected ITimeFactory $timeFactory,
+		protected AccountService $accountService,
+		protected IURLGenerator $url,
 	) {
 	}
 
 	public function handle(Event $event): void {
+		/** @var SendSignNotificationEvent $event */
 		match (get_class($event)) {
 			SendSignNotificationEvent::class => $this->generateNewSignNotificationActivity(
 				$event->getSignRequest(),
+				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 				$event->isNew()
 			),
@@ -66,6 +73,7 @@ class Listener implements IEventListener {
 	 */
 	protected function generateNewSignNotificationActivity(
 		SignRequest $signRequest,
+		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
@@ -79,28 +87,52 @@ class Listener implements IEventListener {
 		try {
 			$event
 				->setApp(Application::APP_ID)
-				->setType(Application::APP_ID)
+				->setType('file_to_sign')
 				->setAuthor($actorId)
 				->setObject('sign', $signRequest->getId(), 'signRequest')
 				->setTimestamp($this->timeFactory->getTime())
 				->setAffectedUser($identifyMethod->getEntity()->getIdentifierValue());
 			if ($isNew) {
-				$event->setSubject('new_sign_request', [
-					'from' => $actor->getUID(),
-					'signer' => $identifyMethod->getEntity()->getIdentifierValue(),
-					'signRequest' => $signRequest->getId(),
-				]);
+				$subject = 'new_sign_request';
 			} else {
-				$event->setSubject('update_sign_request', [
-					'from' => $actor->getUID(),
-					'signer' => $identifyMethod->getEntity()->getIdentifierValue(),
-					'signRequest' => $signRequest->getId(),
-				]);
+				$subject = 'update_sign_request';
 			}
+			$event->setSubject($subject, [
+				'from' => $this->getUserParameter(
+					$actor->getUID(),
+					$actor->getDisplayName(),
+				),
+				'file' => $this->getFileParameter($signRequest, $libreSignFile),
+				'signer' => $this->getUserParameter(
+					$identifyMethod->getEntity()->getIdentifierValue(),
+					$signRequest->getDisplayName(),
+				),
+			]);
 			$this->activityManager->publish($event);
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
 		}
+	}
+
+	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile) {
+		return [
+			'type' => 'file',
+			'id' => $libreSignFile->getNodeId(),
+			'name' => $libreSignFile->getName(),
+			'path' => $libreSignFile->getName(),
+			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+		];
+	}
+
+	protected function getUserParameter(
+		string $userId,
+		$displayName,
+	): array {
+		return [
+			'type' => 'user',
+			'id' => $userId,
+			'name' => $displayName,
+		];
 	}
 }

@@ -306,6 +306,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		);
 
 		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		if ($this->response->getStatusCode() === 500) {
+			throw new Exception('Internal failure when access notifications endpoint');
+		}
 		$data = $jsonBody['ocs']['data'];
 
 		if ($body === null) {

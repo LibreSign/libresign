@@ -78,8 +78,10 @@ class Account extends AbstractIdentifyMethod {
 			return;
 		}
 		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$libresignFile = $this->identifyMethodService->getFileMapper()->getById($signRequest->getFileId());
 		$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
 			$signRequest,
+			$libresignFile,
 			$this,
 			$isNew
 		));
