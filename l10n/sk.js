@@ -151,6 +151,7 @@ OC.L10N.register(
     "Account not exist" : "Účet neexistuje",
     "Select each signer to define their signature positions" : "Vyberte každého podpisovateľa a definujte jeho podpisové pozície",
     "Request signatures?" : "Vyžiadať podpisy?",
+    "pending" : "čakajúce",
     "Details" : "Podrobnosti",
     "Certificate" : "Certifikát",
     "Delete certificate" : "Vymazať certifikát",
