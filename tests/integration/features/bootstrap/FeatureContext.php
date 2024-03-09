@@ -353,11 +353,11 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$found = array_filter(
 			$data,
 			function ($notification) {
-				return $notification['subject'] === 'There is a file for you to sign';
+				return $notification['subject'] === 'admin invited you to sign document';
 			}
 		);
 		if (empty($found)) {
-			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
+			throw new Exception('Notification with the subject [admin invited you to sign document] not found');
 		}
 		$found = current($found);
 
