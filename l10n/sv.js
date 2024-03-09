@@ -1,6 +1,8 @@
 OC.L10N.register(
     "libresign",
     {
+    "{from} invited you to sign a file" : "{from} bjöd in dig att signera en fil",
+    "You have a <strong>file to sign</strong>" : "Du har en <strong>fil att signera</strong>",
     "Other activities" : "Andra aktiviteter",
     "Success" : "Lyckades",
     "Invalid user or password" : "Ogiltig användare eller lösenord",
@@ -11,6 +13,7 @@ OC.L10N.register(
     "Visible element deleted" : "Synligt element raderat",
     "Settings saved" : "Inställningar sparade",
     "Certificate file deleted with success." : "Certifikatfilen raderades.",
+    "No certificate file provided" : "Ingen certifikatfil tillhandahålls",
     "Certificate file saved with success." : "Certifikatfilen sparades.",
     "New password to sign documents has been created" : "Ett nytt lösenord för att signera dokument har skapats.",
     "Could not download binaries." : "Kunde inte ladda ned binärer",
@@ -95,7 +98,6 @@ OC.L10N.register(
     "Invalid URL file" : "Ogiltig URL-fil",
     "Visible element file must be png." : "Synlig elementfil måste vara png.",
     "Empty file" : "Tom fil",
-    "No certificate file provided" : "Ingen certifikatfil tillhandahålls",
     "Invalid file provided. Need to be a .pfx file." : "Ogiltig fil tillhandahålls. Måste vara en .pfx-fil.",
     "Invalid file identifier" : "Ogiltigt filidentifierare",
     "You need to sign this document" : "Du behöver signera detta dokument",
