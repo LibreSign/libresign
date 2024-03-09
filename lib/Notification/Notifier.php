@@ -67,8 +67,14 @@ class Notifier implements INotifier {
 					'required' => true,
 					'description' => 'The id of SignRequest object',
 					'example' => '12345',
-				]
-			]
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
 		];
 
 		$l = $this->factory->get(Application::APP_ID, $languageCode);

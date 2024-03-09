@@ -110,6 +110,7 @@ class Listener implements IEventListener {
 				'signRequest' => [
 					'type' => 'sign-request',
 					'id' => $signRequest->getId(),
+					'name' => $actor->getDisplayName(),
 				],
 			]);
 			$this->activityManager->publish($event);

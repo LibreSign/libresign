@@ -57,8 +57,14 @@ class SignRequest implements IProvider {
 					'required' => true,
 					'description' => 'The id of SignRequest object',
 					'example' => '12345',
-				]
-			]
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
 		];
 
 		if ($this->activityManager->getRequirePNG()) {

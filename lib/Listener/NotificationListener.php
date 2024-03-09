@@ -90,6 +90,7 @@ class NotificationListener implements IEventListener {
 			'signRequest' => [
 				'type' => 'sign-request',
 				'id' => $signRequest->getId(),
+				'name' => $actor->getDisplayName(),
 			],
 		]);
 		$this->notificationManager->notify($notification);
