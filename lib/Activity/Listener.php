@@ -91,7 +91,11 @@ class Listener implements IEventListener {
 				->setAuthor($actorId)
 				->setObject('signRequest', $signRequest->getId())
 				->setTimestamp($this->timeFactory->getTime())
-				->setAffectedUser($identifyMethod->getEntity()->getIdentifierValue());
+				->setAffectedUser($identifyMethod->getEntity()->getIdentifierValue())
+				// Activity notification was replaced by Notification app
+				// At notification app we can define the view and dismiss action
+				// Activity dont have this feature
+				->setGenerateNotification(false);
 			if ($isNew) {
 				$subject = 'new_sign_request';
 			} else {

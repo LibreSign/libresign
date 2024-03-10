@@ -31,6 +31,7 @@ use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
@@ -45,6 +46,7 @@ class IdentifyMethodService {
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private SessionService $sessionService,
 		private ITimeFactory $timeFactory,
+		private IEventDispatcher $eventDispatcher,
 		private IRootFolder $root,
 		private IAppConfig $appConfig,
 		private SignRequestMapper $signRequestMapper,
@@ -106,6 +108,10 @@ class IdentifyMethodService {
 			$this->savedSettings = $config;
 		}
 		return $this->savedSettings;
+	}
+
+	public function getEventDispatcher(): IEventDispatcher {
+		return $this->eventDispatcher;
 	}
 
 	public function getSessionService(): SessionService {
