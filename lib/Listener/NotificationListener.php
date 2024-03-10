@@ -70,6 +70,9 @@ class NotificationListener implements IEventListener {
 		if (!$actor instanceof IUser) {
 			return;
 		}
+		if ($this->isNotificationDisabledAtActivity($identifyMethod)) {
+			return;
+		}
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
@@ -94,6 +97,21 @@ class NotificationListener implements IEventListener {
 			],
 		]);
 		$this->notificationManager->notify($notification);
+	}
+
+	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod): bool {
+		$activityUserSettings = \OC::$server->get(\OCA\Activity\UserSettings::class);
+		if ($activityUserSettings) {
+			$notificationSetting = $activityUserSettings->getUserSetting(
+				$identifyMethod->getEntity()->getIdentifierValue(),
+				'notification',
+				'file_to_sign'
+			);
+			if (!$notificationSetting) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile) {
