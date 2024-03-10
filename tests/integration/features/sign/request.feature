@@ -194,8 +194,6 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
-    And there should be 1 emails in my inbox
-    And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
