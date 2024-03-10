@@ -31,6 +31,7 @@ use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Libresign\Listener\BeforeNodeDeletedListener;
 use OCA\Libresign\Listener\LoadSidebarListener;
+use OCA\Libresign\Listener\MailNotifyListener;
 use OCA\Libresign\Listener\NotificationListener;
 use OCA\Libresign\Listener\SignedListener;
 use OCA\Libresign\Middleware\GlobalInjectionMiddleware;
@@ -77,5 +78,8 @@ class Application extends App implements IBootstrap {
 
 		// Notification listeners
 		$context->registerEventListener(SendSignNotificationEvent::class, NotificationListener::class);
+
+		// MailNotify listener
+		$context->registerEventListener(SendSignNotificationEvent::class, MailNotifyListener::class);
 	}
 }

@@ -30,7 +30,6 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
-use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
@@ -40,7 +39,6 @@ use OCP\IUserSession;
 class Email extends AbstractIdentifyMethod {
 	public function __construct(
 		protected IdentifyMethodService $identifyMethodService,
-		private MailService $mail,
 		private IdentifyMethodMapper $identifyMethodMapper,
 		private IRootFolder $root,
 		private ITimeFactory $timeFactory,
@@ -59,18 +57,6 @@ class Email extends AbstractIdentifyMethod {
 		parent::__construct(
 			$identifyMethodService,
 		);
-	}
-
-	public function notify(bool $isNew): void {
-		if (!$this->willNotify) {
-			return;
-		}
-		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
-		if ($isNew) {
-			$this->mail->notifyUnsignedUser($signRequest, $this->getEntity()->getIdentifierValue());
-			return;
-		}
-		$this->mail->notifySignDataUpdated($signRequest, $this->getEntity()->getIdentifierValue());
 	}
 
 	public function validateToRequest(): void {
