@@ -142,7 +142,8 @@ Feature: request-signature
       | action | 4500        |
       | title | Link expired |
     Given my inbox is empty
-    When sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
+    When as user "admin"
+    And sending "post" to ocs "/apps/libresign/api/v1/sign/uuid/<SIGN_UUID>/renew/email"
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key     | value                                        |
