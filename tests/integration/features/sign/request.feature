@@ -198,11 +198,11 @@ Feature: request-signature
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
       | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
+      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                             |
-      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
+      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
@@ -257,7 +257,7 @@ Feature: request-signature
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
+      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 0 emails in my inbox
 
   Scenario: Request to sign with success using email as identifier
@@ -315,7 +315,7 @@ Feature: request-signature
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
       | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin invited you to sign document"|
+      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
