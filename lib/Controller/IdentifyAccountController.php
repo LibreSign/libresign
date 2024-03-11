@@ -159,11 +159,11 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			return $return;
 		}
 		$return[] = [
-			'id' => $user->getUID(),
-			'isNoUser' => false,
+			'id' => $user->getEMailAddress(),
+			'isNoUser' => true,
 			'displayName' => $user->getDisplayName(),
 			'subname' => $user->getEMailAddress(),
-			'icon' => 'icon-user',
+			'icon' => 'icon-mail',
 			'shareType' => IShare::TYPE_EMAIL,
 		];
 		return $return;
