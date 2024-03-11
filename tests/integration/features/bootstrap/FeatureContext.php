@@ -33,7 +33,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When run the command :command
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/
 	 */
 	public static function runCommand($command): void {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');

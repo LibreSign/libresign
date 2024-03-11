@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -49,6 +50,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	}
 
 	#[NoAdminRequired]
+	#[RequireManager]
 	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
 		$shareTypes = $this->getShareTypes();
 		$lookup = false;
@@ -64,7 +66,8 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$result['exact'] = $this->unifyResult($result['exact']);
 		$result = $this->unifyResult($result);
 		$return = $this->formatForNcSelect($result);
-		$return = $this->addHerself($return, $search);
+		$return = $this->addHerselfAccount($return, $search);
+		$return = $this->addHerselfEmail($return, $search);
 		$return = $this->excludeNotAllowed($return);
 
 		return new DataResponse($return);
@@ -118,7 +121,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		return $list;
 	}
 
-	private function addHerself(array $return, string $search): array {
+	private function addHerselfAccount(array $return, string $search): array {
 		$settings = $this->identifyAccountMethod->getSettings();
 		if (empty($settings['enabled'])) {
 			return $return;
@@ -138,6 +141,30 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'subname' => $user->getEMailAddress(),
 			'icon' => 'icon-user',
 			'shareType' => IShare::TYPE_USER,
+		];
+		return $return;
+	}
+
+	private function addHerselfEmail(array $return, string $search): array {
+		$settings = $this->identifyEmailMethod->getSettings();
+		if (empty($settings['enabled'])) {
+			return $return;
+		}
+		$user = $this->userSession->getUser();
+		if (!str_contains($user->getEMailAddress(), $search) && !str_contains($user->getDisplayName(), $search)) {
+			return $return;
+		}
+		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
+		if (count($filtered)) {
+			return $return;
+		}
+		$return[] = [
+			'id' => $user->getUID(),
+			'isNoUser' => false,
+			'displayName' => $user->getDisplayName(),
+			'subname' => $user->getEMailAddress(),
+			'icon' => 'icon-user',
+			'shareType' => IShare::TYPE_EMAIL,
 		];
 		return $return;
 	}
