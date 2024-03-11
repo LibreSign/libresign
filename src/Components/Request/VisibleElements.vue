@@ -84,6 +84,7 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { emit } from '@nextcloud/event-bus'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Signer from '../Signers/Signer.vue'
 import { showResponseError } from '../../helpers/errors.js'
@@ -264,7 +265,7 @@ export default {
 				this.showConfirm = false
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
-				this.filesStore.selectFile()
+				emit('libresign:visible-elements-saved')
 			} catch (err) {
 				this.loading = false
 				this.onError(err)
