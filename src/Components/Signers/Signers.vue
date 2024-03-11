@@ -1,6 +1,6 @@
 <template>
 	<ul>
-		<Signer v-for="(signer, index) in filesStore.files[filesStore.selectedNodeId].signers"
+		<Signer v-for="(signer, index) in signers"
 			:key="index"
 			:current-signer="index"
 			:event="event">
@@ -22,6 +22,11 @@ export default {
 			type: String,
 			required: false,
 			default: '',
+		},
+	},
+	computed: {
+		signers() {
+			return this.filesStore.getFile()?.signers ?? []
 		},
 	},
 	setup() {

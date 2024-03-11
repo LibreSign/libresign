@@ -23,8 +23,9 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { createPinia, PiniaVuePlugin } from 'pinia'
 import { loadState } from '@nextcloud/initial-state'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { translate, translatePlural } from '@nextcloud/l10n'
 import AppFilesTab from './Components/File/AppFilesTab.vue'
 import './actions/openInLibreSignAction.js'
 
@@ -32,13 +33,17 @@ import './style/icons.scss'
 
 import './plugins/vuelidate.js'
 
-Vue.prototype.t = t
-Vue.prototype.n = n
+Vue.prototype.t = translate
+Vue.prototype.n = translatePlural
 Vue.use(Vuex)
 
 if (!window.OCA.Libresign) {
 	window.OCA.Libresign = {}
 }
+
+Vue.use(PiniaVuePlugin)
+
+const pinia = createPinia()
 
 const isEnabled = function(fileInfo) {
 	if (fileInfo?.isDirectory() || !loadState('libresign', 'certificate_ok')) {
@@ -77,6 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
 				TabInstance = new View({
 					// Better integration with vue parent component
 					parent: context,
+					pinia,
 				})
 
 				// Only mount after we hahve all theh info we need

@@ -33,7 +33,9 @@ export default {
 			this.filesStore.addFile({
 				nodeId: fileInfo.id,
 				name: fileInfo.name,
+				signers: [],
 			})
+			this.filesStore.selectFile(fileInfo.id)
 		},
 	},
 }

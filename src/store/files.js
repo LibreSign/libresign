@@ -44,7 +44,7 @@ export const useFilesStore = defineStore('files', {
 			this.selectedNodeId = nodeId ?? 0
 		},
 		getFile() {
-			return this.files[this.selectedNodeId]
+			return this.files[this.selectedNodeId] ?? {}
 		},
 		enableIdentifySigner() {
 			this.identifyingSigner = true
@@ -103,11 +103,11 @@ export const useFilesStore = defineStore('files', {
 			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
 				fileId: nodeId,
 			}))
-				.then(() => {
+				.then((response) => {
 					set(this.files, nodeId, response.data)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 				})
-				.catch(() => {
+				.catch((error) => {
 					set(this.files[nodeId], 'signers', [])
 				})
 			this.loading = false
