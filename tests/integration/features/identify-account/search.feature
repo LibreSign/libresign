@@ -79,4 +79,4 @@ Feature: search
     Then the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
-      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin","isNoUser":false,"displayName":"admin","subname":"admin@email.tld","icon":"icon-user","shareType":4}]} |
+      | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[{"id":"admin@email.tld","isNoUser":true,"displayName":"admin","subname":"admin@email.tld","icon":"icon-mail","shareType":4}]} |
