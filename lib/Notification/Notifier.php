@@ -98,7 +98,7 @@ class Notifier implements INotifier {
 		$notification
 			->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')))
 			->setLink($parameters['file']['link']);
-		$subject = $l->t('{from} invited you to sign {file}');
+		$subject = $l->t('{from} requested your signature on {file}');
 		$notification->setParsedSubject(
 			str_replace(
 				['{from}', '{file}'],
