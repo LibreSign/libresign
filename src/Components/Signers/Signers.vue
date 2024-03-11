@@ -24,14 +24,14 @@ export default {
 			default: '',
 		},
 	},
+	setup() {
+		const filesStore = useFilesStore()
+		return { filesStore }
+	},
 	computed: {
 		signers() {
 			return this.filesStore.getFile()?.signers ?? []
 		},
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
 	},
 }
 </script>
