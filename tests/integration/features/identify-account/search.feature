@@ -35,7 +35,7 @@ Feature: search
       | value | (string)[{"name":"email","enabled":true}] |
     And run the command "group:add request_signature"
     And run the command "group:adduser request_signature search-signer1"
-    And run the command "config:app:set libresign groups_request_sign	--type=array --value=[\"request_signature\"]"
+    And run the command "config:app:set libresign groups_request_sign --value=[\"request_signature\"]"
     Given as user "search-signer1"
     And set the email of user "search-signer1" to "my@email.tld"
     And set the display name of user "search-signer1" to "My Name"
