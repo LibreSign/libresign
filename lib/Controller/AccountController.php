@@ -538,4 +538,23 @@ class AccountController extends ApiController implements ISignatureUuid {
 			Http::STATUS_ACCEPTED
 		);
 	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function readPfxData(string $password): JSONResponse {
+		try {
+			$data = $this->accountService->readPfxData($this->userSession->getUser(), $password);
+		} catch (LibresignException $e) {
+			return new JSONResponse(
+				[
+					'message' => $e->getMessage()
+				],
+				Http::STATUS_BAD_REQUEST
+			);
+		}
+		return new JSONResponse(
+			$data,
+			Http::STATUS_ACCEPTED
+		);
+	}
 }
