@@ -25,12 +25,16 @@ declare(strict_types=1);
 namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserSession;
 use OCP\Notification\IManager;
 
 /**
@@ -39,7 +43,9 @@ use OCP\Notification\IManager;
 class NotificationListener implements IEventListener {
 	public function __construct(
 		private IManager $notificationManager,
-		private ITimeFactory $timeFactory
+		protected IUserSession $userSession,
+		private ITimeFactory $timeFactory,
+		protected IURLGenerator $url,
 	) {
 	}
 
@@ -47,6 +53,7 @@ class NotificationListener implements IEventListener {
 		if ($event instanceof SendSignNotificationEvent) {
 			$this->sendNewSignNotification(
 				$event->getSignRequest(),
+				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
 				$event->isNew()
 			);
@@ -55,24 +62,79 @@ class NotificationListener implements IEventListener {
 
 	private function sendNewSignNotification(
 		SignRequest $signRequest,
+		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
 		bool $isNew
 	): void {
+		$actor = $this->userSession->getUser();
+		if (!$actor instanceof IUser) {
+			return;
+		}
+		if ($this->isNotificationDisabledAtActivity($identifyMethod)) {
+			return;
+		}
 		$notification = $this->notificationManager->createNotification();
 		$notification
 			->setApp(AppInfoApplication::APP_ID)
-			->setObject('sign', 'document')
+			->setObject('signRequest', (string) $signRequest->getId())
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
 		if ($isNew) {
-			$notification->setSubject('new_sign_request', [
-				'signRequest' => $signRequest->getId(),
-			]);
+			$subject = 'new_sign_request';
 		} else {
-			$notification->setSubject('update_sign_request', [
-				'signRequest' => $signRequest->getId(),
-			]);
+			$subject = 'update_sign_request';
 		}
+		$notification->setSubject($subject, [
+			'from' => $this->getUserParameter(
+				$actor->getUID(),
+				$actor->getDisplayName(),
+			),
+			'file' => $this->getFileParameter($signRequest, $libreSignFile),
+			'signRequest' => [
+				'type' => 'sign-request',
+				'id' => $signRequest->getId(),
+				'name' => $actor->getDisplayName(),
+			],
+		]);
 		$this->notificationManager->notify($notification);
+	}
+
+	public function isNotificationDisabledAtActivity(IIdentifyMethod $identifyMethod): bool {
+		if (!class_exists(\OCA\Activity\UserSettings::class)) {
+			return false;
+		}
+		$activityUserSettings = \OC::$server->get(\OCA\Activity\UserSettings::class);
+		if ($activityUserSettings) {
+			$notificationSetting = $activityUserSettings->getUserSetting(
+				$identifyMethod->getEntity()->getIdentifierValue(),
+				'notification',
+				'file_to_sign'
+			);
+			if (!$notificationSetting) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected function getFileParameter(SignRequest $signRequest, FileEntity $libreSignFile) {
+		return [
+			'type' => 'file',
+			'id' => $libreSignFile->getNodeId(),
+			'name' => $libreSignFile->getName(),
+			'path' => $libreSignFile->getName(),
+			'link' => $this->url->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+		];
+	}
+
+	protected function getUserParameter(
+		string $userId,
+		$displayName,
+	): array {
+		return [
+			'type' => 'user',
+			'id' => $userId,
+			'name' => $displayName,
+		];
 	}
 }

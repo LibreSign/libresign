@@ -24,18 +24,21 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Activity;
 
-use OCA\Libresign\AppInfo\Application;
 use OCP\Activity\ActivitySettings;
 use OCP\IL10N;
 
-class Setting extends ActivitySettings {
+class FileToSign extends ActivitySettings {
 	public function __construct(
 		protected IL10N $l,
 	) {
 	}
 
+	/**
+	 * @return string Lowercase a-z and underscore only identifier. The type of table activity
+	 * @since 20.0.0
+	 */
 	public function getIdentifier(): string {
-		return Application::APP_ID;
+		return 'file_to_sign';
 	}
 
 	/**
@@ -70,12 +73,24 @@ class Setting extends ActivitySettings {
 	 * {@inheritdoc}
 	 */
 	public function canChangeNotification(): bool {
-		return false;
+		return true;
+	}
+	/**
+	 * {@inheritdoc}
+	 */
+	public function canChangeMail() {
+		return true;
+	}
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isDefaultEnabledMail() {
+		return true;
 	}
 	/**
 	 * {@inheritdoc}
 	 */
 	public function isDefaultEnabledNotification(): bool {
-		return false;
+		return true;
 	}
 }

@@ -27,18 +27,19 @@ namespace OCA\Libresign\Notification;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequestMapper;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
 use OCP\Notification\IAction;
 use OCP\Notification\INotification;
 use OCP\Notification\INotifier;
+use OCP\RichObjectStrings\Definitions;
 
 class Notifier implements INotifier {
 	public function __construct(
 		private IFactory $factory,
-		private IURLGenerator $urlGenerator,
+		private IURLGenerator $url,
+		private Definitions $definitions,
 		private FileMapper $fileMapper,
 		private SignRequestMapper $signRequestMapper
 	) {
@@ -56,6 +57,25 @@ class Notifier implements INotifier {
 		if ($notification->getApp() !== Application::APP_ID) {
 			throw new \InvalidArgumentException();
 		}
+
+		$this->definitions->definitions['sign-request'] = [
+			'author' => 'LibreSign',
+			'since' => '28.0.0',
+			'parameters' => [
+				'id' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The id of SignRequest object',
+					'example' => '12345',
+				],
+				'name' => [
+					'since' => '28.0.0',
+					'required' => true,
+					'description' => 'The display name of signer',
+					'example' => 'John Doe',
+				],
+			],
+		];
 
 		$l = $this->factory->get(Application::APP_ID, $languageCode);
 
@@ -75,15 +95,20 @@ class Notifier implements INotifier {
 		bool $update
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
-		try {
-			$signRequest = $this->signRequestMapper->getById($parameters['signRequest']);
-		} catch (DoesNotExistException $th) {
-			throw new \InvalidArgumentException();
-		}
 		$notification
-			->setIcon($this->urlGenerator->getAbsoluteURL($this->urlGenerator->imagePath(Application::APP_ID, 'app-dark.svg')))
-			->setLink($this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]));
-		$notification->setParsedSubject($l->t('There is a file for you to sign'));
+			->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')))
+			->setLink($parameters['file']['link']);
+		$subject = $l->t('{from} requested your signature on {file}');
+		$notification->setParsedSubject(
+			str_replace(
+				['{from}', '{file}'],
+				[
+					$parameters['from']['name'],
+					$parameters['file']['name'],
+				],
+				$subject
+			))
+			->setRichSubject($subject, $parameters);
 		if ($update) {
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
 		}
@@ -92,10 +117,24 @@ class Notifier implements INotifier {
 			->setParsedLabel($l->t('View'))
 			->setPrimary(true)
 			->setLink(
-				$this->urlGenerator->linkToRouteAbsolute('libresign.page.sign', ['uuid' => $signRequest->getUuid()]),
+				$parameters['file']['link'],
 				IAction::TYPE_WEB
 			);
 		$notification->addParsedAction($signAction);
+		$dismissAction = $notification->createAction()
+			->setParsedLabel($l->t('Dismiss notification'))
+			->setLink(
+				$this->url->linkToOCSRouteAbsolute(
+					'libresign.notify.notificationDismiss',
+					[
+						'apiVersion' => 'v1',
+						'timestamp' => $notification->getDateTime()->getTimestamp(),
+						'signRequestId' => $parameters['signRequest']['id'],
+					],
+				),
+				IAction::TYPE_DELETE
+			);
+		$notification->addParsedAction($dismissAction);
 		return $notification;
 	}
 }

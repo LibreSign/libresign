@@ -34,12 +34,14 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 class NotifyController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
-		private NotifyService $notifyService
+		private NotifyService $notifyService,
+		private IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -90,5 +92,15 @@ class NotifyController extends Controller {
 		return new JSONResponse([
 			'message' => $this->l10n->t('Notification sent with success.')
 		], Http::STATUS_OK);
+	}
+
+	#[NoAdminRequired]
+	public function notificationDismiss(int $signRequestId, int $timestamp): JSONResponse {
+		$this->notifyService->notificationDismiss(
+			$signRequestId,
+			$this->userSession->getUser(),
+			$timestamp
+		);
+		return new JSONResponse();
 	}
 }

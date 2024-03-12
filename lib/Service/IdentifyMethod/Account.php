@@ -25,7 +25,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Service\IdentifyMethod;
 
 use OCA\Libresign\Db\IdentifyMethodMapper;
-use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
@@ -71,18 +70,6 @@ class Account extends AbstractIdentifyMethod {
 		parent::__construct(
 			$identifyMethodService,
 		);
-	}
-
-	public function notify(bool $isNew): void {
-		if (!$this->willNotify) {
-			return;
-		}
-		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
-		$this->eventDispatcher->dispatchTyped(new SendSignNotificationEvent(
-			$signRequest,
-			$this,
-			$isNew
-		));
 	}
 
 	public function validateToRequest(): void {
