@@ -33,6 +33,7 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
+use OCP\IDateTimeFormatter;
 use ReflectionClass;
 
 /**
@@ -76,6 +77,7 @@ class AEngineHandler {
 		protected IConfig $config,
 		protected IAppConfig $appConfig,
 		protected IAppDataFactory $appDataFactory,
+		protected IDateTimeFormatter $dateTimeFormatter,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -114,6 +116,31 @@ class AEngineHandler {
 		$this->setPassword($newPrivateKey);
 		$certContent = self::generateCertificate($certContent['cert'], $certContent['pkey']);
 		return $certContent;
+	}
+
+	public function readCertificate(string $certificate, string $privateKey): array {
+		if (empty($certificate) || empty($privateKey)) {
+			throw new EmptyRootCertificateException();
+		}
+		openssl_pkcs12_read($certificate, $certContent, $privateKey);
+		if (empty($certContent)) {
+			throw new InvalidPasswordException();
+		}
+		$parsed = openssl_x509_parse(openssl_x509_read($certContent['cert']));
+
+		$return['name'] = $parsed['name'];
+		$return['subject'] = $parsed['subject'];
+		if (is_array($return['subject']['OU']) && !empty($return['subject']['OU'])) {
+			$return['subject']['OU'] = implode(', ', $return['subject']['OU']);
+		}
+		$return['subjectAltName'] = $parsed['extensions']['subjectAltName'];
+		$return['issuer'] = $parsed['issuer'];
+		$return['issuerInfoAccess'] = $parsed['extensions']['authorityInfoAccess'];
+		$return['validate'] = [
+			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
+			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
+		];
+		return $return;
 	}
 
 	public function translateToLong($name): string {

@@ -9,6 +9,7 @@ return [
 		['name' => 'account#createToSign',              'url' => '/api/{apiVersion}/account/create/{uuid}', 'verb' => 'POST', 'requirements' => $requirements],
 		['name' => 'account#me',                        'url' => '/api/{apiVersion}/account/me', 'verb' => 'GET', 'requirements' => $requirements],
 		['name' => 'account#uploadPfx',                 'url' => '/api/{apiVersion}/account/pfx', 'verb' => 'POST', 'requirements' => $requirements],
+		['name' => 'account#readPfxData',               'url' => '/api/{apiVersion}/account/pfx/read', 'verb' => 'POST', 'requirements' => $requirements],
 		['name' => 'account#updatePfxPassword',         'url' => '/api/{apiVersion}/account/pfx', 'verb' => 'PATCH', 'requirements' => $requirements],
 		['name' => 'account#deletePfx',                 'url' => '/api/{apiVersion}/account/pfx', 'verb' => 'DELETE', 'requirements' => $requirements],
 		['name' => 'account#updateSettings',            'url' => '/api/{apiVersion}/account/settings', 'verb' => 'PATCH', 'requirements' => $requirements],

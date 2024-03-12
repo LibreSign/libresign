@@ -22,6 +22,14 @@
 							</NcButton>
 							<NcButton v-if="signMethodsStore.hasSignatureFile()"
 								:wide="true"
+								@click="handleModal('readCertificate')">
+								{{ t('libresign', 'Read certificate') }}
+								<template #icon>
+									<LockOpenCheckIcon :size="20" />
+								</template>
+							</NcButton>
+							<NcButton v-if="signMethodsStore.hasSignatureFile()"
+								:wide="true"
 								@click="deleteCertificate()">
 								{{ t('libresign', 'Delete certificate') }}
 								<template #icon>
@@ -30,7 +38,7 @@
 							</NcButton>
 							<NcButton v-if="certificateEngine !== 'none' && !signMethodsStore.hasSignatureFile()"
 								:wide="true"
-								@click="handleModal(true)">
+								@click="handleModal('createPassword')">
 								{{ t('libresign', 'Create certificate') }}
 								<template #icon>
 									<CertificateIcon :size="20" />
@@ -38,17 +46,18 @@
 							</NcButton>
 							<NcButton v-else-if="signMethodsStore.hasSignatureFile()"
 								:wide="true"
-								@click="handleModal(true)">
+								@click="handleModal('resetPassword')">
 								{{ t('librsign', 'Change password') }}
 								<template #icon>
 									<FileReplaceIcon :size="20" />
 								</template>
 							</NcButton>
 						</div>
-						<NcModal v-if="modal"
-							@close="handleModal(false)">
-							<CreatePassword v-if="!signMethodsStore.hasSignatureFile()" @close="handleModal(false)" />
-							<ResetPassword v-if="signMethodsStore.hasSignatureFile()" @close="handleModal(false)" />
+						<NcModal v-if="modal.length > 0"
+							@close="handleModal('')">
+							<CreatePassword v-if="modal === 'createPassword'" @close="handleModal('')" />
+							<ReadCertificate v-if="modal === 'readCertificate'" @close="handleModal('')" />
+							<ResetPassword v-if="modal === 'resetPassword'" @close="handleModal('')" />
 						</NcModal>
 					</div>
 				</div>
@@ -72,10 +81,12 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import CloudUploadIcon from 'vue-material-design-icons/CloudUpload.vue'
+import LockOpenCheckIcon from 'vue-material-design-icons/LockOpenCheck.vue'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import FileReplaceIcon from 'vue-material-design-icons/FileReplace.vue'
 import CertificateIcon from 'vue-material-design-icons/Certificate.vue'
 import CreatePassword from '../CreatePassword.vue'
+import ReadCertificate from '../ReadCertificate.vue'
 import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
 import Signatures from './partials/Signatures.vue'
@@ -90,10 +101,12 @@ export default {
 		NcContent,
 		NcButton,
 		CloudUploadIcon,
+		LockOpenCheckIcon,
 		DeleteIcon,
 		FileReplaceIcon,
 		CertificateIcon,
 		CreatePassword,
+		ReadCertificate,
 		ResetPassword,
 		Signatures,
 		UserImage,
@@ -107,7 +120,7 @@ export default {
 	data() {
 		return {
 			user: getCurrentUser(),
-			modal: false,
+			modal: '',
 			certificateEngine: loadState('libresign', 'certificate_engine', ''),
 		}
 	},
