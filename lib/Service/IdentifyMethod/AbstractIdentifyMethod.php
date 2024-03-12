@@ -27,6 +27,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use InvalidArgumentException;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\IdentifyMethod;
+use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\AbstractSignatureMethod;
@@ -102,7 +103,19 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->settings;
 	}
 
-	public function notify(bool $isNew): void {
+	public function notify(bool $isNew): bool {
+		if (!$this->willNotify) {
+			return false;
+		}
+		$signRequest = $this->identifyMethodService->getSignRequestMapper()->getById($this->getEntity()->getSignRequestId());
+		$libresignFile = $this->identifyMethodService->getFileMapper()->getById($signRequest->getFileId());
+		$this->identifyMethodService->getEventDispatcher()->dispatchTyped(new SendSignNotificationEvent(
+			$signRequest,
+			$libresignFile,
+			$this,
+			$isNew
+		));
+		return true;
 	}
 
 	public function willNotifyUser(bool $willNotify): void {

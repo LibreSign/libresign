@@ -306,6 +306,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		);
 
 		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		if ($this->response->getStatusCode() === 500) {
+			throw new Exception('Internal failure when access notifications endpoint');
+		}
 		$data = $jsonBody['ocs']['data'];
 
 		if ($body === null) {
@@ -350,11 +353,11 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$found = array_filter(
 			$data,
 			function ($notification) {
-				return $notification['subject'] === 'There is a file for you to sign';
+				return $notification['subject'] === 'admin requested your signature on document';
 			}
 		);
 		if (empty($found)) {
-			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
+			throw new Exception('Notification with the subject [admin requested your signature on document] not found');
 		}
 		$found = current($found);
 

@@ -24,18 +24,24 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Notification\IManager;
 
 class NotifyService {
 	public function __construct(
 		private ValidateHelper $validateHelper,
 		private IUserSession $userSession,
 		private SignRequestMapper $signRequestMapper,
-		private IdentifyMethodService $identifyMethodService
+		private IdentifyMethodService $identifyMethodService,
+		private ITimeFactory $timeFactory,
+		private IManager $notificationManager,
 	) {
 	}
 
@@ -61,6 +67,16 @@ class NotifyService {
 		foreach ($signRequests as $signRequest) {
 			$this->notify($signRequest, $signers);
 		}
+	}
+
+	public function notificationDismiss(int $signRequestId, IUser $user, int $timestamp): void {
+		$notification = $this->notificationManager->createNotification();
+		$notification->setApp(Application::APP_ID)
+			->setObject('signRequest', (string) $signRequestId)
+			->setDateTime($this->timeFactory->getDateTime('@' . $timestamp))
+			->setUser($user->getUID())
+			->setSubject('new_sign_request');
+		$this->notificationManager->markProcessed($notification);
 	}
 
 	private function notify(SignRequest $signRequest, array $signers = []): void {

@@ -180,6 +180,14 @@ class Reset extends Base {
 				$delete->andWhere($delete->expr()->eq('amq_affecteduser', $delete->createNamedParameter($user)));
 			}
 			$delete->executeStatement();
+
+			$delete = $this->db->getQueryBuilder();
+			$delete->delete('activity')
+				->where($delete->expr()->eq('app', $delete->createNamedParameter(Application::APP_ID)));
+			if ($user) {
+				$delete->andWhere($delete->expr()->eq('user', $delete->createNamedParameter($user)));
+			}
+			$delete->executeStatement();
 		} catch (\Throwable $e) {
 		}
 	}
