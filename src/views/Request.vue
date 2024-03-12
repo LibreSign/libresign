@@ -71,6 +71,7 @@
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
@@ -149,10 +150,18 @@ export default {
 			}
 		},
 	},
+	async mounted() {
+		subscribe('libresign:visible-elements-saved', this.closeSidebar)
+		this.filesStore.disableIdentifySigner()
+	},
 	beforeUnmount() {
+		unsubscribe('libresign:visible-elements-saved')
 		this.filesStore.selectFile()
 	},
 	methods: {
+		closeSidebar() {
+			this.filesStore.selectFile()
+		},
 		showModalUploadFromUrl() {
 			this.modalUploadFromUrl = true
 		},

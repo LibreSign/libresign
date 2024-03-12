@@ -136,7 +136,7 @@ export default {
 				|| this.filesStore.isFullSigned()
 		},
 		dataSigners() {
-			return this.filesStore.files[this.filesStore.selectedNodeId].signers
+			return this.filesStore.getFile()?.signers ?? []
 		},
 		hasSigners() {
 			return this.filesStore.hasSigners()
