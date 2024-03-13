@@ -53,7 +53,9 @@ Feature: account/signature
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
-    And sending "post" to ocs "/apps/libresign/api/v1/account/pfx"
+    And user "signer1" exists
+    And as user "signer1"
+    When sending "post" to ocs "/apps/libresign/api/v1/account/pfx"
     Then the response should have a status code 400
     And the response should be a JSON array with the following mandatory values
       | key     | value                        |
