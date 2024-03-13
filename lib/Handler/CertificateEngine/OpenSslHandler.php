@@ -37,8 +37,8 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
 		$configPath = $this->getConfigPath();
-		$certificate = file_get_contents($configPath . '/ca.pem');
-		$privateKey = file_get_contents($configPath . '/ca-key.pem');
+		$certificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$privateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (empty($certificate) || empty($privateKey)) {
 			throw new LibresignException('Invalid root certificate');
 		}
@@ -68,9 +68,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privkey, $pkeyout);
 
-		file_put_contents($configPath . '/ca.csr', $csrout);
-		file_put_contents($configPath . '/ca.pem', $certout);
-		file_put_contents($configPath . '/ca-key.pem', $pkeyout);
+		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.csr', $csrout);
+		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem', $certout);
+		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem', $pkeyout);
 
 		return $pkeyout;
 	}
@@ -81,8 +81,8 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			return false;
 		}
 		$configPath = $this->getConfigPath();
-		$certificate = file_exists($configPath . '/ca.pem');
-		$privateKey = file_exists($configPath . '/ca-key.pem');
+		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		return $certificate && $privateKey;
 	}
 

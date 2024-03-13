@@ -168,9 +168,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('CFSSL not configured.');
 		}
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
-			'-ca-key ' . $configPath . 'ca-key.pem ' .
-			'-ca ' . $configPath . 'ca.pem '.
-			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
+			'-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem ' .
+			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '.
+			'-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
 		while (!$this->portOpen() && $loops <= 4) {
@@ -249,8 +249,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$binary = $this->getBinary();
 		$configPath = $this->getConfigPath();
 		$cmd = $binary . ' genkey ' .
-			'-initca=true ' . $configPath . 'csr_server.json | ' .
-			$binary . 'json -bare ' . $configPath . 'ca;';
+			'-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | ' .
+			$binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
 		shell_exec($cmd);
 	}
 
@@ -285,8 +285,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return false;
 		};
 		$configPath = $this->getConfigPath();
-		$certificate = file_exists($configPath . '/ca.pem');
-		$privateKey = file_exists($configPath . '/ca-key.pem');
+		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
 		if (!$certificate || !$privateKey) {
 			return false;
 		}
