@@ -1,7 +1,21 @@
 Feature: account/signature
-  Scenario: Create root certificate using API
+  Scenario: Create root certificate with OpenSSL engine using API
     Given as user "admin"
     And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/openssl"
+      | rootCert | {"commonName":"Common Name"} |
+    And the response should have a status code 200
+    And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
+    And the response should have a status code 200
+    And the response should be a JSON array with the following mandatory values
+      | key        | value                                   |
+      | rootCert   | {"commonName":"Common Name","names":[]} |
+      | generated  | true                                    |
+
+  Scenario: Create root certificate with CFSSL engine using API
+    Given as user "admin"
+    And run the command "config:app:set libresign certificate_engine --value cfssl"
+    And run the command "libresign:install --cfssl"
+    And sending "post" to ocs "/apps/libresign/api/v1/admin/certificate/cfssl"
       | rootCert | {"commonName":"Common Name"} |
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
