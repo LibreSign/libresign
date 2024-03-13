@@ -522,4 +522,15 @@ class AccountService {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
 	}
+
+	/**
+	 * @throws LibresignException when have not a certificate file
+	 */
+	public function readPfxData(IUser $user, string $password): array {
+		try {
+			return $this->pkcs12Handler->readCertificate($user->getUID(), $password);
+		} catch (InvalidPasswordException $e) {
+			throw new LibresignException($this->l10n->t('Invalid user or password'));
+		}
+	}
 }

@@ -36,6 +36,7 @@ use OCA\Libresign\Service\InstallService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
+use OCP\IDateTimeFormatter;
 
 /**
  * Class CfsslHandler
@@ -58,8 +59,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		private SystemConfig $systemConfig,
 		private CfsslServerHandler $cfsslServerHandler,
 		protected IAppDataFactory $appDataFactory,
+		protected IDateTimeFormatter $dateTimeFormatter,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter);
 	}
 
 	private function getClient(): Client {

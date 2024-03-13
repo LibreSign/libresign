@@ -99,6 +99,14 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $this->savePfx($uid, $content);
 	}
 
+	public function readCertificate(string $uid, string $privateKey): array {
+		$pfx = $this->getPfx($uid);
+		return $this->certificateEngineHandler->getEngine()->readCertificate(
+			$pfx,
+			$privateKey
+		);
+	}
+
 	/**
 	 * Get content of pfx file
 	 */

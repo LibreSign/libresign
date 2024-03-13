@@ -49,10 +49,8 @@ export default {
 	},
 	data() {
 		return {
-			modal: false,
 			hasLoading: false,
 			password: '',
-			hasPfx: false,
 		}
 	},
 	methods: {
@@ -64,7 +62,7 @@ export default {
 				.then(() => {
 					showSuccess(t('libresign', 'New password to sign documents has been created'))
 					this.signMethodsStore.setHasSignatureFile(true)
-					this.clear()
+					this.password = ''
 					this.$emit('close', true)
 					this.$emit('password:created', true)
 				})
@@ -78,9 +76,6 @@ export default {
 					this.$emit('password:created', false)
 				})
 			this.hasLoading = false
-		},
-		clear() {
-			this.password = ''
 		},
 	},
 }
