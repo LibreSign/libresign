@@ -26,9 +26,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @BeforeFeature
+	 * @BeforeScenario
 	 */
-	public static function BeforeFeature(): void {
+	public static function BeforeScenario(): void {
 		self::runCommand('libresign:developer:reset --all');
 	}
 
