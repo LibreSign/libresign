@@ -21,7 +21,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeSuite
 	 */
 	public static function beforeSuite(BeforeSuiteScope $scope) {
-		exec('php ../../../../occ config:system:set debug --value true --type boolean', $output);
+		self::runCommand('config:system:set debug --value true --type boolean');
+		self::runCommand('app:enable --force notifications');
 	}
 
 	/**
@@ -29,7 +30,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public static function BeforeFeature(): void {
 		self::runCommand('libresign:developer:reset --all');
-		self::runCommand('app:enable --force notifications');
 	}
 
 	/**
