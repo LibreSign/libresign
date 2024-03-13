@@ -94,19 +94,19 @@ class Cfssl extends Base {
 			throw new InvalidArgumentException('Invalid Comon Name');
 		}
 		if ($input->getOption('ou')) {
-			$names[] = ['id' => 'OU', 'value' => $input->getOption('ou')];
+			$names['OU'] = ['value' => $input->getOption('ou')];
 		}
 		if ($input->getOption('o')) {
-			$names[] = ['id' => 'O', 'value' => $input->getOption('o')];
+			$names['O'] = ['value' => $input->getOption('o')];
 		}
 		if ($input->getOption('c')) {
-			$names[] = ['id' => 'C', 'value' => $input->getOption('c')];
+			$names['C'] = ['value' => $input->getOption('c')];
 		}
 		if ($input->getOption('l')) {
-			$names[] = ['id' => 'L', 'value' => $input->getOption('l')];
+			$names['L'] = ['value' => $input->getOption('l')];
 		}
 		if ($input->getOption('st')) {
-			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
+			$names['ST'] = ['value' => $input->getOption('st')];
 		}
 
 		if (PHP_OS_FAMILY === 'Windows') {
@@ -123,7 +123,7 @@ class Cfssl extends Base {
 		$configPath = $input->getOption('config-path');
 
 		$this->installService->generate(
-			$commonName,
+			(string) $commonName,
 			$names,
 			[
 				'engine' => 'cfssl',
