@@ -19,6 +19,7 @@ OC.L10N.register(
     "File not loaded" : "Το αρχείο δεν φορτώθηκε",
     "File sharing" : "Διαμοιρασμός αρχείων",
     "View" : "Προβολή",
+    "Dismiss notification" : "Αποδέσμευση ειδοποίησης",
     "UUID not found" : "Δε βρέθηκε το UUID",
     "Password is mandatory" : "Το συνθηματικό είναι υποχρεωτικό",
     "File not found" : "Δε βρέθηκε το αρχείο",

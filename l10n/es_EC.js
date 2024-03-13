@@ -75,6 +75,7 @@ OC.L10N.register(
     "You are not allowed to approve user profile documents." : "No tienes permiso para aprobar documentos de perfil de usuario.",
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
+    "Dismiss notification" : "Descartar notificación",
     "UUID not found" : "UUID no encontrado",
     "Password is mandatory" : "La contraseña es obligatoria",
     "File not found" : "Archivo no encontrado",

@@ -6,6 +6,7 @@ OC.L10N.register(
     "File is too big" : "Datne ir par lielu",
     "File sharing" : "Datņu koplietošana",
     "View" : "Skats",
+    "Dismiss notification" : "Noraidīt paziņojumu",
     "File not found" : "Datne nav atrasta",
     "File already exists" : "Datne jau pastāv",
     "Account" : "Konts",

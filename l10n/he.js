@@ -8,6 +8,7 @@ OC.L10N.register(
     "File is too big" : "הקובץ גדול מדי",
     "File sharing" : "שיתוף קבצים",
     "View" : "צפייה",
+    "Dismiss notification" : "התעלמות מהתראה",
     "File not found" : "קובץ לא נמצא",
     "File already exists" : "הקובץ כבר קיים",
     "Account" : "חשבון",

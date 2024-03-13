@@ -75,6 +75,7 @@ OC.L10N.register(
     "You are not allowed to approve user profile documents." : "You are not allowed to approve user profile documents.",
     "File sharing" : "اشتراک گذاری پرونده",
     "View" : "نمایش",
+    "Dismiss notification" : "رد کردن اعلان",
     "UUID not found" : "UUID not found",
     "Password is mandatory" : "Password is mandatory",
     "File not found" : "فایل یافت نشد",

@@ -47,6 +47,7 @@ OC.L10N.register(
     "Invalid file type." : "Virheellinen tiedostotyyppi.",
     "File sharing" : "Tiedostonjako",
     "View" : "Näytä",
+    "Dismiss notification" : "Hylkää ilmoitus",
     "UUID not found" : "UUID:tä ei löytynyt",
     "Password is mandatory" : "Salasana on pakollinen",
     "File not found" : "Tiedostoa ei löytynyt",

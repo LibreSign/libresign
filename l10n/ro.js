@@ -8,6 +8,7 @@ OC.L10N.register(
     "File is too big" : "Fișierul este prea mare",
     "File sharing" : "Partajare fișiere",
     "View" : "Vizualizare",
+    "Dismiss notification" : "Elimină notificarea",
     "File not found" : "Fișierul nu a fost găsit",
     "File already exists" : "Fișierul există deja",
     "Empty file" : "Fișier gol",

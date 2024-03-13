@@ -74,6 +74,7 @@ OC.L10N.register(
     "You are not allowed to approve user profile documents." : "Nemáte povolené schvaľovať dokumenty užívateľského profilu.",
     "File sharing" : "Sprístupnenie súborov",
     "View" : "Zobrazenie",
+    "Dismiss notification" : "Zatvoriť upozornenie",
     "UUID not found" : "UUID nenájdené",
     "Password is mandatory" : "Heslo je povinné",
     "File not found" : "Súbor nenájdený",

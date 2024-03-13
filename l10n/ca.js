@@ -74,6 +74,7 @@ OC.L10N.register(
     "You are not allowed to approve user profile documents." : "No teniu permís per aprovar documents de perfil d'usuari.",
     "File sharing" : "Fitxers compartits",
     "View" : "Visualitza",
+    "Dismiss notification" : "Descarta la notificació",
     "UUID not found" : "No s'ha trobat l'UUID",
     "Password is mandatory" : "La contrasenya és obligatòria",
     "File not found" : "No s'ha trobat el fitxer",

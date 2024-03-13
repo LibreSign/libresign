@@ -6,6 +6,7 @@ OC.L10N.register(
     "deleted" : "terhapus",
     "File is too big" : "Berkas terlalu besar",
     "View" : "Tampilan",
+    "Dismiss notification" : "Abaikan notifikasi",
     "File not found" : "Berkas tidak ditemukan",
     "File already exists" : "Berkas sudah ada",
     "Account" : "Akun",

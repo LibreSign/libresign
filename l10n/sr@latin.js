@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "deleted" : "obrisano",
+    "Dismiss notification" : "Skloni obaveštenje",
     "File not found" : "Fajl nije nađen",
     "Email" : "email",
     "Files" : "Фајлови",

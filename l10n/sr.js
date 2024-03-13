@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "{from} invited you to sign a file" : "{from} је од вас затражио да потпишете фајл",
     "You have a <strong>file to sign</strong>" : "Постоји <strong>фајл који треба да потпишете</strong>",
     "Other activities" : "Остале активности",
     "Success" : "Успешно",
@@ -86,9 +85,9 @@ OC.L10N.register(
     "Invalid file type." : "Неисправан тип фајла.",
     "You are not allowed to approve user profile documents." : "Није вам дозвољено да одобрите документе корисничког профила.",
     "File sharing" : "Дељења фајлова",
-    "There is a file for you to sign" : "Постоји фајл који треба да потпишете",
     "Changes have been made in a file that you have to sign." : "Дошло је до измена у фајло који треба да потпишете.",
     "View" : "Погледај",
+    "Dismiss notification" : "Уклони обавештење",
     "UUID not found" : "Није пронађен UUID",
     "Password is mandatory" : "Обавезна је лозинка",
     "File not found" : "Фајл није нађен",
