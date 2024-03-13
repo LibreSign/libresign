@@ -49,7 +49,7 @@ class CfsslServerHandler {
 		array $names,
 		string $configPath
 	): void {
-		$filename = $configPath . self::CSR_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CSR_FILE;
 		$content = [
 			'CN' => $commonName,
 			'key' => [
@@ -72,7 +72,7 @@ class CfsslServerHandler {
 	}
 
 	private function putConfigServer(string $key, string $configPath): void {
-		$filename = $configPath . self::CONFIG_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CONFIG_FILE;
 		$content = [
 			'signing' => [
 				'profiles' => [
