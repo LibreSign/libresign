@@ -8,6 +8,7 @@ OC.L10N.register(
     "File is too big" : "Filen er for stor",
     "File sharing" : "Fildeling",
     "View" : "Vis",
+    "Dismiss notification" : "Fjern notifikation",
     "File not found" : "Fil ikke fundet",
     "File already exists" : "Filen findes allerede",
     "Empty file" : "Tom fil",

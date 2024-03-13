@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "{from} invited you to sign a file" : "{from} دعاك إلى توقيع ملف",
     "You have a <strong>file to sign</strong>" : "لديك<strong>ملفات لتوقيعها</strong>",
     "Other activities" : "حركات أخرى",
     "Success" : "نجاح",
@@ -86,7 +85,6 @@ OC.L10N.register(
     "Invalid file type." : "نوع الملف غير صالح.",
     "You are not allowed to approve user profile documents." : "غير مسموح لك بالموافقة على وثائق ملف تعريف المستخدم.",
     "File sharing" : "مشاركة الملفات",
-    "There is a file for you to sign" : "هنالك ملف في انتظار توقيعك",
     "Changes have been made in a file that you have to sign." : "الملف الذي يستلزم توقيعه تمّ إجراء تعديلات عليه",
     "View" : "عرض",
     "UUID not found" : "UUID غير موجود",

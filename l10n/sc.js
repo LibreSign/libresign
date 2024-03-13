@@ -33,6 +33,7 @@ OC.L10N.register(
     "Invalid file type." : "Genia de archìviu non bàlida.",
     "File sharing" : "Cumpartzidura de archìvios",
     "View" : "Visualiza",
+    "Dismiss notification" : "Iscarta notìfica",
     "UUID not found" : "No se ha hallado el UUID",
     "Password is mandatory" : "Sa crae est pretzisa",
     "File not found" : "Archìviu no agatadu",

@@ -1,5 +1,4 @@
 { "translations": {
-    "{from} invited you to sign a file" : "{from} bittet Sie eine Datei zu signieren",
     "You have a <strong>file to sign</strong>" : "Sie haben eine <strong>Datei zum Signieren</strong>",
     "Other activities" : "Andere Aktivitäten",
     "Success" : "Erfolgreich",
@@ -84,9 +83,9 @@
     "Invalid file type." : "Ungültiger Dateityp.",
     "You are not allowed to approve user profile documents." : "Sie dürfen Benutzerprofildokumente nicht genehmigen.",
     "File sharing" : "Dateifreigabe",
-    "There is a file for you to sign" : "Datei zum Signieren vorhanden",
     "Changes have been made in a file that you have to sign." : "In einer Datei, die Sie signieren sollen, wurden Änderungen vorgenommen.",
     "View" : "Ansehen",
+    "Dismiss notification" : "Benachrichtigung verwerfen",
     "UUID not found" : "UUID nicht gefunden",
     "Password is mandatory" : "Passwort ist erforderlich",
     "File not found" : "Datei nicht gefunden",

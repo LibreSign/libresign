@@ -69,6 +69,7 @@ OC.L10N.register(
     "You are not allowed to approve user profile documents." : "Вам не разрешено утверждать документы из пользовательского профиля.",
     "File sharing" : "Обмен файлами",
     "View" : "Просмотр",
+    "Dismiss notification" : "Скрыть уведомление",
     "UUID not found" : "UUID не найден",
     "Password is mandatory" : "Необходимо использовать пароль",
     "File not found" : "Файл не найден",

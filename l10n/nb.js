@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "{from} invited you to sign a file" : "{from} inviterte deg til å signere en fil",
     "You have a <strong>file to sign</strong>" : "Du har en <strong>fil å signere</strong>",
     "Other activities" : "Andre aktiviteter",
     "Success" : "Vellykket",
@@ -86,9 +85,9 @@ OC.L10N.register(
     "Invalid file type." : "Ugyldig filtype.",
     "You are not allowed to approve user profile documents." : "Du har ikke lov til å godkjenne brukerprofildokumenter.",
     "File sharing" : "Fildeling",
-    "There is a file for you to sign" : "Det er en fil du kan signere",
     "Changes have been made in a file that you have to sign." : "Det er gjort endringer i en fil du må signere.",
     "View" : "Vis",
+    "Dismiss notification" : "Ingen varsel",
     "UUID not found" : "UUID ikke funnet",
     "Password is mandatory" : "Passord er obligatorisk",
     "File not found" : "Filen ble ikke funnet",
