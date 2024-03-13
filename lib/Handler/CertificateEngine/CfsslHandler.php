@@ -215,8 +215,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	 * GitHub Actions, these commands are executed prefixed by sudo when exists
 	 * an environment called GITHUB_ACTIONS.
 	 */
-	private function parseCommand(string $command): string
-	{
+	private function parseCommand(string $command): string {
 		if (getenv('GITHUB_ACTIONS') !== false) {
 			$command = 'sudo ' . $command;
 		}
