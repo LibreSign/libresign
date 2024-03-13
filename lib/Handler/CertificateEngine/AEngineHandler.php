@@ -249,7 +249,7 @@ class AEngineHandler {
 		return $name;
 	}
 
-	private function getNames(): array {
+	protected function getNames(): array {
 		$names = [
 			'C' => $this->getCountry(),
 			'ST' => $this->getState(),
