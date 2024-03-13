@@ -57,10 +57,9 @@ class CfsslServerHandler {
 				'size' => 2048,
 			],
 		];
-		foreach ($names as $name) {
-			$content['names'][0][$name['id']] = $name['value'];
+		foreach ($names as $id => $name) {
+			$content['names'][0][$id] = $name['value'];
 		}
-		
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
