@@ -10,6 +10,7 @@ OC.L10N.register(
     "File is too big" : "Датотеката е премногу голема",
     "File sharing" : "Споделување на датотеки",
     "View" : "Погледни",
+    "Dismiss notification" : "Отфрли известување",
     "File not found" : "Датотеката не е пронајдена",
     "File already exists" : "Датотека веќе постои",
     "Empty file" : "Празна датотека",

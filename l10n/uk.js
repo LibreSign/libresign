@@ -10,6 +10,7 @@ OC.L10N.register(
     "Sign process already started. Unable to change status." : "Процес підписування вже розпочато. Неможливо змінити статус.",
     "File sharing" : "Обмін файлами",
     "View" : "Перегляд",
+    "Dismiss notification" : "Скасувати сповіщення",
     "File not found" : "Файл не знайдено",
     "File already exists" : "Файл вже існує",
     "Empty file" : "Порожній файл",

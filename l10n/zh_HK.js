@@ -1,7 +1,6 @@
 OC.L10N.register(
     "libresign",
     {
-    "{from} invited you to sign a file" : "{from} 邀請了您簽署一個檔案",
     "You have a <strong>file to sign</strong>" : "您有一個<strong>檔案要簽署</strong>。",
     "Other activities" : "其它活動",
     "Success" : "成功",
@@ -86,9 +85,9 @@ OC.L10N.register(
     "Invalid file type." : "無效的檔案類型。",
     "You are not allowed to approve user profile documents." : "您無權批准用戶配置文件。",
     "File sharing" : "檔案分享",
-    "There is a file for you to sign" : "有一個檔案供您簽署",
     "Changes have been made in a file that you have to sign." : "一份需要你簽署的文件進行了多處更改。",
     "View" : "檢視",
+    "Dismiss notification" : "撤銷通告",
     "UUID not found" : "未找到 UUID",
     "Password is mandatory" : "必須有密碼",
     "File not found" : "找不到檔案",

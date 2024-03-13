@@ -7,6 +7,7 @@ OC.L10N.register(
     "deleted" : "lemet",
     "File is too big" : "Re vras eo ar restr",
     "View" : "Gwell",
+    "Dismiss notification" : "Arrest ar gemenadennoù",
     "File not found" : "N'eo ket bet kavet ar restr",
     "Account" : "Kont",
     "Email" : "Postel",

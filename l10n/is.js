@@ -10,6 +10,7 @@ OC.L10N.register(
     "Invalid email" : "Ógilt tölvupóstfang",
     "File sharing" : "Skráadeiling",
     "View" : "Skoða",
+    "Dismiss notification" : "Afgreiða tilkynningu",
     "File not found" : "Skrá finnst ekki",
     "File already exists" : "Skrá er þegar til",
     "Empty file" : "Tóm skrá",

@@ -7,6 +7,7 @@ OC.L10N.register(
     "File is too big" : "Dosiero tro grandas",
     "File sharing" : "Kunhavigo de dosieroj",
     "View" : "Vidi",
+    "Dismiss notification" : "Forsendi sciigon",
     "File not found" : "Netrovita dosiero",
     "File already exists" : "La dosiero jam ekzistas",
     "Empty file" : "Malplena dosiero",

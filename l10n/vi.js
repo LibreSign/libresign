@@ -8,6 +8,7 @@ OC.L10N.register(
     "File is too big" : "Tệp quá lớn",
     "File sharing" : "Chia sẻ file",
     "View" : "Xem",
+    "Dismiss notification" : "Bỏ qua thông báo ",
     "File not found" : "Không tìm thấy tập tin",
     "File already exists" : "Tệp đã tồn tại",
     "Account" : "Tài khoản",

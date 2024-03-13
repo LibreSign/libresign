@@ -8,6 +8,7 @@ OC.L10N.register(
     "File is too big" : "El archivo es demasiado grande",
     "File sharing" : "Compartir archivos",
     "View" : "Ver",
+    "Dismiss notification" : "Descartar notificación",
     "File not found" : "Archivo no encontrado",
     "File already exists" : "El archivo ya existe",
     "Empty file" : "Archivo vacío",

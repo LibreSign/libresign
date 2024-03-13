@@ -4,6 +4,7 @@ OC.L10N.register(
     "Success" : "ຄວາມສໍາເລັດ",
     "deleted" : "ລຶບແລ້ວ",
     "File is too big" : "ຟາຍໃຫຍ່ໂພດ",
+    "Dismiss notification" : "ຍົກເລີກການເເຈ້ງເຕືອນ",
     "File not found" : " ບໍ່ພົບຟາຍ",
     "Email" : "ອິເມວ",
     "Files" : "ຟາຍ",

@@ -7,6 +7,7 @@ OC.L10N.register(
     "File is too big" : "Skedari është shumë i madh",
     "File sharing" : "Shpërndarja e skedarëve",
     "View" : "Shiko",
+    "Dismiss notification" : "Hiq lajmërimin",
     "File not found" : "Skedari nuk u gjet",
     "File already exists" : "Skedari ekziston tashmë",
     "Account" : "Llogari",
