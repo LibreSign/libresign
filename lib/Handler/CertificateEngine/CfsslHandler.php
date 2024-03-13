@@ -193,6 +193,27 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		return false;
 	}
 
+	private function getServerPid(): int {
+		$cmd = 'ps -eo pid,command|';
+		$cmd .= 'grep "cfssl.*serve.*-address"|' .
+			'grep -v grep|' .
+			'grep -v defunct|' .
+			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$output = shell_exec($cmd);
+		if (!is_string($output)) {
+			return 0;
+		}
+		$pid = trim($output);
+		return (int) $pid;
+	}
+
+	private function stopIfRunning(): void {
+		$pid = $this->getServerPid();
+		if ($pid > 0) {
+			exec('kill ' . $pid);
+		}
+	}
+
 	private function getBinary(): string {
 		if ($this->binary) {
 			return $this->binary;
@@ -269,6 +290,8 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		);
 
 		$this->genkey();
+
+		$this->stopIfRunning();
 
 		for ($i = 1; $i <= 4; $i++) {
 			if ($this->isUp($this->getCfsslUri())) {
