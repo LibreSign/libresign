@@ -1,0 +1,25 @@
+OC.L10N.register(
+    "libresign",
+    {
+    "deleted" : "Pozuldy",
+    "Dismiss notification" : "Duýduryşy ýapyň",
+    "File not found" : "Faýl tapylmady",
+    "Files" : "Faýllar",
+    "Settings" : "Sazlamalar",
+    "Password" : "Açarsöz",
+    "Upload" : "Ýüklemek",
+    "Delete" : "Pozmak",
+    "Save" : "Saklamak",
+    "Cancel" : "ýatyrmak",
+    "Name" : "Ady",
+    "Details" : "Jikme-jiklikler",
+    "Type" : "Görnüşi",
+    "Choose" : "saýlamak",
+    "Enter a password" : "Paroly giriziň",
+    "Send" : "Iber",
+    "Yes" : "Hawa",
+    "No" : "Ýok",
+    "Pending" : "Garaşylýar",
+    "Remove" : "Aýyrmak"
+},
+"nplurals=2; plural=(n != 1);");
