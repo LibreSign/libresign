@@ -3186,16 +3186,16 @@
         },
         {
             "name": "sebastian/resource-operations",
-            "version": "3.0.3",
+            "version": "3.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/resource-operations.git",
-                "reference": "0f4443cb3a1d92ce809899753bc0d5d5a8dd19a8"
+                "reference": "05d5692a7993ecccd56a03e40cd7e5b09b1d404e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/resource-operations/zipball/0f4443cb3a1d92ce809899753bc0d5d5a8dd19a8",
-                "reference": "0f4443cb3a1d92ce809899753bc0d5d5a8dd19a8",
+                "url": "https://api.github.com/repos/sebastianbergmann/resource-operations/zipball/05d5692a7993ecccd56a03e40cd7e5b09b1d404e",
+                "reference": "05d5692a7993ecccd56a03e40cd7e5b09b1d404e",
                 "shasum": ""
             },
             "require": {
@@ -3207,7 +3207,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.0-dev"
+                    "dev-main": "3.0-dev"
                 }
             },
             "autoload": {
@@ -3228,8 +3228,7 @@
             "description": "Provides a list of PHP built-in functions that operate on resources",
             "homepage": "https://www.github.com/sebastianbergmann/resource-operations",
             "support": {
-                "issues": "https://github.com/sebastianbergmann/resource-operations/issues",
-                "source": "https://github.com/sebastianbergmann/resource-operations/tree/3.0.3"
+                "source": "https://github.com/sebastianbergmann/resource-operations/tree/3.0.4"
             },
             "funding": [
                 {
@@ -3237,7 +3236,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-09-28T06:45:17+00:00"
+            "time": "2024-03-14T16:00:52+00:00"
         },
         {
             "name": "sebastian/type",
@@ -5139,16 +5138,16 @@
         },
         {
             "name": "libresign/behat-builtin-extension",
-            "version": "v0.6.1",
+            "version": "v0.6.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/behat-builtin-extension.git",
-                "reference": "db449ec7ec4ee6cb966064a55cd6f5ba455bcb75"
+                "reference": "556d583613985b03b5971b222ee5abcf82b6b63d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/db449ec7ec4ee6cb966064a55cd6f5ba455bcb75",
-                "reference": "db449ec7ec4ee6cb966064a55cd6f5ba455bcb75",
+                "url": "https://api.github.com/repos/LibreSign/behat-builtin-extension/zipball/556d583613985b03b5971b222ee5abcf82b6b63d",
+                "reference": "556d583613985b03b5971b222ee5abcf82b6b63d",
                 "shasum": ""
             },
             "require": {
@@ -5179,29 +5178,29 @@
             "description": "Behat extension to run php built-in web server",
             "support": {
                 "issues": "https://github.com/LibreSign/behat-builtin-extension/issues",
-                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.6.1"
+                "source": "https://github.com/LibreSign/behat-builtin-extension/tree/v0.6.2"
             },
-            "time": "2023-12-10T00:06:52+00:00"
+            "time": "2024-03-14T20:24:42+00:00"
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.11.0",
+            "version": "v0.11.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "e1e90894119ffee9d9ca51bb11a429f76dace6d9"
+                "reference": "173dda228dc714122ed420f719f1ff20e733f71f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/e1e90894119ffee9d9ca51bb11a429f76dace6d9",
-                "reference": "e1e90894119ffee9d9ca51bb11a429f76dace6d9",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/173dda228dc714122ed420f719f1ff20e733f71f",
+                "reference": "173dda228dc714122ed420f719f1ff20e733f71f",
                 "shasum": ""
             },
             "require": {
                 "behat/behat": "^3.13",
                 "estahn/json-query-wrapper": "*",
                 "guzzlehttp/guzzle": "^7.8",
-                "libresign/behat-builtin-extension": "^0.6.1",
+                "libresign/behat-builtin-extension": "^0.6.2",
                 "php": ">=8.0",
                 "phpunit/phpunit": "^9.6"
             },
@@ -5239,9 +5238,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.11.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.11.1"
             },
-            "time": "2024-03-09T19:41:46+00:00"
+            "time": "2024-03-14T20:29:08+00:00"
         },
         {
             "name": "symfony/process",
