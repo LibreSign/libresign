@@ -133,9 +133,8 @@ class AEngineHandler {
 		if (is_array($return['subject']['OU']) && !empty($return['subject']['OU'])) {
 			$return['subject']['OU'] = implode(', ', $return['subject']['OU']);
 		}
-		$return['subjectAltName'] = $parsed['extensions']['subjectAltName'];
 		$return['issuer'] = $parsed['issuer'];
-		$return['issuerInfoAccess'] = $parsed['extensions']['authorityInfoAccess'];
+		$return['extensions'] = $parsed['extensions'];
 		$return['validate'] = [
 			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
 			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
