@@ -81,7 +81,8 @@ class CfsslServerHandler {
 						'usages' => [
 							"signing",
 							"digital signature",
-							"cert sign"
+							"cert sign",
+							"key encipherment"
 						],
 					],
 				],
