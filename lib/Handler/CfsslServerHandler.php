@@ -82,7 +82,9 @@ class CfsslServerHandler {
 							"signing",
 							"digital signature",
 							"cert sign",
-							"key encipherment"
+							"key encipherment",
+							"client auth",
+							"email protection"
 						],
 					],
 				],
