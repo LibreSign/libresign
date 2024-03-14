@@ -122,6 +122,6 @@ jobs:
         env:
           BEHAT_ROOT_DIR: ../../../../
         run: |
-          export BEHAT_RUN_AS=$(ls -ld behat.yml | awk '{print $3}')
+          export BEHAT_RUN_AS=runner
           export BEHAT_VERBOSE="$RUNNER_DEBUG"
           vendor/bin/behat -f junit -f pretty --colors
