@@ -225,7 +225,7 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 	private function stopIfRunning(): void {
 		$pid = $this->getServerPid();
 		if ($pid > 0) {
-			exec($this->parseCommand('kill ' . $pid));
+			exec($this->parseCommand('kill -9 ' . $pid));
 		}
 	}
 
