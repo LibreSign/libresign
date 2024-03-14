@@ -7,9 +7,10 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key        | value                                   |
-      | rootCert   | {"commonName":"Common Name","names":[{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}]} |
-      | generated  | true                                    |
+      | key                        | value                                   |
+      | (jq).rootCert.commonName   | Common Name |
+      | (jq).rootCert.names        | [{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}] |
+      | generated                  | true                                    |
 
   Scenario: Create root certificate with CFSSL engine using API
     Given as user "admin"
@@ -21,9 +22,10 @@ Feature: account/signature
     And sending "get" to ocs "/apps/libresign/api/v1/admin/certificate"
     And the response should have a status code 200
     And the response should be a JSON array with the following mandatory values
-      | key        | value                                   |
-      | rootCert   | {"commonName":"Common Name","names":[{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}]} |
-      | generated  | true                                    |
+      | key                        | value                                   |
+      | (jq).rootCert.commonName   | Common Name |
+      | (jq).rootCert.names        | [{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}] |
+      | generated                  | true                                    |
 
   Scenario: Create pfx with success with CFSSL
     Given user "signer1" exists
