@@ -180,6 +180,7 @@ td {
 	padding: 5px;
 	border-bottom: 1px solid var(--color-border);
 }
+
 td:nth-child(2) {
 	word-break: break-all;
 }
