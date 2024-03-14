@@ -41,12 +41,13 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key              | value |
-      | name             | /C=BR/ST=State of Company/O=Organization/CN=signer1-displayname |
-      | subject          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","O": "Organization"} |
-      | subjectAltName   | DNS:signer1 |
-      | issuer           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | issuerInfoAccess | |
+      | key                              | value |
+      | name                             | /C=BR/ST=State of Company/O=Organization/CN=signer1-displayname |
+      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","O": "Organization"} |
+      | (jq).extensions.subjectAltName   | DNS:signer1 |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
+      | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
 
   Scenario: Create pfx with success with OpenSSL
     Given user "signer1" exists
@@ -60,12 +61,13 @@ Feature: account/signature
       | key      | value    |
       | password | password |
     Then the response should be a JSON array with the following mandatory values
-      | key              | value |
-      | name             | /CN=Common Name/O=Organization/C=BR/ST=State of Company |
-      | subject          | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | subjectAltName   | |
-      | issuer           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | issuerInfoAccess | |
+      | key                              | value |
+      | name                             | /CN=Common Name/O=Organization/C=BR/ST=State of Company |
+      | subject                          | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
+      | (jq).extensions.subjectAltName   | DNS:signer1 |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
+      | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
