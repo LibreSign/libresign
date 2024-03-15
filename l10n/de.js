@@ -83,7 +83,7 @@ OC.L10N.register(
     "File sharing" : "Dateifreigabe",
     "Changes have been made in a file that you have to sign." : "In einer Datei, die du signieren sollst, wurden Änderungen vorgenommen.",
     "View" : "Ansehen",
-    "Dismiss notification" : "Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).",
+    "Dismiss notification" : "Benachrichtigung verwerfen",
     "UUID not found" : "UUID nicht gefunden",
     "Password is mandatory" : "Passwort ist erforderlich",
     "File not found" : "Datei nicht gefunden",
