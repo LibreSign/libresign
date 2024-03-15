@@ -44,7 +44,7 @@ Feature: account/signature
       | key                              | value |
       | name                             | /C=BR/ST=State of Company/O=Organization/CN=signer1-displayname |
       | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","O": "Organization"} |
-      | (jq).extensions.subjectAltName   | DNS:signer1 |
+      | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
@@ -64,7 +64,7 @@ Feature: account/signature
       | key                              | value |
       | name                             | /CN=Common Name/O=Organization/C=BR/ST=State of Company |
       | subject                          | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | (jq).extensions.subjectAltName   | DNS:signer1 |
+      | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
