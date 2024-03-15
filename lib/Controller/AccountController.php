@@ -141,20 +141,27 @@ class AccountController extends ApiController implements ISignatureUuid {
 		string $signPassword
 	): JSONResponse {
 		try {
+			$identify = $this->userSession->getUser()->getEMailAddress();
+			if (!$identify) {
+				$identify = $this->userSession->getUser()->getUID()
+					. '@'
+					. $this->request->getServerHost();
+			}
 			$data = [
 				'user' => [
-					'identify' => $this->userSession->getUser()->getUID(),
+					'host' => $identify,
 					'name' => $this->userSession->getUser()->getDisplayName(),
 				],
 				'signPassword' => $signPassword,
 				'userId' => $this->userSession->getUser()->getUID()
 			];
 			$this->accountService->validateCertificateData($data);
-			$this->pkcs12Handler->generateCertificate(
+			$certificate = $this->pkcs12Handler->generateCertificate(
 				$data['user'],
 				$data['signPassword'],
 				$this->userSession->getUser()->getDisplayName()
 			);
+			$this->pkcs12Handler->savePfx($this->userSession->getUser()->getUID(), $certificate);
 
 			return new JSONResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {

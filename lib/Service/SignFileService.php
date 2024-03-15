@@ -349,15 +349,16 @@ class SignFileService {
 			$tempPassword = sha1((string) time());
 			$this->setPassword($tempPassword);
 			try {
-				return $this->pkcs12Handler->generateCertificate(
+				$certificate = $this->pkcs12Handler->generateCertificate(
 					[
-						'identify' => $this->userUniqueIdentifier,
+						'host' => $this->userUniqueIdentifier,
 						'name' => $this->friendlyName,
 					],
 					$tempPassword,
 					$this->friendlyName,
 					true
 				);
+				$this->pkcs12Handler->savePfx($this->userUniqueIdentifier, $certificate);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 			} catch (EmptyRootCertificateException $e) {
