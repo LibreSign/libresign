@@ -34,6 +34,8 @@ use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
+use OpenSSLAsymmetricKey;
+use OpenSSLCertificate;
 use ReflectionClass;
 
 /**
@@ -82,7 +84,10 @@ class AEngineHandler {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	protected function exportToPkcs12(string $certificate, string $privateKey): string {
+	protected function exportToPkcs12(
+		OpenSSLCertificate|string $certificate,
+		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey
+	): string {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();
 		}
