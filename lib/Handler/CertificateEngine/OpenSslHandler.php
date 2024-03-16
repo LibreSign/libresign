@@ -68,9 +68,18 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privkey, $pkeyout);
 
-		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.csr', $csrout);
-		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem', $certout);
-		file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem', $pkeyout);
+		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.csr', $csrout);
+		if ($success === false) {
+			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
+		}
+		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem', $certout);
+		if ($success === false) {
+			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
+		}
+		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem', $pkeyout);
+		if ($success === false) {
+			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
+		}
 
 		return $pkeyout;
 	}

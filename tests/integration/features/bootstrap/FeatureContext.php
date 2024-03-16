@@ -21,6 +21,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeSuite
 	 */
 	public static function beforeSuite(BeforeSuiteScope $scope) {
+		if (get_current_user() !== exec('whoami')) {
+			throw new Exception(sprintf('Have files that %s is the owner.and the user that is running this test is %s, is necessary to be the same user', get_current_user(), exec('whoami')));
+		}
 		self::runCommand('config:system:set debug --value true --type boolean');
 		self::runCommand('app:enable --force notifications');
 	}
