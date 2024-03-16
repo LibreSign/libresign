@@ -66,9 +66,9 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 
 	public function generateCertificate(): string {
 		$configPath = $this->getConfigPath();
-		$certificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
-		$privateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
-		if (empty($certificate) || empty($privateKey)) {
+		$rootCertificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$rootPrivateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
+		if (empty($rootCertificate) || empty($rootPrivateKey)) {
 			throw new LibresignException('Invalid root certificate');
 		}
 		return parent::exportToPkcs12($certificate, $privateKey);
