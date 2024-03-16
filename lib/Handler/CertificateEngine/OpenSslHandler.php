@@ -86,6 +86,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		// More information about x509v3: https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
 		file_put_contents($temporaryFile, <<<CONFIG
 			[ v3_req ]
 			basicConstraints = CA:FALSE
