@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use OCA\Libresign\Exception\EmptyRootCertificateException;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
@@ -84,7 +84,7 @@ class AEngineHandler {
 
 	protected function signCertificate(string $certificate, string $privateKey): string {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		$certContent = null;
 		try {
@@ -107,7 +107,7 @@ class AEngineHandler {
 
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		openssl_pkcs12_read($certificate, $certContent, $currentPrivateKey);
 		if (empty($certContent)) {
@@ -120,7 +120,7 @@ class AEngineHandler {
 
 	public function readCertificate(string $certificate, string $privateKey): array {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		openssl_pkcs12_read($certificate, $certContent, $privateKey);
 		if (empty($certContent)) {
