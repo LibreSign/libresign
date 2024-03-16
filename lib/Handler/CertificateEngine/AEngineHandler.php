@@ -82,7 +82,7 @@ class AEngineHandler {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	public function generateCertificate(string $certificate, string $privateKey): string {
+	protected function signCertificate(string $certificate, string $privateKey): string {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyRootCertificateException();
 		}
@@ -114,7 +114,7 @@ class AEngineHandler {
 			throw new InvalidPasswordException();
 		}
 		$this->setPassword($newPrivateKey);
-		$certContent = self::generateCertificate($certContent['cert'], $certContent['pkey']);
+		$certContent = self::signCertificate($certContent['cert'], $certContent['pkey']);
 		return $certContent;
 	}
 
