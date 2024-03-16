@@ -49,7 +49,7 @@ Feature: account/signature
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid   |
+      | (jq).extensions | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
       | (jq).extensions | (jq).subjectKeyIdentifier != "" |
 
   Scenario: Create pfx with success using OpenSSL
@@ -72,7 +72,7 @@ Feature: account/signature
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid   |
+      | (jq).extensions | (jq).authorityKeyIdentifier \| test("([0-9A-F]{2}:)+[0-9A-F]{2}") |
       | (jq).extensions | (jq).subjectKeyIdentifier != "" |
 
   Scenario: Upload PFX file with error
