@@ -24,7 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use OCA\Libresign\Exception\EmptyRootCertificateException;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
@@ -34,6 +34,8 @@ use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
+use OpenSSLAsymmetricKey;
+use OpenSSLCertificate;
 use ReflectionClass;
 
 /**
@@ -82,9 +84,12 @@ class AEngineHandler {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	public function generateCertificate(string $certificate, string $privateKey): string {
+	protected function exportToPkcs12(
+		OpenSSLCertificate|string $certificate,
+		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey
+	): string {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		$certContent = null;
 		try {
@@ -107,20 +112,20 @@ class AEngineHandler {
 
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		openssl_pkcs12_read($certificate, $certContent, $currentPrivateKey);
 		if (empty($certContent)) {
 			throw new InvalidPasswordException();
 		}
 		$this->setPassword($newPrivateKey);
-		$certContent = self::generateCertificate($certContent['cert'], $certContent['pkey']);
+		$certContent = self::exportToPkcs12($certContent['cert'], $certContent['pkey']);
 		return $certContent;
 	}
 
 	public function readCertificate(string $certificate, string $privateKey): array {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		openssl_pkcs12_read($certificate, $certContent, $privateKey);
 		if (empty($certContent)) {
@@ -133,9 +138,8 @@ class AEngineHandler {
 		if (is_array($return['subject']['OU']) && !empty($return['subject']['OU'])) {
 			$return['subject']['OU'] = implode(', ', $return['subject']['OU']);
 		}
-		$return['subjectAltName'] = $parsed['extensions']['subjectAltName'];
 		$return['issuer'] = $parsed['issuer'];
-		$return['issuerInfoAccess'] = $parsed['extensions']['authorityInfoAccess'];
+		$return['extensions'] = $parsed['extensions'];
 		$return['validate'] = [
 			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
 			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
@@ -249,7 +253,7 @@ class AEngineHandler {
 		return $name;
 	}
 
-	private function getNames(): array {
+	protected function getNames(): array {
 		$names = [
 			'C' => $this->getCountry(),
 			'ST' => $this->getState(),

@@ -39,7 +39,7 @@ use OCA\Libresign\Db\SignRequest as SignRequestEntity;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
-use OCA\Libresign\Exception\EmptyRootCertificateException;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\Pkcs12Handler;
@@ -349,18 +349,19 @@ class SignFileService {
 			$tempPassword = sha1((string) time());
 			$this->setPassword($tempPassword);
 			try {
-				return $this->pkcs12Handler->generateCertificate(
+				$certificate = $this->pkcs12Handler->generateCertificate(
 					[
-						'identify' => $this->userUniqueIdentifier,
+						'host' => $this->userUniqueIdentifier,
 						'name' => $this->friendlyName,
 					],
 					$tempPassword,
 					$this->friendlyName,
 					true
 				);
+				$this->pkcs12Handler->savePfx($this->userUniqueIdentifier, $certificate);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
-			} catch (EmptyRootCertificateException $e) {
+			} catch (EmptyCertificateException $e) {
 				throw new LibresignException($this->l10n->t('Empty root certificate data'));
 			} catch (InvalidArgumentException $e) {
 				throw new LibresignException($this->l10n->t('Invalid data to generate certificate'));

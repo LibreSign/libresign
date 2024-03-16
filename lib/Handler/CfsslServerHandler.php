@@ -49,7 +49,7 @@ class CfsslServerHandler {
 		array $names,
 		string $configPath
 	): void {
-		$filename = $configPath . self::CSR_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CSR_FILE;
 		$content = [
 			'CN' => $commonName,
 			'key' => [
@@ -57,10 +57,9 @@ class CfsslServerHandler {
 				'size' => 2048,
 			],
 		];
-		foreach ($names as $name) {
-			$content['names'][0][$name['id']] = $name['value'];
+		foreach ($names as $id => $name) {
+			$content['names'][0][$id] = $name['value'];
 		}
-		
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
@@ -72,7 +71,7 @@ class CfsslServerHandler {
 	}
 
 	private function putConfigServer(string $key, string $configPath): void {
-		$filename = $configPath . self::CONFIG_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CONFIG_FILE;
 		$content = [
 			'signing' => [
 				'profiles' => [
@@ -82,7 +81,10 @@ class CfsslServerHandler {
 						'usages' => [
 							"signing",
 							"digital signature",
-							"cert sign"
+							"cert sign",
+							"key encipherment",
+							"client auth",
+							"email protection"
 						],
 					],
 				],

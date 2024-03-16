@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service;
 
+use InvalidArgumentException;
 use OC;
 use OC\Archive\TAR;
 use OC\Archive\ZIP;
@@ -485,6 +486,9 @@ class InstallService {
 
 	public function installCfssl(?bool $async = false): void {
 		if ($this->certificateEngineHandler->getEngine()->getName() !== 'cfssl') {
+			if (!$async) {
+				throw new InvalidArgumentException('Set the engine to cfssl with: config:app:set libresign certificate_engine --value cfssl');
+			}
 			return;
 		}
 		$this->setResource('cfssl');

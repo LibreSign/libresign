@@ -57,16 +57,12 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td>Info access</td>
-						<td>{{ certificateData.issuerInfoAccess }}</td>
-					</tr>
-					<tr>
 						<td>Name</td>
 						<td>{{ certificateData.name }}</td>
 					</tr>
-					<tr>
-						<td>Alt name</td>
-						<td>{{ certificateData.subjectAltName }}</td>
+					<tr v-for="(value, name) in certificateData.extensions" :key="name">
+						<td>{{ name }}</td>
+						<td>{{ value }}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -183,6 +179,10 @@ table {
 td {
 	padding: 5px;
 	border-bottom: 1px solid var(--color-border);
+}
+
+td:nth-child(2) {
+	word-break: break-all;
 }
 
 th {

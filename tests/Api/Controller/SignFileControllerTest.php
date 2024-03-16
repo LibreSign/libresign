@@ -217,14 +217,15 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate(
+		$certificate = $pkcs12Handler->generateCertificate(
 			[
-				'identify' => 'person@test.coop',
+				'host' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
 			'username'
 		);
+		$pkcs12Handler->savePfx('person@test.coop', $certificate);
 
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
@@ -276,14 +277,15 @@ final class SignFileControllerTest extends ApiTestCase {
 			'userManager' => $user,
 		]);
 		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate(
+		$certificate = $pkcs12Handler->generateCertificate(
 			[
-				'identify' => 'person@test.coop',
+				'host' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
 			'username'
 		);
+		$pkcs12Handler->savePfx('person@test.coop', $certificate);
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
