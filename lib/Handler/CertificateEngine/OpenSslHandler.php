@@ -64,7 +64,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return $pkeyout;
 	}
 
-	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+	public function generateCertificate(): string {
 		$configPath = $this->getConfigPath();
 		$certificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
 		$privateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
