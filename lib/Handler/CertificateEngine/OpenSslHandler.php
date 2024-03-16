@@ -39,18 +39,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		string $commonName,
 		array $names = [],
 	): string {
-
 		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$dn['commonName'] = $commonName;
-		foreach ($names as $key => $value) {
-			$dn[$key] = $value['value'];
-		}
-
-		$csr = openssl_csr_new($dn, $privateKey, ['digest_alg' => 'sha256']);
+		$csr = openssl_csr_new($this->getNames(), $privateKey, ['digest_alg' => 'sha256']);
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, ['digest_alg' => 'sha256']);
 
 		openssl_csr_export($csr, $csrout);
@@ -71,7 +65,37 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		if (empty($rootCertificate) || empty($rootPrivateKey)) {
 			throw new LibresignException('Invalid root certificate');
 		}
-		return parent::exportToPkcs12($certificate, $privateKey);
+
+		$privateKey = openssl_pkey_new([
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		]);
+		$csr = openssl_csr_new($this->getNames(), $privateKey);
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365);
+		return parent::exportToPkcs12($x509, $privateKey);
+	}
+
+	/**
+	 * Convert to names as necessary to OpenSSL
+	 *
+	 * Read more here: https://www.php.net/manual/en/function.openssl-csr-new.php
+	 */
+	protected function getNames(): array {
+		$distinguishedNames = [];
+		$names = parent::getNames();
+		foreach ($names as $name => $value) {
+			if ($name === 'ST') {
+				$distinguishedNames['stateOrProvinceName'] = $value;
+				continue;
+			}
+			$longName = $this->translateToLong($name);
+			$longName = lcfirst($longName) . 'Name';
+			$distinguishedNames[$longName] = $value;
+		}
+		if ($this->getCommonName()) {
+			$distinguishedNames['commonName'] = $this->getCommonName();
+		}
+		return $distinguishedNames;
 	}
 
 	private function saveFile(string $filename, string $content): void {
