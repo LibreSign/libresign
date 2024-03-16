@@ -64,17 +64,83 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter);
 	}
 
-	private function getClient(): Client {
-		if (!$this->client) {
-			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
+	public function generateRootCert(
+		string $commonName,
+		array $names = []
+	): string {
+		$key = bin2hex(random_bytes(16));
+
+		$configPath = $this->getConfigPath();
+		$this->cfsslServerHandler->createConfigServer(
+			$commonName,
+			$names,
+			$key,
+			$configPath
+		);
+
+		$this->genkey();
+
+		$this->stopIfRunning();
+
+		for ($i = 1; $i <= 4; $i++) {
+			if ($this->isUp($this->getCfsslUri())) {
+				break;
+			}
+			sleep(2);
 		}
-		$this->wakeUp();
-		return $this->client;
+
+		return $key;
 	}
 
-	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+	public function generateCertificate(): string {
 		$certKeys = $this->newCert();
-		return parent::generateCertificate($certKeys['certificate'], $certKeys['private_key']);
+		return parent::exportToPkcs12($certKeys['certificate'], $certKeys['private_key']);
+	}
+
+	public function isSetupOk(): bool {
+		if (!parent::isSetupOk()) {
+			return false;
+		};
+		$configPath = $this->getConfigPath();
+		$certificate = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$privateKey = file_exists($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
+		if (!$certificate || !$privateKey) {
+			return false;
+		}
+		try {
+			$this->getClient();
+			return true;
+		} catch (\Throwable $th) {
+		}
+		return false;
+	}
+
+	public function configureCheck(): array {
+		$return = $this->checkBinaries();
+		$configPath = $this->getConfigPath();
+		if (is_dir($configPath)) {
+			return array_merge(
+				$return,
+				[(new ConfigureCheckHelper())
+					->setSuccessMessage('Root certificate config files found.')
+					->setResource('cfssl-configure')]
+			);
+		}
+		return array_merge(
+			$return,
+			[(new ConfigureCheckHelper())
+			->setErrorMessage('CFSSL (root certificate) not configured.')
+			->setResource('cfssl-configure')
+			->setTip('Run occ libresign:configure:cfssl --help')]
+		);
+	}
+
+	public function toArray(): array {
+		$return = parent::toArray();
+		if (!empty($return['configPath'])) {
+			$return['cfsslUri'] = $this->appConfig->getAppValue('cfssl_uri');
+		}
+		return $return;
 	}
 
 	private function newCert(): array {
@@ -118,6 +184,23 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		}
 
 		return $responseDecoded['result'];
+	}
+
+	private function genkey(): void {
+		$binary = $this->getBinary();
+		$configPath = $this->getConfigPath();
+		$cmd = $binary . ' genkey ' .
+			'-initca=true ' . $configPath . DIRECTORY_SEPARATOR . 'csr_server.json | ' .
+			$binary . 'json -bare ' . $configPath . DIRECTORY_SEPARATOR . 'ca;';
+		shell_exec($cmd);
+	}
+
+	private function getClient(): Client {
+		if (!$this->client) {
+			$this->setClient(new Client(['base_uri' => $this->getCfsslUri()]));
+		}
+		$this->wakeUp();
+		return $this->client;
 	}
 
 	private function isUp(): bool {
@@ -168,9 +251,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			throw new LibresignException('CFSSL not configured.');
 		}
 		$cmd = 'nohup ' . $binary . ' serve -address=127.0.0.1 ' .
-			'-ca-key ' . $configPath . 'ca-key.pem ' .
-			'-ca ' . $configPath . 'ca.pem '.
-			'-config ' . $configPath . 'config_server.json > /dev/null 2>&1 & echo $!';
+			'-ca-key ' . $configPath . DIRECTORY_SEPARATOR . 'ca-key.pem ' .
+			'-ca ' . $configPath . DIRECTORY_SEPARATOR . 'ca.pem '.
+			'-config ' . $configPath . DIRECTORY_SEPARATOR . 'config_server.json > /dev/null 2>&1 & echo $!';
 		shell_exec($cmd);
 		$loops = 0;
 		while (!$this->portOpen() && $loops <= 4) {
@@ -191,6 +274,42 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 			return true;
 		}
 		return false;
+	}
+
+	private function getServerPid(): int {
+		$cmd = 'ps -eo pid,command|';
+		$cmd .= 'grep "cfssl.*serve.*-address"|' .
+			'grep -v grep|' .
+			'grep -v defunct|' .
+			'sed -e "s/^[[:space:]]*//"|cut -d" " -f1';
+		$output = shell_exec($cmd);
+		if (!is_string($output)) {
+			return 0;
+		}
+		$pid = trim($output);
+		return (int) $pid;
+	}
+
+	/**
+	 * Parse command
+	 *
+	 * Have commands that need to be executed as sudo otherwise don't will work,
+	 * by example the command runuser or kill. To prevent error when run in a
+	 * GitHub Actions, these commands are executed prefixed by sudo when exists
+	 * an environment called GITHUB_ACTIONS.
+	 */
+	private function parseCommand(string $command): string {
+		if (getenv('GITHUB_ACTIONS') !== false) {
+			$command = 'sudo ' . $command;
+		}
+		return $command;
+	}
+
+	private function stopIfRunning(): void {
+		$pid = $this->getServerPid();
+		if ($pid > 0) {
+			exec($this->parseCommand('kill -9 ' . $pid));
+		}
 	}
 
 	private function getBinary(): string {
@@ -245,79 +364,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$this->cfsslUri = $uri;
 	}
 
-	private function genkey(): void {
-		$binary = $this->getBinary();
-		$configPath = $this->getConfigPath();
-		$cmd = $binary . ' genkey ' .
-			'-initca=true ' . $configPath . 'csr_server.json | ' .
-			$binary . 'json -bare ' . $configPath . 'ca;';
-		shell_exec($cmd);
-	}
-
-	public function generateRootCert(
-		string $commonName,
-		array $names = []
-	): string {
-		$key = bin2hex(random_bytes(16));
-
-		$configPath = $this->getConfigPath();
-		$this->cfsslServerHandler->createConfigServer(
-			$commonName,
-			$names,
-			$key,
-			$configPath
-		);
-
-		$this->genkey();
-
-		for ($i = 1; $i <= 4; $i++) {
-			if ($this->isUp($this->getCfsslUri())) {
-				break;
-			}
-			sleep(2);
-		}
-
-		return $key;
-	}
-
-	public function isSetupOk(): bool {
-		if (!parent::isSetupOk()) {
-			return false;
-		};
-		$configPath = $this->getConfigPath();
-		$certificate = file_exists($configPath . '/ca.pem');
-		$privateKey = file_exists($configPath . '/ca-key.pem');
-		if (!$certificate || !$privateKey) {
-			return false;
-		}
-		try {
-			$this->getClient();
-			return true;
-		} catch (\Throwable $th) {
-		}
-		return false;
-	}
-
-	public function configureCheck(): array {
-		$return = $this->checkBinaries();
-		$configPath = $this->getConfigPath();
-		if (is_dir($configPath)) {
-			return array_merge(
-				$return,
-				[(new ConfigureCheckHelper())
-					->setSuccessMessage('Root certificate config files found.')
-					->setResource('cfssl-configure')]
-			);
-		}
-		return array_merge(
-			$return,
-			[(new ConfigureCheckHelper())
-			->setErrorMessage('CFSSL (root certificate) not configured.')
-			->setResource('cfssl-configure')
-			->setTip('Run occ libresign:configure:cfssl --help')]
-		);
-	}
-
 	private function checkBinaries(): array {
 		if (PHP_OS_FAMILY === 'Windows') {
 			return [
@@ -369,14 +415,6 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		$return[] = (new ConfigureCheckHelper())
 			->setSuccessMessage('CFSSL: ' . $version)
 			->setResource('cfssl');
-		return $return;
-	}
-
-	public function toArray(): array {
-		$return = parent::toArray();
-		if (!empty($return['configPath'])) {
-			$return['cfsslUri'] = $this->appConfig->getAppValue('cfssl_uri');
-		}
 		return $return;
 	}
 }

@@ -227,14 +227,15 @@ class AccountService {
 		}
 
 		if ($signPassword) {
-			$this->pkcs12Handler->generateCertificate(
+			$certificate = $this->pkcs12Handler->generateCertificate(
 				[
-					'identify' => $newUser->getPrimaryEMailAddress(),
+					'host' => $newUser->getPrimaryEMailAddress(),
 					'name' => $newUser->getDisplayName()
 				],
 				$signPassword,
 				$newUser->getDisplayName()
 			);
+			$this->pkcs12Handler->savePfx($newUser->getPrimaryEMailAddress(), $certificate);
 		}
 	}
 

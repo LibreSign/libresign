@@ -24,5 +24,5 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Exception;
 
-class EmptyRootCertificateException extends \Exception {
+class EmptyCertificateException extends \Exception {
 }

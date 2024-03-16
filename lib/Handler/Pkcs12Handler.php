@@ -301,14 +301,14 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * Generate certificate
 	 *
-	 * @param array $user Example: ['identify' => '', 'name' => '']
+	 * @param array $user Example: ['host' => '', 'name' => '']
 	 * @param string $signPassword Password of signature
 	 * @param string $friendlyName Friendly name
 	 * @param bool $isTempFile
 	 */
 	public function generateCertificate(array $user, string $signPassword, string $friendlyName, bool $isTempFile = false): string {
 		$content = $this->certificateEngineHandler->getEngine()
-			->setHosts([$user['identify']])
+			->setHosts([$user['host']])
 			->setCommonName($user['name'])
 			->setFriendlyName($friendlyName)
 			->setPassword($signPassword)
@@ -319,6 +319,6 @@ class Pkcs12Handler extends SignEngineHandler {
 		if ($isTempFile) {
 			return $content;
 		}
-		return $this->savePfx($user['identify'], $content);
+		return $content;
 	}
 }
