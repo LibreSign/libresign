@@ -35,21 +35,10 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
  * @method CfsslHandler setClient(Client $client)
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
-	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
-		$configPath = $this->getConfigPath();
-		$certificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
-		$privateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
-		if (empty($certificate) || empty($privateKey)) {
-			throw new LibresignException('Invalid root certificate');
-		}
-		return parent::generateCertificate($certificate, $privateKey);
-	}
-
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
 	): string {
-		$configPath = $this->getConfigPath();
 
 		$privkey = openssl_pkey_new([
 			'private_key_bits' => 2048,
@@ -68,20 +57,29 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		openssl_x509_export($x509, $certout);
 		openssl_pkey_export($privkey, $pkeyout);
 
-		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.csr', $csrout);
-		if ($success === false) {
-			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
-		}
-		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem', $certout);
-		if ($success === false) {
-			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
-		}
-		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem', $pkeyout);
-		if ($success === false) {
-			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . 'ca.csr');
-		}
+		$this->saveFile('ca.csr', $csrout);
+		$this->saveFile('ca.pem', $certout);
+		$this->saveFile('ca-key.pem', $pkeyout);
 
 		return $pkeyout;
+	}
+
+	public function generateCertificate(string $certificate = '', string $privateKey = ''): string {
+		$configPath = $this->getConfigPath();
+		$certificate = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca.pem');
+		$privateKey = file_get_contents($configPath . DIRECTORY_SEPARATOR . 'ca-key.pem');
+		if (empty($certificate) || empty($privateKey)) {
+			throw new LibresignException('Invalid root certificate');
+		}
+		return parent::generateCertificate($certificate, $privateKey);
+	}
+
+	private function saveFile(string $filename, string $content): void {
+		$configPath = $this->getConfigPath();
+		$success = file_put_contents($configPath . DIRECTORY_SEPARATOR . $filename, $content);
+		if ($success === false) {
+			throw new LibresignException('Failure to save file. Check permission: ' . $configPath . DIRECTORY_SEPARATOR . $filename);
+		}
 	}
 
 	public function isSetupOk(): bool {
