@@ -33,7 +33,7 @@ Feature: account/signature
     And as user "signer1"
     And run the command "config:app:set libresign certificate_engine --value cfssl"
     And run the command "libresign:install --cfssl"
-    And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
+    And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
@@ -42,9 +42,9 @@ Feature: account/signature
       | password | password |
     Then the response should be a JSON array with the following mandatory values
       | key                              | value |
-      | name                             | /C=BR/ST=State of Company/O=Organization/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","O": "Organization"} |
+      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/CN=signer1-displayname |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
+      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
@@ -53,7 +53,7 @@ Feature: account/signature
     Given user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
-    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
+    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
@@ -62,15 +62,15 @@ Feature: account/signature
       | password | password |
     Then the response should be a JSON array with the following mandatory values
       | key                              | value |
-      | name                             | /C=BR/ST=State of Company/O=Organization/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","O": "Organization"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","O": "Organization"} |
+      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/CN=signer1-displayname |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
+      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
 
   Scenario: Upload PFX file with error
-    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
+    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
     And user "signer1" exists
     And as user "signer1"
     When sending "post" to ocs "/apps/libresign/api/v1/account/pfx"
@@ -80,7 +80,7 @@ Feature: account/signature
       | message | No certificate file provided |
 
   Scenario: Change pfx password with success
-    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
+    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
     And user "signer1" exists
     And as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
@@ -102,7 +102,7 @@ Feature: account/signature
       | message | New password to sign documents has been created |
 
   Scenario: Delete pfx password with success
-    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company"
+    Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
     And user "signer1" exists
     And as user "signer1"
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
