@@ -71,7 +71,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new LibresignException('Invalid root certificate');
 		}
-		return parent::generateCertificate($certificate, $privateKey);
+		return parent::exportToPkcs12($certificate, $privateKey);
 	}
 
 	private function saveFile(string $filename, string $content): void {
