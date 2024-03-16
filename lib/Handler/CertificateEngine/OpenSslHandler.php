@@ -26,6 +26,11 @@ namespace OCA\Libresign\Handler\CertificateEngine;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCP\AppFramework\Services\IAppConfig;
+use OCP\Files\AppData\IAppDataFactory;
+use OCP\IConfig;
+use OCP\IDateTimeFormatter;
+use OCP\ITempManager;
 
 /**
  * Class FileMapper
@@ -35,6 +40,16 @@ use OCA\Libresign\Helper\ConfigureCheckHelper;
  * @method CfsslHandler setClient(Client $client)
  */
 class OpenSslHandler extends AEngineHandler implements IEngineHandler {
+	public function __construct(
+		protected IConfig $config,
+		protected IAppConfig $appConfig,
+		protected IAppDataFactory $appDataFactory,
+		protected IDateTimeFormatter $dateTimeFormatter,
+		protected ITempManager $tempManager,
+	) {
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter);
+	}
+
 	public function generateRootCert(
 		string $commonName,
 		array $names = [],
@@ -70,8 +85,17 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
+		$temporaryFile = $this->tempManager->getTemporaryFile('.cfg');
+		file_put_contents($temporaryFile, <<<CONFIG
+			[ v3_req ]
+			basicConstraints = CA:FALSE
+			keyUsage = digitalSignature, keyEncipherment, keyCertSign
+			extendedKeyUsage = clientAuth, emailProtection
+			subjectAltName = {$this->getSubjectAltNames()}
+			CONFIG);
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
+			'config' => $temporaryFile,
 			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
 			// The signer certificate is not a Certificate Authority
 			'x509_extensions' => 'v3_req',

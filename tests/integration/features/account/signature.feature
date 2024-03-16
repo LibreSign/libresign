@@ -67,9 +67,9 @@ Feature: account/signature
       | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
       | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
       | (jq).extensions.basicConstraints | CA:FALSE |
-      # | (jq).extensions.subjectAltName   | email:signer@domain.test |
-      # | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
-      # | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
+      | (jq).extensions.subjectAltName   | email:signer@domain.test |
+      | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
+      | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
