@@ -49,7 +49,8 @@ Feature: account/signature
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid |
+      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid   |
+      | (jq).extensions | (jq).subjectKeyIdentifier != "" |
 
   Scenario: Create pfx with success with OpenSSL
     Given user "signer1" exists
@@ -71,7 +72,8 @@ Feature: account/signature
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
-      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid |
+      | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid   |
+      | (jq).extensions | (jq).subjectKeyIdentifier != "" |
 
   Scenario: Upload PFX file with error
     Given run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name"
