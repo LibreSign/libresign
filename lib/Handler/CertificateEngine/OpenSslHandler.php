@@ -40,7 +40,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		array $names = [],
 	): string {
 
-		$privkey = openssl_pkey_new([
+		$privateKey = openssl_pkey_new([
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
@@ -50,12 +50,12 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			$dn[$key] = $value['value'];
 		}
 
-		$csr = openssl_csr_new($dn, $privkey, array('digest_alg' => 'sha256'));
-		$x509 = openssl_csr_sign($csr, null, $privkey, $days = 365 * 5, array('digest_alg' => 'sha256'));
+		$csr = openssl_csr_new($dn, $privateKey, array('digest_alg' => 'sha256'));
+		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, array('digest_alg' => 'sha256'));
 
 		openssl_csr_export($csr, $csrout);
 		openssl_x509_export($x509, $certout);
-		openssl_pkey_export($privkey, $pkeyout);
+		openssl_pkey_export($privateKey, $pkeyout);
 
 		$this->saveFile('ca.csr', $csrout);
 		$this->saveFile('ca.pem', $certout);
