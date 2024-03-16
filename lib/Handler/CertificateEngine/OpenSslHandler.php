@@ -79,12 +79,21 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		return parent::exportToPkcs12($x509, $privateKey);
 	}
 
+	private function getSubjectAltNames(): string {
+		$hosts = $this->getHosts();
+		$altNames = [];
+		foreach ($hosts as $email) {
+			$altNames[] = 'email:' . $email;
+		}
+		return implode(', ', $altNames);
+	}
+
 	/**
 	 * Convert to names as necessary to OpenSSL
 	 *
 	 * Read more here: https://www.php.net/manual/en/function.openssl-csr-new.php
 	 */
-	protected function getCsrNames(): array {
+	private function getCsrNames(): array {
 		$distinguishedNames = [];
 		$names = parent::getNames();
 		foreach ($names as $name => $value) {
