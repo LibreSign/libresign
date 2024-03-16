@@ -71,7 +71,11 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 		$csr = openssl_csr_new($this->getNames(), $privateKey);
-		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365);
+		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
+			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
+			// The signer certificate is not a Certificate Authority
+			'x509_extensions' => 'v3_req',
+		]);
 		return parent::exportToPkcs12($x509, $privateKey);
 	}
 
