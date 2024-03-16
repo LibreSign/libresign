@@ -44,7 +44,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
 
-		$csr = openssl_csr_new($this->getNames(), $privateKey, ['digest_alg' => 'sha256']);
+		$csr = openssl_csr_new($this->getCsrNames(), $privateKey, ['digest_alg' => 'sha256']);
 		$x509 = openssl_csr_sign($csr, null, $privateKey, $days = 365 * 5, ['digest_alg' => 'sha256']);
 
 		openssl_csr_export($csr, $csrout);
@@ -70,7 +70,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			'private_key_bits' => 2048,
 			'private_key_type' => OPENSSL_KEYTYPE_RSA,
 		]);
-		$csr = openssl_csr_new($this->getNames(), $privateKey);
+		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
 			// This will set "basicConstraints" to CA:FALSE, the default is CA:TRUE
 			// The signer certificate is not a Certificate Authority
@@ -84,7 +84,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 	 *
 	 * Read more here: https://www.php.net/manual/en/function.openssl-csr-new.php
 	 */
-	protected function getNames(): array {
+	protected function getCsrNames(): array {
 		$distinguishedNames = [];
 		$names = parent::getNames();
 		foreach ($names as $name => $value) {
