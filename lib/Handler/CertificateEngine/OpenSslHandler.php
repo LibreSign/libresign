@@ -93,6 +93,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			extendedKeyUsage = clientAuth, emailProtection
 			subjectAltName = {$this->getSubjectAltNames()}
 			authorityKeyIdentifier = keyid
+			subjectKeyIdentifier = hash
 			CONFIG);
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
