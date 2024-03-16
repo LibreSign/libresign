@@ -94,6 +94,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 			subjectAltName = {$this->getSubjectAltNames()}
 			authorityKeyIdentifier = keyid
 			subjectKeyIdentifier = hash
+			# certificatePolicies = <policyOID> CPS: http://url/with/policy/informations.pdf
 			CONFIG);
 		$csr = openssl_csr_new($this->getCsrNames(), $privateKey);
 		$x509 = openssl_csr_sign($csr, $rootCertificate, $rootPrivateKey, 365, [
