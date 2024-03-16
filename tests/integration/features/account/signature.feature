@@ -27,7 +27,7 @@ Feature: account/signature
       | (jq).rootCert.names        | [{"id":"C","value":"BR"},{"id":"ST","value":"State of Company"},{"id":"L","value":"City name"},{"id":"O","value":"Organization"},{"id":"OU","value":"Organizational Unit"}] |
       | generated                  | true                                    |
 
-  Scenario: Create pfx with success with CFSSL
+  Scenario: Create pfx with success using CFSSL
     Given user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
@@ -52,7 +52,7 @@ Feature: account/signature
       | (jq).extensions.authorityKeyIdentifier \| capture("(?<keyid>(?:[^:])*)").keyid | keyid   |
       | (jq).extensions | (jq).subjectKeyIdentifier != "" |
 
-  Scenario: Create pfx with success with OpenSSL
+  Scenario: Create pfx with success using OpenSSL
     Given user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
