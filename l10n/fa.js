@@ -1,7 +1,7 @@
 OC.L10N.register(
     "libresign",
     {
-    "Other activities" : "Other activities",
+    "Other activities" : "سایر فعالیت ها",
     "Success" : "موفقیت",
     "Invalid user or password" : "Invalid user or password",
     "_Element created with success_::_Elements created with success_" : ["Element created with success","Elements created with success"],
@@ -122,9 +122,9 @@ OC.L10N.register(
     "Documents Validation" : "Documents Validation",
     "Settings" : "تنظیمات",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digital signature app for Nextcloud.",
-    "Authentication required" : "احراز هویت مورد نیاز است",
-    "This action requires you to confirm your password" : "این اقدام نیاز به تایید رمز عبور شما دارد",
-    "Password" : "کلمه عبور",
+    "Authentication required" : "احراز هویت الزامی است",
+    "This action requires you to confirm your password" : "رمز عبور خود را وارد کنید",
+    "Password" : "گذرواژه",
     "Confirm" : "تائید",
     "Incorrect password!" : "Incorrect password!",
     "Customize your signatures" : "Customize your signatures",
