@@ -1563,20 +1563,20 @@
         },
         {
             "name": "tecnickcom/tcpdf",
-            "version": "6.7.0",
+            "version": "6.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/TCPDF.git",
-                "reference": "51cd1b39de5643836e62661d162c472d63167df7"
+                "reference": "1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/51cd1b39de5643836e62661d162c472d63167df7",
-                "reference": "51cd1b39de5643836e62661d162c472d63167df7",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d",
+                "reference": "1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=5.5.0"
             },
             "type": "library",
             "autoload": {
@@ -1623,7 +1623,7 @@
             ],
             "support": {
                 "issues": "https://github.com/tecnickcom/TCPDF/issues",
-                "source": "https://github.com/tecnickcom/TCPDF/tree/6.7.0"
+                "source": "https://github.com/tecnickcom/TCPDF/tree/6.7.2"
             },
             "funding": [
                 {
@@ -1631,7 +1631,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-03-18T15:14:12+00:00"
+            "time": "2024-03-18T17:08:30+00:00"
         },
         {
             "name": "wobeto/email-blur",
