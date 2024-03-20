@@ -41,8 +41,8 @@ namespace OCA\Libresign\Handler\CertificateEngine;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
- * @method string getOrganizationUnit()
+ * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
+ * @method string getOrganizationalUnit()
  * @method string getName()
  */
 interface IEngineHandler {
