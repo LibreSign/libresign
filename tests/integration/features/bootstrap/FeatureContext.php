@@ -36,7 +36,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/ with result code 0
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/
 	 */
 	public static function runCommand(string $command): array {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
@@ -54,7 +54,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/ with result code 0
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
 	 */
 	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
 		$return = self::runCommand($command);
