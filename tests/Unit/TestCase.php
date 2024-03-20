@@ -226,7 +226,7 @@ class TestCase extends \Test\TestCase {
 			'commonName' => 'CommonName',
 			'country' => 'Brazil',
 			'organization' => 'Organization',
-			'organizationUnit' => 'organizationUnit',
+			'organizationalUnit' => 'organizationalUnit',
 			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 		]);
 
