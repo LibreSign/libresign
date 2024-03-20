@@ -33,9 +33,9 @@ Feature: search
     Given as user "admin"
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true}] |
-    And run the command "group:add request_signature"
-    And run the command "group:adduser request_signature search-signer1"
-    And run the command "config:app:set libresign groups_request_sign	--type=array --value=[\"request_signature\"]"
+    And run the command "group:add request_signature" with result code 0
+    And run the command "group:adduser request_signature search-signer1" with result code 0
+    And run the command "config:app:set libresign groups_request_sign	--type=array --value=[\"request_signature\"]" with result code 0
     Given as user "search-signer1"
     And set the email of user "search-signer1" to "my@email.tld"
     And set the display name of user "search-signer1" to "My Name"
@@ -44,8 +44,8 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
       | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[]} |
-    And run the command "group:delete request_signature"
-    And run the command "config:app:delete libresign groups_request_sign"
+    And run the command "group:delete request_signature" with result code 0
+    And run the command "config:app:delete libresign groups_request_sign" with result code 0
     And set the display name of user "search-signer1" to "search-signer1-displayname"
 
   Scenario: Search account by herself with permission to identify by account

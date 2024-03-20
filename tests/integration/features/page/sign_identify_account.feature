@@ -1,6 +1,6 @@
 Feature: page/sign_identify_account
   Background: Make setup ok
-    Given run the command "config:app:set libresign authkey --value dummy"
+    Given run the command "config:app:set libresign authkey --value dummy" with result code 0
 
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
