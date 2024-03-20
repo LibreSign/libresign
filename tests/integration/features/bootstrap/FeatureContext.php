@@ -36,9 +36,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/ with result code 0
 	 */
-	public static function runCommand($command): void {
+	public static function runCommand(string $command): array {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
 		$fullCommand = 'php ' . $console . ' ' . $command;
@@ -46,7 +46,19 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
 		}
 		$fullCommand .= '  2>&1';
-		exec($fullCommand, $output);
+		exec($fullCommand, $output, $resultCode);
+		return [
+			'output' => $output,
+			'resultCode' => $resultCode,
+		];
+	}
+
+	/**
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/ with result code 0
+	 */
+	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
+		$return = self::runCommand($command);
+		Assert::assertEquals($resultCode, $return['resultCode']);
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {

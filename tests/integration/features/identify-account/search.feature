@@ -44,8 +44,8 @@ Feature: search
     And the response should be a JSON array with the following mandatory values
       | key      | value             |
       | ocs | {"meta":{"status":"ok","statuscode":200,"message":"OK"},"data":[]} |
-    And run the command "group:delete request_signature"
-    And run the command "config:app:delete libresign groups_request_sign"
+    And run the command "group:delete request_signature" with result code 0
+    And run the command "config:app:delete libresign groups_request_sign" with result code 0
     And set the display name of user "search-signer1" to "search-signer1-displayname"
 
   Scenario: Search account by herself with permission to identify by account
