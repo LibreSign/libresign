@@ -1563,16 +1563,16 @@
         },
         {
             "name": "tecnickcom/tcpdf",
-            "version": "6.7.2",
+            "version": "6.7.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/TCPDF.git",
-                "reference": "1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d"
+                "reference": "8389cec2c34926bb87e87736265f077ad822adeb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d",
-                "reference": "1ae5c4721cecb6be1fa1c0bebb506ed454a3e02d",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/8389cec2c34926bb87e87736265f077ad822adeb",
+                "reference": "8389cec2c34926bb87e87736265f077ad822adeb",
                 "shasum": ""
             },
             "require": {
@@ -1623,7 +1623,7 @@
             ],
             "support": {
                 "issues": "https://github.com/tecnickcom/TCPDF/issues",
-                "source": "https://github.com/tecnickcom/TCPDF/tree/6.7.2"
+                "source": "https://github.com/tecnickcom/TCPDF/tree/6.7.3"
             },
             "funding": [
                 {
@@ -1631,7 +1631,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-03-18T17:08:30+00:00"
+            "time": "2024-03-20T16:19:35+00:00"
         },
         {
             "name": "wobeto/email-blur",
