@@ -1,7 +1,7 @@
 Feature: account/create_to_sign
   Background:
     Given as user "admin"
-    And run the command "libresign:configure:openssl --cn test"
+    And run the command "libresign:configure:openssl --cn test" with result code 0
     And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
       | value | (string)[{"name":"email","enabled":true,"mandatory":true,"can_create_account":true}] |
     And my inbox is empty
@@ -14,8 +14,8 @@ Feature: account/create_to_sign
 
   Scenario: Try to create with invalid data
     Given as user ""
-    And run the command "user:delete signer1@domain.test"
-    And run the command "user:delete signer1"
+    And run the command "user:delete signer1@domain.test" with result code 0
+    And run the command "user:delete signer1" with result code 0
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And follow the link on opened email
@@ -36,7 +36,7 @@ Feature: account/create_to_sign
 
   Scenario: Create with valid data
     Given as user ""
-    And run the command "user:delete signer1@domain.test"
+    And run the command "user:delete signer1@domain.test" with result code 0
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
     And I fetch the signer UUID from opened email
     And follow the link on opened email
