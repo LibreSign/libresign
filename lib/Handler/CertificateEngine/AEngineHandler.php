@@ -55,8 +55,8 @@ use ReflectionClass;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
- * @method string getOrganizationUnit()
+ * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
+ * @method string getOrganizationalUnit()
  * @method string getName()
  */
 class AEngineHandler {
@@ -69,7 +69,7 @@ class AEngineHandler {
 	protected string $state = '';
 	protected string $locality = '';
 	protected string $organization = '';
-	protected string $organizationUnit = '';
+	protected string $organizationalUnit = '';
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
@@ -135,9 +135,6 @@ class AEngineHandler {
 
 		$return['name'] = $parsed['name'];
 		$return['subject'] = $parsed['subject'];
-		if (is_array($return['subject']['OU']) && !empty($return['subject']['OU'])) {
-			$return['subject']['OU'] = implode(', ', $return['subject']['OU']);
-		}
 		$return['issuer'] = $parsed['issuer'];
 		$return['extensions'] = $parsed['extensions'];
 		$return['validate'] = [
@@ -160,7 +157,7 @@ class AEngineHandler {
 			case 'O':
 				return 'Organization';
 			case 'OU':
-				return 'OrganizationUnit';
+				return 'OrganizationalUnit';
 		}
 		return '';
 	}
@@ -259,7 +256,7 @@ class AEngineHandler {
 			'ST' => $this->getState(),
 			'L' => $this->getLocality(),
 			'O' => $this->getOrganization(),
-			'OU' => $this->getOrganizationUnit(),
+			'OU' => $this->getOrganizationalUnit(),
 		];
 		$names = array_filter($names, function ($v) {
 			return !empty($v);

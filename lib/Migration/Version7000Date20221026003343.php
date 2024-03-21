@@ -49,9 +49,9 @@ class Version7000Date20221026003343 extends SimpleMigrationStep {
 			$rootCert['names']['O'] = $organization;
 			$this->appConfig->deleteAppValue('organization');
 		}
-		if ($organizationUnit = $this->appConfig->getAppValue('organizationUnit')) {
-			$rootCert['names']['OU'] = $organizationUnit;
-			$this->appConfig->deleteAppValue('organizationUnit');
+		if ($organizationalUnit = $this->appConfig->getAppValue('organizationalUnit')) {
+			$rootCert['names']['OU'] = $organizationalUnit;
+			$this->appConfig->deleteAppValue('organizationalUnit');
 		}
 		if ($rootCert) {
 			$this->appConfig->setAppValue('rootCert', json_encode($rootCert));
