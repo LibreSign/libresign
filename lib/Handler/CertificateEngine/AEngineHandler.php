@@ -135,9 +135,6 @@ class AEngineHandler {
 
 		$return['name'] = $parsed['name'];
 		$return['subject'] = $parsed['subject'];
-		if (isset($return['subject']['OU'])) {
-			$return['subject']['OU'] = implode(', ', $return['subject']['OU'] ?? []);
-		}
 		$return['issuer'] = $parsed['issuer'];
 		$return['extensions'] = $parsed['extensions'];
 		$return['validate'] = [
