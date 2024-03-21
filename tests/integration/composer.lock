@@ -1215,16 +1215,16 @@
         },
         {
             "name": "php-http/promise",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-http/promise.git",
-                "reference": "2916a606d3b390f4e9e8e2b8dd68581508be0f07"
+                "reference": "fc85b1fba37c169a69a07ef0d5a8075770cc1f83"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-http/promise/zipball/2916a606d3b390f4e9e8e2b8dd68581508be0f07",
-                "reference": "2916a606d3b390f4e9e8e2b8dd68581508be0f07",
+                "url": "https://api.github.com/repos/php-http/promise/zipball/fc85b1fba37c169a69a07ef0d5a8075770cc1f83",
+                "reference": "fc85b1fba37c169a69a07ef0d5a8075770cc1f83",
                 "shasum": ""
             },
             "require": {
@@ -1261,9 +1261,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-http/promise/issues",
-                "source": "https://github.com/php-http/promise/tree/1.3.0"
+                "source": "https://github.com/php-http/promise/tree/1.3.1"
             },
-            "time": "2024-01-04T18:49:48+00:00"
+            "time": "2024-03-15T13:55:21+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -5184,16 +5184,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.12.0",
+            "version": "v0.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "a78f0b41432c081ac5854bc70ad4c0be6305e506"
+                "reference": "f194953e7366ac05e64f44852bbc25a49cf4779a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/a78f0b41432c081ac5854bc70ad4c0be6305e506",
-                "reference": "a78f0b41432c081ac5854bc70ad4c0be6305e506",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/f194953e7366ac05e64f44852bbc25a49cf4779a",
+                "reference": "f194953e7366ac05e64f44852bbc25a49cf4779a",
                 "shasum": ""
             },
             "require": {
@@ -5238,9 +5238,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.12.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.12.1"
             },
-            "time": "2024-03-14T22:37:17+00:00"
+            "time": "2024-03-20T21:39:15+00:00"
         },
         {
             "name": "symfony/process",
