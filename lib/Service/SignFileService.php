@@ -358,7 +358,7 @@ class SignFileService {
 					$this->friendlyName,
 					true
 				);
-				$this->pkcs12Handler->savePfx($this->userUniqueIdentifier, $certificate);
+				$this->pkcs12Handler->setPfxContent($certificate);
 			} catch (TypeError $e) {
 				throw new LibresignException($this->l10n->t('Failure to generate certificate'));
 			} catch (EmptyCertificateException $e) {
