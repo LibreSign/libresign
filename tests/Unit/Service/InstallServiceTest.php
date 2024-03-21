@@ -74,63 +74,78 @@ final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider providerDownloadCli
 	 */
-	public function testDownloadCli(string $url, string $filename, string $path, string $hash, string $algorithm, string $expectedOutput): void {
+	public function testDownloadCli(string $url, string $filename, string $content, string $hash, string $algorithm, string $expectedOutput): void {
 		$installService = $this->getInstallService();
 		$output = new BufferedOutput();
 		$installService->setOutput($output);
+
+		if ($content) {
+			vfsStream::setup('download');
+			$path = 'vfs://download/dummy.svg';
+			file_put_contents($path, $content);
+		} else {
+			$path = '';
+		}
+
 		self::invokePrivate($installService, 'downloadCli', [$url, $filename, $path, $hash, $algorithm]);
 		$actual = $output->fetch();
 		$this->assertEquals($expectedOutput, $actual);
 	}
 
 	public function providerDownloadCli(): array {
-		vfsStream::setup('download');
-
-		$pathInvalid = 'vfs://download/appInvalid.svg';
-		file_put_contents($pathInvalid, 'invalidContent');
-		$pathValid = 'vfs://download/validContent.svg';
-		file_put_contents($pathValid, 'invalidContent');
 		return [
 			[
-				"http://localhost/apps/libresign/img/app.svg",
-				'app.svg',
-				'vfs://download/app.svg',
-				'',
-				'md5',
-				"Downloading app.svg...\n" .
-				"    0 [>---------------------------]\n".
-				"Failure on download app.svg, empty file, try again\n",
+				'url' => 'http://localhost/apps/libresign/img/app.svg',
+				'filename' => 'app.svg',
+				'content' => '',
+				'hash' => '',
+				'algorithm' => 'md5',
+				'expectedOutput' => <<<EXPECTEDOUTPUT
+					Downloading app.svg...
+					    0 [>---------------------------]
+					Failure on download app.svg, empty file, try again
+
+					EXPECTEDOUTPUT
 			],
 			[
-				"http://localhost/apps/libresign/img/appInvalid.svg",
-				'appInvalid.svg',
-				$pathInvalid,
-				'hashInvalid',
-				'md5',
-				"Downloading appInvalid.svg...\n" .
-				"    0 [>---------------------------]\n" .
-				"Failure on download appInvalid.svg try again\n" .
-				"Invalid md5\n",
+				'url' => 'http://localhost/apps/libresign/img/appInvalid.svg',
+				'filename' => 'appInvalid.svg',
+				'content' => 'content',
+				'hash' => 'invalidContent',
+				'algorithm' => 'md5',
+				'expectedOutput' => <<<EXPECTEDOUTPUT
+					Downloading appInvalid.svg...
+					    0 [>---------------------------]
+					Failure on download appInvalid.svg try again
+					Invalid md5
+
+					EXPECTEDOUTPUT
 			],
 			[
-				"http://localhost/apps/libresign/img/appInvalid.svg",
-				'appInvalid.svg',
-				$pathInvalid,
-				'hashInvalid',
-				'sha256',
-				"Downloading appInvalid.svg...\n" .
-				"    0 [>---------------------------]\n" .
-				"Failure on download appInvalid.svg try again\n" .
-				"Invalid sha256\n",
+				'url' => 'http://localhost/apps/libresign/img/appInvalid.svg',
+				'filename' => 'appInvalid.svg',
+				'content' => 'content',
+				'hash' => 'invalidContent',
+				'algorithm' => 'sha256',
+				'expectedOutput' => <<<EXPECTEDOUTPUT
+					Downloading appInvalid.svg...
+					    0 [>---------------------------]
+					Failure on download appInvalid.svg try again
+					Invalid sha256
+
+					EXPECTEDOUTPUT
 			],
 			[
-				"http://localhost/apps/libresign/img/validContent.svg",
-				'validContent.svg',
-				$pathValid,
-				hash_file('sha256', $pathValid),
-				'sha256',
-				"Downloading validContent.svg...\n" .
-				"    0 [>---------------------------]\n",
+				'url' => 'http://localhost/apps/libresign/img/validContent.svg',
+				'filename' => 'validContent.svg',
+				'content' => 'content',
+				'hash' => hash('sha256', 'content'),
+				'algorithm' => 'sha256',
+				'expectedOutput' => <<<EXPECTEDOUTPUT
+					Downloading validContent.svg...
+					    0 [>---------------------------]
+
+					EXPECTEDOUTPUT
 			],
 		];
 	}
