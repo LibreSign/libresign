@@ -33,7 +33,7 @@ Feature: account/signature
     And as user "signer1"
     And run the command "config:app:set libresign certificate_engine --value cfssl" with result code 0
     And run the command "libresign:install --cfssl" with result code 0
-    And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
+    And run the command "libresign:configure:cfssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
@@ -42,9 +42,9 @@ Feature: account/signature
       | password | password |
     Then the response should be a JSON array with the following mandatory values
       | key                              | value |
-      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
+      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
+      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
       | (jq).extensions.basicConstraints | CA:FALSE |
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
@@ -56,7 +56,7 @@ Feature: account/signature
     Given user "signer1" exists
     And set the email of user "signer1" to "signer@domain.test"
     And as user "signer1"
-    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name" with result code 0
+    And run the command "libresign:configure:openssl --cn=Common\ Name --c=BR --o=Organization --st=State\ of\ Company --l=City\ Name --ou=Organization\ Unit" with result code 0
     And sending "post" to ocs "/apps/libresign/api/v1/account/signature"
       | signPassword | password |
     And the response should have a status code 200
