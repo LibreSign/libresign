@@ -65,9 +65,10 @@ Feature: account/signature
       | password | password |
     Then the response should be a JSON array with the following mandatory values
       | key                              | value |
-      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/CN=signer1-displayname |
-      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
-      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization"} |
+      | name                             | /C=BR/ST=State of Company/L=City Name/O=Organization/OU=Organization Unit/CN=signer1-displayname |
+      | issuer                           | {"CN": "Common Name","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
+      | subject                          | {"CN": "signer1-displayname","C": "BR","ST": "State of Company","L":"City Name","O": "Organization","OU":"Organization Unit"} |
+      | (jq).extensions.basicConstraints | CA:FALSE |
       | (jq).extensions.subjectAltName   | email:signer@domain.test |
       | (jq).extensions.keyUsage         | Digital Signature, Key Encipherment, Certificate Sign |
       | (jq).extensions.extendedKeyUsage | TLS Web Client Authentication, E-mail Protection      |
