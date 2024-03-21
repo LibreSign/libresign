@@ -107,6 +107,10 @@ class Pkcs12Handler extends SignEngineHandler {
 		);
 	}
 
+	public function setPfxContent(string $content): void {
+		$this->pfxContent = $content;
+	}
+
 	/**
 	 * Get content of pfx file
 	 */
