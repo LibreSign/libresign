@@ -127,12 +127,10 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	protected function parseText(string $text): string {
 		$patterns = [
 			'/<SIGN_UUID>/',
-			'/<FILE_UUID>/',
 			'/<BASE_URL>/',
 		];
 		$replacements = [
 			$this->signer['sign_uuid'] ?? null,
-			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
 			$this->baseUrl . '/index.php',
 		];
 		foreach ($this->fields as $key => $value) {
@@ -196,8 +194,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function iSendAFileToBeSigned(TableNode $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$this->file['uuid'] = $realResponseArray['data']['uuid'];
 	}
 
 	/**
