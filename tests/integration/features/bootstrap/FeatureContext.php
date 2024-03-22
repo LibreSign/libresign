@@ -14,7 +14,6 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
-	private array $fields = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -125,25 +124,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return [$fullUrl, $options];
 	}
 
-	protected function parseFormParams(array $options): array {
-		if (!empty($options['form_params'])) {
-			$this->parseTextRcursive($options['form_params']);
-		}
-		return $options;
-	}
-
-	private function parseTextRcursive(&$array): array {
-		array_walk_recursive($array, function (&$value) {
-			if (is_string($value)) {
-				$value = $this->parseText($value);
-			} elseif ($value instanceof \stdClass) {
-				$value = (array) $value;
-				$value = json_decode(json_encode($this->parseTextRcursive($value)));
-			}
-		});
-		return $array;
-	}
-
 	protected function parseText(string $text): string {
 		$patterns = [
 			'/<SIGN_UUID>/',
@@ -160,6 +140,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$replacements[] = $value;
 		}
 		$text = preg_replace($patterns, $replacements, $text);
+		$text = parent::parseText($text);
 		return $text;
 	}
 
@@ -285,21 +266,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fileId = $responseArray['data'][$fileSequence - 1]['nodeId'];
 		$signRequestId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['signRequestId'];
 		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $signRequestId);
-	}
-
-	/**
-	 * @When fetch field :path from prevous JSON response
-	 */
-	public function fetchFieldFromPreviousJsonResponse(string $path): void {
-		$this->response->getBody()->seek(0);
-		$responseArray = json_decode($this->response->getBody()->getContents(), true);
-		$keys = explode('.', $path);
-		$value = $responseArray;
-		foreach ($keys as $key) {
-			Assert::assertArrayHasKey($key, $value, 'Key [' . $key . '] of path [' . $path . '] not found.');
-			$value = $value[$key];
-		}
-		$this->fields[$path] = $value;
 	}
 
 	/**
