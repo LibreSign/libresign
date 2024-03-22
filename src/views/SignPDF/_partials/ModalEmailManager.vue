@@ -167,7 +167,7 @@ export default {
 						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
 						{
 							identify: this.sendTo,
-							identifyMethod: 'email',
+							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
 						},
 					)
@@ -177,7 +177,7 @@ export default {
 						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
 						{
 							identify: this.sendTo,
-							identifyMethod: 'email',
+							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
 						},
 					)
