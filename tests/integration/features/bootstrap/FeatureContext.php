@@ -186,22 +186,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When I change the file
-	 */
-	public function iChangeTheFile(TableNode $body): void {
-		$newBody = [];
-		foreach ($body->getTable() as $key => $row) {
-			$newBody[$key] = $row;
-			if ($row[1] === '<FILE_UUID>') {
-				$newBody[$key][1] = $this->fields['FILE_UUID'];
-			}
-		}
-		$body = new TableNode($newBody);
-		$this->sendOCSRequest('patch', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-	}
-
-	/**
 	 * @When follow the link on opened email
 	 */
 	public function iDoSomethingWithTheOpenedEmail(): void {

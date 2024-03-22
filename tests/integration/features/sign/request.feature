@@ -408,10 +408,9 @@ Feature: request-signature
         }
       }
       """
-    And I change the file
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
       | users | [{"identify":{"email":"signer1@domain.test"}}] |
-      | name | document |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     Then the response of file list match with:
