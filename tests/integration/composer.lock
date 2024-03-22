@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7318ccb58fd0f6556a5a28597c2c8538",
+    "content-hash": "980e59106d706cd9ffe23545da632cfd",
     "packages": [
         {
             "name": "behat/behat",
@@ -5184,16 +5184,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.13.0",
+            "version": "v0.14.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "172923ce909e6904d5ab30dfc6a8ef0882b5b49b"
+                "reference": "6ba7c59e59f0b4aaaa5ce67d16affb9479874d0d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/172923ce909e6904d5ab30dfc6a8ef0882b5b49b",
-                "reference": "172923ce909e6904d5ab30dfc6a8ef0882b5b49b",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/6ba7c59e59f0b4aaaa5ce67d16affb9479874d0d",
+                "reference": "6ba7c59e59f0b4aaaa5ce67d16affb9479874d0d",
                 "shasum": ""
             },
             "require": {
@@ -5238,9 +5238,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.13.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.14.1"
             },
-            "time": "2024-03-22T15:09:04+00:00"
+            "time": "2024-03-22T16:35:47+00:00"
         },
         {
             "name": "symfony/process",
