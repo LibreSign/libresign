@@ -195,12 +195,28 @@ Feature: request-signature
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
-      | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
+      | key | value                                                                  |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
+      | ocs | (jq).data\|.[0].message == ""                                          |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                             |
-      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
+      | key | value                                                                  |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
+    When as user "admin"
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | users | [{"identify":{"account":"signer1"}}] |
+    And the response should have a status code 200
+    When as user "signer1"
+    Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    And the response should be a JSON array with the following mandatory values
+      | key | value                                                                               |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"             |
+      | ocs | (jq).data\|.[0].message == "Changes have been made in a file that you have to sign."|
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                      |
+      | ocs | (jq).data\|.[0].subject == "admin made changes on document"|
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
