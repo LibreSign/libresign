@@ -13,6 +13,7 @@ Feature: page/sign_identify_account
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     And the response should have a status code 200
+    And fetch field "(FILE_UUID)data.uuid" from prevous JSON response
     When as user "signer1"
     And sending "get" to ocs "/apps/notifications/api/v2/notifications"
     Then the response should be a JSON array with the following mandatory values
