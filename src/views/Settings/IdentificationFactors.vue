@@ -45,14 +45,15 @@ import { loadState } from '@nextcloud/initial-state'
 import { set } from 'vue'
 
 export default {
-	name: 'IdentifierFactor',
+	name: 'IdentificationFactors',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
 	},
 	data() {
 		return {
-			name: t('libresign', 'Identify factors'),
+			// TRANSLATORS Name of a section at "Administration Settings" of LibreSign that an admin can configure the ways that a persol will be identified when access the link to sign a document.
+			name: t('libresign', 'Identification factors'),
 			description: t('libresign', 'Ways to identify a person who will sign a document.'),
 			identifyMethods: loadState('libresign', 'identify_methods', []),
 		}
