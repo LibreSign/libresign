@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
+use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 use Wobeto\EmailBlur\Blur;
 
@@ -40,19 +42,32 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	}
 
 	public function toArray(): array {
-		$return = parent::toArray();
 		$entity = $this->getEntity();
+
+		if ($entity->getIdentifierKey() === 'email') {
+			$email = $entity->getIdentifierValue();
+		} elseif ($entity->getIdentifierKey() === 'account') {
+			$signer = $this->identifyMethodService->getUserManager()->get($entity->getIdentifierValue());
+			$email = $signer->getEMailAddress();
+		}
+		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			throw new LibresignException(json_encode([
+				'action' => JSActions::ACTION_DO_NOTHING,
+				'errors' => [$this->identifyMethodService->getL10n()->t('Invalid email')],
+			]));
+		}
+		$return = parent::toArray();
+		$return['identifyMethod'] = $entity->getIdentifierKey();
 		$return['needCode'] = empty($entity->getCode())
 			|| empty($entity->getIdentifiedAtDate())
 			|| empty($this->codeSentByUser);
 		$return['hasConfirmCode'] = !empty($entity->getCode());
-		$return['blurredEmail'] = $this->getBlurredEmail();
-		$return['hashOfEmail'] = md5($this->getEntity()->getIdentifierValue());
+		$return['blurredEmail'] = $this->blurEmail($email);
+		$return['hashOfEmail'] = md5($email);
 		return $return;
 	}
 
-	private function getBlurredEmail(): string {
-		$email = $this->getEntity()->getIdentifierValue();
+	private function blurEmail(string $email): string {
 		$blur = new Blur($email);
 		return $blur->make();
 	}
