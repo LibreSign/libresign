@@ -142,17 +142,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return $text;
 	}
 
-	private function getFileUuidFromText(string $text): ?string {
-		if (!$this->isJson($text)) {
-			return '';
-		}
-		$json = json_decode($text, true);
-		if (isset($json['sign']['uuid']) && $json['sign']['uuid']) {
-			return $this->file['uuid'] = $json['sign']['uuid'];
-		}
-		return '';
-	}
-
 	/**
 	 * @Given the signer contains
 	 */
@@ -204,7 +193,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		foreach ($body->getTable() as $key => $row) {
 			$newBody[$key] = $row;
 			if ($row[1] === '<FILE_UUID>') {
-				$newBody[$key][1] = $this->file['uuid'];
+				$newBody[$key][1] = $this->fields['FILE_UUID'];
 			}
 		}
 		$body = new TableNode($newBody);
