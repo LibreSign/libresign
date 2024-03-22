@@ -60,17 +60,14 @@ class IdentifyMethodService {
 	) {
 	}
 
-	/**
-	 * @return boolean is new instance
-	 */
-	public function save(IdentifyMethod $identifyMethod): bool {
+	public function save(IdentifyMethod $identifyMethod): void {
 		$this->refreshIdFromDatabaseIfNecessary($identifyMethod);
 		if ($identifyMethod->getId()) {
 			$this->identifyMethodMapper->update($identifyMethod);
-			return false;
+			return;
 		}
 		$this->identifyMethodMapper->insertOrUpdate($identifyMethod);
-		return true;
+		return;
 	}
 
 	public function delete(IdentifyMethod $identifyMethod): void {

@@ -103,7 +103,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return $this->settings;
 	}
 
-	public function notify(bool $isNew): bool {
+	public function notify(): bool {
 		if (!$this->willNotify) {
 			return false;
 		}
@@ -112,8 +112,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		$this->identifyMethodService->getEventDispatcher()->dispatchTyped(new SendSignNotificationEvent(
 			$signRequest,
 			$libresignFile,
-			$this,
-			$isNew
+			$this
 		));
 		return true;
 	}
@@ -189,8 +188,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		}
 		$this->getEntity()->setIdentifiedAtDate($this->identifyMethodService->getTimeFactory()->getDateTime());
 		$this->willNotify = false;
-		$isNew = $this->identifyMethodService->save($this->getEntity());
-		$this->notify($isNew);
+		$this->identifyMethodService->save($this->getEntity());
+		$this->notify();
 	}
 
 	protected function throwIfRenewalIntervalExpired(): void {
@@ -320,8 +319,8 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	}
 
 	public function save(): void {
-		$isNew = $this->identifyMethodService->save($this->getEntity());
-		$this->notify($isNew);
+		$this->identifyMethodService->save($this->getEntity());
+		$this->notify();
 	}
 
 	public function delete(): void {

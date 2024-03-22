@@ -48,6 +48,7 @@ class SignRequestMapper extends QBMapper {
 	 * @var SignRequest[]
 	 */
 	private $signers = [];
+	private bool $firstNotification = false;
 
 	public function __construct(
 		IDBConnection $db,
@@ -58,6 +59,33 @@ class SignRequestMapper extends QBMapper {
 		private IURLGenerator $urlGenerator,
 	) {
 		parent::__construct($db, 'libresign_sign_request');
+	}
+
+	/**
+	 * @return boolean true when is the first notification
+	 */
+	public function incrementNotificationCounter(SignRequest $signRequest, string $method): bool {
+		$this->db->beginTransaction();
+		try {
+			$fromDatabase = $this->getById($signRequest->getId());
+			$metadata = $fromDatabase->getMetadata();
+			if (!empty($metadata)) {
+				$metadata = json_decode($metadata, true);
+			}
+			if (!isset($metadata['notify'])) {
+				$this->firstNotification = true;
+			}
+			$metadata['notify'][] = [
+				'method' => $method,
+				'date' => time(),
+			];
+			$fromDatabase->setMetadata($metadata);
+			$this->update($fromDatabase);
+			$this->db->commit();
+		} catch (\Throwable) {
+			$this->db->rollBack();
+		}
+		return $this->firstNotification;
 	}
 
 	/**

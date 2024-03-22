@@ -26,6 +26,7 @@ namespace OCA\Libresign\Listener;
 
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -43,6 +44,7 @@ class MailNotifyListener implements IEventListener {
 		protected IUserManager $userManager,
 		protected IdentifyMethodService $identifyMethodService,
 		protected MailService $mail,
+		private SignRequestMapper $signRequestMapper,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -54,7 +56,6 @@ class MailNotifyListener implements IEventListener {
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
-				$event->isNew()
 			),
 		};
 	}
@@ -63,7 +64,6 @@ class MailNotifyListener implements IEventListener {
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
-		bool $isNew,
 	): void {
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
@@ -81,7 +81,8 @@ class MailNotifyListener implements IEventListener {
 			if (empty($email)) {
 				return;
 			}
-			if ($isNew) {
+			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'mail');
+			if ($isFirstNotification) {
 				$this->mail->notifyUnsignedUser($signRequest, $email);
 				return;
 			}
