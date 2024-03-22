@@ -279,12 +279,12 @@ class SignFileService {
 
 	public function sign(): File {
 		$fileToSign = $this->getFileToSing($this->libreSignFile);
-		$pfxFile = $this->getPfxFile();
+		$pfxFileContent = $this->getPfxFile();
 		switch ($fileToSign->getExtension()) {
 			case 'pdf':
 				$signedFile = $this->pkcs12Handler
 					->setInputFile($fileToSign)
-					->setCertificate($pfxFile)
+					->setCertificate($pfxFileContent)
 					->setVisibleElements($this->elements)
 					->setPassword($this->password)
 					->sign();
@@ -292,7 +292,7 @@ class SignFileService {
 			default:
 				$signedFile = $this->pkcs7Handler
 					->setInputFile($fileToSign)
-					->setCertificate($pfxFile)
+					->setCertificate($pfxFileContent)
 					->setPassword($this->password)
 					->sign();
 		}
