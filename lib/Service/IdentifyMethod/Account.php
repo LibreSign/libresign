@@ -83,6 +83,7 @@ class Account extends AbstractIdentifyMethod {
 		$signer = $this->getSigner();
 		$this->throwIfNotAuthenticated();
 		$this->authenticatedUserIsTheSigner($signer);
+		$this->throwIfInvalidToken();
 		$this->throwIfMaximumValidityExpired();
 		$this->throwIfRenewalIntervalExpired();
 		$this->throwIfAlreadySigned();
