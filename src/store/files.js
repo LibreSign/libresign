@@ -167,12 +167,12 @@ export const useFilesStore = defineStore('files', {
 		},
 		pendingFilter() {
 			return Object.values(this.files).filter(
-				(a) => (a.status === 1)).sort(
+				(a) => (a.status === 1 || a.status === 2)).sort(
 				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 		},
 		signedFilter() {
 			return Object.values(this.files).filter(
-				(a) => (a.status === 2)).sort(
+				(a) => (a.status === 3)).sort(
 				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 		},
 		orderFiles() {
