@@ -27,6 +27,7 @@ namespace OCA\Libresign\Activity;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
@@ -50,6 +51,7 @@ class Listener implements IEventListener {
 		protected ITimeFactory $timeFactory,
 		protected AccountService $accountService,
 		protected IURLGenerator $url,
+		private SignRequestMapper $signRequestMapper,
 	) {
 	}
 
@@ -60,7 +62,6 @@ class Listener implements IEventListener {
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
-				$event->isNew()
 			),
 		};
 	}
@@ -75,7 +76,6 @@ class Listener implements IEventListener {
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
-		bool $isNew
 	): void {
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
@@ -96,7 +96,8 @@ class Listener implements IEventListener {
 				// At notification app we can define the view and dismiss action
 				// Activity dont have this feature
 				->setGenerateNotification(false);
-			if ($isNew) {
+			$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'activity');
+			if ($isFirstNotification) {
 				$subject = 'new_sign_request';
 			} else {
 				$subject = 'update_sign_request';

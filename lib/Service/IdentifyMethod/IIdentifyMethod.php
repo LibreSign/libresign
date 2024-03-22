@@ -43,7 +43,7 @@ interface IIdentifyMethod {
 	public function signatureMethodsToArray(): array;
 	public function getSettings(): array;
 	public function willNotifyUser(bool $willNotify): void;
-	public function notify(bool $isNew): bool;
+	public function notify(): bool;
 	public function validateToRequest(): void;
 	public function validateToCreateAccount(string $value): void;
 	public function validateToIdentify(): void;
