@@ -258,7 +258,6 @@ OC.L10N.register(
     "Identification documents" : "Documentos identificativos",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "O fluxo de documentos identificativos será obrigatorio para todo aquel que teña que asinar un ficheiro, envíe os documentos identificativos para ser aprobados por algún membro do grupo de homologación. O usuario só pode crear o certificado após a aprobación dos documentos de identificación.",
     "Make this method required" : "Facer que este método sexa necesario",
-    "Identify factors" : "Identificar factores",
     "Ways to identify a person who will sign a document." : "Formas de identificar a persoa que asinará un documento.",
     "Legal Information" : "Información legal",
     "Legal information" : "Información legal",

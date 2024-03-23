@@ -258,7 +258,6 @@ OC.L10N.register(
     "Identification documents" : "Ausweisdokumente",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Der Ablauf für Ausweisdokumenten wird es für jeden, der eine Datei signieren muss, zwingend erforderlich machen, Ausweisdokumente zu senden, die von einem Mitglied der Genehmigungsgruppe genehmigt werden müssen. Der Benutzer kann das Zertifikat erst nach Genehmigung der Ausweisdokumente erstellen.",
     "Make this method required" : "Diese Methode als erforderlich setzen",
-    "Identify factors" : "Identifizierungsfaktoren",
     "Ways to identify a person who will sign a document." : "Möglichkeiten eine Person zu identifizieren, die ein Dokument signieren soll",
     "Legal Information" : "Rechtliche Informationen",
     "Legal information" : "Rechtliche Informationen",
