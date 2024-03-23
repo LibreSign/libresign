@@ -262,7 +262,6 @@ OC.L10N.register(
     "Identification documents" : "Identifikační doklady",
     "The flow of identification documents will make it mandatory for anyone who must sign a file, send identification documents to be approved by some member of the approval group. The user can only create the certificate after approval of the identification documents." : "Tok identifikačních dokumentů učiní pro kohokoli, kdo má podepsat soubor, povinným aby jím zaslané identifikační doklady byly schváleny některým ze členů schvalující skupiny. Uživatel tak bude moci vytvořit certifikát pouze až po schválení svých identifikačních dokladů.",
     "Make this method required" : "Určit tuto metodu jako vyžadovanou",
-    "Identify factors" : "Faktory identifikace",
     "Ways to identify a person who will sign a document." : "Způsoby identifikace osoby, která dokument podepíše.",
     "Legal Information" : "Právní informace",
     "Legal information" : "Právní informace",
