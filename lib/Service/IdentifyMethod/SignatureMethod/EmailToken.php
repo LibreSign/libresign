@@ -26,18 +26,18 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use Wobeto\EmailBlur\Blur;
 
 class EmailToken extends AbstractSignatureMethod implements IToken {
 	public function __construct(
-		protected IdentifyMethodService $identifyMethodService,
+		protected IdentifyService $identifyService,
 		protected TokenService $tokenService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
-		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Email token');
+		$this->friendlyName = $this->identifyService->getL10n()->t('Email token');
 		parent::__construct(
-			$identifyMethodService,
+			$identifyService,
 		);
 	}
 
@@ -47,13 +47,13 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		if ($entity->getIdentifierKey() === 'email') {
 			$email = $entity->getIdentifierValue();
 		} elseif ($entity->getIdentifierKey() === 'account') {
-			$signer = $this->identifyMethodService->getUserManager()->get($entity->getIdentifierValue());
+			$signer = $this->identifyService->getUserManager()->get($entity->getIdentifierValue());
 			$email = $signer->getEMailAddress();
 		}
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			throw new LibresignException(json_encode([
 				'action' => JSActions::ACTION_DO_NOTHING,
-				'errors' => [$this->identifyMethodService->getL10n()->t('Invalid email')],
+				'errors' => [$this->identifyService->getL10n()->t('Invalid email')],
 			]));
 		}
 		$return = parent::toArray();
@@ -73,7 +73,7 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 	}
 
 	public function requestCode(string $identify): void {
-		$signRequestMapper = $this->identifyMethodService->getSignRequestMapper();
+		$signRequestMapper = $this->identifyService->getSignRequestMapper();
 		$signRequest = $signRequestMapper->getById($this->getEntity()->getSignRequestId());
 		$displayName = $signRequest->getDisplayName();
 		if ($identify === $displayName) {
@@ -81,6 +81,6 @@ class EmailToken extends AbstractSignatureMethod implements IToken {
 		}
 		$code = $this->tokenService->sendCodeByEmail($identify, $displayName);
 		$this->getEntity()->setCode($code);
-		$this->identifyMethodService->save($this->getEntity());
+		$this->identifyService->save($this->getEntity());
 	}
 }

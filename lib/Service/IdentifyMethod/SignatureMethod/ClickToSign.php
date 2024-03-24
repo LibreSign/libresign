@@ -24,16 +24,16 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
-use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 
 class ClickToSign extends AbstractSignatureMethod {
 	public function __construct(
-		protected IdentifyMethodService $identifyMethodService,
+		protected IdentifyService $identifyService,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer only need to click to sign after was identified
-		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Click to sign');
+		$this->friendlyName = $this->identifyService->getL10n()->t('Click to sign');
 		parent::__construct(
-			$identifyMethodService,
+			$identifyService,
 		);
 	}
 }
