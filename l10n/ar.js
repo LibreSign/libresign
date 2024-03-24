@@ -286,6 +286,7 @@ OC.L10N.register(
     "Request to create account when the user does not have an account" : "أُطلُب إنشاء حساب في حال  كان المستخدِم لا يمتلك حساباً",
     "Make this method required" : "إجعَل هذا الإجراء إلزامياً",
     "Signature methods" : "طُرُق التوقيع",
+    "Identification factors" : "عوامل التحقُّق من الهُوِيّة",
     "Ways to identify a person who will sign a document." : "طُرُق التعرُّف على الشخص الذي سيُوقِّع مستنداً",
     "Legal Information" : "المعلومات القانونية",
     "Legal information" : "المعلومات القانونية",
