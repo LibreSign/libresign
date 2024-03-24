@@ -286,6 +286,7 @@ OC.L10N.register(
     "Request to create account when the user does not have an account" : "Be om å opprette konto når brukeren ikke har en konto",
     "Make this method required" : "Gjør denne metoden nødvendig",
     "Signature methods" : "Signaturmetoder",
+    "Identification factors" : "Identifikasjonsfaktorer",
     "Ways to identify a person who will sign a document." : "Måter å identifisere en person som skal signere et dokument.",
     "Legal Information" : "Juridisk informasjon",
     "Legal information" : "Juridisk informasjon",
