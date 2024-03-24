@@ -26,19 +26,19 @@ namespace OCA\Libresign\Service\IdentifyMethod\SignatureMethod;
 
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
-use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCP\IUserSession;
 
 class Password extends AbstractSignatureMethod {
 	public function __construct(
-		protected IdentifyMethodService $identifyMethodService,
+		protected IdentifyService $identifyService,
 		protected Pkcs12Handler $pkcs12Handler,
 		private IUserSession $userSession,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by certificate password
-		$this->friendlyName = $this->identifyMethodService->getL10n()->t('Certificate with password');
+		$this->friendlyName = $this->identifyService->getL10n()->t('Certificate with password');
 		parent::__construct(
-			$identifyMethodService,
+			$identifyService,
 		);
 	}
 
@@ -46,7 +46,7 @@ class Password extends AbstractSignatureMethod {
 		$pfx = $this->pkcs12Handler->getPfx($this->userSession->getUser()?->getUID());
 		openssl_pkcs12_read($pfx, $cert_info, $this->getEntity()->getIdentifierValue());
 		if (empty($cert_info)) {
-			throw new LibresignException($this->identifyMethodService->getL10n()->t('Invalid password'));
+			throw new LibresignException($this->identifyService->getL10n()->t('Invalid password'));
 		}
 	}
 
