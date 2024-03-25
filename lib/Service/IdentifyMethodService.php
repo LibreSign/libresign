@@ -193,6 +193,9 @@ class IdentifyMethodService {
 				}
 				$signatureMethods = $identifyMethod->getSignatureMethods();
 				foreach ($signatureMethods as $signatureMethod) {
+					if (!$signatureMethod->isEnabled()) {
+						continue;
+					}
 					$signatureMethod->setEntity($identifyMethod->getEntity());
 					$return[$signatureMethod->getName()] = $signatureMethod->toArray();
 				}
