@@ -28,7 +28,7 @@ use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
-use OCA\Libresign\Service\IdentifyMethod\IdentifyMethodService;
+use OCA\Libresign\Service\IdentifyMethod\IdentifyService;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\MailService;
 use OCP\EventDispatcher\Event;
@@ -42,7 +42,7 @@ class MailNotifyListener implements IEventListener {
 	public function __construct(
 		protected IUserSession $userSession,
 		protected IUserManager $userManager,
-		protected IdentifyMethodService $identifyMethodService,
+		protected IdentifyService $identifyService,
 		protected MailService $mail,
 		private SignRequestMapper $signRequestMapper,
 		private LoggerInterface $logger,
