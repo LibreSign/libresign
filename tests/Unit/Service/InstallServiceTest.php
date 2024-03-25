@@ -24,7 +24,7 @@
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
-use OCA\Libresign\Service\InstallService;
+use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IRootFolder;
