@@ -315,19 +315,23 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			}
 			return $carry;
 		}, []);
+		foreach ($this->availableSignatureMethods as $signatureMethodName) {
+			$this->signatureMethods[$signatureMethodName] =
+				$this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
+		}
 		if (!isset($this->settings['signatureMethods']) || !is_array($this->settings['signatureMethods'])) {
 			return;
 		}
-		foreach ($this->settings['signatureMethods'] as $method => $settings) {
-			if (!in_array($method, $this->availableSignatureMethods)) {
-				unset($this->settings['signatureMethods'][$method]);
+		foreach ($this->settings['signatureMethods'] as $signatureMethodName => $settings) {
+			if (!in_array($signatureMethodName, $this->availableSignatureMethods)) {
+				unset($this->settings['signatureMethods'][$signatureMethodName]);
 				continue;
 			}
-			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($method);
+			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
 			if (isset($settings['enabled']) && $settings['enabled']) {
 				$signatureMethod->enable();
 			}
-			$this->signatureMethods[$method] = $signatureMethod;
+			$this->signatureMethods[$signatureMethodName] = $signatureMethod;
 		}
 	}
 
