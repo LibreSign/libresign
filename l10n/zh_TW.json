@@ -284,6 +284,7 @@
     "Request to create account when the user does not have an account" : "當使用者沒有帳號時，請求建立帳號",
     "Make this method required" : "將此方法設為必要",
     "Signature methods" : "簽署方法",
+    "Identification factors" : "身份證明因子",
     "Ways to identify a person who will sign a document." : "識別將簽署文件人員的方法。",
     "Legal Information" : "法律資訊",
     "Legal information" : "法律資訊",
