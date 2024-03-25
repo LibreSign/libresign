@@ -27,9 +27,7 @@ namespace OCA\Libresign\Service\IdentifyMethod;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\Password;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\MailService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -43,6 +41,11 @@ use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
 class Account extends AbstractIdentifyMethod {
+	public array $availableSignatureMethods = [
+		ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN,
+		ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
+		ISignatureMethod::SIGNATURE_METHOD_PASSWORD,
+	];
 	public function __construct(
 		protected IdentifyService $identifyService,
 		private IUserManager $userManager,
@@ -56,17 +59,9 @@ class Account extends AbstractIdentifyMethod {
 		private LoggerInterface $logger,
 		private SessionService $sessionService,
 		private MailService $mail,
-		private Password $password,
-		private ClickToSign $clickToSign,
-		private EmailToken $emailToken,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by Nextcloud acccount
 		$this->friendlyName = $this->identifyService->getL10n()->t('Account');
-		$this->signatureMethods = [
-			$this->password->getName() => $this->password,
-			$this->clickToSign->getName() => $this->clickToSign,
-			$this->emailToken->getName() => $this->emailToken,
-		];
 		parent::__construct(
 			$identifyService,
 		);
