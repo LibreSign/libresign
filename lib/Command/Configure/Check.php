@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
-use OCA\Libresign\Service\ConfigureCheckService;
+use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCP\IConfig;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
