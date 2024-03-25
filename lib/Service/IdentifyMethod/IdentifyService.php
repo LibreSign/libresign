@@ -40,7 +40,7 @@ use OCP\IUserManager;
 use OCP\Security\IHasher;
 use Psr\Log\LoggerInterface;
 
-class IdentifyMethodService {
+class IdentifyService {
 	private array $savedSettings = [];
 	public function __construct(
 		private IdentifyMethodMapper $identifyMethodMapper,
