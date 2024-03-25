@@ -34,7 +34,6 @@ class SendSignNotificationEvent extends Event {
 		private SignRequest $signRequest,
 		private FileEntity $libreSignFile,
 		private IIdentifyMethod $identifyMethod,
-		private bool $isNew
 	) {
 	}
 
@@ -44,10 +43,6 @@ class SendSignNotificationEvent extends Event {
 
 	public function getSignRequest(): SignRequest {
 		return $this->signRequest;
-	}
-
-	public function isNew(): bool {
-		return $this->isNew;
 	}
 
 	public function getIdentifyMethod(): IIdentifyMethod {

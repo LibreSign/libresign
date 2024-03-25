@@ -27,6 +27,7 @@ namespace OCA\Libresign\Listener;
 use OCA\Libresign\AppInfo\Application as AppInfoApplication;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Db\SignRequest;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Events\SendSignNotificationEvent;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -46,25 +47,24 @@ class NotificationListener implements IEventListener {
 		protected IUserSession $userSession,
 		private ITimeFactory $timeFactory,
 		protected IURLGenerator $url,
+		private SignRequestMapper $signRequestMapper,
 	) {
 	}
 
 	public function handle(Event $event): void {
 		if ($event instanceof SendSignNotificationEvent) {
-			$this->sendNewSignNotification(
+			$this->sendSignNotification(
 				$event->getSignRequest(),
 				$event->getLibreSignFile(),
 				$event->getIdentifyMethod(),
-				$event->isNew()
 			);
 		}
 	}
 
-	private function sendNewSignNotification(
+	private function sendSignNotification(
 		SignRequest $signRequest,
 		FileEntity $libreSignFile,
 		IIdentifyMethod $identifyMethod,
-		bool $isNew
 	): void {
 		$actor = $this->userSession->getUser();
 		if (!$actor instanceof IUser) {
@@ -79,7 +79,8 @@ class NotificationListener implements IEventListener {
 			->setObject('signRequest', (string) $signRequest->getId())
 			->setDateTime((new \DateTime())->setTimestamp($this->timeFactory->now()->getTimestamp()))
 			->setUser($identifyMethod->getEntity()->getIdentifierValue());
-		if ($isNew) {
+		$isFirstNotification = $this->signRequestMapper->incrementNotificationCounter($signRequest, 'notify');
+		if ($isFirstNotification) {
 			$subject = 'new_sign_request';
 		} else {
 			$subject = 'update_sign_request';

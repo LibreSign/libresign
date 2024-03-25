@@ -191,15 +191,32 @@ Feature: request-signature
       | users | [{"identify":{"account":"signer1"}}] |
       | name | document |
     Then the response should have a status code 200
+    And fetch field "(FILE_UUID)data.uuid" from prevous JSON response
     When as user "signer1"
     Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
     And the response should be a JSON array with the following mandatory values
-      | key | value                                                         |
-      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
+      | key | value                                                                  |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
+      | ocs | (jq).data\|.[0].message == ""                                          |
     When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
     Then the response should be a JSON array with the following mandatory values
-      | key | value                                                             |
-      | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
+      | key | value                                                                  |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"|
+    When as user "admin"
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
+      | uuid | <FILE_UUID> |
+      | users | [{"identify":{"account":"signer1"}}] |
+    And the response should have a status code 200
+    When as user "signer1"
+    Then sending "get" to ocs "/apps/notifications/api/v2/notifications"
+    And the response should be a JSON array with the following mandatory values
+      | key | value                                                                               |
+      | ocs | (jq).data\|.[0].subject == "admin requested your signature on document"             |
+      | ocs | (jq).data\|.[0].message == "Changes have been made in a file that you have to sign."|
+    When sending "get" to ocs "/apps/activity/api/v2/activity/libresign?since=0"
+    Then the response should be a JSON array with the following mandatory values
+      | key | value                                                      |
+      | ocs | (jq).data\|.[0].subject == "admin made changes on document"|
 
   Scenario: Request to sign with error using account as identifier with invalid email
     Given as user "admin"
@@ -279,6 +296,7 @@ Feature: request-signature
       | users  | [{"identify":{"email":"signer1@domain.test"}}]  |
       | status | 0                                               |
       | name   | document                                        |
+    And fetch field "(FILE_UUID)data.uuid" from prevous JSON response
     And the response should have a status code 200
     And sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And fetch field "data.0.signers.0.signRequestId" from prevous JSON response
@@ -323,6 +341,7 @@ Feature: request-signature
       | file | {"base64":"data:application/pdf;base64,JVBERi0xLjYKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSL0ZpbHRlci9GbGF0ZURlY29kZT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAw0DMwslAwtTTVMzIxV7AwMdSzMDNUKErlCtdSyOMyVADBonQuA4iUhaVCLheKYqBIDlw7xLAcuLEgFlwVVwZXmhZXoAIAI+sZGAplbmRzdHJlYW0KZW5kb2JqCgozIDAgb2JqCjg2CmVuZG9iagoKNSAwIG9iago8PAo+PgplbmRvYmoKCjYgMCBvYmoKPDwvRm9udCA1IDAgUgovUHJvY1NldFsvUERGL1RleHRdCj4+CmVuZG9iagoKMSAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDQgMCBSL1Jlc291cmNlcyA2IDAgUi9NZWRpYUJveFswIDAgNTk1LjI3NTU5MDU1MTE4MSA4NDEuODg5NzYzNzc5NTI4XS9Hcm91cDw8L1MvVHJhbnNwYXJlbmN5L0NTL0RldmljZVJHQi9JIHRydWU+Pi9Db250ZW50cyAyIDAgUj4+CmVuZG9iagoKNCAwIG9iago8PC9UeXBlL1BhZ2VzCi9SZXNvdXJjZXMgNiAwIFIKL01lZGlhQm94WyAwIDAgNTk1IDg0MSBdCi9LaWRzWyAxIDAgUiBdCi9Db3VudCAxPj4KZW5kb2JqCgo3IDAgb2JqCjw8L1R5cGUvQ2F0YWxvZy9QYWdlcyA0IDAgUgovT3BlbkFjdGlvblsxIDAgUiAvWFlaIG51bGwgbnVsbCAwXQo+PgplbmRvYmoKCjggMCBvYmoKPDwvQ3JlYXRvcjxGRUZGMDA0NDAwNzIwMDYxMDA3Nz4KL1Byb2R1Y2VyPEZFRkYwMDRDMDA2OTAwNjIwMDcyMDA2NTAwNEYwMDY2MDA2NjAwNjkwMDYzMDA2NTAwMjAwMDM3MDAyRTAwMzA+Ci9DcmVhdGlvbkRhdGUoRDoyMDIxMDIyMzExMDgwOS0wMycwMCcpPj4KZW5kb2JqCgp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAyNzAgMDAwMDAgbiAKMDAwMDAwMDAxOSAwMDAwMCBuIAowMDAwMDAwMTc2IDAwMDAwIG4gCjAwMDAwMDA0MzggMDAwMDAgbiAKMDAwMDAwMDE5NSAwMDAwMCBuIAowMDAwMDAwMjE3IDAwMDAwIG4gCjAwMDAwMDA1MzYgMDAwMDAgbiAKMDAwMDAwMDYxOSAwMDAwMCBuIAp0cmFpbGVyCjw8L1NpemUgOS9Sb290IDcgMCBSCi9JbmZvIDggMCBSCi9JRCBbIDw1RkQ4MDlEMTdFODMwQUU5OTRDODkxNDVBMTMwNUQyQz4KPDVGRDgwOUQxN0U4MzBBRTk5NEM4OTE0NUExMzA1RDJDPiBdCi9Eb2NDaGVja3N1bSAvRDZBQThGQTBBQjMwODg2QkQ5ODU0QzYyMTg5QjI2NDQKPj4Kc3RhcnR4cmVmCjc4NQolJUVPRgo="} |
       | users | [{"identify":{"email":"signer1@domain.test"}},{"identify":{"account":"signer1"}}] |
       | name | document |
+    And fetch field "(FILE_UUID)data.uuid" from prevous JSON response
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     Then the response of file list match with:
@@ -389,10 +408,9 @@ Feature: request-signature
         }
       }
       """
-    And I change the file
+    And sending "patch" to ocs "/apps/libresign/api/v1/request-signature"
       | uuid | <FILE_UUID> |
       | users | [{"identify":{"email":"signer1@domain.test"}}] |
-      | name | document |
     And the response should have a status code 200
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     Then the response of file list match with:

@@ -14,7 +14,6 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
-	private array $fields = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -125,34 +124,13 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return [$fullUrl, $options];
 	}
 
-	protected function parseFormParams(array $options): array {
-		if (!empty($options['form_params'])) {
-			$this->parseTextRcursive($options['form_params']);
-		}
-		return $options;
-	}
-
-	private function parseTextRcursive(&$array): array {
-		array_walk_recursive($array, function (&$value) {
-			if (is_string($value)) {
-				$value = $this->parseText($value);
-			} elseif ($value instanceof \stdClass) {
-				$value = (array) $value;
-				$value = json_decode(json_encode($this->parseTextRcursive($value)));
-			}
-		});
-		return $array;
-	}
-
 	protected function parseText(string $text): string {
 		$patterns = [
 			'/<SIGN_UUID>/',
-			'/<FILE_UUID>/',
 			'/<BASE_URL>/',
 		];
 		$replacements = [
 			$this->signer['sign_uuid'] ?? null,
-			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
 			$this->baseUrl . '/index.php',
 		];
 		foreach ($this->fields as $key => $value) {
@@ -160,18 +138,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$replacements[] = $value;
 		}
 		$text = preg_replace($patterns, $replacements, $text);
+		$text = parent::parseText($text);
 		return $text;
-	}
-
-	private function getFileUuidFromText(string $text): ?string {
-		if (!$this->isJson($text)) {
-			return '';
-		}
-		$json = json_decode($text, true);
-		if (isset($json['sign']['uuid']) && $json['sign']['uuid']) {
-			return $this->file['uuid'] = $json['sign']['uuid'];
-		}
-		return '';
 	}
 
 	/**
@@ -215,24 +183,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function iSendAFileToBeSigned(TableNode $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$this->file['uuid'] = $realResponseArray['data']['uuid'];
-	}
-
-	/**
-	 * @When I change the file
-	 */
-	public function iChangeTheFile(TableNode $body): void {
-		$newBody = [];
-		foreach ($body->getTable() as $key => $row) {
-			$newBody[$key] = $row;
-			if ($row[1] === '<FILE_UUID>') {
-				$newBody[$key][1] = $this->file['uuid'];
-			}
-		}
-		$body = new TableNode($newBody);
-		$this->sendOCSRequest('patch', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
 	}
 
 	/**
@@ -285,21 +235,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fileId = $responseArray['data'][$fileSequence - 1]['nodeId'];
 		$signRequestId = $responseArray['data'][$fileSequence - 1]['signers'][$signerSequence - 1]['signRequestId'];
 		$this->sendOCSRequest('delete', '/apps/libresign/api/v1/sign/file_id/' . $fileId . '/'. $signRequestId);
-	}
-
-	/**
-	 * @When fetch field :path from prevous JSON response
-	 */
-	public function fetchFieldFromPreviousJsonResponse(string $path): void {
-		$this->response->getBody()->seek(0);
-		$responseArray = json_decode($this->response->getBody()->getContents(), true);
-		$keys = explode('.', $path);
-		$value = $responseArray;
-		foreach ($keys as $key) {
-			Assert::assertArrayHasKey($key, $value, 'Key [' . $key . '] of path [' . $path . '] not found.');
-			$value = $value[$key];
-		}
-		$this->fields[$path] = $value;
 	}
 
 	/**
