@@ -333,6 +333,54 @@ Feature: request-signature
     And there should be 1 emails in my inbox
     And I open the latest email to "signer1@domain.test" with subject "LibreSign: There is a file for you to sign"
 
+  Scenario: Request to sign with success using multiple emails
+    Given run the command "libresign:configure:openssl --cn test" with result code 0
+    And as user "admin"
+    And sending "post" to ocs "/apps/provisioning_api/api/v1/config/apps/libresign/identify_methods"
+      | value | (string)[{"name":"email","enabled":true,"mandatory":true,"signatureMethods":{"emailToken":{"enabled":true}},"can_create_account":false}] |
+    And my inbox is empty
+    When sending "post" to ocs "/apps/libresign/api/v1/request-signature"
+      | file | {"url":"<BASE_URL>/apps/libresign/develop/pdf"} |
+      | users | [{"identify":{"email":"11111@domain.test"}},{"identify":{"email":"22222@domain.test"}}] |
+      | name | document |
+    Then the response should have a status code 200
+    When I open the latest email to "11111@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    And follow the link on opened email
+    And the response should have a status code 200
+    Then the response should contain the initial state "libresign-signature_methods" with the following values:
+      """
+      {
+        "emailToken": {
+          "blurredEmail": "111***@***.test",
+          "hasConfirmCode": false,
+          "hashOfEmail": "c8cb84220c4cf19b723390f29b83a0f8",
+          "identifyMethod": "email",
+          "label": "Email token",
+          "needCode": true
+        }
+      }
+      """
+    When I open the latest email to "22222@domain.test" with subject "LibreSign: There is a file for you to sign"
+    And I fetch the signer UUID from opened email
+    And as user ""
+    And follow the link on opened email
+    And the response should have a status code 200
+    Then the response should contain the initial state "libresign-signature_methods" with the following values:
+      """
+      {
+        "emailToken": {
+          "blurredEmail": "222***@***.test",
+          "hasConfirmCode": false,
+          "hashOfEmail": "d3ab1426f412df8b8bbb9cb2405fb39d",
+          "identifyMethod": "email",
+          "label": "Email token",
+          "needCode": true
+        }
+      }
+      """
+
   Scenario: CRUD of identify methods
     Given run the command "libresign:configure:openssl --cn test" with result code 0
     And user "signer1" exists

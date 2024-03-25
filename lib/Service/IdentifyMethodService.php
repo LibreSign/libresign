@@ -191,10 +191,12 @@ class IdentifyMethodService {
 				if (empty($identifyMethod->getEntity()->getIdentifiedAtDate())) {
 					continue;
 				}
-				foreach ($identifyMethod->getSignatureMethods() as $signatureMethod) {
+				$signatureMethods = $identifyMethod->getSignatureMethods();
+				foreach ($signatureMethods as $signatureMethod) {
 					if (!$signatureMethod->isEnabled()) {
 						continue;
 					}
+					$signatureMethod->setEntity($identifyMethod->getEntity());
 					$return[$signatureMethod->getName()] = $signatureMethod->toArray();
 				}
 			}

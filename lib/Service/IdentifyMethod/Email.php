@@ -28,8 +28,7 @@ use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\IdentifyMethodMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ClickToSign;
-use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\EmailToken;
+use OCA\Libresign\Service\IdentifyMethod\SignatureMethod\ISignatureMethod;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\IRootFolder;
@@ -37,6 +36,10 @@ use OCP\IUser;
 use OCP\IUserSession;
 
 class Email extends AbstractIdentifyMethod {
+	public array $availableSignatureMethods = [
+		ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN,
+		ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
+	];
 	public function __construct(
 		protected IdentifyService $identifyService,
 		private IdentifyMethodMapper $identifyMethodMapper,
@@ -44,16 +47,10 @@ class Email extends AbstractIdentifyMethod {
 		private ITimeFactory $timeFactory,
 		private SessionService $sessionService,
 		private FileElementMapper $fileElementMapper,
-		private ClickToSign $clickToSign,
-		private EmailToken $emailToken,
 		private IUserSession $userSession,
 	) {
 		// TRANSLATORS Name of possible authenticator method. This signalize that the signer could be identified by email
 		$this->friendlyName = $this->identifyService->getL10n()->t('Email');
-		$this->signatureMethods = [
-			$this->clickToSign->getName() => $this->clickToSign,
-			$this->emailToken->getName() => $this->emailToken,
-		];
 		parent::__construct(
 			$identifyService,
 		);

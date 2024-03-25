@@ -36,9 +36,7 @@ interface IIdentifyMethod {
 	public function cleanEntity(): void;
 	public function setEntity(IdentifyMethod $entity): void;
 	public function getEntity(): IdentifyMethod;
-	/**
-	 * @return AbstractSignatureMethod[]
-	 */
+	public function getEmptyInstanceOfSignatureMethodByName(string $name): AbstractSignatureMethod;
 	public function getSignatureMethods(): array;
 	public function signatureMethodsToArray(): array;
 	public function getSettings(): array;
