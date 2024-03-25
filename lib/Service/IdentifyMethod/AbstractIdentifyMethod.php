@@ -44,6 +44,10 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	protected array $settings = [];
 	protected bool $willNotify = true;
 	/**
+	 * @var string[]
+	 */
+	public array $availableSignatureMethods;
+	/**
 	 * @var AbstractSignatureMethod[]
 	 */
 	protected array $signatureMethods = [];
@@ -89,11 +93,28 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		return array_map(function (AbstractSignatureMethod $method) {
 			return [
 				'label' => $method->friendlyName,
+				'name' => $method->getName(),
 				'enabled' => $method->isEnabled(),
 			];
 		}, $this->signatureMethods);
 	}
 
+	public function getEmptyInstanceOfSignatureMethodByName(string $name): AbstractSignatureMethod {
+		if (!in_array($name, $this->availableSignatureMethods)) {
+			throw new InvalidArgumentException(sprintf('%s is not a valid signature method of identify method %s', $name, $this->getName()));
+		}
+		$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
+		if (!class_exists($className)) {
+			throw new InvalidArgumentException('Invalid signature method. Set at identify method the list  of available signature methdos with right values.');
+		}
+		$signatureMethod = clone \OC::$server->get($className);
+		$signatureMethod->cleanEntity();
+		return $signatureMethod;
+	}
+
+	/**
+	 * @return AbstractSignatureMethod[]
+	 */
 	public function getSignatureMethods(): array {
 		return $this->signatureMethods;
 	}
@@ -298,10 +319,15 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			return;
 		}
 		foreach ($this->settings['signatureMethods'] as $method => $settings) {
-			$this->signatureMethods[$method]->setEntity($this->getEntity());
-			if (is_object($this->signatureMethods[$method]) && isset($settings['enabled']) && $settings['enabled']) {
-				$this->signatureMethods[$method]->enable();
+			if (!in_array($method, $this->availableSignatureMethods)) {
+				unset($this->settings['signatureMethods'][$method]);
+				continue;
 			}
+			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($method);
+			if (isset($settings['enabled']) && $settings['enabled']) {
+				$signatureMethod->enable();
+			}
+			$this->signatureMethods[$method] = $signatureMethod;
 		}
 	}
 
