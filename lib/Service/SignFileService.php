@@ -447,12 +447,13 @@ class SignFileService {
 			throw new LibresignException($this->l10n->t('Invalid identification method'));
 		}
 		foreach ($identifyMethods[$identifyMethodName] as $identifyMethod) {
-			$signatureMethods = $identifyMethod->getSignatureMethods();
-			if (empty($signatureMethods[$signMethodName])) {
-				throw new LibresignException($this->l10n->t('Invalid identification method'));
+			try {
+				$signatureMethod = $identifyMethod->getEmptyInstanceOfSignatureMethodByName($signMethodName);
+				$signatureMethod->setEntity($identifyMethod->getEntity());
+			} catch (InvalidArgumentException $th) {
+				continue;
 			}
 			/** @var EmailToken $signatureMethod */
-			$signatureMethod = $signatureMethods[$signMethodName];
 			$signatureMethod->requestCode($identify);
 			return;
 		}
