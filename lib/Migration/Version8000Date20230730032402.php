@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
-use OCA\Libresign\Service\InstallService;
+use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;

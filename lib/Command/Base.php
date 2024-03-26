@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command;
 
 use OC\Core\Command\Base as CommandBase;
-use OCA\Libresign\Service\InstallService;
+use OCA\Libresign\Service\Install\InstallService;
 use Psr\Log\LoggerInterface;
 
 class Base extends CommandBase {

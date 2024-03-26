@@ -159,8 +159,8 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getBinariesFromCache(): void {
-		/** @var \OCA\Libresign\Service\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\InstallService::class);
+		/** @var \OCA\Libresign\Service\Install\InstallService */
+		$install = \OC::$server->get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
@@ -173,8 +173,8 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function backupBinaries(): void {
-		/** @var \OCA\Libresign\Service\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\InstallService::class);
+		/** @var \OCA\Libresign\Service\Install\InstallService */
+		$install = \OC::$server->get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		if (!is_readable($appPath)) {
 			return;

@@ -118,7 +118,7 @@
       <code>$config</code>
     </InvalidArgument>
   </file>
-  <file src="lib/Service/InstallService.php">
+  <file src="lib/Service/Install/InstallService.php">
     <UndefinedClass occurrences="1">
       <code>Process</code>
     </UndefinedClass>
