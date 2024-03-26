@@ -250,7 +250,7 @@ export default {
 		async signWithPassword() {
 			return this.signDocument({
 				method: 'password',
-				identifyValue: this.signPassword,
+				token: this.signPassword,
 			})
 		},
 		async signWithSMSCode(token) {
