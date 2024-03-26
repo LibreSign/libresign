@@ -22,7 +22,7 @@ declare(strict_types=1);
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace OCA\Libresign\Service;
+namespace OCA\Libresign\Service\Install;
 
 use InvalidArgumentException;
 use OC;
