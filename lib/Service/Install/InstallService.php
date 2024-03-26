@@ -324,6 +324,10 @@ class InstallService {
 	}
 
 	public function installJava(?bool $async = false): void {
+		$signatureEngine = $this->appConfig->getAppValue('signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
 		$this->setResource('java');
 		if ($async) {
 			$this->runAsync();
@@ -394,6 +398,10 @@ class InstallService {
 	}
 
 	public function installJSignPdf(?bool $async = false): void {
+		$signatureEngine = $this->appConfig->getAppValue('signature_engine', 'jsignpdf');
+		if ($signatureEngine !== 'jsignpdf') {
+			return [];
+		}
 		if (!extension_loaded('zip')) {
 			throw new RuntimeException('Zip extension is not available');
 		}
