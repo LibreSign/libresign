@@ -124,7 +124,7 @@ class Notifier implements INotifier {
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
 		}
 
-		if (isset($parameters['signRequest'])) {
+		if (isset($parameters['signRequest']) && isset($parameters['signRequest']['id'])) {
 			$dismissAction = $notification->createAction()
 				->setParsedLabel($l->t('Dismiss notification'))
 				->setLink(
