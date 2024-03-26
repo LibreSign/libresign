@@ -95,46 +95,51 @@ class Notifier implements INotifier {
 		bool $update
 	): INotification {
 		$parameters = $notification->getSubjectParameters();
-		$notification
-			->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')))
-			->setLink($parameters['file']['link']);
-		$subject = $l->t('{from} requested your signature on {file}');
-		$notification->setParsedSubject(
-			str_replace(
-				['{from}', '{file}'],
-				[
-					$parameters['from']['name'],
-					$parameters['file']['name'],
-				],
-				$subject
-			))
-			->setRichSubject($subject, $parameters);
+		$notification->setIcon($this->url->getAbsoluteURL($this->url->imagePath(Application::APP_ID, 'app-dark.svg')));
+		if (isset($parameters['file'])) {
+			$notification->setLink($parameters['file']['link']);
+			$signAction = $notification->createAction()
+				->setParsedLabel($l->t('View'))
+				->setPrimary(true)
+				->setLink(
+					$parameters['file']['link'],
+					IAction::TYPE_WEB
+				);
+			$notification->addParsedAction($signAction);
+			if (isset($parameters['from'])) {
+				$subject = $l->t('{from} requested your signature on {file}');
+				$notification->setParsedSubject(
+					str_replace(
+						['{from}', '{file}'],
+						[
+							$parameters['from']['name'],
+							$parameters['file']['name'],
+						],
+						$subject
+					))
+					->setRichSubject($subject, $parameters);
+			}
+		}
 		if ($update) {
 			$notification->setParsedMessage($l->t('Changes have been made in a file that you have to sign.'));
 		}
 
-		$signAction = $notification->createAction()
-			->setParsedLabel($l->t('View'))
-			->setPrimary(true)
-			->setLink(
-				$parameters['file']['link'],
-				IAction::TYPE_WEB
-			);
-		$notification->addParsedAction($signAction);
-		$dismissAction = $notification->createAction()
-			->setParsedLabel($l->t('Dismiss notification'))
-			->setLink(
-				$this->url->linkToOCSRouteAbsolute(
-					'libresign.notify.notificationDismiss',
-					[
-						'apiVersion' => 'v1',
-						'timestamp' => $notification->getDateTime()->getTimestamp(),
-						'signRequestId' => $parameters['signRequest']['id'],
-					],
-				),
-				IAction::TYPE_DELETE
-			);
-		$notification->addParsedAction($dismissAction);
+		if (isset($parameters['signRequest'])) {
+			$dismissAction = $notification->createAction()
+				->setParsedLabel($l->t('Dismiss notification'))
+				->setLink(
+					$this->url->linkToOCSRouteAbsolute(
+						'libresign.notify.notificationDismiss',
+						[
+							'apiVersion' => 'v1',
+							'timestamp' => $notification->getDateTime()->getTimestamp(),
+							'signRequestId' => $parameters['signRequest']['id'],
+						],
+					),
+					IAction::TYPE_DELETE
+				);
+			$notification->addParsedAction($dismissAction);
+		}
 		return $notification;
 	}
 }
