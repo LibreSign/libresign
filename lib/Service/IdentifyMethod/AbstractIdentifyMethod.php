@@ -46,7 +46,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	/**
 	 * @var string[]
 	 */
-	public array $availableSignatureMethods;
+	public array $availableSignatureMethods = [];
 	/**
 	 * @var AbstractSignatureMethod[]
 	 */
