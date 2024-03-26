@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@fontsource/dancing-script": "^5.0.17",
-    "@libresign/vue-pdf-editor": "^1.2.6",
+    "@libresign/vue-pdf-editor": "^1.2.7",
     "@marionebl/option": "^1.0.8",
     "@nextcloud/auth": "^2.2.1",
     "@nextcloud/axios": "^2.4.0",
