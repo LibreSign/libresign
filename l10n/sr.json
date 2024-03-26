@@ -284,6 +284,7 @@
     "Request to create account when the user does not have an account" : "Захтевај да се креира налог када корисник нема налог",
     "Make this method required" : "Учини ову методу обавезном",
     "Signature methods" : "Методе потписа",
+    "Identification factors" : "Фактори идентификације",
     "Ways to identify a person who will sign a document." : "Начини на које може да се идентификује особа која ће потписати документ.",
     "Legal Information" : "Правне информације",
     "Legal information" : "Правне информације",
