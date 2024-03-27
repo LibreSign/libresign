@@ -295,17 +295,15 @@ class ValidateHelper {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
-			if (!array_key_exists('profileElementId', $elements)
-				&& !array_key_exists('profileFileId', $elements)
-			) {
-				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId, profileFileId']));
+			if (!array_key_exists('profileFileId', $elements)) {
+				throw new LibresignException($this->l10n->t('Field %s not found', ['profileFileId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
 			if ($user instanceof IUser) {
 				try {
-					$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
+					$this->userElementMapper->findOne(['file_id' => $elements['profileFileId'], 'user_id' => $user->getUID()]);
 				} catch (\Throwable $th) {
-					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileFileId']));
 				}
 			}
 		}
