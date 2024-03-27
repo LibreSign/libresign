@@ -46,33 +46,4 @@ class TCPDFLibresign extends TCPDF {
 		}
 		return parent::_textstring($s, $n);
 	}
-
-	/**
-	 * @psalm-return array{w?: mixed, h?: mixed}
-	 */
-	public function getPageTplDimension(int $pageNum): array {
-		if (!$this->tpls) {
-			return [];
-		}
-		return [
-			'w' => $this->tpls[$pageNum]['w'],
-			'h' => $this->tpls[$pageNum]['h']
-		];
-	}
-
-	public function getPagesMetadata(): array {
-		$pageCount = current($this->parsers)->getPageCount();
-		$data = [
-			'p' => $pageCount
-		];
-		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-			$dimensions = $this->getPageTplDimension($pageNo);
-			if (empty($dimensions['w'])) {
-				$this->importPage($pageNo);
-				$dimensions = $this->getPageTplDimension($pageNo);
-			}
-			$data['d'][] = $dimensions;
-		}
-		return $data;
-	}
 }
