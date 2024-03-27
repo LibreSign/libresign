@@ -232,10 +232,7 @@ class SignFileService {
 			});
 			if ($element) {
 				$c = current($element);
-				if (!empty($c['profileElementId'])) {
-					$userElement = $this->userElementMapper->findOne(['id' => $c['profileElementId']]);
-					$nodeId = $userElement->getFileId();
-				} elseif (!empty($c['profileFileId'])) {
+				if (!empty($c['profileFileId'])) {
 					$nodeId = $c['profileFileId'];
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
