@@ -259,7 +259,7 @@ class FileService {
 	private function getPages(): array {
 		$return = [];
 
-		$metadata = json_decode($this->file->getMetadata());
+		$metadata = $this->file->getMetadataDecoded();
 		for ($page = 1; $page <= $metadata->p; $page++) {
 			$return[] = [
 				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.File.getPage', [
