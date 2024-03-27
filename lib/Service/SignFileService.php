@@ -535,7 +535,7 @@ class SignFileService {
 				$originalFile->getPath()
 			);
 
-			$footer = $this->pkcs12Handler->getFooter($originalFile, $fileData->getUuid());
+			$footer = $this->pkcs12Handler->getFooter($originalFile, $fileData);
 			if ($footer) {
 				$background = $this->tempManager->getTemporaryFile('signed.pdf');
 				file_put_contents($background, $footer);

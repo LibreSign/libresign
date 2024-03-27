@@ -69,9 +69,6 @@ class SignRequestMapper extends QBMapper {
 		try {
 			$fromDatabase = $this->getById($signRequest->getId());
 			$metadata = $fromDatabase->getMetadata();
-			if (!empty($metadata)) {
-				$metadata = json_decode($metadata, true);
-			}
 			if (!isset($metadata['notify'])) {
 				$this->firstNotification = true;
 			}

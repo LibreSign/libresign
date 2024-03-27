@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e680dc2da1aee7d230b344aa0367ca37",
+    "content-hash": "3b8c5d2bdc7f7847621f5e16ffc8e7fc",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -186,65 +186,6 @@
             "time": "2023-03-30T18:46:02+00:00"
         },
         {
-            "name": "iio/libmergepdf",
-            "version": "dev-move-tcpdi-parser-to-package",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/LibreSign/libmergepdf.git",
-                "reference": "4304a115056e595725e6105a42e47cebe0416ed2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/libmergepdf/zipball/4304a115056e595725e6105a42e47cebe0416ed2",
-                "reference": "4304a115056e595725e6105a42e47cebe0416ed2",
-                "shasum": ""
-            },
-            "require": {
-                "libresign/tcpdi_parser": "^0.4.0",
-                "php": "^7.1||^8.0",
-                "setasign/fpdi": "^2",
-                "tecnickcom/tcpdf": "^6.2.22"
-            },
-            "conflict": {
-                "rafikhaceb/tcpdi": "*",
-                "setasign/fpdf": "*"
-            },
-            "require-dev": {
-                "behat/behat": "^3.10",
-                "phpspec/prophecy-phpunit": "^2.0",
-                "phpunit/phpunit": "^9.5",
-                "smalot/pdfparser": "~0.13"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "iio\\libmergepdf\\": "src/"
-                },
-                "classmap": [
-                    "tcpdi/"
-                ]
-            },
-            "license": [
-                "WTFPL"
-            ],
-            "authors": [
-                {
-                    "name": "Hannes Forsgård",
-                    "email": "hannes.forsgard@fripost.org"
-                }
-            ],
-            "description": "Library for merging multiple PDFs",
-            "homepage": "https://github.com/hanneskod/libmergepdf",
-            "keywords": [
-                "merge",
-                "pdf"
-            ],
-            "support": {
-                "source": "https://github.com/LibreSign/libmergepdf/tree/move-tcpdi-parser-to-package"
-            },
-            "time": "2022-01-30T18:52:29+00:00"
-        },
-        {
             "name": "jsignpdf/jsignpdf-php",
             "version": "v1.2.3",
             "source": {
@@ -296,45 +237,6 @@
                 "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.3"
             },
             "time": "2022-12-02T17:27:21+00:00"
-        },
-        {
-            "name": "libresign/tcpdi_parser",
-            "version": "v0.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/LibreSign/tcpdi_parser.git",
-                "reference": "c958caddb089e8986a509dc538cda0c5e14f18a2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/tcpdi_parser/zipball/c958caddb089e8986a509dc538cda0c5e14f18a2",
-                "reference": "c958caddb089e8986a509dc538cda0c5e14f18a2",
-                "shasum": ""
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "LibreSign\\TcpdiParser\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Vitor Mattos",
-                    "email": "vitor@php.rio"
-                },
-                {
-                    "name": "Paul Nicholls",
-                    "homepage": "https://github.com/pauln"
-                }
-            ],
-            "support": {
-                "source": "https://github.com/LibreSign/tcpdi_parser/tree/v0.4"
-            },
-            "time": "2022-01-30T18:39:05+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",
@@ -630,78 +532,6 @@
                 "source": "https://github.com/php-fig/container/tree/2.0.2"
             },
             "time": "2021-11-05T16:47:00+00:00"
-        },
-        {
-            "name": "setasign/fpdi",
-            "version": "v2.6.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Setasign/FPDI.git",
-                "reference": "a6db878129ec6c7e141316ee71872923e7f1b7ad"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Setasign/FPDI/zipball/a6db878129ec6c7e141316ee71872923e7f1b7ad",
-                "reference": "a6db878129ec6c7e141316ee71872923e7f1b7ad",
-                "shasum": ""
-            },
-            "require": {
-                "ext-zlib": "*",
-                "php": "^5.6 || ^7.0 || ^8.0"
-            },
-            "conflict": {
-                "setasign/tfpdf": "<1.31"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~5.7",
-                "setasign/fpdf": "~1.8.6",
-                "setasign/tfpdf": "~1.33",
-                "squizlabs/php_codesniffer": "^3.5",
-                "tecnickcom/tcpdf": "~6.2"
-            },
-            "suggest": {
-                "setasign/fpdf": "FPDI will extend this class but as it is also possible to use TCPDF or tFPDF as an alternative. There's no fixed dependency configured."
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "setasign\\Fpdi\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jan Slabon",
-                    "email": "jan.slabon@setasign.com",
-                    "homepage": "https://www.setasign.com"
-                },
-                {
-                    "name": "Maximilian Kresse",
-                    "email": "maximilian.kresse@setasign.com",
-                    "homepage": "https://www.setasign.com"
-                }
-            ],
-            "description": "FPDI is a collection of PHP classes facilitating developers to read pages from existing PDF documents and use them as templates in FPDF. Because it is also possible to use FPDI with TCPDF, there are no fixed dependencies defined. Please see suggestions for packages which evaluates the dependencies automatically.",
-            "homepage": "https://www.setasign.com/fpdi",
-            "keywords": [
-                "fpdf",
-                "fpdi",
-                "pdf"
-            ],
-            "support": {
-                "issues": "https://github.com/Setasign/FPDI/issues",
-                "source": "https://github.com/Setasign/FPDI/tree/v2.6.0"
-            },
-            "funding": [
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/setasign/fpdi",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2023-12-11T16:03:32+00:00"
         },
         {
             "name": "smalot/pdfparser",
@@ -1567,12 +1397,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tecnickcom/TCPDF.git",
-                "reference": "f9fd21807cbb5d43ed62c685e2d6467515d31746"
+                "reference": "d4adef47ca21c90e6483d59dcb9e5b1023696937"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/f9fd21807cbb5d43ed62c685e2d6467515d31746",
-                "reference": "f9fd21807cbb5d43ed62c685e2d6467515d31746",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/d4adef47ca21c90e6483d59dcb9e5b1023696937",
+                "reference": "d4adef47ca21c90e6483d59dcb9e5b1023696937",
                 "shasum": ""
             },
             "require": {
@@ -1631,7 +1461,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-03-21T09:36:59+00:00"
+            "time": "2024-03-25T23:56:24+00:00"
         },
         {
             "name": "wobeto/email-blur",
@@ -2669,7 +2499,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "iio/libmergepdf": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },

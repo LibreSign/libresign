@@ -34,7 +34,7 @@ class FileElementService {
 	public function __construct(
 		private FileMapper $fileMapper,
 		private FileElementMapper $fileElementMapper,
-		private ITimeFactory $timeFactory
+		private ITimeFactory $timeFactory,
 	) {
 	}
 
@@ -77,13 +77,13 @@ class FileElementService {
 
 	private function translateCoordinatesToInternalNotation(array $properties, File $file): array {
 		$translated['page'] = $properties['coordinates']['page'] ?? 1;
-		$metadata = json_decode($file->getMetadata(), true);
-		$dimension = $metadata['d'][$translated['page'] - 1];
+		$metadata = $file->getMetadataDecoded();
+		$dimension = $metadata->d[$translated['page'] - 1];
 
 		if (isset($properties['coordinates']['ury'])) {
 			$translated['ury'] = $properties['coordinates']['ury'];
 		} elseif (isset($properties['coordinates']['top'])) {
-			$translated['ury'] = $dimension['h'] - $properties['coordinates']['top'];
+			$translated['ury'] = $dimension->h - $properties['coordinates']['top'];
 		} else {
 			$translated['ury'] = 0;
 		}
@@ -131,12 +131,12 @@ class FileElementService {
 	}
 
 	public function translateCoordinatesFromInternalNotation(array $properties, File $file): array {
-		$metadata = json_decode($file->getMetadata(), true);
-		$dimension = $metadata['d'][$properties['coordinates']['page'] - 1];
+		$metadata = $file->getMetadataDecoded();
+		$dimension = $metadata->d[$properties['coordinates']['page'] - 1];
 
 		$translated['left'] = $properties['coordinates']['llx'];
 		$translated['height'] = abs($properties['coordinates']['ury'] - $properties['coordinates']['lly']);
-		$translated['top'] = $dimension['h'] - $properties['coordinates']['ury'];
+		$translated['top'] = $dimension->h - $properties['coordinates']['ury'];
 		$translated['width'] = $properties['coordinates']['urx'] - $properties['coordinates']['llx'];
 
 		return $translated;

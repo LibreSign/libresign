@@ -43,7 +43,7 @@ use OCP\DB\Types;
  * @method void setDisplayName(string $displayName)
  * @method string getDisplayName()
  * @method void setMetadata(array $metadata)
- * @method string getMetadata()
+ * @method array getMetadata()
  */
 class SignRequest extends Entity {
 	/** @var integer */
