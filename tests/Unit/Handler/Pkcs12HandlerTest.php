@@ -107,7 +107,8 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pdfParserService,
 		);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$actual = $this->pkcs12Handler->getFooter($file, $libresignFile);
 		$this->assertEmpty($actual);
 	}
 
@@ -141,8 +142,24 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('small_valid.pdf');
 		$file->method('getContent')
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
-		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
-		$this->assertEquals(18615, strlen($actual));
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturnCallback(function ($key, $default) {
+				switch ($key) {
+					case 'getMetadata': return [
+						'd' => [
+							[
+								'w' => 100,
+								'h' => 100,
+							],
+						],
+					];
+					case 'getUuid': return 'uuid';
+				}
+			});
+		$actual = $this->pkcs12Handler->getFooter($file, $libresignFile);
+		$this->assertEquals(7655, strlen($actual));
 	}
 
 	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
