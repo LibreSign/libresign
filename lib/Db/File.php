@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use stdClass;
 
 /**
  * @method void setId(int $id)
@@ -45,8 +46,7 @@ use OCP\AppFramework\Db\Entity;
  * @method string getCallback()
  * @method void setStatus(int $status)
  * @method int getStatus()
- * @method void setPages(int $pages)
- * @method int getPages()
+ * @method string getMetadata()
  */
 class File extends Entity {
 	/** @var integer */
@@ -96,5 +96,17 @@ class File extends Entity {
 		$this->addType('callback', 'string');
 		$this->addType('status', 'integer');
 		$this->addType('metadata', 'string');
+	}
+
+	public function setMetadata($metadata): void {
+		if (is_array($metadata)) {
+			$metadata = json_encode($metadata);
+		}
+		$this->metadata = (string) $metadata;
+		$this->markFieldUpdated('metadata');
+	}
+
+	public function getMetadataDecoded(): ?stdClass {
+		return json_decode($this->metadata);
 	}
 }

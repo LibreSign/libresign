@@ -24,9 +24,9 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
-use TCPDI;
+use TCPDF;
 
-class TCPDILibresign extends TCPDI {
+class TCPDFLibresign extends TCPDF {
 	/**
 	 * @var bool
 	 */

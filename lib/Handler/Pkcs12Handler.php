@@ -33,14 +33,16 @@ use Endroid\QrCode\Matrix\Matrix;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
+use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\PdfParserService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
 use OCP\IL10N;
 use OCP\IURLGenerator;
-use TCPDI;
+use TCPDF;
 use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
@@ -59,6 +61,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n,
 		private JSignPdfHandler $jSignPdfHandler,
+		private PdfParserService $pdfParserService,
 	) {
 	}
 
@@ -159,42 +162,33 @@ class Pkcs12Handler extends SignEngineHandler {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
-	public function getFooter(File $file, string $uuid): string {
+	public function getFooter(File $file, FileEntity $fileEntity): string {
 		$add_footer = (bool) $this->appConfig->getAppValue('add_footer', '1');
 		if (!$add_footer) {
 			return '';
 		}
+		$metadata = $fileEntity->getMetadata();
+		if (!is_array($metadata) || !isset($metadata['d'])) {
+			$metadata = $this->pdfParserService->getMetadata($file);
+		}
 		$validation_site = $this->appConfig->getAppValue('validation_site');
 		if ($validation_site) {
-			$validation_site = rtrim($validation_site, '/').'/'.$uuid;
+			$validation_site = rtrim($validation_site, '/').'/'.$fileEntity->getUuid();
 		} else {
-			$validation_site = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', ['uuid' => $uuid]);
+			$validation_site = $this->urlGenerator->linkToRouteAbsolute('libresign.page.validationFileWithShortUrl', ['uuid' => $fileEntity->getUuid()]);
 		}
 
-		$pdf = new TCPDILibresign();
-		$pageCount = $pdf->setSourceData($file->getContent());
-
-		$dimensions = null;
-		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-			$pdf->importPage($pageNo);
-
-			// Define dimensions of page
-			$tpl = $pdf->tpls[$pageNo];
-			$dimensions['or'] = $tpl['w'] > $tpl['h'] ? 'L' : 'P';
-			$pdf->setPageOrientation($dimensions['or']);
-			$dimensions = $pdf->getPageDimensions($pageNo - 1);
-			$dimensions['w'] = $tpl['w'];
-			$dimensions['h'] = $tpl['h'];
-			$dimensions['wk'] = $tpl['h'];
-			$dimensions['hk'] = $tpl['h'];
-			foreach (['MediaBox', 'CropBox', 'BleedBox', 'TrimBox', 'ArtBox'] as $box) {
-				if (!isset($dimensions[$box])) {
-					continue;
-				}
-				$dimensions[$box]['urx'] = $tpl['h'];
-				$dimensions[$box]['ury'] = $tpl['w'];
-			}
-			$pdf->AddPage($dimensions['or'], $dimensions);
+		$pdf = new TCPDFLibresign();
+		foreach ($metadata['d'] as $dimension) {
+			$orientation = $dimension['w'] > $dimension['h'] ? 'L' : 'P';
+			$pdf->AddPage($orientation, [
+				'MediaBox' => [
+					'llx' => 0,
+					'lly' => 0,
+					'urx' => $dimension['w'],
+					'ury' => $dimension['h'],
+				]
+			]);
 
 			$pdf->SetFont('Helvetica');
 			$pdf->SetFontSize(8);
@@ -232,7 +226,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		return $pdf->Output('', 'S');
 	}
 
-	private function writeQrCode(string $text, TCPDI $fpdf): void {
+	private function writeQrCode(string $text, TCPDF $fpdf): void {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
