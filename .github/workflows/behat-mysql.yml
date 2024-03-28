@@ -10,21 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      php-version: ${{ steps.versions.outputs.php-available-list }}
-      server-max: ${{ steps.versions.outputs.branches-max-list }}
-    steps:
-      - name: Checkout app
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-
-      - name: Get version matrix
-        id: versions
-        uses: icewind1991/nextcloud-version-matrix@58becf3b4bb6dc6cef677b15e2fd8e7d48c0908f # v1.3.1
-        with:
-          matrix: '{"mysql-versions": ["8.1"]}'
-
   changes:
     runs-on: ubuntu-latest
 
@@ -52,13 +37,13 @@ jobs:
   behat-mysql:
     runs-on: ubuntu-latest
 
-    needs: [changes, matrix]
+    needs: [changes]
     if: needs.changes.outputs.src != 'false'
 
     strategy:
       matrix:
-        php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
-        server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
+        php-versions: ['8.0','8.1','8.2']
+        server-versions: [stable29]
         mysql-versions: ['8.1']
 
     name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
