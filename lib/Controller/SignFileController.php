@@ -36,7 +36,6 @@ use OCA\Libresign\Middleware\Attribute\RequireSigner;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SignFileService;
-use OCA\TwoFactorGateway\Exception\SmsTransmissionException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -212,10 +211,10 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			);
 			$message = $this->l10n->t('The code to sign file was successfully requested.');
 			$statusCode = Http::STATUS_OK;
-		} catch (SmsTransmissionException $e) {
-			// There was an error when to send SMS code to user.
-			$message = $this->l10n->t('Failed to send code.');
-			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
+			// } catch (\OCA\TwoFactorGateway\Exception\SmsTransmissionException $e) {
+			// 	// There was an error when to send SMS code to user.
+			// 	$message = $this->l10n->t('Failed to send code.');
+			// 	$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		} catch (\Throwable $th) {
 			$message = $th->getMessage();
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;

@@ -28,7 +28,7 @@ class ApiRequester extends AbstractRequester {
 		$response = Response::getInstance(http_response_code());
 		$response = $response->withBody(new Stream($body));
 
-		$headers = xdebug_get_headers();
+		$headers = \xdebug_get_headers();
 		foreach ($headers as $header) {
 			$header = explode(': ', $header, 2);
 			$response = $response->withHeader($header[0], $header[1]);

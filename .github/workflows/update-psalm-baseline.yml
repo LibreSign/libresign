@@ -1,0 +1,64 @@
+name: Update Psalm baseline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 2 * * *"
+
+jobs:
+  update-psalm-baseline:
+    runs-on: ubuntu-latest
+
+    if: ${{ github.repository_owner != 'nextcloud-gmbh' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        branches: ["main", "stable29", "stable28"]
+
+    name: update-psalm-baseline-${{ matrix.branches }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ matrix.branches }}
+          submodules: true
+
+      - name: Get php version
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@58becf3b4bb6dc6cef677b15e2fd8e7d48c0908f # v1.3.1
+
+      - name: Set up php${{ steps.versions.outputs.php-available }}
+        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2
+        with:
+          php-version: ${{ steps.versions.outputs.php-available }}
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
+          coverage: none
+          ini-file: development
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: composer i
+
+      - name: Psalm
+        run: composer run psalm:update-baseline -- --monochrome --no-progress --output-format=text
+        continue-on-error: true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@a4f52f8033a6168103c2538976c07b467e8163bc
+        with:
+          token: ${{ secrets.COMMAND_BOT_PAT }}
+          commit-message: Update psalm baseline
+          committer: GitHub <noreply@github.com>
+          author: nextcloud-command <nextcloud-command@users.noreply.github.com>
+          signoff: true
+          branch: automated/noid/${{ matrix.branches }}-update-psalm-baseline
+          title: "[${{ matrix.branches }}] Update psalm-baseline.xml"
+          body: |
+            Auto-generated update psalm-baseline.xml with fixed psalm warnings
+          labels: |
+            automated pr
+            3. to review
+          team-reviewers: server-backend
