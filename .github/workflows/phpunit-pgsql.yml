@@ -148,10 +148,10 @@ jobs:
           ./occ --version
           ./occ app:enable --force ${{ env.APP_NAME }}
 
-      - name: Set up dependencies apps
-        run: |
-          ./occ app:install --force --keep-disabled twofactor_gateway
-          ./occ app:enable --force twofactor_gateway
+      # - name: Set up dependencies apps
+      #   run: |
+      #     ./occ app:install --force --keep-disabled twofactor_gateway
+      #     ./occ app:enable --force twofactor_gateway
 
       - name: Run Nextcloud
         run: php -S localhost:8080 &
