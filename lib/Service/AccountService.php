@@ -331,16 +331,8 @@ class AccountService {
 
 	public function getSettings(?IUser $user = null): array {
 		$return['canRequestSign'] = $this->canRequestSign($user);
-		$return['canPreviewPageAsImage'] = $this->canPreviewPageAsImage();
 		$return['hasSignatureFile'] = $this->hasSignatureFile($user);
 		return $return;
-	}
-
-	private function canPreviewPageAsImage(): bool {
-		if ((bool) $this->appConfig->getAppValue('page_preview_as_image', '0')) {
-			return true;
-		}
-		return false;
 	}
 
 	public function addFilesToAccount(array $files, IUser $user): void {

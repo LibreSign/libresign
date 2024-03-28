@@ -24,7 +24,6 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Service\Install;
 
-use ImagickException;
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngine;
 use OCA\Libresign\Handler\JSignPdfHandler;
@@ -48,7 +47,6 @@ class ConfigureCheckService {
 	public function checkAll(): array {
 		$result = [];
 		$result = array_merge($result, $this->checkSign());
-		$result = array_merge($result, $this->canPreview());
 		$result = array_merge($result, $this->checkCertificate());
 		return $result;
 	}
@@ -64,56 +62,6 @@ class ConfigureCheckService {
 		$return = array_merge($return, $this->checkPdftk());
 		$return = array_merge($return, $this->checkJSignPdf());
 		return $return;
-	}
-
-	/**
-	 * Can preview PDF Files
-	 *
-	 * @return ConfigureCheckHelper[]
-	 */
-	public function canPreview(): array {
-		$pagePreviewAsImage = (bool) $this->appConfig->getAppValue('page_preview_as_image', '0');
-		if (!$pagePreviewAsImage) {
-			return [];
-		}
-		if (!extension_loaded('imagick')) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('Extension Imagick required')
-					->setResource('imagick')
-					->setTip('https://github.com/LibreSign/libresign/issues/829'),
-			];
-		}
-
-		if (!shell_exec(sprintf("which %s", escapeshellarg('ghostscript')))) {
-			return [
-				(new ConfigureCheckHelper())
-					->setErrorMessage('Is necessary install ghostscript in your operational system to make possible Imagick read PDF files. This feature will be used only if you need to add visible signatures in your PDF files using the web interface.')
-					->setResource('imagick')
-					->setTip('https://www.php.net/manual/en/imagick.requirements.php '),
-			];
-		}
-
-		$imagick = new \Imagick();
-		$imagick->setResolution(100, 100);
-		$pdf = file_get_contents(__DIR__ . '/../../tests/fixtures/small_valid.pdf');
-		try {
-			$imagick->readImageBlob($pdf);
-		} catch (ImagickException $ie) {
-			if ($ie->getCode() === 499) {
-				return [
-					(new ConfigureCheckHelper())
-						->setErrorMessage('Is necessary to configure the ImageMagick security policy to work with PDF.')
-						->setResource('imagick')
-						->setTip('https://github.com/LibreSign/libresign/issues/829'),
-				];
-			}
-		}
-		return [
-			(new ConfigureCheckHelper())
-				->setSuccessMessage('Can generate the preview')
-				->setResource('imagick'),
-		];
 	}
 
 	/**

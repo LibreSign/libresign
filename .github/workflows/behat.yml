@@ -80,7 +80,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: phpunit
-          extensions: mbstring, iconv, fileinfo, intl, imagick, sqlite, pdo_sqlite, mysql, pdo_mysql, pgsql, pdo_pgsql,
+          extensions: mbstring, iconv, fileinfo, intl, sqlite, pdo_sqlite, mysql, pdo_mysql, pgsql, pdo_pgsql,
           coverage: none
 
       - name: Set up dependencies
@@ -88,11 +88,6 @@ jobs:
         run: |
           composer install --no-dev
           composer --working-dir=tests/integration install
-
-      - name: Install Ghostscript
-        run: |
-          sudo apt-get update
-          sudo apt-get install ghostscript
 
       - name: Set up Nextcloud
         run: |
