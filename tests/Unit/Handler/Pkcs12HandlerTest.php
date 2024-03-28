@@ -3,10 +3,10 @@
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
-use OCA\Libresign\Handler\CertificateEngine\OpenSslHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
+use OCA\Libresign\Service\PdfParserService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -21,7 +21,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private CfsslHandler|MockObject $cfsslHandler;
 	private IL10N|MockObject $l10n;
 	private JSignPdfHandler|MockObject $jSignPdfHandler;
-	private OpenSslHandler|MockObject $openSslHandler;
+	private PdfParserService|MockObject $pdfParserService;
 	private CertificateEngineHandler|MockObject $certificateEngineHandler;
 	private array $cfsslHandlerBuffer = [];
 
@@ -36,6 +36,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
+		$this->pdfParserService = $this->createMock(PdfParserService::class);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
@@ -44,6 +45,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineHandler,
 			$this->l10n,
 			$this->jSignPdfHandler,
+			$this->pdfParserService,
 		);
 	}
 
@@ -102,9 +104,11 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineHandler,
 			$this->l10n,
 			$this->jSignPdfHandler,
+			$this->pdfParserService,
 		);
 		$file = $this->createMock(\OCP\Files\File::class);
-		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$actual = $this->pkcs12Handler->getFooter($file, $libresignFile);
 		$this->assertEmpty($actual);
 	}
 
@@ -130,6 +134,7 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->certificateEngineHandler,
 			$this->l10n,
 			$this->jSignPdfHandler,
+			$this->pdfParserService,
 		);
 
 		$file = $this->createMock(\OCP\Files\File::class);
@@ -137,8 +142,24 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn('small_valid.pdf');
 		$file->method('getContent')
 			->willReturn(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'));
-		$actual = $this->pkcs12Handler->getFooter($file, 'uuid');
-		$this->assertEquals(18615, strlen($actual));
+		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
+		$libresignFile
+			->method('__call')
+			->willReturnCallback(function ($key, $default) {
+				switch ($key) {
+					case 'getMetadata': return [
+						'd' => [
+							[
+								'w' => 100,
+								'h' => 100,
+							],
+						],
+					];
+					case 'getUuid': return 'uuid';
+				}
+			});
+		$actual = $this->pkcs12Handler->getFooter($file, $libresignFile);
+		$this->assertEquals(7655, strlen($actual));
 	}
 
 	public function cfsslHandlerCallbackToGetSetArguments($functionName, $value = null) {
