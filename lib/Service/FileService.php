@@ -30,7 +30,6 @@ use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
 use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
-use OCA\Libresign\Handler\TCPDILibresign;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCP\Accounts\IAccountManager;
@@ -431,47 +430,6 @@ class FileService {
 			}
 		}
 		return $return;
-	}
-
-	public function getPage(string $uuid, int $page, string $uid): string {
-		$canPreviewAsImage = (bool) $this->appConfig->getAppValue('page_preview_as_image', '0');
-		if (!$canPreviewAsImage) {
-			throw new LibresignException($this->l10n->t('Page not found.'));
-		}
-		$libreSignFile = $this->fileMapper->getByUuid($uuid);
-		$uid = $this->userSession->getUser()->getUID();
-		if ($libreSignFile->getUserId() !== $uid) {
-			$signers = $this->signRequestMapper->getByFileId($libreSignFile->id);
-			if (!$signers) {
-				throw new LibresignException($this->l10n->t('No signers.'));
-			}
-			$iNeedSign = false;
-			foreach ($signers as $signer) {
-				if ($signer->getUserId() === $uid) {
-					$iNeedSign = true;
-					break;
-				}
-			}
-			if (!$iNeedSign) {
-				throw new LibresignException($this->l10n->t('You must not sign this file.'));
-			}
-		}
-		$userFolder = $this->rootFolder->getUserFolder($libreSignFile->getUserId());
-		$file = $userFolder->getById($libreSignFile->getNodeId());
-		$pdf = new TCPDILibresign();
-		$pageCount = $pdf->setSourceData($file[0]->getContent());
-		if ($page > $pageCount || $page < 1) {
-			throw new LibresignException($this->l10n->t('Page not found.'));
-		}
-		$templateId = $pdf->importPage($page);
-		$pdf->AddPage();
-		$pdf->useTemplate($templateId);
-		$blob = $pdf->Output('', 'S');
-		$imagick = new \Imagick();
-		$imagick->setResolution(100, 100);
-		$imagick->readImageBlob($blob);
-		$imagick->setImageFormat('png');
-		return $imagick->getImageBlob();
 	}
 
 	public function setFileByPath(string $path): self {

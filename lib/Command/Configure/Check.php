@@ -25,7 +25,6 @@ declare(strict_types=1);
 namespace OCA\Libresign\Command\Configure;
 
 use OC\Core\Command\Base;
-use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCP\IConfig;
 use Symfony\Component\Console\Helper\Table;
@@ -37,7 +36,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Check extends Base {
 	private ConfigureCheckService $configureCheckService;
-	private bool $pagePreviewAsImage = false;
 
 	public function __construct(
 		ConfigureCheckService $configureCheckService,
@@ -45,7 +43,6 @@ class Check extends Base {
 	) {
 		parent::__construct();
 		$this->configureCheckService = $configureCheckService;
-		$this->pagePreviewAsImage = (bool) $this->config->getAppValue(Application::APP_ID, 'page_preview_as_image', '0');
 	}
 
 	protected function configure(): void {
@@ -64,33 +61,17 @@ class Check extends Base {
 				mode: InputOption::VALUE_NONE,
 				description: 'Check requirements to use root certificate'
 			);
-		if ($this->pagePreviewAsImage) {
-			$this
-				->addOption(
-					name: 'preview',
-					shortcut: 'p',
-					mode: InputOption::VALUE_NONE,
-					description: 'Check requirements to generate image preview'
-				);
-		}
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$sign = $input->getOption('sign');
 		$certificate = $input->getOption('certificate');
 		$all = (!$sign && !$certificate);
-		if ($this->pagePreviewAsImage) {
-			$preview = $input->getOption('preview');
-			$all = (!$preview && $all);
-		}
 
 		$result = [];
 		if ($all) {
 			$result = $this->configureCheckService->checkAll();
 		} else {
-			if ($preview) {
-				$result = array_merge($result, $this->configureCheckService->canPreview());
-			}
 			if ($sign) {
 				$result = array_merge($result, $this->configureCheckService->checkSign());
 			}

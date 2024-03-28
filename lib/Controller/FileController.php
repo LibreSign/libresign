@@ -41,7 +41,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -161,29 +160,6 @@ class FileController extends Controller {
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length);
 		return new JSONResponse($return, Http::STATUS_OK);
-	}
-
-	/**
-	 * @return DataDisplayResponse|JSONResponse
-	 */
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	public function getPage(string $uuid, int $page) {
-		try {
-			$page = $this->fileService->getPage($uuid, $page, $this->userSession->getUser()->getUID());
-			return new DataDisplayResponse(
-				$page,
-				Http::STATUS_OK,
-				['Content-Type' => 'image/png']
-			);
-		} catch (\Throwable $th) {
-			$this->logger->error($th->getMessage());
-			$return = [
-				'errors' => [$th->getMessage()]
-			];
-			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
-			return new JSONResponse($return, $statusCode);
-		}
 	}
 
 	#[NoAdminRequired]
