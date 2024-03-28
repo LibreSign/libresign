@@ -136,6 +136,7 @@ class AccountFileMapper extends QBMapper {
 				'f.uuid',
 				'f.name',
 				'f.callback',
+				'f.status',
 				'f.node_id',
 				'f.created_at',
 				'af.file_type',
