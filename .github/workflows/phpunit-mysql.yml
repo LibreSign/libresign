@@ -18,7 +18,6 @@ jobs:
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.versions.outputs.sparse-matrix }}
       php-version: ${{ steps.versions.outputs.php-available-list }}
       server-max: ${{ steps.versions.outputs.branches-max-list }}
     steps:
@@ -65,7 +64,7 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        mysq-versions: ${{ fromJson(needs.matrix.outputs.matrix.mysql-versions) }}
+        mysql-versions: ['8.1']
         coverage: ['xdebug']
         testsuite: [unit, api]
         xdebug_mode: ['debug']
