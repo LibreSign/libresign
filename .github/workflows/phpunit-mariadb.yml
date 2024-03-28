@@ -139,16 +139,17 @@ jobs:
           DB_PORT: 4444
         run: |
           mkdir data
-          ./occ maintenance:install
-            --verbose
-            --database=mysql
-            --database-name=nextcloud
-            --database-host=127.0.0.1
-            --database-port=$DB_PORT
-            --database-user=root
-            --database-pass=rootpassword
-            --admin-user admin
+          ./occ maintenance:install \
+            --verbose \
+            --database=mysql \
+            --database-name=nextcloud \
+            --database-host=127.0.0.1 \
+            --database-port=$DB_PORT \
+            --database-user=root \
+            --database-pass=rootpassword \
+            --admin-user admin \
             --admin-pass admin
+          ./occ --version
           ./occ app:enable --force ${{ env.APP_NAME }}
 
       - name: Set up dependencies apps
@@ -173,7 +174,7 @@ jobs:
   summary:
     permissions:
       contents: none
-    runs-on: ubuntu-latest-low
+    runs-on: ubuntu-latest
     needs: [changes, phpunit-mariadb]
 
     if: always()
@@ -182,10 +183,10 @@ jobs:
 
     steps:
       - name: Summary status
-        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
+        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mariadb.result != 'success' }}; then exit 1; fi
 
   upload-coverage:
-    needs: phpunit
+    needs: [changes, phpunit-mariadb]
     runs-on: ubuntu-latest
     steps:
       - name: Upload coverage results to Coveralls
