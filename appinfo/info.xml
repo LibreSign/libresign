@@ -9,7 +9,7 @@
 
 ]]>
     </description>
-    <version>9.0.0-rc9</version>
+    <version>9.0.0-rc10</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
     <documentation>
@@ -22,7 +22,7 @@
     <discussion>https://t.me/libresign</discussion>
     <bugs>https://github.com/LibreSign/libresign/issues</bugs>
     <repository type="git">https://github.com/LibreSign/libresign</repository>
-    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png?v=9.0.0-rc9</screenshot>
+    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png?v=9.0.0-rc10</screenshot>
     <dependencies>
         <lib>openssl</lib>
         <nextcloud min-version="29" max-version="29"/>
