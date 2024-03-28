@@ -92,7 +92,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$this->validateHelper->validateVisibleElementsRelation($elements, $signRequest, $user);
 			$this->validateHelper->validateCredentials($signRequest, $user, $method, $identifyValue, $token);
 			if ($method === 'password') {
-				$this->signFileService->setPassword($identifyValue);
+				$this->signFileService->setPassword($token);
 			} else {
 				$this->signFileService->setSignWithoutPassword(true);
 			}
