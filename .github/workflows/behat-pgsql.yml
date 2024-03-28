@@ -1,9 +1,4 @@
-# This workflow is provided via the organization template repository
-#
-# https://github.com/nextcloud/.github
-# https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
-
-name: PHPUnit MySQL
+name: Behat PostgreSQL
 
 on: pull_request
 
@@ -11,14 +6,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: phpunit-mysql-${{ github.head_ref || github.run_id }}
+  group: behat-pgsql-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.versions.outputs.sparse-matrix }}
+      php-version: ${{ steps.versions.outputs.php-available-list }}
+      server-max: ${{ steps.versions.outputs.branches-max-list }}
     steps:
       - name: Checkout app
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -26,8 +22,6 @@ jobs:
       - name: Get version matrix
         id: versions
         uses: icewind1991/nextcloud-version-matrix@58becf3b4bb6dc6cef677b15e2fd8e7d48c0908f # v1.3.1
-        with:
-          matrix: '{"mysql-versions": ["8.1"]}'
 
   changes:
     runs-on: ubuntu-latest
@@ -53,7 +47,7 @@ jobs:
               - 'composer.json'
               - 'composer.lock'
 
-  phpunit-mysql:
+  behat-pgsql:
     runs-on: ubuntu-latest
 
     needs: [changes, matrix]
@@ -63,20 +57,24 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        coverage: ['xdebug']
-        testsuite: [unit, api]
-        xdebug_mode: ['debug']
 
-    name: MySQL ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }} Testsuite ${{ matrix.testsuite }}
+    name: PostgreSQL PHP ${{ matrix.mysql-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     services:
-      mysql:
-        image: ghcr.io/nextcloud/continuous-integration-mysql-${{ matrix.mysql-versions }}:latest
+      postgres:
+        image: ghcr.io/nextcloud/continuous-integration-postgres-14:latest
         ports:
-          - 4444:3306/tcp
+          - 4444:5432/tcp
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: rootpassword
+          POSTGRES_DB: nextcloud
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
+      mailhog:
+        image: mailhog/mailhog
+        ports:
+          - 8025:8025/tcp
+          - 1025:1025/tcp
 
     steps:
       - name: Set app env
@@ -100,17 +98,13 @@ jobs:
         uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2
         with:
           php-version: ${{ matrix.php-versions }}
+          tools: phpunit
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, pgsql, pdo_pgsql
           coverage: none
           ini-file: development
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable ONLY_FULL_GROUP_BY MySQL option
-        run: |
-          echo "SET GLOBAL sql_mode=(SELECT CONCAT(@@sql_mode,',ONLY_FULL_GROUP_BY'));" | mysql -h 127.0.0.1 -P 4444 -u root -prootpassword
-          echo "SELECT @@sql_mode;" | mysql -h 127.0.0.1 -P 4444 -u root -prootpassword
 
       - name: Check composer file existence
         id: check_composer
@@ -122,26 +116,23 @@ jobs:
         # Only run if phpunit config file exists
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
-        run: composer i
+        run: |
+          composer install --no-dev
+          composer --working-dir=tests/integration install
 
       - name: Prevent Nextcloud OCP outdated
         working-directory: apps/${{ env.APP_NAME }}
         run: make updateocp
 
-      - name: Checkout site
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          repository: libresign/libresign.github.io
-          path: 'apps/${{ env.APP_NAME }}/build/site'
-
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
         run: |
+          sudo echo "127.0.0.1 mailhog" | sudo tee -a /etc/hosts
           mkdir data
           ./occ maintenance:install \
             --verbose \
-            --database=mysql \
+            --database=pgsql \
             --database-name=nextcloud \
             --database-host=127.0.0.1 \
             --database-port=$DB_PORT \
@@ -151,20 +142,22 @@ jobs:
             --admin-pass admin
           ./occ --version
           ./occ app:enable --force ${{ env.APP_NAME }}
+          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/notifications apps/notifications
+          ./occ app:enable --force notifications
+          git clone --depth 1 -b ${{ matrix.server-versions }} https://github.com/nextcloud/activity apps/activity
+          ./occ app:enable --force activity
+          ./occ config:system:set mail_smtpport --value 1025 --type integer
+          ./occ config:system:set mail_smtphost --value mailhog
+          ./occ config:system:set allow_local_remote_servers --value true --type boolean
 
-      - name: Set up dependencies apps
-        run: |
-          ./occ app:install --force --keep-disabled twofactor_gateway
-          ./occ app:enable --force twofactor_gateway
-
-      - name: Run Nextcloud
-        run: php -S localhost:8080 &
-
-      - name: PHPUnit
-        working-directory: apps/${{ env.APP_NAME }}
+      - name: Run behat
+        working-directory: apps/${{ env.APP_NAME }}/tests/integration
         env:
-          XDEBUG_MODE: ${{ matrix.xdebug_mode }}
-        run: ./vendor/bin/phpunit -c phpunit.xml --testsuite ${{ matrix.testsuite }}
+          BEHAT_ROOT_DIR: ../../../../
+        run: |
+          export BEHAT_RUN_AS=runner
+          export BEHAT_VERBOSE="$RUNNER_DEBUG"
+          vendor/bin/behat -f junit -f pretty --colors
 
       - name: Print logs
         if: always()
@@ -175,34 +168,12 @@ jobs:
     permissions:
       contents: none
     runs-on: ubuntu-latest
-    needs: [changes, phpunit-mysql]
+    needs: [changes, behat-pgsql]
 
     if: always()
 
-    name: phpunit-mysql-summary
+    name: behat-pgsql-summary
 
     steps:
       - name: Summary status
-        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mysql.result != 'success' }}; then exit 1; fi
-
-  upload-coverage:
-    needs: [changes, phpunit-mysql]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Upload coverage results to Coveralls
-        working-directory: apps/${{ env.APP_NAME }}
-        if: matrix.xdebug_mode == 'coverage'
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: php-${{ matrix.php-versions }}
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml --json_path=build/logs/coveralls-upload.json -v
-  finish-coverage:
-    needs: upload-coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Let Coveralls know that all tests have finished
-        uses: coverallsapp/github-action@v2.0.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
+        run: if ${{ needs.changes.outputs.src != 'false' && needs.behat-pgsql.result != 'success' }}; then exit 1; fi
