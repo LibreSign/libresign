@@ -22,12 +22,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "Dalam proses",
-    "No date" : "No date",
-    "Description" : "Keterangan",
-    "Add" : "Tambah",
-    "Users" : "Pengguna",
-    "Reset password" : "Penetapan semula kata laluan",
-    "Select a file" : "Select a file",
-    "Remove" : "Buang"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

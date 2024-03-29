@@ -20,11 +20,6 @@
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "كۈتۈۋاتىدۇ",
-    "No date" : "No date",
-    "Description" : "چۈشەندۈرۈش",
-    "Add" : "قوش",
-    "Users" : "ئىشلەتكۈچىلەر",
-    "Select a file" : "Select a file",
-    "Remove" : "چىقىرىۋەت"
+    "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

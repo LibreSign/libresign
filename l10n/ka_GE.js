@@ -49,13 +49,6 @@ OC.L10N.register(
     "Yes" : "კი",
     "No" : "არა",
     "Pending" : "მოლოდინში",
-    "No date" : "თარიღი არაა",
-    "Apply" : "გამოყენება",
-    "Description" : "აღწერილობა",
-    "Add" : "დამატება",
-    "Users" : "მომხმარებლები",
-    "Reset password" : "პაროლის შეცვლა",
-    "Select a file" : "Select a file",
-    "Remove" : "წაშლა"
+    "No date" : "თარიღი არაა"
 },
 "nplurals=2; plural=(n!=1);");

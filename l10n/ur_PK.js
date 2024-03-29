@@ -16,11 +16,6 @@ OC.L10N.register(
     "New password" : "نیا پاسورڈ",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Description" : "تصریح",
-    "Add" : "شامل کریں",
-    "Users" : "صارفین",
-    "Reset password" : "ری سیٹ پاسورڈ",
-    "Select a file" : "Select a file"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

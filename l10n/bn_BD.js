@@ -27,12 +27,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "মুলতুবি",
-    "No date" : "No date",
-    "Description" : "বিবরণ",
-    "Add" : "যোগ করুন",
-    "Users" : "ব্যবহারকারী",
-    "Reset password" : "কূটশব্দ পূনঃনির্ধারণ কর",
-    "Select a file" : "Select a file",
-    "Remove" : "অপসারণ"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

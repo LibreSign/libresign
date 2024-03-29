@@ -25,11 +25,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "நிலுவையிலுள்ள",
-    "No date" : "No date",
-    "Description" : "விவரிப்பு",
-    "Add" : "சேர்க்க",
-    "Users" : "பயனாளர்",
-    "Reset password" : "மீளமைத்த கடவுச்சொல்",
-    "Remove" : "அகற்றுக"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

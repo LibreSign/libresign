@@ -74,19 +74,6 @@ OC.L10N.register(
     "All Files" : "すべてのファイル",
     "Pending" : "保留中",
     "No date" : "日付なし",
-    "Open in LibreSign" : "LibreSignで開く",
-    "Page not found." : "ページが見つかりません。",
-    "Colors:" : "色：",
-    "Apply" : "適用",
-    "Signatures" : "署名",
-    "Description" : "説明",
-    "Add" : "追加",
-    "Users" : "ユーザー",
-    "Reset password" : "パスワードをリセット",
-    "Select a file" : "Select a file",
-    "Add users" : "ユーザーを追加",
-    "Remove" : "削除",
-    "User created!" : "ユーザーが作成しました！",
-    "Password created!" : "パスワードが作成しました！"
+    "Open in LibreSign" : "LibreSignで開く"
 },
 "nplurals=1; plural=0;");

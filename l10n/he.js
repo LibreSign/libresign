@@ -59,13 +59,6 @@ OC.L10N.register(
     "No" : "לא",
     "Loading …" : "בטעינה…",
     "Pending" : "בהמתנה",
-    "No date" : "No date",
-    "Apply" : "החלה",
-    "Description" : "תיאור",
-    "Add" : "הוספה",
-    "Users" : "משתמשים",
-    "Reset password" : "איפוס ססמה",
-    "Select a file" : "Select a file",
-    "Remove" : "הסרה"
+    "No date" : "No date"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

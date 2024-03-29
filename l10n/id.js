@@ -50,13 +50,6 @@ OC.L10N.register(
     "Yes" : "Ya",
     "No" : "Tidak",
     "Pending" : "Tunggu",
-    "No date" : "No date",
-    "Apply" : "Terapkan",
-    "Description" : "Deskrisi",
-    "Add" : "Masukkan",
-    "Users" : "Pengguna",
-    "Reset password" : "Setel ulang kata sandi",
-    "Select a file" : "Pilih berkas",
-    "Remove" : "Buang"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

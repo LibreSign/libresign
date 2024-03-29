@@ -46,11 +46,6 @@ OC.L10N.register(
     "No" : "Nee",
     "Loading …" : "Laai …",
     "Pending" : "Hangend",
-    "No date" : "Geen datum",
-    "Description" : "Beskrywing",
-    "Add" : "Voeg by",
-    "Users" : "Gebruikers",
-    "Reset password" : "Herstel wagwoord",
-    "Remove" : "Verwyder"
+    "No date" : "Geen datum"
 },
 "nplurals=2; plural=(n != 1);");

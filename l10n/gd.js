@@ -22,7 +22,6 @@ OC.L10N.register(
     "Password reset" : "Ath-shuidheachadh an fhacail-fhaire",
     "Yes" : "Tha",
     "No" : "Chan eil",
-    "Pending" : "Ri dhèiligeadh",
-    "Remove" : "Thoir air falbh"
+    "Pending" : "Ri dhèiligeadh"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");

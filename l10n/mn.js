@@ -39,12 +39,6 @@ OC.L10N.register(
     "No" : "Үгүй",
     "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
-    "No date" : "No date",
-    "Apply" : "хэрэглэх",
-    "Description" : "Тайлбар",
-    "Add" : "нэмэх",
-    "Users" : "хэрэглэгч",
-    "Select a file" : "Select a file",
-    "Remove" : "Устгах"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

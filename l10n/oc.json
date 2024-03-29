@@ -102,19 +102,6 @@
     "Pending" : "En espèra",
     "Return" : "Tornar",
     "No date" : "Cap de data",
-    "This document is valid" : "Aqueste document es valid",
-    "You must not sign this file." : "Devètz pas signar aqueste fichièr.",
-    "Page not found." : "Pagina pas trobada",
-    "Apply" : "Aplicar",
-    "Signatures" : "Signaturas",
-    "Description" : "Descripcion",
-    "Add" : "Apondre",
-    "Users" : "Utilizaires",
-    "Reset password" : "Reïnicializar senhal",
-    "Select a file" : "Select a file",
-    "Add users" : "Apondre utilizaires",
-    "Remove" : "Suprimir",
-    "This iframe is not supported in your browser." : "Aquesta iframe es pas suportada dins vòstre navigador.",
-    "User created!" : "Utilizaire creat !"
+    "This document is valid" : "Aqueste document es valid"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

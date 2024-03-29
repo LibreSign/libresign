@@ -47,13 +47,6 @@
     "Yes" : "კი",
     "No" : "არა",
     "Pending" : "მოლოდინში",
-    "No date" : "თარიღი არაა",
-    "Apply" : "გამოყენება",
-    "Description" : "აღწერილობა",
-    "Add" : "დამატება",
-    "Users" : "მომხმარებლები",
-    "Reset password" : "პაროლის შეცვლა",
-    "Select a file" : "Select a file",
-    "Remove" : "წაშლა"
+    "No date" : "თარიღი არაა"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }
