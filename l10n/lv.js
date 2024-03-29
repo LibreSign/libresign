@@ -49,13 +49,6 @@ OC.L10N.register(
     "Yes" : "Jā",
     "No" : "Nē",
     "Pending" : "Gaida",
-    "No date" : "No date",
-    "Apply" : "Apstiprināt",
-    "Description" : "Apraksts",
-    "Add" : "Pievienot",
-    "Users" : "Lietotāji",
-    "Reset password" : "Mainīt paroli",
-    "Select a file" : "Izvēlēties failu",
-    "Remove" : "Noņemt"
+    "No date" : "No date"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

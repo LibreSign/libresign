@@ -60,14 +60,6 @@ OC.L10N.register(
     "No" : "Nej",
     "Loading …" : "Loading …",
     "Pending" : "Afventer",
-    "No date" : "No date",
-    "Apply" : "Anvend",
-    "Description" : "Beskrivelse",
-    "Add" : "Tilføj",
-    "Users" : "Brugere",
-    "Reset password" : "Nulstil kodeord",
-    "Select a file" : "Select a file",
-    "Add users" : "Tilføj brugere",
-    "Remove" : "Fjern"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

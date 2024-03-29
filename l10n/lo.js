@@ -31,10 +31,6 @@ OC.L10N.register(
     "No" : "ບໍ່",
     "Loading …" : "ກຳລັງໂຫຼດ",
     "Pending" : "ທີ່ກໍາລັງລໍຖ້າ",
-    "No date" : "ບໍ່ມີວັນທີ",
-    "Add" : "ເພີ່ມ",
-    "Users" : "ຜູ້ໃຊ້",
-    "Reset password" : "ຕັ້ງລະຫັດຄືນໃຫມ່",
-    "Remove" : "ຍ້າຍອອກ"
+    "No date" : "ບໍ່ມີວັນທີ"
 },
 "nplurals=1; plural=0;");

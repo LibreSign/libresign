@@ -31,10 +31,6 @@ OC.L10N.register(
     "Yes" : "Oui",
     "No" : "Uhu",
     "Loading …" : "Asali ...",
-    "Pending" : "Yegguni",
-    "Add" : "Rnu",
-    "Users" : "Iseqdacen",
-    "Reset password" : "Awennez tikkelt nniḍen n awal uɛaddi",
-    "Remove" : "Kkes"
+    "Pending" : "Yegguni"
 },
 "nplurals=2; plural=(n != 1);");

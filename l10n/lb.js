@@ -27,13 +27,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "Ausstoend",
-    "No date" : "No date",
-    "Apply" : "Uwenden",
-    "Description" : "Beschreiwung",
-    "Add" : "Derbäimaachen",
-    "Users" : "Benotzer",
-    "Reset password" : "Passwuert zréck setzen",
-    "Select a file" : "Select a file",
-    "Remove" : "Läschen"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

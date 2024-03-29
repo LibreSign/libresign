@@ -62,13 +62,6 @@ OC.L10N.register(
     "No" : "Nei",
     "Loading …" : "Hleð inn …",
     "Pending" : "Í bið",
-    "No date" : "Engin dagsetning",
-    "Apply" : "Virkja",
-    "Description" : "Lýsing",
-    "Add" : "Bæta við",
-    "Users" : "Notendur",
-    "Reset password" : "Endursetja lykilorð",
-    "Select a file" : "Veldu skrá",
-    "Remove" : "Fjarlægja"
+    "No date" : "Engin dagsetning"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

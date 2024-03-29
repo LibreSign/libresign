@@ -50,13 +50,6 @@ OC.L10N.register(
     "Yes" : "Jah",
     "No" : "Ei",
     "Pending" : "Ootel",
-    "No date" : "No date",
-    "Apply" : "Rakenda",
-    "Description" : "Kirjeldus",
-    "Add" : "Lisa",
-    "Users" : "Kasutajad",
-    "Reset password" : "Lähtesta parool",
-    "Select a file" : "Select a file",
-    "Remove" : "Eemalda"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

@@ -64,14 +64,6 @@ OC.L10N.register(
     "No" : "Не",
     "Loading …" : "Се вчитува…",
     "Pending" : "Чекање",
-    "No date" : "No date",
-    "Apply" : "Примени",
-    "Description" : "Опис",
-    "Add" : "Додади",
-    "Users" : "Корисници",
-    "Reset password" : "Ресетирај лозинка",
-    "Select a file" : "Select a file",
-    "Add users" : "Додади корисници",
-    "Remove" : "Отстрани "
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

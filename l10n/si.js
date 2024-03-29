@@ -32,10 +32,6 @@ OC.L10N.register(
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
     "No" : "නැහැ",
-    "Loading …" : "පූරණය වෙමින් …",
-    "Description" : "විස්තරය",
-    "Add" : "එකතු කරන්න",
-    "Users" : "පරිශීලකයින්",
-    "Remove" : "ඉවත් කරන්න"
+    "Loading …" : "පූරණය වෙමින් …"
 },
 "nplurals=2; plural=(n != 1);");

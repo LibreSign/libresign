@@ -56,13 +56,6 @@ OC.L10N.register(
     "No" : "No",
     "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
-    "No date" : "No date",
-    "Apply" : "Validigi",
-    "Description" : "Priskribo",
-    "Add" : "Aldoni",
-    "Users" : "Uzantoj",
-    "Reset password" : "Restarigi pasvorton",
-    "Select a file" : "Select a file",
-    "Remove" : "Forigi"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

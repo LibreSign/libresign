@@ -55,14 +55,6 @@ OC.L10N.register(
     "No" : "Không",
     "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
-    "No date" : "No date",
-    "Apply" : "Áp dụng",
-    "Description" : "Mô tả",
-    "Add" : "Thêm",
-    "Users" : "Người dùng",
-    "Reset password" : "Khôi phục mật khẩu",
-    "Select a file" : "Select a file",
-    "Add users" : "Thêm người dùng",
-    "Remove" : "Xoá"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

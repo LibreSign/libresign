@@ -26,9 +26,6 @@ OC.L10N.register(
     "Resource" : "Ռեսուրս",
     "Yes" : "Yes",
     "No" : "No",
-    "No date" : "No date",
-    "Description" : "Նկարագրություն",
-    "Add" : "Ավելացնել",
-    "Select a file" : "Select a file"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

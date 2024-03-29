@@ -52,13 +52,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "Jo",
     "Pending" : "Në Pritje të Konfirmimit",
-    "No date" : "No date",
-    "Apply" : "Apliko",
-    "Description" : "Përshkrim",
-    "Add" : "Shto",
-    "Users" : "Përdoruesit",
-    "Reset password" : "Ricaktoni fjalëkalimin",
-    "Select a file" : "Zgjidhni një skedar",
-    "Remove" : "Hiq"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

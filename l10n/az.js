@@ -36,12 +36,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "Gözləmə",
-    "No date" : "No date",
-    "Description" : "Açıqlanma",
-    "Add" : "Əlavə etmək",
-    "Users" : "İstifadəçilər",
-    "Reset password" : "Parolu sıfırlayın",
-    "Select a file" : "Select a file",
-    "Remove" : "Sil"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");
