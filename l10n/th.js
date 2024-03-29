@@ -50,13 +50,6 @@ OC.L10N.register(
     "Yes" : "ใช่",
     "No" : "ไม่",
     "Pending" : "รอดำเนินการ",
-    "No date" : "ไม่มีวันที่",
-    "Apply" : "นำไปใช้",
-    "Description" : "รายละเอียด",
-    "Add" : "เพิ่ม",
-    "Users" : "ผู้ใช้",
-    "Reset password" : "ตั้งรหัสผ่านใหม่",
-    "Select a file" : "Select a file",
-    "Remove" : "ลบออก"
+    "No date" : "ไม่มีวันที่"
 },
 "nplurals=1; plural=0;");

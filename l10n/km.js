@@ -25,13 +25,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "កំពុង​រង់ចាំ",
-    "No date" : "No date",
-    "Apply" : "អនុវត្ត",
-    "Description" : "ការ​អធិប្បាយ",
-    "Add" : "បញ្ចូល",
-    "Users" : "អ្នកប្រើ",
-    "Reset password" : "កំណត់​ពាក្យ​សម្ងាត់​ម្ដង​ទៀត",
-    "Select a file" : "Select a file",
-    "Remove" : "ដកចេញ"
+    "No date" : "No date"
 },
 "nplurals=1; plural=0;");

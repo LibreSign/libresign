@@ -35,12 +35,6 @@ OC.L10N.register(
     "No" : "No",
     "Loading …" : "Yn llwytho …",
     "Pending" : "I ddod",
-    "No date" : "No date",
-    "Description" : "Disgrifiad",
-    "Add" : "Ychwanegu",
-    "Users" : "Defnyddwyr",
-    "Reset password" : "Ailosod cyfrinair",
-    "Select a file" : "Select a file",
-    "Remove" : "Gwaredu"
+    "No date" : "No date"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

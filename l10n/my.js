@@ -24,11 +24,6 @@ OC.L10N.register(
     "Validation" : "ခိုင်လုံမှုစိစစ်ခြင်း",
     "No date" : "ရက်စွဲမပါ",
     "This document is valid" : "ဤစာရွက်စာတမ်းသည် မှန်ကန်ခိုင်လုံသည်။",
-    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ",
-    "Add users" : "အသုံးပြုသူ ထည့်သွင်းရန်",
-    "Root certificate data." : "Root Certificate အချက်အလက်",
-    "Generate root certificate." : "Root Certificate ဖန်တီးရန်။",
-    "Document Informations" : "စာရွက်စာတမ်း အချက်အလက်များ",
-    "Validate Subscription." : "ပုံမှန်ကြေး ခိုင်လုံမှုရှိ၊ မရှိ စစ်ဆေးရန်။"
+    "Open in LibreSign" : "LibreSign တွင်ဖွင့်ပါ"
 },
 "nplurals=1; plural=0;");

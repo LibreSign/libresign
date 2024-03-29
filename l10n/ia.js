@@ -31,11 +31,6 @@ OC.L10N.register(
     "Yes" : "Si",
     "No" : "No",
     "Pending" : "Pendente",
-    "No date" : "No date",
-    "Apply" : "Applicar",
-    "Description" : "Description",
-    "Add" : "Adder",
-    "Users" : "Usatores",
-    "Select a file" : "Select a file"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

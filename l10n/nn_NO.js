@@ -36,14 +36,6 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Pending" : "Under vegs",
-    "No date" : "No date",
-    "Colors:" : "Fargar:",
-    "Apply" : "Anvend",
-    "Description" : "Skildring",
-    "Add" : "Legg til",
-    "Users" : "Brukarare",
-    "Reset password" : "Nullstill passord",
-    "Select a file" : "Select a file",
-    "Remove" : "Fjern"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Other activities" : "Otres actividaes",
     "Settings saved" : "Guardóse la configuración",
-    "Failed to send code." : "Nun se pue unviar el códigu.",
     "File is too big" : "El ficheru ye mui grande",
     "%s already signed this file" : "%s xá firmó esti ficheru",
     "A file of this type has been associated." : "Asocióse un ficheru d'esti tipu.",
@@ -54,12 +53,6 @@ OC.L10N.register(
     "No" : "Non",
     "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
-    "Pending" : "Pendiente",
-    "Apply" : "Aplicar",
-    "Signatures" : "Firmes",
-    "Description" : "Descripción",
-    "Add" : "Amestar",
-    "Users" : "Usuarios",
-    "Remove" : "Quitar"
+    "Pending" : "Pendiente"
 },
 "nplurals=2; plural=(n != 1);");

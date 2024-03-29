@@ -94,18 +94,6 @@ OC.L10N.register(
     "Pending" : "Σε αναμονή",
     "Return" : "Επιστροφή",
     "Validation" : "Επικύρωση",
-    "No date" : "Καμία ημερομηνία",
-    "Apply" : "Εφαρμογή",
-    "Signatures" : "Υπογραφές",
-    "Description" : "Περιγραφή",
-    "Add" : "Προσθήκη",
-    "Users" : "Χρήστες",
-    "Reset password" : "Επαναφορά συνθηματικού",
-    "Select a file" : "Select a file",
-    "Password for sign document." : "Συνθηματικό για υπογραφή του εγγράφου.",
-    "Add users" : "Προσθήκη χρηστών",
-    "Remove" : "Αφαίρεση",
-    "Validate Subscription." : "Επικύρωση συνδρομής.",
-    "User created!" : "Ο χρήστης δημιουργήθηκε!"
+    "No date" : "Καμία ημερομηνία"
 },
 "nplurals=2; plural=(n != 1);");

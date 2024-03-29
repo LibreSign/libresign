@@ -22,11 +22,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "كۈتۈۋاتىدۇ",
-    "No date" : "No date",
-    "Description" : "چۈشەندۈرۈش",
-    "Add" : "قوش",
-    "Users" : "ئىشلەتكۈچىلەر",
-    "Select a file" : "Select a file",
-    "Remove" : "چىقىرىۋەت"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

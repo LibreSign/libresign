@@ -23,11 +23,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Pending" : "﻿ಬಾಕಿ ಇದೆ",
-    "No date" : "No date",
-    "Add" : "﻿ಸೇರಿಸಿ",
-    "Users" : "﻿ಬಳಕೆದಾರರು",
-    "Reset password" : "ಗುಪ್ತ ಪದವನ್ನು ಮರುಹೊಂದಿಸಿ",
-    "Select a file" : "Select a file",
-    "Remove" : "ತೆಗೆದುಹಾಕಿ"
+    "No date" : "No date"
 },
 "nplurals=2; plural=(n > 1);");

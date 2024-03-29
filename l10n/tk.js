@@ -19,7 +19,6 @@ OC.L10N.register(
     "Send" : "Iber",
     "Yes" : "Hawa",
     "No" : "Ýok",
-    "Pending" : "Garaşylýar",
-    "Remove" : "Aýyrmak"
+    "Pending" : "Garaşylýar"
 },
 "nplurals=2; plural=(n != 1);");

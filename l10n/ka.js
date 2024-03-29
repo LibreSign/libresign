@@ -57,12 +57,6 @@ OC.L10N.register(
     "Yes" : "Yes",
     "No" : "No",
     "Loading …" : "Loading …",
-    "Pending" : "Pending",
-    "Description" : "Description",
-    "Add" : "Add",
-    "Users" : "Users",
-    "Reset password" : "Reset password",
-    "Add users" : "Add users",
-    "Remove" : "Remove"
+    "Pending" : "Pending"
 },
 "nplurals=2; plural=(n!=1);");
