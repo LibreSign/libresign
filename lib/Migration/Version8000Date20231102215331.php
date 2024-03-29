@@ -140,7 +140,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 				->values([
 					'id' => $qbRestore->createNamedParameter($row['id'], IQueryBuilder::PARAM_INT),
 					'file_id' => $qbRestore->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
-					'uuid' => $qbRestore->createNamedParameter($row['uuid'], IQueryBuilder::PARAM_INT),
+					'uuid' => $qbRestore->createNamedParameter($row['uuid']),
 					'display_name' => $qbRestore->createNamedParameter($row['display_name']),
 					'description' => $qbRestore->createNamedParameter($row['description']),
 					'created_at' => $qbRestore->createNamedParameter($row['created_at'], IQueryBuilder::PARAM_INT),
