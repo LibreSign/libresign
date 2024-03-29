@@ -130,7 +130,7 @@ class Version8000Date20230420125331 extends SimpleMigrationStep {
 					'file_user_id' => $insert->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
 					'mandatory' => $insert->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 					'identifier_key' => $insert->createNamedParameter('account'),
-					'identifier_value' => $insert->createNamedParameter($row['user_id'], IQueryBuilder::PARAM_INT),
+					'identifier_value' => $insert->createNamedParameter($row['user_id']),
 					'attempts' => $insert->createNamedParameter($row['signed'] ? 1 : 0, IQueryBuilder::PARAM_INT),
 					'identified_at_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
 					'last_attempt_date' => $insert->createNamedParameter($row['signed'] ? new \DateTime('@' . $row['signed']): null, IQueryBuilder::PARAM_DATE),
