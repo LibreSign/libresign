@@ -74,7 +74,6 @@ export default {
 			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
 			PDFIcon,
 			document: {
-				name: '',
 				filename: loadState('libresign', 'filename'),
 				description: loadState('libresign', 'description'),
 				status: loadState('libresign', 'status'),
