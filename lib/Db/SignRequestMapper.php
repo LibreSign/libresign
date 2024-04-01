@@ -545,7 +545,7 @@ class SignRequestMapper extends QBMapper {
 
 					if ($data['me']) {
 						$data['sign_uuid'] = $signer->getUuid();
-						$data['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
+						$files[$key]['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
 					}
 
 					if ($signer->getSigned()) {
