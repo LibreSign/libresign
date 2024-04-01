@@ -6,10 +6,10 @@
 				<header>
 					<img class="pdf-icon" :src="PDFIcon">
 					<h1>
-						{{ document.filename }}
+						{{ signStore.document.filename }}
 						<br>
 						<Chip>
-							{{ document.statusText }}
+							{{ signStore.document.statusText }}
 						</Chip>
 					</h1>
 				</header>
@@ -24,16 +24,17 @@
 						{{ t('libresign', 'Document not available for signature.') }}
 					</div>
 					<Sign v-else-if="!loading"
-						v-bind="{ document, uuid, docType }"
+						v-bind="{ docType }"
 						@signed="onSigned" />
 				</main>
 			</div>
 		</NcAppNavigation>
 		<NcAppContent>
-			<PdfEditor ref="pdfEditor"
+			<PdfEditor v-if="mounted"
+				ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:file-src="pdf.url"
+				:file-src="signStore.pdf.url"
 				:read-only="true"
 				@pdf-editor:end-init="updateSigners" />
 		</NcAppContent>
@@ -45,13 +46,13 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import isMobile from '@nextcloud/vue/dist/Mixins/isMobile.js'
-import { loadState } from '@nextcloud/initial-state'
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import Chip from '../../Components/Chip.vue'
 import Sign from './_partials/Sign.vue'
 import PDFIcon from '../../../img/application-pdf.png'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
+import { useSignStore } from '../../store/sign.js'
 
 export default {
 	name: 'SignPDF',
@@ -66,22 +67,15 @@ export default {
 	mixins: [
 		isMobile,
 	],
+	setup() {
+		const signStore = useSignStore()
+		return { signStore }
+	},
 	data() {
 		return {
 			loading: true,
-			errors: loadState('libresign', 'errors', []),
-			pdf: loadState('libresign', 'pdf'),
-			uuid: loadState('libresign', 'uuid', null) ?? this.$route.params.uuid,
+			mounted: false,
 			PDFIcon,
-			document: {
-				filename: loadState('libresign', 'filename'),
-				description: loadState('libresign', 'description'),
-				status: loadState('libresign', 'status'),
-				statusText: loadState('libresign', 'statusText'),
-				fileId: loadState('libresign', 'fileId', 0),
-				signers: loadState('libresign', 'signers', []),
-				visibleElements: loadState('libresign', 'visibleElements', []),
-			},
 		}
 	},
 	computed: {
@@ -92,17 +86,22 @@ export default {
 		},
 	},
 	mounted() {
-		showErrors(this.errors)
+		this.signStore.initFromState()
+		this.mounted = true
+		if (!this.signStore.uuid) {
+			this.signStore.uuid = this.$route.params.uuid
+		}
+		showErrors(this.signStore.errors)
 	},
 	methods: {
 		signEnabled() {
-			return SIGN_STATUS.ABLE_TO_SIGN === this.document.status
-				|| SIGN_STATUS.PARTIAL_SIGNED === this.document.status
+			return SIGN_STATUS.ABLE_TO_SIGN === this.signStore.document.status
+				|| SIGN_STATUS.PARTIAL_SIGNED === this.signStore.document.status
 		},
 		updateSigners(data) {
-			this.document.signers.forEach(signer => {
-				if (this.document.visibleElements) {
-					this.document.visibleElements.forEach(element => {
+			this.signStore.document.signers.forEach(signer => {
+				if (this.signStore.document.visibleElements) {
+					this.signStore.document.visibleElements.forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
 							object.readOnly = true
