@@ -177,7 +177,7 @@ class FileService {
 	}
 
 	private function getSigners(): array {
-		if (!$this->file) {
+		if ($this->signers) {
 			return $this->signers;
 		}
 		$signers = $this->signRequestMapper->getByFileId($this->file->getId());
@@ -382,7 +382,12 @@ class FileService {
 			'displayName' => $this->userManager->get($this->file->getUserId())->getDisplayName(),
 		];
 		$return['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $this->file->getUuid()]);
-		$return['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $this->file->getUuid()]);
+		foreach ($this->getSigners() as $signer) {
+			if ($signer['me']) {
+				$return['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer['sign_uuid']]);
+				break;
+			}
+		}
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}

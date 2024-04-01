@@ -545,6 +545,7 @@ class SignRequestMapper extends QBMapper {
 
 					if ($data['me']) {
 						$data['sign_uuid'] = $signer->getUuid();
+						$data['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
 					}
 
 					if ($signer->getSigned()) {
@@ -583,7 +584,6 @@ class SignRequestMapper extends QBMapper {
 			->setTimestamp((int) $row['request_date'])
 			->format('Y-m-d H:i:s');
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
-		$row['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int) $row['node_id'];
 		$row['uuid'] = $row['uuid'];
 		unset(
