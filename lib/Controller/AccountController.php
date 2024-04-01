@@ -108,7 +108,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 				'message' => $this->l10n->t('Success'),
 				'action' => JSActions::ACTION_SIGN,
 				'pdf' => [
-					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $uuid])
+					'url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid])
 				],
 				'filename' => $fileToSign['fileData']->getName(),
 				'description' => $signRequest->getDescription()
