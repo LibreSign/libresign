@@ -26,7 +26,7 @@ import Vuex from 'vuex'
 import { createPinia, PiniaVuePlugin } from 'pinia'
 import { loadState } from '@nextcloud/initial-state'
 import { translate, translatePlural } from '@nextcloud/l10n'
-import AppFilesTab from './Components/File/AppFilesTab.vue'
+import AppFilesTab from './Components/RightSidebar/AppFilesTab.vue'
 import './actions/openInLibreSignAction.js'
 
 import './style/icons.scss'
