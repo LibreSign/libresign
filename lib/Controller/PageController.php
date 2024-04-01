@@ -287,7 +287,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 30, period: 60)]
-	public function getPdfAccountFile($uuid) {
+	public function getPdfFile($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
 		$resp->addHeader('Content-Type', 'application/pdf');
