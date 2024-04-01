@@ -25,14 +25,13 @@ import { loadState } from '@nextcloud/initial-state'
 export const useSignStore = defineStore('sign', {
 	state: () => ({
 		errors: [],
-		pdf: '',
-		uuid: '',
 		document: {
-			filename: '',
+			name: '',
 			description: '',
 			status: '',
 			statusText: '',
-			fileId: 0,
+			url: '',
+			uuid: '',
 			signers: [],
 			visibleElements: [],
 		},
@@ -41,14 +40,14 @@ export const useSignStore = defineStore('sign', {
 	actions: {
 		initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
-			this.pdf = loadState('libresign', 'pdf')
-			this.uuid = loadState('libresign', 'uuid', null)
+			const pdf = loadState('libresign', 'pdf', [])
 			this.document = {
-				filename: loadState('libresign', 'filename'),
-				description: loadState('libresign', 'description'),
+				name: loadState('libresign', 'filename'),
+				description: loadState('libresign', 'description', ''),
 				status: loadState('libresign', 'status'),
 				statusText: loadState('libresign', 'statusText'),
-				fileId: loadState('libresign', 'fileId', 0),
+				url: pdf.url,
+				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
 				visibleElements: loadState('libresign', 'visibleElements', []),
 			}
