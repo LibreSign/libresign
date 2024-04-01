@@ -574,8 +574,6 @@ class SignRequestMapper extends QBMapper {
 		$row['status'] = (int) $row['status'];
 		$row['statusText'] = $this->fileMapper->getTextOfStatus($row['status']);
 		$row['nodeId'] = (int) $row['node_id'];
-		$row['uuid'] = $row['uuid'];
-		$row['name'] = $row['name'];
 		$row['requested_by'] = [
 			'uid' => $row['user_id'],
 			'displayName' => $this->userManager->get($row['user_id'])->getDisplayName(),
@@ -585,7 +583,6 @@ class SignRequestMapper extends QBMapper {
 			->format('Y-m-d H:i:s');
 		$row['file'] = $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $row['uuid']]);
 		$row['nodeId'] = (int) $row['node_id'];
-		$row['uuid'] = $row['uuid'];
 		unset(
 			$row['user_id'],
 			$row['node_id'],
