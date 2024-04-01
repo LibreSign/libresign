@@ -683,7 +683,7 @@ class SignFileService {
 					$this->accountFileMapper->getByFileId($fileEntity->getId());
 					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdf', ['uuid' => $uuid])];
 				} catch (DoesNotExistException $e) {
-					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => $uuid])];
+					$url = ['url' => $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $uuid])];
 				}
 				break;
 			case 'nodeId':
