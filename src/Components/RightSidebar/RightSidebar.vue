@@ -4,7 +4,7 @@
 		:subtitle="subTitle"
 		:active="fileName"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="fileName"
+		<NcAppSidebarTab v-if="showListSigners"
 			id="request-signature-list-signers"
 			:name="fileName">
 			<RequestSignatureTab />
@@ -48,6 +48,9 @@ export default {
 	methods: {
 		showListSigners() {
 			return !!this.filesStore.getFile()?.name
+		},
+		showSign() {
+			return this.signStore.document.uuid.length > 0
 		},
 		closeSidebar() {
 			this.filesStore.selectFile()
