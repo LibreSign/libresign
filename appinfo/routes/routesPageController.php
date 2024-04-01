@@ -10,7 +10,7 @@ return [
 		['name' => 'page#index',                      'url' => '/', 'verb' => 'GET'],
 		['name' => 'page#indexF',                     'url' => '/f/', 'verb' => 'GET'],
 		['name' => 'page#indexFPath',                 'url' => '/f/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+'], 'postfix' => 'front'],
-		['name' => 'page#getPdfAccountFile',          'url' => '/pdf/user/{uuid}', 'verb' => 'GET'],
+		['name' => 'page#getPdfFile',                 'url' => '/pdf/{uuid}', 'verb' => 'GET'],
 		['name' => 'page#resetPassword',              'url' => '/reset-password', 'verb' => 'GET'],
 		// Pages - public
 		['name' => 'page#sign',                       'url' => '/p/sign/{uuid}', 'verb' => 'GET'],
