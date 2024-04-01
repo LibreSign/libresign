@@ -15,7 +15,7 @@
 <script>
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
-import RequestSignatureTab from '../Request/RequestSignatureTab.vue'
+import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
 
@@ -48,9 +48,6 @@ export default {
 	methods: {
 		showListSigners() {
 			return !!this.filesStore.getFile()?.name
-		},
-		showSign() {
-			return this.signStore.document.uuid.length > 0
 		},
 		closeSidebar() {
 			this.filesStore.selectFile()
