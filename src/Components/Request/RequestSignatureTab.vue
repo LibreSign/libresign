@@ -81,7 +81,7 @@ import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
 
 export default {
-	name: 'RequestSignature',
+	name: 'RequestSignatureTab',
 	components: {
 		NcActionButton,
 		NcButton,

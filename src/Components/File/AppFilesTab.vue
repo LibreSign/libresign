@@ -3,18 +3,18 @@
 		<h3 v-if="filesStore.getSubtitle()">
 			{{ filesStore.getSubtitle() }}
 		</h3>
-		<RequestSignature />
+		<RequestSignatureTab />
 	</div>
 </template>
 
 <script>
-import RequestSignature from '../Request/RequestSignature.vue'
+import RequestSignatureTab from '../Request/RequestSignatureTab.vue'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'AppFilesTab',
 	components: {
-		RequestSignature,
+		RequestSignatureTab,
 	},
 	setup() {
 		const filesStore = useFilesStore()
