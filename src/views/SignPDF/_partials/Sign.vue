@@ -99,15 +99,15 @@
 		</NcModal>
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
-			:uuid="uuid"
-			:file-id="document.fileId"
+			:uuid="signStore.uuid"
+			:file-id="signStore.document.fileId"
 			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
 
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
-			:uuid="uuid"
-			:file-id="document.fileId"
+			:uuid="signStore.uuid"
+			:file-id="signStore.document.fileId"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
@@ -128,6 +128,7 @@ import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignat
 import Draw from '../../../Components/Draw/Draw.vue'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import CreatePassword from '../../../views/CreatePassword.vue'
+import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
@@ -145,14 +146,6 @@ export default {
 		Draw,
 	},
 	props: {
-		uuid: {
-			type: String,
-			required: true,
-		},
-		document: {
-			type: Object,
-			required: true,
-		},
 		docType: {
 			type: String,
 			required: false,
@@ -160,9 +153,10 @@ export default {
 		},
 	},
 	setup() {
+		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signMethodsStore, signatureElementsStore }
+		return { signStore, signMethodsStore, signatureElementsStore }
 	},
 	data() {
 		return {
@@ -177,13 +171,13 @@ export default {
 	},
 	computed: {
 		elements() {
-			const signer = this.document?.signers.find(row => row.me) || {}
+			const signer = this.signStore.document?.signers.find(row => row.me) || {}
 
 			if (!signer.signRequestId) {
 				return []
 			}
 
-			const visibleElements = (this.document?.visibleElements || [])
+			const visibleElements = (this.signStore.document?.visibleElements || [])
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
@@ -200,7 +194,7 @@ export default {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
-			return this.document?.visibleElements.length > 0
+			return this.signStore.document?.visibleElements.length > 0
 				&& !this.hasSignatures
 		},
 		ableToSign() {
@@ -276,10 +270,10 @@ export default {
 			}
 			try {
 				let url = ''
-				if (this.document.fileId > 0) {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.document.fileId })
+				if (this.signStore.document.fileId > 0) {
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.signStore.document.fileId })
 				} else {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.uuid })
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signStore.uuid })
 				}
 
 				const { data } = await axios.post(url, payload)
