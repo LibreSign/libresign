@@ -6,7 +6,7 @@
 				<header>
 					<img class="pdf-icon" :src="PDFIcon">
 					<h1>
-						{{ signStore.document.filename }}
+						{{ signStore.document.name }}
 						<br>
 						<Chip>
 							{{ signStore.document.statusText }}
@@ -34,7 +34,7 @@
 				ref="pdfEditor"
 				width="100%"
 				height="100%"
-				:file-src="signStore.pdf.url"
+				:file-src="signStore.document.url"
 				:read-only="true"
 				@pdf-editor:end-init="updateSigners" />
 		</NcAppContent>
@@ -86,11 +86,13 @@ export default {
 		},
 	},
 	mounted() {
-		this.signStore.initFromState()
-		this.mounted = true
-		if (!this.signStore.uuid) {
-			this.signStore.uuid = this.$route.params.uuid
+		if (this.signStore.document.uuid.length === 0) {
+			this.signStore.initFromState()
+			if (!this.signStore.document.uuid) {
+				this.signStore.document.uuid = this.$route.params.uuid
+			}
 		}
+		this.mounted = true
 		showErrors(this.signStore.errors)
 	},
 	methods: {

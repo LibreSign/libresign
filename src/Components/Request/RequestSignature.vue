@@ -78,6 +78,7 @@ import IdentifySigner from './IdentifySigner.vue'
 import VisibleElements from './VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
+import { useSignStore } from '../../store/sign.js'
 
 export default {
 	name: 'RequestSignature',
@@ -93,7 +94,8 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const signStore = useSignStore()
+		return { filesStore, signStore }
 	},
 	data() {
 		return {
@@ -194,6 +196,7 @@ export default {
 					}
 					return accumulator
 				}, '')
+			this.signStore.document = this.filesStore.getFile()
 			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
 			this.modalSrc = route.href
 			this.showSignModal = true
