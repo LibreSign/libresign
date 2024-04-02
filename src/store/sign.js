@@ -22,20 +22,22 @@
 import { defineStore } from 'pinia'
 import { loadState } from '@nextcloud/initial-state'
 
+const defaultState = {
+	errors: [],
+	document: {
+		name: '',
+		description: '',
+		status: '',
+		statusText: '',
+		url: '',
+		uuid: '',
+		signers: [],
+		visibleElements: [],
+	},
+}
+
 export const useSignStore = defineStore('sign', {
-	state: () => ({
-		errors: [],
-		document: {
-			name: '',
-			description: '',
-			status: '',
-			statusText: '',
-			url: '',
-			uuid: '',
-			signers: [],
-			visibleElements: [],
-		},
-	}),
+	state: () => ({ ...defaultState }),
 
 	actions: {
 		initFromState() {
@@ -52,5 +54,8 @@ export const useSignStore = defineStore('sign', {
 				visibleElements: loadState('libresign', 'visibleElements', []),
 			}
 		},
+		reset() {
+			Object.assign(this, defaultState);
+		}
 	},
 })

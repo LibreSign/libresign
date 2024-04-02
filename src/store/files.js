@@ -24,6 +24,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
 import Moment from '@nextcloud/moment'
+import { useSignStore } from './sign.js'
 
 export const useFilesStore = defineStore('files', {
 	state: () => {
@@ -42,6 +43,10 @@ export const useFilesStore = defineStore('files', {
 		},
 		selectFile(nodeId) {
 			this.selectedNodeId = nodeId ?? 0
+			if (this.selectedNodeId === 0) {
+				const signStore = useSignStore()
+				signStore.reset()
+			}
 		},
 		getFile() {
 			return this.files[this.selectedNodeId] ?? {}

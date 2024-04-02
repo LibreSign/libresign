@@ -4,7 +4,12 @@
 		:subtitle="subTitle"
 		:active="fileName"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="showListSigners"
+		<NcAppSidebarTab v-if="showSign()"
+			id="sign-tab"
+			name="">
+			<SignTab />
+		</NcAppSidebarTab>
+		<NcAppSidebarTab v-if="showListSigners()"
 			id="request-signature-list-signers"
 			:name="fileName">
 			<RequestSignatureTab />
@@ -16,6 +21,7 @@
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
+import SignTab from '../RightSidebar/SignTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
 
@@ -25,6 +31,7 @@ export default {
 		NcAppSidebar,
 		NcAppSidebarTab,
 		RequestSignatureTab,
+		SignTab,
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -48,9 +55,14 @@ export default {
 	methods: {
 		showListSigners() {
 			return !!this.filesStore.getFile()?.name
+				&& !this.showSign()
+		},
+		showSign() {
+			return this.signStore.document.uuid.length > 0
 		},
 		closeSidebar() {
 			this.filesStore.selectFile()
+			this.signStore.reset()
 			this.$emit('close')
 		},
 	},
