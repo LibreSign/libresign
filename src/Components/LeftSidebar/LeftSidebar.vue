@@ -20,7 +20,7 @@
 -->
 
 <template>
-	<NcAppNavigation>
+	<NcAppNavigation v-if="showLeftSidebar">
 		<template #list>
 			<NcAppNavigationItem v-if="back_to_signature"
 				class="back_to_signature"
@@ -110,6 +110,9 @@ export default {
 	computed: {
 		back_to_signature() {
 			return this.$route.query._back_to_signature
+		},
+		showLeftSidebar() {
+			return !!this.$route.name && this.$route.name !== 'SignPDF'
 		},
 	},
 	methods: {
