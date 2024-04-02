@@ -151,6 +151,9 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			return $return;
 		}
 		$user = $this->userSession->getUser();
+		if (empty($user->getEMailAddress())) {
+			return $return;
+		}
 		if (!str_contains($user->getEMailAddress(), $search) && !str_contains($user->getDisplayName(), $search)) {
 			return $return;
 		}
