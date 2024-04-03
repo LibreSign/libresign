@@ -55,7 +55,7 @@ export const useSignStore = defineStore('sign', {
 			}
 		},
 		reset() {
-			Object.assign(this, defaultState);
-		}
+			Object.assign(this, defaultState)
+		},
 	},
 })
