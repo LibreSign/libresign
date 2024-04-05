@@ -48,6 +48,7 @@ OC.L10N.register(
     "Enter a password" : "Introduz una contraseña",
     "Page not found" : "Nun s'atopó la páxina",
     "Send" : "Unviar",
+    "Password reset" : "Reaniciu de la contraseña",
     "Current password" : "Contraseña actual",
     "New password" : "Contraseña nueva",
     "Optional attributes" : "Atributos opcionales",
