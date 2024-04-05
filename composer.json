@@ -43,7 +43,8 @@
     ],
     "post-update-cmd": [
       "composer dump-autoload"
-    ]
+    ],
+    "test:unit": "vendor/bin/phpunit --colors=always"
   },
   "extra": {
     "bamarni-bin": {

@@ -259,15 +259,15 @@ class FileService {
 	private function getPages(): array {
 		$return = [];
 
-		$metadata = $this->file->getMetadataDecoded();
-		for ($page = 1; $page <= $metadata->p; $page++) {
+		$metadata = $this->file->getMetadata();
+		for ($page = 1; $page <= $metadata['p']; $page++) {
 			$return[] = [
 				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.File.getPage', [
 					'apiVersion' => 'v1',
 					'uuid' => $this->file->getUuid(),
 					'page' => $page,
 				]),
-				'resolution' => $metadata->d[$page - 1]
+				'resolution' => $metadata['d'][$page - 1]
 			];
 		}
 		return $return;
