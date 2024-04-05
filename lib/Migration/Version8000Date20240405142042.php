@@ -56,7 +56,7 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 			}
 		}
 
-		$table = $schema->getTable('libresign_file_element ');
+		$table = $schema->getTable('libresign_file_element');
 		if ($table->hasColumn('metadata')) {
 			$options = $table->getColumn('metadata');
 			if (!$options->getType() instanceof JsonType) {
