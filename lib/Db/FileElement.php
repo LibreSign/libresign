@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method int getId()
@@ -35,8 +36,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setSignRequestId(int $signRequestId)
  * @method string getType()
  * @method void setType(string $type)
- * @method string getMetadata()
- * @method void setMetadata(string $metadata)
+ * @method array getMetadata()
+ * @method void setMetadata(array $metadata)
  * @method int getPage()
  * @method void setPage(int $page)
  * @method int getUrx()
@@ -88,7 +89,7 @@ class FileElement extends Entity {
 		$this->addType('fileId', 'integer');
 		$this->addType('signRequestId', 'integer');
 		$this->addType('type', 'string');
-		$this->addType('metadata', 'string');
+		$this->addType('metadata', Types::JSON);
 		$this->addType('page', 'integer');
 		$this->addType('urx', 'integer');
 		$this->addType('ury', 'integer');
