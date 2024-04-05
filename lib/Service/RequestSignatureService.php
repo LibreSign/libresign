@@ -102,7 +102,7 @@ class RequestSignatureService {
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
 		$file->setName($data['name']);
-		$file->setMetadata(json_encode($this->getFileMetadata($node)));
+		$file->setMetadata($this->getFileMetadata($node));
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
 		}
