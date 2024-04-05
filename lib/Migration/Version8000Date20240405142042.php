@@ -32,9 +32,6 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-/**
- * FIXME Auto-generated migration step: Please modify to your needs!
- */
 class Version8000Date20240405142042 extends SimpleMigrationStep {
 	/**
 	 * @param IOutput $output
