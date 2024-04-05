@@ -46,11 +46,6 @@
       <code>throw new NotLoggedInException();</code>
     </InvalidThrow>
   </file>
-  <file src="lib/Controller/SignFileController.php">
-    <UndefinedClass occurrences="1">
-      <code>SmsTransmissionException</code>
-    </UndefinedClass>
-  </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <InvalidArgument occurrences="1">
       <code>$qb</code>
@@ -80,6 +75,11 @@
     <UndefinedDocblockClass occurrences="1">
       <code>$schema-&gt;dropTable('libresign_file_user')</code>
     </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Migration/Version8000Date20240405142042.php">
+    <UndefinedClass occurrences="1">
+      <code>JsonType</code>
+    </UndefinedClass>
   </file>
   <file src="lib/Service/AccountService.php">
     <UndefinedClass occurrences="5">
