@@ -83,7 +83,7 @@ class FileElementService {
 		if (isset($properties['coordinates']['ury'])) {
 			$translated['ury'] = $properties['coordinates']['ury'];
 		} elseif (isset($properties['coordinates']['top'])) {
-			$translated['ury'] = $dimension->h - $properties['coordinates']['top'];
+			$translated['ury'] = $dimension['h'] - $properties['coordinates']['top'];
 		} else {
 			$translated['ury'] = 0;
 		}
