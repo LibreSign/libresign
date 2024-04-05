@@ -46,15 +46,29 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$table = $schema->getTable('libresign_file');
-
 		if ($table->hasColumn('metadata')) {
 			$options = $table->getColumn('metadata');
 			if (!$options->getType() instanceof JsonType) {
 				$table->modifyColumn('metadata', [
 					'Type' => new JsonType(),
 				]);
-				return $schema;
+				$changed = true;
 			}
+		}
+
+		$table = $schema->getTable('libresign_file_element ');
+		if ($table->hasColumn('metadata')) {
+			$options = $table->getColumn('metadata');
+			if (!$options->getType() instanceof JsonType) {
+				$table->modifyColumn('metadata', [
+					'Type' => new JsonType(),
+				]);
+				$changed = true;
+			}
+		}
+
+		if ($changed) {
+			return $schema;
 		}
 
 		return null;
