@@ -73,7 +73,8 @@ class PdfParserService {
 		foreach ($pages as $page) {
 			$details = $page->getDetails();
 			if (!isset($details['MediaBox'])) {
-				$details = reset($pdf->getObjectsByType('Pages'))->getHeader()->getDetails();
+				$pages = $pdf->getObjectsByType('Pages');
+				$details = reset($pages)->getHeader()->getDetails();
 			}
 			$output['d'][] = [
 				'w' => $details['MediaBox'][2],
