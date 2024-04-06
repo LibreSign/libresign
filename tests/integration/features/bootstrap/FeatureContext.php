@@ -125,15 +125,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	protected function parseText(string $text): string {
-		$patterns = [
-			'/<SIGN_UUID>/',
-			'/<BASE_URL>/',
-		];
-		$replacements = [
-			$this->signer['sign_uuid'] ?? null,
-			$this->baseUrl . '/index.php',
-		];
-		foreach ($this->fields as $key => $value) {
+		$fields = $this->fields;
+		if (!empty($this->signer['sign_uuid'])) {
+			$fields['SIGN_UUID'] = $this->signer['sign_uuid'];
+		}
+		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
+		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
 		}
@@ -188,7 +185,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @When follow the link on opened email
 	 */
-	public function iDoSomethingWithTheOpenedEmail(): void {
+	public function followTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
 			throw new RuntimeException('No email opened, unable to do something!');
 		}
