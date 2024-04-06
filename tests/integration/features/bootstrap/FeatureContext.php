@@ -127,7 +127,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	protected function parseText(string $text): string {
 		$fields = $this->fields;
 		if (!empty($this->signer['sign_uuid'])) {
-			$fields = $this->signer['sign_uuid'];
+			$fields[] = $this->signer['sign_uuid'];
 		}
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		foreach ($fields as $key => $value) {
