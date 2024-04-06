@@ -1,4 +1,4 @@
-![Test Status](https://github.com/libresign/libresign/workflows/PHPUnit/badge.svg?branch=main)
+![Test Status](https://github.com/libresign/libresign/workflows/phpunit-sqlite/badge.svg?branch=main)
 [![Coverage Status](https://coveralls.io/repos/github/LibreSign/libresign/badge.svg?branch=main)](https://coveralls.io/github/LibreSign/libresign?branch=main)
 [![Start contributing](https://img.shields.io/github/issues/LibreSign/libresign/good%20first%20issue?color=7057ff&label=Contribute)](https://github.com/LibreSign/libresign/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 
