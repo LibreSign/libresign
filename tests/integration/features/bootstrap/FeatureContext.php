@@ -185,7 +185,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @When follow the link on opened email
 	 */
-	public function iDoSomethingWithTheOpenedEmail(): void {
+	public function followTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
 			throw new RuntimeException('No email opened, unable to do something!');
 		}
