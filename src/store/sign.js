@@ -20,7 +20,10 @@
  */
 
 import { defineStore } from 'pinia'
+import { set } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
+import { useFilesStore } from './files.js'
+import { useSidebarStore } from './sidebar.js'
 
 const defaultState = {
 	errors: [],
@@ -30,9 +33,9 @@ const defaultState = {
 		status: '',
 		statusText: '',
 		url: '',
+		nodeId: 0,
 		uuid: '',
 		signers: [],
-		visibleElements: [],
 	},
 }
 
@@ -43,19 +46,34 @@ export const useSignStore = defineStore('sign', {
 		initFromState() {
 			this.errors = loadState('libresign', 'errors', [])
 			const pdf = loadState('libresign', 'pdf', [])
-			this.document = {
+			const file = {
 				name: loadState('libresign', 'filename'),
 				description: loadState('libresign', 'description', ''),
 				status: loadState('libresign', 'status'),
 				statusText: loadState('libresign', 'statusText'),
 				url: pdf.url,
+				nodeId: loadState('libresign', 'nodeId'),
 				uuid: loadState('libresign', 'uuid', null),
 				signers: loadState('libresign', 'signers', []),
-				visibleElements: loadState('libresign', 'visibleElements', []),
 			}
+			this.setDocumentToSign(file)
+			const filesStore = useFilesStore()
+			filesStore.addFile(file)
+			filesStore.selectedNodeId = file.nodeId
+		},
+		setDocumentToSign(document) {
+			if (document) {
+				set(this, 'document', document)
+				const sidebarStore = useSidebarStore()
+				sidebarStore.activeSignTab()
+				return
+			}
+			this.reset()
 		},
 		reset() {
-			Object.assign(this, defaultState)
+			set(this, 'document', defaultState)
+			const sidebarStore = useSidebarStore()
+			sidebarStore.setActiveTab()
 		},
 	},
 })

@@ -145,13 +145,6 @@ export default {
 		PreviewSignature,
 		Draw,
 	},
-	props: {
-		docType: {
-			type: String,
-			required: false,
-			default: 'default',
-		},
-	},
 	setup() {
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
@@ -177,7 +170,7 @@ export default {
 				return []
 			}
 
-			const visibleElements = (this.signStore.document?.visibleElements || [])
+			const visibleElements = (signer.visibleElements || [])
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
@@ -194,7 +187,8 @@ export default {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
-			return this.signStore.document?.visibleElements.length > 0
+			const signer = this.signStore.document?.signers.find(row => row.me) || {}
+			return !!signer.signRequestId
 				&& !this.hasSignatures
 		},
 		ableToSign() {

@@ -155,6 +155,12 @@ const router = new Router({
 			component: () => import('../views/Request.vue'),
 		},
 		{
+			path: '/f/sign/:uuid/pdf',
+			name: 'SignPDFInternal',
+			component: () => import('../views/SignPDF/SignPDF.vue'),
+			props: true,
+		},
+		{
 			path: '/f/account',
 			name: 'Account',
 			component: () => import('../views/Account/Account.vue'),
