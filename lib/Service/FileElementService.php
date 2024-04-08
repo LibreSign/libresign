@@ -136,7 +136,7 @@ class FileElementService {
 
 		$translated['left'] = $properties['coordinates']['llx'];
 		$translated['height'] = abs($properties['coordinates']['ury'] - $properties['coordinates']['lly']);
-		$translated['top'] = $dimension->h - $properties['coordinates']['ury'];
+		$translated['top'] = $dimension['h'] - $properties['coordinates']['ury'];
 		$translated['width'] = $properties['coordinates']['urx'] - $properties['coordinates']['llx'];
 
 		return $translated;
