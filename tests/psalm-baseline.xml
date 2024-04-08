@@ -55,6 +55,14 @@
       <code>callable(QueryBuilder): void</code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Db/SignRequestMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>PostgreSQLPlatform</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="1">
+      <code>$qb-&gt;getConnection()-&gt;getDatabasePlatform()</code>
+    </UndefinedDocblockClass>
+  </file>
   <file src="lib/Files/TemplateLoader.php">
     <UndefinedClass occurrences="2">
       <code>LoadSidebar</code>
