@@ -130,24 +130,35 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
-	/**
-	 * Show signature page
-	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
-	public function sign($uuid): TemplateResponse {
+	public function signF(string $uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
+		return $this->index();
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
+	public function signFPath(string $uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
+		return $this->index();
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
+	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
-		);
-		$this->initialState->provideInitialState('signer',
-			$this->signFileService->getSignerData(
-				$this->userSession->getUser(),
-				$this->getSignRequestEntity(),
-			)
 		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
@@ -169,6 +180,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
 		);
+		$this->initialState->provideInitialState('nodeId', $this->getFileEntity()->getNodeId());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
