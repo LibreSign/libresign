@@ -352,9 +352,10 @@ class SignRequestMapper extends QBMapper {
 	public function getFilesAssociatedFilesWithMeFormatted(
 		IUser $user,
 		int $page = null,
-		int $length = null
+		int $length = null,
+		array $filter,
 	): array {
-		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $user->getEMailAddress());
+		$pagination = $this->getFilesAssociatedFilesWithMeStmt($user->getUID(), $user->getEMailAddress(), $filter);
 		$pagination->setMaxPerPage($length);
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
@@ -488,6 +489,11 @@ class SignRequestMapper extends QBMapper {
 		}
 		$qb->where($qb->expr()->orX(...$or));
 		if ($filter) {
+			if (isset($filter['signer_uuid'])) {
+				$qb->andWhere(
+					$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($filter['signer_uuid']))
+				);
+			}
 			if (isset($filter['nodeId'])) {
 				$qb->andWhere(
 					$qb->expr()->eq('f.node_id', $qb->createNamedParameter($filter['nodeId'], IQueryBuilder::PARAM_INT))
