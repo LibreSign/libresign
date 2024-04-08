@@ -392,7 +392,6 @@ class FileService {
 		if ($this->showSigners) {
 			$return['signers'] = $this->getSigners();
 		}
-		$return['visibleElements'] = $this->getVisibleElements();
 		ksort($return);
 		return $return;
 	}
