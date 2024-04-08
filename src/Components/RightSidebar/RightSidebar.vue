@@ -1,16 +1,18 @@
 <template>
-	<NcAppSidebar v-show="opened"
+	<NcAppSidebar v-if="opened"
+		ref="rightAppSidebar"
 		:name="fileName"
 		:subtitle="subTitle"
-		:active="fileName"
+		:active.sync="sidebarStore.activeTab"
+		@update:active="handleUpdateActive"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="showSign()"
+		<NcAppSidebarTab v-if="showSign"
 			id="sign-tab"
-			name="">
+			:name="fileName">
 			<SignTab />
 		</NcAppSidebarTab>
-		<NcAppSidebarTab v-if="showListSigners()"
-			id="request-signature-list-signers"
+		<NcAppSidebarTab v-if="showRequestSignatureTab"
+			id="request-signature-tab"
 			:name="fileName">
 			<RequestSignatureTab />
 		</NcAppSidebarTab>
@@ -24,6 +26,7 @@ import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
 import SignTab from '../RightSidebar/SignTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'RightSidebar',
@@ -36,7 +39,8 @@ export default {
 	setup() {
 		const filesStore = useFilesStore()
 		const signStore = useSignStore()
-		return { filesStore, signStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, signStore, sidebarStore }
 	},
 	computed: {
 		fileName() {
@@ -49,21 +53,29 @@ export default {
 			return this.filesStore.getSubtitle()
 		},
 		opened() {
-			return this.filesStore.selectedNodeId > 0
+			return this.sidebarStore.activeTab.length > 0
+		},
+		showRequestSignatureTab() {
+			return this.sidebarStore.activeTab === 'request-signature-tab'
+		},
+		showSign() {
+			return this.sidebarStore.activeTab === 'sign-tab'
+		},
+	},
+	watch: {
+		'sidebarStore.activeTab'(newValue, previousValue) {
+			if (this.$refs?.rightAppSidebar?.$refs?.tabs) {
+				this.$refs.rightAppSidebar.$refs.tabs.activeTab = newValue
+			}
 		},
 	},
 	methods: {
-		showListSigners() {
-			return !!this.filesStore.getFile()?.name
-				&& !this.showSign()
-		},
-		showSign() {
-			return this.signStore.document.uuid.length > 0
+		handleUpdateActive(active) {
+			this.sidebarStore.setActiveTab(active)
 		},
 		closeSidebar() {
 			this.filesStore.selectFile()
 			this.signStore.reset()
-			this.$emit('close')
 		},
 	},
 }

@@ -4,7 +4,7 @@
 		<IdentifySigner :signer-to-edit="signerToEdit" />
 	</div>
 	<div v-else
-		id="request-signature-list-signers">
+		id="request-signature-tab">
 		<NcButton v-if="canAddSigner"
 			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -79,6 +79,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
+// import router from '../../router/router.js'
 
 export default {
 	name: 'RequestSignatureTab',
@@ -196,10 +197,11 @@ export default {
 					}
 					return accumulator
 				}, '')
-			this.signStore.document = this.filesStore.getFile()
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
-			this.modalSrc = route.href
-			this.showSignModal = true
+			this.signStore.setDocumentToSign(this.filesStore.getFile())
+			this.$router.push({ name: 'SignPDFInternal', params: { uuid } })
+			// const route = router.resolve({ name: 'SignPDF', params: { uuid } })
+			// this.modalSrc = route.href
+			// this.showSignModal = true
 		},
 		async save() {
 			this.hasLoading = true

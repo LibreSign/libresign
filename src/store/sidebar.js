@@ -20,18 +20,29 @@
  */
 
 import { defineStore } from 'pinia'
+import { set } from 'vue'
 
 export const useSidebarStore = defineStore('sidebar', {
 	state: () => ({
 		show: false,
+		activeTab: '',
 	}),
 
 	actions: {
 		showSidebar() {
-			this.show = true
+			set(this, 'show', true)
+		},
+		activeSignTab() {
+			set(this, 'activeTab', 'sign-tab')
+		},
+		activeRequestSignatureTab() {
+			set(this, 'activeTab', 'request-signature-tab')
+		},
+		setActiveTab(id) {
+			set(this, 'activeTab', id ?? '')
 		},
 		hideSidebar() {
-			this.show = false
+			set(this, 'show', false)
 		},
 	},
 })
