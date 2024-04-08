@@ -171,7 +171,6 @@ class PageController extends AEnvironmentPageAwareController {
 			->formatFile();
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
-		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
 		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
