@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Db;
 
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use OCA\Libresign\Helper\Pagination;
 use OCA\Libresign\Service\IdentifyMethod\IIdentifyMethod;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -367,8 +368,38 @@ class SignRequestMapper extends QBMapper {
 		}
 		$signers = $this->getByMultipleFileId($fileIds);
 		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
-		$return['data'] = $this->associateAllAndFormat($user, $data, $signers, $identifyMethods);
+		$visibleElements = $this->getVisibleElementsFromSigners($signers);
+		$return['data'] = $this->associateAllAndFormat($user, $data, $signers, $identifyMethods, $visibleElements);
 		$return['pagination'] = $pagination;
+		return $return;
+	}
+
+	/**
+	 * @param array<SignRequest> $signRequests
+	 * @return FileElement[][]
+	 */
+	private function getVisibleElementsFromSigners(array $signRequests): array {
+		$signRequestIds = array_map(function (SignRequest $signRequest): int {
+			return $signRequest->getId();
+		}, $signRequests);
+		if (!$signRequestIds) {
+			return [];
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('fe.*')
+			->from('libresign_file_element', 'fe')
+			->where(
+				$qb->expr()->in('fe.sign_request_id', $qb->createParameter('signRequestIds'))
+			);
+		$return = [];
+		foreach (array_chunk($signRequestIds, 1000) as $signRequestIdsChunk) {
+			$qb->setParameter('signRequestIds', $signRequestIdsChunk, IQueryBuilder::PARAM_INT_ARRAY);
+			$cursor = $qb->executeQuery();
+			while ($row = $cursor->fetch()) {
+				$fileElement = new FileElement();
+				$return[$row['sign_request_id']][] = $fileElement->fromRow($row);
+			}
+		}
 		return $return;
 	}
 
@@ -434,6 +465,13 @@ class SignRequestMapper extends QBMapper {
 				'f.status',
 				'f.created_at',
 			);
+		// metadata is a json column, the right way is to use f.metadata::text
+		// when the database is PostgreSQL. The problem is that the command
+		// addGroupBy add quotes over all text send as argument. With
+		// PostgreSQL json columns don't have problem if not added to group by.
+		if (!$qb->getConnection()->getDatabasePlatform() instanceof PostgreSQLPlatform) {
+			$qb->addGroupBy('f.metadata');
+		}
 
 		$or = [
 			$qb->expr()->eq('f.user_id', $qb->createNamedParameter($userId)),
@@ -467,7 +505,8 @@ class SignRequestMapper extends QBMapper {
 			'f.user_id',
 			'f.uuid',
 			'f.name',
-			'f.status'
+			'f.status',
+			'f.metadata',
 		);
 		$qb->selectAlias('f.created_at', 'request_date');
 
@@ -491,8 +530,9 @@ class SignRequestMapper extends QBMapper {
 	 * @param array $files
 	 * @param array<SignRequest> $signers
 	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
+	 * @param SignRequest[][]
 	 */
-	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods): array {
+	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods, array $visibleElements): array {
 		foreach ($files as $key => $file) {
 			$totalSigned = 0;
 			foreach ($signers as $signerKey => $signer) {
@@ -534,6 +574,29 @@ class SignRequestMapper extends QBMapper {
 							}
 							return $carry;
 						}, false),
+						'visibleElements' => array_map(function (FileElement $visibleElement) use ($file) {
+							$element = [
+								'elementId' => $visibleElement->getId(),
+								'signRequestId' => $visibleElement->getSignRequestId(),
+								'type' => $visibleElement->getType(),
+								'coordinates' => [
+									'page' => $visibleElement->getPage(),
+									'urx' => $visibleElement->getUrx(),
+									'ury' => $visibleElement->getUry(),
+									'llx' => $visibleElement->getLlx(),
+									'lly' => $visibleElement->getLly()
+								]
+							];
+							$metadata = json_decode($file['metadata'], true);
+							$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
+
+							$element['coordinates']['left'] = $element['coordinates']['llx'];
+							$element['coordinates']['height'] = abs($element['coordinates']['ury'] - $element['coordinates']['lly']);
+							$element['coordinates']['top'] = $dimension['h'] - $element['coordinates']['ury'];
+							$element['coordinates']['width'] = $element['coordinates']['urx'] - $element['coordinates']['llx'];
+
+							return $element;
+						}, $visibleElements[$signer->getId()] ?? []),
 						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
 							return [
 								'method' => $identifyMethod->getIdentifierKey(),
