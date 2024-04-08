@@ -36,6 +36,8 @@ export const selectAction = (action) => {
 		return 'DefaultPageError'
 	case 2500: // ACTION_SIGN
 		return 'SignPDF'
+	case 2625: // ACTION_SIGN_INTERNAL
+		return 'SignPDFInternal'
 	case 2750: // ACTION_SIGN_ACCOUNT_FILE
 		return 'AccountFileApprove'
 	case 3000: // ACTION_SHOW_ERROR

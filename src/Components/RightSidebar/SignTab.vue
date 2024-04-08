@@ -1,14 +1,9 @@
 <template>
 	<div class="sign-pdf-sidebar">
 		<header>
-			<img class="pdf-icon" :src="PDFIcon">
-			<h1>
-				{{ signStore.document.name }}
-				<br>
-				<Chip>
-					{{ signStore.document.statusText }}
-				</Chip>
-			</h1>
+			<Chip>
+				{{ signStore.document.statusText }}
+			</Chip>
 		</header>
 
 		<main>
@@ -21,17 +16,16 @@
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
 			<Sign v-else-if="!loading"
-				v-bind="{ docType }"
 				@signed="onSigned" />
 		</main>
 	</div>
 </template>
 
 <script>
-import PDFIcon from '../../../img/application-pdf.png'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Chip from '../../Components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { useSignStore } from '../../store/sign.js'
 
 export default {
@@ -47,36 +41,20 @@ export default {
 	data() {
 		return {
 			loading: true,
-			PDFIcon,
 		}
 	},
-	computed: {
-		docType() {
-			return this.$route.name === 'AccountFileApprove'
-				? 'document-validate'
-				: 'default'
-		},
+	mounted() {
+		subscribe('pdfeditor:loaded', this.loaded)
+	},
+	beforeUnmount() {
+		unsubscribe('pdfeditor:loaded')
 	},
 	methods: {
 		signEnabled() {
 			return SIGN_STATUS.ABLE_TO_SIGN === this.signStore.document.status
 				|| SIGN_STATUS.PARTIAL_SIGNED === this.signStore.document.status
 		},
-		updateSigners(data) {
-			this.signStore.document.signers.forEach(signer => {
-				if (this.signStore.document.visibleElements) {
-					this.signStore.document.visibleElements.forEach(element => {
-						if (element.signRequestId === signer.signRequestId) {
-							const object = structuredClone(signer)
-							object.readOnly = true
-							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
-								- element.coordinates.ury
-							object.element = element
-							this.$refs.pdfEditor.addSigner(object)
-						}
-					})
-				}
-			})
+		loaded() {
 			this.loading = false
 		},
 		onSigned(data) {
@@ -90,3 +68,20 @@ export default {
 	},
 }
 </script>
+
+<style lang="scss" scoped>
+header {
+	text-align: center;
+	width: 100%;
+	margin-top: 1em;
+	margin-bottom: 3em;
+}
+main {
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	.sidebar-loading {
+		text-align: center;
+	}
+}
+</style>

@@ -25,6 +25,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
 import Moment from '@nextcloud/moment'
 import { useSignStore } from './sign.js'
+import { useSidebarStore } from './sidebar.js'
 
 export const useFilesStore = defineStore('files', {
 	state: () => {
@@ -46,7 +47,10 @@ export const useFilesStore = defineStore('files', {
 			if (this.selectedNodeId === 0) {
 				const signStore = useSignStore()
 				signStore.reset()
+				return
 			}
+			const sidebarStore = useSidebarStore()
+			sidebarStore.activeRequestSignatureTab()
 		},
 		getFile() {
 			return this.files[this.selectedNodeId] ?? {}
@@ -161,14 +165,16 @@ export const useFilesStore = defineStore('files', {
 				this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 			)
 		},
-		async getAllFiles() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'))
-				response.data.data.forEach(file => {
-					this.addFile(file)
-				})
-			} catch (err) {
-			}
+		async getAllFiles(filter) {
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
+				params: {
+					filter,
+				},
+			})
+			response.data.data.forEach(file => {
+				this.addFile(file)
+			})
+			return this.files
 		},
 		pendingFilter() {
 			return Object.values(this.files).filter(
