@@ -191,6 +191,7 @@ class FileService {
 				'signRequestId' => $signer->getId(),
 				'description' => $signer->getDescription(),
 				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),
+				'visibleElements' => $this->getVisibleElements(),
 				'request_sign_date' => (new \DateTime())
 					->setTimestamp($signer->getCreatedAt())
 					->format('Y-m-d H:i:s'),
