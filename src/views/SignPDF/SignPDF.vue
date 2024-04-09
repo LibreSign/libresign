@@ -1,11 +1,14 @@
 <template>
-	<PdfEditor v-if="mounted"
-		ref="pdfEditor"
-		width="100%"
-		height="100%"
-		:file-src="signStore.document.url"
-		:read-only="true"
-		@pdf-editor:end-init="updateSigners" />
+	<div class="main-view">
+		<TopBar :sidebar-toggle="true" />
+		<PdfEditor v-if="mounted"
+			ref="pdfEditor"
+			width="100%"
+			height="100%"
+			:file-src="signStore.document.url"
+			:read-only="true"
+			@pdf-editor:end-init="updateSigners" />
+	</div>
 </template>
 
 <script>
@@ -14,10 +17,12 @@ import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import { emit } from '@nextcloud/event-bus'
 import { useSignStore } from '../../store/sign.js'
 import { useFilesStore } from '../../store/files.js'
+import TopBar from '../../Components/TopBar/TopBar.vue'
 
 export default {
 	name: 'SignPDF',
 	components: {
+		TopBar,
 		PdfEditor,
 	},
 	setup() {
@@ -79,5 +84,15 @@ export default {
 <style lang="scss">
 .bg-gray-100 {
 	all: unset;
+}
+</style>
+<style lang="scss" scoped>
+.main-view {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-content: space-between;
+	position: relative;
 }
 </style>
