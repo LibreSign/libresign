@@ -102,7 +102,6 @@ export default {
 <style lang="scss" scoped>
 .draw-signature{
 	::v-deep .modal-container {
-		background-color: red;
 		width: unset !important;
 		height: unset !important;
 	}

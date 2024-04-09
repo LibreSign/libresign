@@ -97,5 +97,8 @@ canvas {
 <style lang="scss" scoped>
 .vue-pdf-editor {
 	overflow: unset !important;
+	min-height: 0;
+	position: unset !important;
+	display: flex;
 }
 </style>

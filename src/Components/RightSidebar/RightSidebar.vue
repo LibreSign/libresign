@@ -1,5 +1,5 @@
 <template>
-	<NcAppSidebar v-if="opened"
+	<NcAppSidebar v-if="sidebarStore.isVisible()"
 		ref="rightAppSidebar"
 		:name="fileName"
 		:subtitle="subTitle"
@@ -52,9 +52,6 @@ export default {
 			}
 			return this.filesStore.getSubtitle()
 		},
-		opened() {
-			return this.sidebarStore.activeTab.length > 0
-		},
 		showRequestSignatureTab() {
 			return this.sidebarStore.activeTab === 'request-signature-tab'
 		},
@@ -74,8 +71,9 @@ export default {
 			this.sidebarStore.setActiveTab(active)
 		},
 		closeSidebar() {
-			this.filesStore.selectFile()
-			this.signStore.reset()
+			this.sidebarStore.hideSidebar()
+			// this.filesStore.selectFile()
+			// this.signStore.reset()
 		},
 	},
 }
