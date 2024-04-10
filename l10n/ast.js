@@ -46,6 +46,7 @@ OC.L10N.register(
     "Signature" : "Firma",
     "Profile picture" : "Semeya del perfil",
     "Create account" : "Crear una cuenta",
+    "Confirm password" : "Confirmar la contraseña",
     "Enter a password" : "Introduz una contraseña",
     "Page not found" : "Nun s'atopó la páxina",
     "Send" : "Unviar",
