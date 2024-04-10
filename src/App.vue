@@ -64,7 +64,7 @@ export default {
 			return this.$route.path === '/'
 		},
 		isSignExternalPage() {
-			return this.$route.name === 'SignPDF'
+			return this.$route.name === 'SignPDFExternal'
 				|| this.$route.name === 'DefaultPageError'
 		},
 	},
