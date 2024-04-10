@@ -1,9 +1,7 @@
 <template>
 	<div class="document-sign">
 		<div class="sign-elements">
-			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
-				<PreviewSignature :src="element.url" />
-			</figure>
+			<Signatures v-if="hasSignatures"/>
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<div v-if="ableToSign" class="button-wrapper">
@@ -124,7 +122,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
-import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import Signatures from '../../../views/Account/partials/Signatures.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import CreatePassword from '../../../views/CreatePassword.vue'
@@ -142,7 +140,7 @@ export default {
 		CreatePassword,
 		SMSManager,
 		EmailManager,
-		PreviewSignature,
+		Signatures,
 		Draw,
 	},
 	setup() {
@@ -175,13 +173,7 @@ export default {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
 				})
-			const element = visibleElements
-				.map(el => ({
-					documentElementId: el.elementId,
-					profileFileId: this.signatureElementsStore.signs[el.type].file.fileId,
-					url: this.signatureElementsStore.signs[el.type].file.url + '?_t=' + Date.now(),
-				}))
-			return element
+			return visibleElements
 		},
 		hasSignatures() {
 			return this.elements.length > 0
@@ -258,7 +250,7 @@ export default {
 			if (this.elements.length > 0) {
 				payload.elements = this.elements
 					.map(row => ({
-						documentElementId: row.documentElementId,
+						documentElementId: row.elementId,
 						profileFileId: row.profileFileId,
 					}))
 			}
