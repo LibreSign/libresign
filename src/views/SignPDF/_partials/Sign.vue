@@ -251,15 +251,16 @@ export default {
 				payload.elements = this.elements
 					.map(row => ({
 						documentElementId: row.elementId,
-						profileFileId: row.profileFileId,
+						profileFileId: this.signatureElementsStore.signs[row.type].file.fileId
 					}))
 			}
 			try {
 				let url = ''
 				if (this.signStore.document.fileId > 0) {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.signStore.document.fileId })
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
 				} else {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signStore.uuid })
+					const signer = this.signStore.document.signers.find(row => row.me) || {}
+					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signer.sign_uuid })
 				}
 
 				const { data } = await axios.post(url, payload)
