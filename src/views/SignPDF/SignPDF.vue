@@ -17,6 +17,7 @@ import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
 import { emit } from '@nextcloud/event-bus'
 import { useSignStore } from '../../store/sign.js'
 import { useFilesStore } from '../../store/files.js'
+import { useSignMethodsStore } from '../../store/signMethods.js'
 import TopBar from '../../Components/TopBar/TopBar.vue'
 
 export default {
@@ -28,7 +29,8 @@ export default {
 	setup() {
 		const signStore = useSignStore()
 		const fileStore = useFilesStore()
-		return { signStore, fileStore }
+		const signMethodsStore = useSignMethodsStore()
+		return { signStore, fileStore, signMethodsStore }
 	},
 	data() {
 		return {
