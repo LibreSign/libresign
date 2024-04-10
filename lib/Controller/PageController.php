@@ -100,6 +100,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
+		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
