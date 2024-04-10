@@ -24,6 +24,7 @@ import { set } from 'vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from './files.js'
 import { useSidebarStore } from './sidebar.js'
+import { useSignMethodsStore } from './signMethods.js'
 
 const defaultState = {
 	errors: [],
@@ -64,8 +65,13 @@ export const useSignStore = defineStore('sign', {
 		setDocumentToSign(document) {
 			if (document) {
 				set(this, 'document', document)
+
 				const sidebarStore = useSidebarStore()
 				sidebarStore.activeSignTab()
+
+				const signMethodsStore = useSignMethodsStore()
+				const signer = document.signers.find(row => row.me) || {}
+				signMethodsStore.settings = signer.signatureMethods
 				return
 			}
 			this.reset()

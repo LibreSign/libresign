@@ -33,7 +33,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			createSignature: false,
 			sms: false,
 		},
-		settings: loadState('libresign', 'signature_methods', []),
+		settings: [],
 	}),
 	actions: {
 		closeModal(modalCode) {

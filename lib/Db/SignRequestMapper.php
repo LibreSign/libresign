@@ -361,16 +361,10 @@ class SignRequestMapper extends QBMapper {
 		$currentPageResults = $pagination->getCurrentPageResults();
 
 		$data = [];
-		$fileIds = [];
-
 		foreach ($currentPageResults as $row) {
-			$fileIds[] = $row['id'];
 			$data[] = $this->formatListRow($row);
 		}
-		$signers = $this->getByMultipleFileId($fileIds);
-		$identifyMethods = $this->getIdentifyMethodsFromSigners($signers);
-		$visibleElements = $this->getVisibleElementsFromSigners($signers);
-		$return['data'] = $this->associateAllAndFormat($user, $data, $signers, $identifyMethods, $visibleElements);
+		$return['data'] = $data;
 		$return['pagination'] = $pagination;
 		return $return;
 	}
@@ -379,7 +373,7 @@ class SignRequestMapper extends QBMapper {
 	 * @param array<SignRequest> $signRequests
 	 * @return FileElement[][]
 	 */
-	private function getVisibleElementsFromSigners(array $signRequests): array {
+	public function getVisibleElementsFromSigners(array $signRequests): array {
 		$signRequestIds = array_map(function (SignRequest $signRequest): int {
 			return $signRequest->getId();
 		}, $signRequests);
@@ -408,7 +402,7 @@ class SignRequestMapper extends QBMapper {
 	 * @param array<SignRequest> $signRequests
 	 * @return array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>>
 	 */
-	private function getIdentifyMethodsFromSigners(array $signRequests): array {
+	public function getIdentifyMethodsFromSigners(array $signRequests): array {
 		$signRequestIds = array_map(function (SignRequest $signRequest): int {
 			return $signRequest->getId();
 		}, $signRequests);
@@ -529,113 +523,6 @@ class SignRequestMapper extends QBMapper {
 
 		$pagination = new Pagination($qb, $countQueryBuilderModifier);
 		return $pagination;
-	}
-
-	/**
-	 * @param IUser $userId
-	 * @param array $files
-	 * @param array<SignRequest> $signers
-	 * @param array<array-key, array<array-key, \OCP\AppFramework\Db\Entity&\OCA\Libresign\Db\IdentifyMethod>> $identifyMethods
-	 * @param SignRequest[][]
-	 */
-	private function associateAllAndFormat(IUser $user, array $files, array $signers, array $identifyMethods, array $visibleElements): array {
-		foreach ($files as $key => $file) {
-			$totalSigned = 0;
-			foreach ($signers as $signerKey => $signer) {
-				if ($signer->getFileId() === $file['id']) {
-					/** @var array<IdentifyMethod> */
-					$identifyMethodsOfSigner = $identifyMethods[$signer->getId()] ?? [];
-					$data = [
-						'email' => array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-								return $identifyMethod->getIdentifierValue();
-							}
-							return $carry;
-						}, ''),
-						'description' => $signer->getDescription(),
-						'displayName' =>
-							array_reduce($identifyMethodsOfSigner, function (string $carry, IdentifyMethod $identifyMethod): string {
-								if (!$carry && $identifyMethod->getMandatory()) {
-									return $identifyMethod->getIdentifierValue();
-								}
-								return $carry;
-							}, $signer->getDisplayName()),
-						'request_sign_date' => (new \DateTime())
-							->setTimestamp($signer->getCreatedAt())
-							->format('Y-m-d H:i:s'),
-						'signed' => null,
-						'signRequestId' => $signer->getId(),
-						'me' => array_reduce($identifyMethodsOfSigner, function (bool $carry, IdentifyMethod $identifyMethod) use ($user): bool {
-							if ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_ACCOUNT) {
-								if ($user->getUID() === $identifyMethod->getIdentifierValue()) {
-									return true;
-								}
-							} elseif ($identifyMethod->getIdentifierKey() === IdentifyMethodService::IDENTIFY_EMAIL) {
-								if (!$user->getEMailAddress()) {
-									return false;
-								}
-								if ($user->getEMailAddress() === $identifyMethod->getIdentifierValue()) {
-									return true;
-								}
-							}
-							return $carry;
-						}, false),
-						'visibleElements' => array_map(function (FileElement $visibleElement) use ($file) {
-							$element = [
-								'elementId' => $visibleElement->getId(),
-								'signRequestId' => $visibleElement->getSignRequestId(),
-								'type' => $visibleElement->getType(),
-								'coordinates' => [
-									'page' => $visibleElement->getPage(),
-									'urx' => $visibleElement->getUrx(),
-									'ury' => $visibleElement->getUry(),
-									'llx' => $visibleElement->getLlx(),
-									'lly' => $visibleElement->getLly()
-								]
-							];
-							$metadata = json_decode($file['metadata'], true);
-							$dimension = $metadata['d'][$element['coordinates']['page'] - 1];
-
-							$element['coordinates']['left'] = $element['coordinates']['llx'];
-							$element['coordinates']['height'] = abs($element['coordinates']['ury'] - $element['coordinates']['lly']);
-							$element['coordinates']['top'] = $dimension['h'] - $element['coordinates']['ury'];
-							$element['coordinates']['width'] = $element['coordinates']['urx'] - $element['coordinates']['llx'];
-
-							return $element;
-						}, $visibleElements[$signer->getId()] ?? []),
-						'identifyMethods' => array_map(function (IdentifyMethod $identifyMethod) use ($signer): array {
-							return [
-								'method' => $identifyMethod->getIdentifierKey(),
-								'value' => $identifyMethod->getIdentifierValue(),
-								'mandatory' => $identifyMethod->getMandatory(),
-							];
-						}, array_values($identifyMethodsOfSigner)),
-					];
-
-					if ($data['me']) {
-						$data['sign_uuid'] = $signer->getUuid();
-						$files[$key]['url'] = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => $signer->getuuid()]);
-					}
-
-					if ($signer->getSigned()) {
-						$data['signed'] = $this->dateTimeFormatter->formatDateTime($signer->getSigned());
-						$totalSigned++;
-					}
-					ksort($data);
-					$files[$key]['signers'][] = $data;
-					unset($signers[$signerKey]);
-				}
-			}
-			if (empty($files[$key]['signers'])) {
-				$files[$key]['signers'] = [];
-				$files[$key]['statusText'] = $this->l10n->t('no signers');
-			} else {
-				$files[$key]['statusText'] = $this->fileMapper->getTextOfStatus((int) $files[$key]['status']);
-			}
-			unset($files[$key]['id']);
-			ksort($files[$key]);
-		}
-		return $files;
 	}
 
 	private function formatListRow(array $row): array {
