@@ -238,7 +238,7 @@ class FileService {
 					}
 				}
 			}
-			if ($signatureToShow['me']) {
+			if ($signatureToShow['me'] && !is_null($this->signRequest)) {
 				$signatureToShow['signatureMethods'] = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->signRequest->getId());
 			}
 			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function ($carry, $list) {
