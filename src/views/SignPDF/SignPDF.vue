@@ -38,9 +38,9 @@ export default {
 		}
 	},
 	mounted() {
-		if (this.$route.name === 'SignPDF') {
+		if (this.$route.name === 'SignPDFExternal') {
 			this.initSignExternal()
-		} else if (this.$route.name === 'SignPDFInternal') {
+		} else if (this.$route.name === 'SignPDF') {
 			this.initSignInternal()
 		}
 		showErrors(this.signStore.errors)

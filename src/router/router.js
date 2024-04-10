@@ -48,48 +48,48 @@ const router = new Router({
 	routes: [
 		// public
 		{
-			path: '/p/account/files/approve/:uuid',
-			name: 'AccountFileApprove',
-			component: () => import('../views/SignPDF/SignPDF.vue'),
-			props: true,
-		},
-		{
 			path: '/p/sign/:uuid',
-			redirect: { name: selectAction(loadState('libresign', 'action', '')) },
+			beforeEnter: (to, from, next) => {
+				const action = selectAction(loadState('libresign', 'action', ''), to, from)
+				if (action !== undefined) {
+					if (to.name !== 'incomplete') {
+						next({
+							name: action,
+							params: to.params,
+						})
+						return
+					}
+				}
+				next()
+			},
 			props: true,
 		},
 		{
 			path: '/p/sign/:uuid/pdf',
-			name: 'SignPDF',
+			name: 'SignPDFExternal',
 			component: () => import('../views/SignPDF/SignPDF.vue'),
 			props: true,
 		},
 		{
 			path: '/p/sign/:uuid/sign-in',
-			name: 'CreateAccount',
+			name: 'CreateAccountExternal',
 			component: () => import('../views/CreateAccount.vue'),
 			props: true,
 		},
 		{
 			path: '/p/sign/:uuid/error',
-			name: 'DefaultPageError',
+			name: 'DefaultPageErrorExternal',
 			component: () => import('../views/DefaultPageError.vue'),
 			props: true,
 		},
 		{
-			path: '/p/sign/:uuid/success',
-			name: 'DefaultPageSuccess',
-			component: () => import('../views/DefaultPageSuccess.vue'),
-			props: true,
-		},
-		{
 			path: '/p/sign/:uuid/renew/email',
-			name: 'RenewEmail',
+			name: 'RenewEmailExternal',
 			component: () => import('../views/RenewEmail.vue'),
 		},
 		{
 			path: '/p/validation/:uuid',
-			name: 'validationFilePublic',
+			name: 'ValidationFileExternal',
 			component: () => import('../views/Validation.vue'),
 			props: true,
 		},
@@ -107,7 +107,7 @@ const router = new Router({
 			path: '/f/incomplete',
 			name: 'incomplete',
 			beforeEnter: (to, from, next) => {
-				const action = selectAction(loadState('libresign', 'action', ''))
+				const action = selectAction(loadState('libresign', 'action', ''), to, from)
 				if (action !== undefined) {
 					if (to.name !== 'incomplete') {
 						next({
@@ -128,7 +128,7 @@ const router = new Router({
 		},
 		{
 			path: '/f/validation/:uuid',
-			name: 'validationFile',
+			name: 'ValidationFile',
 			component: () => import('../views/Validation.vue'),
 			props: true,
 		},
@@ -150,7 +150,13 @@ const router = new Router({
 		},
 		{
 			path: '/f/sign/:uuid/pdf',
-			name: 'SignPDFInternal',
+			name: 'SignPDF',
+			component: () => import('../views/SignPDF/SignPDF.vue'),
+			props: true,
+		},
+		{
+			path: '/f/account/files/approve/:uuid',
+			name: 'AccountFileApprove',
 			component: () => import('../views/SignPDF/SignPDF.vue'),
 			props: true,
 		},
@@ -178,7 +184,7 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-	const action = selectAction(loadState('libresign', 'action', ''))
+	const action = selectAction(loadState('libresign', 'action', ''), to, from)
 	if (action !== undefined) {
 		document.querySelector('#initial-state-libresign-action').remove()
 		next({

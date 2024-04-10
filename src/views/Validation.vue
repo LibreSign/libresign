@@ -25,10 +25,12 @@
 								<h1>{{ infoDocument }}</h1>
 							</div>
 							<div class="info-document">
+								<NcNoteCard type="success" v-if="isAfterSigned">
+									{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
+								</NcNoteCard>
 								<p>
 									<b>{{ document.name }}</b>
 								</p>
-
 								<NcRichText class="legal-information"
 									:text="legalInformation"
 									:use-markdown="true" />
@@ -79,6 +81,8 @@ import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import JSConfetti from 'js-confetti'
 import { loadState } from '@nextcloud/initial-state'
 import BackgroundImage from '../../img/logo-gray.svg'
 import iconA from '../../img/info-circle-solid.svg'
@@ -89,7 +93,6 @@ import { translate as t } from '@nextcloud/l10n'
 import logger from '../logger.js'
 
 export default {
-	// eslint-disable-next-line vue/match-component-file-name
 	name: 'Validation',
 
 	components: {
@@ -97,6 +100,7 @@ export default {
 		NcContent,
 		NcButton,
 		NcLoadingIcon,
+		NcNoteCard,
 	},
 
 	data() {
@@ -129,6 +133,11 @@ export default {
 			this.validate(this.myUuid)
 		}
 	},
+	computed: {
+		isAfterSigned() {
+			return this.$route.params.isAfterSigned ?? false
+		}
+	},
 	methods: {
 		validate(id) {
 			if (id === this.document?.uuid) {
@@ -150,6 +159,10 @@ export default {
 				this.document = response.data
 				this.hasInfo = true
 				this.hasLoading = false
+				if (this.isAfterSigned) {
+					const jsConfetti = new JSConfetti()
+					jsConfetti.addConfetti()
+				}
 			} catch (err) {
 				this.hasLoading = false
 				showError(err.response.data.errors[0])
@@ -163,6 +176,10 @@ export default {
 				this.document = response.data
 				this.hasInfo = true
 				this.hasLoading = false
+				if (this.isAfterSigned) {
+					const jsConfetti = new JSConfetti()
+					jsConfetti.addConfetti()
+				}
 			} catch (err) {
 				this.hasLoading = false
 				showError(err.response.data.errors[0])
