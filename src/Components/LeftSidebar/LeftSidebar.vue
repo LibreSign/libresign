@@ -117,6 +117,7 @@ export default {
 				|| (
 					!!this.$route.name
 					&& this.$route.name !== 'SignPDF'
+					&& this.$route.name !== 'DefaultPageError'
 					&& this.$route.name !== 'SignPDFInternal'
 				)
 		},
