@@ -31,7 +31,7 @@ export const useSignatureElementsStore = function(...args) {
 		type: '',
 		file: {
 			url: '',
-			fileId: 0,
+			nodeId: 0,
 		},
 		starred: 0,
 		createdAt: '',
@@ -73,8 +73,8 @@ export const useSignatureElementsStore = function(...args) {
 			async save(type, base64) {
 				const config = {}
 				if (this.signs[type].id > 0) {
-					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-						elementId: this.signs[type].id,
+					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{nodeId}', {
+						nodeId: this.signs[type].file.nodeId,
 					})
 					config.data = {
 						type,
@@ -115,8 +115,8 @@ export const useSignatureElementsStore = function(...args) {
 			},
 			async delete(type) {
 				await axios.delete(
-					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{elementId}', {
-						elementId: this.signs[type].id,
+					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{nodeId}', {
+						nodeId: this.signs[type].file.nodeId,
 					}),
 				)
 					.then(({ data }) => {

@@ -232,8 +232,8 @@ class SignFileService {
 			});
 			if ($element) {
 				$c = current($element);
-				if (!empty($c['profileFileId'])) {
-					$nodeId = $c['profileFileId'];
+				if (!empty($c['profileNodeId'])) {
+					$nodeId = $c['profileNodeId'];
 				} else {
 					throw new LibresignException($this->l10n->t('Invalid data to sign file'), 1);
 				}
@@ -259,7 +259,7 @@ class SignFileService {
 				if (!$node) {
 					throw new \Exception('empty');
 				}
-				$node = $node[0];
+				$node = current($node);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}

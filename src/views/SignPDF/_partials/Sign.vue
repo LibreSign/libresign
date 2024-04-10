@@ -251,7 +251,7 @@ export default {
 				payload.elements = this.elements
 					.map(row => ({
 						documentElementId: row.elementId,
-						profileFileId: this.signatureElementsStore.signs[row.type].file.fileId,
+						profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
 					}))
 			}
 			let url = ''
