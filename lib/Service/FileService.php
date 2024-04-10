@@ -239,7 +239,7 @@ class FileService {
 				}
 			}
 			if ($signatureToShow['me']) {
-				$signatureToShow['signatureMethods']= $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->signRequest->getId());
+				$signatureToShow['signatureMethods'] = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->signRequest->getId());
 			}
 			$signatureToShow['identifyMethods'] = array_reduce($signatureToShow['identifyMethods'], function ($carry, $list) {
 				foreach ($list as $identifyMethod) {
