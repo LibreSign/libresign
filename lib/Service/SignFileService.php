@@ -400,10 +400,10 @@ class SignFileService {
 		return $originalFile;
 	}
 
-	public function getLibresignFile(?int $fileId, ?string $signRequestUuid = null): FileEntity {
+	public function getLibresignFile(?int $nodeId, ?string $signRequestUuid = null): FileEntity {
 		try {
-			if ($fileId) {
-				$libresignFile = $this->fileMapper->getByFileId($fileId);
+			if ($nodeId) {
+				$libresignFile = $this->fileMapper->getByFileId($nodeId);
 			} elseif ($signRequestUuid) {
 				$signRequest = $this->signRequestMapper->getByUuid($signRequestUuid);
 				$libresignFile = $this->fileMapper->getById($signRequest->getFileId());
