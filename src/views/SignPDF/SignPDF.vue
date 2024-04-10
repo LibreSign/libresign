@@ -37,17 +37,20 @@ export default {
 	},
 	mounted() {
 		if (this.$route.name === 'SignPDF') {
-			this.signStore.initFromState()
-			if (!this.signStore.document.uuid) {
-				this.signStore.document.uuid = this.$route.params.uuid
-			}
-			this.mounted = true
+			this.initSignExternal()
 		} else if (this.$route.name === 'SignPDFInternal') {
 			this.initSignInternal()
 		}
 		showErrors(this.signStore.errors)
 	},
 	methods: {
+		initSignExternal() {
+			this.signStore.initFromState()
+			if (!this.signStore.document.uuid) {
+				this.signStore.document.uuid = this.$route.params.uuid
+			}
+			this.mounted = true
+		},
 		async initSignInternal() {
 			const files = await this.fileStore.getAllFiles({
 				signer_uuid: this.$route.params.uuid,
