@@ -46,12 +46,6 @@ const router = new Router({
 	base: generateWebBasePath(),
 	linkActiveClass: 'active',
 	routes: [
-		{
-			path: '/reset-password',
-			name: 'ResetPassword',
-			component: () => import('../views/ResetPassword.vue'),
-		},
-
 		// public
 		{
 			path: '/p/account/files/approve/:uuid',
@@ -174,6 +168,11 @@ const router = new Router({
 			path: '/f/create-password',
 			name: 'CreatePassword',
 			component: () => import('../views/CreatePassword.vue'),
+		},
+		{
+			path: '/f/reset-password',
+			name: 'ResetPassword',
+			component: () => import('../views/ResetPassword.vue'),
 		},
 	],
 })
