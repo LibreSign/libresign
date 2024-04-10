@@ -30,26 +30,33 @@
 				{{ message || t('libresign', 'Page not found') }}
 			</h2>
 			<p>{{ paragth }}</p>
+			<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
+				<p v-for="error in errors" :key="error">
+					{{ error }}
+				</p>
+			</NcNoteCard>
 		</div>
 	</div>
 </template>
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import { mapGetters } from 'vuex'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'DefaultPageError',
+	components: {
+		NcNoteCard,
+	},
 
 	data() {
 		return {
 			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
+			errors: loadState('libresign', 'errors', []),
 		}
 	},
 
-	computed: {
-		...mapGetters({ message: 'error/getErrorMessage', code: 'error/getErrorCode' }),
-	},
 }
 </script>
 
