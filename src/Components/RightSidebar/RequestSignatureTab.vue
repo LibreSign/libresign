@@ -79,7 +79,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
-// import router from '../../router/router.js'
+import router from '../../router/router.js'
 
 export default {
 	name: 'RequestSignatureTab',
@@ -92,6 +92,12 @@ export default {
 		Signers,
 		IdentifySigner,
 		VisibleElements,
+	},
+	props: {
+		useModal: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	setup() {
 		const filesStore = useFilesStore()
@@ -197,11 +203,14 @@ export default {
 					}
 					return accumulator
 				}, '')
+			if (this.useModal) {
+				const route = router.resolve({ name: 'SignPDF', params: { uuid } })
+				this.modalSrc = route.href
+				this.showSignModal = true
+				return
+			}
 			this.signStore.setDocumentToSign(this.filesStore.getFile())
 			this.$router.push({ name: 'SignPDFInternal', params: { uuid } })
-			// const route = router.resolve({ name: 'SignPDF', params: { uuid } })
-			// this.modalSrc = route.href
-			// this.showSignModal = true
 		},
 		async save() {
 			this.hasLoading = true
