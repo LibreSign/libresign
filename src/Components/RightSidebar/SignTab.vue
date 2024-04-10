@@ -79,10 +79,12 @@ export default {
 			this.loading = false
 		},
 		onSigned(data) {
+			console.log('onSigned')
 			this.$router.push({
-				name: 'DefaultPageSuccess',
+				name: 'ValidationFile',
 				params: {
 					uuid: data.file.uuid,
+					isAfterSigned: true,
 				},
 			})
 		},

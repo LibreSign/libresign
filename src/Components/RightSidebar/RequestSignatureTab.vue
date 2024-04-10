@@ -79,6 +79,7 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 import router from '../../router/router.js'
 
 export default {
@@ -102,7 +103,8 @@ export default {
 	setup() {
 		const filesStore = useFilesStore()
 		const signStore = useSignStore()
-		return { filesStore, signStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, signStore, sidebarStore }
 	},
 	data() {
 		return {
@@ -168,7 +170,8 @@ export default {
 			this.showSignModal = false
 		},
 		validationFile() {
-			this.$router.push({ name: 'validationFile', params: { uuid: this.filesStore.getFile().uuid } })
+			this.$router.push({ name: 'ValidationFile', params: { uuid: this.filesStore.getFile().uuid } })
+			this.sidebarStore.hideSidebar()
 		},
 		addSigner() {
 			this.signerToEdit = {}
@@ -210,7 +213,7 @@ export default {
 				return
 			}
 			this.signStore.setDocumentToSign(this.filesStore.getFile())
-			this.$router.push({ name: 'SignPDFInternal', params: { uuid } })
+			this.$router.push({ name: 'SignPDF', params: { uuid } })
 		},
 		async save() {
 			this.hasLoading = true

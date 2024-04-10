@@ -172,6 +172,7 @@ export const useFilesStore = defineStore('files', {
 					filter,
 				},
 			})
+			this.files = {}
 			response.data.data.forEach(file => {
 				this.addFile(file)
 			})
