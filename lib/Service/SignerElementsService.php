@@ -42,13 +42,8 @@ class SignerElementsService {
 	) {
 	}
 
-	/**
-	 * @return ((int|string)[]|\DateTime|int|string)[]
-	 *
-	 * @psalm-return array{id?: int, type?: string, file?: array{url: string, fileId: int}, uid?: string, starred?: 0|1, createdAt?: \DateTime}
-	 */
-	public function getUserElementByElementId(string $userId, $elementId): array {
-		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
+	public function getUserElementByNodeId(string $userId, $nodeId): array {
+		$element = $this->userElementMapper->findOne(['file_id' => $nodeId, 'user_id' => $userId]);
 		$exists = $this->signatureFileExists($element);
 		if (!$exists) {
 			return [];
@@ -57,8 +52,8 @@ class SignerElementsService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
-				'fileId' => $element->getFileId()
+				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['nodeId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+				'nodeId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
 			'starred' => $element->getStarred() ? 1 : 0,
@@ -78,8 +73,8 @@ class SignerElementsService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
-					'fileId' => $element->getFileId()
+					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByNodeId', ['nodeId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+					'nodeId' => $element->getFileId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
 				'createdAt' => $element->getCreatedAt()->format('Y-m-d H:i:s'),
@@ -120,9 +115,9 @@ class SignerElementsService {
 				'file' => [
 					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.account.getSignatureElementPreview', [
 						'apiVersion' => 'v1',
-						'fileId' => $fileElement->getId(),
+						'nodeId' => $fileElement->getId(),
 					]),
-					'fileId' => $fileElement->getId(),
+					'nodeId' => $fileElement->getId(),
 				],
 				'starred' => 0,
 				'createdAt' => (new \DateTime())->setTimestamp((int) $timestamp)->format('Y-m-d H:i:s'),
