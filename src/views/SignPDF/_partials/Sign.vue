@@ -1,7 +1,7 @@
 <template>
 	<div class="document-sign">
 		<div class="sign-elements">
-			<Signatures v-if="hasSignatures"/>
+			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<div v-if="ableToSign" class="button-wrapper">

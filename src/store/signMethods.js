@@ -21,7 +21,6 @@
 
 import { defineStore } from 'pinia'
 import { set } from 'vue'
-import { loadState } from '@nextcloud/initial-state'
 
 export const useSignMethodsStore = defineStore('signMethods', {
 	state: () => ({
