@@ -106,7 +106,7 @@ const router = new Router({
 		},
 		{
 			path: '/f/incomplete',
-			name: 'incomplete',
+			name: 'Incomplete',
 			beforeEnter: (to, from, next) => {
 				const action = selectAction(loadState('libresign', 'action', ''), to, from)
 				if (action !== undefined) {
