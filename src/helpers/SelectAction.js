@@ -22,22 +22,13 @@
  */
 
 import { loadState } from '@nextcloud/initial-state'
+import { isExternal } from '../helpers/isExternal.js'
 
 const redirectURL = loadState('libresign', 'redirect', 'Home')
 
 export const selectAction = (action, to, from) => {
-	let isExternal = false
-	if (from.path === '/') {
-		isExternal = to.path.startsWith('/p/')
-	} else {
-		isExternal = from.path.startsWith('/p/')
-	}
-	console.log('from path', from.path)
-	console.log('to path', to.path)
-	console.log('is external', from.path.startsWith('/p/'))
-	console.log('is external', to.path.startsWith('/p/'))
-	const external = isExternal ? 'External' : ''
-	console.log('external', external)
+	const isExternalRoute = isExternal(to, from)
+	const external = isExternalRoute ? 'External' : ''
 	switch (action) {
 	case 1000: // ACTION_REDIRECT
 		window.location.replace(redirectURL.toString())

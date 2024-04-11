@@ -181,6 +181,7 @@ export default {
 		needCreateSignature() {
 			const signer = this.signStore.document?.signers.find(row => row.me) || {}
 			return !!signer.signRequestId
+				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
 		},
 		ableToSign() {

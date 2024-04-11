@@ -79,7 +79,6 @@ export default {
 			this.loading = false
 		},
 		onSigned(data) {
-			console.log('onSigned')
 			this.$router.push({
 				name: 'ValidationFile',
 				params: {
