@@ -74,6 +74,7 @@
 import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
 import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
 import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
+import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
@@ -112,7 +113,8 @@ export default {
 			return this.$route.query._back_to_signature
 		},
 		showLeftSidebar() {
-			return !!this.$route.name && this.$route.name !== 'SignPDF'
+			return getCurrentUser()
+				|| !this.$route.path.startsWith('/p/')
 		},
 	},
 	methods: {

@@ -99,19 +99,17 @@ export default {
 }
 </script>
 
-<style lang="scss">
-#app-sidebar-vue {
-	width: unset;
-	.app-sidebar__close {
-		display: none;
-	}
-}
-.draw-signature {
-	.modal-container {
+<style lang="scss" scoped>
+.draw-signature{
+	::v-deep .modal-container {
 		width: unset !important;
 		height: unset !important;
 	}
+	::v-deep .app-sidebar__close {
+		display: none;
+	}
+	::v-deep #app-sidebar-vue {
+		width: unset;
+	}
 }
-</style>
-<style lang="scss" scoped>
 </style>

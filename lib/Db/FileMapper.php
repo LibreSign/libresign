@@ -118,15 +118,15 @@ class FileMapper extends QBMapper {
 	}
 
 	/**
-	 * Return LibreSign file by fileId
+	 * Return LibreSign file by nodeId
 	 */
-	public function getByFileId(?int $fileId = null): File {
-		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $fileId || $f->getSignedNodeId() === $fileId);
+	public function getByFileId(?int $nodeId = null): File {
+		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
 		if (!empty($exists)) {
 			return current($exists);
 		}
 		foreach ($this->file as $file) {
-			if ($file->getNodeId() === $fileId) {
+			if ($file->getNodeId() === $nodeId) {
 				return $file;
 			}
 		}
@@ -136,8 +136,8 @@ class FileMapper extends QBMapper {
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->orX(
-					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 				)
 			);
 

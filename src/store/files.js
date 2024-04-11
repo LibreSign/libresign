@@ -24,6 +24,8 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
 import Moment from '@nextcloud/moment'
+import { useSignStore } from './sign.js'
+import { useSidebarStore } from './sidebar.js'
 
 export const useFilesStore = defineStore('files', {
 	state: () => {
@@ -32,6 +34,7 @@ export const useFilesStore = defineStore('files', {
 			selectedNodeId: 0,
 			identifyingSigner: false,
 			loading: false,
+			filterActive: 'all',
 		}
 	},
 
@@ -42,6 +45,13 @@ export const useFilesStore = defineStore('files', {
 		},
 		selectFile(nodeId) {
 			this.selectedNodeId = nodeId ?? 0
+			if (this.selectedNodeId === 0) {
+				const signStore = useSignStore()
+				signStore.reset()
+				return
+			}
+			const sidebarStore = useSidebarStore()
+			sidebarStore.activeRequestSignatureTab()
 		},
 		getFile() {
 			return this.files[this.selectedNodeId] ?? {}
@@ -156,27 +166,34 @@ export const useFilesStore = defineStore('files', {
 				this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 			)
 		},
-		async getAllFiles() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'))
-				response.data.data.forEach(file => {
-					this.addFile(file)
-				})
-			} catch (err) {
+		async getAllFiles(filter) {
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
+				params: {
+					filter,
+				},
+			})
+			this.files = {}
+			response.data.data.forEach(file => {
+				this.addFile(file)
+			})
+			return this.files
+		},
+		filter(type) {
+			this.filterActive = type
+			if (type === 'pending') {
+				return Object.values(this.files).filter(
+					(a) => (a.status === 1 || a.status === 2)).sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 			}
-		},
-		pendingFilter() {
-			return Object.values(this.files).filter(
-				(a) => (a.status === 1 || a.status === 2)).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		signedFilter() {
-			return Object.values(this.files).filter(
-				(a) => (a.status === 3)).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		orderFiles() {
-			return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			if (type === 'signed') {
+				return Object.values(this.files).filter(
+					(a) => (a.status === 3)).sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			}
+			if (type === 'all') {
+				this.filterActive = 'all'
+				return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			}
 		},
 	},
 })
