@@ -1,6 +1,6 @@
 <template>
 	<NcModal size="normal"
-		:can-close="false"
+		:can-close="!loading"
 		@close="close">
 		<div class="modal__content">
 			<h2 class="modal__header">

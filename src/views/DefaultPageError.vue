@@ -30,26 +30,33 @@
 				{{ message || t('libresign', 'Page not found') }}
 			</h2>
 			<p>{{ paragth }}</p>
+			<NcNoteCard v-if="errors.length > 0" type="error" heading="Error">
+				<p v-for="error in errors" :key="error">
+					{{ error }}
+				</p>
+			</NcNoteCard>
 		</div>
 	</div>
 </template>
 
 <script>
 import { translate as t } from '@nextcloud/l10n'
-import { mapGetters } from 'vuex'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
+import { loadState } from '@nextcloud/initial-state'
 
 export default {
 	name: 'DefaultPageError',
+	components: {
+		NcNoteCard,
+	},
 
 	data() {
 		return {
 			paragth: t('libresign', 'Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.'),
+			errors: loadState('libresign', 'errors', []),
 		}
 	},
 
-	computed: {
-		...mapGetters({ message: 'error/getErrorMessage', code: 'error/getErrorCode' }),
-	},
 }
 </script>
 
@@ -68,12 +75,6 @@ export default {
 		background-repeat: no-repeat;
 		background-size: cover;
 		line-height: 17.6px;
-
-		&::before {
-			content: '';
-			background-color: rgb(0, 245, 248);
-			border: 50%;
-		}
 	}
 
 }
@@ -81,8 +82,6 @@ export default {
 .content{
 	box-sizing: border-box;
 	font-family: 'Nunito', sans-serif;
-	text-transform: uppercase;
-	color: rgb(21, 23, 25);
 	max-width: 560px;
 	padding-left: 50px;
 
@@ -102,7 +101,7 @@ export default {
 		margin-bottom: 10px;
 	}
 	p{
-		color: rgb(153, 159, 165);
+		color: var(--color-main-text);
 		font-weight: 400;
 		line-height: 17.6px;
 	}

@@ -34,7 +34,7 @@ class GlobalInjectionMiddleware extends Middleware {
 	public function afterController(Controller $controller, string $methodName, Response $response) {
 		if ($controller instanceof ViewController) {
 			$policy = new ContentSecurityPolicy();
-			$policy->allowEvalScript(true);
+			$policy->addAllowedFrameDomain("'self'");
 			$response->setContentSecurityPolicy($policy);
 		}
 		return $response;

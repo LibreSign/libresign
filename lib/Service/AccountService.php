@@ -47,6 +47,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
 use OCP\Http\Client\IClientService;
@@ -405,9 +406,12 @@ class AccountService {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $sessionId;
 		if ($rootSignatureFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
+			/** @var Folder $folderToFile */
+			$folderToFile = $rootSignatureFolder->get($folderName);
+		} else {
+			/** @var Folder $folderToFile */
+			$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		}
-		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		$filename = implode(
 			'_',
 			[
@@ -461,9 +465,24 @@ class AccountService {
 		return $content;
 	}
 
-	public function deleteSignatureElement(string $userId, int $elementId): void {
-		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
-		$this->userElementMapper->delete($element);
+	public function deleteSignatureElement(?IUser $user, string $sessionId, int $nodeId): void {
+		if ($user instanceof IUser) {
+			$element = $this->userElementMapper->findOne([
+				'file_id' => $nodeId,
+				'user_id' => $user->getUID(),
+			]);
+			$this->userElementMapper->delete($element);
+			$file = $this->root->getById($element->getFileId());
+			if ($file) {
+				current($file)->delete();
+			}
+		} else {
+			$rootSignatureFolder = $this->folderService->getFolder();
+			$folderName = $sessionId;
+			if ($rootSignatureFolder->nodeExists($folderName)) {
+				$rootSignatureFolder->delete($folderName);
+			}
+		}
 	}
 
 	/**

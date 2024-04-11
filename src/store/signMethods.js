@@ -21,7 +21,6 @@
 
 import { defineStore } from 'pinia'
 import { set } from 'vue'
-import { loadState } from '@nextcloud/initial-state'
 
 export const useSignMethodsStore = defineStore('signMethods', {
 	state: () => ({
@@ -33,7 +32,7 @@ export const useSignMethodsStore = defineStore('signMethods', {
 			createSignature: false,
 			sms: false,
 		},
-		settings: loadState('libresign', 'signature_methods', []),
+		settings: [],
 	}),
 	actions: {
 		closeModal(modalCode) {

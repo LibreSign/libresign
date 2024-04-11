@@ -26,7 +26,7 @@ import { getRequestToken } from '@nextcloud/auth'
 import Vue from 'vue'
 import { createPinia, PiniaVuePlugin } from 'pinia'
 
-import External from './External.vue'
+import App from './App.vue'
 import router from './router/router.js'
 import store from './store/index.js'
 
@@ -61,5 +61,5 @@ export default new Vue({
 	router,
 	store,
 	pinia,
-	render: h => h(External),
+	render: h => h(App),
 })

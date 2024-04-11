@@ -1,11 +1,18 @@
 <template>
-	<NcAppSidebar v-show="opened"
+	<NcAppSidebar v-if="sidebarStore.isVisible()"
+		ref="rightAppSidebar"
 		:name="fileName"
 		:subtitle="subTitle"
-		:active="fileName"
+		:active.sync="sidebarStore.activeTab"
+		@update:active="handleUpdateActive"
 		@close="closeSidebar">
-		<NcAppSidebarTab v-if="showListSigners"
-			id="request-signature-list-signers"
+		<NcAppSidebarTab v-if="showSign"
+			id="sign-tab"
+			:name="fileName">
+			<SignTab />
+		</NcAppSidebarTab>
+		<NcAppSidebarTab v-if="showRequestSignatureTab"
+			id="request-signature-tab"
 			:name="fileName">
 			<RequestSignatureTab />
 		</NcAppSidebarTab>
@@ -16,8 +23,10 @@
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import RequestSignatureTab from '../RightSidebar/RequestSignatureTab.vue'
+import SignTab from '../RightSidebar/SignTab.vue'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'RightSidebar',
@@ -25,11 +34,13 @@ export default {
 		NcAppSidebar,
 		NcAppSidebarTab,
 		RequestSignatureTab,
+		SignTab,
 	},
 	setup() {
 		const filesStore = useFilesStore()
 		const signStore = useSignStore()
-		return { filesStore, signStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, signStore, sidebarStore }
 	},
 	computed: {
 		fileName() {
@@ -41,17 +52,28 @@ export default {
 			}
 			return this.filesStore.getSubtitle()
 		},
-		opened() {
-			return this.filesStore.selectedNodeId > 0
+		showRequestSignatureTab() {
+			return this.sidebarStore.activeTab === 'request-signature-tab'
+		},
+		showSign() {
+			return this.sidebarStore.activeTab === 'sign-tab'
+		},
+	},
+	watch: {
+		'sidebarStore.activeTab'(newValue, previousValue) {
+			if (this.$refs?.rightAppSidebar?.$refs?.tabs) {
+				this.$refs.rightAppSidebar.$refs.tabs.activeTab = newValue
+			}
 		},
 	},
 	methods: {
-		showListSigners() {
-			return !!this.filesStore.getFile()?.name
+		handleUpdateActive(active) {
+			this.sidebarStore.setActiveTab(active)
 		},
 		closeSidebar() {
-			this.filesStore.selectFile()
-			this.$emit('close')
+			this.sidebarStore.hideSidebar()
+			// this.filesStore.selectFile()
+			// this.signStore.reset()
 		},
 	},
 }

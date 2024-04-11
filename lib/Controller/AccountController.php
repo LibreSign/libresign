@@ -324,10 +324,10 @@ class AccountController extends ApiController implements ISignatureUuid {
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
-	public function getSignatureElementPreview(int $fileId) {
+	public function getSignatureElementPreview(int $nodeId) {
 		try {
 			$node = $this->accountService->getFileByNodeIdAndSessionId(
-				$fileId,
+				$nodeId,
 				$this->sessionService->getSessionId()
 			);
 		} catch (DoesNotExistException $th) {
@@ -346,11 +346,11 @@ class AccountController extends ApiController implements ISignatureUuid {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function getSignatureElement(int $elementId): JSONResponse {
+	public function getSignatureElement(int $nodeId): JSONResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
 			return new JSONResponse(
-				$this->signerElementsService->getUserElementByElementId($userId, $elementId),
+				$this->signerElementsService->getUserElementByNodeId($userId, $nodeId),
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
@@ -365,9 +365,9 @@ class AccountController extends ApiController implements ISignatureUuid {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function patchSignatureElement($elementId, string $type = '', array $file = []): JSONResponse {
+	public function patchSignatureElement($nodeId, string $type = '', array $file = []): JSONResponse {
 		try {
-			$element['elementId'] = $elementId;
+			$element['nodeId'] = $nodeId;
 			if ($type) {
 				$element['type'] = $type;
 			}
@@ -394,10 +394,14 @@ class AccountController extends ApiController implements ISignatureUuid {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function deleteSignatureElement(int $elementId): JSONResponse {
-		$userId = $this->userSession->getUser()->getUID();
+	#[PublicPage]
+	public function deleteSignatureElement(int $nodeId): JSONResponse {
 		try {
-			$this->accountService->deleteSignatureElement($userId, $elementId);
+			$this->accountService->deleteSignatureElement(
+				user: $this->userSession->getUser(),
+				nodeId: $nodeId,
+				sessionId: $this->sessionService->getSessionId(),
+			);
 		} catch (\Throwable $th) {
 			return new JSONResponse(
 				[

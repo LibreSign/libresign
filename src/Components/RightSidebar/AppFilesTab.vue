@@ -3,7 +3,7 @@
 		<h3 v-if="filesStore.getSubtitle()">
 			{{ filesStore.getSubtitle() }}
 		</h3>
-		<RequestSignatureTab />
+		<RequestSignatureTab :use-modal="true" />
 	</div>
 </template>
 
