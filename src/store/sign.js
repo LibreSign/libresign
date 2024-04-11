@@ -38,6 +38,7 @@ const defaultState = {
 		uuid: '',
 		signers: [],
 	},
+	mounted: false,
 }
 
 export const useSignStore = defineStore('sign', {

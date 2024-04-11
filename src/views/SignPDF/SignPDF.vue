@@ -80,7 +80,7 @@ export default {
 					})
 				}
 			})
-			emit('pdfeditor:loaded')
+			this.signStore.mounted = true
 		},
 	},
 }
