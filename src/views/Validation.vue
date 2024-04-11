@@ -7,8 +7,7 @@
 			<div id="dataUUID">
 				<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
 					<h1>{{ title }}</h1>
-					<h3>{{ legend }}</h3>
-					<input v-model="myUuid" type="text">
+					<NcTextField :value.sync="myUuid" :label="legend" />
 					<NcButton type="primary"
 						@click.prevent="validate(myUuid)">
 						<template #icon>
@@ -78,6 +77,7 @@
 <script>
 import axios from '@nextcloud/axios'
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcRichText from '@nextcloud/vue/dist/Components/NcRichText.js'
@@ -96,6 +96,7 @@ export default {
 	name: 'Validation',
 
 	components: {
+		NcTextField,
 		NcRichText,
 		NcContent,
 		NcButton,
@@ -222,8 +223,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$text-color: #273849;
-$background: #ECEFFC;
 $title-font: 1.5rem;
 $title-font-mobile: 1.3rem;
 $date-signed-font: .7rem;
@@ -275,8 +274,8 @@ $date-signed-font: .7rem;
 }
 
 form{
-	background-color: $background;
-	color: $text-color;
+	background-color: var(--color-main-background);
+	color: var(--color-main-text);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -285,7 +284,8 @@ form{
 	margin: 20px;
 	border-radius: 8px;
 	max-width: 500px;
-	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+		width: 100%;
+	box-shadow: 0 0 6px 0 var(--color-box-shadow);
 
 	@media screen and (max-width: 900px) {
 		width: 100%;
@@ -299,26 +299,12 @@ form{
 h1{
 	font-size: 24px;
 	font-weight: bold;
-	color: $text-color;
-}
-
-h3{
-	color: #337ab7;
-}
-
-input{
-	width: 100%;
-	margin: 20px 0px;
+	color: var(--color-main-text);
 }
 
 button{
-	background-color: #0082c9;
-	color: #FFF;
 	float: right;
 	margin-top: 20px;
-	&:hover{
-		background-color: #286090;
-	}
 }
 
 .infor{
@@ -335,10 +321,10 @@ button{
 }
 
 .infor-bg{
-	background-color: #FFF;
+	background-color: var(--color-main-background);
 	padding: 20px 60px 20px 20px;
 	border-radius: 8px;
-	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+	box-shadow: 0 0 6px 0 var(--color-box-shadow);
 
 	.infor-content{
 		display: flex;
@@ -351,7 +337,7 @@ button{
 }
 
 .info-document{
-	color: $text-color;
+	color: var(--color-main-text);
 	display: flex;
 	flex-direction: column;
 	width: 100%;
@@ -394,8 +380,8 @@ button{
 .subscriber {
 	display: flex;
 	flex-direction: column;
-	color: $text-color;
-	background-color: $background;
+	color: var(--color-main-text);
+	background-color: rgba(var(--color-info-rgb), 0.1);
 	border-radius: 8px;
 	padding: 5px 0px 5px 5px;
 	margin: 5px 5px 0px 0px;
@@ -426,6 +412,7 @@ button{
 .icon{
 	width: 30px;
 	margin-right: 10px;
+	filter: var(--background-invert-if-dark);
 }
 
 @media screen and (max-width: 700px) {
