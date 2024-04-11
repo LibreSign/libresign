@@ -234,7 +234,7 @@ OC.L10N.register(
     "Welcome to Libresign" : "Willkommen bei Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "Die Administration hat bislang Libresign noch nicht eingerichtet. Bitte warten.",
     "Certificate data" : "Zertifikatsdaten",
-    "Issuer of certificate" : "Zertifikatsaussteller",
+    "Issuer of certificate" : "Aussteller des Zertifikats",
     "Owner of certificate" : "Besitzer des Zertifikats",
     "Extra informations" : "Zusätzliche Informationen",
     "Certificate password" : "Zertifikatspasswort",
