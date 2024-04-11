@@ -128,14 +128,16 @@ class PageController extends AEnvironmentPageAwareController {
 	#[NoCSRFRequired]
 	public function incomplete(): TemplateResponse {
 		Util::addScript(Application::APP_ID, 'libresign-main');
-		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		$response = new TemplateResponse(Application::APP_ID, 'main');
 		return $response;
 	}
 
 	#[PublicPage]
 	#[NoCSRFRequired]
 	public function incompleteP(): TemplateResponse {
-		return $this->incomplete();
+		Util::addScript(Application::APP_ID, 'libresign-main');
+		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		return $response;
 	}
 
 	#[NoAdminRequired]
