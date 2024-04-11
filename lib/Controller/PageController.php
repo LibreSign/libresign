@@ -100,6 +100,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
+		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
@@ -173,8 +174,6 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
-		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',

@@ -43,7 +43,7 @@ export default {
 <style lang="scss" scoped>
 .signatures {
 	align-items: flex-start;
-	width: 100%;
+	max-width: 350px;
 
 	h1{
 		font-size: 1.3rem;

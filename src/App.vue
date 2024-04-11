@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcContent app-name="libresign">
+	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
 		<LeftSidebar />
 		<NcAppContent :class="{'icon-loading' : loading }">
 			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
@@ -63,11 +63,21 @@ export default {
 		isRoot() {
 			return this.$route.path === '/'
 		},
+		isSignExternalPage() {
+			return this.$route.path.startsWith('/p/')
+		},
 	},
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.sign-external-page {
+	width: 100%;
+	height: 100%;
+	margin: unset;
+	box-sizing: unset;
+	border-radius: unset;
+}
 .app-libresign {
 	.app-navigation {
 		.app-navigation-entry.active {

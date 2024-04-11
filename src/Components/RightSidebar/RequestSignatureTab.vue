@@ -4,7 +4,7 @@
 		<IdentifySigner :signer-to-edit="signerToEdit" />
 	</div>
 	<div v-else
-		id="request-signature-list-signers">
+		id="request-signature-tab">
 		<NcButton v-if="canAddSigner"
 			:type="hasSigners ? 'secondary' : 'primary'"
 			@click="addSigner">
@@ -79,6 +79,8 @@ import VisibleElements from '../Request/VisibleElements.vue'
 import { loadState } from '@nextcloud/initial-state'
 import { useFilesStore } from '../../store/files.js'
 import { useSignStore } from '../../store/sign.js'
+import { useSidebarStore } from '../../store/sidebar.js'
+import router from '../../router/router.js'
 
 export default {
 	name: 'RequestSignatureTab',
@@ -92,10 +94,17 @@ export default {
 		IdentifySigner,
 		VisibleElements,
 	},
+	props: {
+		useModal: {
+			type: Boolean,
+			default: false,
+		},
+	},
 	setup() {
 		const filesStore = useFilesStore()
 		const signStore = useSignStore()
-		return { filesStore, signStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, signStore, sidebarStore }
 	},
 	data() {
 		return {
@@ -161,7 +170,8 @@ export default {
 			this.showSignModal = false
 		},
 		validationFile() {
-			this.$router.push({ name: 'validationFile', params: { uuid: this.filesStore.getFile().uuid } })
+			this.$router.push({ name: 'ValidationFile', params: { uuid: this.filesStore.getFile().uuid } })
+			this.sidebarStore.hideSidebar()
 		},
 		addSigner() {
 			this.signerToEdit = {}
@@ -196,10 +206,14 @@ export default {
 					}
 					return accumulator
 				}, '')
-			this.signStore.document = this.filesStore.getFile()
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid } })
-			this.modalSrc = route.href
-			this.showSignModal = true
+			if (this.useModal) {
+				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
+				this.modalSrc = route.href
+				this.showSignModal = true
+				return
+			}
+			this.signStore.setDocumentToSign(this.filesStore.getFile())
+			this.$router.push({ name: 'SignPDF', params: { uuid } })
 		},
 		async save() {
 			this.hasLoading = true

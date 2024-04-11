@@ -1,9 +1,7 @@
 <template>
 	<div class="document-sign">
 		<div class="sign-elements">
-			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
-				<PreviewSignature :src="element.url" />
-			</figure>
+			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<div v-if="ableToSign" class="button-wrapper">
@@ -42,7 +40,7 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="signMethodsStore.needClickToSign() && signMethodsStore.modal.clickToSign"
+		<NcModal v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
 			@close="signMethodsStore.closeModal('clickToSign')">
 			<div class="modal__content">
@@ -124,13 +122,14 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
-import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import Signatures from '../../../views/Account/partials/Signatures.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import CreatePassword from '../../../views/CreatePassword.vue'
 import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
+import { useSidebarStore } from '../../../store/sidebar.js'
 
 export default {
 	name: 'Sign',
@@ -142,21 +141,15 @@ export default {
 		CreatePassword,
 		SMSManager,
 		EmailManager,
-		PreviewSignature,
+		Signatures,
 		Draw,
-	},
-	props: {
-		docType: {
-			type: String,
-			required: false,
-			default: 'default',
-		},
 	},
 	setup() {
 		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signStore, signMethodsStore, signatureElementsStore }
+		const sidebarStore = useSidebarStore()
+		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore }
 	},
 	data() {
 		return {
@@ -164,8 +157,6 @@ export default {
 			user: {
 				account: { uid: '', displayName: '' },
 			},
-			modalCreatePassword: false,
-			modalSignWithPassword: false,
 			signPassword: '',
 		}
 	},
@@ -177,24 +168,20 @@ export default {
 				return []
 			}
 
-			const visibleElements = (this.signStore.document?.visibleElements || [])
+			const visibleElements = (signer.visibleElements || [])
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
 				})
-			const element = visibleElements
-				.map(el => ({
-					documentElementId: el.elementId,
-					profileFileId: this.signatureElementsStore.signs[el.type].file.fileId,
-					url: this.signatureElementsStore.signs[el.type].file.url + '?_t=' + Date.now(),
-				}))
-			return element
+			return visibleElements
 		},
 		hasSignatures() {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
-			return this.signStore.document?.visibleElements.length > 0
+			const signer = this.signStore.document?.signers.find(row => row.me) || {}
+			return !!signer.signRequestId
+				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
 		},
 		ableToSign() {
@@ -237,24 +224,24 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
-			this.signDocument({
+			await this.signDocument({
 				method: 'clickToSign',
 			})
 		},
 		async signWithPassword() {
-			return this.signDocument({
+			await this.signDocument({
 				method: 'password',
 				token: this.signPassword,
 			})
 		},
 		async signWithSMSCode(token) {
-			return this.signDocument({
+			await this.signDocument({
 				method: 'sms',
 				token,
 			})
 		},
 		async signWithEmailToken() {
-			return this.signDocument({
+			await this.signDocument({
 				method: this.signMethodsStore.settings.emailToken.identifyMethod,
 				token: this.signMethodsStore.settings.emailToken.token,
 			})
@@ -264,25 +251,29 @@ export default {
 			if (this.elements.length > 0) {
 				payload.elements = this.elements
 					.map(row => ({
-						documentElementId: row.documentElementId,
-						profileFileId: row.profileFileId,
+						documentElementId: row.elementId,
+						profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
 					}))
 			}
-			try {
-				let url = ''
-				if (this.signStore.document.fileId > 0) {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.signStore.document.fileId })
-				} else {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signStore.uuid })
-				}
-
-				const { data } = await axios.post(url, payload)
-				if (data?.action === 3500) { // ACTION_SIGNED
-					this.$emit('signed', data)
-				}
-			} catch (err) {
-				onError(err)
+			let url = ''
+			if (this.signStore.document.fileId > 0) {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
+			} else {
+				const signer = this.signStore.document.signers.find(row => row.me) || {}
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signer.sign_uuid })
 			}
+
+			await axios.post(url, payload)
+				.then(({ data }) => {
+					if (data.action === 3500) { // ACTION_SIGNED
+						this.signMethodsStore.closeModal(payload.method)
+						this.sidebarStore.hideSidebar()
+						this.$emit('signed', data)
+					}
+				})
+				.catch((err) => {
+					onError(err)
+				})
 			this.loading = false
 		},
 		confirmSignDocument() {
@@ -299,7 +290,7 @@ export default {
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
-				this.signMethodsStore.showModal('password')
+				this.signMethodsStore.showModal('createPassword')
 				return
 			}
 			if (this.signMethodsStore.needSignWithPassword()) {
