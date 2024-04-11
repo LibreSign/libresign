@@ -284,7 +284,7 @@ form{
 	margin: 20px;
 	border-radius: 8px;
 	max-width: 500px;
-		width: 100%;
+	width: 100%;
 	box-shadow: 0 0 6px 0 var(--color-box-shadow);
 
 	@media screen and (max-width: 900px) {
