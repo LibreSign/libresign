@@ -27,10 +27,27 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Types\JsonType;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
+
+class PostgreSQLJsonType extends JsonType {
+	public function getSQLDeclaration(array $column, AbstractPlatform $platform) {
+		$return = parent::getSQLDeclaration($column, $platform);
+		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+		$isCreateTable = array_filter($backtrace, fn ($step) => in_array($step['function'], ['_getCreateTableSQL', 'getCreateTablesSQL']));
+		if ($isCreateTable) {
+			return $return;
+		}
+		return implode(' ', [
+			$return,
+			$column['comment'],
+		]);
+	}
+}
 
 class Version8000Date20240405142042 extends SimpleMigrationStep {
 	/**
@@ -43,23 +60,32 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$table = $schema->getTable('libresign_file');
+
+		$newOptions = [];
+		if ($schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {
+			$newOptions = [
+				'Type' => new PostgreSQLJsonType(),
+				'comment' => 'USING to_jsonb(metadata)',
+			];
+		} else {
+			$newOptions = [
+				'Type' => new JsonType(),
+			];
+		}
+
 		if ($table->hasColumn('metadata')) {
-			$options = $table->getColumn('metadata');
-			if (!$options->getType() instanceof JsonType) {
-				$table->modifyColumn('metadata', [
-					'Type' => new JsonType(),
-				]);
+			$currentOptions = $table->getColumn('metadata');
+			if (!$currentOptions->getType() instanceof JsonType) {
+				$table->modifyColumn('metadata', $newOptions);
 				$changed = true;
 			}
 		}
 
 		$table = $schema->getTable('libresign_file_element');
 		if ($table->hasColumn('metadata')) {
-			$options = $table->getColumn('metadata');
-			if (!$options->getType() instanceof JsonType) {
-				$table->modifyColumn('metadata', [
-					'Type' => new JsonType(),
-				]);
+			$currentOptions = $table->getColumn('metadata');
+			if (!$currentOptions->getType() instanceof JsonType) {
+				$table->modifyColumn('metadata', $newOptions);
 				$changed = true;
 			}
 		}
