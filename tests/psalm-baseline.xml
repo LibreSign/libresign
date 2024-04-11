@@ -91,9 +91,13 @@
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Migration/Version8000Date20240405142042.php">
-    <UndefinedClass occurrences="1">
+    <UndefinedClass occurrences="2">
       <code>JsonType</code>
+      <code>PostgreSQLPlatform</code>
     </UndefinedClass>
+    <UndefinedDocblockClass occurrences="1">
+      <code>$schema-&gt;getDatabasePlatform()</code>
+    </UndefinedDocblockClass>
   </file>
   <file src="lib/Service/AccountService.php">
     <InvalidPropertyAssignmentValue occurrences="1">
