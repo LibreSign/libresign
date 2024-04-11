@@ -52,7 +52,7 @@ class SignerElementsService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['nodeId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
 				'nodeId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
@@ -73,7 +73,7 @@ class SignerElementsService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByNodeId', ['nodeId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
 					'nodeId' => $element->getFileId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
