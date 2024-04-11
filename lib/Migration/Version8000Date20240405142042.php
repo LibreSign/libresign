@@ -37,7 +37,10 @@ use OCP\Migration\SimpleMigrationStep;
 class PostgreSQLJsonType extends JsonType {
 	public function getSQLDeclaration(array $column, AbstractPlatform $platform) {
 		$return = parent::getSQLDeclaration($column, $platform);
-		return $return . ' USING to_jsonb(' . $column['name'] . ')';
+		return implode(' ', [
+			$return,
+			$column['comment'],
+		]);
 	}
 }
 
@@ -57,6 +60,7 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 		if ($schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {
 			$newOptions = [
 				'Type' => new PostgreSQLJsonType(),
+				'comment' => 'USING to_jsonb(metadata)',
 			];
 		} else {
 			$newOptions = [
