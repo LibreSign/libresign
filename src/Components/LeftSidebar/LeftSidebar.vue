@@ -114,12 +114,7 @@ export default {
 		},
 		showLeftSidebar() {
 			return getCurrentUser()
-				|| (
-					!!this.$route.name
-					&& this.$route.name !== 'SignPDF'
-					&& this.$route.name !== 'DefaultPageError'
-					&& this.$route.name !== 'SignPDFExternal'
-				)
+				|| !this.$route.path.startsWith('/p/')
 		},
 	},
 	methods: {

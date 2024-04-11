@@ -24,6 +24,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { getRootUrl, generateUrl } from '@nextcloud/router'
 import { selectAction } from '../helpers/SelectAction.js'
+import { isExternal } from '../helpers/isExternal.js'
 import { loadState } from '@nextcloud/initial-state'
 
 Vue.use(Router)
@@ -184,15 +185,22 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-	const action = selectAction(loadState('libresign', 'action', ''), to, from)
-	if (action !== undefined) {
-		document.querySelector('#initial-state-libresign-action').remove()
+	if (Object.hasOwn(to, 'name') && typeof to.name === 'string' && !to.name.endsWith('External') && isExternal(to, from)) {
 		next({
-			name: action,
+			name: to.name + 'External',
 			params: to.params,
 		})
 	} else {
-		next()
+		const action = selectAction(loadState('libresign', 'action', ''), to, from)
+		if (action !== undefined) {
+			document.querySelector('#initial-state-libresign-action').remove()
+			next({
+				name: action,
+				params: to.params,
+			})
+		} else {
+			next()
+		}
 	}
 })
 
