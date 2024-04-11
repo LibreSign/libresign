@@ -108,10 +108,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.signature-modal {
-	background-color: red;
-}
-
 .signature-fav{
 	margin: 10px;
 
