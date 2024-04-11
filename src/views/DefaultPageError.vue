@@ -75,12 +75,6 @@ export default {
 		background-repeat: no-repeat;
 		background-size: cover;
 		line-height: 17.6px;
-
-		&::before {
-			content: '';
-			background-color: rgb(0, 245, 248);
-			border: 50%;
-		}
 	}
 
 }
@@ -88,8 +82,6 @@ export default {
 .content{
 	box-sizing: border-box;
 	font-family: 'Nunito', sans-serif;
-	text-transform: uppercase;
-	color: rgb(21, 23, 25);
 	max-width: 560px;
 	padding-left: 50px;
 
@@ -109,7 +101,7 @@ export default {
 		margin-bottom: 10px;
 	}
 	p{
-		color: rgb(153, 159, 165);
+		color: var(--color-main-text);
 		font-weight: 400;
 		line-height: 17.6px;
 	}
