@@ -52,7 +52,7 @@ export const selectAction = (action, to, from) => {
 	case 4500: // ACTION_RENEW_EMAIL
 		return 'RenewEmail' + external
 	case 5000: // ACTION_INCOMPLETE_SETUP
-		return 'incomplete' + external
+		return 'Incomplete' + external
 	default:
 		break
 	}

@@ -94,6 +94,24 @@ const router = new Router({
 			component: () => import('../views/Validation.vue'),
 			props: true,
 		},
+		{
+			path: '/p/incomplete',
+			name: 'IncompleteExternal',
+			beforeEnter: (to, from, next) => {
+				const action = selectAction(loadState('libresign', 'action', ''), to, from)
+				if (action !== undefined) {
+					if (to.name !== 'IncompleteExternal') {
+						next({
+							name: action,
+							params: to.params,
+						})
+						return
+					}
+				}
+				next()
+			},
+			component: () => import('../views/IncompleteCertification.vue'),
+		},
 
 		// internal pages
 		{
@@ -110,7 +128,7 @@ const router = new Router({
 			beforeEnter: (to, from, next) => {
 				const action = selectAction(loadState('libresign', 'action', ''), to, from)
 				if (action !== undefined) {
-					if (to.name !== 'incomplete') {
+					if (to.name !== 'Incomplete') {
 						next({
 							name: action,
 							params: to.params,
