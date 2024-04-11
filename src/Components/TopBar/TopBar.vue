@@ -47,10 +47,6 @@ export default {
 			}
 		},
 	},
-	methods: {
-		openSidebar() {
-		},
-	},
 }
 </script>
 

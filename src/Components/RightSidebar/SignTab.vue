@@ -28,7 +28,7 @@
 		</header>
 
 		<main>
-			<div v-if="loading" class="sidebar-loading">
+			<div v-if="!signStore.mounted" class="sidebar-loading">
 				<p>
 					{{ t('libresign', 'Loading …') }}
 				</p>
@@ -36,7 +36,7 @@
 			<div v-if="!signEnabled">
 				{{ t('libresign', 'Document not available for signature.') }}
 			</div>
-			<Sign v-else-if="!loading"
+			<Sign v-else-if="signStore.mounted"
 				@signed="onSigned" />
 		</main>
 	</div>
@@ -46,8 +46,8 @@
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Chip from '../../Components/Chip.vue'
 import Sign from '../../views/SignPDF/_partials/Sign.vue'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { useSignStore } from '../../store/sign.js'
+import { useSidebarStore } from '../../store/sidebar.js'
 
 export default {
 	name: 'SignTab',
@@ -57,26 +57,13 @@ export default {
 	},
 	setup() {
 		const signStore = useSignStore()
-		return { signStore }
-	},
-	data() {
-		return {
-			loading: true,
-		}
-	},
-	mounted() {
-		subscribe('pdfeditor:loaded', this.loaded)
-	},
-	beforeUnmount() {
-		unsubscribe('pdfeditor:loaded')
+		const sidebarStore = useSidebarStore()
+		return { signStore, sidebarStore }
 	},
 	methods: {
 		signEnabled() {
 			return SIGN_STATUS.ABLE_TO_SIGN === this.signStore.document.status
 				|| SIGN_STATUS.PARTIAL_SIGNED === this.signStore.document.status
-		},
-		loaded() {
-			this.loading = false
 		},
 		onSigned(data) {
 			this.$router.push({
