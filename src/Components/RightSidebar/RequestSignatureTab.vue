@@ -207,7 +207,7 @@ export default {
 					return accumulator
 				}, '')
 			if (this.useModal) {
-				const route = router.resolve({ name: 'SignPDF', params: { uuid } })
+				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
 				this.modalSrc = route.href
 				this.showSignModal = true
 				return
