@@ -14,7 +14,6 @@
 <script>
 import { showErrors } from '../../helpers/errors.js'
 import PdfEditor from '../../Components/PdfEditor/PdfEditor.vue'
-import { emit } from '@nextcloud/event-bus'
 import { useSignStore } from '../../store/sign.js'
 import { useFilesStore } from '../../store/files.js'
 import { useSignMethodsStore } from '../../store/signMethods.js'
