@@ -25,7 +25,7 @@
 								<h1>{{ infoDocument }}</h1>
 							</div>
 							<div class="info-document">
-								<NcNoteCard type="success" v-if="isAfterSigned">
+								<NcNoteCard v-if="isAfterSigned" type="success">
 									{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
 								</NcNoteCard>
 								<p>
@@ -122,6 +122,11 @@ export default {
 			legalInformation: '',
 		}
 	},
+	computed: {
+		isAfterSigned() {
+			return this.$route.params.isAfterSigned ?? false
+		},
+	},
 	watch: {
 		'$route.params.uuid'(uuid) {
 			this.validate(uuid)
@@ -131,11 +136,6 @@ export default {
 		this.getData()
 		if (this.myUuid.length > 0) {
 			this.validate(this.myUuid)
-		}
-	},
-	computed: {
-		isAfterSigned() {
-			return this.$route.params.isAfterSigned ?? false
 		}
 	},
 	methods: {
