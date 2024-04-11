@@ -65,7 +65,7 @@ class Version8000Date20240405142042 extends SimpleMigrationStep {
 		if ($schema->getDatabasePlatform() instanceof PostgreSQLPlatform) {
 			$newOptions = [
 				'Type' => new PostgreSQLJsonType(),
-				'comment' => 'USING to_jsonb(metadata)',
+				'comment' => 'USING metadata::json',
 			];
 		} else {
 			$newOptions = [
