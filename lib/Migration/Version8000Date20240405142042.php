@@ -37,6 +37,11 @@ use OCP\Migration\SimpleMigrationStep;
 class PostgreSQLJsonType extends JsonType {
 	public function getSQLDeclaration(array $column, AbstractPlatform $platform) {
 		$return = parent::getSQLDeclaration($column, $platform);
+		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+		$isCreateTable = array_filter($backtrace, fn ($step) => in_array($step['function'], ['_getCreateTableSQL', 'getCreateTablesSQL']));
+		if ($isCreateTable) {
+			return $return;
+		}
 		return implode(' ', [
 			$return,
 			$column['comment'],
