@@ -142,10 +142,15 @@ class IdentifyMethodService {
 	public function getByUserData(array $data) {
 		$return = [];
 		foreach ($data as $method => $identifyValue) {
-			$this->currentIdentifyMethod = null;
+			$this->setCurrentIdentifyMethod();
 			$return[] = $this->getInstanceOfIdentifyMethod($method, $identifyValue);
 		}
 		return $return;
+	}
+
+	public function setCurrentIdentifyMethod(?IdentifyMethod $entity = null): self {
+		$this->currentIdentifyMethod = $entity;
+		return $this;
 	}
 
 	/**
@@ -154,7 +159,7 @@ class IdentifyMethodService {
 	public function getIdentifyMethodsFromSignRequestId(int $signRequestId): array {
 		$entities = $this->identifyMethodMapper->getIdentifyMethodsFromSignRequestId($signRequestId);
 		foreach ($entities as $entity) {
-			$this->currentIdentifyMethod = $entity;
+			$this->setCurrentIdentifyMethod($entity);
 			$this->getInstanceOfIdentifyMethod(
 				$entity->getIdentifierKey(),
 				$entity->getIdentifierValue(),
