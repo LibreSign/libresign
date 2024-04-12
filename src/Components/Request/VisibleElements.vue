@@ -53,6 +53,7 @@
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
 		<NcDialog :open.sync="showConfirm"
+			v-if="showConfirm"
 			:name="t('libresign', 'Confirm')"
 			:can-close="!loading"
 			:message="t('libresign', 'Request signatures?')">
