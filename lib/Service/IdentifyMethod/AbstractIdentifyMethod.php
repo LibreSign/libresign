@@ -320,7 +320,9 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		foreach ($this->availableSignatureMethods as $signatureMethodName) {
 			$this->signatureMethods[$signatureMethodName] =
 				$this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
-			if (isset($this->settings[$signatureMethodName]['enabled']) && $this->settings[$signatureMethodName]['enabled']) {
+			if (isset($this->settings['signatureMethods'][$signatureMethodName]['enabled'])
+				&& $this->settings['signatureMethods'][$signatureMethodName]['enabled']
+			) {
 				$this->signatureMethods[$signatureMethodName]->enable();
 				$enabled = true;
 			}
