@@ -1,47 +1,50 @@
 /* eslint-disable no-new */
 <template>
-	<NcContent app-name="libresign" class="with-sidebar--full">
-		<form @submit="(e) => e.preventDefault()">
-			<header>
-				<h2>{{ t('libresign', 'Password reset') }}</h2>
-				<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
-			</header>
-			<div class="container">
-				<div class="input-group">
-					<label for="new-password">{{ t('libresign', 'Current password') }}</label>
-					<NcPasswordField :value.sync="currentPassword" type="password" />
-				</div>
-				<div class="input-group">
-					<label for="new-password">{{ t('libresign', 'New password') }}</label>
-					<NcPasswordField :value.sync="newPassword" type="password" />
-				</div>
-				<div class="input-group">
-					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-					<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
-				</div>
-				<button :disabled="!canSave"
-					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
-					@click="send">
-					{{ t('libresign', 'Confirm') }}
-				</button>
+	<NcDialog v-if="signMethodsStore.modal.resetPassword"
+		:name="t('libresign', 'Password reset')"
+		@closing="signMethodsStore.closeModal('resetPassword')">
+		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
+		<div class="container">
+			<div class="input-group">
+				<label for="new-password">{{ t('libresign', 'Current password') }}</label>
+				<NcPasswordField :value.sync="currentPassword" type="password" />
 			</div>
-		</form>
-	</NcContent>
+			<div class="input-group">
+				<label for="new-password">{{ t('libresign', 'New password') }}</label>
+				<NcPasswordField :value.sync="newPassword" type="password" />
+			</div>
+			<div class="input-group">
+				<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
+				<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
+			</div>
+		</div>
+		<template #actions>
+			<button :disabled="!canSave"
+				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
+				@click="send">
+				{{ t('libresign', 'Confirm') }}
+			</button>
+		</template>
+	</NcDialog>
 </template>
 
 <script>
-import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'ResetPassword',
 	components: {
-		NcContent,
+		NcDialog,
 		NcPasswordField,
+	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
 	},
 	data() {
 		return {

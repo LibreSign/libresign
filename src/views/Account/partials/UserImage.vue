@@ -32,6 +32,7 @@ export default {
 <style lang="scss" scoped>
 .user-image {
 	display: flex;
+	padding: 10px;
 	width: 100%;
 	flex-direction: column;
 	align-items: center;
