@@ -39,9 +39,9 @@
 				<FileReplaceIcon :size="20" />
 			</template>
 		</NcButton>
-		<CreatePassword />
-		<ReadCertificate />
-		<ResetPassword />
+		<CreatePassword v-if="mounted" />
+		<ReadCertificate v-if="mounted" />
+		<ResetPassword v-if="mounted" />
 	</div>
 </template>
 
@@ -83,7 +83,11 @@ export default {
 		return {
 			modal: '',
 			certificateEngine: loadState('libresign', 'certificate_engine', ''),
+			mounted: false,
 		}
+	},
+	mounted() {
+		this.mounted = true
 	},
 	methods: {
 		uploadCertificate() {
