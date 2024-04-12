@@ -19,11 +19,14 @@
 			</div>
 		</div>
 		<template #actions>
-			<button :disabled="!canSave"
+			<NcButton :disabled="!canSave"
 				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
 				@click="send">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+				</template>
 				{{ t('libresign', 'Confirm') }}
-			</button>
+			</NcButton>
 		</template>
 	</NcDialog>
 </template>
@@ -31,6 +34,7 @@
 <script>
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
@@ -41,6 +45,7 @@ export default {
 	components: {
 		NcDialog,
 		NcPasswordField,
+		NcButton,
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
@@ -56,7 +61,7 @@ export default {
 	},
 	computed: {
 		canSave() {
-			return this.currentPassword && this.validNewPassord
+			return this.currentPassword && this.validNewPassord && !this.hasLoading
 		},
 		validNewPassord() {
 			return this.newPassword.length > 3 && this.newPassword === this.rPassword
@@ -72,6 +77,7 @@ export default {
 				})
 				showSuccess(response.data.message)
 				this.hasLoading = false
+				this.signMethodsStore.closeModal('resetPassword')
 				this.$emit('close', true)
 			} catch (err) {
 				if (err.response.data.message) {
@@ -86,28 +92,6 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-	form{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		max-width: 100%;
-		margin: 50px;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		padding: 1rem;
-		header{
-			margin-bottom: 2.5rem;
-		}
-		h1{
-			font-size: 45px;
-			margin-bottom: 1rem;
-		}
-		p{
-			font-size: 15px;
-		}
-	}
-
 	.container {
 		display: flex;
 		flex-direction: column;
@@ -118,21 +102,6 @@ export default {
 		max-width: 420px;
 
 		text-align: start;
-	}
-
-	.btn-confirm{
-		width: 100%;
-		max-width: 280px;
-	}
-
-	.btn-load{
-		background-color: transparent !important;
-		font-size: 0;
-		pointer-events: none;
-		cursor: not-allowed;
-		margin-top: 10px;
-		border: none;
-
 	}
 
 	.input-group{

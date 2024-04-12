@@ -76,6 +76,7 @@ export default {
 	},
 	setup() {
 		const signMethodsStore = useSignMethodsStore()
+		signMethodsStore.setHasSignatureFile(loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
 		return { signMethodsStore }
 	},
 	data() {

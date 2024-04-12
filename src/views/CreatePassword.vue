@@ -73,36 +73,3 @@ export default {
 	},
 }
 </script>
-<style lang="scss" scoped>
-	form{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		max-width: 100%;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		header{
-			font-weight: bold;
-			font-size: 20px;
-			margin-bottom: 12px;
-			line-height: 30px;
-			color: var(--color-text-light);
-		}
-	}
-
-	.container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 20px;
-		gap: 4px 0;
-	}
-
-	.input-group{
-		justify-content: space-between;
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
-</style>
