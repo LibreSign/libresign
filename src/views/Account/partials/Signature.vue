@@ -4,7 +4,7 @@
 			<h2>
 				<slot name="title" />
 			</h2>
-			<NcActions :inline="2">
+			<NcActions :inline="2" v-if="isSignatureLoaded">
 				<NcActionButton v-if="hasSignature" @click="removeSignature">
 					<template #icon>
 						<DeleteIcon :size="20" />
@@ -19,7 +19,8 @@
 		</header>
 
 		<div v-if="hasSignature">
-			<PreviewSignature :src="imgSrc" />
+			<PreviewSignature :src="imgSrc"
+				@loaded="signatureLoaded" />
 		</div>
 		<div v-else class="no-signatures" @click="edit">
 			<slot name="no-signatures" />
@@ -67,6 +68,7 @@ export default {
 	},
 	data: () => ({
 		isEditing: false,
+		isSignatureLoaded: false,
 	}),
 	computed: {
 		hasSignature() {
@@ -80,6 +82,9 @@ export default {
 		},
 	},
 	methods: {
+		signatureLoaded() {
+			this.isSignatureLoaded = true
+		},
 		edit() {
 			this.isEditing = true
 		},
