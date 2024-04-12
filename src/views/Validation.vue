@@ -1,82 +1,79 @@
 <template>
-	<NcContent app-name="libresign" class="jumbotron with-sidebar--full">
-		<div class="container">
-			<div class="image">
-				<img :src="image" draggable="false">
-			</div>
-			<div id="dataUUID">
-				<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
-					<h1>{{ title }}</h1>
-					<NcTextField :value.sync="myUuid" :label="legend" />
-					<NcButton type="primary"
-						@click.prevent="validate(myUuid)">
-						<template #icon>
-							<NcLoadingIcon v-if="hasLoading" :size="20" />
-						</template>
-						{{ buttonTitle }}
-					</NcButton>
-				</form>
-				<div v-if="hasInfo" class="infor-container">
-					<div class="infor-bg">
-						<div class="infor">
-							<div class="header">
-								<img class="icon" :src="infoIcon">
-								<h1>{{ infoDocument }}</h1>
-							</div>
-							<div class="info-document">
-								<NcNoteCard v-if="isAfterSigned" type="success">
-									{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
-								</NcNoteCard>
-								<p>
-									<b>{{ document.name }}</b>
-								</p>
-								<NcRichText class="legal-information"
-									:text="legalInformation"
-									:use-markdown="true" />
-
-								<NcButton type="primary"
-									@click="viewDocument(document.file)">
-									<template #icon>
-										<NcLoadingIcon v-if="hasLoading" :size="20" />
-									</template>
-									{{ t('libresign', 'View') }}
-								</NcButton>
-							</div>
-						</div>
-					</div>
-					<div class="infor-bg signed">
+	<div class="container">
+		<div class="image">
+			<img :src="image" draggable="false">
+		</div>
+		<div id="dataUUID">
+			<form v-show="!hasInfo" @submit="(e) => e.preventDefault()">
+				<h1>{{ title }}</h1>
+				<NcTextField :value.sync="myUuid" :label="legend" />
+				<NcButton type="primary"
+					@click.prevent="validate(myUuid)">
+					<template #icon>
+						<NcLoadingIcon v-if="hasLoading" :size="20" />
+					</template>
+					{{ buttonTitle }}
+				</NcButton>
+			</form>
+			<div v-if="hasInfo" class="infor-container">
+				<div class="infor-bg">
+					<div class="infor">
 						<div class="header">
-							<img class="icon" :src="signatureIcon">
-							<h1>{{ t('libresign', 'Signatories:') }}</h1>
+							<img class="icon" :src="infoIcon">
+							<h1>{{ infoDocument }}</h1>
 						</div>
-						<div class="infor-content">
-							<div v-for="item in document.signers"
-								id="sign"
-								:key="item.displayName"
-								class="scroll">
-								<div class="subscriber">
-									<span><b>{{ getName(item) }}</b></span>
-									<span v-if="item.signed" class="data-signed">
-										{{ item.signed }}
-									</span>
-									<span v-else>{{ noDateMessage }}</span>
-								</div>
+						<div class="info-document">
+							<NcNoteCard v-if="isAfterSigned" type="success">
+								{{ t('libresign', 'Congratulations you have digitally signed a document using LibreSign') }}
+							</NcNoteCard>
+							<p>
+								<b>{{ document.name }}</b>
+							</p>
+							<NcRichText class="legal-information"
+								:text="legalInformation"
+								:use-markdown="true" />
+
+							<NcButton type="primary"
+								@click="viewDocument(document.file)">
+								<template #icon>
+									<NcLoadingIcon v-if="hasLoading" :size="20" />
+								</template>
+								{{ t('libresign', 'View') }}
+							</NcButton>
+						</div>
+					</div>
+				</div>
+				<div class="infor-bg signed">
+					<div class="header">
+						<img class="icon" :src="signatureIcon">
+						<h1>{{ t('libresign', 'Signatories:') }}</h1>
+					</div>
+					<div class="infor-content">
+						<div v-for="item in document.signers"
+							id="sign"
+							:key="item.displayName"
+							class="scroll">
+							<div class="subscriber">
+								<span><b>{{ getName(item) }}</b></span>
+								<span v-if="item.signed" class="data-signed">
+									{{ item.signed }}
+								</span>
+								<span v-else>{{ noDateMessage }}</span>
 							</div>
 						</div>
 					</div>
-					<NcButton type="primary"
-						@click.prevent="goBack">
-						{{ t('libresign', 'Return') }}
-					</NcButton>
 				</div>
+				<NcButton type="primary"
+					@click.prevent="goBack">
+					{{ t('libresign', 'Return') }}
+				</NcButton>
 			</div>
 		</div>
-	</NcContent>
+	</div>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -98,7 +95,6 @@ export default {
 	components: {
 		NcTextField,
 		NcRichText,
-		NcContent,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -240,6 +236,7 @@ $date-signed-font: .7rem;
 	justify-content: center;
 	overflow-y: auto;
 	width: 100%;
+	height: 100%;
 
 	.image{
 		width: 100%;
@@ -357,7 +354,6 @@ button{
 }
 
 .signed {
-	width: 100%;
 	margin-top: 10px;
 	padding-right: 2px;
 	strong {
