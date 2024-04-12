@@ -169,7 +169,6 @@ export default {
 			this.modalSrc = ''
 		},
 		validationFile() {
-			console.log('validationFile')
 			if (this.useModal) {
 				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: this.filesStore.getFile().uuid } })
 				this.modalSrc = route.href
