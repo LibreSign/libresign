@@ -11,8 +11,7 @@
 				v-model="token"
 				:disabled="loading"
 				name="code"
-				type="text">
-			</NcTextField>
+				type="text" />
 		</div>
 		<div v-else class="store-number">
 			<NcTextField v-model="newPhoneNumber"
@@ -20,8 +19,7 @@
 				name="cellphone"
 				placeholder="+55 00 0 0000 0000"
 				type="tel"
-				@change="sanitizeNumber">
-			</NcTextField>
+				@change="sanitizeNumber" />
 		</div>
 		<template #actions>
 			<NcButton v-if="newPhoneNumber && !tokenRequested" :disabled="loading" @click="requestCode">
