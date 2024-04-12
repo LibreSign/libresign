@@ -55,6 +55,7 @@ import { confirmPassword } from '@nextcloud/password-confirmation'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import { settingsService } from '../../../domains/settings/index.js'
+import { useSignStore } from '../../../store/sign.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -74,16 +75,10 @@ export default {
 			type: String,
 			required: true,
 		},
-		fileId: {
-			type: Number,
-			required: false,
-			default: 0,
-		},
-		uuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
+	},
+	setup() {
+		const signStore = useSignStore()
+		return { signStore }
 	},
 	data: () => ({
 		token: '',
@@ -123,14 +118,15 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.fileId.length > 0) {
+				if (this.signStore.document.fileId) {
 					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
-						fileId: this.fileId,
+						fileId: this.signStore.document.fileId,
 					}))
 					showSuccess(data.message)
 				} else {
+					const signer = this.signStore.document.signers.find(row => row.me) || {}
 					const { data } = await axios.post(generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{fileId}/code', {
-						uuid: this.uuid,
+						uuid: signer.sign_uuid,
 					}))
 					showSuccess(data.message)
 				}
