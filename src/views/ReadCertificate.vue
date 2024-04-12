@@ -4,6 +4,9 @@
 			<header>
 				<h2>{{ t('libresign', 'Certificate data') }}</h2>
 			</header>
+			<NcNoteCard v-if="error" type="error">
+				<p>{{ error }}</p>
+			</NcNoteCard>
 			<table v-if="Object.keys(certificateData).length">
 				<thead>
 					<tr>
@@ -92,7 +95,7 @@ import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import { showError } from '@nextcloud/dialogs'
+import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import { selectCustonOption } from '../helpers/certification.js'
 
 export default {
@@ -101,6 +104,7 @@ export default {
 		NcContent,
 		NcPasswordField,
 		NcButton,
+		NcNoteCard,
 		NcLoadingIcon,
 	},
 	data() {
@@ -108,6 +112,7 @@ export default {
 			hasLoading: false,
 			password: '',
 			certificateData: [],
+			error: '',
 		}
 	},
 	methods: {
@@ -122,13 +127,13 @@ export default {
 			})
 				.then(({ data }) => {
 					this.certificateData = data
+					this.error = ''
 				})
 				.catch(({ response }) => {
-					this.signMethodsStore.setHasSignatureFile(false)
-					if (response.data.message) {
-						showError(response.data.message)
+					if (response?.data?.message?.length > 0) {
+						this.error = response.data.message
 					} else {
-						showError(t('libresign', 'Error creating new password, please contact the administrator'))
+						this.error = t('libresign', 'Invalid password')
 					}
 				})
 			this.hasLoading = false
