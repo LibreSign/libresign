@@ -34,6 +34,7 @@ OC.L10N.register(
     "Update" : "Opdatér",
     "Previous" : "Tidligere",
     "Next" : "Næste",
+    "Loading …" : "Loading …",
     "Details" : "Detaljer",
     "Certificate" : "Certifikat",
     "Delete certificate" : "Slet certifikat",
@@ -60,7 +61,6 @@ OC.L10N.register(
     "Dependencies" : "Afhængigheder",
     "Yes" : "Ja",
     "No" : "Nej",
-    "Loading …" : "Loading …",
     "Pending" : "Afventer",
     "No date" : "No date"
 },

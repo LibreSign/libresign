@@ -21,6 +21,7 @@ OC.L10N.register(
     "Update" : "යාවත්කාල",
     "Previous" : "පෙර",
     "Next" : "ඊළඟ",
+    "Loading …" : "පූරණය වෙමින් …",
     "Details" : "විස්තර",
     "Certificate" : "සහතිකය",
     "Change password" : "මුරපදය වෙනස් කරන්න",
@@ -31,7 +32,6 @@ OC.L10N.register(
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ",
-    "Loading …" : "පූරණය වෙමින් …"
+    "No" : "නැහැ"
 },
 "nplurals=2; plural=(n != 1);");

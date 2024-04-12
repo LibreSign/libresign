@@ -25,6 +25,7 @@ OC.L10N.register(
     "Searching …" : "O klask ...",
     "Update" : "Hizivaat",
     "Next" : "Da heul",
+    "Loading …" : "O Kargañ ...",
     "Details" : "Munudoù",
     "Type" : "Stumm",
     "Status" : "Statud",
@@ -38,7 +39,6 @@ OC.L10N.register(
     "New password" : "Ger-tremen nevez",
     "Yes" : "Ya",
     "No" : "Nann",
-    "Loading …" : "O Kargañ ...",
     "Pending" : "O c'hortoz",
     "No date" : "Deizat ebet"
 },

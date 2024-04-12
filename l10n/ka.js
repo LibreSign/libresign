@@ -33,6 +33,7 @@ OC.L10N.register(
     "Update" : "Update",
     "Previous" : "Previous",
     "Next" : "Next",
+    "Loading …" : "Loading …",
     "pending" : "pending",
     "Details" : "Details",
     "Certificate" : "Certificate",
@@ -56,7 +57,6 @@ OC.L10N.register(
     "Dependencies" : "Dependencies",
     "Yes" : "Yes",
     "No" : "No",
-    "Loading …" : "Loading …",
     "Pending" : "Pending"
 },
 "nplurals=2; plural=(n!=1);");

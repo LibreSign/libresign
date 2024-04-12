@@ -22,6 +22,7 @@
     "Update" : "Werk by",
     "Previous" : "Vorige",
     "Next" : "Volgende",
+    "Loading …" : "Laai …",
     "Details" : "Besonderhede",
     "Certificate" : "Sertifikaat",
     "Type" : "Tipe",
@@ -42,7 +43,6 @@
     "Dependencies" : "Afhanklikhede",
     "Yes" : "Ja",
     "No" : "Nee",
-    "Loading …" : "Laai …",
     "Pending" : "Hangend",
     "No date" : "Geen datum"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

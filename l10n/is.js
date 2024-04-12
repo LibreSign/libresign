@@ -38,6 +38,7 @@ OC.L10N.register(
     "Update" : "Uppfæra",
     "Previous" : "Fyrra",
     "Next" : "Næsta",
+    "Loading …" : "Hleð inn …",
     "Details" : "Details",
     "Certificate" : "Skilríki",
     "Type" : "Tegund",
@@ -60,7 +61,6 @@ OC.L10N.register(
     "Dependencies" : "Kerfiskröfur",
     "Yes" : "Já",
     "No" : "Nei",
-    "Loading …" : "Hleð inn …",
     "Pending" : "Í bið",
     "No date" : "Engin dagsetning"
 },

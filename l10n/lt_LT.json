@@ -55,6 +55,7 @@
     "Account not exist" : "Paskyros nėra",
     "Sign" : "Pasirašyti",
     "Send reminder" : "Siųsti priminimą",
+    "Loading …" : "Įkeliama…",
     "Details" : "Išsamiau",
     "Certificate" : "Liudijimas",
     "Delete certificate" : "Ištrinti liudijimą",
@@ -89,7 +90,6 @@
     "Dependencies" : "Priklausomybės",
     "Yes" : "Taip",
     "No" : "Ne",
-    "Loading …" : "Įkeliama…",
     "All Files" : "Visi failai",
     "Pending" : "Laukiantis",
     "No date" : "No date"

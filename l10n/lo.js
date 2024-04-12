@@ -20,6 +20,7 @@ OC.L10N.register(
     "Name" : "ຊື່",
     "Previous" : "ກ່ອນໜ້າ",
     "Next" : "ທັດໄປ",
+    "Loading …" : "ກຳລັງໂຫຼດ",
     "Details" : "ລາຍລະອຽດ",
     "Type" : "ພິມ",
     "Choose" : "ເລືອກ",
@@ -29,7 +30,6 @@ OC.L10N.register(
     "New password" : "ລະຫັດຜ່ານໃຫມ່",
     "Yes" : "ແມ່ນແລ້ວ",
     "No" : "ບໍ່",
-    "Loading …" : "ກຳລັງໂຫຼດ",
     "Pending" : "ທີ່ກໍາລັງລໍຖ້າ",
     "No date" : "ບໍ່ມີວັນທີ"
 },

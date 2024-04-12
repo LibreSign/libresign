@@ -32,6 +32,7 @@ OC.L10N.register(
     "Update" : "Cập nhật",
     "Previous" : "Trước",
     "Next" : "Tiếp theo",
+    "Loading …" : "Đang tải …",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",
     "Type" : "Loại",
@@ -53,7 +54,6 @@ OC.L10N.register(
     "Dependencies" : "Các phụ thuộc",
     "Yes" : "Có",
     "No" : "Không",
-    "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
     "No date" : "No date"
 },

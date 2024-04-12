@@ -16,6 +16,7 @@ OC.L10N.register(
     "Update" : "Diweddaru",
     "Previous" : "Blaenorol",
     "Next" : "Nesaf",
+    "Loading …" : "Yn llwytho …",
     "Details" : "Manylion",
     "Certificate" : "Tystysgrif",
     "Type" : "Math",
@@ -33,7 +34,6 @@ OC.L10N.register(
     "Dependencies" : "Dibyniaethau",
     "Yes" : "Iawn",
     "No" : "No",
-    "Loading …" : "Yn llwytho …",
     "Pending" : "I ddod",
     "No date" : "No date"
 },

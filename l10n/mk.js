@@ -40,6 +40,7 @@ OC.L10N.register(
     "Next" : "Следна",
     "Sign" : "Знак",
     "Send reminder" : "Испрати потсетник",
+    "Loading …" : "Се вчитува…",
     "Details" : "Детали",
     "Certificate" : "Сертификат",
     "Change password" : "Смени лозинка",
@@ -62,7 +63,6 @@ OC.L10N.register(
     "Resource" : "Ресурси",
     "Yes" : "Да",
     "No" : "Не",
-    "Loading …" : "Се вчитува…",
     "Pending" : "Чекање",
     "No date" : "No date"
 },

@@ -32,6 +32,7 @@
     "Update" : "Actualizare",
     "Previous" : "Precedentul",
     "Next" : "Următorul",
+    "Loading …" : "Se încarcă…",
     "Details" : "Detalii",
     "Certificate" : "Certificat",
     "Delete certificate" : "Șterge certificatul",
@@ -54,7 +55,6 @@
     "Dependencies" : "Dependențe",
     "Yes" : "a",
     "No" : "Nu",
-    "Loading …" : "Se încarcă…",
     "Pending" : "În așteptare",
     "No date" : "No date"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"
