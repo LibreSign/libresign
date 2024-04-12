@@ -1,95 +1,93 @@
 <template>
-	<NcContent app-name="libresign" class="with-sidebar--full">
-		<form @submit="e => e.preventDefault()">
-			<header>
-				<h2>{{ t('libresign', 'Certificate data') }}</h2>
-			</header>
-			<NcNoteCard v-if="error" type="error">
-				<p>{{ error }}</p>
-			</NcNoteCard>
-			<table v-if="Object.keys(certificateData).length">
-				<thead>
-					<tr>
-						<th colspan="2">
-							{{ t('libresign', 'Issuer of certificate') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(value, customName) in certificateData.issuer" :key="customName">
-						<td>{{ getLabelFromId(customName) }}</td>
-						<td>{{ value }}</td>
-					</tr>
-				</tbody>
-				<thead>
-					<tr>
-						<th colspan="2">
-							{{ t('libresign', 'Owner of certificate') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(value, customName) in certificateData.subject" :key="customName">
-						<td>{{ getLabelFromId(customName) }}</td>
-						<td>{{ value }}</td>
-					</tr>
-				</tbody>
-				<thead>
-					<tr>
-						<th colspan="2">
-							{{ t('libresign', 'Validate') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>From</td>
-						<td>{{ certificateData.validate.from }}</td>
-					</tr>
-					<tr>
-						<td>To</td>
-						<td>{{ certificateData.validate.to }}</td>
-					</tr>
-				</tbody>
-				<thead>
-					<tr>
-						<th colspan="2">
-							{{ t('libresign', 'Extra informations') }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>Name</td>
-						<td>{{ certificateData.name }}</td>
-					</tr>
-					<tr v-for="(value, name) in certificateData.extensions" :key="name">
-						<td>{{ name }}</td>
-						<td>{{ value }}</td>
-					</tr>
-				</tbody>
-			</table>
-			<div v-else class="container">
-				<div class="input-group">
-					<NcPasswordField :disabled="hasLoading"
-						:label="t('libresign', 'Certificate password')"
-						:placeholder="t('libresign', 'Certificate password')"
-						:value.sync="password" />
-				</div>
-				<NcButton :disabled="hasLoading" @click="send()">
-					<template #icon>
-						<NcLoadingIcon v-if="hasLoading" :size="20" />
-					</template>
-					{{ t('libresign', 'Confirm') }}
-				</NcButton>
+	<NcDialog v-if="signMethodsStore.modal.readCertificate"
+		:name="t('libresign', 'Certificate data')"
+		@closing="onClose">
+		<NcNoteCard v-if="error" type="error">
+			<p>{{ error }}</p>
+		</NcNoteCard>
+		<table v-if="Object.keys(certificateData).length">
+			<thead>
+				<tr>
+					<th colspan="2">
+						{{ t('libresign', 'Issuer of certificate') }}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(value, customName) in certificateData.issuer" :key="customName">
+					<td>{{ getLabelFromId(customName) }}</td>
+					<td>{{ value }}</td>
+				</tr>
+			</tbody>
+			<thead>
+				<tr>
+					<th colspan="2">
+						{{ t('libresign', 'Owner of certificate') }}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(value, customName) in certificateData.subject" :key="customName">
+					<td>{{ getLabelFromId(customName) }}</td>
+					<td>{{ value }}</td>
+				</tr>
+			</tbody>
+			<thead>
+				<tr>
+					<th colspan="2">
+						{{ t('libresign', 'Validate') }}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>From</td>
+					<td>{{ certificateData.validate.from }}</td>
+				</tr>
+				<tr>
+					<td>To</td>
+					<td>{{ certificateData.validate.to }}</td>
+				</tr>
+			</tbody>
+			<thead>
+				<tr>
+					<th colspan="2">
+						{{ t('libresign', 'Extra informations') }}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Name</td>
+					<td>{{ certificateData.name }}</td>
+				</tr>
+				<tr v-for="(value, name) in certificateData.extensions" :key="name">
+					<td>{{ name }}</td>
+					<td>{{ value }}</td>
+				</tr>
+			</tbody>
+		</table>
+		<div v-else class="container">
+			<div class="input-group">
+				<NcPasswordField :disabled="hasLoading"
+					:label="t('libresign', 'Certificate password')"
+					:placeholder="t('libresign', 'Certificate password')"
+					:value.sync="password" />
 			</div>
-		</form>
-	</NcContent>
+		</div>
+		<template v-if="Object.keys(certificateData).length === 0" #actions>
+			<NcButton :disabled="hasLoading" @click="send()">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+				</template>
+				{{ t('libresign', 'Confirm') }}
+			</NcButton>
+		</template>
+	</NcDialog>
 </template>
 
 <script>
-import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -97,15 +95,20 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import { selectCustonOption } from '../helpers/certification.js'
+import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'ReadCertificate',
 	components: {
-		NcContent,
+		NcDialog,
 		NcPasswordField,
 		NcButton,
 		NcNoteCard,
 		NcLoadingIcon,
+	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
 	},
 	data() {
 		return {
@@ -137,6 +140,10 @@ export default {
 					}
 				})
 			this.hasLoading = false
+		},
+		onClose() {
+			this.certificateData = []
+			this.signMethodsStore.closeModal('readCertificate')
 		},
 	},
 }
