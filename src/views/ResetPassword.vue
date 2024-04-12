@@ -34,6 +34,7 @@
 <script>
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -45,6 +46,7 @@ export default {
 	components: {
 		NcDialog,
 		NcPasswordField,
+		NcLoadingIcon,
 		NcButton,
 	},
 	setup() {
