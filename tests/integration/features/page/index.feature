@@ -10,7 +10,7 @@ Feature: page/sign_identify_default
     And the response should contain the initial state "libresign-identify_methods" with the following values:
       """
       [
-        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":false,"label":"Email token","name":"emailToken"},"password":{"enabled":false,"label":"Certificate with password","name":"password"}}},
-        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest","signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":false,"label":"Email token","name":"emailToken"}}}
+        {"name":"account","friendly_name":"Account","enabled":true,"mandatory":true,"signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":false,"label":"Email token","name":"emailToken"},"password":{"enabled":true,"label":"Certificate with password","name":"password"}}},
+        {"name":"email","friendly_name":"Email","enabled":false,"mandatory":true,"can_create_account":true,"test_url":"/index.php/settings/admin/mailtest","signatureMethods":{"clickToSign":{"enabled":false,"label":"Click to sign","name":"clickToSign"},"emailToken":{"enabled":true,"label":"Email token","name":"emailToken"}}}
       ]
       """
