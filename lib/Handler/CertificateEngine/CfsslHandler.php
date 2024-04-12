@@ -37,6 +37,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
+use OCP\ITempManager;
 
 /**
  * Class CfsslHandler
@@ -60,8 +61,9 @@ class CfsslHandler extends AEngineHandler implements IEngineHandler {
 		private CfsslServerHandler $cfsslServerHandler,
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
+		protected ITempManager $tempManager,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
 	}
 
 	public function generateRootCert(
