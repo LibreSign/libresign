@@ -1,12 +1,13 @@
 <template>
-	<NcModal v-if="modal"
-		class="view-sign-detail"
-		app-name="libresign"
-		@close="closeModal">
-		<div class="sign-details">
+	<NcDialog v-if="modal"
+		:name="document.name"
+		size="normal"
+		@closing="closeModal">
+		<div v-if="filesStore.loading">
+			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading file')" />
+		</div>
+		<div v-else class="sign-details">
 			<h2>
-				{{ document.name }}
-				<br>
 				<Chip :state="isDraft ? 'warning' : 'default'">
 					{{ statusLabel }}
 				</Chip>
@@ -39,12 +40,7 @@
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
 		</div>
-		<div v-if="filesStore.loading"
-			class="image-page">
-			<NcLoadingIcon :size="64" name="Loading" />
-			<p>{{ t('libresign', 'Loading file') }}</p>
-		</div>
-		<div v-else class="image-page">
+		<div class="image-page">
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
@@ -52,8 +48,8 @@
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
-		<NcDialog :open.sync="showConfirm"
-			v-if="showConfirm"
+		<NcDialog v-if="showConfirm"
+			:open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
 			:can-close="!loading"
 			:message="t('libresign', 'Request signatures?')">
@@ -73,7 +69,7 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-	</NcModal>
+	</NcDialog>
 </template>
 
 <script>
@@ -81,7 +77,6 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
@@ -97,7 +92,6 @@ import { useFilesStore } from '../../store/files.js'
 export default {
 	name: 'VisibleElements',
 	components: {
-		NcModal,
 		NcDialog,
 		Signer,
 		Chip,
@@ -176,9 +170,11 @@ export default {
 				return
 			}
 			this.modal = true
+			this.filesStore.loading = true
 		},
 		closeModal() {
 			this.modal = false
+			this.filesStore.loading = true
 		},
 		onError(err) {
 			if (err.response) {
@@ -201,6 +197,7 @@ export default {
 					})
 				}
 			})
+			this.filesStore.loading = false
 		},
 		onSelectSigner(signer) {
 			signer.element = {
@@ -278,22 +275,16 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .image-page {
-	.py-12,.p-5 {
+	::v-deep .py-12{
+		all: unset;
+	}
+	::v-deep .p-5 {
 		all: unset;
 	}
 }
-
 .modal-container {
-	.dialog {
-		height: unset;
-	}
-}
-</style>
-
-<style lang="scss" scoped>
-.view-sign-detail {
 	&--sidebar {
 		width: 300px;
 	}
