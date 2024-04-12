@@ -72,8 +72,6 @@ export default {
 		},
 		closeSidebar() {
 			this.sidebarStore.hideSidebar()
-			// this.filesStore.selectFile()
-			// this.signStore.reset()
 		},
 	},
 }
