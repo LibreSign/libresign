@@ -56,7 +56,7 @@
 			</NcButton>
 		</div>
 		<VisibleElements />
-		<NcModal v-if="showSignModal" size="full" @close="closeModal()">
+		<NcModal v-if="modalSrc" size="full" @close="closeModal()">
 			<iframe :src="modalSrc" class="iframe" />
 		</NcModal>
 	</div>
@@ -111,7 +111,6 @@ export default {
 			hasLoading: false,
 			signerToEdit: {},
 			modalSrc: '',
-			showSignModal: false,
 			canRequestSign: loadState('libresign', 'can_request_sign', false),
 		}
 	},
@@ -167,9 +166,15 @@ export default {
 	},
 	methods: {
 		closeModal() {
-			this.showSignModal = false
+			this.modalSrc = ''
 		},
 		validationFile() {
+			console.log('validationFile')
+			if (this.useModal) {
+				const route = router.resolve({ name: 'ValidationFileExternal', params: { uuid: this.filesStore.getFile().uuid } })
+				this.modalSrc = route.href
+				return
+			}
 			this.$router.push({ name: 'ValidationFile', params: { uuid: this.filesStore.getFile().uuid } })
 			this.sidebarStore.hideSidebar()
 		},
@@ -209,7 +214,6 @@ export default {
 			if (this.useModal) {
 				const route = router.resolve({ name: 'SignPDFExternal', params: { uuid } })
 				this.modalSrc = route.href
-				this.showSignModal = true
 				return
 			}
 			this.signStore.setDocumentToSign(this.filesStore.getFile())
