@@ -109,7 +109,6 @@ export const useFilesStore = defineStore('files', {
 			if (Object.hasOwn(this.files[nodeId], 'uuid')) {
 				return
 			}
-			this.loading = true
 			await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
 				fileId: nodeId,
 			}))
@@ -120,7 +119,6 @@ export const useFilesStore = defineStore('files', {
 				.catch(() => {
 					set(this.files[nodeId], 'signers', [])
 				})
-			this.loading = false
 		},
 		addUniqueIdentifierToAllSigners(signers) {
 			if (signers === undefined) {
