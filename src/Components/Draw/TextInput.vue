@@ -19,26 +19,25 @@
 				{{ t('libresign', 'Cancel') }}
 			</NcButton>
 		</div>
-		<NcModal v-if="modal" @close="handleModal(false)">
-			<div class="modal-confirm">
-				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
-				<img :src="imageData">
-				<div class="actions-modal">
-					<NcButton type="primary" @click="saveSignature">
-						{{ t('libresign', 'Save') }}
-					</NcButton>
-					<NcButton @click="cancelConfirm">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
+		<NcDialog v-if="modal"
+			:name="t('libresign', 'Confirm your signature')"
+			@closing="handleModal(false)">
+			<img :src="imageData">
+			<template #actions>
+				<NcButton type="primary" @click="saveSignature">
+					{{ t('libresign', 'Save') }}
+				</NcButton>
+				<NcButton @click="cancelConfirm">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
 <script>
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import '@fontsource/dancing-script'
 import { SignatureImageDimensions } from './options.js'
@@ -48,7 +47,7 @@ export default {
 	name: 'TextInput',
 	components: {
 		NcTextField,
-		NcModal,
+		NcDialog,
 		NcButton,
 	},
 
@@ -166,32 +165,11 @@ export default {
 	}
 }
 
-.modal-confirm{
-	z-index: 100000;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	margin: 15px;
+img{
+	padding: 20px;
 
-	h1{
-		font-size: 1.4rem;
-		font-weight: bold;
-		margin: 10px;
-	}
-
-	img{
-		padding: 20px;
-
-		@media screen and (max-width: 650px){
-			width: 100%;
-		}
-	}
-
-	.actions-modal{
-		display: flex;
-		flex-direction: row;
-		align-self: flex-end;
+	@media screen and (max-width: 650px){
+		width: 100%;
 	}
 }
 </style>
