@@ -32,7 +32,7 @@ abstract class SignEngineHandler implements ISignEngineHandler {
 	private $inputFile;
 	private string $certificate;
 	/** @var string */
-	private $password;
+	private $password = '';
 	/** @var VisibleElementAssoc[] */
 	private $visibleElements = [];
 

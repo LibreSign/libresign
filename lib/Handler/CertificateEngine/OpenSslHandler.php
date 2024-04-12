@@ -47,7 +47,7 @@ class OpenSslHandler extends AEngineHandler implements IEngineHandler {
 		protected IDateTimeFormatter $dateTimeFormatter,
 		protected ITempManager $tempManager,
 	) {
-		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter);
+		parent::__construct($config, $appConfig, $appDataFactory, $dateTimeFormatter, $tempManager);
 	}
 
 	public function generateRootCert(

@@ -103,6 +103,7 @@ class Pkcs12Handler extends SignEngineHandler {
 	}
 
 	public function readCertificate(string $uid, string $privateKey): array {
+		$this->setPassword($privateKey);
 		$pfx = $this->getPfx($uid);
 		return $this->certificateEngineHandler->getEngine()->readCertificate(
 			$pfx,
@@ -131,6 +132,9 @@ class Pkcs12Handler extends SignEngineHandler {
 		$this->pfxContent = $node->getContent();
 		if (empty($this->pfxContent)) {
 			throw new LibresignException($this->l10n->t('Password to sign not defined. Create a password to sign.'), 400);
+		}
+		if ($this->getPassword()) {
+			$this->certificateEngineHandler->getEngine()->opensslPkcs12Read($this->pfxContent, $this->getPassword());
 		}
 		return $this->pfxContent;
 	}
