@@ -24,6 +24,7 @@ OC.L10N.register(
     "Update" : "Werk by",
     "Previous" : "Vorige",
     "Next" : "Volgende",
+    "Loading …" : "Laai …",
     "Details" : "Besonderhede",
     "Certificate" : "Sertifikaat",
     "Type" : "Tipe",
@@ -44,7 +45,6 @@ OC.L10N.register(
     "Dependencies" : "Afhanklikhede",
     "Yes" : "Ja",
     "No" : "Nee",
-    "Loading …" : "Laai …",
     "Pending" : "Hangend",
     "No date" : "Geen datum"
 },

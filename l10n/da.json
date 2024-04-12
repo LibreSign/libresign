@@ -32,6 +32,7 @@
     "Update" : "Opdatér",
     "Previous" : "Tidligere",
     "Next" : "Næste",
+    "Loading …" : "Loading …",
     "Details" : "Detaljer",
     "Certificate" : "Certifikat",
     "Delete certificate" : "Slet certifikat",
@@ -58,7 +59,6 @@
     "Dependencies" : "Afhængigheder",
     "Yes" : "Ja",
     "No" : "Nej",
-    "Loading …" : "Loading …",
     "Pending" : "Afventer",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -33,6 +33,7 @@ OC.L10N.register(
     "Update" : "עדכון",
     "Previous" : "הקודם",
     "Next" : "הבא",
+    "Loading …" : "בטעינה…",
     "Details" : "פרטים",
     "Certificate" : "אישור",
     "Change password" : "שינוי ססמה",
@@ -57,7 +58,6 @@ OC.L10N.register(
     "Dependencies" : "תלויות",
     "Yes" : "כן",
     "No" : "לא",
-    "Loading …" : "בטעינה…",
     "Pending" : "בהמתנה",
     "No date" : "No date"
 },

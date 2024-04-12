@@ -19,6 +19,7 @@
     "Update" : "යාවත්කාල",
     "Previous" : "පෙර",
     "Next" : "ඊළඟ",
+    "Loading …" : "පූරණය වෙමින් …",
     "Details" : "විස්තර",
     "Certificate" : "සහතිකය",
     "Change password" : "මුරපදය වෙනස් කරන්න",
@@ -29,7 +30,6 @@
     "New password" : "නව මුරපදය",
     "Message" : "පණිවිඩය",
     "Yes" : "ඔව්",
-    "No" : "නැහැ",
-    "Loading …" : "පූරණය වෙමින් …"
+    "No" : "නැහැ"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

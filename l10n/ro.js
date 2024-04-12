@@ -34,6 +34,7 @@ OC.L10N.register(
     "Update" : "Actualizare",
     "Previous" : "Precedentul",
     "Next" : "Următorul",
+    "Loading …" : "Se încarcă…",
     "Details" : "Detalii",
     "Certificate" : "Certificat",
     "Delete certificate" : "Șterge certificatul",
@@ -56,7 +57,6 @@ OC.L10N.register(
     "Dependencies" : "Dependențe",
     "Yes" : "a",
     "No" : "Nu",
-    "Loading …" : "Se încarcă…",
     "Pending" : "În așteptare",
     "No date" : "No date"
 },

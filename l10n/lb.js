@@ -4,6 +4,7 @@ OC.L10N.register(
     "Email" : "Email",
     "Authentication required" : "Authentifizéierung néideg",
     "Password" : "Passwuert",
+    "Confirm" : "Konfirméieren",
     "Upload" : "Eroplueden",
     "Delete" : "Läschen",
     "Save" : "Späicheren",

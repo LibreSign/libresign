@@ -18,6 +18,7 @@ OC.L10N.register(
     "Name" : "Nom",
     "Previous" : "Ɣer deffir",
     "Next" : "Uḍfir",
+    "Loading …" : "Asali ...",
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",
@@ -30,7 +31,6 @@ OC.L10N.register(
     "Message" : "Izen",
     "Yes" : "Oui",
     "No" : "Uhu",
-    "Loading …" : "Asali ...",
     "Pending" : "Yegguni"
 },
 "nplurals=2; plural=(n != 1);");

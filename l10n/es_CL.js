@@ -25,6 +25,7 @@ OC.L10N.register(
     "Name" : "Nombre",
     "Previous" : "Previo",
     "Next" : "Siguiente",
+    "Loading …" : "Cargando …",
     "Details" : "Detalles",
     "Certificate" : "Certificado",
     "Type" : "Tipo",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "Dependencies" : "Dependencias",
     "Yes" : "Sí",
     "No" : "No",
-    "Loading …" : "Cargando …",
     "Pending" : "Pendiente",
     "No date" : "Sin fecha"
 },

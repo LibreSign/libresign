@@ -38,6 +38,7 @@ OC.L10N.register(
     "Update" : "Оновлення",
     "Previous" : "Назад",
     "Next" : "Далі",
+    "Loading …" : "Завантаження …",
     "Details" : "Деталі",
     "Certificate" : "Сертифікат",
     "Type" : "Тип",
@@ -60,7 +61,6 @@ OC.L10N.register(
     "Dependencies" : "Залежності",
     "Yes" : "Так",
     "No" : "Ні",
-    "Loading …" : "Завантаження …",
     "Pending" : "Очікування",
     "No date" : "Без дати"
 },

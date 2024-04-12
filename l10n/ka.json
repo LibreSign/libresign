@@ -31,6 +31,7 @@
     "Update" : "Update",
     "Previous" : "Previous",
     "Next" : "Next",
+    "Loading …" : "Loading …",
     "pending" : "pending",
     "Details" : "Details",
     "Certificate" : "Certificate",
@@ -54,7 +55,6 @@
     "Dependencies" : "Dependencies",
     "Yes" : "Yes",
     "No" : "No",
-    "Loading …" : "Loading …",
     "Pending" : "Pending"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

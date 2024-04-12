@@ -16,6 +16,7 @@
     "Name" : "Nom",
     "Previous" : "Ɣer deffir",
     "Next" : "Uḍfir",
+    "Loading …" : "Asali ...",
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",
@@ -28,7 +29,6 @@
     "Message" : "Izen",
     "Yes" : "Oui",
     "No" : "Uhu",
-    "Loading …" : "Asali ...",
     "Pending" : "Yegguni"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
