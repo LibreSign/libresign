@@ -3,13 +3,14 @@
 		<div class="container-request">
 			<header>
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
-				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
+				<p v-if="!sidebarStore.isVisible()">{{ t('libresign', 'Choose the file to request signatures.') }}</p>
 			</header>
 			<div class="content-request">
 				<File v-show="filesStore.selectedNodeId > 0"
 					status="0"
 					status-text="none" />
 				<NcButton :wide="true"
+					v-if="!sidebarStore.isVisible()"
 					@click="showModalUploadFromUrl()">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
@@ -17,6 +18,7 @@
 					</template>
 				</NcButton>
 				<NcButton :wide="true"
+					v-if="!sidebarStore.isVisible()"
 					@click="showFilePicker = true">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
@@ -24,6 +26,7 @@
 					</template>
 				</NcButton>
 				<NcButton :wide="true"
+					v-if="!sidebarStore.isVisible()"
 					@click="uploadFile">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
@@ -85,6 +88,7 @@ import File from '../Components/File/File.vue'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
 import { useFilesStore } from '../store/files.js'
+import { useSidebarStore } from '../store/sidebar.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -113,7 +117,8 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, sidebarStore }
 	},
 	data() {
 		return {
@@ -187,7 +192,6 @@ export default {
 				onError(err)
 				return
 			}
-			await this.closeModalUploadFromUrl()
 			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
