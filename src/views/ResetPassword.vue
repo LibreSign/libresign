@@ -1,47 +1,55 @@
 /* eslint-disable no-new */
 <template>
-	<NcContent app-name="libresign" class="with-sidebar--full">
-		<form @submit="(e) => e.preventDefault()">
-			<header>
-				<h2>{{ t('libresign', 'Password reset') }}</h2>
-				<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
-			</header>
-			<div class="container">
-				<div class="input-group">
-					<label for="new-password">{{ t('libresign', 'Current password') }}</label>
-					<NcPasswordField :value.sync="currentPassword" type="password" />
-				</div>
-				<div class="input-group">
-					<label for="new-password">{{ t('libresign', 'New password') }}</label>
-					<NcPasswordField :value.sync="newPassword" type="password" />
-				</div>
-				<div class="input-group">
-					<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
-					<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
-				</div>
-				<button :disabled="!canSave"
-					:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
-					@click="send">
-					{{ t('libresign', 'Confirm') }}
-				</button>
+	<NcDialog v-if="signMethodsStore.modal.resetPassword"
+		:name="t('libresign', 'Password reset')"
+		@closing="signMethodsStore.closeModal('resetPassword')">
+		<p>{{ t('libresign', 'Enter new password and then repeat it') }}</p>
+		<div class="container">
+			<div class="input-group">
+				<label for="new-password">{{ t('libresign', 'Current password') }}</label>
+				<NcPasswordField :value.sync="currentPassword" type="password" />
 			</div>
-		</form>
-	</NcContent>
+			<div class="input-group">
+				<label for="new-password">{{ t('libresign', 'New password') }}</label>
+				<NcPasswordField :value.sync="newPassword" type="password" />
+			</div>
+			<div class="input-group">
+				<label for="repeat-password">{{ t('libresign', 'Repeat password') }}</label>
+				<NcPasswordField :value.sync="rPassword" :has-error="!validNewPassord" type="password" />
+			</div>
+		</div>
+		<template #actions>
+			<NcButton :disabled="!canSave"
+				:class="hasLoading ? 'btn-load loading primary btn-confirm' : 'primary btn-confirm'"
+				@click="send">
+				<template #icon>
+					<NcLoadingIcon v-if="hasLoading" :size="20" />
+				</template>
+				{{ t('libresign', 'Confirm') }}
+			</NcButton>
+		</template>
+	</NcDialog>
 </template>
 
 <script>
-import '@nextcloud/password-confirmation/dist/style.css' // Required for dialog styles
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { showError, showSuccess } from '@nextcloud/dialogs'
+import { useSignMethodsStore } from '../store/signMethods.js'
 
 export default {
 	name: 'ResetPassword',
 	components: {
-		NcContent,
+		NcDialog,
 		NcPasswordField,
+		NcButton,
+	},
+	setup() {
+		const signMethodsStore = useSignMethodsStore()
+		return { signMethodsStore }
 	},
 	data() {
 		return {
@@ -53,7 +61,7 @@ export default {
 	},
 	computed: {
 		canSave() {
-			return this.currentPassword && this.validNewPassord
+			return this.currentPassword && this.validNewPassord && !this.hasLoading
 		},
 		validNewPassord() {
 			return this.newPassword.length > 3 && this.newPassword === this.rPassword
@@ -69,6 +77,7 @@ export default {
 				})
 				showSuccess(response.data.message)
 				this.hasLoading = false
+				this.signMethodsStore.closeModal('resetPassword')
 				this.$emit('close', true)
 			} catch (err) {
 				if (err.response.data.message) {
@@ -83,28 +92,6 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-	form{
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-		max-width: 100%;
-		margin: 50px;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		padding: 1rem;
-		header{
-			margin-bottom: 2.5rem;
-		}
-		h1{
-			font-size: 45px;
-			margin-bottom: 1rem;
-		}
-		p{
-			font-size: 15px;
-		}
-	}
-
 	.container {
 		display: flex;
 		flex-direction: column;
@@ -115,21 +102,6 @@ export default {
 		max-width: 420px;
 
 		text-align: start;
-	}
-
-	.btn-confirm{
-		width: 100%;
-		max-width: 280px;
-	}
-
-	.btn-load{
-		background-color: transparent !important;
-		font-size: 0;
-		pointer-events: none;
-		cursor: not-allowed;
-		margin-top: 10px;
-		border: none;
-
 	}
 
 	.input-group{
