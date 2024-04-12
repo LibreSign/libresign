@@ -84,15 +84,11 @@
 		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
-			:uuid="signStore.uuid"
-			:file-id="signStore.document.fileId"
 			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
 
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
-			:uuid="signStore.uuid"
-			:file-id="signStore.document.fileId"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
