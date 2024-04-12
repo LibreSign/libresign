@@ -1,6 +1,8 @@
 <template>
-	<NcModal class="draw-signature"
-		@close="close">
+	<NcDialog v-if="mounted"
+		class="draw-signature"
+		:name="t('libresign', 'Customize your signatures')"
+		@closing="close">
 		<NcAppSidebar active="tab-draw"
 			:name="t('libresign', 'Customize your signatures')">
 			<NcAppSidebarTab v-if="drawEditor"
@@ -33,11 +35,11 @@
 		</NcAppSidebar>
 
 		<div class="content" />
-	</NcModal>
+	</NcDialog>
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcAppSidebar from '@nextcloud/vue/dist/Components/NcAppSidebar.js'
 import NcAppSidebarTab from '@nextcloud/vue/dist/Components/NcAppSidebarTab.js'
 import Editor from './Editor.vue'
@@ -51,7 +53,7 @@ import { useSignatureElementsStore } from '../../store/signatureElements.js'
 export default {
 	name: 'Draw',
 	components: {
-		NcModal,
+		NcDialog,
 		NcAppSidebar,
 		NcAppSidebarTab,
 		SignatureTextIcon,
@@ -86,6 +88,14 @@ export default {
 		const signatureElementsStore = useSignatureElementsStore()
 		return { signatureElementsStore }
 	},
+	data() {
+		return {
+			mounted: false,
+		}
+	},
+	mounted() {
+		this.mounted = true
+	},
 	methods: {
 		close() {
 			this.$emit('close')
@@ -101,9 +111,18 @@ export default {
 
 <style lang="scss" scoped>
 .draw-signature{
+	::v-deep .app-sidebar-header{
+		display: none;
+	}
+	::v-deep #tab-tab-upload {
+		min-width: 350px;
+	}
 	::v-deep .modal-container {
 		width: unset !important;
 		height: unset !important;
+	}
+	::v-deep aside {
+		border-left: unset;
 	}
 	::v-deep .app-sidebar__close {
 		display: none;

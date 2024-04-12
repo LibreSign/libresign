@@ -49,23 +49,21 @@
 			<NcButton type="primary" @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
-			<NcModal v-if="modal"
-				@close="closeModal">
-				<div class="modal__content">
-					<h2>{{ t('libresign', 'Confirm') }}</h2>
-					{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
-					<div class="grid">
-						<NcButton type="error"
-							@click="clearAndShowForm">
-							{{ t('libresign', 'Yes') }}
-						</NcButton>
-						<NcButton type="primary"
-							@click="closeModal">
-							{{ t('libresign', 'No') }}
-						</NcButton>
-					</div>
-				</div>
-			</NcModal>
+			<NcDialog v-if="modal"
+				:name="t('libresign', 'Confirm')"
+				@closing="closeModal">
+				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
+				<template #actions>
+					<NcButton type="error"
+						@click="clearAndShowForm">
+						{{ t('libresign', 'Yes') }}
+					</NcButton>
+					<NcButton type="primary"
+						@click="closeModal">
+						{{ t('libresign', 'No') }}
+					</NcButton>
+				</template>
+			</NcDialog>
 		</div>
 		<div v-else-if="!configureOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
@@ -114,7 +112,7 @@
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import { generateOcsUrl } from '@nextcloud/router'
@@ -132,7 +130,7 @@ export default {
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
-		NcModal,
+		NcDialog,
 		NcButton,
 		NcTextField,
 		CertificateCustonOptions,
@@ -303,20 +301,6 @@ export default {
 
 .form-heading--required:after {
 	content:" *";
-}
-
-.modal__content {
-	margin: 50px;
-	text-align: center;
-
-	.grid {
-		display: flex;
-		flex-direction: row;
-		align-self: flex-end;
-		button {
-			margin: 10px;
-		}
-	}
 }
 
 @media screen and (max-width: 500px){
