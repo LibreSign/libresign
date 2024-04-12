@@ -40,49 +40,40 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="signMethodsStore.modal.clickToSign"
+		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
-			@close="signMethodsStore.closeModal('clickToSign')">
-			<div class="modal__content">
-				<h2 class="modal__header">
+			:name="t('libresign', 'Confirm')"
+			@closing="signMethodsStore.closeModal('clickToSign')">
+			{{ t('libresign', 'Confirm your signature') }}
+			<template #actions>
+				<NcButton :disabled="loading"
+					@click="signMethodsStore.closeModal('clickToSign')">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton type="primary"
+					:disabled="loading"
+					@click="signWithClick">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
 					{{ t('libresign', 'Confirm') }}
-				</h2>
-				{{ t('libresign', 'Confirm your signature') }}
-				<div class="modal__button-row">
-					<NcButton :disabled="loading"
-						@click="signMethodsStore.closeModal('clickToSign')">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-					<NcButton type="primary"
-						:disabled="loading"
-						@click="signWithClick">
-						<template #icon>
-							<NcLoadingIcon v-if="loading" :size="20" />
-						</template>
-						{{ t('libresign', 'Confirm') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
-		<NcModal v-if="signMethodsStore.modal.password"
+				</NcButton>
+			</template>
+		</NcDialog>
+		<NcDialog v-if="signMethodsStore.modal.password"
 			:can-close="!loading"
-			@close="signMethodsStore.closeModal('password')">
-			<div class="modal__content">
-				<h2 class="modal__header">
-					{{ t('libresign', 'Confirm your signature') }}
-				</h2>
-				{{ t('libresign', 'Subscription password.') }}
-				<NcPasswordField :value.sync="signPassword" type="password" />
-				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('password')">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-					<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
-						{{ t('libresign', 'Sign the document.') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
+			:name="t('libresign', 'Confirm your signature')"
+			@closing="onCloseConfirmPassword">
+			{{ t('libresign', 'Subscription password.') }}
+			<NcPasswordField :value.sync="signPassword" type="password" />
+			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
+			<ManagePassword v-if="showManagePassword" />
+			<template #actions>
+				<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
+					{{ t('libresign', 'Sign the document.') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 		<Draw v-if="signMethodsStore.modal.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
@@ -90,11 +81,7 @@
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
-		<NcModal v-if="signMethodsStore.modal.createPassword"
-			@close="signMethodsStore.closeModal('createPassword')">
-			<CreatePassword @password:created="signMethodsStore.setHasSignatureFile"
-				@close="signMethodsStore.closeModal('createPassword')" />
-		</NcModal>
+		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
 			:uuid="signStore.uuid"
@@ -112,7 +99,7 @@
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
@@ -130,11 +117,12 @@ import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 import { useSidebarStore } from '../../../store/sidebar.js'
+import ManagePassword from '../../Account/partials/ManagePassword.vue'
 
 export default {
 	name: 'Sign',
 	components: {
-		NcModal,
+		NcDialog,
 		NcButton,
 		NcLoadingIcon,
 		NcPasswordField,
@@ -143,6 +131,7 @@ export default {
 		EmailManager,
 		Signatures,
 		Draw,
+		ManagePassword,
 	},
 	setup() {
 		const signStore = useSignStore()
@@ -158,6 +147,7 @@ export default {
 				account: { uid: '', displayName: '' },
 			},
 			signPassword: '',
+			showManagePassword: false,
 		}
 	},
 	computed: {
@@ -214,6 +204,13 @@ export default {
 				} catch (err) {
 				}
 			}
+		},
+		toggleManagePassword() {
+			this.showManagePassword = !this.showManagePassword
+		},
+		onCloseConfirmPassword() {
+			this.showManagePassword = false
+			this.signMethodsStore.closeModal('password')
 		},
 		saveSignature() {
 			if (this.signatureElementsStore.success.length) {
