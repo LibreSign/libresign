@@ -34,6 +34,7 @@ use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
 use OCP\IDateTimeFormatter;
+use OCP\ITempManager;
 use OpenSSLAsymmetricKey;
 use OpenSSLCertificate;
 use ReflectionClass;
@@ -80,6 +81,7 @@ class AEngineHandler {
 		protected IAppConfig $appConfig,
 		protected IAppDataFactory $appDataFactory,
 		protected IDateTimeFormatter $dateTimeFormatter,
+		protected ITempManager $tempManager,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
@@ -114,10 +116,7 @@ class AEngineHandler {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
 			throw new EmptyCertificateException();
 		}
-		openssl_pkcs12_read($certificate, $certContent, $currentPrivateKey);
-		if (empty($certContent)) {
-			throw new InvalidPasswordException();
-		}
+		$certContent = $this->opensslPkcs12Read($certificate, $currentPrivateKey);
 		$this->setPassword($newPrivateKey);
 		$certContent = self::exportToPkcs12($certContent['cert'], $certContent['pkey']);
 		return $certContent;
@@ -127,10 +126,7 @@ class AEngineHandler {
 		if (empty($certificate) || empty($privateKey)) {
 			throw new EmptyCertificateException();
 		}
-		openssl_pkcs12_read($certificate, $certContent, $privateKey);
-		if (empty($certContent)) {
-			throw new InvalidPasswordException();
-		}
+		$certContent = $this->opensslPkcs12Read($certificate, $privateKey);
 		$parsed = openssl_x509_parse(openssl_x509_read($certContent['cert']));
 
 		$return['name'] = $parsed['name'];
@@ -142,6 +138,41 @@ class AEngineHandler {
 			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
 		];
 		return $return;
+	}
+
+	public function opensslPkcs12Read(string &$certificate, string $privateKey): array {
+		openssl_pkcs12_read($certificate, $certContent, $privateKey);
+		if (!empty($certContent)) {
+			return $certContent;
+		}
+		/**
+		 * Reference:
+		 *
+		 * https://github.com/php/php-src/issues/12128
+		 * https://www.php.net/manual/en/function.openssl-pkcs12-read.php#128992
+		 */
+		$msg = openssl_error_string();
+		if ($msg === 'error:0308010C:digital envelope routines::unsupported') {
+			$tempPassword = $this->tempManager->getTemporaryFile();
+			$tempEncriptedOriginal = $this->tempManager->getTemporaryFile();
+			$tempEncriptedRepacked = $this->tempManager->getTemporaryFile();
+			$tempDecrypted = $this->tempManager->getTemporaryFile();
+			file_put_contents($tempPassword, $privateKey);
+			file_put_contents($tempEncriptedOriginal, $certificate);
+			shell_exec(<<<REPACK_COMMAND
+				cat $tempPassword | openssl pkcs12 -legacy -in $tempEncriptedOriginal -nodes -out $tempDecrypted -passin stdin &&
+				cat $tempPassword | openssl pkcs12 -in $tempDecrypted -export -out $tempEncriptedRepacked -passout stdin
+				REPACK_COMMAND
+			);
+			$certificateRepacked = file_get_contents($tempEncriptedRepacked);
+			$this->tempManager->clean();
+			openssl_pkcs12_read($certificateRepacked, $certContent, $privateKey);
+			if (!empty($certContent)) {
+				$certificate = $certificateRepacked;
+				return $certContent;
+			}
+		}
+		throw new InvalidPasswordException();
 	}
 
 	public function translateToLong($name): string {
