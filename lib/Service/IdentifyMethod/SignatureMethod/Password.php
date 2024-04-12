@@ -43,9 +43,9 @@ class Password extends AbstractSignatureMethod {
 	}
 
 	public function validateToIdentify(): void {
+		$this->pkcs12Handler->setPassword($this->codeSentByUser);
 		$pfx = $this->pkcs12Handler->getPfx($this->userSession->getUser()?->getUID());
-		openssl_pkcs12_read($pfx, $cert_info, $this->codeSentByUser);
-		if (empty($cert_info)) {
+		if (empty($pfx)) {
 			throw new LibresignException($this->identifyService->getL10n()->t('Invalid password'));
 		}
 	}
