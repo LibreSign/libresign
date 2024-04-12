@@ -47,6 +47,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 	 * @var string[]
 	 */
 	public array $availableSignatureMethods = [];
+	protected string $defaultSignatureMethod = '';
 	/**
 	 * @var AbstractSignatureMethod[]
 	 */
@@ -315,23 +316,17 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 			}
 			return $carry;
 		}, []);
+		$enabled = false;
 		foreach ($this->availableSignatureMethods as $signatureMethodName) {
 			$this->signatureMethods[$signatureMethodName] =
 				$this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
-		}
-		if (!isset($this->settings['signatureMethods']) || !is_array($this->settings['signatureMethods'])) {
-			return;
-		}
-		foreach ($this->settings['signatureMethods'] as $signatureMethodName => $settings) {
-			if (!in_array($signatureMethodName, $this->availableSignatureMethods)) {
-				unset($this->settings['signatureMethods'][$signatureMethodName]);
-				continue;
+			if (isset($this->settings[$signatureMethodName]['enabled']) && $this->settings[$signatureMethodName]['enabled']) {
+				$this->signatureMethods[$signatureMethodName]->enable();
+				$enabled = true;
 			}
-			$signatureMethod = $this->getEmptyInstanceOfSignatureMethodByName($signatureMethodName);
-			if (isset($settings['enabled']) && $settings['enabled']) {
-				$signatureMethod->enable();
-			}
-			$this->signatureMethods[$signatureMethodName] = $signatureMethod;
+		}
+		if (!$enabled && $this->defaultSignatureMethod) {
+			$this->signatureMethods[$this->defaultSignatureMethod]->enable();
 		}
 	}
 

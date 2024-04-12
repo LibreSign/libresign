@@ -40,6 +40,7 @@ class Email extends AbstractIdentifyMethod {
 		ISignatureMethod::SIGNATURE_METHOD_CLICK_TO_SIGN,
 		ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
 	];
+	public string $defaultSignatureMethod = ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN;
 	public function __construct(
 		protected IdentifyService $identifyService,
 		private IdentifyMethodMapper $identifyMethodMapper,

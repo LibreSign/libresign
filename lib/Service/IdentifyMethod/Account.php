@@ -46,6 +46,7 @@ class Account extends AbstractIdentifyMethod {
 		ISignatureMethod::SIGNATURE_METHOD_EMAIL_TOKEN,
 		ISignatureMethod::SIGNATURE_METHOD_PASSWORD,
 	];
+	public string $defaultSignatureMethod = ISignatureMethod::SIGNATURE_METHOD_PASSWORD;
 	public function __construct(
 		protected IdentifyService $identifyService,
 		private IUserManager $userManager,
