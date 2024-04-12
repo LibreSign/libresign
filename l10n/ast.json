@@ -34,6 +34,7 @@
     "Update" : "Anovar",
     "Previous" : "Anterior",
     "Next" : "Siguiente",
+    "Loading …" : "Cargando…",
     "Details" : "Detalles",
     "Certificate" : "Certificáu",
     "Change password" : "Camudar la contraseña",
@@ -57,7 +58,6 @@
     "Legal information" : "Información llegal",
     "Yes" : "Sí",
     "No" : "Non",
-    "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -19,6 +19,7 @@ OC.L10N.register(
     "Name" : "Нэр",
     "Previous" : "өмнөх",
     "Next" : "дараагийх",
+    "Loading …" : "Уншиж байна...",
     "Details" : "Дэлгэрэнгүй",
     "Certificate" : "Гэрчилгээ",
     "Type" : "Төрөл",
@@ -37,7 +38,6 @@ OC.L10N.register(
     "Resource" : "Нөөц",
     "Yes" : "Тийм",
     "No" : "Үгүй",
-    "Loading …" : "Уншиж байна...",
     "Pending" : "Хүлээгдэж байгаа",
     "No date" : "No date"
 },

@@ -30,6 +30,7 @@
     "Update" : "Ĝisdatigi",
     "Previous" : "Antaŭa",
     "Next" : "Sekva",
+    "Loading …" : "Ŝargas …",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",
     "Type" : "Tipo",
@@ -52,7 +53,6 @@
     "Dependencies" : "Dependecoj",
     "Yes" : "Yes",
     "No" : "No",
-    "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

@@ -32,6 +32,7 @@ OC.L10N.register(
     "Update" : "Ĝisdatigi",
     "Previous" : "Antaŭa",
     "Next" : "Sekva",
+    "Loading …" : "Ŝargas …",
     "Details" : "Detaloj",
     "Certificate" : "Atestilo",
     "Type" : "Tipo",
@@ -54,7 +55,6 @@ OC.L10N.register(
     "Dependencies" : "Dependecoj",
     "Yes" : "Yes",
     "No" : "No",
-    "Loading …" : "Ŝargas …",
     "Pending" : "Pritraktota",
     "No date" : "No date"
 },

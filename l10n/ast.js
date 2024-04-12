@@ -36,6 +36,7 @@ OC.L10N.register(
     "Update" : "Anovar",
     "Previous" : "Anterior",
     "Next" : "Siguiente",
+    "Loading …" : "Cargando…",
     "Details" : "Detalles",
     "Certificate" : "Certificáu",
     "Change password" : "Camudar la contraseña",
@@ -59,7 +60,6 @@ OC.L10N.register(
     "Legal information" : "Información llegal",
     "Yes" : "Sí",
     "No" : "Non",
-    "Loading …" : "Cargando…",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente"
 },

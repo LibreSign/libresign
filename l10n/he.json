@@ -31,6 +31,7 @@
     "Update" : "עדכון",
     "Previous" : "הקודם",
     "Next" : "הבא",
+    "Loading …" : "בטעינה…",
     "Details" : "פרטים",
     "Certificate" : "אישור",
     "Change password" : "שינוי ססמה",
@@ -55,7 +56,6 @@
     "Dependencies" : "תלויות",
     "Yes" : "כן",
     "No" : "לא",
-    "Loading …" : "בטעינה…",
     "Pending" : "בהמתנה",
     "No date" : "No date"
 },"pluralForm" :"nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;"

@@ -31,6 +31,7 @@
     "Update" : "Atualizar",
     "Previous" : "Anterior",
     "Next" : "Seguinte",
+    "Loading …" : "A carregar...",
     "Details" : "Detalhes",
     "Certificate" : "Certificado",
     "Type" : "Tipo",
@@ -53,7 +54,6 @@
     "Dependencies" : "Dependências",
     "Yes" : "Sim",
     "No" : "Não",
-    "Loading …" : "A carregar...",
     "Pending" : "Pendente",
     "No date" : "Sem data"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

@@ -30,6 +30,7 @@
     "Update" : "Cập nhật",
     "Previous" : "Trước",
     "Next" : "Tiếp theo",
+    "Loading …" : "Đang tải …",
     "Details" : "Chi tiết",
     "Certificate" : "Chứng chỉ",
     "Type" : "Loại",
@@ -51,7 +52,6 @@
     "Dependencies" : "Các phụ thuộc",
     "Yes" : "Có",
     "No" : "Không",
-    "Loading …" : "Đang tải …",
     "Pending" : "Đang dừng",
     "No date" : "No date"
 },"pluralForm" :"nplurals=1; plural=0;"

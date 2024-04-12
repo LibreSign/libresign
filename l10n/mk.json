@@ -38,6 +38,7 @@
     "Next" : "Следна",
     "Sign" : "Знак",
     "Send reminder" : "Испрати потсетник",
+    "Loading …" : "Се вчитува…",
     "Details" : "Детали",
     "Certificate" : "Сертификат",
     "Change password" : "Смени лозинка",
@@ -60,7 +61,6 @@
     "Resource" : "Ресурси",
     "Yes" : "Да",
     "No" : "Не",
-    "Loading …" : "Се вчитува…",
     "Pending" : "Чекање",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;"

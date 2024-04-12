@@ -57,6 +57,7 @@ OC.L10N.register(
     "Account not exist" : "Paskyros nėra",
     "Sign" : "Pasirašyti",
     "Send reminder" : "Siųsti priminimą",
+    "Loading …" : "Įkeliama…",
     "Details" : "Išsamiau",
     "Certificate" : "Liudijimas",
     "Delete certificate" : "Ištrinti liudijimą",
@@ -91,7 +92,6 @@ OC.L10N.register(
     "Dependencies" : "Priklausomybės",
     "Yes" : "Taip",
     "No" : "Ne",
-    "Loading …" : "Įkeliama…",
     "All Files" : "Visi failai",
     "Pending" : "Laukiantis",
     "No date" : "No date"
