@@ -375,7 +375,15 @@ class AccountController extends ApiController implements ISignatureUuid {
 				$element['file'] = $file;
 			}
 			$this->validateHelper->validateVisibleElement($element, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
-			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $this->userSession->getUser());
+			$user = $this->userSession->getUser();
+			if ($user instanceof IUser) {
+				$userElement = $this->signerElementsService->getUserElementByNodeId(
+					$user->getUID(),
+					$nodeId,
+				);
+				$element['elementId'] = $userElement['id'];
+			}
+			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
 			return new JSONResponse(
 				[
 					'message' => $this->l10n->t('Element updated with success')
