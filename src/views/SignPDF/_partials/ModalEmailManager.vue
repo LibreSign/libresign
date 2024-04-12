@@ -72,6 +72,7 @@ import md5 from 'blueimp-md5'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { useSignStore } from '../../../store/sign.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -88,21 +89,10 @@ export default {
 		EmailIcon,
 		NcButton,
 	},
-	props: {
-		fileId: {
-			type: Number,
-			required: false,
-			default: 0,
-		},
-		uuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
 	setup() {
+		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
+		return { signStore, signMethodsStore }
 	},
 	data: () => ({
 		loading: false,
@@ -153,9 +143,11 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.fileId.length > 0) {
+				if (this.signStore.document.fileId) {
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+							fileId: this.signStore.document.fileId,
+						}),
 						{
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
@@ -164,8 +156,11 @@ export default {
 					)
 					showSuccess(data.message)
 				} else {
+					const signer = this.signStore.document.signers.find(row => row.me) || {}
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
+						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
+							uuid: signer.sign_uuid,
+						}),
 						{
 							identify: this.sendTo,
 							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
