@@ -41,7 +41,6 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
-import { startsWith } from 'lodash-es'
 import Draw from '../../../Components/Draw/Draw.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
@@ -74,7 +73,7 @@ export default {
 			return this.signatureElementsStore.hasSignatureOfType(this.type)
 		},
 		imgSrc() {
-			if (startsWith('data:', this.signatureElementsStore.signs[this.type].value)) {
+			if (this.signatureElementsStore.signs[this.type]?.value?.startsWith('data:')) {
 				return this.signatureElementsStore.signs[this.type].value
 			}
 			return `${this.signatureElementsStore.signs[this.type].file.url}&_t=${Date.now()}`
