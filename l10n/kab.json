@@ -4,9 +4,6 @@
     "File not found" : "Ulac afaylu",
     "Email" : "Imayl",
     "Invalid password" : "Yir awal uffir",
-    "Authentication required" : "Tlaq tuqqna",
-    "Password" : "Awal uffir",
-    "Confirm" : "Serggeg",
     "Upload" : "Sili",
     "Delete" : "Kkes",
     "Save" : "Sekles",
@@ -16,11 +13,13 @@
     "Name" : "Nom",
     "Previous" : "Ɣer deffir",
     "Next" : "Uḍfir",
+    "Confirm" : "Serggeg",
     "Loading …" : "Asali ...",
     "Details" : "Talqayt",
     "Type" : "Anaw",
     "Status" : "État",
     "Choose" : "Fren",
+    "Password" : "Awal uffir",
     "Enter a password" : "Sekcem awal n uɛeddi",
     "Page not found" : "Ulac asebter",
     "Send" : "Tuzna",
@@ -29,6 +28,7 @@
     "Message" : "Izen",
     "Yes" : "Oui",
     "No" : "Uhu",
+    "Forgot password?" : "Tettud awal uffir?",
     "Pending" : "Yegguni"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -2,7 +2,6 @@ OC.L10N.register(
     "libresign",
     {
     "Email" : "អ៊ីមែល",
-    "Password" : "ពាក្យសម្ងាត់",
     "Upload" : "ផ្ទុក​ឡើង",
     "Delete" : "លុប",
     "Save" : "រក្សាទុក",
@@ -18,6 +17,7 @@ OC.L10N.register(
     "Choose" : "ជ្រើស",
     "Profile picture" : "រូបភាព​ប្រវត្តិរូប",
     "Create account" : "បង្កើតគណនី",
+    "Password" : "ពាក្យសម្ងាត់",
     "Enter a password" : "Enter a password",
     "Send" : "ផ្ញើ",
     "Current password" : "ពាក្យសម្ងាត់​បច្ចុប្បន្ន",
