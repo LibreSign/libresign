@@ -2,7 +2,6 @@ OC.L10N.register(
     "libresign",
     {
     "Email" : "تورخەت",
-    "Password" : "ئىم",
     "Upload" : "يۈكلە",
     "Delete" : "ئۆچۈر",
     "Save" : "ساقلا",
@@ -15,6 +14,7 @@ OC.L10N.register(
     "Next" : "كېيىنكى",
     "Type" : "Type",
     "Actions" : "مەشغۇلاتلار",
+    "Password" : "ئىم",
     "Enter a password" : "Enter a password",
     "Send" : "يوللا",
     "Current password" : "نۆۋەتتىكى ئىم",

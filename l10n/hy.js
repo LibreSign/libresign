@@ -4,7 +4,6 @@ OC.L10N.register(
     "File is too big" : "Նիշքը չափազանց մեծ է",
     "File not found" : "Ֆայլը չգտնվեց",
     "Email" : "Էլ․փոստ",
-    "Password" : "Գաղտնաբառ",
     "Upload" : "Բեռնել",
     "Delete" : "հեռացնել",
     "Save" : "Պահպանել",
@@ -19,6 +18,7 @@ OC.L10N.register(
     "Type" : "Տիպ",
     "Choose" : "Ընտրել",
     "Create account" : "Ստեղծել հաշիվ",
+    "Password" : "Գաղտնաբառ",
     "Enter a password" : "Enter a password",
     "Send" : "Ուղարկել",
     "Password reset" : "Վերականգնել գաղտնաբառը",
@@ -26,6 +26,7 @@ OC.L10N.register(
     "Resource" : "Ռեսուրս",
     "Yes" : "Yes",
     "No" : "No",
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
     "No date" : "No date"
 },
 "nplurals=2; plural=(n != 1);");

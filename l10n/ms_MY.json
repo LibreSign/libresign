@@ -1,6 +1,5 @@
 { "translations": {
     "Email" : "Email",
-    "Password" : "Kata laluan",
     "Upload" : "Muat naik",
     "Delete" : "Padam",
     "Save" : "Simpan",
@@ -13,6 +12,7 @@
     "Next" : "Seterus",
     "Type" : "Jenis",
     "Profile picture" : "Gambar profil",
+    "Password" : "Kata laluan",
     "Enter a password" : "Enter a password",
     "Send" : "Hantar",
     "Current password" : "Kata laluan semasa",

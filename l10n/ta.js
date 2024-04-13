@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Email" : "மின்னஞ்சல்",
     "Invalid password" : "Invalid Password",
-    "Password" : "கடவுச்சொல்",
     "Upload" : "பதிவேற்றுக",
     "Delete" : "நீக்குக",
     "Save" : "சேமிக்க ",
@@ -19,6 +18,7 @@ OC.L10N.register(
     "Actions" : "செயல்கள்",
     "Choose" : "தெரிவுசெய்க ",
     "Create account" : "கணக்கை உருவாக்குக",
+    "Password" : "கடவுச்சொல்",
     "Enter a password" : "Enter a password",
     "Current password" : "தற்போதைய கடவுச்சொல்",
     "New password" : "புதிய கடவுச்சொல்",
