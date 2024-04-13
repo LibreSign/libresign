@@ -2,7 +2,6 @@
     "File is too big" : "Նիշքը չափազանց մեծ է",
     "File not found" : "Ֆայլը չգտնվեց",
     "Email" : "Էլ․փոստ",
-    "Password" : "Գաղտնաբառ",
     "Upload" : "Բեռնել",
     "Delete" : "հեռացնել",
     "Save" : "Պահպանել",
@@ -17,6 +16,7 @@
     "Type" : "Տիպ",
     "Choose" : "Ընտրել",
     "Create account" : "Ստեղծել հաշիվ",
+    "Password" : "Գաղտնաբառ",
     "Enter a password" : "Enter a password",
     "Send" : "Ուղարկել",
     "Password reset" : "Վերականգնել գաղտնաբառը",
@@ -24,6 +24,7 @@
     "Resource" : "Ռեսուրս",
     "Yes" : "Yes",
     "No" : "No",
+    "Forgot password?" : "Մոռացե՞լ եք գաղտնաբառը։",
     "No date" : "No date"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
