@@ -320,6 +320,7 @@ OC.L10N.register(
     "Define your signature." : "Legen Sie Ihre Signatur fest.",
     "Unable to sign." : "Signatur nicht möglich.",
     "Subscription password." : "Abonnement-Passwort.",
+    "Forgot password?" : "Passwort vergessen?",
     "All Files" : "Alle Dateien",
     "Pending" : "Ausstehend",
     "Signed" : "Signiert",
