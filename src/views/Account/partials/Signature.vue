@@ -4,7 +4,7 @@
 			<h2>
 				<slot name="title" />
 			</h2>
-			<NcActions :inline="2" v-if="isSignatureLoaded">
+			<NcActions v-if="isSignatureLoaded" :inline="2">
 				<NcActionButton v-if="hasSignature" @click="removeSignature">
 					<template #icon>
 						<DeleteIcon :size="20" />
