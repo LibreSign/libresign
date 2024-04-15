@@ -320,6 +320,7 @@ OC.L10N.register(
     "Define your signature." : "定義您的簽章。",
     "Unable to sign." : "無法登入。",
     "Subscription password." : "訂閱密碼",
+    "Forgot password?" : "忘記密碼？",
     "All Files" : "所有檔案",
     "Pending" : "擱置中",
     "Signed" : "已簽署",
