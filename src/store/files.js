@@ -56,6 +56,12 @@ export const useFilesStore = defineStore('files', {
 		getFile() {
 			return this.files[this.selectedNodeId] ?? {}
 		},
+		async flushSelectedFile() {
+			const files = await this.getAllFiles({
+				nodeId: this.selectedNodeId,
+			})
+			this.addFile(files[this.selectedNodeId])
+		},
 		enableIdentifySigner() {
 			this.identifyingSigner = true
 		},
