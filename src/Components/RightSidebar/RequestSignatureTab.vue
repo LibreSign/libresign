@@ -167,6 +167,7 @@ export default {
 	methods: {
 		closeModal() {
 			this.modalSrc = ''
+			this.filesStore.flushSelectedFile()
 		},
 		validationFile() {
 			if (this.useModal) {
