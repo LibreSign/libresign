@@ -59,6 +59,7 @@ OC.L10N.register(
     "Legal information" : "Información llegal",
     "Yes" : "Sí",
     "No" : "Non",
+    "Forgot password?" : "¿Escaeciesti la contraseña?",
     "All Files" : "Tolos ficheros",
     "Pending" : "Pendiente"
 },

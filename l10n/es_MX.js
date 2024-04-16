@@ -15,6 +15,7 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Invalid user" : "Usuario inválido",
     "Email" : "Correo electrónico",
+    "User already exists" : "El usuario ya existe",
     "Text" : "Texto",
     "Upload" : "Cargar",
     "Delete" : "Eliminar",
