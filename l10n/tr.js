@@ -320,6 +320,7 @@ OC.L10N.register(
     "Define your signature." : "İmzanızı tanımlayın.",
     "Unable to sign." : "İmzalanamaz.",
     "Subscription password." : "Abonelik parolası.",
+    "Forgot password?" : "Şifreyi mi unuttun?",
     "All Files" : "Tüm dosyalar",
     "Pending" : "Bekleyen",
     "Signed" : "İmzalanmış",
