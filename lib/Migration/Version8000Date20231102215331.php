@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OC\DB\Exceptions\DbalException;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
@@ -151,14 +152,20 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 		}
 		$cursor->closeCursor();
 
-		$qb = $this->connection->getQueryBuilder();
-		$qb->update('libresign_file_element')
-			->set('sign_request_id', 'file_user_id')
-			->executeStatement();
+		try {
+			$qb = $this->connection->getQueryBuilder();
+			$qb->update('libresign_file_element')
+				->set('sign_request_id', 'file_user_id')
+				->executeStatement();
+		} catch (DbalException $e) {
+		}
 
-		$qb = $this->connection->getQueryBuilder();
-		$qb->update('libresign_identify_method')
-			->set('sign_request_id', 'file_user_id')
-			->executeStatement();
+		try {
+			$qb = $this->connection->getQueryBuilder();
+			$qb->update('libresign_identify_method')
+				->set('sign_request_id', 'file_user_id')
+				->executeStatement();
+		} catch (DbalException $e) {
+		}
 	}
 }
