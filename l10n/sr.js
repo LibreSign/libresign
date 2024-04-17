@@ -320,6 +320,7 @@ OC.L10N.register(
     "Define your signature." : "Дефинишите свој потпис.",
     "Unable to sign." : "Не може да се потпише.",
     "Subscription password." : "Лозинка претплате.",
+    "Forgot password?" : "Заборавили сте лозинку?",
     "All Files" : "Сви фајлови",
     "Pending" : "На чекању",
     "Signed" : "Потписано",
