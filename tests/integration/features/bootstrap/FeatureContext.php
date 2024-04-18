@@ -14,6 +14,7 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
+	private static array $environments = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -31,6 +32,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 * @BeforeScenario
 	 */
 	public static function BeforeScenario(): void {
+		self::$environments = [];
 		self::runCommand('libresign:developer:reset --all');
 	}
 
@@ -43,6 +45,9 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$fullCommand = 'php ' . $console . ' ' . $command;
 		if (posix_getuid() !== $owner['uid']) {
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
+		}
+		if (!empty(self::$environments)) {
+			$fullCommand = http_build_query(self::$environments,'',' ') . ' ' . $fullCommand;
 		}
 		$fullCommand .= '  2>&1';
 		exec($fullCommand, $output, $resultCode);
@@ -58,6 +63,14 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
 		$return = self::runCommand($command);
 		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
+	}
+
+	/**
+	 * @Given create an environment :name with value :value to be used by occ command
+	 */
+	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value)
+	{
+		self::$environments[$name] = $value;
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
