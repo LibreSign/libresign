@@ -47,7 +47,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
 		}
 		if (!empty(self::$environments)) {
-			$fullCommand = http_build_query(self::$environments,'',' ') . ' ' . $fullCommand;
+			$fullCommand = http_build_query(self::$environments, '', ' ') . ' ' . $fullCommand;
 		}
 		$fullCommand .= '  2>&1';
 		exec($fullCommand, $output, $resultCode);
