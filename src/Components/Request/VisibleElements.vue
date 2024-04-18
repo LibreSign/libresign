@@ -240,12 +240,12 @@ export default {
 							elementId: element.signer.element.elementId,
 							coordinates: {
 								page: parseInt(pageNumber) + 1,
-								width: element.width,
-								height: element.height,
-								llx: element.x,
-								lly: measurement.canvasHeight - element.y,
-								ury: measurement.canvasHeight - element.y - element.height,
-								urx: element.x + element.width,
+								width: parseInt(element.width),
+								height: parseInt(element.height),
+								llx: parseInt(element.x),
+								lly: parseInt(measurement.canvasHeight - element.y),
+								ury: parseInt(measurement.canvasHeight - element.y - element.height),
+								urx: parseInt(element.x + element.width),
 							},
 						})
 					})
