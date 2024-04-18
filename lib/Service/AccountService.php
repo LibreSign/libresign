@@ -299,6 +299,9 @@ class AccountService {
 			throw new DoesNotExistException('Not found');
 		}
 		$file = current($nodes);
+		if (!$file instanceof File) {
+			throw new DoesNotExistException('Not found');
+		}
 		return $file;
 	}
 
