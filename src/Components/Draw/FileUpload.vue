@@ -56,6 +56,7 @@
 <script>
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 import { SignatureImageDimensions } from './options.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { isEmpty } from 'lodash-es'
