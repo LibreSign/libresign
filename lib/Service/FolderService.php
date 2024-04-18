@@ -28,6 +28,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
+use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
@@ -62,37 +63,34 @@ class FolderService {
 	}
 
 	/**
-	 * Get folder for user
-	 *
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress InvalidReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
-	public function getFolder(int $nodeId = null): Folder {
-		if ($nodeId) {
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
-			$node = $this->root->getById($nodeId);
-			if (!$node) {
-				throw new \Exception('Invalid node');
-			}
-			return $node[0]->getParent();
-		}
-
-		return $this->getOrCreateFolder();
-	}
-
-	/**
-	 * Finds a folder and creates it if non-existent
+	 * Get folder for user and creates it if non-existent
 	 *
 	 * @psalm-suppress MixedReturnStatement
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
-	private function getOrCreateFolder(): Folder {
+	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
+		$containerFolder = $this->getContainerFolder();
+		if (!$containerFolder->nodeExists($path)) {
+			return $containerFolder->newFolder($path);
+		}
+		return $containerFolder->get($path);
+	}
+
+	public function getFileById(int $nodeId = null): File {
+		$path = $this->getLibreSignDefaultPath();
+		$containerFolder = $this->getContainerFolder();
+		if (!$containerFolder->nodeExists($path)) {
+			throw new \Exception('Invalid node');
+		}
+		/** @var Folder $folder */
+		$folder = $containerFolder->get($path);
+		$file = $folder->getById($nodeId);
+		return current($file);
+	}
+
+	private function getContainerFolder(): Folder {
 		$withoutPermission = false;
 		if ($this->getUserId()) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
@@ -110,16 +108,9 @@ class FolderService {
 			$reflection = new \ReflectionClass($containerFolder);
 			$reflectionProperty = $reflection->getProperty('folder');
 			$reflectionProperty->setAccessible(true);
-			$containerFolder = $reflectionProperty->getValue($containerFolder);
-		} else {
-			$containerFolder = $this->root->getUserFolder($this->getUserId());
+			return $reflectionProperty->getValue($containerFolder);
 		}
-		if ($containerFolder->nodeExists($path)) {
-			$folder = $containerFolder->get($path);
-		} else {
-			$folder = $containerFolder->newFolder($path);
-		}
-		return $folder;
+		return $this->root->getUserFolder($this->getUserId());
 	}
 
 	/**
