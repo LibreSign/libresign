@@ -78,11 +78,14 @@ class FolderService {
 		return $containerFolder->get($path);
 	}
 
+	/**
+	 * @throws NotFoundException
+	 */
 	public function getFileById(int $nodeId = null): File {
 		$path = $this->getLibreSignDefaultPath();
 		$containerFolder = $this->getContainerFolder();
 		if (!$containerFolder->nodeExists($path)) {
-			throw new \Exception('Invalid node');
+			throw new NotFoundException('Invalid node');
 		}
 		/** @var Folder $folder */
 		$folder = $containerFolder->get($path);
