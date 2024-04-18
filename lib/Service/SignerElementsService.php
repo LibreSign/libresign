@@ -85,7 +85,7 @@ class SignerElementsService {
 
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
-			$this->folderService->getFolder($userElement->getFileId());
+			$this->folderService->getFileById($userElement->getFileId());
 		} catch (\Exception $e) {
 			$this->userElementMapper->delete($userElement);
 			return false;

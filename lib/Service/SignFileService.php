@@ -246,20 +246,15 @@ class SignFileService {
 			}
 			try {
 				if ($this->user instanceof IUser) {
-					$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-					foreach ($mountsContainingFile as $fileInfo) {
-						$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-					}
-					/** @var \OCP\Files\File[] */
-					$node = $this->root->getById($nodeId);
+					$node = $this->folderService->getFileById($nodeId);
 				} else {
 					$filesOfElementes = $this->signerElementsService->getElementsFromSession();
 					$node = array_filter($filesOfElementes, fn ($file) => $file->getId() === $nodeId);
+					$node = current($node);
 				}
 				if (!$node) {
 					throw new \Exception('empty');
 				}
-				$node = current($node);
 			} catch (\Throwable $th) {
 				throw new LibresignException($this->l10n->t('You need to define a visible signature or initials to sign this document.'));
 			}
