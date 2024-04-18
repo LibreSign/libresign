@@ -120,8 +120,12 @@ export default {
 	},
 	methods: {
 		getLabelFromId(id) {
-			const item = selectCustonOption(id).unwrap()
-			return item.label
+			try {
+				const item = selectCustonOption(id).unwrap()
+				return item.label
+			} catch (error) {
+				return id
+			}
 		},
 		async send() {
 			this.hasLoading = true
