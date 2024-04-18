@@ -68,9 +68,24 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @Given create an environment :name with value :value to be used by occ command
 	 */
-	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value)
-	{
+	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value) {
 		self::$environments[$name] = $value;
+	}
+
+	/**
+	 * @When guest :guest exists
+	 * @param string $guest
+	 */
+	public function assureGuestExists(string $guest): void {
+		$response = $this->userExists($guest);
+		if ($response->getStatusCode() !== 200) {
+			$this->createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
+			$this->runCommandWithResultCode('guest:add admin ' . $guest . ' --password-from-env', 0);
+			// Set a display name different than the user ID to be able to
+			// ensure in the tests that the right value was returned.
+			$this->setUserDisplayName($guest);
+			$this->createdUsers[] = $guest;
+		}
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
