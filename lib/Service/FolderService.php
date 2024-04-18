@@ -113,9 +113,6 @@ class FolderService {
 		return $this->root->getUserFolder($this->getUserId());
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
 	private function getLibreSignDefaultPath(): string {
 		if (!$this->userId) {
 			return 'unauthenticated';
