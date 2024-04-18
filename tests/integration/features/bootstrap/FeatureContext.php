@@ -57,7 +57,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
 		$return = self::runCommand($command);
-		Assert::assertEquals($resultCode, $return['resultCode']);
+		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
