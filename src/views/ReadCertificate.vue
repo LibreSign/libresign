@@ -1,6 +1,7 @@
 <template>
 	<NcDialog v-if="signMethodsStore.modal.readCertificate"
 		:name="t('libresign', 'Certificate data')"
+		:size="size"
 		@closing="onClose">
 		<NcNoteCard v-if="error" type="error">
 			<p>{{ error }}</p>
@@ -116,9 +117,19 @@ export default {
 			password: '',
 			certificateData: [],
 			error: '',
+			size: 'small',
 		}
 	},
+	mounted() {
+		this.reset()
+	},
 	methods: {
+		reset() {
+			this.password = ''
+			this.certificateData = []
+			this.error = ''
+			this.size = 'small'
+		},
 		getLabelFromId(id) {
 			try {
 				const item = selectCustonOption(id).unwrap()
@@ -134,6 +145,7 @@ export default {
 			})
 				.then(({ data }) => {
 					this.certificateData = data
+					this.size = 'large'
 					this.error = ''
 				})
 				.catch(({ response }) => {
@@ -146,8 +158,8 @@ export default {
 			this.hasLoading = false
 		},
 		onClose() {
-			this.certificateData = []
 			this.signMethodsStore.closeModal('readCertificate')
+			this.reset()
 		},
 	},
 }
@@ -187,7 +199,6 @@ form{
 }
 
 table {
-	display: block;
 	width: 100%;
 	white-space: unset;
 }
