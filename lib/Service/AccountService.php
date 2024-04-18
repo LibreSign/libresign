@@ -50,6 +50,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -308,14 +309,17 @@ class AccountService {
 	public function getFileByNodeIdAndSessionId(int $nodeId, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		if (!$rootSignatureFolder->nodeExists($sessionId)) {
+			try {
+				return $this->folderService->getFileById($nodeId);
+			} catch (NotFoundException $th) {
+				throw new DoesNotExistException('Not found');
+			}
+		}
+		try {
+			return $this->folderService->getFileById($nodeId);
+		} catch (NotFoundException $th) {
 			throw new DoesNotExistException('Not found');
 		}
-		$nodes = $rootSignatureFolder->getById($nodeId);
-		if (empty($nodes)) {
-			throw new DoesNotExistException('Not found');
-		}
-		$file = current($nodes);
-		return $file;
 	}
 
 	public function canRequestSign(?IUser $user = null): bool {
@@ -473,9 +477,10 @@ class AccountService {
 				'user_id' => $user->getUID(),
 			]);
 			$this->userElementMapper->delete($element);
-			$file = $this->root->getById($element->getFileId());
-			if ($file) {
-				current($file)->delete();
+			try {
+				$file = $this->folderService->getFileById($element->getFileId());
+				$file->delete();
+			} catch (NotFoundException $e) {
 			}
 		} else {
 			$rootSignatureFolder = $this->folderService->getFolder();
