@@ -116,7 +116,7 @@ class FolderService {
 	/**
 	 * @psalm-suppress MixedReturnStatement
 	 */
-	public function getLibreSignDefaultPath(): string {
+	private function getLibreSignDefaultPath(): string {
 		if (!$this->userId) {
 			return 'unauthenticated';
 		}
