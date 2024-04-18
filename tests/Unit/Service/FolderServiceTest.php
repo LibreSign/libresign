@@ -14,6 +14,7 @@ use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IGroupManager;
 use OCP\IL10N;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class FakeFolder implements ISimpleFolder {
 	public Folder $folder;
@@ -51,45 +52,57 @@ final class FakeFolder implements ISimpleFolder {
 }
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	public function testGetFolderWithInvalidNodeId() {
+	private IRootFolder|MockObject $root;
+	private IUserMountCache|MockObject $userMountCache;
+	private IAppDataFactory|MockObject $appDataFactory;
+	private IGroupManager|MockObject $groupManager;
+	private IAppConfig|MockObject $appConfig;
+	private IL10N|MockObject $l10n;
+
+	public function setUp(): void {
+		parent::setUp();
+		$this->root = $this->createMock(IRootFolder::class);
+		$this->userMountCache = $this->createMock(IUserMountCache::class);
+		$this->appDataFactory = $this->createMock(IAppDataFactory::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->l10n = $this->createMock(IL10N::class);
+	}
+
+	private function getFolderService(int $userId = 171): FolderSErvice {
+		$service = new FolderService(
+			$this->root,
+			$this->userMountCache,
+			$this->appDataFactory,
+			$this->groupManager,
+			$this->appConfig,
+			$this->l10n,
+			$userId
+		);
+		return $service;
+	}
+
+	public function testGetFileWithInvalidNodeId() {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
-		$root = $this->createMock(IRootFolder::class);
-		$root
+		$folder->method('isUpdateable')->willReturn(true);
+		$this->root
 			->method('getUserFolder')
 			->willReturn($folder);
-		$userMountCache = $this->createMock(IUserMountCache::class);
-		$userMountCache
-			->method('getMountsForFileId')
-			->willreturn([]);
-		$appDataFactory = $this->createMock(IAppDataFactory::class);
-		$groupManager = $this->createMock(IGroupManager::class);
-		$appConfig = $this->createMock(IAppConfig::class);
-		$l10n = $this->createMock(IL10N::class);
 
-		$service = new FolderService(
-			$root,
-			$userMountCache,
-			$appDataFactory,
-			$groupManager,
-			$appConfig,
-			$l10n,
-			171
-		);
+		$service = $this->getFolderService();
 		$this->expectExceptionMessage('Invalid node');
-		$service->getFolder(171);
+		$service->getFileById(171);
 	}
 
 	public function testGetFolderWithValidNodeId() {
-		$userMountCache = $this->createMock(IUserMountCache::class);
-		$userMountCache
+		$this->userMountCache
 			->method('getMountsForFileId')
 			->willreturn([]);
 		$node = $this->createMock(\OCP\Files\File::class);
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$node->method('getParent')
 			->willReturn($folder);
-		$root = $this->createMock(IRootFolder::class);
-		$root->method('getUserFolder')
+		$this->root->method('getUserFolder')
 			->willReturn($node);
 
 		$folder->method('nodeExists')->willReturn(true);
@@ -99,22 +112,10 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$appData = $this->createMock(IAppData::class);
 		$appData->method('getFolder')
 			->willReturn($fakeFolder);
-		$appDataFactory = $this->createMock(IAppDataFactory::class);
-		$appDataFactory->method('get')
+		$this->appDataFactory->method('get')
 			->willReturn($appData);
-		$groupManager = $this->createMock(IGroupManager::class);
-		$appConfig = $this->createMock(IAppConfig::class);
-		$l10n = $this->createMock(IL10N::class);
 
-		$service = new FolderService(
-			$root,
-			$userMountCache,
-			$appDataFactory,
-			$groupManager,
-			$appConfig,
-			$l10n,
-			1
-		);
+		$service = $this->getFolderService(1);
 		$actual = $service->getFolder(171);
 		$this->assertInstanceOf(\OCP\Files\Folder::class, $actual);
 	}
