@@ -563,6 +563,15 @@ class AccountController extends ApiController implements ISignatureUuid {
 	public function readPfxData(string $password): JSONResponse {
 		try {
 			$data = $this->accountService->readPfxData($this->userSession->getUser(), $password);
+			$array_map_recursive = function ($callback, $array) {
+				$func = function ($item) use (&$func, &$callback) {
+					return is_array($item) ? array_map($func, $item) : call_user_func($callback, $item);
+				};
+				return array_map($func, $array);
+			};
+			$data = $array_map_recursive(function ($text) {
+				return mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+			}, $data);
 		} catch (LibresignException $e) {
 			return new JSONResponse(
 				[
