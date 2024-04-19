@@ -52,7 +52,10 @@ class SignerElementsService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.account.getSignatureElementPreview', [
+					'apiVersion' => 'v1',
+					'nodeId' => $element->getFileId(),
+				]),
 				'nodeId' => $element->getFileId()
 			],
 			'uid' => $element->getUserId(),
@@ -73,7 +76,10 @@ class SignerElementsService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('core.Preview.getPreviewByFileId', ['fileId' => $element->getFileId(), 'x' => self::ELEMENT_SIGN_WIDTH, 'y' => self::ELEMENT_SIGN_HEIGHT]),
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.account.getSignatureElementPreview', [
+						'apiVersion' => 'v1',
+						'nodeId' => $element->getFileId(),
+					]),
 					'nodeId' => $element->getFileId()
 				],
 				'starred' => $element->getStarred() ? 1 : 0,
@@ -85,7 +91,7 @@ class SignerElementsService {
 
 	private function signatureFileExists(UserElement $userElement): bool {
 		try {
-			$this->folderService->getFolder($userElement->getFileId());
+			$this->folderService->getFileById($userElement->getFileId());
 		} catch (\Exception $e) {
 			$this->userElementMapper->delete($userElement);
 			return false;
