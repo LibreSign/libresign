@@ -57,7 +57,16 @@ export const useSignatureElementsStore = function(...args) {
 					})
 					return
 				}
-				await axios.get(generateOcsUrl('/apps/libresign/api/v1/account/signature/elements'))
+				const config = {
+					url: generateOcsUrl('/apps/libresign/api/v1/signature/elements'),
+					method: 'get',
+				}
+				if (this.uuid !== null) {
+					config.headers = {
+						'LibreSign-sign-request-uuid': this.uuid
+					}
+				}
+				await axios(config)
 					.then(({ data }) => {
 						data.elements.forEach(current => {
 							set(this.signs, current.type, current)
@@ -73,7 +82,7 @@ export const useSignatureElementsStore = function(...args) {
 			async save(type, base64) {
 				const config = {}
 				if (this.signs[type].id > 0) {
-					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{nodeId}', {
+					config.url = generateOcsUrl('/apps/libresign/api/v1/signature/elements/{nodeId}', {
 						nodeId: this.signs[type].file.nodeId,
 					})
 					config.data = {
@@ -82,7 +91,7 @@ export const useSignatureElementsStore = function(...args) {
 					}
 					config.method = 'patch'
 				} else {
-					config.url = generateOcsUrl('/apps/libresign/api/v1/account/signature/elements')
+					config.url = generateOcsUrl('/apps/libresign/api/v1/signature/elements')
 					config.data = {
 						elements: [
 							{
@@ -94,6 +103,11 @@ export const useSignatureElementsStore = function(...args) {
 						...this.uuid,
 					}
 					config.method = 'post'
+				}
+				if (this.uuid !== null) {
+					config.headers = {
+						'LibreSign-sign-request-uuid': this.uuid
+					}
 				}
 				await axios(config)
 					.then(({ data }) => {
@@ -114,11 +128,18 @@ export const useSignatureElementsStore = function(...args) {
 					})
 			},
 			async delete(type) {
-				await axios.delete(
-					generateOcsUrl('/apps/libresign/api/v1/account/signature/elements/{nodeId}', {
+				const config = {
+					url: generateOcsUrl('/apps/libresign/api/v1/signature/elements/{nodeId}', {
 						nodeId: this.signs[type].file.nodeId,
 					}),
-				)
+					method: 'delete',
+				}
+				if (this.uuid !== null) {
+					config.headers = {
+						'LibreSign-sign-request-uuid': this.uuid
+					}
+				}
+				await axios(config)
 					.then(({ data }) => {
 						this.signs[type] = emptyElement
 						this.success = data.message

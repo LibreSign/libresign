@@ -132,15 +132,15 @@ Feature: account/signature
     Given guest "guest@test.coop" exists
     And run the command "config:app:set guests whitelist --value libresign" with result code 0
     And as user "guest@test.coop"
-    When sending "post" to ocs "/apps/libresign/api/v1/account/signature/elements"
+    When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
     Then the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/account/signature/elements"
+    When sending "get" to ocs "/apps/libresign/api/v1/signature/elements"
     Then the response should be a JSON array with the following mandatory values
       | key      | value                         |
       | elements | (jq).[]\|.type == "signature" |
     And fetch field "(NODE_ID)elements.0.file.nodeId" from prevous JSON response
-    When sending "delete" to ocs "/apps/libresign/api/v1/account/signature/elements/<NODE_ID>"
+    When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
 
   Scenario: CRUD of signature element to signer by email without account
@@ -155,13 +155,13 @@ Feature: account/signature
       | users | [{"identify":{"email":"guest@test.coop"}}] |
       | name | document |
     And as user ""
-    When sending "post" to ocs "/apps/libresign/api/v1/account/signature/elements"
+    When sending "post" to ocs "/apps/libresign/api/v1/signature/elements"
       | elements | [{"type":"signature","file":{"base64":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="}}] |
     Then the response should have a status code 200
-    When sending "get" to ocs "/apps/libresign/api/v1/account/signature/elements"
+    When sending "get" to ocs "/apps/libresign/api/v1/signature/elements"
     Then the response should be a JSON array with the following mandatory values
       | key      | value                         |
       | elements | (jq).[]\|.type == "signature" |
     And fetch field "(NODE_ID)elements.0.file.nodeId" from prevous JSON response
-    When sending "delete" to ocs "/apps/libresign/api/v1/account/signature/elements/<NODE_ID>"
+    When sending "delete" to ocs "/apps/libresign/api/v1/signature/elements/<NODE_ID>"
     Then the response should have a status code 200
