@@ -297,6 +297,7 @@ class AccountController extends ApiController implements ISignatureUuid {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[PublicPage]
 	public function getSignatureElements(): JSONResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {

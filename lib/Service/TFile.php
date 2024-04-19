@@ -42,8 +42,7 @@ trait TFile {
 			return $data['file']['fileNode'];
 		}
 		if (isset($data['file']['fileId'])) {
-			$userFolder = $this->folderService->getFolder($data['file']['fileId']);
-			return $userFolder->getById($data['file']['fileId'])[0];
+			return $this->folderService->getFileById($data['file']['fileId']);
 		}
 		if (isset($data['file']['path'])) {
 			return $this->folderService->getFileByPath($data['file']['path']);
