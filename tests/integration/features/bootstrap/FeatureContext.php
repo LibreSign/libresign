@@ -1,6 +1,5 @@
 <?php
 
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
@@ -108,8 +107,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
 	 */
-	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value)
-	{
+	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value) {
 		if (empty($value)) {
 			unset($this->customHeaders[$header]);
 			return;
