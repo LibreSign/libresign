@@ -18,6 +18,7 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FolderService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\RequestSignatureService;
+use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
 use OCA\Settings\Mailer\NewUserMailHelper;
 use OCP\Accounts\IAccountManager;
@@ -58,10 +59,11 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ValidateHelper|MockObject $validateHelper;
 	private IURLGenerator|MockObject $urlGenerator;
 	private IGroupManager|MockObject $groupManager;
-	private AccountFileService $accountFileService;
-	private UserElementMapper $userElementMapper;
-	private FolderService $folderService;
-	private ClientService $clientService;
+	private AccountFileService|MockObject $accountFileService;
+	private SignerElementsService|MockObject $signerElementsService;
+	private UserElementMapper|MockObject $userElementMapper;
+	private FolderService|MockObject $folderService;
+	private ClientService|MockObject $clientService;
 	private TimeFactory|MockObject $timeFactory;
 	private RequestSignatureService|MockObject $requestSignatureService;
 	private Pkcs12Handler|MockObject $pkcs12Handler;
@@ -94,6 +96,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->pkcs12Handler = $this->createMock(Pkcs12Handler::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->accountFileService = $this->createMock(AccountFileService::class);
+		$this->signerElementsService = $this->createMock(SignerElementsService::class);
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->clientService = $this->createMock(ClientService::class);
@@ -125,6 +128,7 @@ final class AccountServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			$this->pkcs12Handler,
 			$this->groupManager,
 			$this->accountFileService,
+			$this->signerElementsService,
 			$this->userElementMapper,
 			$this->folderService,
 			$this->clientService,
