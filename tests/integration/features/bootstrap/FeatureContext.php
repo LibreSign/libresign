@@ -80,7 +80,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$response = $this->userExists($guest);
 		if ($response->getStatusCode() !== 200) {
 			$this->createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
-			$this->runCommandWithResultCode('guest:add admin ' . $guest . ' --password-from-env', 0);
+			$this->runCommandWithResultCode('guests:add admin ' . $guest . ' --password-from-env', 0);
 			// Set a display name different than the user ID to be able to
 			// ensure in the tests that the right value was returned.
 			$this->setUserDisplayName($guest);
