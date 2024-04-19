@@ -26,16 +26,11 @@
 
 <script>
 import Signature from './Signature.vue'
-import { useSignatureElementsStore } from '../../../store/signatureElements.js'
 
 export default {
 	name: 'Signatures',
 	components: {
 		Signature,
-	},
-	setup() {
-		const signatureElementsStore = useSignatureElementsStore()
-		return { signatureElementsStore }
 	},
 }
 </script>

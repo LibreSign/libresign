@@ -20,6 +20,7 @@
 
 		<div v-if="hasSignature">
 			<PreviewSignature :src="imgSrc"
+				:sign-request-uuid="signatureElementsStore.signRequestUuid"
 				@loaded="signatureLoaded" />
 		</div>
 		<div v-else class="no-signatures" @click="edit">

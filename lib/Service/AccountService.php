@@ -90,6 +90,7 @@ class AccountService {
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
 		private AccountFileService $accountFileService,
+		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
 		private FolderService $folderService,
 		private IClientService $clientService,
@@ -408,6 +409,26 @@ class AccountService {
 	}
 
 	private function saveFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
+		if ($data['nodeId']) {
+			return $this->updateFileOfVisibleElementUsingSession($data, $sessionId);
+		}
+		return $this->createFileOfVisibleElementUsingSession($data, $sessionId);
+	}
+
+	private function updateFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
+		$fileList = $this->signerElementsService->getElementsFromSession();
+		$element = array_filter($fileList, function (File $element) use ($data) {
+			return $element->getId() === $data['nodeId'];
+		});
+		$element = current($element);
+		if (!$element instanceof File) {
+			throw new \Exception($this->l10n->t('File not found'));
+		}
+		$element->putContent($this->getFileRaw($data));
+		return $element;
+	}
+
+	private function createFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $sessionId;
 		if ($rootSignatureFolder->nodeExists($folderName)) {
