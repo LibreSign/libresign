@@ -119,15 +119,22 @@ class InjectionMiddleware extends Middleware {
 			);
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
-			/** @var AEnvironmentPageAwareController $controller */
-			$controller->validateSignRequestUuid(
-				uuid: $uuid,
-			);
-			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadNextcloudFileFromSignRequestUuid(
-				uuid: $uuid,
-			);
+		if (!empty($attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
+			$attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class);
+			$attribute = current($attribute);
+			/** @var RequireSignRequestUuid $intance */
+			$intance = $attribute->newInstance();
+			$user = $this->userSession->getUser();
+			if (!($intance->skipIfAuthenticated() && $user instanceof IUser)) {
+				/** @var AEnvironmentPageAwareController $controller */
+				$controller->validateSignRequestUuid(
+					uuid: $uuid,
+				);
+				/** @var AEnvironmentPageAwareController $controller */
+				$controller->loadNextcloudFileFromSignRequestUuid(
+					uuid: $uuid,
+				);
+			}
 		}
 	}
 

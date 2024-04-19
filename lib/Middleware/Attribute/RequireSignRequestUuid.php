@@ -28,4 +28,12 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class RequireSignRequestUuid {
+	public function __construct(
+		protected bool $skipIfAuthenticated = false,
+	) {
+	}
+
+	public function skipIfAuthenticated(): bool {
+		return $this->skipIfAuthenticated;
+	}
 }
