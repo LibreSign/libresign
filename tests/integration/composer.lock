@@ -5184,16 +5184,16 @@
         },
         {
             "name": "libresign/nextcloud-behat",
-            "version": "v0.15.0",
+            "version": "v0.15.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/LibreSign/nextcloud-behat.git",
-                "reference": "96829df411c2cffeb032281eb90acaf63531da70"
+                "reference": "c4de17091a1e4f8b897d408fde20ee9191dbceba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/96829df411c2cffeb032281eb90acaf63531da70",
-                "reference": "96829df411c2cffeb032281eb90acaf63531da70",
+                "url": "https://api.github.com/repos/LibreSign/nextcloud-behat/zipball/c4de17091a1e4f8b897d408fde20ee9191dbceba",
+                "reference": "c4de17091a1e4f8b897d408fde20ee9191dbceba",
                 "shasum": ""
             },
             "require": {
@@ -5238,9 +5238,9 @@
             ],
             "support": {
                 "issues": "https://github.com/LibreSign/nextcloud-behat/issues",
-                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.15.0"
+                "source": "https://github.com/LibreSign/nextcloud-behat/tree/v0.15.1"
             },
-            "time": "2024-04-10T13:35:20+00:00"
+            "time": "2024-04-19T18:46:01+00:00"
         },
         {
             "name": "symfony/process",
