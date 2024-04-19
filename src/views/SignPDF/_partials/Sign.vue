@@ -78,6 +78,7 @@
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
+			:sign-request-uuid="signRequestUuid"
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
@@ -179,9 +180,15 @@ export default {
 			}
 			return true
 		},
+		signRequestUuid() {
+			const signer = this.signStore.document.signers.find(row => row.me) || {}
+			return signer.sign_uuid
+		},
 	},
 	mounted() {
 		this.loading = true
+		this.signatureElementsStore.signRequestUuid = this.signRequestUuid
+		this.signatureElementsStore.loadSignatures()
 
 		Promise.all([
 			this.loadUser(),
@@ -252,8 +259,7 @@ export default {
 			if (this.signStore.document.fileId > 0) {
 				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
 			} else {
-				const signer = this.signStore.document.signers.find(row => row.me) || {}
-				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: signer.sign_uuid })
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
 
 			await axios.post(url, payload)

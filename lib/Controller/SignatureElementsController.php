@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
+ * @copyright Copyright (c) 2024 Vitor Mattos <vitor@php.rio>
  *
  * @author Vitor Mattos <vitor@php.rio>
  *
@@ -31,6 +31,7 @@ use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
+use OCA\Libresign\Service\SignFileService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -56,6 +57,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 		private SignerElementsService $signerElementsService,
 		protected IUserSession $userSession,
 		protected SessionService $sessionService,
+		protected SignFileService $signFileService,
 		private IPreview $preview,
 		private ValidateHelper $validateHelper
 	) {
@@ -172,8 +174,10 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]
 	#[NoCSRFRequired]
-	public function patchSignatureElement($nodeId, string $type = '', array $file = []): JSONResponse {
+	#[RequireSignRequestUuid]
+	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): JSONResponse {
 		try {
 			$element['nodeId'] = $nodeId;
 			if ($type) {
@@ -194,7 +198,13 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
 			return new JSONResponse(
 				[
-					'message' => $this->l10n->t('Element updated with success')
+					'message' => $this->l10n->t('Element updated with success'),
+					'elements' =>
+						(
+							$this->userSession->getUser() instanceof IUser
+							? $this->signerElementsService->getUserElements($this->userSession->getUser()->getUID())
+							: $this->signerElementsService->getElementsFromSessionAsArray()
+						),
 				],
 				Http::STATUS_OK
 			);

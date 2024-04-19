@@ -101,6 +101,7 @@ export default {
 			this.$emit('close')
 		},
 		async save(base64) {
+			this.signatureElementsStore.loadSignatures()
 			await this.signatureElementsStore.save(this.type, base64)
 			this.$emit('save')
 			this.close()
