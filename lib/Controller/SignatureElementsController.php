@@ -67,7 +67,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	public function createSignatureElement(array $elements): JSONResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
@@ -105,7 +105,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	public function getSignatureElements(): JSONResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {
@@ -133,7 +133,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	public function getSignatureElementPreview(int $nodeId) {
 		try {
 			$node = $this->accountService->getFileByNodeIdAndSessionId(
@@ -176,7 +176,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): JSONResponse {
 		try {
 			$element['nodeId'] = $nodeId;
@@ -221,7 +221,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	#[RequireSignRequestUuid]
+	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
 	public function deleteSignatureElement(int $nodeId): JSONResponse {
 		try {
 			$this->accountService->deleteSignatureElement(
