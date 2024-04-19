@@ -17,5 +17,6 @@ return [
 		['name' => 'account#addFiles',                  'url' => '/api/{apiVersion}/account/files', 'verb' => 'POST', 'requirements' => $requirements],
 		['name' => 'account#deleteFile',                'url' => '/api/{apiVersion}/account/files', 'verb' => 'DELETE', 'requirements' => $requirements],
 		['name' => 'account#accountFileListToOwner',    'url' => '/api/{apiVersion}/account/files', 'verb' => 'GET', 'requirements' => $requirements],
+		['name' => 'account#accountFileListToApproval', 'url' => '/api/{apiVersion}/account/files/approval/list', 'verb' => 'GET', 'requirements' => $requirements],
 	],
 ];
