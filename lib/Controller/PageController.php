@@ -189,6 +189,7 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
+		$this->initialState->provideInitialState('sign_request_uuid', $uuid);
 		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');

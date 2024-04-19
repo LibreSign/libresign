@@ -15,6 +15,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private array $signer = [];
 	private array $file = [];
 	private static array $environments = [];
+	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -99,50 +100,19 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 				$options
 			);
 		}
+		$headers = array_merge($headers, $this->customHeaders);
 		parent::sendRequest($verb, $url, $body, $headers, $options);
 	}
 
 	/**
-	 * @Then /^the signer "([^"]*)" have a file to sign$/
+	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
 	 */
-	public function theSignerHaveAFileToSign(string $signer): void {
-		$this->setCurrentUser($signer);
-		$this->sendOCSRequest('get', '/apps/libresign/api/v1/file/list');
-		$response = json_decode($this->response->getBody()->getContents(), true);
-		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
-		$this->signer = [];
-		$this->file = [];
-		foreach (array_reverse($response['data']) as $file) {
-			$currentSigner = array_filter($file['signers'], function ($signer): bool {
-				return $signer['me'];
-			});
-			if (count($currentSigner) === 1) {
-				$this->signer = end($currentSigner);
-				$this->file = $file;
-				break;
-			}
+	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value) {
+		if (empty($value)) {
+			unset($this->customHeaders[$header]);
+			return;
 		}
-		Assert::assertGreaterThan(1, $this->signer, $signer . ' don\'t will sign a file');
-		Assert::assertGreaterThan(1, $this->file, 'The /file/list didn\'t returned a file assigned to ' . $signer);
-	}
-
-	/**
-	 * @Then /^the file to sign contains$/
-	 *
-	 * @param string $name
-	 */
-	public function theFileToSignContains(TableNode $table): void {
-		if (!$this->file) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->file);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			Assert::assertEquals($value['value'], $this->file[$value['key']]);
-		}
+		$this->customHeaders[$header] = $this->parseText($value);
 	}
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
@@ -154,9 +124,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	protected function parseText(string $text): string {
 		$fields = $this->fields;
-		if (!empty($this->signer['sign_uuid'])) {
-			$fields['SIGN_UUID'] = $this->signer['sign_uuid'];
-		}
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
@@ -165,27 +132,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$text = preg_replace($patterns, $replacements, $text);
 		$text = parent::parseText($text);
 		return $text;
-	}
-
-	/**
-	 * @Given the signer contains
-	 */
-	public function theSignerContains(TableNode $table): void {
-		if (!$this->signer) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->signer);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			$actual = $this->signer[$value['key']];
-			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
-				$actual = json_encode($actual);
-			}
-			Assert::assertEquals($value['value'], $actual, sprintf('The actual value of key "%s" is different of expected', $value['key']));
-		}
 	}
 
 	/**
@@ -200,7 +146,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
 	/**
@@ -340,6 +286,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 }

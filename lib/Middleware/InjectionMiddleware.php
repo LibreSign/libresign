@@ -106,27 +106,40 @@ class InjectionMiddleware extends Middleware {
 			return;
 		}
 
+		$uuid = $this->getUuidFromRequest();
+
 		if (!empty($reflectionMethod->getAttributes(CanSignRequestUuid::class))) {
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->validateRenewSigner(
-				uuid: $this->request->getParam('uuid', ''),
+				uuid: $uuid,
 			);
 			/** @var AEnvironmentPageAwareController $controller */
 			$controller->loadNextcloudFileFromSignRequestUuid(
-				uuid: $this->request->getParam('uuid', ''),
+				uuid: $uuid,
 			);
 		}
 
-		if (!empty($reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
-			/** @var AEnvironmentPageAwareController $controller */
-			$controller->validateSignRequestUuid(
-				uuid: $this->request->getParam('uuid', ''),
-			);
-			/** @var AEnvironmentPageAwareController $controller */
-			$controller->loadNextcloudFileFromSignRequestUuid(
-				uuid: $this->request->getParam('uuid', ''),
-			);
+		if (!empty($attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class))) {
+			$attribute = $reflectionMethod->getAttributes(RequireSignRequestUuid::class);
+			$attribute = current($attribute);
+			/** @var RequireSignRequestUuid $intance */
+			$intance = $attribute->newInstance();
+			$user = $this->userSession->getUser();
+			if (!($intance->skipIfAuthenticated() && $user instanceof IUser)) {
+				/** @var AEnvironmentPageAwareController $controller */
+				$controller->validateSignRequestUuid(
+					uuid: $uuid,
+				);
+				/** @var AEnvironmentPageAwareController $controller */
+				$controller->loadNextcloudFileFromSignRequestUuid(
+					uuid: $uuid,
+				);
+			}
 		}
+	}
+
+	private function getUuidFromRequest(): ?string {
+		return $this->request->getParam('uuid', $this->request->getHeader('LibreSign-sign-request-uuid', ''));
 	}
 
 	private function getLoggedIn(): void {
@@ -138,7 +151,7 @@ class InjectionMiddleware extends Middleware {
 	}
 
 	private function requireSigner(): void {
-		$uuid = $this->request->getParam('uuid', '');
+		$uuid = $this->getUuidFromRequest();
 
 		try {
 			$user = $this->userSession->getUser();
