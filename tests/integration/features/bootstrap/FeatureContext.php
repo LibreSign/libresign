@@ -115,50 +115,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$this->customHeaders[$header] = $this->parseText($value);
 	}
 
-
-	/**
-	 * @Then /^the signer "([^"]*)" have a file to sign$/
-	 */
-	public function theSignerHaveAFileToSign(string $signer): void {
-		$this->setCurrentUser($signer);
-		$this->sendOCSRequest('get', '/apps/libresign/api/v1/file/list');
-		$response = json_decode($this->response->getBody()->getContents(), true);
-		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
-		$this->signer = [];
-		$this->file = [];
-		foreach (array_reverse($response['data']) as $file) {
-			$currentSigner = array_filter($file['signers'], function ($signer): bool {
-				return $signer['me'];
-			});
-			if (count($currentSigner) === 1) {
-				$this->signer = end($currentSigner);
-				$this->file = $file;
-				break;
-			}
-		}
-		Assert::assertGreaterThan(1, $this->signer, $signer . ' don\'t will sign a file');
-		Assert::assertGreaterThan(1, $this->file, 'The /file/list didn\'t returned a file assigned to ' . $signer);
-	}
-
-	/**
-	 * @Then /^the file to sign contains$/
-	 *
-	 * @param string $name
-	 */
-	public function theFileToSignContains(TableNode $table): void {
-		if (!$this->file) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->file);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			Assert::assertEquals($value['value'], $this->file[$value['key']]);
-		}
-	}
-
 	protected function beforeRequest(string $fullUrl, array $options): array {
 		list($fullUrl, $options) = parent::beforeRequest($fullUrl, $options);
 		$options = $this->parseFormParams($options);
@@ -176,27 +132,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$text = preg_replace($patterns, $replacements, $text);
 		$text = parent::parseText($text);
 		return $text;
-	}
-
-	/**
-	 * @Given the signer contains
-	 */
-	public function theSignerContains(TableNode $table): void {
-		if (!$this->signer) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->signer);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			$actual = $this->signer[$value['key']];
-			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
-				$actual = json_encode($actual);
-			}
-			Assert::assertEquals($value['value'], $actual, sprintf('The actual value of key "%s" is different of expected', $value['key']));
-		}
 	}
 
 	/**
