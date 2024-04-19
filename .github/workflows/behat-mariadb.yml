@@ -146,6 +146,7 @@ jobs:
           ./occ config:system:set mail_smtpport --value 1025 --type integer
           ./occ config:system:set mail_smtphost --value mailhog
           ./occ config:system:set allow_local_remote_servers --value true --type boolean
+          ./occ config:system:set auth.bruteforce.protection.enabled --value false --type boolean
 
       - name: Run behat
         working-directory: apps/${{ env.APP_NAME }}/tests/integration
