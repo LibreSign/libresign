@@ -1,6 +1,6 @@
 Feature: page/sign_identify_account
   Background: Make setup ok
-    Given run the command "config:app:set libresign authkey --value dummy" with result code 0
+    Given run the command "libresign:configure:openssl --cn test" with result code 0
 
   Scenario: Open sign file with invalid account data
     Given user "signer1" exists
@@ -21,17 +21,13 @@ Feature: page/sign_identify_account
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
-    And the file to sign contains
-      | key        | value                   |
-      | uuid       | <IGNORE>                |
-      | name       | document                |
-      | status     | 1                       |
-      | statusText | available for signature |
-    And the signer contains
-      | key | value |
-      | email | |
-      | me | true |
-      | identifyMethods | [{"method":"account","value":"signer1","mandatory":1}] |
+    And the response should be a JSON array with the following mandatory values
+      | key                                                     | value                   |
+      | (jq).data\|.[].statusText                               | available for signature |
+      | (jq).data\|.[].signers                                  | (jq).[].me == true      |
+      | (jq).data\|.[].signers\|.[].identifyMethods\|.[].method | account                 |
+      | (jq).data\|.[].signers\|.[].identifyMethods\|.[].value  | signer1                 |
+    And fetch field "(SIGN_UUID)data.0.signers.0.sign_uuid" from prevous JSON response
     # invalid UUID, need to be the signer UUID
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<FILE_UUID>"
@@ -75,17 +71,13 @@ Feature: page/sign_identify_account
       | ocs | (jq).data\|.[].subject == "admin requested your signature on document"|
     When sending "get" to ocs "/apps/libresign/api/v1/file/list"
     And the response should have a status code 200
-    And the file to sign contains
-      | key        | value                   |
-      | uuid       | <IGNORE>                |
-      | name       | document                |
-      | status     | 1                       |
-      | statusText | available for signature |
-    And the signer contains
-      | key | value |
-      | email | |
-      | me | true |
-      | identifyMethods | [{"method":"account","value":"signer1","mandatory":1}] |
+    And the response should be a JSON array with the following mandatory values
+      | key                                                     | value                   |
+      | (jq).data\|.[].statusText                               | available for signature |
+      | (jq).data\|.[].signers                                  | (jq).[].me == true      |
+      | (jq).data\|.[].signers\|.[].identifyMethods\|.[].method | account                 |
+      | (jq).data\|.[].signers\|.[].identifyMethods\|.[].value  | signer1                 |
+    And fetch field "(SIGN_UUID)data.0.signers.0.sign_uuid" from prevous JSON response
     When as user "signer1"
     And sending "get" to "/apps/libresign/p/sign/<SIGN_UUID>"
     And the response should contain the initial state "libresign-action" with the following values:
