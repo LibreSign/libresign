@@ -1,5 +1,6 @@
 <?php
 
+use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
@@ -15,6 +16,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	private array $signer = [];
 	private array $file = [];
 	private static array $environments = [];
+	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
@@ -99,8 +101,22 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 				$options
 			);
 		}
+		$headers = array_merge($headers, $this->customHeaders);
 		parent::sendRequest($verb, $url, $body, $headers, $options);
 	}
+
+	/**
+	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
+	 */
+	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value)
+	{
+		if (empty($value)) {
+			unset($this->customHeaders[$header]);
+			return;
+		}
+		$this->customHeaders[$header] = $this->parseText($value);
+	}
+
 
 	/**
 	 * @Then /^the signer "([^"]*)" have a file to sign$/
@@ -154,9 +170,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	protected function parseText(string $text): string {
 		$fields = $this->fields;
-		if (!empty($this->signer['sign_uuid'])) {
-			$fields['SIGN_UUID'] = $this->signer['sign_uuid'];
-		}
 		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
 		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
@@ -200,7 +213,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
 	/**
@@ -340,6 +353,6 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 }
