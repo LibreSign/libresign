@@ -52,7 +52,7 @@ class SignerElementsService {
 			'id' => $element->getId(),
 			'type' => $element->getType(),
 			'file' => [
-				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureService.getSignatureElementPreview', [
+				'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
 					'apiVersion' => 'v1',
 					'nodeId' => $element->getFileId(),
 				]),
@@ -76,7 +76,7 @@ class SignerElementsService {
 				'id' => $element->getId(),
 				'type' => $element->getType(),
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureService.getSignatureElementPreview', [
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
 						'apiVersion' => 'v1',
 						'nodeId' => $element->getFileId(),
 					]),
@@ -119,9 +119,10 @@ class SignerElementsService {
 			$return[] = [
 				'type' => $type,
 				'file' => [
-					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureService.getSignatureElementPreview', [
+					'url' => $this->urlGenerator->linkToRoute('ocs.libresign.SignatureElements.getSignatureElementPreview', [
 						'apiVersion' => 'v1',
 						'nodeId' => $fileElement->getId(),
+						'mtime' => $fileElement->getMTime(),
 					]),
 					'nodeId' => $fileElement->getId(),
 				],
