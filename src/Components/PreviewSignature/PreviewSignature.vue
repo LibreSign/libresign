@@ -35,13 +35,13 @@ export default {
 			imageData: '',
 		}
 	},
-	mounted() {
-		this.loadImage()
-	},
 	watch: {
 		src() {
 			this.loadImage()
 		},
+	},
+	mounted() {
+		this.loadImage()
 	},
 	methods: {
 		async loadImage() {
