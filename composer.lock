@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8fd30680ce22bfb131000e8b4d5dd767",
+    "content-hash": "21fdfaa15cc49b75372eca0eb29541cc",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -187,16 +187,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.2.4",
+            "version": "dev-fix/works-with-unicode-password",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "c80de1532fcd3c805b2602b11e2f67c4f24afc3e"
+                "reference": "740cea1f14d28d924d22cd75e703cef5250a0aac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/c80de1532fcd3c805b2602b11e2f67c4f24afc3e",
-                "reference": "c80de1532fcd3c805b2602b11e2f67c4f24afc3e",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/740cea1f14d28d924d22cd75e703cef5250a0aac",
+                "reference": "740cea1f14d28d924d22cd75e703cef5250a0aac",
                 "shasum": ""
             },
             "require": {
@@ -213,7 +213,11 @@
                     "Jeidison\\JSignPDF\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Jeidison\\JSignPDF\\Tests\\": "tests/"
+                }
+            },
             "license": [
                 "MIT"
             ],
@@ -225,18 +229,18 @@
             ],
             "description": "jsignpdf-php",
             "keywords": [
+                "JSignPdf",
+                "PDF",
                 "PDF Sign PHP",
+                "PHP",
                 "PHP Signature",
-                "jsignpdf",
-                "pdf",
-                "php",
-                "signature"
+                "Signature"
             ],
             "support": {
-                "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.4"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/fix/works-with-unicode-password",
+                "issues": "https://github.com/JSignPdf/jsignpdf-php/issues"
             },
-            "time": "2024-04-23T18:12:51+00:00"
+            "time": "2024-04-23T21:57:35+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",
@@ -1919,6 +1923,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "jsignpdf/jsignpdf-php": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
