@@ -206,6 +206,14 @@ body {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	.sign-external-page {
+		width: unset !important;
+		max-width: 700px !important;
+		.app-content {
+			background-color: unset !important;
+			overflow: unset !important;
+		}
+	}
 }
 </style>
 <style lang="scss" scoped>
@@ -228,6 +236,10 @@ body {
 		}
 	}
 	.create-account {
+		h2 {
+			font-size: 20px;
+			font-weight: bold;
+		}
 		--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur, var(--color-main-text));
 		color: var(--color-main-text);
 		background-color: var(--color-main-background-blur);
