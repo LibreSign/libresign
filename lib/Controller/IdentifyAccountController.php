@@ -65,6 +65,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		[$result] = $this->collaboratorSearch->search($search, $shareTypes, $lookup, $limit, $offset);
 		$result['exact'] = $this->unifyResult($result['exact']);
 		$result = $this->unifyResult($result);
+		$result = $this->excludeEmptyShareWith($result);
 		$return = $this->formatForNcSelect($result);
 		$return = $this->addHerselfAccount($return, $search);
 		$return = $this->addHerselfEmail($return, $search);
@@ -170,6 +171,12 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			'shareType' => IShare::TYPE_EMAIL,
 		];
 		return $return;
+	}
+
+	private function excludeEmptyShareWith(array $list): array {
+		return array_filter($list, function ($result) {
+			return strlen($result['value']['shareWith']) > 0;
+		});
 	}
 
 	private function excludeNotAllowed(array $list): array {
