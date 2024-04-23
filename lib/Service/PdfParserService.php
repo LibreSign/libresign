@@ -42,7 +42,10 @@ class PdfParserService {
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
 	public function getMetadata(File $node): array {
-		$content = $node->getContent();
+		try {
+			$content = $node->getContent();
+		} catch (\Throwable $th) {
+		}
 		if (!$content) {
 			throw new LibresignException('Empty file.');
 		}
