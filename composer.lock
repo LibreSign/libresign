@@ -187,16 +187,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "v1.2.3",
+            "version": "v1.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "fa302ee5333a8643cf49c60ce33189aa86961350"
+                "reference": "c80de1532fcd3c805b2602b11e2f67c4f24afc3e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/fa302ee5333a8643cf49c60ce33189aa86961350",
-                "reference": "fa302ee5333a8643cf49c60ce33189aa86961350",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/c80de1532fcd3c805b2602b11e2f67c4f24afc3e",
+                "reference": "c80de1532fcd3c805b2602b11e2f67c4f24afc3e",
                 "shasum": ""
             },
             "require": {
@@ -234,9 +234,9 @@
             ],
             "support": {
                 "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.3"
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.4"
             },
-            "time": "2022-12-02T17:27:21+00:00"
+            "time": "2024-04-23T18:12:51+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",
