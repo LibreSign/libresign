@@ -53,7 +53,7 @@
 			<thead>
 				<tr>
 					<th colspan="2">
-						{{ t('libresign', 'Extra informations') }}
+						{{ t('libresign', 'Extra information') }}
 					</th>
 				</tr>
 			</thead>
