@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "Certifikatdata",
     "Issuer of certificate" : "Utfärdare av certifikat",
     "Owner of certificate" : "Ägare av certifikat",
-    "Extra informations" : "Extra information",
     "Certificate password" : "Certifikatlösenord",
     "Request Signatures" : "Begär signaturer",
     "Choose the file to request signatures." : "Välj fil för att begära signaturer.",

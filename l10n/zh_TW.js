@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "憑證資料",
     "Issuer of certificate" : "憑證頒發者",
     "Owner of certificate" : "憑證擁有者",
-    "Extra informations" : "額外資訊",
     "Certificate password" : "憑證密碼",
     "Request Signatures" : "請求簽章",
     "Choose the file to request signatures." : "選擇要請求的簽章。",

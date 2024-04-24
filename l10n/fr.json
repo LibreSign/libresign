@@ -224,7 +224,6 @@
     "Certificate data" : "Données du certificat",
     "Issuer of certificate" : "Émetteur du certificat",
     "Owner of certificate" : "Propriétaire du certificat",
-    "Extra informations" : "Informations complémentaires ",
     "Certificate password" : "Mot de passe du certificat",
     "Request Signatures" : "Demander les signatures",
     "Choose the file to request signatures." : "Choisir le fichier pour les demandes de signature",
