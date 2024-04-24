@@ -1,8 +1,4 @@
 {
-  "name": "libresign/libresign",
-  "description": "libresign",
-  "type": "project",
-  "license": "AGPL",
   "require": {
     "endroid/qr-code": "^4.6",
     "jsignpdf/jsignpdf-php": "dev-fix/works-with-unicode-password",
