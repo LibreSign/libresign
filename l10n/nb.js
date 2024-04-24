@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "Sertifikatdata",
     "Issuer of certificate" : "Utsteder av sertifikat",
     "Owner of certificate" : "Eier av sertifikat",
-    "Extra informations" : "Ekstra informasjon",
     "Certificate password" : "Sertifikatpassord",
     "Request Signatures" : "Be om signaturer",
     "Choose the file to request signatures." : "Velg filen for å be om signaturer.",

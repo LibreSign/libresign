@@ -48,7 +48,6 @@ OC.L10N.register(
     "Confirm password" : "Bekræft kodeord",
     "Enter a password" : "Enter a password",
     "Page not found" : "Siden blev ikke fundet",
-    "Extra informations" : "Ekstra information",
     "Choose from Files" : "Vælg fra Filer",
     "Send" : "Send",
     "Password reset" : "Nulstil adgangskode",

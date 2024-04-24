@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "Certificate data",
     "Issuer of certificate" : "Issuer of certificate",
     "Owner of certificate" : "Owner of certificate",
-    "Extra informations" : "Extra informations",
     "Certificate password" : "Certificate password",
     "Request Signatures" : "Request Signatures",
     "Choose the file to request signatures." : "Choose the file to request signatures.",

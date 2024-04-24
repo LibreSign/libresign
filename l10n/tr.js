@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "Sertifika verileri",
     "Issuer of certificate" : "Sertifikanın yayıncısı",
     "Owner of certificate" : "Sertifikanın sahibi",
-    "Extra informations" : "Ek bilgiler",
     "Certificate password" : "Sertifika parolası",
     "Request Signatures" : "İmza isteğinde bulun",
     "Choose the file to request signatures." : "İmza istenecek dosyayı seçin.",
