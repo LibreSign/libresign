@@ -7,7 +7,9 @@
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "^5.4"
     },
-    "platform": {
-      "php": "8.0.2"
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
     }
 }
