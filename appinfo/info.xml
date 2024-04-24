@@ -5,7 +5,13 @@
     <summary>✍️ Libre digital signature app for Nextcloud</summary>
     <description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
 
-* ✍️ Sign PDF documents using digital signature
+* ✍️ **Sign PDF** documents using digital certificates
+* 🔄 **Hybrid signatures**: You can choose between personal or system-generated digital certificates
+* 👥 **Multiple signers**: Request signature on a document for as many people as you need
+* 📸 **QR Code**: Document validation by QR Code
+* 🔒 **Privacy**: Fully self-hosted document signer
+* 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged
+* 🙋 **Get involved**! We have lots of stuff planned like more question types, collaboration on [LibreSign](https://libresign.coop)
 
 ]]>
     </description>
@@ -17,6 +23,7 @@
     </documentation>
     <category>files</category>
     <category>office</category>
+    <category>security</category>
     <category>tools</category>
     <website>https://github.com/LibreSign/libresign</website>
     <discussion>https://t.me/libresign</discussion>
