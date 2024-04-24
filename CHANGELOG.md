@@ -13,7 +13,17 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 8.0.0
+## 10.0.0-beta.1
+* 📲 New API documentation
+
+## 9.0.0 - 2024-04-24
+### ✨Big changes to a new moment
+* 📝 Allow you to sign documents without creating an account
+* 🔒 Create root certificate with OpenSSL
+* 📜 Possibility to send and sign with your own certificate
+* 🛠️ Simplified setup
+
+## 8.0.0 - 2024-04-24
 ### ✨Big changes to a new moment
 * 📝 Allow you to sign documents without creating an account
 * 🔒 Create root certificate with OpenSSL
