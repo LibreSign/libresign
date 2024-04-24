@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8e23b9601a9aeebf59cf7f87e869f5df",
+    "content-hash": "b0f968896f111dc2b56c64761bfcb559",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -187,16 +187,16 @@
         },
         {
             "name": "jsignpdf/jsignpdf-php",
-            "version": "dev-fix/works-with-unicode-password",
+            "version": "v1.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/JSignPdf/jsignpdf-php.git",
-                "reference": "740cea1f14d28d924d22cd75e703cef5250a0aac"
+                "reference": "3596031ecebf2321ec94958ae4688dddc9c0fa6c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/740cea1f14d28d924d22cd75e703cef5250a0aac",
-                "reference": "740cea1f14d28d924d22cd75e703cef5250a0aac",
+                "url": "https://api.github.com/repos/JSignPdf/jsignpdf-php/zipball/3596031ecebf2321ec94958ae4688dddc9c0fa6c",
+                "reference": "3596031ecebf2321ec94958ae4688dddc9c0fa6c",
                 "shasum": ""
             },
             "require": {
@@ -213,11 +213,7 @@
                     "Jeidison\\JSignPDF\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Jeidison\\JSignPDF\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -229,18 +225,18 @@
             ],
             "description": "jsignpdf-php",
             "keywords": [
-                "JSignPdf",
-                "PDF",
                 "PDF Sign PHP",
-                "PHP",
                 "PHP Signature",
-                "Signature"
+                "jsignpdf",
+                "pdf",
+                "php",
+                "signature"
             ],
             "support": {
-                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/fix/works-with-unicode-password",
-                "issues": "https://github.com/JSignPdf/jsignpdf-php/issues"
+                "issues": "https://github.com/JSignPdf/jsignpdf-php/issues",
+                "source": "https://github.com/JSignPdf/jsignpdf-php/tree/v1.2.5"
             },
-            "time": "2024-04-23T21:57:35+00:00"
+            "time": "2024-04-24T17:19:52+00:00"
         },
         {
             "name": "mikehaertl/php-pdftk",
@@ -1185,12 +1181,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "166f88bb0204613769bb91f538c0b75feebd3ea0"
+                "reference": "9a85aedae3c3b7c6282f9b0d077d262619510b42"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/166f88bb0204613769bb91f538c0b75feebd3ea0",
-                "reference": "166f88bb0204613769bb91f538c0b75feebd3ea0",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9a85aedae3c3b7c6282f9b0d077d262619510b42",
+                "reference": "9a85aedae3c3b7c6282f9b0d077d262619510b42",
                 "shasum": ""
             },
             "conflict": {
@@ -1353,6 +1349,7 @@
                 "ezyang/htmlpurifier": "<4.1.1",
                 "facade/ignition": "<1.16.15|>=2,<2.4.2|>=2.5,<2.5.2",
                 "facturascripts/facturascripts": "<=2022.08",
+                "fastly/magento2": "<1.2.26",
                 "feehi/cms": "<=2.1.1",
                 "feehi/feehicms": "<=2.1.1",
                 "fenom/fenom": "<=2.12.1",
@@ -1485,6 +1482,7 @@
                 "league/flysystem": "<1.1.4|>=2,<2.1.1",
                 "league/oauth2-server": ">=8.3.2,<8.4.2|>=8.5,<8.5.3",
                 "lexik/jwt-authentication-bundle": "<2.10.7|>=2.11,<2.11.3",
+                "libreform/libreform": ">=2,<=2.0.8",
                 "librenms/librenms": "<2017.08.18",
                 "liftkit/database": "<2.13.2",
                 "lightsaml/lightsaml": "<1.3.5",
@@ -1519,6 +1517,7 @@
                 "microsoft/microsoft-graph-beta": "<2.0.1",
                 "microsoft/microsoft-graph-core": "<2.0.2",
                 "microweber/microweber": "<=2.0.4",
+                "mikehaertl/php-shellcommand": "<1.6.1",
                 "miniorange/miniorange-saml": "<1.4.3",
                 "mittwald/typo3_forum": "<1.2.1",
                 "mobiledetect/mobiledetectlib": "<2.8.32",
@@ -1948,13 +1947,12 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-24T19:04:38+00:00"
+            "time": "2024-04-24T21:04:34+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "jsignpdf/jsignpdf-php": 20,
         "nextcloud/ocp": 20,
         "roave/security-advisories": 20
     },
