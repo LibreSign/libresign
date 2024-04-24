@@ -2,7 +2,9 @@
     "require-dev": {
         "php-coveralls/php-coveralls": "^2.5"
     },
-    "platform": {
-      "php": "8.0.2"
+    "config": {
+        "platform": {
+            "php": "8.0"
+        }
     }
 }
