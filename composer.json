@@ -1,7 +1,7 @@
 {
   "require": {
     "endroid/qr-code": "^4.6",
-    "jsignpdf/jsignpdf-php": "dev-fix/works-with-unicode-password",
+    "jsignpdf/jsignpdf-php": "^1.2",
     "mikehaertl/php-pdftk": "^0.13.0",
     "pagerfanta/pagerfanta": "^3.6",
     "smalot/pdfparser": "^2.4",
@@ -57,11 +57,5 @@
     "psr-4": {
       "OCP\\": "vendor/nextcloud/ocp/OCP"
     }
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/JSignPdf/jsignpdf-php"
-    }
-  ]
+  }
 }
