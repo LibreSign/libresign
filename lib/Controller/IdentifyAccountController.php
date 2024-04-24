@@ -128,7 +128,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 			return $return;
 		}
 		$user = $this->userSession->getUser();
-		if (!str_contains($user->getUID(), $search) && !str_contains($user->getDisplayName(), $search)) {
+		if (!str_contains($user->getUID(), $search) && !str_contains(strtolower($user->getDisplayName()), $search)) {
 			return $return;
 		}
 		$filtered = array_filter($return, fn ($i) => $i['id'] === $user->getUID());
