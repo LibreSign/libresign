@@ -310,7 +310,10 @@ class SignFileService {
 		if (!$collectMetadata || !$metadata) {
 			return $this;
 		}
-		$this->signRequest->setMetadata($metadata);
+		$this->signRequest->setMetadata(array_merge(
+			$metadata,
+			$this->signRequest->getMetadata(),
+		));
 		$this->signRequestMapper->update($this->signRequest);
 		return $this;
 	}
