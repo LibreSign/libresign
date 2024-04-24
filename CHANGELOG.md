@@ -13,14 +13,14 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
-## 9.0.0
+## 9.0.0 - 2024-04-24
 ### ✨Big changes to a new moment
 * 📝 Allow you to sign documents without creating an account
 * 🔒 Create root certificate with OpenSSL
 * 📜 Possibility to send and sign with your own certificate
 * 🛠️ Simplified setup
 
-## 8.0.0
+## 8.0.0 - 2024-04-24
 ### ✨Big changes to a new moment
 * 📝 Allow you to sign documents without creating an account
 * 🔒 Create root certificate with OpenSSL
