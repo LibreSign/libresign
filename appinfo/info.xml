@@ -13,9 +13,19 @@
 * 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged
 * 🙋 **Get involved**! We have lots of stuff planned like more question types, collaboration on [LibreSign](https://libresign.coop)
 
-]]>
-    </description>
-    <version>8.0.0-rc11</version>
+🌍 Help us translate this application on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/)
+
+If you enjoy this app and want to help maintain its development or want enterprise support, please contact us:
+
+[https://libresign.coop](https://libresign.coop)
+
+## Donation
+
+Developed with ❤️ by [LibreCode](https://librecode.coop). Help us transform people and businesses through cooperativism.
+
+* [Donate with GitHub Sponsor: ![Donate using GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/libresign)
+    ]]></description>
+    <version>8.0.0</version>
     <licence>agpl</licence>
     <author mail="contact@librecode.coop" homepage="https://librecode.coop">LibreCode</author>
     <documentation>
@@ -29,10 +39,11 @@
     <discussion>https://t.me/libresign</discussion>
     <bugs>https://github.com/LibreSign/libresign/issues</bugs>
     <repository type="git">https://github.com/LibreSign/libresign</repository>
-    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/LibreSign.png?v=8.0.0-rc11</screenshot>
+    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/request-signature.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/LibreSign/libresign/main/img/screenshot/presentation.gif</screenshot>
     <dependencies>
         <lib>openssl</lib>
-        <nextcloud min-version="28" max-version="28"/>
+        <nextcloud min-version="29" max-version="29"/>
         <architecture>x86_64</architecture>
         <architecture>aarch64</architecture>
     </dependencies>
