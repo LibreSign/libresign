@@ -226,7 +226,6 @@
     "Certificate data" : "بيانات الشهادة",
     "Issuer of certificate" : "مُصدِر الشهادة",
     "Owner of certificate" : "مالك الشهادة",
-    "Extra informations" : "معلومات إضافية",
     "Certificate password" : "كلمة مرور الشهادة",
     "Request Signatures" : "طلب التوقيعات",
     "Choose the file to request signatures." : "اختر الملف لطلب التوقيعات.",

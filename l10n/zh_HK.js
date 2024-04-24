@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "證書數據",
     "Issuer of certificate" : "證書頒發者",
     "Owner of certificate" : "證書所有者",
-    "Extra informations" : "額外資訊",
     "Certificate password" : "證書密碼",
     "Request Signatures" : "請求簽名",
     "Choose the file to request signatures." : "選擇要索取簽名的檔案。",

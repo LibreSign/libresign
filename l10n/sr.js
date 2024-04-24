@@ -228,7 +228,6 @@ OC.L10N.register(
     "Certificate data" : "Подаци сертификата",
     "Issuer of certificate" : "Издавач сертификата",
     "Owner of certificate" : "Власник сертификата",
-    "Extra informations" : "Додатне информације",
     "Certificate password" : "Лозинка сертификата",
     "Request Signatures" : "Захтевај потписе",
     "Choose the file to request signatures." : "Изаберите фајл да бисте захтевали потписе.",
