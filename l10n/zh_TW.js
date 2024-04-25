@@ -139,7 +139,6 @@ OC.L10N.register(
     "Invalid PDF" : "無效的 PDF",
     "LibreSign" : "LibreSign",
     "✍️ Libre digital signature app for Nextcloud" : "✍️ Nextcloud 的自由數位簽署應用程式",
-    "**This is a libre digital PDF signature app for Nextcloud**\n\n* ✍️ Sign PDF documents using digital signature" : "**這是一個用於 Nextcloud 的自由數位 PDF 簽署應用程式**\n\n* ✍️ 使用數位簽章簽署 PDF 文件",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign，Nextcloud 的數位簽署應用程式。",
     "Customize your signatures" : "自訂您的簽名",
     "Draw" : "繪圖",
