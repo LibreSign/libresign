@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b0f968896f111dc2b56c64761bfcb559",
+    "content-hash": "4dde56b6d26d52e2eb6128b868012cd6",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -379,32 +379,30 @@
         },
         {
             "name": "pagerfanta/pagerfanta",
-            "version": "v3.8.0",
+            "version": "v4.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BabDev/Pagerfanta.git",
-                "reference": "a07c84296e491add39d103b812129de77610c33b"
+                "reference": "ab85ad0ac605d59d6263f49db9584254e159c37f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/a07c84296e491add39d103b812129de77610c33b",
-                "reference": "a07c84296e491add39d103b812129de77610c33b",
+                "url": "https://api.github.com/repos/BabDev/Pagerfanta/zipball/ab85ad0ac605d59d6263f49db9584254e159c37f",
+                "reference": "ab85ad0ac605d59d6263f49db9584254e159c37f",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": "^7.4 || ^8.0",
-                "symfony/deprecation-contracts": "^2.1 || ^3.0",
-                "symfony/polyfill-php80": "^1.15"
+                "php": "^8.1"
             },
             "conflict": {
                 "doctrine/collections": "<1.8",
-                "doctrine/dbal": "<3.1",
-                "doctrine/mongodb-odm": "<2.2.2",
-                "doctrine/orm": "<2.8",
-                "doctrine/phpcr-odm": "<1.5",
-                "ruflin/elastica": "<6.0",
-                "solarium/solarium": "<5.0",
+                "doctrine/dbal": "<3.5",
+                "doctrine/mongodb-odm": "<2.4",
+                "doctrine/orm": "<2.14",
+                "doctrine/phpcr-odm": "<1.7",
+                "ruflin/elastica": "<7.3",
+                "solarium/solarium": "<6.2",
                 "twig/twig": "<2.13"
             },
             "replace": {
@@ -419,22 +417,21 @@
                 "pagerfanta/twig": "self.version"
             },
             "require-dev": {
-                "dg/bypass-finals": "^1.3",
-                "doctrine/cache": "^1.11 || ^2.0",
+                "dg/bypass-finals": "^1.5.1",
                 "doctrine/collections": "^1.8 || ^2.0",
-                "doctrine/dbal": "^3.1",
-                "doctrine/mongodb-odm": "^2.2.2",
-                "doctrine/orm": "^2.8",
-                "doctrine/phpcr-odm": "^1.5",
-                "jackalope/jackalope-doctrine-dbal": "^1.7.4",
-                "phpstan/extension-installer": "^1.1",
-                "phpstan/phpstan": "1.9.14",
-                "phpstan/phpstan-phpunit": "1.3.3",
-                "phpunit/phpunit": "9.6.7 || 10.1.0",
-                "rector/rector": "0.15.12",
-                "ruflin/elastica": "^6.0 || ^7.0",
-                "solarium/solarium": "^5.0 || ^6.0",
-                "symfony/cache": "^5.4 || ^6.0",
+                "doctrine/dbal": "^3.5 || ^4.0",
+                "doctrine/mongodb-odm": "^2.4",
+                "doctrine/orm": "^2.14 || ^3.0",
+                "doctrine/phpcr-odm": "^1.7 || ^2.0",
+                "jackalope/jackalope-doctrine-dbal": "^1.9",
+                "phpstan/extension-installer": "^1.3.1",
+                "phpstan/phpstan": "1.10.66",
+                "phpstan/phpstan-phpunit": "1.3.16",
+                "phpunit/phpunit": "10.5.17",
+                "rector/rector": "1.0.4",
+                "ruflin/elastica": "^7.3",
+                "solarium/solarium": "^6.2",
+                "symfony/cache": "^5.4 || ^6.3 || ^7.0",
                 "twig/twig": "^2.13 || ^3.0"
             },
             "suggest": {
@@ -470,7 +467,7 @@
             ],
             "support": {
                 "issues": "https://github.com/BabDev/Pagerfanta/issues",
-                "source": "https://github.com/BabDev/Pagerfanta/tree/v3.8.0"
+                "source": "https://github.com/BabDev/Pagerfanta/tree/v4.5.0"
             },
             "funding": [
                 {
@@ -478,7 +475,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-04-15T16:39:36+00:00"
+            "time": "2024-04-10T22:17:10+00:00"
         },
         {
             "name": "smalot/pdfparser",
@@ -530,73 +527,6 @@
                 "source": "https://github.com/smalot/pdfparser/tree/v2.9.0"
             },
             "time": "2024-03-01T09:51:10+00:00"
-        },
-        {
-            "name": "symfony/deprecation-contracts",
-            "version": "v3.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "7c3aff79d10325257a001fcf92d991f24fc967cf"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/7c3aff79d10325257a001fcf92d991f24fc967cf",
-                "reference": "7c3aff79d10325257a001fcf92d991f24fc967cf",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.1"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "3.4-dev"
-                },
-                "thanks": {
-                    "name": "symfony/contracts",
-                    "url": "https://github.com/symfony/contracts"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "function.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "A generic function and convention to trigger deprecation notices",
-            "homepage": "https://symfony.com",
-            "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.4.0"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2023-05-23T14:45:45+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -661,86 +591,6 @@
             ],
             "support": {
                 "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.29.0"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2024-01-29T20:11:03+00:00"
-        },
-        {
-            "name": "symfony/polyfill-php80",
-            "version": "v1.29.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "87b68208d5c1188808dd7839ee1e6c8ec3b02f1b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/87b68208d5c1188808dd7839ee1e6c8ec3b02f1b",
-                "reference": "87b68208d5c1188808dd7839ee1e6c8ec3b02f1b",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1"
-            },
-            "type": "library",
-            "extra": {
-                "thanks": {
-                    "name": "symfony/polyfill",
-                    "url": "https://github.com/symfony/polyfill"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "bootstrap.php"
-                ],
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php80\\": ""
-                },
-                "classmap": [
-                    "Resources/stubs"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ion Bazan",
-                    "email": "ion.bazan@gmail.com"
-                },
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "polyfill",
-                "portable",
-                "shim"
-            ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.29.0"
             },
             "funding": [
                 {
