@@ -27,6 +27,14 @@ class DevelopController extends Controller {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Get a demo PDF file to be used by test purpose
+	 *
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|Response<Http::STATUS_NOT_FOUND, array{}>
+	 *
+	 * 200: PDF returned
+	 * 404: Debug mode not enabled
+	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function pdf(): FileDisplayResponse|Response {

@@ -68,7 +68,11 @@ class PageController extends AEnvironmentPageAwareController {
 	}
 
 	/**
-	 * Render default template
+	 * Index page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -101,6 +105,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Index page to authenticated users
+	 *
+	 * This router is used to be possible render pages with /f/, is a
+	 * workaround at frontend side to identify pages with authenticated accounts
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
@@ -108,6 +122,13 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Incomplete page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function incomplete(): TemplateResponse {
@@ -116,6 +137,13 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Incomplete page in full screen
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
 	public function incompleteP(): TemplateResponse {
