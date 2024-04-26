@@ -28,10 +28,10 @@ use BaconQrCode\Encoder\Encoder;
 use Endroid\QrCode\Bacon\ErrorCorrectionLevelConverter;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
+use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Matrix\Matrix;
 use Endroid\QrCode\QrCode;
-use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\RoundBlockSizeMode;
 use OC\SystemConfig;
 use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
@@ -233,9 +233,9 @@ class Pkcs12Handler extends SignEngineHandler {
 	private function writeQrCode(string $text, TCPDF $fpdf): void {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
-			->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
+			->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
 			->setMargin(5)
-			->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
+			->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
 			->setForegroundColor(new Color(0, 0, 0))
 			->setBackgroundColor(new Color(255, 255, 255));
 
