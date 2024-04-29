@@ -14,7 +14,7 @@
 			</h2>
 			<p>
 				<small>
-					{{ t('libresign', 'Select each signer to define their signature positions') }}
+					{{ t('libresign', 'Click the page to add visible signature, then select a signer to set their signature position') }}
 				</small>
 			</p>
 			<ul class="view-sign-detail__sidebar">
