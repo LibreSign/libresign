@@ -151,7 +151,6 @@ OC.L10N.register(
     "Previous" : "Előző",
     "Next" : "Következő",
     "Account not exist" : "A fiók nem létezik",
-    "Select each signer to define their signature positions" : "Válassza ki az összes aláírót, hogy meghatározza az aláírásuk helyzetét",
     "Sign" : "Aláírás",
     "Confirm" : "Megerősítés",
     "Request signatures?" : "Kéri az aláírásokat?",

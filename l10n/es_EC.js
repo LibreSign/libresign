@@ -141,7 +141,6 @@ OC.L10N.register(
     "Previous" : "Previo",
     "Next" : "Siguiente",
     "Account not exist" : "Cuenta inexistente",
-    "Select each signer to define their signature positions" : "Selecciona a cada firmante para definir sus posiciones de firma",
     "Sign" : "Señal",
     "Confirm" : "Confirmar",
     "Request signatures?" : "¿Solicitar firmas?",

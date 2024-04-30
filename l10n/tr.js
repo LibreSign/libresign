@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "Önceki",
     "Next" : "Sonraki",
     "Account not exist" : "Hesap bulunamadı.",
-    "Select each signer to define their signature positions" : "İmza konumlarını belirlemek için imzalayanları tek tek seçin",
     "Sign" : "İmzala",
     "Confirm" : "Onayla",
     "Request signatures?" : "İmza isteğinde bulunulsun mu?",

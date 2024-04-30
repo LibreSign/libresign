@@ -141,7 +141,6 @@ OC.L10N.register(
     "Previous" : "قبلی",
     "Next" : "بعدی",
     "Account not exist" : "Account not exist",
-    "Select each signer to define their signature positions" : "Select each signer to define their signature positions",
     "Sign" : "Sign",
     "Confirm" : "تائید",
     "Request signatures?" : "Request signatures?",

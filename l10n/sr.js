@@ -173,7 +173,6 @@ OC.L10N.register(
     "Previous" : "Претходно",
     "Next" : "Следећа",
     "Account not exist" : "Налог не постоји",
-    "Select each signer to define their signature positions" : "Изаберите сваког потписника да дефинишете позицију његовог потписа",
     "Sign" : "Потпис",
     "Confirm" : "Потврди",
     "Request signatures?" : "Захтевај потписе?",

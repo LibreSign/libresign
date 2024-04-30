@@ -173,7 +173,6 @@ OC.L10N.register(
     "Previous" : "السابق",
     "Next" : "التالي",
     "Account not exist" : "الحساب غير موجود",
-    "Select each signer to define their signature positions" : "حدد كل مُوْقع لتحديد أماكن التوقيع الخاصة بهم",
     "Sign" : "وقع",
     "Confirm" : "تأكيد",
     "Request signatures?" : "طلب التوقيعات؟",

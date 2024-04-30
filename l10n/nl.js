@@ -140,7 +140,6 @@ OC.L10N.register(
     "Previous" : "Vorige",
     "Next" : "Volgende",
     "Account not exist" : "Account bestaat niet",
-    "Select each signer to define their signature positions" : "Selecteer elke ondertekenaar om hun handtekeningsposities te definiëren",
     "Sign" : "Ondertekenen",
     "Confirm" : "Bevestigen",
     "Request signatures?" : "Handtekeningen aanvragen?",

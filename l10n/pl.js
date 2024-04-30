@@ -140,7 +140,6 @@ OC.L10N.register(
     "Previous" : "Poprzedni",
     "Next" : "Następny",
     "Account not exist" : "Konto nie istnieje",
-    "Select each signer to define their signature positions" : "Wybierz każdego podpisującego, aby zdefiniować jego pozycje podpisu",
     "Sign" : "Podpisz",
     "Confirm" : "Potwierdź",
     "Request signatures?" : "Prośba o podpisy?",
