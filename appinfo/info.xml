@@ -2,7 +2,7 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>libresign</id>
     <name>LibreSign</name>
-    <summary>✍️ Libre digital signature app for Nextcloud</summary>
+    <summary>✍️ Self-hosted document signer using digital certificate</summary>
     <description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
 
 * ✍️ **Sign PDF** documents using digital certificates
@@ -11,7 +11,7 @@
 * 📸 **QR Code**: Document validation by QR Code
 * 🔒 **Privacy**: Fully self-hosted document signer
 * 📲 **Connect to your software**: Easily integrate [LibreSign](https://libresign.coop) into your service with our full-fledged
-* 🙋 **Get involved**! We have lots of stuff planned like more question types, collaboration on [LibreSign](https://libresign.coop)
+* 🙋 **Get involved**! We have lots of stuff planned. More informations at [LibreSign](https://github.com/libresign/libresign) repository.
 
 🌍 Help us translate this application on [Transifex](https://app.transifex.com/nextcloud/nextcloud/libresign/)
 
