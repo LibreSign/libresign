@@ -48,7 +48,7 @@ export const action = new FileAction({
 		}
 	},
 
-	order: 100,
+	order: -1000,
 })
 
 registerFileAction(action)
