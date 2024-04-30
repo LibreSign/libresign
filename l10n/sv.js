@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "Föregående",
     "Next" : "Nästa",
     "Account not exist" : "Kontot finns inte",
-    "Select each signer to define their signature positions" : "Välj varje undertecknare för att definiera deras signaturpositioner",
     "Sign" : "Signera",
     "Confirm" : "Bekräfta",
     "Request signatures?" : "Begär underskrift?",

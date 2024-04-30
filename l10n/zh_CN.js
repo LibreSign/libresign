@@ -135,7 +135,6 @@ OC.L10N.register(
     "Previous" : "上一个",
     "Next" : "下一个",
     "Account not exist" : "账户不存在",
-    "Select each signer to define their signature positions" : "选择每个签名者来定义签名位置",
     "Sign" : "签名",
     "Confirm" : "确认",
     "Request signatures?" : "请求签名？",

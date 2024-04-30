@@ -172,7 +172,6 @@ OC.L10N.register(
     "Previous" : "Forrige",
     "Next" : "Neste",
     "Account not exist" : "Konto finnes ikke",
-    "Select each signer to define their signature positions" : "Velg hver underskriver for å definere deres signaturposisjoner",
     "Sign" : "Skilt",
     "Confirm" : "Bekreft",
     "Request signatures?" : "Be om signaturer?",

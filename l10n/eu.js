@@ -142,7 +142,6 @@ OC.L10N.register(
     "Previous" : "Aurrekoa",
     "Next" : "Hurrengoa",
     "Account not exist" : "Kontua ez da existitzen",
-    "Select each signer to define their signature positions" : "Hautatu sinatzaile bakoitza bere sinadura-posizioak definitzeko",
     "Sign" : "Sinatu",
     "Confirm" : "Berretsi",
     "Request signatures?" : "Sinadurak eskatu?",

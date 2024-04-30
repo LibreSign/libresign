@@ -162,7 +162,6 @@ OC.L10N.register(
     "Previous" : "Předchozí",
     "Next" : "Další",
     "Account not exist" : "Účet neexistuje",
-    "Select each signer to define their signature positions" : "Vyberte každého z podepisujících a definujte pozice jejich podpisů.",
     "Sign" : "Podepsat",
     "Confirm" : "Potvrdit",
     "Request signatures?" : "Požádat o podpisy?",

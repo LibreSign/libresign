@@ -133,7 +133,6 @@ OC.L10N.register(
     "Previous" : "이전",
     "Next" : "다음",
     "Account not exist" : "계정을 찾을 수 없습니다.",
-    "Select each signer to define their signature positions" : "서명 위치를 정의할 각 서명인을 선택하십시오.",
     "Sign" : "서명",
     "Confirm" : "확인",
     "Request signatures?" : "서명 요청?",
