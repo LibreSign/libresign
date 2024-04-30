@@ -138,7 +138,6 @@ OC.L10N.register(
     "Previous" : "Predhodni",
     "Next" : "Naprej",
     "Account not exist" : "Račun ne obstaja",
-    "Select each signer to define their signature positions" : "Izbor podpisnikov za določanje položaja podpisa.",
     "Sign" : "Podpiši",
     "Confirm" : "Potrdi",
     "Send reminder" : "Pošlji opomnik",

@@ -173,7 +173,6 @@ OC.L10N.register(
     "Previous" : "前一個",
     "Next" : "下一步",
     "Account not exist" : "帳號不存在",
-    "Select each signer to define their signature positions" : "選擇每個簽名者來定義他們的簽章位置",
     "Sign" : "簽署",
     "Confirm" : "確認",
     "Request signatures?" : "請求簽署？",

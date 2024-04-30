@@ -142,7 +142,6 @@ OC.L10N.register(
     "Previous" : "Предишен ",
     "Next" : "Следващ",
     "Account not exist" : "Профилът не съществува",
-    "Select each signer to define their signature positions" : "Изберете всеки подписващ, за да дефинирате позициите на подписа им",
     "Sign" : "Подпис",
     "Confirm" : "Потвърди",
     "Request signatures?" : "Ще заявите ли подписи?",
