@@ -2,7 +2,7 @@
 <info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>libresign</id>
     <name>LibreSign</name>
-    <summary>✍️ Libre digital signature app for Nextcloud</summary>
+    <summary>✍️ Self-hosted document signer using digital certificate</summary>
     <description><![CDATA[**This is a libre digital PDF signature app for Nextcloud**
 
 * ✍️ **Sign PDF** documents using digital certificates
