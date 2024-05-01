@@ -65,7 +65,6 @@ OC.L10N.register(
     "File already signed by you" : "Archìviu giai firmadu dae te",
     "Invalid PDF" : "PDF non bàlidu",
     "LibreSign" : "LibreSign",
-    "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplicatzione lìbera pro firmas digitales pro Nextcloud",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicatzione pro sa firma digitale pro Nextcloud.",
     "Text" : "Testu",
     "Upload" : "Càrriga",

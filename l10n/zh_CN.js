@@ -111,7 +111,6 @@ OC.L10N.register(
     "File already signed by you" : "文件已由你签署",
     "Invalid PDF" : "无效的 PDF",
     "LibreSign" : "LibreSign ",
-    "✍️ Libre digital signature app for Nextcloud" : "✍️Nextcloud 的自由数字签名应用",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign，Nextcloud 的数字签名应用",
     "Customize your signatures" : "定制你的签名",
     "Draw" : "画",

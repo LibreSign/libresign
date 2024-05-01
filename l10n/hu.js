@@ -120,7 +120,6 @@ OC.L10N.register(
     "File already signed by you" : "A fájlt Ön már aláírta",
     "Invalid PDF" : "Érvénytelen PDF",
     "LibreSign" : "LibreSign",
-    "✍️ Libre digital signature app for Nextcloud" : "✍️ Szabad digitális aláírási alkalmazás a Nextcloudhoz",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, digitális aláírási alkalmazás a Nextcloudhoz",
     "Customize your signatures" : "Saját aláírások testreszabása",
     "Draw" : "Rajzolás",
