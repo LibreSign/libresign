@@ -109,7 +109,6 @@ OC.L10N.register(
     "File already signed by you" : "사용자가 이미 서명한 파일",
     "Invalid PDF" : "잘못된 PDF",
     "LibreSign" : "LibreSign",
-    "✍️ Libre digital signature app for Nextcloud" : "✍Next Cloud용 Libre 디지털 서명 앱 사용",
     "LibreSign, digital signature app for Nextcloud." : "Nextcloud를 위한 디지털 시그니처 앱, LibreSign.",
     "Customize your signatures" : "서명 사용자 지정",
     "Draw" : "그리기",
