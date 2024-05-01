@@ -112,7 +112,6 @@ OC.L10N.register(
     "File already signed by you" : "Fitxer ja signat per tu",
     "Invalid PDF" : "PDF no vàlid",
     "LibreSign" : "LibreSign",
-    "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplicació de signatura digital lliure per a Nextcloud",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplicació de signatura digital per a Nextcloud.",
     "Customize your signatures" : "Personalitza les teves signatures",
     "Draw" : "Dibuixa",

@@ -111,7 +111,6 @@ OC.L10N.register(
     "File already signed by you" : "Plik już podpisany przez Ciebie",
     "Invalid PDF" : "Nieprawidłowy PDF",
     "LibreSign" : "LibreSign",
-    "✍️ Libre digital signature app for Nextcloud" : "✍️ Aplikacja do podpisu cyfrowego dla Nextcloud",
     "LibreSign, digital signature app for Nextcloud." : "LibreSign, aplikacja do podpisu cyfrowego dla Nextcloud.",
     "Customize your signatures" : "Dostosuj swoje podpisy",
     "Draw" : "Rysuj",
