@@ -59,9 +59,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 				],
 			],
 		]);
-		$this->signFileService = \OC::$server->get(SignFileService::class);
-		$this->l10n = \OC::$server->get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->userSession = \OC::$server->get(IUserSession::class);
+		$this->signFileService = \OCP\Server::get(SignFileService::class);
+		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->userSession = \OCP\Server::get(IUserSession::class);
 
 		$this->controller = new MockController(
 			$this->request,
@@ -100,9 +100,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 		$this->userSession->setUser($user);
 
-		$root = \OC::$server->get(IRootFolder::class);
+		$root = \OCP\Server::get(IRootFolder::class);
 		$nextcloudFile = $root->getById($file->getNodeId());
-		$trashManager = \OC::$server->get(ITrashManager::class);
+		$trashManager = \OCP\Server::get(ITrashManager::class);
 		$trashManager->pauseTrash();
 		$nextcloudFile[0]->delete();
 
