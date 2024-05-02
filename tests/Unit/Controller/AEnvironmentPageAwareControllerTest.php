@@ -43,7 +43,7 @@ class MockController extends AEnvironmentPageAwareController {
  * @group DB
  */
 final class AEnvironmentPageAwareControllerTest extends TestCase {
-	private IRequest|MockObject $request;
+	private IRequest&MockObject $request;
 	private SignFileService $signFileService;
 	private IL10N $l10n;
 	private IUserSession $userSession;

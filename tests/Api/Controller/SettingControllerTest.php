@@ -11,7 +11,7 @@ final class SettingControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testHasRootCertReturnSuccess() {
+	public function testHasRootCertReturnSuccess():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withRequestHeader([

@@ -12,7 +12,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostSuccess() {
+	public function testPostSuccess():array {
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$file = $this->requestSignFile([
@@ -61,7 +61,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @runInSeparateProcess
 	 * @depends testPostSuccess
 	 */
-	public function testPatchSuccess($params) {
+	public function testPatchSuccess($params):array {
 		$this->createAccount('username', 'password');
 		extract($params);
 		$signers = $this->getSignersFromFileId($file->getId());
@@ -96,7 +96,7 @@ final class FileElementControllerTest extends ApiTestCase {
 	 * @depends testPostSuccess
 	 * @depends testPatchSuccess
 	 */
-	public function testDeleteSuccess($params) {
+	public function testDeleteSuccess($params):void {
 		$this->createAccount('username', 'password');
 		extract($params);
 		$this->request

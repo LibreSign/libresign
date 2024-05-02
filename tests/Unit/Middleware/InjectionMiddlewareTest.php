@@ -46,15 +46,15 @@ use Psr\Log\LoggerInterface;
  */
 
 final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IRequest|MockObject $request;
-	private IUserSession|MockObject $userSession;
-	private ValidateHelper|MockObject $validateHelper;
-	private SignRequestMapper|MockObject $signRequestMapper;
+	private IRequest&MockObject $request;
+	private IUserSession&MockObject $userSession;
+	private ValidateHelper&MockObject $validateHelper;
+	private SignRequestMapper&MockObject $signRequestMapper;
 	private CertificateEngineHandler $certificateEngineHandler;
-	private FileMapper|MockObject $fileMapper;
-	private IInitialState|MockObject $initialState;
-	private SignFileService|MockObject $signFileService;
-	private IL10N|MockObject $l10n;
+	private FileMapper&MockObject $fileMapper;
+	private IInitialState $initialState;
+	private SignFileService&MockObject $signFileService;
+	private IL10N&MockObject $l10n;
 	private ?string $userId;
 
 	private InitialStateService $initialStateService;
@@ -118,7 +118,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return [
 			[
 				json_encode(['action' => 1000]), 1, LibresignException::class,
-				function (self $self, $message, int $code, $actual) {
+				function (self $self, $message, int $code, $actual):void {
 					/** @var JSONResponse $actual */
 					$self->assertInstanceOf(
 						JSONResponse::class,
@@ -139,7 +139,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'a text here', 1, LibresignException::class,
-				function (self $self, $message, int $code, $actual) {
+				function (self $self, $message, int $code, $actual):void {
 					/** @var JSONResponse $actual */
 					$self->assertInstanceOf(
 						JSONResponse::class,
@@ -160,7 +160,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				'a text here', 1, PageException::class,
-				function (self $self, $message, int $code, $actual) {
+				function (self $self, $message, int $code, $actual):void {
 					/** @var TemplateResponse $actual */
 					$self->assertInstanceOf(
 						TemplateResponse::class,
@@ -183,7 +183,7 @@ final class InjectionMiddlewareTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			],
 			[
 				json_encode(['action' => 1000]), 1, PageException::class,
-				function (self $self, $message, int $code, $actual) {
+				function (self $self, $message, int $code, $actual):void {
 					/** @var TemplateResponse $actual */
 					$self->assertInstanceOf(
 						TemplateResponse::class,

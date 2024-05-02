@@ -15,10 +15,10 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private Admin $admin;
-	private IInitialState|MockObject $initialState;
-	private IdentifyMethodService|MockObject $identifyMethodService;
-	private CertificateEngineHandler|MockObject $certificateEngineHandler;
-	private IAppConfig|MockObject $appConfig;
+	private IInitialState&MockObject $initialState;
+	private IdentifyMethodService&MockObject $identifyMethodService;
+	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private IAppConfig&MockObject $appConfig;
 	public function setUp(): void {
 		$this->initialState = $this->createMock(IInitialState::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
@@ -32,15 +32,15 @@ final class AdminTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testGetSessionReturningAppId() {
+	public function testGetSessionReturningAppId():void {
 		$this->assertEquals($this->admin->getSection(), Application::APP_ID);
 	}
 
-	public function testGetPriority() {
+	public function testGetPriority():void {
 		$this->assertEquals($this->admin->getPriority(), 100);
 	}
 
-	public function testGetFormReturnObject() {
+	public function testGetFormReturnObject():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure');
 		$actual = $this->admin->getForm();
 		$this->assertIsObject($actual);

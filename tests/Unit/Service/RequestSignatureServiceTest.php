@@ -44,22 +44,22 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
 final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IL10N|MockObject $l10n;
-	private FileMapper|MockObject $fileMapper;
-	private SignRequestMapper|MockObject $signRequestMapper;
-	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
-	private IUser|MockObject $user;
-	private IClientService|MockObject $clientService;
-	private IUserManager|MockObject $userManager;
-	private FolderService|MockObject $folderService;
-	private ValidateHelper|MockObject $validateHelper;
-	private FileElementMapper|MockObject $fileElementMapper;
-	private FileElementService|MockObject $fileElementService;
-	private IdentifyMethodService|MockObject $identifyMethodService;
-	private PdfParserService|MockObject $pdfParserService;
-	private IMimeTypeDetector|MockObject $mimeTypeDetector;
+	private IL10N&MockObject $l10n;
+	private FileMapper&MockObject $fileMapper;
+	private SignRequestMapper&MockObject $signRequestMapper;
+	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
+	private IUser&MockObject $user;
+	private IClientService&MockObject $clientService;
+	private IUserManager&MockObject $userManager;
+	private FolderService&MockObject $folderService;
+	private ValidateHelper&MockObject $validateHelper;
+	private FileElementMapper&MockObject $fileElementMapper;
+	private FileElementService&MockObject $fileElementService;
+	private IdentifyMethodService&MockObject $identifyMethodService;
+	private PdfParserService&MockObject $pdfParserService;
+	private IMimeTypeDetector&MockObject $mimeTypeDetector;
 	private IClientService $client;
-	private LoggerInterface|MockObject $loggerInterface;
+	private LoggerInterface&MockObject $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -104,7 +104,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		);
 	}
 
-	public function testValidateNameIsMandatory() {
+	public function testValidateNameIsMandatory():void {
 		$this->expectExceptionMessage('Name is mandatory');
 
 		$this->getService()->validateNewRequestToFile([
@@ -113,7 +113,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateEmptyUserCollection() {
+	public function testValidateEmptyUserCollection():void {
 		$this->expectExceptionMessage('Empty users list');
 
 		$response = $this->createMock(IResponse::class);
@@ -135,7 +135,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateEmptyUsersCollection() {
+	public function testValidateEmptyUsersCollection():void {
 		$this->expectExceptionMessage('Empty users list');
 
 		$this->getService()->validateNewRequestToFile([
@@ -145,7 +145,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateUserCollectionNotArray() {
+	public function testValidateUserCollectionNotArray():void {
 		$this->expectExceptionMessage('User list needs to be an array');
 
 		$this->getService()->validateNewRequestToFile([
@@ -156,7 +156,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateUserEmptyCollection() {
+	public function testValidateUserEmptyCollection():void {
 		$this->expectExceptionMessage('Empty users list');
 
 		$this->getService()->validateNewRequestToFile([
@@ -167,7 +167,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		]);
 	}
 
-	public function testValidateSuccess() {
+	public function testValidateSuccess():void {
 		$actual = $this->getService()->validateNewRequestToFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
 			'name' => 'test',
@@ -179,7 +179,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	public function testSaveSignRequestWhenUserExists() {
+	public function testSaveSignRequestWhenUserExists():void {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
@@ -189,7 +189,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertNull($actual);
 	}
 
-	public function testSaveSignRequestWhenUserDontExists() {
+	public function testSaveSignRequestWhenUserDontExists():void {
 		$signRequest = $this->createMock(\OCA\Libresign\Db\SignRequest::class);
 		$signRequest
 			->method('__call')
@@ -202,7 +202,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 	/**
 	 * @dataProvider dataSaveVisibleElements
 	 */
-	public function testSaveVisibleElements($elements) {
+	public function testSaveVisibleElements($elements):void {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		if (!empty($elements)) {
 			$libreSignFile->setId(1);
@@ -216,7 +216,7 @@ final class RequestSignatureServiceTest extends \OCA\Libresign\Tests\Unit\TestCa
 		$this->assertSameSize($elements, $actual);
 	}
 
-	public function dataSaveVisibleElements() {
+	public function dataSaveVisibleElements():array {
 		return [
 			[[]],
 			[[['uid' => 1]]],

@@ -13,8 +13,8 @@ use Psr\Log\LoggerInterface;
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JSignPdfHandler $class;
-	private IAppConfig|MockObject $appConfig;
-	private LoggerInterface|MockObject $loggerInterface;
+	private IAppConfig&MockObject $appConfig;
+	private LoggerInterface&MockObject $loggerInterface;
 	public function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
@@ -24,7 +24,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testSignExistingFileSuccess() {
+	public function testSignExistingFileSuccess():void {
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');

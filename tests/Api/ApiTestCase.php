@@ -16,6 +16,7 @@ use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use OCA\Libresign\Tests\Unit\TestCase;
+use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Yaml\Yaml;
 
 class ApiTestCase extends TestCase {
@@ -24,10 +25,7 @@ class ApiTestCase extends TestCase {
 	 */
 	protected $schema;
 
-	/**
-	 * @var AbstractRequester
-	 */
-	protected $requester = null;
+	protected AbstractRequester|null $requester = null;
 
 	/**
 	 * @var \OCA\Libresign\Tests\Api\ApiRequester
@@ -58,21 +56,19 @@ class ApiTestCase extends TestCase {
 	 * configure the schema to use for requests
 	 *
 	 * When set, all requests without an own schema use this one instead.
-	 *
-	 * @param Schema|null $schema
 	 */
-	public function setSchema($schema) {
+	public function setSchema(Schema|null $schema):void {
 		$this->schema = $schema;
 	}
 
-	public function setRequester(AbstractRequester $requester) {
+	public function setRequester(AbstractRequester $requester):void {
 		$this->requester = $requester;
 	}
 
 	/**
 	 * @return AbstractRequester
 	 */
-	protected function getRequester() {
+	protected function getRequester():AbstractRequester|null {
 		if (is_null($this->requester)) {
 			$this->requester = new ApiRequester();
 		}
@@ -80,8 +76,6 @@ class ApiTestCase extends TestCase {
 	}
 
 	/**
-	 * @param AbstractRequester $request
-	 * @return Response
 	 * @throws DefinitionNotFoundException
 	 * @throws GenericSwaggerException
 	 * @throws HttpMethodNotFoundException
@@ -91,7 +85,7 @@ class ApiTestCase extends TestCase {
 	 * @throws StatusCodeNotMatchedException
 	 * @throws MessageException
 	 */
-	public function assertRequest(AbstractRequester $request = null) {
+	public function assertRequest(AbstractRequester $request = null):Response|ResponseInterface {
 		if (!$request) {
 			$request = $this->request;
 		}
@@ -116,7 +110,7 @@ class ApiTestCase extends TestCase {
 	/**
 	 * @throws GenericSwaggerException
 	 */
-	protected function checkSchema() {
+	protected function checkSchema():void {
 		if (!$this->schema) {
 			throw new GenericSwaggerException('You have to configure a schema for either the request or the testcase');
 		}

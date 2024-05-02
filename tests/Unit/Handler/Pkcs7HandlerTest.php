@@ -17,7 +17,7 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->getMock();
 	}
 
-	public function testSignWithSuccess() {
+	public function testSignWithSuccess():void {
 		$handler = $this->getInstance(['getP7sFile']);
 
 		$p7sFile = $this->createMock(\OCP\Files\File::class);

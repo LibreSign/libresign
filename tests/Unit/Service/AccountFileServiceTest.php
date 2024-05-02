@@ -11,7 +11,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountFileService $service;
-	private AccountFileMapper|MockObject $accountFileMapper;
+	private AccountFileMapper&MockObject $accountFileMapper;
 	private IAppConfig $appConfig;
 
 	public function setUp(): void {
@@ -23,7 +23,7 @@ final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testAddFileWithSuccess() {
+	public function testAddFileWithSuccess():void {
 		$file = $this->createMock(File::class);
 		$file->method('__call')
 			->with($this->equalTo('getId'), $this->anything())

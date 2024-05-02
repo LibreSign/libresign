@@ -21,7 +21,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @BeforeSuite
 	 */
-	public static function beforeSuite(BeforeSuiteScope $scope) {
+	public static function beforeSuite(BeforeSuiteScope $scope):void {
 		if (get_current_user() !== exec('whoami')) {
 			throw new Exception(sprintf('Have files that %s is the owner.and the user that is running this test is %s, is necessary to be the same user', get_current_user(), exec('whoami')));
 		}
@@ -69,13 +69,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @Given create an environment :name with value :value to be used by occ command
 	 */
-	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value) {
+	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value):void {
 		self::$environments[$name] = $value;
 	}
 
 	/**
 	 * @When guest :guest exists
-	 * @param string $guest
 	 */
 	public function assureGuestExists(string $guest): void {
 		$response = $this->userExists($guest);
@@ -107,7 +106,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
 	 */
-	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value) {
+	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value):void {
 		if (empty($value)) {
 			unset($this->customHeaders[$header]);
 			return;
@@ -217,11 +216,8 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 	/**
 	 * @When user :user has the following notifications
-	 *
-	 * @param string $user
-	 * @param TableNode|null $body
 	 */
-	public function userNotifications(string $user, TableNode $body = null): void {
+	public function userNotifications(string $user, TableNode|null $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'
@@ -244,7 +240,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			foreach ($data as $actual) {
 				$actualIntersect = array_filter(
 					$actual,
-					function ($k) use ($expected) {
+					function ($k) use ($expected):bool {
 						return isset($expected[$k]);
 					},
 					ARRAY_FILTER_USE_KEY,
@@ -274,7 +270,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		$found = array_filter(
 			$data,
-			function ($notification) {
+			function ($notification):bool {
 				return $notification['subject'] === 'admin requested your signature on document';
 			}
 		);

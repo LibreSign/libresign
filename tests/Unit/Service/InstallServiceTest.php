@@ -37,14 +37,14 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 final class InstallServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private ICacheFactory|MockObject $cacheFactory;
-	private IClientService|MockObject $clientService;
-	private CertificateEngineHandler|MockObject $certificateEngineHandler;
-	private IConfig|MockObject $config;
-	private IAppConfig|MockObject $appConfig;
-	private IRootFolder|MockObject $rootFolder;
-	private LoggerInterface|MockObject $logger;
-	private IAppDataFactory|MockObject $appDataFactory;
+	private ICacheFactory&MockObject $cacheFactory;
+	private IClientService&MockObject $clientService;
+	private CertificateEngineHandler&MockObject $certificateEngineHandler;
+	private IConfig&MockObject $config;
+	private IAppConfig&MockObject $appConfig;
+	private IRootFolder&MockObject $rootFolder;
+	private LoggerInterface&MockObject $logger;
+	private IAppDataFactory&MockObject $appDataFactory;
 
 	public function setUp(): void {
 		parent::setUp();
