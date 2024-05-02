@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\Libresign\Tests\Unit\Helper;
 
 use OCA\Libresign\Db\AccountFile;
@@ -423,7 +425,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->fileTypeMapper
 			->method('getTypes')
 			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
-		$this->getValidateHelper()->validateFileTypeExists(0);
+		$this->getValidateHelper()->validateFileTypeExists('0');
 	}
 
 	public function testValidFileType():void {
@@ -440,7 +442,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->accountFileMapper
 			->method('getByUserAndType')
 			->willReturn($file);
-		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
+		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
 	}
 
 	public function testUserHasNoFileWithThisType():void {
@@ -449,7 +451,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
-		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
+		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
