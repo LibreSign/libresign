@@ -84,9 +84,9 @@ class ApiRequester extends AbstractRequester {
 		}
 		$mockRequest = new Request(
 			$vars,
-			\OC::$server->get(IRequestId::class),
-			\OC::$server->get(\OCP\IConfig::class),
-			\OC::$server->get(\OC\Security\CSRF\CsrfTokenManager::class),
+			\OCP\Server::get(IRequestId::class),
+			\OCP\Server::get(\OCP\IConfig::class),
+			\OCP\Server::get(\OC\Security\CSRF\CsrfTokenManager::class),
 			$stream
 		);
 		\OC::$server->registerService(IRequest::class, function () use ($mockRequest):IRequest {
@@ -94,7 +94,7 @@ class ApiRequester extends AbstractRequester {
 		});
 		\OC::$CLI = false;
 
-		$router = \OC::$server->get(\OC\Route\Router::class);
+		$router = \OCP\Server::get(\OC\Route\Router::class);
 		$reflectionClass = new \ReflectionClass($router);
 		$property = $reflectionClass->getProperty('context');
 		$property->setAccessible(true);

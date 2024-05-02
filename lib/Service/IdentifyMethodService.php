@@ -96,7 +96,7 @@ class IdentifyMethodService {
 		if (!class_exists($className)) {
 			$className = 'OCA\Libresign\Service\IdentifyMethod\\SignatureMethod\\' . ucfirst($name);
 		}
-		$identifyMethod = clone \OC::$server->get($className);
+		$identifyMethod = clone \OCP\Server::get($className);
 		if (empty($this->currentIdentifyMethod)) {
 			$identifyMethod->cleanEntity();
 		} else {

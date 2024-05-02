@@ -104,7 +104,7 @@ class NotificationListener implements IEventListener {
 		if (!class_exists(\OCA\Activity\UserSettings::class)) {
 			return false;
 		}
-		$activityUserSettings = \OC::$server->get(\OCA\Activity\UserSettings::class);
+		$activityUserSettings = \OCP\Server::get(\OCA\Activity\UserSettings::class);
 		if ($activityUserSettings) {
 			$notificationSetting = $activityUserSettings->getUserSetting(
 				$identifyMethod->getEntity()->getIdentifierValue(),
