@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
@@ -51,6 +53,9 @@ class TestCase extends \Test\TestCase {
 		$methods = $reflector->getMethods();
 		foreach ($methods as $method) {
 			$docblock = $reflector->getMethod($method->getName())->getDocComment();
+			if (!$docblock) {
+				return false;
+			}
 			if (preg_match('#@depends ' . $this->getName(false) . '\n#s', $docblock)) {
 				return true;
 			}
@@ -61,6 +66,9 @@ class TestCase extends \Test\TestCase {
 	public function iDependOnOthers(): bool {
 		$reflector = new \ReflectionClass(\get_class($this));
 		$docblock = $reflector->getMethod($this->getName(false))->getDocComment();
+		if (!$docblock) {
+			return false;
+		}
 		if (preg_match('#@depends #s', $docblock)) {
 			return true;
 		}
@@ -201,11 +209,11 @@ class TestCase extends \Test\TestCase {
 				if ($item->isDir()) {
 					mkdir($newDest);
 				} else {
-					copy($item, $newDest);
+					copy($item->getPathname(), $newDest);
 				}
 			}
-			if (fileperms($item) !== fileperms($newDest)) {
-				chmod($newDest, fileperms($item));
+			if (fileperms($item->getPathname()) !== fileperms($newDest)) {
+				chmod($newDest, fileperms($item->getPathname()));
 			}
 		}
 	}
