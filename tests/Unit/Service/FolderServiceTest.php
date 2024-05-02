@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use Exception;
@@ -69,7 +71,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 	}
 
-	private function getFolderService(?int $userId = 171): FolderSErvice {
+	private function getFolderService(?string $userId = '171'): FolderSErvice {
 		$service = new FolderService(
 			$this->root,
 			$this->userMountCache,
@@ -130,7 +132,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->appDataFactory->method('get')
 			->willReturn($appData);
 
-		$service = $this->getFolderService(1);
+		$service = $this->getFolderService('1');
 		$actual = $service->getFolder(171);
 		$this->assertInstanceOf(\OCP\Files\Folder::class, $actual);
 	}

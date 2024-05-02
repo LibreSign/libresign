@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use OCA\Libresign\Db\AccountFileMapper;
 use OCA\Libresign\Db\FileElementMapper;
 use OCA\Libresign\Db\FileMapper;
