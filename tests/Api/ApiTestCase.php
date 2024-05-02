@@ -41,7 +41,7 @@ class ApiTestCase extends TestCase {
 		$this->setSchema($schema);
 
 		// Optmize loading time
-		$systemConfig = \OC::$server->get(\OC\SystemConfig::class);
+		$systemConfig = \OCP\Server::get(\OC\SystemConfig::class);
 		$systemConfig->setValue('auth.bruteforce.protection.enabled', false);
 
 		// Reset settings

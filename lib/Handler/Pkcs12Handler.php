@@ -147,7 +147,7 @@ class Pkcs12Handler extends SignEngineHandler {
 		}
 		$classHandler = 'OCA\\Libresign\\Handler\\' . $property;
 		if (!$this->$property instanceof $classHandler) {
-			$this->$property = \OC::$server->get($classHandler);
+			$this->$property = \OCP\Server::get($classHandler);
 		}
 		return $this->$property;
 	}

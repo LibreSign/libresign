@@ -47,7 +47,7 @@ class TokenService {
 	 * @todo check this code and put to work
 	 */
 	public function sendCodeByGateway(string $code, string $gatewayName): void {
-		// 	$user = \OC::$server->get(IUserSession::class)->getUser();
+		// 	$user = \OCP\Server::get(IUserSession::class)->getUser();
 		// 	$gateway = $this->getGateway($user, $gatewayName);
 
 		// 	$userAccount = $this->accountManager->getAccount($user);
