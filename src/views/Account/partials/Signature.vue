@@ -90,7 +90,7 @@ export default {
 			this.isEditing = true
 		},
 		async removeSignature() {
-			this.signatureElementsStore.delete(this.type)
+			await this.signatureElementsStore.delete(this.type)
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
 			} else if (this.signatureElementsStore.error.length) {
