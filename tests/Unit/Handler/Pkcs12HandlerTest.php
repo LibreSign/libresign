@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
