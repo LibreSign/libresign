@@ -52,12 +52,12 @@ final class FakeFolder implements ISimpleFolder {
 }
 
 final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IRootFolder|MockObject $root;
-	private IUserMountCache|MockObject $userMountCache;
-	private IAppDataFactory|MockObject $appDataFactory;
-	private IGroupManager|MockObject $groupManager;
-	private IAppConfig|MockObject $appConfig;
-	private IL10N|MockObject $l10n;
+	private IRootFolder&MockObject $root;
+	private IUserMountCache&MockObject $userMountCache;
+	private IAppDataFactory&MockObject $appDataFactory;
+	private IGroupManager&MockObject $groupManager;
+	private IAppConfig&MockObject $appConfig;
+	private IL10N&MockObject $l10n;
 
 	public function setUp(): void {
 		parent::setUp();
@@ -82,7 +82,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $service;
 	}
 
-	public function testGetFolderAsUnauthenticatedWhenUserIdIsInvalid() {
+	public function testGetFolderAsUnauthenticatedWhenUserIdIsInvalid():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder->method('nodeExists')
 			->with($this->equalTo('unauthenticated'))
@@ -99,7 +99,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertTrue(true);
 	}
 
-	public function testGetFileWithInvalidNodeId() {
+	public function testGetFileWithInvalidNodeId():void {
 		$folder = $this->createMock(\OCP\Files\Folder::class);
 		$folder->method('isUpdateable')->willReturn(true);
 		$this->root->method('getUserFolder')->willReturn($folder);
@@ -109,7 +109,7 @@ final class FolderServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$service->getFileById(171);
 	}
 
-	public function testGetFolderWithValidNodeId() {
+	public function testGetFolderWithValidNodeId():void {
 		$this->userMountCache
 			->method('getMountsForFileId')
 			->willreturn([]);

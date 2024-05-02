@@ -2,7 +2,6 @@
 
 namespace OCA\Libresign\Tests\Unit\Service;
 
-use OC\Mail\Mailer;
 use OCA\Libresign\Db\File;
 use OCA\Libresign\Db\FileMapper;
 use OCA\Libresign\Db\SignRequest;
@@ -18,12 +17,12 @@ use Psr\Log\LoggerInterface;
  * @internal
  */
 final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private LoggerInterface|MockObject $logger;
-	private Mailer|MockObject $mailer;
-	private FileMapper|MockObject $fileMapper;
-	private IL10N|MockObject $l10n;
-	private IURLGenerator|MockObject $urlGenerator;
-	private IAppConfig|MockObject $appConfig;
+	private LoggerInterface&MockObject $logger;
+	private IMailer&MockObject $mailer;
+	private FileMapper&MockObject $fileMapper;
+	private IL10N&MockObject $l10n;
+	private IURLGenerator&MockObject $urlGenerator;
+	private IAppConfig&MockObject $appConfig;
 	private MailService $service;
 
 	public function setUp(): void {
@@ -47,7 +46,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testSuccessNotifyUnsignedUser() {
+	public function testSuccessNotifyUnsignedUser():void {
 		$signRequest = $this->createMock(SignRequest::class);
 		$signRequest
 			->method('__call')
@@ -75,7 +74,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testFailToSendMailToUnsignedUser() {
+	public function testFailToSendMailToUnsignedUser():void {
 		$this->expectExceptionMessage('Notify unsigned notification mail could not be sent');
 
 		$signRequest = $this->createMock(SignRequest::class);
@@ -100,7 +99,7 @@ final class MailServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->will($this->returnValue($file));
 		$this->mailer
 			->method('send')
-			->willReturnCallback(function () {
+			->willReturnCallback(function ():void {
 				throw new \Exception("Error Processing Request", 1);
 			});
 		$this->appConfig

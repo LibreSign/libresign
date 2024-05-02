@@ -6,13 +6,13 @@ use OCA\Libresign\Helper\Pagination;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	public function testWithOnePage() {
+	public function testWithOnePage():void {
 		$queryBuilder = $this->createMock(IQueryBuilder::class);
 		$queryBuilder
 			->method('getType')
 			->willReturn(0);
 		$result = new class {
-			public function fetch() {
+			public function fetch():array {
 				return ['total_results' => 1];
 			}
 		};
@@ -21,7 +21,7 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($result);
 		$pagination = new Pagination(
 			$queryBuilder,
-			function () {
+			function ():void {
 			}
 		);
 		$actual = $pagination->getPagination(1, 10);
@@ -35,13 +35,13 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 		$this->assertEquals($expected, $actual);
 	}
-	public function testWithTwoPages() {
+	public function testWithTwoPages():void {
 		$queryBuilder = $this->createMock(IQueryBuilder::class);
 		$queryBuilder
 			->method('getType')
 			->willReturn(0);
 		$result = new class {
-			public function fetch() {
+			public function fetch():array {
 				return ['total_results' => 2];
 			}
 		};
@@ -50,7 +50,7 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->willReturn($result);
 		$pagination = new Pagination(
 			$queryBuilder,
-			function () {
+			function ():void {
 			}
 		);
 		$pagination->setRootPath('/root/list');

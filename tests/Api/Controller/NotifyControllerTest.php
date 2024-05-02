@@ -11,7 +11,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testNotifySignersWithError() {
+	public function testNotifySignersWithError():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
@@ -36,7 +36,7 @@ final class NotifyControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testNotifySignersWithSuccess() {
+	public function testNotifySignersWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',

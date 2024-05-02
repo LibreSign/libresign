@@ -24,22 +24,22 @@ final class AdminSettingsTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testGetId() {
+	public function testGetId():void {
 		$actual = $this->adminSettings->getID();
 		$this->assertEquals(Application::APP_ID, $actual);
 	}
 
-	public function testGetName() {
+	public function testGetName():void {
 		$actual = $this->adminSettings->getName();
 		$this->assertEquals('LibreSign', $actual);
 	}
 
-	public function testGetPriority() {
+	public function testGetPriority():void {
 		$actual = $this->adminSettings->getPriority();
 		$this->assertEquals(60, $actual);
 	}
 
-	public function testGetIcon() {
+	public function testGetIcon():void {
 		$actual = $this->adminSettings->getIcon();
 		$this->assertIsString($actual);
 	}

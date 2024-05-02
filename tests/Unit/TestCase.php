@@ -19,11 +19,11 @@ class TestCase extends \Test\TestCase {
 	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
-	public function mockAppConfig($config) {
+	public function mockAppConfig($config):void {
 		\OC::$server->registerParameter('appName', 'libresign');
 		$service = \OC::$server->get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
+			\OC::$server->registerService(\OCP\IAppConfig::class, function ():AppConfigOverwrite {
 				return new AppConfigOverwrite(
 					\OC::$server->get(\OCP\IDBConnection::class),
 					\OC::$server->get(\Psr\Log\LoggerInterface::class),
@@ -43,10 +43,10 @@ class TestCase extends \Test\TestCase {
 		}
 	}
 
-	public function mockConfig($config) {
+	public function mockConfig($config):void {
 		$service = \OC::$server->get(\OCP\IConfig::class);
 		if (!$service instanceof AllConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IConfig::class, function () {
+			\OC::$server->registerService(\OCP\IConfig::class, function ():AllConfigOverwrite {
 				$configOverwrite = new ConfigOverwrite(\OC::$configDir);
 				$systemConfig = new SystemConfig($configOverwrite);
 				return new AllConfigOverwrite($systemConfig);
@@ -128,12 +128,8 @@ class TestCase extends \Test\TestCase {
 
 	/**
 	 * Create user
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @return \OC\User\User
 	 */
-	public function createAccount($username, $password, $groupName = 'testGroup') {
+	public function createAccount(string $username, string $password, string $groupName = 'testGroup'):\OC\User\User {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [
@@ -163,7 +159,7 @@ class TestCase extends \Test\TestCase {
 		$this->users[] = $username;
 	}
 
-	public function deleteUsers() {
+	public function deleteUsers():void {
 		foreach ($this->users as $username) {
 			$this->deleteUserIfExists($username);
 		}

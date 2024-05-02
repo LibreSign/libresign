@@ -31,28 +31,28 @@ use Psr\Log\LoggerInterface;
  * @group DB
  */
 final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IL10N|MockObject $l10n;
-	private Pkcs7Handler|MockObject $pkcs7Handler;
-	private Pkcs12Handler|MockObject $pkcs12Handler;
-	private FileMapper|MockObject $fileMapper;
-	private SignRequestMapper|MockObject $signRequestMapper;
-	private AccountFileMapper|MockObject $accountFileMapper;
-	private IClientService|MockObject $clientService;
-	private IUserManager|MockObject $userManager;
-	private FolderService|MockObject $folderService;
-	private LoggerInterface|MockObject $logger;
+	private IL10N&MockObject $l10n;
+	private Pkcs7Handler&MockObject $pkcs7Handler;
+	private Pkcs12Handler&MockObject $pkcs12Handler;
+	private FileMapper&MockObject $fileMapper;
+	private SignRequestMapper&MockObject $signRequestMapper;
+	private AccountFileMapper&MockObject $accountFileMapper;
+	private IClientService&MockObject $clientService;
+	private IUserManager&MockObject $userManager;
+	private FolderService&MockObject $folderService;
+	private LoggerInterface&MockObject $logger;
 	private IAppConfig $appConfig;
-	private ValidateHelper|MockObject $validateHelper;
-	private SignerElementsService|MockObject $signerElementsService;
-	private IRootFolder|MockObject $root;
-	private IUserSession|MockObject $userSession;
-	private IUserMountCache|MockObject $userMountCache;
-	private FileElementMapper|MockObject $fileElementMapper;
-	private UserElementMapper|MockObject $userElementMapper;
-	private IEventDispatcher|MockObject $eventDispatcher;
-	private IURLGenerator|MockObject $urlGenerator;
-	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
-	private ITempManager|MockObject $tempManager;
+	private ValidateHelper&MockObject $validateHelper;
+	private SignerElementsService&MockObject $signerElementsService;
+	private IRootFolder&MockObject $root;
+	private IUserSession&MockObject $userSession;
+	private IUserMountCache&MockObject $userMountCache;
+	private FileElementMapper&MockObject $fileElementMapper;
+	private UserElementMapper&MockObject $userElementMapper;
+	private IEventDispatcher&MockObject $eventDispatcher;
+	private IURLGenerator&MockObject $urlGenerator;
+	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
+	private ITempManager&MockObject $tempManager;
 	private IdentifyMethodService $identifyMethodService;
 	private ITimeFactory $timeFactory;
 
@@ -116,7 +116,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testCanDeleteRequestSignatureWhenDocumentAlreadySigned() {
+	public function testCanDeleteRequestSignatureWhenDocumentAlreadySigned():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
@@ -134,7 +134,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getService()->canDeleteRequestSignature(['uuid' => 'valid']);
 	}
 
-	public function testCanDeleteRequestSignatureWhenNoSignatureWasRequested() {
+	public function testCanDeleteRequestSignatureWhenNoSignatureWasRequested():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$file->method('__call')->with($this->equalTo('getId'))->will($this->returnValue(1));
 		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
@@ -161,7 +161,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testNotifyCallback() {
+	public function testNotifyCallback():void {
 		$libreSignFile = new \OCA\Libresign\Db\File();
 		$libreSignFile->setCallback('https://test.coop');
 		$service = $this->getService();
@@ -171,7 +171,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testSignWithFileNotFound() {
+	public function testSignWithFileNotFound():void {
 		$this->expectExceptionMessage('File not found');
 
 		$this->createAccount('username', 'password');

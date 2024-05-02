@@ -13,7 +13,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testLoadCertificate() {
+	public function testLoadCertificate():void {
 		$this->createAccount('admintest', 'password', 'admin');
 		$this->request
 			->withRequestHeader([
@@ -27,7 +27,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testGenerateCertificateWithSuccess() {
+	public function testGenerateCertificateWithSuccess():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
 		// Mock data
 		$this->createAccount('admintest', 'password', 'admin');
@@ -88,7 +88,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testGenerateCertificateWithFailure() {
+	public function testGenerateCertificateWithFailure():void {
 		// Configure request
 		$this->createAccount('admintest', 'password', 'admin');
 		$this->request
