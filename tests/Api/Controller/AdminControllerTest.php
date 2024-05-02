@@ -66,9 +66,9 @@ final class AdminControllerTest extends ApiTestCase {
 		$this->assertRequest();
 
 		// Test if settings has been saved
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'cfssl_uri'), $cfsslConfig['cfsslUri']);
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'config_path'), $cfsslConfig['configPath']);
-		$rootCert = \OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
+		$this->assertEquals(\OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'cfssl_uri'), $cfsslConfig['cfsslUri']);
+		$this->assertEquals(\OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'config_path'), $cfsslConfig['configPath']);
+		$rootCert = \OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
 		$this->assertEqualsCanonicalizing(
 			$cfsslConfig['rootCert'],
 			json_decode($rootCert, true)
