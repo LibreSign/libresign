@@ -83,7 +83,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		]);
 		$signers = $this->getSignersFromFileId($file->getId());
 		$signers[0]->setSigned(time());
-		$signRequest = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+		$signRequest = \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class);
 		$signRequest->update($signers[0]);
 
 		$this->request
@@ -124,7 +124,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$folderService = \OC::$server->get(\OCA\Libresign\Service\FolderService::class);
+		$folderService = \OCP\Server::get(\OCA\Libresign\Service\FolderService::class);
 		$libresignFolder = $folderService->getFolder();
 		$libresignFolder->delete();
 
@@ -218,7 +218,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
@@ -278,7 +278,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
 		$certificate = $pkcs12Handler->generateCertificate(
 			[
 				'host' => 'person@test.coop',
@@ -291,7 +291,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
-		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JSignPdfHandler::class);
+		$jsignHandler = \OCP\Server::get(\OCA\Libresign\Handler\JSignPdfHandler::class);
 		$jsignHandler->setJSignPdf($mock);
 		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler) {
 			return $jsignHandler;

@@ -57,7 +57,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
+		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);

@@ -20,7 +20,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->tempManager = \OC::$server->get(ITempManager::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 

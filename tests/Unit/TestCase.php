@@ -23,16 +23,16 @@ class TestCase extends \Test\TestCase {
 
 	public function mockAppConfig($config) {
 		\OC::$server->registerParameter('appName', 'libresign');
-		$service = \OC::$server->get(\OCP\IAppConfig::class);
+		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
 			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
 				return new AppConfigOverwrite(
-					\OC::$server->get(\OCP\IDBConnection::class),
-					\OC::$server->get(\Psr\Log\LoggerInterface::class),
-					\OC::$server->get(\OCP\Security\ICrypto::class),
+					\OCP\Server::get(\OCP\IDBConnection::class),
+					\OCP\Server::get(\Psr\Log\LoggerInterface::class),
+					\OCP\Server::get(\OCP\Security\ICrypto::class),
 				);
 			});
-			$service = \OC::$server->get(\OCP\IAppConfig::class);
+			$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		}
 		if (is_subclass_of($service, \OCP\IAppConfig::class)) {
 			foreach ($config as $key => $value) {
@@ -53,7 +53,7 @@ class TestCase extends \Test\TestCase {
 				$systemConfig = new SystemConfig($configOverwrite);
 				return new AllConfigOverwrite($systemConfig);
 			});
-			$service = \OC::$server->get(\OCP\IConfig::class);
+			$service = \OCP\Server::get(\OCP\IConfig::class);
 		}
 		if (is_subclass_of($service, IConfig::class)) {
 			foreach ($config as $app => $keys) {
@@ -120,7 +120,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function cleanDatabase(): void {
-		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		$db = \OCP\Server::get(\OCP\IDBConnection::class);
 		if (!$db) {
 			return;
 		}
@@ -149,8 +149,8 @@ class TestCase extends \Test\TestCase {
 			]
 		]);
 
-		$userManager = \OC::$server->get(\OCP\IUserManager::class);
-		$groupManager = \OC::$server->get(\OCP\IGroupManager::class);
+		$userManager = \OCP\Server::get(\OCP\IUserManager::class);
+		$groupManager = \OCP\Server::get(\OCP\IGroupManager::class);
 
 		$user = $userManager->get($username);
 		if (!$user) {
@@ -178,7 +178,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	public function deleteUserIfExists($username): void {
-		$user = \OC::$server->get(\OCP\IUserManager::class)->get($username);
+		$user = \OCP\Server::get(\OCP\IUserManager::class)->get($username);
 		if ($user) {
 			try {
 				$user->delete();
@@ -189,7 +189,7 @@ class TestCase extends \Test\TestCase {
 
 	private function getBinariesFromCache(): void {
 		/** @var \OCA\Libresign\Service\Install\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\Install\InstallService::class);
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
@@ -203,7 +203,7 @@ class TestCase extends \Test\TestCase {
 
 	private function backupBinaries(): void {
 		/** @var \OCA\Libresign\Service\Install\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\Install\InstallService::class);
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		if (!is_readable($appPath)) {
 			return;
@@ -281,7 +281,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	private function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
 		if (!isset($this->requestSignatureService)) {
-			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
+			$this->requestSignatureService = \OCP\Server::get(\OCA\Libresign\Service\RequestSignatureService::class);
 		}
 		return $this->requestSignatureService;
 	}
@@ -295,7 +295,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	private function getSignRequestMapper(): \OCA\Libresign\Db\SignRequestMapper {
 		if (!isset($this->signRequestMapper)) {
-			$this->signRequestMapper = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+			$this->signRequestMapper = \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class);
 		}
 		return $this->signRequestMapper;
 	}
