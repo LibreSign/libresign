@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
@@ -184,7 +186,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public function theResponseOfFileListMatchWith(PyStringNode $expected): void {
 		$this->response->getBody()->seek(0);
 		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$expectedArray = json_decode($expected, true);
+		$expectedArray = json_decode((string) $expected, true);
 		Assert::assertArrayHasKey('pagination', $realResponseArray, 'The response have not pagination');
 		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
 		Assert::assertArrayHasKey('data', $realResponseArray);
@@ -211,7 +213,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	/**
 	 * @When /^wait for ([0-9]+) (second|seconds)$/
 	 */
-	public function waitForXSecond($seconds): void {
+	public function waitForXSecond(int $seconds): void {
 		sleep($seconds);
 	}
 
