@@ -245,6 +245,7 @@ OC.L10N.register(
     "Downloading binaries" : "Stahují se programy",
     "Binaries downloaded" : "Stahování programů",
     "Validate setup" : "Ověřit nastavení",
+    "Renewal interval" : "Interval obnovy",
     "Expiration rules" : "Pravidla skončení platnosti",
     "Enable identification documents flow" : "Zapnout tok identifikačních dokladů",
     "Identification documents" : "Identifikační doklady",
