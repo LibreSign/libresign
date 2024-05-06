@@ -71,4 +71,9 @@ Inside bash of Nextcloud go to the folder `apps-extra/libresign` and then run th
 To update API Documentation
 ---------------------------
 
+After Configure the environment
+
+After installing LibreSign, go to `Administration Settings > LibreSign` and:
+* Click in the `Download binaries` button. When it show status `successful` to all items, except `root certificate not configured`, is time to configure root certificate in the next section.
+
 [Repository of site and API documentation](https://github.com/libresign/libresign.github.io)
