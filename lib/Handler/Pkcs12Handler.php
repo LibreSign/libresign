@@ -33,35 +33,26 @@ use Endroid\QrCode\Matrix\Matrix;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use OC\SystemConfig;
-use OCA\Libresign\Db\File as FileEntity;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\PdfParserService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\File;
 use OCP\IL10N;
-use OCP\IURLGenerator;
-use TCPDF;
 use TypeError;
 
 class Pkcs12Handler extends SignEngineHandler {
-	/** @var string */
-	private $pfxFilename = 'signature.pfx';
-	/** @var QrCode */
-	private $qrCode;
-	private const MIN_QRCODE_SIZE = 100;
+	private string $pfxFilename = 'signature.pfx';
 	private string $pfxContent = '';
 
 	public function __construct(
 		private FolderService $folderService,
 		private IAppConfig $appConfig,
-		private IURLGenerator $urlGenerator,
 		private SystemConfig $systemConfig,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IL10N $l10n,
 		private JSignPdfHandler $jSignPdfHandler,
-		private PdfParserService $pdfParserService,
+		private FooterHandler $footerHandler,
 	) {
 	}
 

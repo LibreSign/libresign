@@ -5,13 +5,12 @@ declare(strict_types=1);
 use OC\SystemConfig;
 use OCA\Libresign\Handler\CertificateEngine\CfsslHandler;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\JSignPdfHandler;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Service\FolderService;
-use OCA\Libresign\Service\PdfParserService;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IL10N;
-use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
@@ -30,7 +29,6 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	public function setUp(): void {
 		$this->folderService = $this->createMock(FolderService::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->systemConfig = $this->createMock(SystemConfig::class);
 		$this->certificateEngineHandler = $this->createMock(CertificateEngineHandler::class);
 		$this->l10n = $this->createMock(IL10N::class);
@@ -38,16 +36,15 @@ final class Pkcs12HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->method('t')
 			->will($this->returnArgument(0));
 		$this->jSignPdfHandler = $this->createMock(JSignPdfHandler::class);
-		$this->pdfParserService = $this->createMock(PdfParserService::class);
+		$this->footerHandler = $this->createMock(FooterHandler::class);
 		$this->pkcs12Handler = new Pkcs12Handler(
 			$this->folderService,
 			$this->appConfig,
-			$this->urlGenerator,
 			$this->systemConfig,
 			$this->certificateEngineHandler,
 			$this->l10n,
 			$this->jSignPdfHandler,
-			$this->pdfParserService,
+			$this->footerHandler,
 		);
 	}
 
