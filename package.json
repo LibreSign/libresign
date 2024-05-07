@@ -62,7 +62,7 @@
     "@nextcloud/babel-config": "^1.1.1",
     "@nextcloud/browserslist-config": "^3.0.1",
     "@nextcloud/eslint-config": "^8.3.0",
-    "@nextcloud/stylelint-config": "^3.0.0",
+    "@nextcloud/stylelint-config": "^3.0.1",
     "@nextcloud/webpack-vue-config": "^6.0.1",
     "file-loader": "^6.2.0",
     "url-loader": "^4.1.1",
