@@ -41,6 +41,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
@@ -91,6 +92,7 @@ class SignFileService {
 		private AccountFileMapper $accountFileMapper,
 		private Pkcs7Handler $pkcs7Handler,
 		private Pkcs12Handler $pkcs12Handler,
+		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
 		private IUserManager $userManager,
@@ -533,7 +535,7 @@ class SignFileService {
 				$originalFile->getPath()
 			);
 
-			$footer = $this->pkcs12Handler->getFooter($originalFile, $fileData);
+			$footer = $this->footerHandler->getFooter($originalFile, $fileData);
 			if ($footer) {
 				$background = $this->tempManager->getTemporaryFile('signed.pdf');
 				file_put_contents($background, $footer);
