@@ -162,7 +162,7 @@ class FooterHandler {
 
 	private function getTemplate(): string {
 		return $this->appConfig->getAppValue('footer_template', <<<'HTML'
-			<table border="0" width="100%" style="font-size:8px;">
+			<table style="width:100%;border:0;font-size:8px;">
 				<tr>
 					{% if qrcode %}
 						<td width="{{ qrcodeSize }}px">
