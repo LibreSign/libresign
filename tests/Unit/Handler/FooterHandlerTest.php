@@ -108,7 +108,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'qrcode',
 		]);
 		$expected = [
-			'qrcodeSize' => '110',
+			'qrcodeSize' => '108',
 			'signedBy' => 'Digital signed by LibreSign.',
 			'validateIn' => 'Validate in %s.',
 			'test' => 'fake value',
