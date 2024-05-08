@@ -186,7 +186,7 @@ class FooterHandler {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
-			->setMargin(5)
+			->setMargin(4)
 			->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
 			->setForegroundColor(new Color(0, 0, 0))
 			->setBackgroundColor(new Color(255, 255, 255));
