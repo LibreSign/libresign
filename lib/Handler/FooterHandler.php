@@ -190,8 +190,7 @@ class FooterHandler {
 			->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
 			->setForegroundColor(new Color(0, 0, 0))
 			->setBackgroundColor(new Color(255, 255, 255));
-		$blockValues = $this->getQrCodeBlocks();
-		$this->setQrCodeSize($blockValues);
+		$this->setQrCodeSize();
 		$writer = new PngWriter();
 		$result = $writer->write($this->qrCode);
 		$qrcode = base64_encode($result->getString());
@@ -201,7 +200,8 @@ class FooterHandler {
 		return '<img src="data:image/png;base64,' . $qrcode . '" style="width:' . $this->templateVars['qrcodeSize'] . 'px"/>';
 	}
 
-	private function setQrCodeSize(array $blockValues): void {
+	private function setQrCodeSize(): void {
+		$blockValues = $this->getQrCodeBlocks();
 		$this->qrCode->setSize(self::MIN_QRCODE_SIZE);
 		$blockSize = $this->qrCode->getSize() / count($blockValues);
 		if ($blockSize < 1) {
