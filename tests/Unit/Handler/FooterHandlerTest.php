@@ -65,10 +65,10 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					'footer_validate_in' => 'Validate in %s.',
 					'footer_template' => <<<'HTML'
 						<div style="font-size:8px;">
-						qrcode: {{ qrcode|raw }}<br />
-						qrcodeSize: {{ qrcodeSize }}<br />
-						signedBy: {{ signedBy }}<br />
-						validateIn: {{ validateIn }}
+						qrcodeSize:{{ qrcodeSize }}<br />
+						signedBy:{{ signedBy }}<br />
+						validateIn:{{ validateIn }}<br />
+						qrcode:{{ qrcode }}
 						</div>
 						HTML,
 					default => '',
@@ -96,7 +96,34 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					default => '',
 				};
 			});
-		$actual = $this->getClass()->getFooter($file, $libresignFile);
-		$this->assertEquals(15639, strlen($actual));
+		$pdf = $this->getClass()->getFooter($file, $libresignFile);
+		$actual = $this->extractPdfContent($pdf, [
+			'qrcodeSize',
+			'signedBy',
+			'validateIn',
+			'qrcode',
+		]);
+		$expected = [
+			'qrcodeSize' => '110',
+			'signedBy' => 'Digital signed by LibreSign.',
+			'validateIn' => 'Validate in %s.',
+			'qrcode' => '<img',
+		];
+		$this->assertEquals($expected, $actual);
+	}
+
+	private function extractPdfContent(string $content, array $keys): array {
+		$this->assertNotEmpty($content, 'Empty PDF file');
+		$this->assertNotEmpty($keys, 'Is necessary to send a not empty array of fields to search at PDF file');
+		$parser = new \Smalot\PdfParser\Parser();
+		$pdf = $parser->parseContent($content);
+		$text = $pdf->getText();
+		$this->assertNotEmpty($text, 'PDF without text');
+		$content = explode("\n", $text);
+		$this->assertNotEmpty($content, 'PDF without any row');
+		$content = array_map(fn($row) => str_getcsv($row, ':'), $content);
+		$content = array_filter($content, fn($row) => in_array($row[0], $keys));
+		$this->assertNotEmpty($content, 'Fields not found at PDF file');
+		return array_column($content, 1, 0);
 	}
 }
