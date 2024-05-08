@@ -151,6 +151,8 @@ appstore-local: clean
 		LICENSE \
 		$(appstore_sign_dir)/$(app_name)
 	rm $(appstore_sign_dir)/$(app_name)/vendor/endroid/qr-code/assets/*
+	find $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/ttfonts -type f -not -name 'DejaVuSerifCondensed.ttf' -delete
+	rm $(appstore_sign_dir)/$(app_name)/vendor/mpdf/mpdf/data/*.dat
 	rm -rf $(appstore_sign_dir)/$(app_name)/img/screenshot/
 	mkdir -p $(appstore_sign_dir)/$(app_name)/tests/fixtures
 	cp tests/fixtures/small_valid.pdf $(appstore_sign_dir)/$(app_name)/tests/fixtures \
