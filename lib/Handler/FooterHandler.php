@@ -196,8 +196,7 @@ class FooterHandler {
 		$result = $writer->write($this->qrCode);
 		$qrcode = base64_encode($result->getString());
 
-		$matrix = new Matrix($blockValues, $this->qrCode->getSize(), $this->qrCode->getMargin(), $this->qrCode->getRoundBlockSizeMode());
-		$this->templateVars['qrcodeSize'] = $matrix->getOuterSize();
+		$this->templateVars['qrcodeSize'] = $this->qrCode->getSize() + $this->qrCode->getMargin() * 2;
 
 		return '<img src="data:image/png;base64,' . $qrcode . '" style="width:' . $this->templateVars['qrcodeSize'] . 'px"/>';
 	}
