@@ -547,7 +547,7 @@ class SignFileService {
 			);
 
 			$footer = $this->footerHandler
-				->setTemplateVar('signers', array_map(function(SignRequestEntity $signer) {
+				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
 					return $signer->getDisplayName();
 				}, $this->getSigners()))
 				->getFooter($originalFile, $fileData);
