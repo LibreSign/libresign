@@ -6,7 +6,6 @@
 		"mpdf/mpdf": "^8.2",
 		"pagerfanta/pagerfanta": "^4.5",
 		"smalot/pdfparser": "^2.4",
-		"tecnickcom/tcpdf": "^6.7",
 		"twig/twig": "^3.9",
 		"wobeto/email-blur": "^1.0"
 	},
