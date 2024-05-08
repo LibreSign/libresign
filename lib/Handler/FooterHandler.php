@@ -127,6 +127,11 @@ class FooterHandler {
 		}
 	}
 
+	public function setTemplateVar(string $name, mixed $value): self {
+		$this->templateVars[$name] = $value;
+		return $this;
+	}
+
 	private function getTemplateVars(): array {
 		$this->templateVars['signedBy'] = iconv(
 			'UTF-8',
