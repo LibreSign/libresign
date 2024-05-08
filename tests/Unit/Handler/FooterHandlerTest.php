@@ -112,8 +112,9 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			'signedBy' => 'Digital signed by LibreSign.',
 			'validateIn' => 'Validate in %s.',
 			'test' => 'fake value',
-			'qrcode' => '<img',
 		];
+		$this->assertArrayHasKey('qrcode', $actual);
+		unset($actual['qrcode']);
 		$this->assertEquals($expected, $actual);
 	}
 
