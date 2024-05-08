@@ -68,6 +68,7 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 						qrcodeSize:{{ qrcodeSize }}<br />
 						signedBy:{{ signedBy }}<br />
 						validateIn:{{ validateIn }}<br />
+						test:{{ test }}<br />
 						qrcode:{{ qrcode }}
 						</div>
 						HTML,
@@ -96,17 +97,21 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 					default => '',
 				};
 			});
-		$pdf = $this->getClass()->getFooter($file, $libresignFile);
+		$pdf = $this->getClass()
+			->setTemplateVar('test', 'fake value')
+			->getFooter($file, $libresignFile);
 		$actual = $this->extractPdfContent($pdf, [
 			'qrcodeSize',
 			'signedBy',
 			'validateIn',
+			'test',
 			'qrcode',
 		]);
 		$expected = [
 			'qrcodeSize' => '110',
 			'signedBy' => 'Digital signed by LibreSign.',
 			'validateIn' => 'Validate in %s.',
+			'test' => 'fake value',
 			'qrcode' => '<img',
 		];
 		$this->assertEquals($expected, $actual);
@@ -121,8 +126,8 @@ final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNotEmpty($text, 'PDF without text');
 		$content = explode("\n", $text);
 		$this->assertNotEmpty($content, 'PDF without any row');
-		$content = array_map(fn($row) => str_getcsv($row, ':'), $content);
-		$content = array_filter($content, fn($row) => in_array($row[0], $keys));
+		$content = array_map(fn ($row) => str_getcsv($row, ':'), $content);
+		$content = array_filter($content, fn ($row) => in_array($row[0], $keys));
 		$this->assertNotEmpty($content, 'Fields not found at PDF file');
 		return array_column($content, 1, 0);
 	}
