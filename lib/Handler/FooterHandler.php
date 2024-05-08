@@ -151,7 +151,7 @@ class FooterHandler {
 
 		$this->templateVars['validateIn'] = $this->appConfig->getAppValue('footer_validate_in', 'Validate in %s.');
 		if ($this->templateVars['validateIn'] === 'Validate in %s.') {
-			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', $this->templateVars['validationSite']);
+			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', ['%s']);
 		}
 
 		$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
@@ -172,7 +172,10 @@ class FooterHandler {
 						<a href="{{ linkToSite }}" style="text-decoration: none;color:unset;">{{ signedBy }}</a>
 						{% if validateIn %}
 							<br>
-							<a href="{{ validateIn }}" style="text-decoration: none;color:unset;">{{ validateIn }}</a>
+							<a href="{{ validationSite }}"
+								style="text-decoration: none;color:unset;">
+								{{ validateIn|replace({'%s': validationSite}) }}
+							</a>
 						{% endif %}
 					</td>
 				</tr>
