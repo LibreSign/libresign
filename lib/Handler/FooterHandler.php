@@ -154,7 +154,7 @@ class FooterHandler {
 			$this->templateVars['validateIn'] = $this->l10n->t('Validate in %s.', $this->templateVars['validationSite']);
 		}
 
-		$this->templateVars['qrcode'] = $this->getQrCodeImageTag($this->templateVars['validationSite']);
+		$this->templateVars['qrcode'] = $this->getQrCodeImageBase64($this->templateVars['validationSite']);
 
 		return $this->templateVars;
 	}
@@ -165,7 +165,7 @@ class FooterHandler {
 				<tr>
 					{% if qrcode %}
 						<td width="{{ qrcodeSize }}px">
-							{{ qrcode|raw }}
+							<img src="data:image/png;base64,{{ qrcode }}" style="width:{{ qrcodeSize }}px"/>
 						</td>
 					{% endif %}
 					<td style="vertical-align: bottom;padding: 0px 0px 15px 0px;line-height:1.5em;">
@@ -181,7 +181,7 @@ class FooterHandler {
 		);
 	}
 
-	private function getQrCodeImageTag(string $text): string {
+	private function getQrCodeImageBase64(string $text): string {
 		$this->qrCode = QrCode::create($text)
 			->setEncoding(new Encoding('UTF-8'))
 			->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
@@ -196,7 +196,7 @@ class FooterHandler {
 
 		$this->templateVars['qrcodeSize'] = $this->qrCode->getSize() + $this->qrCode->getMargin() * 2;
 
-		return '<img src="data:image/png;base64,' . $qrcode . '" style="width:' . $this->templateVars['qrcodeSize'] . 'px"/>';
+		return $qrcode;
 	}
 
 	private function setQrCodeSize(): void {
