@@ -27,7 +27,6 @@ namespace OCA\Libresign\Service;
 use OCP\Files\Node;
 use OCP\Http\Client\IClientService;
 use setasign\Fpdi\PdfParserService\Type\PdfTypeException;
-use TCPDF_PARSER;
 
 trait TFile {
 	/** @var ?string */
@@ -150,7 +149,8 @@ trait TFile {
 	 */
 	private function validatePdfStringWithFpdi($string): void {
 		try {
-			new TCPDF_PARSER($string);
+			$parser = new \Smalot\PdfParser\Parser();
+			$parser->parseContent($string);
 		} catch (\Throwable $th) {
 			$this->logger->error($th->getMessage());
 			throw new \Exception($this->l10n->t('Invalid PDF'));
