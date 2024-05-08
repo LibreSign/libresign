@@ -169,12 +169,13 @@ class FooterHandler {
 							{{ qrcode|raw }}
 						</td>
 					{% endif %}
-					{% if validateIn %}
-						<td style="vertical-align: bottom;padding: 0px 0px 15px 0px;line-height:1.5em;">
-							<a href="{{ linkToSite }}" style="text-decoration: none;color:unset;">{{ signedBy }}</a><br>
+					<td style="vertical-align: bottom;padding: 0px 0px 15px 0px;line-height:1.5em;">
+						<a href="{{ linkToSite }}" style="text-decoration: none;color:unset;">{{ signedBy }}</a>
+						{% if validateIn %}
+							<br>
 							<a href="{{ validateIn }}" style="text-decoration: none;color:unset;">{{ validateIn }}</a>
-						</td>
-					{% endif %}
+						{% endif %}
+					</td>
 				</tr>
 			</table>
 			HTML
