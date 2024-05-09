@@ -1,12 +1,14 @@
 {
     "require-dev": {
-        "phpunit/phpunit": "9.5.28",
-        "donatj/mock-webserver": "^2.5",
+        "phpunit/phpunit": "^9.6",
+        "donatj/mock-webserver": "^2.7",
         "mikey179/vfsstream": "^1.6",
-        "byjg/swagger-test": "dev-master",
+        "byjg/swagger-test": "4.9.x-dev",
         "guzzlehttp/psr7": "^2.4",
-        "symfony/yaml": "^5.4"
+        "symfony/yaml": "^5.4",
+        "smalot/pdfparser": "dev-master"
     },
+    "minimum-stability": "dev",
     "config": {
         "platform": {
             "php": "8.0"

@@ -84,8 +84,8 @@ class ApiRequester extends AbstractRequester {
 				vfsStream::setup('home');
 				$stream = vfsStream::url('home/test.txt');
 				file_put_contents($stream, $request->getBody()->getContents());
-			} else {
-				$vars['post'] = $request->getBody()->getContents();
+			} elseif ($request->getMethod() === 'POST') {
+				$vars['post'] = json_decode($request->getBody()->getContents(), true);
 			}
 		}
 		$mockRequest = new Request(

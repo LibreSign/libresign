@@ -41,6 +41,7 @@ use OCA\Libresign\Db\UserElementMapper;
 use OCA\Libresign\Events\SignedEvent;
 use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\LibresignException;
+use OCA\Libresign\Handler\FooterHandler;
 use OCA\Libresign\Handler\PdfTk\Pdf;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Handler\Pkcs7Handler;
@@ -82,6 +83,7 @@ class SignFileService {
 	private ?Node $fileToSign = null;
 	private string $userUniqueIdentifier = '';
 	private string $friendlyName = '';
+	private array $signers = [];
 	private ?IUser $user;
 
 	public function __construct(
@@ -91,6 +93,7 @@ class SignFileService {
 		private AccountFileMapper $accountFileMapper,
 		private Pkcs7Handler $pkcs7Handler,
 		private Pkcs12Handler $pkcs12Handler,
+		private FooterHandler $footerHandler,
 		protected FolderService $folderService,
 		private IClientService $client,
 		private IUserManager $userManager,
@@ -318,8 +321,18 @@ class SignFileService {
 		return $this;
 	}
 
+	/**
+	 * @return SignRequestEntity[]
+	 */
+	private function getSigners(): array {
+		if (empty($this->signers)) {
+			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
+		}
+		return $this->signers;
+	}
+
 	private function updateStatus(): bool {
-		$signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
+		$signers = $this->getSigners();
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;
 			return $carry;
@@ -533,7 +546,11 @@ class SignFileService {
 				$originalFile->getPath()
 			);
 
-			$footer = $this->pkcs12Handler->getFooter($originalFile, $fileData);
+			$footer = $this->footerHandler
+				->setTemplateVar('signers', array_map(function (SignRequestEntity $signer) {
+					return $signer->getDisplayName();
+				}, $this->getSigners()))
+				->getFooter($originalFile, $fileData);
 			if ($footer) {
 				$background = $this->tempManager->getTemporaryFile('signed.pdf');
 				file_put_contents($background, $footer);
