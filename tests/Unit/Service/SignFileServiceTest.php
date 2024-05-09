@@ -37,6 +37,7 @@ final class SignFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private IL10N|MockObject $l10n;
 	private Pkcs7Handler|MockObject $pkcs7Handler;
 	private Pkcs12Handler|MockObject $pkcs12Handler;
+	private FooterHandler|MockObject $footerHandler;
 	private FileMapper|MockObject $fileMapper;
 	private SignRequestMapper|MockObject $signRequestMapper;
 	private AccountFileMapper|MockObject $accountFileMapper;
