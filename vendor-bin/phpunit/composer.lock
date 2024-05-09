@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "880e3a06a7b03f04acd3d9813682da88",
+    "content-hash": "9da74e0e4250815fdafb4c78ea0fd474",
     "packages": [],
     "packages-dev": [
         {
             "name": "byjg/swagger-test",
-            "version": "dev-master",
+            "version": "4.9.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0"
+                "reference": "06c371482104061758299056853016de42e06311"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/0fee1204da82694978b196ba4b27de41d10cfbb0",
-                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/06c371482104061758299056853016de42e06311",
+                "reference": "06c371482104061758299056853016de42e06311",
                 "shasum": ""
             },
             "require": {
@@ -30,7 +30,6 @@
                 "byjg/restserver": "4.9.*",
                 "phpunit/phpunit": "5.7.*|7.4.*|^9.5"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -44,27 +43,27 @@
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/master"
+                "source": "https://github.com/byjg/php-swagger-test/tree/4.9"
             },
-            "time": "2024-01-16T01:41:42+00:00"
+            "time": "2024-02-14T20:14:06+00:00"
         },
         {
             "name": "byjg/uri",
-            "version": "4.9.0",
+            "version": "4.9.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948"
+                "reference": "989d71008f825af7e0a57aea11f0c4647f7bd19b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/c1467fd5ed953c760cb54d2475ce9bc743d73948",
-                "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/989d71008f825af7e0a57aea11f0c4647f7bd19b",
+                "reference": "989d71008f825af7e0a57aea11f0c4647f7bd19b",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.4.0",
-                "psr/http-message": "~1.0"
+                "php": ">=7.4",
+                "psr/http-message": "^1.0|^2.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "5.7.*|7.4.*|^9.5"
@@ -82,9 +81,9 @@
             "description": "An implementation of PSR UriInterface ",
             "support": {
                 "issues": "https://github.com/byjg/php-uri/issues",
-                "source": "https://github.com/byjg/php-uri/tree/4.9.0"
+                "source": "https://github.com/byjg/php-uri/tree/4.9"
             },
-            "time": "2022-06-15T13:17:35+00:00"
+            "time": "2024-05-09T19:05:59+00:00"
         },
         {
             "name": "byjg/webrequest",
@@ -92,21 +91,21 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "6ae5627820b7db9bc19e3f428dd3a945e482841d"
+                "reference": "11b5b8389ce198306b9a42e3b0adb16177a8c507"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/6ae5627820b7db9bc19e3f428dd3a945e482841d",
-                "reference": "6ae5627820b7db9bc19e3f428dd3a945e482841d",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/11b5b8389ce198306b9a42e3b0adb16177a8c507",
+                "reference": "11b5b8389ce198306b9a42e3b0adb16177a8c507",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "4.9.*",
+                "byjg/uri": "4.9.x-dev",
                 "ext-curl": "*",
                 "ext-json": "*",
                 "php": ">=7.4",
                 "psr/http-client": "^1.0",
-                "psr/http-message": "1.0.*"
+                "psr/http-message": "^1.0|^2.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "^9.5"
@@ -124,9 +123,9 @@
             "description": "A lightweight and highly customized CURL wrapper for making RESt calls and a wrapper for call dynamically SOAP requests.",
             "support": {
                 "issues": "https://github.com/byjg/php-webrequest/issues",
-                "source": "https://github.com/byjg/php-webrequest/tree/master"
+                "source": "https://github.com/byjg/php-webrequest/tree/4.9"
             },
-            "time": "2024-05-09T02:52:27+00:00"
+            "time": "2024-05-09T18:56:02+00:00"
         },
         {
             "name": "doctrine/instantiator",
@@ -276,22 +275,22 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.4.x-dev",
+            "version": "2.6.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "0454e12ef0cd597ccd2adb036f7bda4e7fface66"
+                "reference": "a243f80a1ca7fe8ceed4deee17f12c1930efe662"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/0454e12ef0cd597ccd2adb036f7bda4e7fface66",
-                "reference": "0454e12ef0cd597ccd2adb036f7bda4e7fface66",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/a243f80a1ca7fe8ceed4deee17f12c1930efe662",
+                "reference": "a243f80a1ca7fe8ceed4deee17f12c1930efe662",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2.5 || ^8.0",
                 "psr/http-factory": "^1.0",
-                "psr/http-message": "^1.0",
+                "psr/http-message": "^1.1 || ^2.0",
                 "ralouphie/getallheaders": "^3.0"
             },
             "provide": {
@@ -299,13 +298,14 @@
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.8.1",
+                "bamarni/composer-bin-plugin": "^1.8.2",
                 "http-interop/http-factory-tests": "^0.9",
-                "phpunit/phpunit": "^8.5.29 || ^9.5.23"
+                "phpunit/phpunit": "^8.5.36 || ^9.6.15"
             },
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -372,7 +372,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.4"
+                "source": "https://github.com/guzzle/psr7/tree/2.6"
             },
             "funding": [
                 {
@@ -388,7 +388,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-04-17T16:00:45+00:00"
+            "time": "2024-03-31T10:09:24+00:00"
         },
         {
             "name": "mikey179/vfsstream",
@@ -1214,25 +1214,26 @@
         },
         {
             "name": "psr/http-message",
-            "version": "1.0.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-message.git",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": "^7.2 || ^8.0"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0.x-dev"
+                    "dev-master": "2.0.x-dev"
                 }
             },
             "autoload": {
@@ -1247,7 +1248,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
+                    "homepage": "https://www.php-fig.org/"
                 }
             ],
             "description": "Common interface for HTTP messages",
@@ -1261,9 +1262,9 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
+                "source": "https://github.com/php-fig/http-message/tree/2.0"
             },
-            "time": "2016-08-06T14:39:51+00:00"
+            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
