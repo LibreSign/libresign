@@ -3,7 +3,7 @@
         "phpunit/phpunit": "^9.6",
         "donatj/mock-webserver": "^2.7",
         "mikey179/vfsstream": "^1.6",
-        "byjg/swagger-test": "5.0.x-dev",
+        "byjg/swagger-test": "dev-master",
         "guzzlehttp/psr7": "^2.4",
         "symfony/yaml": "^5.4",
         "smalot/pdfparser": "dev-master"

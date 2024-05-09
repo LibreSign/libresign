@@ -4,32 +4,33 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ab6ee57397f3ddeb447f06c77ca65e40",
+    "content-hash": "880e3a06a7b03f04acd3d9813682da88",
     "packages": [],
     "packages-dev": [
         {
             "name": "byjg/swagger-test",
-            "version": "5.0.x-dev",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-swagger-test.git",
-                "reference": "91c268624566924776288fbd4725d62720cbafd3"
+                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/91c268624566924776288fbd4725d62720cbafd3",
-                "reference": "91c268624566924776288fbd4725d62720cbafd3",
+                "url": "https://api.github.com/repos/byjg/php-swagger-test/zipball/0fee1204da82694978b196ba4b27de41d10cfbb0",
+                "reference": "0fee1204da82694978b196ba4b27de41d10cfbb0",
                 "shasum": ""
             },
             "require": {
-                "byjg/webrequest": "dev-5.0.0rc",
+                "byjg/webrequest": "4.9.*",
                 "ext-json": "*",
-                "php": ">=8.1"
+                "php": ">=7.4"
             },
             "require-dev": {
-                "byjg/restserver": "^5.0",
-                "phpunit/phpunit": "^9.6"
+                "byjg/restserver": "4.9.*",
+                "phpunit/phpunit": "5.7.*|7.4.*|^9.5"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -43,30 +44,30 @@
             "description": "A set of tools for testing your REST calls based on the Swagger or OpenAPI documentation using PHPUnit",
             "support": {
                 "issues": "https://github.com/byjg/php-swagger-test/issues",
-                "source": "https://github.com/byjg/php-swagger-test/tree/5.0"
+                "source": "https://github.com/byjg/php-swagger-test/tree/master"
             },
-            "time": "2024-01-07T20:16:47+00:00"
+            "time": "2024-01-16T01:41:42+00:00"
         },
         {
             "name": "byjg/uri",
-            "version": "5.0.x-dev",
+            "version": "4.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-uri.git",
-                "reference": "d36cee6e9b19b1504a1a2a0a87f67a62d51d2e48"
+                "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-uri/zipball/d36cee6e9b19b1504a1a2a0a87f67a62d51d2e48",
-                "reference": "d36cee6e9b19b1504a1a2a0a87f67a62d51d2e48",
+                "url": "https://api.github.com/repos/byjg/php-uri/zipball/c1467fd5ed953c760cb54d2475ce9bc743d73948",
+                "reference": "c1467fd5ed953c760cb54d2475ce9bc743d73948",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
-                "psr/http-message": "^1.1|^2.0"
+                "php": ">=5.4.0",
+                "psr/http-message": "~1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^9.6"
+                "phpunit/phpunit": "5.7.*|7.4.*|^9.5"
             },
             "type": "library",
             "autoload": {
@@ -81,35 +82,34 @@
             "description": "An implementation of PSR UriInterface ",
             "support": {
                 "issues": "https://github.com/byjg/php-uri/issues",
-                "source": "https://github.com/byjg/php-uri/tree/5.0"
+                "source": "https://github.com/byjg/php-uri/tree/4.9.0"
             },
-            "time": "2024-01-09T03:01:55+00:00"
+            "time": "2022-06-15T13:17:35+00:00"
         },
         {
             "name": "byjg/webrequest",
-            "version": "dev-5.0.0rc",
+            "version": "4.9.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/byjg/php-webrequest.git",
-                "reference": "f0940943d276c05e25772c9a1b1886db15868328"
+                "reference": "6ae5627820b7db9bc19e3f428dd3a945e482841d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/f0940943d276c05e25772c9a1b1886db15868328",
-                "reference": "f0940943d276c05e25772c9a1b1886db15868328",
+                "url": "https://api.github.com/repos/byjg/php-webrequest/zipball/6ae5627820b7db9bc19e3f428dd3a945e482841d",
+                "reference": "6ae5627820b7db9bc19e3f428dd3a945e482841d",
                 "shasum": ""
             },
             "require": {
-                "byjg/uri": "5.0.x-dev",
+                "byjg/uri": "4.9.*",
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=8.1",
+                "php": ">=7.4",
                 "psr/http-client": "^1.0",
-                "psr/http-message": "^2.0"
+                "psr/http-message": "1.0.*"
             },
             "require-dev": {
-                "ext-soap": "*",
-                "phpunit/phpunit": "^9.6"
+                "phpunit/phpunit": "^9.5"
             },
             "type": "library",
             "autoload": {
@@ -121,47 +121,40 @@
             "license": [
                 "MIT"
             ],
-            "authors": [
-                {
-                    "name": "João Gilberto Magalhães",
-                    "email": "joao@byjg.com.br"
-                }
-            ],
-            "description": "A lightweight and highly customized CURL wrapper for making RESt calls using PSR7 implementation and a wrapper for call dynamically SOAP requests.",
+            "description": "A lightweight and highly customized CURL wrapper for making RESt calls and a wrapper for call dynamically SOAP requests.",
             "support": {
                 "issues": "https://github.com/byjg/php-webrequest/issues",
-                "source": "https://github.com/byjg/php-webrequest/tree/5.0.0rc"
+                "source": "https://github.com/byjg/php-webrequest/tree/master"
             },
-            "time": "2024-01-07T23:30:39+00:00"
+            "time": "2024-05-09T02:52:27+00:00"
         },
         {
             "name": "doctrine/instantiator",
-            "version": "1.5.0",
+            "version": "1.5.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/instantiator.git",
-                "reference": "0a0fa9780f5d4e507415a065172d26a98d02047b"
+                "reference": "12be2483e1f0e850b353e26869e4e6c038459501"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/instantiator/zipball/0a0fa9780f5d4e507415a065172d26a98d02047b",
-                "reference": "0a0fa9780f5d4e507415a065172d26a98d02047b",
+                "url": "https://api.github.com/repos/doctrine/instantiator/zipball/12be2483e1f0e850b353e26869e4e6c038459501",
+                "reference": "12be2483e1f0e850b353e26869e4e6c038459501",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.1 || ^8.0"
             },
             "require-dev": {
-                "doctrine/coding-standard": "^9 || ^11",
+                "doctrine/coding-standard": "^9 || ^12",
                 "ext-pdo": "*",
                 "ext-phar": "*",
                 "phpbench/phpbench": "^0.16 || ^1",
                 "phpstan/phpstan": "^1.4",
                 "phpstan/phpstan-phpunit": "^1",
-                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.5",
+                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.6",
                 "vimeo/psalm": "^4.30 || ^5.4"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -187,7 +180,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/instantiator/issues",
-                "source": "https://github.com/doctrine/instantiator/tree/1.5.0"
+                "source": "https://github.com/doctrine/instantiator/tree/1.5.x"
             },
             "funding": [
                 {
@@ -203,7 +196,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-12-30T00:15:36+00:00"
+            "time": "2023-12-09T14:16:53+00:00"
         },
         {
             "name": "donatj/mock-webserver",
@@ -283,22 +276,22 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.6.x-dev",
+            "version": "2.4.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "a243f80a1ca7fe8ceed4deee17f12c1930efe662"
+                "reference": "0454e12ef0cd597ccd2adb036f7bda4e7fface66"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/a243f80a1ca7fe8ceed4deee17f12c1930efe662",
-                "reference": "a243f80a1ca7fe8ceed4deee17f12c1930efe662",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/0454e12ef0cd597ccd2adb036f7bda4e7fface66",
+                "reference": "0454e12ef0cd597ccd2adb036f7bda4e7fface66",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2.5 || ^8.0",
                 "psr/http-factory": "^1.0",
-                "psr/http-message": "^1.1 || ^2.0",
+                "psr/http-message": "^1.0",
                 "ralouphie/getallheaders": "^3.0"
             },
             "provide": {
@@ -306,14 +299,13 @@
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.8.2",
+                "bamarni/composer-bin-plugin": "^1.8.1",
                 "http-interop/http-factory-tests": "^0.9",
-                "phpunit/phpunit": "^8.5.36 || ^9.6.15"
+                "phpunit/phpunit": "^8.5.29 || ^9.5.23"
             },
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -380,7 +372,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.6"
+                "source": "https://github.com/guzzle/psr7/tree/2.4"
             },
             "funding": [
                 {
@@ -396,7 +388,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-03-31T10:09:24+00:00"
+            "time": "2023-04-17T16:00:45+00:00"
         },
         {
             "name": "mikey179/vfsstream",
@@ -1222,26 +1214,25 @@
         },
         {
             "name": "psr/http-message",
-            "version": "dev-master",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-message.git",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2 || ^8.0"
+                "php": ">=5.3.0"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.0.x-dev"
+                    "dev-master": "1.0.x-dev"
                 }
             },
             "autoload": {
@@ -1256,7 +1247,7 @@
             "authors": [
                 {
                     "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
+                    "homepage": "http://www.php-fig.org/"
                 }
             ],
             "description": "Common interface for HTTP messages",
@@ -1270,9 +1261,9 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-message/tree/2.0"
+                "source": "https://github.com/php-fig/http-message/tree/master"
             },
-            "time": "2023-04-04T09:54:51+00:00"
+            "time": "2016-08-06T14:39:51+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -2336,22 +2327,21 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v2.5.3",
+            "version": "2.5.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "80d075412b557d41002320b96a096ca65aa2c98d"
+                "reference": "d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/80d075412b557d41002320b96a096ca65aa2c98d",
-                "reference": "80d075412b557d41002320b96a096ca65aa2c98d",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02",
+                "reference": "d36279a5a4bc7f3ca2c412839f10d7c0aa2c1a02",
                 "shasum": ""
             },
             "require": {
                 "php": ">=7.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -2384,7 +2374,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v2.5.3"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/2.5"
             },
             "funding": [
                 {
@@ -2400,7 +2390,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-01-24T14:02:46+00:00"
+            "time": "2024-04-18T08:26:06+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -2692,7 +2682,8 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "byjg/swagger-test": 20
+        "byjg/swagger-test": 20,
+        "smalot/pdfparser": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
