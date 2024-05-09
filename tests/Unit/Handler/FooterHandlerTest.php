@@ -11,11 +11,11 @@ use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class FooterHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IAppConfig&MockObject $appConfig;
-	private PdfParserService&MockObject $pdfParserService;
-	private IURLGenerator&MockObject $urlGenerator;
-	private IL10N&MockObject $l10n;
-	private ITempManager&MockObject $tempManager;
+	private IAppConfig|MockObject $appConfig;
+	private PdfParserService|MockObject $pdfParserService;
+	private IURLGenerator|MockObject $urlGenerator;
+	private IL10N|MockObject $l10n;
+	private ITempManager|MockObject $tempManager;
 	private FooterHandler $footerHandler;
 	public function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
