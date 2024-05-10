@@ -336,7 +336,7 @@ class SignFileService {
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;
 			return $carry;
-		});
+		}, 0);
 		if ($total > 0
 			&& count($signers) !== $total
 			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_PARTIAL_SIGNED
