@@ -13,6 +13,25 @@ Types of changes:
 - *Security* in case of vulnerabilities. 
 
 <!-- changelog-linker -->
+
+## 9.0.1 - 2024-05-10
+### Changed
+* Update translations
+* Make possible customize the document footer using HTML [#2970](https://github.com/LibreSign/libresign/pull/2970)
+* Update dependencies at front and backend
+
+### Fixed
+* Fix position of components when preview document before sign
+
+## 8.0.1 - 2024-05-10
+### Changed
+* Update translations
+* Make possible customize the document footer using HTML [#2970](https://github.com/LibreSign/libresign/pull/2970)
+* Update dependencies at front and backend
+
+### Fixed
+* Fix position of components when preview document before sign
+
 ## 9.0.0 - 2024-04-24
 ### ✨Big changes to a new moment
 * 📝 Allow you to sign documents without creating an account
