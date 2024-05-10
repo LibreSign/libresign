@@ -350,6 +350,11 @@ Feature: request-signature
       | key            | value       |
       | message        | File signed |
       | (jq).file.uuid | <FILE_UUID> |
+    And sending "get" to ocs "/apps/libresign/api/v1/file/list"
+    Then the response should be a JSON array with the following mandatory values
+      | key  | value                                            |
+      | data | (jq).[].name == "Document Name"|
+      | data | (jq).[].status == 3|
 
   Scenario: Request to sign with success using multiple users
     Given as user "admin"
