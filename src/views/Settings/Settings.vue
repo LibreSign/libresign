@@ -31,7 +31,6 @@
 		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
-		<ExtraSettings v-if="isExtraSettingsEnabled" />
 		<AllowedGroups />
 		<LegalInformation />
 		<IdentificationDocuments />
@@ -49,15 +48,12 @@ import RootCertificateCfssl from './RootCertificateCfssl.vue'
 import RootCertificateOpenSsl from './RootCertificateOpenSsl.vue'
 import ExpirationRules from './ExpirationRules.vue'
 import Validation from './Validation.vue'
-import ExtraSettings from './ExtraSettings.vue'
 import AllowedGroups from './AllowedGroups.vue'
 import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
 import IdentificationFactors from './IdentificationFactors.vue'
-import { generateOcsUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
 
 export default {
 	name: 'Settings',
@@ -71,7 +67,6 @@ export default {
 		IdentificationFactors,
 		ExpirationRules,
 		Validation,
-		ExtraSettings,
 		AllowedGroups,
 		LegalInformation,
 		IdentificationDocuments,
@@ -81,17 +76,7 @@ export default {
 	data() {
 		return {
 			name: t('libresign', 'LibreSign'),
-			isExtraSettingsEnabled: false,
 		}
-	},
-	created() {
-		this.getData()
-	},
-	methods: {
-		async getData() {
-			const isExtraSettingsEnabled = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/extra_settings'))
-			this.isExtraSettingsEnabled = !!isExtraSettingsEnabled.data.ocs.data.data
-		},
 	},
 }
 
