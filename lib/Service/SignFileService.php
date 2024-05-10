@@ -327,6 +327,14 @@ class SignFileService {
 	private function getSigners(): array {
 		if (empty($this->signers)) {
 			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
+			if ($this->signRequest) {
+				foreach ($this->signers as $key => $signer) {
+					if ($signer->getId() === $this->signRequest->getId()) {
+						$this->signers[$key] = $this->signRequest;
+						break;
+					}
+				}
+			}
 		}
 		return $this->signers;
 	}
