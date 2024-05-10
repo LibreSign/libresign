@@ -193,7 +193,7 @@ class FileService {
 				'signRequestId' => $signer->getId(),
 				'description' => $signer->getDescription(),
 				'identifyMethods' => $this->identifyMethodService->getIdentifyMethodsFromSignRequestId($signer->getId()),
-				'visibleElements' => $this->getVisibleElements(),
+				'visibleElements' => $this->getVisibleElements($signer->getId()),
 				'request_sign_date' => (new \DateTime())
 					->setTimestamp($signer->getCreatedAt())
 					->format('Y-m-d H:i:s'),
@@ -282,17 +282,13 @@ class FileService {
 	/**
 	 * @psalm-return list<array{elementId: int, signRequestId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
 	 */
-	private function getVisibleElements(): array {
+	private function getVisibleElements(int $signRequestId): array {
 		$return = [];
 		if (!$this->showVisibleElements) {
 			return $return;
 		}
 		try {
-			if (is_object($this->signRequest)) {
-				$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $this->signRequest->getId());
-			} else {
-				$visibleElements = $this->fileElementMapper->getByFileId($this->file->getId());
-			}
+			$visibleElements = $this->fileElementMapper->getByFileIdAndSignRequestId($this->file->getId(), $signRequestId);
 			foreach ($visibleElements as $visibleElement) {
 				$element = [
 					'elementId' => $visibleElement->getId(),
