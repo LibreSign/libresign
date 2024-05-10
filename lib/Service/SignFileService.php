@@ -327,6 +327,14 @@ class SignFileService {
 	private function getSigners(): array {
 		if (empty($this->signers)) {
 			$this->signers = $this->signRequestMapper->getByFileId($this->signRequest->getFileId());
+			if ($this->signRequest) {
+				foreach ($this->signers as $key => $signer) {
+					if ($signer->getId() === $this->signRequest->getId()) {
+						$this->signers[$key] = $this->signRequest;
+						break;
+					}
+				}
+			}
 		}
 		return $this->signers;
 	}
@@ -336,7 +344,7 @@ class SignFileService {
 		$total = array_reduce($signers, function ($carry, $signer) {
 			$carry += $signer->getSigned() ? 1 : 0;
 			return $carry;
-		});
+		}, 0);
 		if ($total > 0
 			&& count($signers) !== $total
 			&& $this->libreSignFile->getStatus() !== FileEntity::STATUS_PARTIAL_SIGNED
