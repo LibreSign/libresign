@@ -82,6 +82,9 @@ export default {
 		async getExtraSettingsEnabled() {
 			const isExtraSettingsEnabled = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/extra_settings'))
 			this.isExtraSettingsEnabled = !!isExtraSettingsEnabled.data.ocs.data.data
+			if (this.isExtraSettingsEnabled) {
+				this.getFooterTemplate()
+			}
 		},
 		async getMakeValidationUrlPrivate() {
 			const response = await axios.get(
