@@ -92,6 +92,7 @@ abstract class AbstractIdentifyMethod implements IIdentifyMethod {
 		if (!class_exists($className)) {
 			throw new InvalidArgumentException('Invalid signature method. Set at identify method the list  of available signature methdos with right values.');
 		}
+		/** @var AbstractSignatureMethod */
 		$signatureMethod = clone \OCP\Server::get($className);
 		$signatureMethod->cleanEntity();
 		return $signatureMethod;

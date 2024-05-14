@@ -42,6 +42,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('file_type', $qb->createNamedParameter($type))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 
@@ -56,6 +57,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('lf.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 
@@ -68,6 +70,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 

@@ -102,6 +102,7 @@ class RequestSignatureService {
 	private function updateStatus(FileEntity $file, int $status): FileEntity {
 		if ($status > $file->getStatus()) {
 			$file->setStatus($status);
+			/** @var FileEntity */
 			return $this->fileMapper->update($file);
 		}
 		return $file;

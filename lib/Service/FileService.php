@@ -263,9 +263,6 @@ class FileService {
 		return $return;
 	}
 
-	/**
-	 * @psalm-return list<array{elementId: int, signRequestId: int, type: string, coordinates: array{page: int, urx: int, ury: int, llx: int, lly: int}, uid?: string, email?: string}>
-	 */
 	private function getVisibleElements(int $signRequestId): array {
 		$return = [];
 		if (!$this->showVisibleElements) {
