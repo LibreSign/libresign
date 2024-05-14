@@ -168,6 +168,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $response;
 	}
 
+	/**
+	 * Main page to authenticated signer with a path
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
@@ -175,6 +185,15 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+
+	/**
+	 * Sign page to authenticated signer
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -185,6 +204,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Sign page to authenticated signer with the path of file
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -195,6 +224,16 @@ class PageController extends AEnvironmentPageAwareController {
 		return $this->index();
 	}
 
+	/**
+	 * Sign page to authenticated signer
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
@@ -248,6 +287,12 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show signature page
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid UUID
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -310,7 +355,12 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of file to get PDF
 	 *
-	 * @return JSONResponse|FileDisplayResponse
+	 * @param string $uuid File uuid
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|JSONResponse<Http::STATUS_NOT_FOUND, array<empty>, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
+	 * 404: File not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -334,7 +384,11 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of user to get PDF
 	 *
-	 * @return FileDisplayResponse
+	 * @param string $uuid Sign request uuid
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -352,6 +406,11 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page
+	 *
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -388,6 +447,14 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page
+	 *
+	 * The path is used only by frontend
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 *
+	 * 303: Redirected to validation page
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -401,6 +468,11 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page
+	 *
+	 * @param string $uuid Sign request uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -420,6 +492,12 @@ class PageController extends AEnvironmentPageAwareController {
 
 	/**
 	 * Show validation page for a specific file UUID
+	 *
+	 * @param string $uuid File uuid
+	 * @return TemplateResponse<Http::STATUS_OK, array{}>
+	 *
+	 * 200: OK
+	 * 401: Validation page not accessible if unauthenticated
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
