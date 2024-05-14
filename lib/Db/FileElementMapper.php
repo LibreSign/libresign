@@ -37,6 +37,7 @@ class FileElementMapper extends QBMapper {
 				$qb->expr()->eq('fe.file_id', $qb->createNamedParameter($fileId))
 			);
 
+		/** @var FileElement[] */
 		return $this->findEntities($qb);
 	}
 
@@ -57,6 +58,7 @@ class FileElementMapper extends QBMapper {
 			);
 		}
 
+		/** @var FileElement[] */
 		return $this->findEntities($qb);
 	}
 
@@ -70,6 +72,7 @@ class FileElementMapper extends QBMapper {
 					$qb->expr()->eq('fe.id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 				);
 
+			/** @var FileElement */
 			$this->cache['documentElementId'][$id] = $this->findEntity($qb);
 		}
 		return $this->cache['documentElementId'][$id];

@@ -13,13 +13,16 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 class IdentifyMethodMapper extends QBMapper {
+	/**
+	 * @var IdentifyMethod[][]
+	 */
 	private array $methodsBySignRequest = [];
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'libresign_identify_method');
 	}
 
 	/**
-	 * @return array<IdentifyMethod>
+	 * @return IdentifyMethod[]
 	 */
 	public function getIdentifyMethodsFromSignRequestId(int $signRequestId): array {
 		if (!empty($this->methodsBySignRequest[$signRequestId])) {
@@ -34,6 +37,7 @@ class IdentifyMethodMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		$this->methodsBySignRequest[$signRequestId] = [];
 		while ($row = $cursor->fetch()) {
+			/** @var IdentifyMethod */
 			$this->methodsBySignRequest[$signRequestId][] = $this->mapRowToEntity($row);
 		}
 		return $this->methodsBySignRequest[$signRequestId];

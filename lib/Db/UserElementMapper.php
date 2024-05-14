@@ -60,6 +60,7 @@ class UserElementMapper extends QBMapper {
 			);
 			$row = $this->findOneQuery($qb);
 		}
+		/** @var UserElement */
 		$userElement = $this->mapRowToEntity($row);
 		return $userElement;
 	}
@@ -69,6 +70,7 @@ class UserElementMapper extends QBMapper {
 	 */
 	public function findMany(array $data): array {
 		$qb = $this->getQueryBuilder($data);
+		/** @var UserElement[] */
 		return $this->findEntities($qb);
 	}
 }
