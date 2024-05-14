@@ -77,8 +77,8 @@ class Version1000Date20210502200800 extends SimpleMigrationStep {
 				->update('libresign_file_user')
 				->set('file_id', $query->createNamedParameter((int)$row['file_id2']))
 				->where($query->expr()->eq('id', $query->createNamedParameter($row['id'])));
-	
-			$query->execute();
+
+			$query->executeStatement();
 		}
 	}
 }
