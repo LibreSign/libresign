@@ -62,6 +62,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 		$qb = $this->prepareCountQueryBuilder();
 		$result = $qb->execute()->fetch();
 		$values = array_values($result);
+		/** @var int<0, max> */
 		return (int) $values[0];
 	}
 

@@ -89,7 +89,8 @@ class SignRequestMapper extends QBMapper {
 	/**
 	 * @inheritDoc
 	 */
-	public function update(Entity $entity): Entity {
+	public function update(Entity $entity): SignRequest {
+		/** @var SignRequest */
 		$signRequest = parent::update($entity);
 		$filtered = array_filter($this->signers, fn ($e) => $e->getId() === $signRequest->getId());
 		if (!empty($filtered)) {
@@ -103,9 +104,7 @@ class SignRequestMapper extends QBMapper {
 	/**
 	 * Returns all users who have not signed
 	 *
-	 * @return \OCP\AppFramework\Db\Entity[] all fetched entities
-	 *
-	 * @psalm-return array<\OCP\AppFramework\Db\Entity>
+	 * @return SignRequest[]
 	 */
 	public function findUnsigned(): array {
 		$qb = $this->db->getQueryBuilder();
@@ -115,7 +114,7 @@ class SignRequestMapper extends QBMapper {
 			->where(
 				$qb->expr()->isNull('signed')
 			);
-
+		/** @var SignRequest[] */
 		return $this->findEntities($qb);
 	}
 
@@ -137,6 +136,7 @@ class SignRequestMapper extends QBMapper {
 			->where(
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 			);
+		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
 		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
 			$this->signers[] = $signRequest;
@@ -144,7 +144,7 @@ class SignRequestMapper extends QBMapper {
 		return $signRequest;
 	}
 
-	public function getByEmailAndFileId(string $email, int $fileId): \OCP\AppFramework\Db\Entity {
+	public function getByEmailAndFileId(string $email, int $fileId): SignRequest {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -155,11 +155,11 @@ class SignRequestMapper extends QBMapper {
 			->andWhere(
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
-
+		/** @var SignRequest */
 		return $this->findEntity($qb);
 	}
 
-	public function getByIdentifyMethodAndFileId(IIdentifyMethod $identifyMethod, int $fileId): \OCP\AppFramework\Db\Entity {
+	public function getByIdentifyMethodAndFileId(IIdentifyMethod $identifyMethod, int $fileId): SignRequest {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('sr.*')
 			->from($this->getTableName(), 'sr')
@@ -167,6 +167,7 @@ class SignRequestMapper extends QBMapper {
 			->where($qb->expr()->eq('im.identifier_key', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierKey())))
 			->andWhere($qb->expr()->eq('im.identifier_value', $qb->createNamedParameter($identifyMethod->getEntity()->getIdentifierValue())))
 			->andWhere($qb->expr()->eq('sr.file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
+		/** @var SignRequest */
 		return $this->findEntity($qb);
 	}
 
@@ -183,6 +184,7 @@ class SignRequestMapper extends QBMapper {
 			->where(
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
+		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
 			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
@@ -208,6 +210,8 @@ class SignRequestMapper extends QBMapper {
 			->where(
 				$qb->expr()->eq('id', $qb->createNamedParameter($signRequestId, IQueryBuilder::PARAM_INT))
 			);
+
+		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
 		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
 			$this->signers[] = $signRequest;
@@ -229,6 +233,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->in('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT_ARRAY))
 			);
 
+		/** @var SignRequest[] */
 		return $this->findEntities($qb);
 	}
 
@@ -247,6 +252,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		return $signers;
 	}
@@ -267,6 +273,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('f.uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var SignRequest[] */
 		$signers = $this->findEntities($qb);
 		foreach ($signers as $signRequest) {
 			if (!array_filter($signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
@@ -285,6 +292,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var SignRequest */
 		$signRequest = $this->findEntity($qb);
 		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
 			$this->signers[] = $signRequest;
@@ -302,6 +310,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('f.node_id', $qb->createNamedParameter($file_id, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var SignRequest */
 		return $this->findEntity($qb);
 	}
 
@@ -318,6 +327,7 @@ class SignRequestMapper extends QBMapper {
 				$qb->expr()->eq('sr.email', $qb->createNamedParameter($email))
 			);
 
+		/** @var SignRequest */
 		return $this->findEntity($qb);
 	}
 
@@ -342,6 +352,7 @@ class SignRequestMapper extends QBMapper {
 		if (!array_filter($this->signers, fn ($s) => $s->getId() !== $signRequest->getId())) {
 			$this->signers[] = $signRequest;
 		}
+		/** @var SignRequest */
 		return end($this->signers);
 	}
 

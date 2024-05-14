@@ -66,6 +66,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -91,6 +92,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -112,6 +114,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -141,6 +144,7 @@ class FileMapper extends QBMapper {
 				)
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -162,6 +166,7 @@ class FileMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		$return = [];
 		while ($row = $cursor->fetch()) {
+			/** @var File */
 			$file = $this->mapRowToEntity($row);
 			$this->file[] = $file;
 			$return[] = $file;
