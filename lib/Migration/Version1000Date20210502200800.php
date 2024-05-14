@@ -28,7 +28,7 @@ class Version1000Date20210502200800 extends SimpleMigrationStep {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('id', 'file_id2')
 			->from('libresign_file_user', 'fu');
-		$this->rows = $query->execute()->fetchAll();
+		$this->rows = $query->executeQuery()->fetchAll();
 	}
 
 	/**
@@ -62,7 +62,7 @@ class Version1000Date20210502200800 extends SimpleMigrationStep {
 				->set('file_id', $query->createNamedParameter((int)$row['file_id2']))
 				->where($query->expr()->eq('id', $query->createNamedParameter($row['id'])));
 
-			$query->execute();
+			$query->executeQuery();
 		}
 	}
 }
