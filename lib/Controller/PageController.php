@@ -375,10 +375,7 @@ class PageController extends AEnvironmentPageAwareController {
 			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		$resp = new FileDisplayResponse($file);
-		$resp->addHeader('Content-Type', 'application/pdf');
-
-		return $resp;
+		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
 	/**
@@ -396,12 +393,10 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 30, period: 60)]
-	public function getPdfFile($uuid) {
+	public function getPdfFile($uuid): FileDisplayResponse {
 		$this->throwIfValidationPageNotAccessible();
-		$resp = new FileDisplayResponse($this->getNextcloudFile());
-		$resp->addHeader('Content-Type', 'application/pdf');
-
-		return $resp;
+		$file = $this->getNextcloudFile();
+		return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
 	}
 
 	/**
