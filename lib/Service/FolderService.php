@@ -75,6 +75,7 @@ class FolderService {
 		if (!$containerFolder->nodeExists($path)) {
 			return $containerFolder->newFolder($path);
 		}
+		/** @var Folder */
 		return $containerFolder->get($path);
 	}
 
@@ -86,6 +87,7 @@ class FolderService {
 			$folder = $this->root->getUserFolder($this->getUserId());
 			$file = $folder->getById($nodeId);
 			if ($file) {
+				/** @var File */
 				return current($file);
 			}
 		}
@@ -97,6 +99,7 @@ class FolderService {
 		/** @var Folder $folder */
 		$folder = $containerFolder->get($path);
 		$file = $folder->getById($nodeId);
+		/** @var File */
 		return current($file);
 	}
 
