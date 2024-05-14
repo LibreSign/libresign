@@ -60,6 +60,18 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Create account to sign a document
+	 *
+	 * @param string $uuid Sign request uuid to allow account creation
+	 * @param string $email email to the new account
+	 * @param string $password the password to then new account
+	 * @param ?string $signPassword The password to create certificate
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string,action: string, pdf: array{url: string},filename: string,description: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Validation page not accessible if unauthenticated
+	 */
 	#[NoAdminRequired]
 	#[CORS]
 	#[NoCSRFRequired]
@@ -114,6 +126,16 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * Create PFX file using self-signed certificate
+	 *
+	 * @param string $signPassword The password that will be used to encrypt the certificate file
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: Settings saved
+	 * 401: Failure to create PFX file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function signatureGenerate(
@@ -154,6 +176,16 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		}
 	}
 
+	/**
+	 * Add files to account profile
+	 *
+	 * @param array{name: string, type: string} $files the list of files to add to profile
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array<empty>, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages:array{file: ?string, type: ?string, message: string}}, array{}>
+	 *
+	 * 200: Certificate saved with success
+	 * 401: No file provided or other problem with provided file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function addFiles(array $files): JSONResponse {
@@ -186,6 +218,16 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		}
 	}
 
+	/**
+	 * Delete file from account
+	 *
+	 * @param int $nodeId the nodeId of file to be delete
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 *
+	 * 200: File deleted with success
+	 * 401: Failure to delete file from account
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function deleteFile(int $nodeId): JSONResponse {
@@ -205,9 +247,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	}
 
 	/**
-	 * Who am I.
+	 * Who am I
 	 *
 	 * Validates API access data and returns the authenticated user's data.
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{account: array{uuid: string, emailAddress: string, displayName: string},settings: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid user or password
 	 */
 	#[NoAdminRequired]
 	#[CORS]
@@ -237,9 +284,20 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * List account files of authenticated account
+	 *
+	 * @param array{approved: string} $filter Filter params
+	 * @param ?int $page the number of page to return
+	 * @param ?int $length Total of elements to return
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 202: Certificate saved with success
+	 * 400: No file provided or other problem with provided file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function accountFileListToOwner(array $filter = [], $page = null, $length = null): JSONResponse {
+	public function accountFileListToOwner(array $filter = [], ?int $page = null, ?int $length = null): JSONResponse {
 		try {
 			$filter['userId'] = $this->userSession->getUser()->getUID();
 			$return = $this->accountFileService->accountFileList($filter, $page, $length);
@@ -254,9 +312,20 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		}
 	}
 
+	/**
+	 * List account files that need to be approved
+	 *
+	 * @param array{approved: string} $filter Filter params
+	 * @param ?int $page the number of page to return
+	 * @param ?int $length Total of elements to return
+	 * @return JSONResponse<Http::STATUS_OK, array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Account not found
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function accountFileListToApproval(array $filter = [], $page = null, $length = null): JSONResponse {
+	public function accountFileListToApproval(array $filter = [], ?int $page = null, ?int $length = null): JSONResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
 			$return = $this->accountFileService->accountFileList($filter, $page, $length);
@@ -271,6 +340,16 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		}
 	}
 
+	/**
+	 * Update the account phone number
+	 *
+	 * @param ?string $phone the phone number to be defined. If null will remove the phone number
+	 *
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 202: Settings saved
+	 * 404: Invalid data to update phone number
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function updateSettings(?string $phone = null): JSONResponse {
@@ -308,6 +387,13 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * Delete PFX file
+	 *
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>
+	 *
+	 * 202: Certificate deleted with success
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function deletePfx(): JSONResponse {
@@ -321,6 +407,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * Upload PFX file
+	 *
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 202: Certificate saved with success
+	 * 400: No file provided or other problem with provided file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function uploadPfx(): JSONResponse {
@@ -347,6 +441,19 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * Update PFX file
+	 *
+	 * Used to change the password of PFX file
+	 *
+	 * @param string $current Current password
+	 * @param string $new New password
+	 *
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 202: Certificate saved with success
+	 * 400: No file provided or other problem with provided file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function updatePfxPassword($current, $new): JSONResponse {
@@ -369,6 +476,16 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 		);
 	}
 
+	/**
+	 * Read content of PFX file
+	 *
+	 * @param string $password password of PFX file to decrypt the file and return his content
+	 *
+	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 *
+	 * 202: Certificate saved with success
+	 * 400: No file provided or other problem with provided file
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function readPfxData(string $password): JSONResponse {
