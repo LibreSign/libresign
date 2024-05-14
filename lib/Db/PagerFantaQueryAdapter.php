@@ -60,8 +60,9 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 	public function getNbResults(): int {
 		$qb = $this->prepareCountQueryBuilder();
-		$result = $qb->execute()->fetch();
+		$result = $qb->executeQuery()->fetch();
 		$values = array_values($result);
+		/** @var int<0, max> */
 		return (int) $values[0];
 	}
 
@@ -75,7 +76,7 @@ class PagerFantaQueryAdapter implements AdapterInterface {
 
 		return $qb->setMaxResults($length)
 			->setFirstResult($offset)
-			->execute()
+			->executeQuery()
 			->fetchAll();
 	}
 
