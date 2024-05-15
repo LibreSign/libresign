@@ -9,6 +9,8 @@
     "dev": "webpack --node-env development --progress",
     "watch": "webpack --node-env development --progress --watch",
     "serve": "webpack serve --node-env development --progress --allowed-hosts all --host 0.0.0.0",
+    "typescript:check": "tsc --noEmit",
+    "typescript:generate": "npx openapi-typescript \"./openapi*.json\" --immutable -t -o src/types/openapi/",
     "lint": "eslint --ext .js,.vue src",
     "lint:fix": "eslint --ext .js,.vue src --fix",
     "stylelint": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue",
@@ -65,6 +67,7 @@
     "@nextcloud/stylelint-config": "^3.0.1",
     "@nextcloud/webpack-vue-config": "^6.0.1",
     "file-loader": "^6.2.0",
+    "openapi-typescript": "^6.7.5",
     "url-loader": "^4.1.1",
     "vue-template-compiler": "^2.7.16"
   }
