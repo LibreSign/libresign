@@ -37,6 +37,17 @@ class AdminController extends Controller {
 		$this->eventSource = $this->eventSourceFactory->create();
 	}
 
+	/**
+	 * Generate certificate using CFSSL engine
+	 *
+	 * @param array<string, string> $rootCert fields of root certificate
+	 * @param string $cfsslUri URI of CFSSL API
+	 * @param string $configPath Path of config files of CFSSL
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Account not found
+	 */
 	#[NoCSRFRequired]
 	public function generateCertificateCfssl(
 		array $rootCert,
@@ -50,6 +61,16 @@ class AdminController extends Controller {
 		]);
 	}
 
+	/**
+	 * Generate certificate using OpenSSL engine
+	 *
+	 * @param array<string, string> $rootCert fields of root certificate
+	 * @param string $configPath Path of config files of CFSSL
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Account not found
+	 */
 	#[NoCSRFRequired]
 	public function generateCertificateOpenSsl(
 		array $rootCert,
@@ -89,6 +110,15 @@ class AdminController extends Controller {
 		}
 	}
 
+	/**
+	 * Load certificate data
+	 *
+	 * Return all data of root certificate and a field called `generated` with a boolean value.
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoCSRFRequired]
 	public function loadCertificate(): JSONResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
@@ -112,6 +142,15 @@ class AdminController extends Controller {
 		return trim($value);
 	}
 
+	/**
+	 * Check the configuration of LibreSign
+	 *
+	 * Return the status of necessary configuration and tips to fix the problems.
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoCSRFRequired]
 	public function configureCheck(): JSONResponse {
 		return new JSONResponse(
@@ -119,6 +158,9 @@ class AdminController extends Controller {
 		);
 	}
 
+	/**
+	 * @IgnoreOpenAPI
+	 */
 	#[NoCSRFRequired]
 	public function installAndValidate(): void {
 		try {
