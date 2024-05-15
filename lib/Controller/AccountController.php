@@ -287,7 +287,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files of authenticated account
 	 *
-	 * @param array{approved: string} $filter Filter params
+	 * @param array{approved?: string} $filter Filter params
 	 * @param ?int $page the number of page to return
 	 * @param ?int $length Total of elements to return
 	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
@@ -318,7 +318,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved: string} $filter Filter params
 	 * @param ?int $page the number of page to return
 	 * @param ?int $length Total of elements to return
-	 * @return JSONResponse<Http::STATUS_OK, array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Account not found
