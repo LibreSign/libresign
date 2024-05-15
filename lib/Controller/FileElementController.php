@@ -46,6 +46,22 @@ class FileElementController extends AEnvironmentAwareController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Create visible element
+	 *
+	 * Create visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer $signRequestId Id of sign request
+	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
+	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
+	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when create visible element
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
@@ -79,12 +95,41 @@ class FileElementController extends AEnvironmentAwareController {
 		return new JSONResponse($return, $statusCode);
 	}
 
+	/**
+	 * Update visible element
+	 *
+	 * Update visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer $signRequestId Id of sign request
+	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
+	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
+	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when patch visible element
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
 		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 
+	/**
+	 * Delete visible element
+	 *
+	 * Delete visible element of a specific file
+	 *
+	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @param integer $signRequestId Id of sign request
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Failure when delete visible element or file not found
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function delete(string $uuid, int $elementId): JSONResponse {
