@@ -37,6 +37,16 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * Request signature
 	 *
 	 * Request that a file be signed by a group of people
+	 *
+	 * @param array<string, mixed> $file File object.
+	 * @param array<string, mixed> $users Collection of users who must sign the document
+	 * @param string $name The name of file to sign
+	 * @param string|null $callback URL that will receive a POST after the document is signed
+	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Unauthorized
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -79,6 +89,21 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
+	/**
+	 * Updates signatures data
+	 *
+	 * Is necessary to inform the UUID of the file and a list of people
+	 *
+	 * @param array<string, mixed>|null $users Collection of users who must sign the document
+	 * @param string|null $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
+	 * @param array<string, mixed>|null $visibleElements Visible elements on document
+	 * @param array<string, mixed>|null $file File object.
+	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Unauthorized
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
@@ -124,6 +149,18 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
+	/**
+	 * Delete sign request
+	 *
+	 * You can only request exclusion as any sign
+	 *
+	 * @param integer $fileId Node id of a Nextcloud file
+	 * @param integer $signRequestId The sign request id
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
@@ -154,6 +191,17 @@ class RequestSignatureController extends AEnvironmentAwareController {
 		);
 	}
 
+	/**
+	 * Delete sign request
+	 *
+	 * You can only request exclusion as any sign
+	 *
+	 * @param integer $fileId Node id of a Nextcloud file
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
