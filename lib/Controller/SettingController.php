@@ -23,6 +23,15 @@ class SettingController extends AEnvironmentAwareController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Has root certificate
+	 *
+	 * Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{hasRootCert: bool}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function hasRootCert(): JSONResponse {
