@@ -78,7 +78,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * Validate a file returning file data.
 	 *
-	 * @param string $uuid The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @param string $uuid The UUID of the LibreSign file
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
@@ -96,7 +96,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * Validate a file returning file data.
 	 *
-	 * @param string $fileId The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @param int $fileId The identifier value of the LibreSign file
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
@@ -105,7 +105,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateFileId($fileId): JSONResponse {
+	public function validateFileId(int $fileId): JSONResponse {
 		return $this->validate('FileId', $fileId);
 	}
 

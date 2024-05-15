@@ -45,9 +45,19 @@ class NotifyController extends AEnvironmentAwareController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Notify signers of a file
+	 *
+	 * @param integer $fileId The identifier value of LibreSign file
+	 * @param array<string, mixed> $signers Signers data
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Unauthorized
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function signers($fileId, $signers): JSONResponse {
+	public function signers(int $fileId, array $signers): JSONResponse {
 		try {
 			$this->notifyService->signers($fileId, $signers);
 		} catch (\Throwable $th) {
@@ -68,9 +78,19 @@ class NotifyController extends AEnvironmentAwareController {
 		], Http::STATUS_OK);
 	}
 
+	/**
+	 * Notify a signer of a file
+	 *
+	 * @param integer $fileId The identifier value of LibreSign file
+	 * @param integer $signRequestId The sign request id
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 401: Unauthorized
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function signer($fileId, $signRequestId): JSONResponse {
+	public function signer(int $fileId, int $signRequestId): JSONResponse {
 		try {
 			$this->notifyService->signer($fileId, $signRequestId);
 		} catch (LibresignException $e) {
@@ -93,6 +113,15 @@ class NotifyController extends AEnvironmentAwareController {
 		], Http::STATUS_OK);
 	}
 
+	/**
+	 * Dismiss a specific notification
+	 *
+	 * @param integer $signRequestId The sign request id
+	 * @param integer $timestamp Timestamp of notification to dismiss
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	public function notificationDismiss(int $signRequestId, int $timestamp): JSONResponse {
 		$this->notifyService->notificationDismiss(
