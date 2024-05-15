@@ -63,6 +63,20 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Sign a file using file Id
+	 *
+	 * @param int $fileId Id of LibreSign file
+	 * @param string $method Signature method
+	 * @param array<string, mixed> $elements List of visible elements
+	 * @param string $identifyValue Identify value
+	 * @param string $token Token, commonly send by email
+	 * @return JSONResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 * 422: Error
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
@@ -71,6 +85,20 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
 
+	/**
+	 * Sign a file using file UUID
+	 *
+	 * @param string $uuid UUID of LibreSign file
+	 * @param string $method Signature method
+	 * @param array<string, mixed> $elements List of visible elements
+	 * @param string $identifyValue Identify value
+	 * @param string $token Token, commonly send by email
+	 * @return JSONResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 * 422: Error
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
@@ -154,6 +182,14 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		);
 	}
 
+	/**
+	 * Renew the signature method
+	 *
+	 * @param string $method Signature method
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -171,6 +207,15 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		);
 	}
 
+	/**
+	 * Get code to sign the document using UUID
+	 *
+	 * @param string $uuid UUID of LibreSign file
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
@@ -179,6 +224,15 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 		return $this->getCode($uuid);
 	}
 
+	/**
+	 * Get code to sign the document using FileID
+	 *
+	 * @param int $fileId Id of LibreSign file
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Error
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSigner]
