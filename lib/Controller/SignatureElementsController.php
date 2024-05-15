@@ -46,6 +46,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Create signature element
+	 *
+	 * @param array<string, mixed> $elements Element object
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string, elements: array{}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -84,6 +93,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		);
 	}
 
+	/**
+	 * Get signature elements
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -112,6 +129,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 	}
 
+	/**
+	 * Get preview of signature elements of
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -136,6 +162,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		return $response;
 	}
 
+	/**
+	 * Get signature element of signer
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return FileDisplayResponse<Http::STATUS_OK, string>|DataResponse<Http::STATUS_NOT_FOUND, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Invalid data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function getSignatureElement(int $nodeId): JSONResponse {
@@ -155,6 +190,17 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 	}
 
+	/**
+	 * Update signature element
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @param string $type The type of signature element
+	 * @param array<string, mixed> $file Element object
+	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Not found
+	 */
 	#[NoAdminRequired]
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -200,6 +246,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 		}
 	}
 
+	/**
+	 * Delete signature element
+	 *
+	 * @param int $nodeId Node id of a Nextcloud file
+	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 404: Not found
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
