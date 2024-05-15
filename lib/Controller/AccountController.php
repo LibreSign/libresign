@@ -331,7 +331,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{approved: string} $filter Filter params
+	 * @param array{approved?: string} $filter Filter params
 	 * @param ?int $page the number of page to return
 	 * @param ?int $length Total of elements to return
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
