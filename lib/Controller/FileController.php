@@ -73,6 +73,17 @@ class FileController extends AEnvironmentAwareController {
 		parent::__construct(Application::APP_ID, $request);
 	}
 
+	/**
+	 * Validate a file using Uuid
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param string $uuid The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -80,6 +91,17 @@ class FileController extends AEnvironmentAwareController {
 		return $this->validate('Uuid', $uuid);
 	}
 
+	/**
+	 * Validate a file using FileId
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param string $fileId The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -87,6 +109,18 @@ class FileController extends AEnvironmentAwareController {
 		return $this->validate('FileId', $fileId);
 	}
 
+	/**
+	 * Validate a file
+	 *
+	 * Validate a file returning file data.
+	 *
+	 * @param ?string $type The type of identifier could be Uuid or FileId
+	 * @param mixed $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Request failed
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
@@ -151,6 +185,16 @@ class FileController extends AEnvironmentAwareController {
 		return new JSONResponse($return, $statusCode);
 	}
 
+	/**
+	 * List account files that need to be approved
+	 *
+	 * @param array{} $filter Filter params
+	 * @param ?int $page the number of page to return
+	 * @param ?int $length Total of elements to return
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function list($page = null, $length = null, ?array $filter = []): JSONResponse {
@@ -160,6 +204,20 @@ class FileController extends AEnvironmentAwareController {
 		return new JSONResponse($return, Http::STATUS_OK);
 	}
 
+	/**
+	 * Return the thumbnail of a LibreSign file
+	 *
+	 * @param integer $nodeId The nodeId of document
+	 * @param integer $x Width of generated file
+	 * @param integer $y Height of generated file
+	 * @param boolean $a Crop, boolean value, default false
+	 * @param boolean $forceIcon Force to generate a new thumbnail
+	 * @param string $mode To force a given mimetype for the file
+	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: OK
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	public function getThumbnail(
@@ -237,6 +295,19 @@ class FileController extends AEnvironmentAwareController {
 		}
 	}
 
+	/**
+	 * Send a file
+	 *
+	 * Send a new file to Nextcloud and return the fileId to request to sign usign fileId
+	 *
+	 * @param array{url?: string, base64?: string} $file File to save
+	 * @param string $name The name of file to sign
+	 * @param array{} $settings Settings of signature request
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 *
+	 * 200: OK
+	 * 422: Failed to save data
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
