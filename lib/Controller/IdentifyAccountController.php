@@ -29,7 +29,7 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -51,14 +51,14 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 
 	#[NoAdminRequired]
 	#[RequireManager]
-	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
+	public function search(string $search = '', int $page = 1, int $limit = 25): JSONResponse {
 		$shareTypes = $this->getShareTypes();
 		$lookup = false;
 
 		// only search for string larger than a given threshold
 		$threshold = 1;
 		if (strlen($search) < $threshold) {
-			return new DataResponse([]);
+			return new JSONResponse();
 		}
 
 		$offset = $limit * ($page - 1);
@@ -71,7 +71,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$return = $this->addHerselfEmail($return, $search);
 		$return = $this->excludeNotAllowed($return);
 
-		return new DataResponse($return);
+		return new JSONResponse($return);
 	}
 
 	private function getShareTypes(): array {
