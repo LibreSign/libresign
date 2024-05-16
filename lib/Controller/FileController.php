@@ -114,7 +114,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * Validate a file returning file data.
 	 *
-	 * @param ?string $type The type of identifier could be Uuid or FileId
+	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param mixed $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
 	 *
@@ -189,8 +189,8 @@ class FileController extends AEnvironmentAwareController {
 	 * List account files that need to be approved
 	 *
 	 * @param array{} $filter Filter params
-	 * @param ?int $page the number of page to return
-	 * @param ?int $length Total of elements to return
+	 * @param int|null $page the number of page to return
+	 * @param int|null $length Total of elements to return
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
