@@ -39,8 +39,8 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	 * Used to identify who can sign the document. The return of this endpoint is related with Administration Settiongs > LibreSign > Identify method.
 	 *
 	 * @param array{} $search search params
-	 * @param ?int $page the number of page to return. Default: 1
-	 * @param ?int $limit Total of elements to return. Default: 25
+	 * @param int|null $page the number of page to return. Default: 1
+	 * @param int|null $limit Total of elements to return. Default: 25
 	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{}, array{}>
 	 *
 	 * 202: Certificate saved with success

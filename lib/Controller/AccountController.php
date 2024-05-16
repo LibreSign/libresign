@@ -66,8 +66,8 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $uuid Sign request uuid to allow account creation
 	 * @param string $email email to the new account
 	 * @param string $password the password to then new account
-	 * @param ?string $signPassword The password to create certificate
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string,action: string, pdf: array{url: string},filename: string,description: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: string}, array{}>
+	 * @param string|null $signPassword The password to create certificate
+	 * @return JSONResponse<Http::STATUS_OK, array{message: string,action: int, pdf: array{url: string},filename: string,description: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Validation page not accessible if unauthenticated
@@ -288,8 +288,8 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * List account files of authenticated account
 	 *
 	 * @param array{approved?: string} $filter Filter params
-	 * @param ?int $page the number of page to return
-	 * @param ?int $length Total of elements to return
+	 * @param int|null $page the number of page to return
+	 * @param int|null $length Total of elements to return
 	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
@@ -316,8 +316,8 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * List account files that need to be approved
 	 *
 	 * @param array{approved?: string} $filter Filter params
-	 * @param ?int $page the number of page to return
-	 * @param ?int $length Total of elements to return
+	 * @param int|null $page the number of page to return
+	 * @param int|null $length Total of elements to return
 	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
@@ -343,7 +343,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Update the account phone number
 	 *
-	 * @param ?string $phone the phone number to be defined. If null will remove the phone number
+	 * @param string|null $phone the phone number to be defined. If null will remove the phone number
 	 *
 	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
