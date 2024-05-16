@@ -52,12 +52,17 @@ class ApiRequester extends AbstractRequester {
 	private function setupRequest(RequestInterface $request):void {
 		$request = $request->withHeader("User-Agent", "ByJG Swagger Test");
 		$server = [
-			'REQUEST_URI' => $request->getUri()->getPath(),
-			'SCRIPT_NAME' => '/index.php',
 			'REQUEST_METHOD' => $request->getMethod(),
 			'SERVER_PROTOCOL' => $request->getProtocolVersion(),
 			'REMOTE_ADDR' => '127.0.0.1'
 		];
+		if (str_starts_with($request->getUri()->getPath(), '/ocs/')) {
+			$server['REQUEST_URI'] = $request->getUri()->getPath();
+			$server['SCRIPT_NAME'] = '/ocs/v2.php';
+		} else {
+			$server['REQUEST_URI'] = $request->getUri()->getPath();
+			$server['SCRIPT_NAME'] = '/index.php';
+		}
 		$_SERVER = array_merge($_SERVER, $server);
 		foreach ($request->getHeaders() as $key => $value) {
 			$name = strtoupper($key);
@@ -105,7 +110,7 @@ class ApiRequester extends AbstractRequester {
 		$property = $reflectionClass->getProperty('context');
 		$property->setAccessible(true);
 		$property->setValue($router, new RequestContext(
-			'/index.php',
+			$server['SCRIPT_NAME'],
 			$server['REQUEST_METHOD'],
 			$server['HTTP_HOST'],
 			$request->getUri()->getScheme()
