@@ -25,7 +25,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -158,7 +157,7 @@ class FileController extends Controller {
 		bool $mimeFallback = false
 	) {
 		if ($nodeId === -1 || $x === 0 || $y === 0) {
-			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
 		try {
@@ -167,14 +166,14 @@ class FileController extends Controller {
 				->getMyLibresignFile($nodeId);
 			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
 		} catch (DoesNotExistException $e) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 
 		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|JSONResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,
@@ -186,10 +185,10 @@ class FileController extends Controller {
 		bool $mimeFallback = false,
 	) : Http\Response {
 		if (!($node instanceof File) || (!$forceIcon && !$this->preview->isAvailable($node))) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 		if (!$node->isReadable()) {
-			return new DataResponse([], Http::STATUS_FORBIDDEN);
+			return new JSONResponse([], Http::STATUS_FORBIDDEN);
 		}
 
 		$storage = $node->getStorage();
@@ -198,7 +197,7 @@ class FileController extends Controller {
 			$share = $storage->getShare();
 			$attributes = $share->getAttributes();
 			if ($attributes !== null && $attributes->getAttribute('permissions', 'download') === false) {
-				return new DataResponse([], Http::STATUS_FORBIDDEN);
+				return new JSONResponse([], Http::STATUS_FORBIDDEN);
 			}
 		}
 
@@ -217,9 +216,9 @@ class FileController extends Controller {
 				}
 			}
 
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
 		}
 	}
 

@@ -22,7 +22,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
@@ -125,7 +124,7 @@ class SignatureElementsController extends ApiController implements ISignatureUui
 				$this->sessionService->getSessionId()
 			);
 		} catch (DoesNotExistException $th) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 		$preview = $this->preview->getPreview(
 			file: $node,
