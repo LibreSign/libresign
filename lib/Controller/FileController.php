@@ -19,7 +19,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -39,7 +38,7 @@ use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
-class FileController extends Controller {
+class FileController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,
