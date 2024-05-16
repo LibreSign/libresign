@@ -33,7 +33,7 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
 use OCP\IL10N;
@@ -58,7 +58,7 @@ class AdminController extends Controller {
 		array $rootCert,
 		string $cfsslUri = '',
 		string $configPath = ''
-	): DataResponse {
+	): JSONResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'cfssl',
 			'configPath' => trim($configPath),
@@ -70,7 +70,7 @@ class AdminController extends Controller {
 	public function generateCertificateOpenSsl(
 		array $rootCert,
 		string $configPath = ''
-	): DataResponse {
+	): JSONResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'openssl',
 			'configPath' => trim($configPath),
@@ -80,7 +80,7 @@ class AdminController extends Controller {
 	private function generateCertificate(
 		array $rootCert,
 		array $properties = [],
-	): DataResponse {
+	): JSONResponse {
 		try {
 			$names = [];
 			foreach ($rootCert['names'] as $item) {
@@ -92,11 +92,11 @@ class AdminController extends Controller {
 				$properties,
 			);
 
-			return new DataResponse([
+			return new JSONResponse([
 				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
-			return new DataResponse(
+			return new JSONResponse(
 				[
 					'message' => $exception->getMessage()
 				],
@@ -106,7 +106,7 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function loadCertificate(): DataResponse {
+	public function loadCertificate(): JSONResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
 		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();
@@ -118,7 +118,7 @@ class AdminController extends Controller {
 		);
 		$certificate['generated'] = count($success) === count($configureResult);
 
-		return new DataResponse($certificate);
+		return new JSONResponse($certificate);
 	}
 
 	private function trimAndThrowIfEmpty(string $key, $value): string {
@@ -129,8 +129,8 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function configureCheck(): DataResponse {
-		return new DataResponse(
+	public function configureCheck(): JSONResponse {
+		return new JSONResponse(
 			$this->configureCheckService->checkAll()
 		);
 	}

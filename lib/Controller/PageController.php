@@ -46,8 +46,8 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
@@ -282,7 +282,7 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of file to get PDF
 	 *
-	 * @return DataResponse|FileDisplayResponse
+	 * @return JSONResponse|FileDisplayResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -294,7 +294,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (DoesNotExistException $th) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 
 		$resp = new FileDisplayResponse($file);
@@ -306,7 +306,7 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of user to get PDF
 	 *
-	 * @return DataResponse|FileDisplayResponse
+	 * @return FileDisplayResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
