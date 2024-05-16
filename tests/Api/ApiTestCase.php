@@ -38,8 +38,9 @@ class ApiTestCase extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$data = Yaml::parse(file_get_contents('build/site/site/.vuepress/public/specs/api.yaml'));
-		$data['servers'][] = ['url' => 'http://localhost/ocs/v2.php/apps/libresign/api/v1'];
+		$data = json_decode(file_get_contents('openapi-full.json'), true);
+		$data['servers'][] = ['url' => '/ocs/v2.php/ocsapp/apps/libresign/api/v1'];
+		$data = $this->removeBasePath($data);
 		/** @var OpenApiSchema */
 		$schema = \ByJG\ApiTools\Base\Schema::getInstance($data);
 		$this->setSchema($schema);
@@ -54,6 +55,16 @@ class ApiTestCase extends TestCase {
 		]);
 
 		$this->request = new \OCA\Libresign\Tests\Api\ApiRequester();
+	}
+
+	private function removeBasePath(array $data): array {
+		$cleaned = [];
+		foreach ($data['paths'] as $key => $value) {
+			$key = preg_replace('~^' . '/ocs/v2.php/apps/libresign/api/{apiVersion}' . '~', '', $key);
+			$cleaned[$key] = $value;
+		}
+		$data['paths'] = $cleaned;
+		return $data;
 	}
 
 	/**
