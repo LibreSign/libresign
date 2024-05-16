@@ -27,7 +27,6 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Service\NotifyService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -36,7 +35,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
-class NotifyController extends Controller {
+class NotifyController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private IL10N $l10n,

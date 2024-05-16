@@ -27,7 +27,6 @@ namespace OCA\Libresign\Controller;
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Service\FileElementService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -36,7 +35,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class FileElementController extends Controller {
+class FileElementController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private FileElementService $fileElementService,
