@@ -26,13 +26,12 @@ namespace OCA\Libresign\Controller;
 
 use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 
-class SettingController extends Controller {
+class SettingController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
 		private CertificateEngineHandler $certificateEngineHandler

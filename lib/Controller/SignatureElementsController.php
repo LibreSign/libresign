@@ -32,7 +32,6 @@ use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
 use OCA\Libresign\Service\SignerElementsService;
 use OCA\Libresign\Service\SignFileService;
-use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -46,7 +45,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 
-class SignatureElementsController extends ApiController implements ISignatureUuid {
+class SignatureElementsController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
 		IRequest $request,
