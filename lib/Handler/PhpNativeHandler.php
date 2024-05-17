@@ -24,60 +24,14 @@ declare(strict_types=1);
 
 namespace OCA\Libresign\Handler;
 
-use Jeidison\JSignPDF\JSignPDF;
-use Jeidison\JSignPDF\Sign\JSignParam;
-use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class PhpNativeHandler extends SignEngineHandler {
-	/** @var JSignPDF */
-	private $jSignPdf;
-	/** @var JSignParam */
-	private $jSignParam;
-	public const VERSION = '2.2.2';
-
 	public function __construct(
 		private IAppConfig $appConfig,
 		private LoggerInterface $logger,
 	) {
-	}
-
-	public function setJSignPdf(JSignPDF $jSignPdf): void {
-		$this->jSignPdf = $jSignPdf;
-	}
-
-	public function getJSignPdf(): JSignPDF {
-		if (!$this->jSignPdf) {
-			// @codeCoverageIgnoreStart
-			$this->setJSignPdf(new JSignPDF());
-			// @codeCoverageIgnoreEnd
-		}
-		return $this->jSignPdf;
-	}
-
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	public function getJSignParam(): JSignParam {
-		if (!$this->jSignParam) {
-			$javaPath = $this->appConfig->getAppValue('java_path');
-			$this->jSignParam = (new JSignParam())
-				->setTempPath(
-					$this->appConfig->getAppValue('jsignpdf_temp_path', sys_get_temp_dir() . DIRECTORY_SEPARATOR)
-				)
-				->setIsUseJavaInstalled(empty($javaPath))
-				->setjSignPdfJarPath(
-					$this->appConfig->getAppValue('jsignpdf_jar_path', '/opt/jsignpdf-' . self::VERSION . '/JSignPdf.jar')
-				);
-			if (!empty($javaPath)) {
-				if (!file_exists($javaPath)) {
-					throw new \Exception('Invalid Java binary. Run occ libresign:install --java');
-				}
-				$this->jSignParam->setJavaPath($javaPath);
-			}
-		}
-		return $this->jSignParam;
 	}
 
 	/**
