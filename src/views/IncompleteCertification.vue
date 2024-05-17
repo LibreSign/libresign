@@ -4,7 +4,7 @@
 			<img :src="image" draggable="false">
 		</div>
 		<h1 class="title">
-			{{ t('libresign', 'Welcome to Libresign') }}
+			{{ t('libresign', 'Welcome to LibreSign') }}
 		</h1>
 		<NcButton v-if="isAdmin"
 			@click="finishSetup">
