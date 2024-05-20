@@ -33,6 +33,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\Pkcs12Handler;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountFileService;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\SessionService;
@@ -53,6 +54,9 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ */
 class AccountController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
 	public function __construct(
@@ -195,7 +199,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Add files to account profile
 	 *
-	 * @param array{name: string, type: string} $files the list of files to add to profile
+	 * @param LibresignNewFile[] $files the list of files to add to profile
 	 *
 	 * @return JSONResponse<Http::STATUS_OK, array<empty>, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages:array{file: ?string, type: ?string, message: string}}, array{}>
 	 *

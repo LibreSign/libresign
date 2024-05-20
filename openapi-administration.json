@@ -38,34 +38,39 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "rootCert"
+                                ],
+                                "properties": {
+                                    "rootCert": {
+                                        "type": "object",
+                                        "description": "fields of root certificate",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "cfsslUri": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "URI of CFSSL API"
+                                    },
+                                    "configPath": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Path of config files of CFSSL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "rootCert",
-                        "in": "query",
-                        "description": "fields of root certificate",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "cfsslUri",
-                        "in": "query",
-                        "description": "URI of CFSSL API",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "configPath",
-                        "in": "query",
-                        "description": "Path of config files of CFSSL",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -137,25 +142,34 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "rootCert"
+                                ],
+                                "properties": {
+                                    "rootCert": {
+                                        "type": "object",
+                                        "description": "fields of root certificate",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "configPath": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Path of config files of CFSSL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "rootCert",
-                        "in": "query",
-                        "description": "fields of root certificate",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "configPath",
-                        "in": "query",
-                        "description": "Path of config files of CFSSL",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
