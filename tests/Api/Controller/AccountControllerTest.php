@@ -36,7 +36,7 @@ final class AccountControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid UUID', $body['message']);
+		$this->assertEquals('Invalid UUID', $body['ocs']['data']['message']);
 	}
 
 	/**
