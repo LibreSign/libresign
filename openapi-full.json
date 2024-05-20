@@ -20,6 +20,32 @@
             }
         },
         "schemas": {
+            "NewFile": {
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "properties": {
+                    "file": {
+                        "type": "object",
+                        "properties": {
+                            "fileId": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "base64": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -761,34 +787,36 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "description": "email to the new account"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "description": "the password to then new account"
+                                    },
+                                    "signPassword": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "The password to create certificate"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "email",
-                        "in": "query",
-                        "description": "email to the new account",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "password",
-                        "in": "query",
-                        "description": "the password to then new account",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "signPassword",
-                        "in": "query",
-                        "description": "The password to create certificate",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -840,7 +868,8 @@
                                             "type": "string"
                                         },
                                         "action": {
-                                            "type": "string"
+                                            "type": "integer",
+                                            "format": "int64"
                                         },
                                         "pdf": {
                                             "type": "object",
@@ -879,7 +908,8 @@
                                             "type": "string"
                                         },
                                         "action": {
-                                            "type": "string"
+                                            "type": "integer",
+                                            "format": "int64"
                                         }
                                     }
                                 }
@@ -1080,25 +1110,31 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "current",
+                                    "new"
+                                ],
+                                "properties": {
+                                    "current": {
+                                        "type": "string",
+                                        "description": "Current password"
+                                    },
+                                    "new": {
+                                        "type": "string",
+                                        "description": "New password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "current",
-                        "in": "query",
-                        "description": "Current password",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "new",
-                        "in": "query",
-                        "description": "New password",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1236,16 +1272,26 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "password",
-                        "in": "query",
-                        "description": "password of PFX file to decrypt the file and return his content",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "description": "password of PFX file to decrypt the file and return his content"
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1316,16 +1362,24 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "phone",
-                        "in": "query",
-                        "description": "the phone number to be defined. If null will remove the phone number",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "the phone number to be defined. If null will remove the phone number"
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1420,16 +1474,26 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "signPassword",
-                        "in": "query",
-                        "description": "The password that will be used to encrypt the certificate file",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "signPassword"
+                                ],
+                                "properties": {
+                                    "signPassword": {
+                                        "type": "string",
+                                        "description": "The password that will be used to encrypt the certificate file"
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1500,16 +1564,29 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "files",
-                        "in": "query",
-                        "description": "the list of files to add to profile",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "files"
+                                ],
+                                "properties": {
+                                    "files": {
+                                        "type": "array",
+                                        "description": "the list of files to add to profile",
+                                        "items": {
+                                            "$ref": "#/components/schemas/NewFile"
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1594,17 +1671,27 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "nodeId",
-                        "in": "query",
-                        "description": "the nodeId of file to be delete",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "nodeId"
+                                ],
+                                "properties": {
+                                    "nodeId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "the nodeId of file to be delete"
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1673,35 +1760,41 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "filter": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Filter params",
+                                        "properties": {
+                                            "approved": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "page": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "the number of page to return"
+                                    },
+                                    "length": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "Total of elements to return"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "filter",
-                        "in": "query",
-                        "description": "Filter params",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "the number of page to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "length",
-                        "in": "query",
-                        "description": "Total of elements to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1780,35 +1873,41 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "filter": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Filter params",
+                                        "properties": {
+                                            "approved": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "page": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "the number of page to return"
+                                    },
+                                    "length": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "Total of elements to return"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "filter",
-                        "in": "query",
-                        "description": "Filter params",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "the number of page to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "length",
-                        "in": "query",
-                        "description": "Total of elements to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1880,33 +1979,44 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "object",
+                                        "description": "File to save",
+                                        "properties": {
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "base64": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "The name of file to sign"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Settings of signature request"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "file",
-                        "in": "query",
-                        "description": "File to save",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "in": "query",
-                        "description": "The name of file to sign",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "settings",
-                        "in": "query",
-                        "description": "Settings of signature request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -1977,35 +2087,36 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "page": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "the number of page to return"
+                                    },
+                                    "length": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "Total of elements to return"
+                                    },
+                                    "filter": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Filter params"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "the number of page to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "length",
-                        "in": "query",
-                        "description": "Total of elements to return",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "filter",
-                        "in": "query",
-                        "description": "Filter params",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2058,75 +2169,51 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "x": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "default": 32,
+                                        "description": "Width of generated file"
+                                    },
+                                    "y": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "default": 32,
+                                        "description": "Height of generated file"
+                                    },
+                                    "a": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Crop, boolean value, default false"
+                                    },
+                                    "forceIcon": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Force to generate a new thumbnail"
+                                    },
+                                    "mode": {
+                                        "type": "string",
+                                        "default": "fill",
+                                        "description": "To force a given mimetype for the file"
+                                    },
+                                    "mimeFallback": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "If we have no preview enabled, we can redirect to the mime icon if any"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "x",
-                        "in": "query",
-                        "description": "Width of generated file",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "default": 32
-                        }
-                    },
-                    {
-                        "name": "y",
-                        "in": "query",
-                        "description": "Height of generated file",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "default": 32
-                        }
-                    },
-                    {
-                        "name": "a",
-                        "in": "query",
-                        "description": "Crop, boolean value, default false",
-                        "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
-                        }
-                    },
-                    {
-                        "name": "forceIcon",
-                        "in": "query",
-                        "description": "Force to generate a new thumbnail",
-                        "schema": {
-                            "type": "integer",
-                            "default": 1,
-                            "enum": [
-                                0,
-                                1
-                            ]
-                        }
-                    },
-                    {
-                        "name": "mode",
-                        "in": "query",
-                        "description": "To force a given mimetype for the file",
-                        "schema": {
-                            "type": "string",
-                            "default": "fill"
-                        }
-                    },
-                    {
-                        "name": "mimeFallback",
-                        "in": "query",
-                        "description": "If we have no preview enabled, we can redirect to the mime icon if any",
-                        "schema": {
-                            "type": "integer",
-                            "default": 0,
-                            "enum": [
-                                0,
-                                1
-                            ]
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2192,24 +2279,28 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "The type of identifier could be Uuid or FileId"
+                                    },
+                                    "identifier": {
+                                        "type": "object",
+                                        "description": "The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "The type of identifier could be Uuid or FileId",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "identifier",
-                        "in": "query",
-                        "description": "The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2392,52 +2483,54 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "signRequestId"
+                                ],
+                                "properties": {
+                                    "signRequestId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Id of sign request"
+                                    },
+                                    "elementId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "ID of visible element. Each element has an ID that is returned on validation endpoints."
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "The type of element to create, sginature, sinitial, date, datetime, text"
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Metadata of visible elements to associate with the document",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "coordinates": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "signRequestId",
-                        "in": "query",
-                        "description": "Id of sign request",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "elementId",
-                        "in": "query",
-                        "description": "ID of visible element. Each element has an ID that is returned on validation endpoints.",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "The type of element to create, sginature, sinitial, date, datetime, text",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "metadata",
-                        "in": "query",
-                        "description": "Metadata of visible elements to associate with the document",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "coordinates",
-                        "in": "query",
-                        "description": "Coortinates of a visible element on PDF",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2518,42 +2611,48 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "signRequestId"
+                                ],
+                                "properties": {
+                                    "signRequestId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Id of sign request"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "The type of element to create, sginature, sinitial, date, datetime, text"
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Metadata of visible elements to associate with the document",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "coordinates": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Coortinates of a visible element on PDF",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "signRequestId",
-                        "in": "query",
-                        "description": "Id of sign request",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "The type of element to create, sginature, sinitial, date, datetime, text",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "metadata",
-                        "in": "query",
-                        "description": "Metadata of visible elements to associate with the document",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "coordinates",
-                        "in": "query",
-                        "description": "Coortinates of a visible element on PDF",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2735,37 +2834,38 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "search": {
+                                        "type": "object",
+                                        "default": "",
+                                        "description": "search params"
+                                    },
+                                    "page": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": 1,
+                                        "description": "the number of page to return. Default: 1"
+                                    },
+                                    "limit": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": 25,
+                                        "description": "Total of elements to return. Default: 25"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "search params",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "the number of page to return. Default: 1",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true,
-                            "default": 1
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Total of elements to return. Default: 25",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true,
-                            "default": 25
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2818,27 +2918,33 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "fileId",
+                                    "signRequestId"
+                                ],
+                                "properties": {
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "The identifier value of LibreSign file"
+                                    },
+                                    "signRequestId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "The sign request id"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "fileId",
-                        "in": "query",
-                        "description": "The identifier value of LibreSign file",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "signRequestId",
-                        "in": "query",
-                        "description": "The sign request id",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2909,26 +3015,35 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "fileId",
+                                    "signers"
+                                ],
+                                "properties": {
+                                    "fileId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "The identifier value of LibreSign file"
+                                    },
+                                    "signers": {
+                                        "type": "object",
+                                        "description": "Signers data",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "fileId",
-                        "in": "query",
-                        "description": "The identifier value of LibreSign file",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "signers",
-                        "in": "query",
-                        "description": "Signers data",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2999,27 +3114,33 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "signRequestId",
+                                    "timestamp"
+                                ],
+                                "properties": {
+                                    "signRequestId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "The sign request id"
+                                    },
+                                    "timestamp": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Timestamp of notification to dismiss"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "signRequestId",
-                        "in": "query",
-                        "description": "The sign request id",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    {
-                        "name": "timestamp",
-                        "in": "query",
-                        "description": "Timestamp of notification to dismiss",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -3073,54 +3194,54 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "file",
+                                    "users",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "file": {
+                                        "type": "object",
+                                        "description": "File object.",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "users": {
+                                        "type": "object",
+                                        "description": "Collection of users who must sign the document",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The name of file to sign"
+                                    },
+                                    "callback": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "URL that will receive a POST after the document is signed"
+                                    },
+                                    "status": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": 1,
+                                        "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "file",
-                        "in": "query",
-                        "description": "File object.",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "users",
-                        "in": "query",
-                        "description": "Collection of users who must sign the document",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "in": "query",
-                        "description": "The name of file to sign",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "callback",
-                        "in": "query",
-                        "description": "URL that will receive a POST after the document is signed",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true,
-                            "default": 1
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -3190,53 +3311,56 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "users": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "default": [],
+                                        "description": "Collection of users who must sign the document",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "uuid": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "description": "UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID."
+                                    },
+                                    "visibleElements": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "description": "Visible elements on document",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "file": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "default": [],
+                                        "description": "File object.",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "status": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "users",
-                        "in": "query",
-                        "description": "Collection of users who must sign the document",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "uuid",
-                        "in": "query",
-                        "description": "UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "visibleElements",
-                        "in": "query",
-                        "description": "Visible elements on document",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "file",
-                        "in": "query",
-                        "description": "File object.",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "description": "Numeric code of status * 0 - no signers * 1 - signed * 2 - pending",
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "nullable": true
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -3388,42 +3512,44 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "method"
+                                ],
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "description": "Signature method"
+                                    },
+                                    "elements": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "List of visible elements",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "identifyValue": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Identify value"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Token, commonly send by email"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "method",
-                        "in": "query",
-                        "description": "Signature method",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "elements",
-                        "in": "query",
-                        "description": "List of visible elements",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "identifyValue",
-                        "in": "query",
-                        "description": "Identify value",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "description": "Token, commonly send by email",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -3687,16 +3813,29 @@
                         "basic_auth": []
                     }
                 ],
-                "parameters": [
-                    {
-                        "name": "elements",
-                        "in": "query",
-                        "description": "Element object",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "elements"
+                                ],
+                                "properties": {
+                                    "elements": {
+                                        "type": "object",
+                                        "description": "Element object",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    },
+                    }
+                },
+                "parameters": [
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -4045,24 +4184,32 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "The type of signature element"
+                                    },
+                                    "file": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "Element object",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "The type of signature element",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "file",
-                        "in": "query",
-                        "description": "Element object",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -4240,42 +4387,44 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "method"
+                                ],
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "description": "Signature method"
+                                    },
+                                    "elements": {
+                                        "type": "object",
+                                        "default": [],
+                                        "description": "List of visible elements",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "identifyValue": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Identify value"
+                                    },
+                                    "token": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Token, commonly send by email"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "method",
-                        "in": "query",
-                        "description": "Signature method",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "elements",
-                        "in": "query",
-                        "description": "List of visible elements",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "identifyValue",
-                        "in": "query",
-                        "description": "Identify value",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "token",
-                        "in": "query",
-                        "description": "Token, commonly send by email",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -4642,34 +4791,39 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "rootCert"
+                                ],
+                                "properties": {
+                                    "rootCert": {
+                                        "type": "object",
+                                        "description": "fields of root certificate",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "cfsslUri": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "URI of CFSSL API"
+                                    },
+                                    "configPath": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Path of config files of CFSSL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "rootCert",
-                        "in": "query",
-                        "description": "fields of root certificate",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "cfsslUri",
-                        "in": "query",
-                        "description": "URI of CFSSL API",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
-                    {
-                        "name": "configPath",
-                        "in": "query",
-                        "description": "Path of config files of CFSSL",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -4741,25 +4895,34 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "rootCert"
+                                ],
+                                "properties": {
+                                    "rootCert": {
+                                        "type": "object",
+                                        "description": "fields of root certificate",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "configPath": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Path of config files of CFSSL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
-                    {
-                        "name": "rootCert",
-                        "in": "query",
-                        "description": "fields of root certificate",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "configPath",
-                        "in": "query",
-                        "description": "Path of config files of CFSSL",
-                        "schema": {
-                            "type": "string",
-                            "default": ""
-                        }
-                    },
                     {
                         "name": "apiVersion",
                         "in": "path",

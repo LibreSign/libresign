@@ -320,6 +320,15 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    NewFile: {
+      file: {
+        /** Format: int64 */
+        fileId?: number;
+        base64?: string;
+      };
+      name?: string;
+      type?: string;
+    };
     OCSMeta: {
       status: string;
       statuscode: number;
@@ -638,14 +647,6 @@ export type operations = {
   /** Create account to sign a document */
   "account-create-to-sign": {
     parameters: {
-      query: {
-        /** @description email to the new account */
-        email: string;
-        /** @description the password to then new account */
-        password: string;
-        /** @description The password to create certificate */
-        signPassword?: string | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -656,13 +657,26 @@ export type operations = {
         uuid: string;
       };
     };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description email to the new account */
+          email: string;
+          /** @description the password to then new account */
+          password: string;
+          /** @description The password to create certificate */
+          signPassword?: string | null;
+        };
+      };
+    };
     responses: {
       /** @description OK */
       200: {
         content: {
           "application/json": {
             message: string;
-            action: string;
+            /** Format: int64 */
+            action: number;
             pdf: {
               url: string;
             };
@@ -676,7 +690,8 @@ export type operations = {
         content: {
           "application/json": {
             message: string;
-            action: string;
+            /** Format: int64 */
+            action: number;
           };
         };
       };
@@ -778,18 +793,22 @@ export type operations = {
    */
   "account-update-pfx-password": {
     parameters: {
-      query: {
-        /** @description Current password */
-        current: string;
-        /** @description New password */
-        new: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description Current password */
+          current: string;
+          /** @description New password */
+          new: string;
+        };
       };
     };
     responses: {
@@ -814,16 +833,20 @@ export type operations = {
   /** Read content of PFX file */
   "account-read-pfx-data": {
     parameters: {
-      query: {
-        /** @description password of PFX file to decrypt the file and return his content */
-        password: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description password of PFX file to decrypt the file and return his content */
+          password: string;
+        };
       };
     };
     responses: {
@@ -846,16 +869,20 @@ export type operations = {
   /** Update the account phone number */
   "account-update-settings": {
     parameters: {
-      query?: {
-        /** @description the phone number to be defined. If null will remove the phone number */
-        phone?: string | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @description the phone number to be defined. If null will remove the phone number */
+          phone?: string | null;
+        };
       };
     };
     responses: {
@@ -884,16 +911,20 @@ export type operations = {
   /** Create PFX file using self-signed certificate */
   "account-signature-generate": {
     parameters: {
-      query: {
-        /** @description The password that will be used to encrypt the certificate file */
-        signPassword: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description The password that will be used to encrypt the certificate file */
+          signPassword: string;
+        };
       };
     };
     responses: {
@@ -916,20 +947,35 @@ export type operations = {
   /** List account files of authenticated account */
   "account-account-file-list-to-owner": {
     parameters: {
-      query?: {
-        /** @description Filter params */
-        filter?: string;
-        /** @description the number of page to return */
-        page?: number | null;
-        /** @description Total of elements to return */
-        length?: number | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Filter params
+           * @default []
+           */
+          filter?: {
+            approved?: string;
+          };
+          /**
+           * Format: int64
+           * @description the number of page to return
+           */
+          page?: number | null;
+          /**
+           * Format: int64
+           * @description Total of elements to return
+           */
+          length?: number | null;
+        };
       };
     };
     responses: {
@@ -954,16 +1000,20 @@ export type operations = {
   /** Add files to account profile */
   "account-add-files": {
     parameters: {
-      query: {
-        /** @description the list of files to add to profile */
-        files: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description the list of files to add to profile */
+          files: components["schemas"]["NewFile"][];
+        };
       };
     };
     responses: {
@@ -990,16 +1040,23 @@ export type operations = {
   /** Delete file from account */
   "account-delete-file": {
     parameters: {
-      query: {
-        /** @description the nodeId of file to be delete */
-        nodeId: number;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description the nodeId of file to be delete
+           */
+          nodeId: number;
+        };
       };
     };
     responses: {
@@ -1022,20 +1079,35 @@ export type operations = {
   /** List account files that need to be approved */
   "account-account-file-list-to-approval": {
     parameters: {
-      query?: {
-        /** @description Filter params */
-        filter?: string;
-        /** @description the number of page to return */
-        page?: number | null;
-        /** @description Total of elements to return */
-        length?: number | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Filter params
+           * @default []
+           */
+          filter?: {
+            approved?: string;
+          };
+          /**
+           * Format: int64
+           * @description the number of page to return
+           */
+          page?: number | null;
+          /**
+           * Format: int64
+           * @description Total of elements to return
+           */
+          length?: number | null;
+        };
       };
     };
     responses: {
@@ -1061,20 +1133,33 @@ export type operations = {
    */
   "file-save": {
     parameters: {
-      query: {
-        /** @description File to save */
-        file: string;
-        /** @description The name of file to sign */
-        name?: string;
-        /** @description Settings of signature request */
-        settings?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description File to save */
+          file: {
+            url?: string;
+            base64?: string;
+          };
+          /**
+           * @description The name of file to sign
+           * @default
+           */
+          name?: string;
+          /**
+           * @description Settings of signature request
+           * @default []
+           */
+          settings?: Record<string, never>;
+        };
       };
     };
     responses: {
@@ -1097,20 +1182,33 @@ export type operations = {
   /** List account files that need to be approved */
   "file-list": {
     parameters: {
-      query?: {
-        /** @description the number of page to return */
-        page?: number | null;
-        /** @description Total of elements to return */
-        length?: number | null;
-        /** @description Filter params */
-        filter?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description the number of page to return
+           */
+          page?: number | null;
+          /**
+           * Format: int64
+           * @description Total of elements to return
+           */
+          length?: number | null;
+          /**
+           * @description Filter params
+           * @default []
+           */
+          filter?: Record<string, never>;
+        };
       };
     };
     responses: {
@@ -1125,20 +1223,6 @@ export type operations = {
   /** Return the thumbnail of a LibreSign file */
   "file-get-thumbnail": {
     parameters: {
-      query?: {
-        /** @description Width of generated file */
-        x?: number;
-        /** @description Height of generated file */
-        y?: number;
-        /** @description Crop, boolean value, default false */
-        a?: 0 | 1;
-        /** @description Force to generate a new thumbnail */
-        forceIcon?: 0 | 1;
-        /** @description To force a given mimetype for the file */
-        mode?: string;
-        /** @description If we have no preview enabled, we can redirect to the mime icon if any */
-        mimeFallback?: 0 | 1;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1147,6 +1231,44 @@ export type operations = {
         apiVersion: "v1";
         /** @description The nodeId of document */
         nodeId: number;
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description Width of generated file
+           * @default 32
+           */
+          x?: number;
+          /**
+           * Format: int64
+           * @description Height of generated file
+           * @default 32
+           */
+          y?: number;
+          /**
+           * @description Crop, boolean value, default false
+           * @default false
+           */
+          a?: boolean;
+          /**
+           * @description Force to generate a new thumbnail
+           * @default true
+           */
+          forceIcon?: boolean;
+          /**
+           * @description To force a given mimetype for the file
+           * @default fill
+           */
+          mode?: string;
+          /**
+           * @description If we have no preview enabled, we can redirect to the mime icon if any
+           * @default false
+           */
+          mimeFallback?: boolean;
+        };
       };
     };
     responses: {
@@ -1164,18 +1286,22 @@ export type operations = {
    */
   "file-validate": {
     parameters: {
-      query?: {
-        /** @description The type of identifier could be Uuid or FileId */
-        type?: string | null;
-        /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
-        identifier?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @description The type of identifier could be Uuid or FileId */
+          type?: string | null;
+          /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
+          identifier?: Record<string, never>;
+        };
       };
     };
     responses: {
@@ -1243,18 +1369,6 @@ export type operations = {
    */
   "file_element-post": {
     parameters: {
-      query: {
-        /** @description Id of sign request */
-        signRequestId: number;
-        /** @description ID of visible element. Each element has an ID that is returned on validation endpoints. */
-        elementId?: number | null;
-        /** @description The type of element to create, sginature, sinitial, date, datetime, text */
-        type?: string;
-        /** @description Metadata of visible elements to associate with the document */
-        metadata?: string;
-        /** @description Coortinates of a visible element on PDF */
-        coordinates?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1263,6 +1377,41 @@ export type operations = {
         apiVersion: "v1";
         /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
         uuid: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description Id of sign request
+           */
+          signRequestId: number;
+          /**
+           * Format: int64
+           * @description ID of visible element. Each element has an ID that is returned on validation endpoints.
+           */
+          elementId?: number | null;
+          /**
+           * @description The type of element to create, sginature, sinitial, date, datetime, text
+           * @default
+           */
+          type?: string;
+          /**
+           * @description Metadata of visible elements to associate with the document
+           * @default []
+           */
+          metadata?: {
+            [key: string]: Record<string, never>;
+          };
+          /**
+           * @description Coortinates of a visible element on PDF
+           * @default []
+           */
+          coordinates?: {
+            [key: string]: Record<string, never>;
+          };
+        };
       };
     };
     responses: {
@@ -1323,16 +1472,6 @@ export type operations = {
    */
   "file_element-patch": {
     parameters: {
-      query: {
-        /** @description Id of sign request */
-        signRequestId: number;
-        /** @description The type of element to create, sginature, sinitial, date, datetime, text */
-        type?: string;
-        /** @description Metadata of visible elements to associate with the document */
-        metadata?: string;
-        /** @description Coortinates of a visible element on PDF */
-        coordinates?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1343,6 +1482,36 @@ export type operations = {
         uuid: string;
         /** @description ID of visible element. Each element has an ID that is returned on validation endpoints. */
         elementId: number | null;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description Id of sign request
+           */
+          signRequestId: number;
+          /**
+           * @description The type of element to create, sginature, sinitial, date, datetime, text
+           * @default
+           */
+          type?: string;
+          /**
+           * @description Metadata of visible elements to associate with the document
+           * @default []
+           */
+          metadata?: {
+            [key: string]: Record<string, never>;
+          };
+          /**
+           * @description Coortinates of a visible element on PDF
+           * @default []
+           */
+          coordinates?: {
+            [key: string]: Record<string, never>;
+          };
+        };
       };
     };
     responses: {
@@ -1368,20 +1537,35 @@ export type operations = {
    */
   "identify_account-search": {
     parameters: {
-      query?: {
-        /** @description search params */
-        search?: string;
-        /** @description the number of page to return. Default: 1 */
-        page?: number | null;
-        /** @description Total of elements to return. Default: 25 */
-        limit?: number | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description search params
+           * @default
+           */
+          search?: Record<string, never>;
+          /**
+           * Format: int64
+           * @description the number of page to return. Default: 1
+           * @default 1
+           */
+          page?: number | null;
+          /**
+           * Format: int64
+           * @description Total of elements to return. Default: 25
+           * @default 25
+           */
+          limit?: number | null;
+        };
       };
     };
     responses: {
@@ -1396,18 +1580,28 @@ export type operations = {
   /** Notify a signer of a file */
   "notify-signer": {
     parameters: {
-      query: {
-        /** @description The identifier value of LibreSign file */
-        fileId: number;
-        /** @description The sign request id */
-        signRequestId: number;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description The identifier value of LibreSign file
+           */
+          fileId: number;
+          /**
+           * Format: int64
+           * @description The sign request id
+           */
+          signRequestId: number;
+        };
       };
     };
     responses: {
@@ -1430,18 +1624,27 @@ export type operations = {
   /** Notify signers of a file */
   "notify-signers": {
     parameters: {
-      query: {
-        /** @description The identifier value of LibreSign file */
-        fileId: number;
-        /** @description Signers data */
-        signers: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description The identifier value of LibreSign file
+           */
+          fileId: number;
+          /** @description Signers data */
+          signers: {
+            [key: string]: Record<string, never>;
+          };
+        };
       };
     };
     responses: {
@@ -1464,18 +1667,28 @@ export type operations = {
   /** Dismiss a specific notification */
   "notify-notification-dismiss": {
     parameters: {
-      query: {
-        /** @description The sign request id */
-        signRequestId: number;
-        /** @description Timestamp of notification to dismiss */
-        timestamp: number;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * Format: int64
+           * @description The sign request id
+           */
+          signRequestId: number;
+          /**
+           * Format: int64
+           * @description Timestamp of notification to dismiss
+           */
+          timestamp: number;
+        };
       };
     };
     responses: {
@@ -1493,24 +1706,36 @@ export type operations = {
    */
   "request_signature-request": {
     parameters: {
-      query: {
-        /** @description File object. */
-        file: string;
-        /** @description Collection of users who must sign the document */
-        users: string;
-        /** @description The name of file to sign */
-        name: string;
-        /** @description URL that will receive a POST after the document is signed */
-        callback?: string | null;
-        /** @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending */
-        status?: number | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description File object. */
+          file: {
+            [key: string]: Record<string, never>;
+          };
+          /** @description Collection of users who must sign the document */
+          users: {
+            [key: string]: Record<string, never>;
+          };
+          /** @description The name of file to sign */
+          name: string;
+          /** @description URL that will receive a POST after the document is signed */
+          callback?: string | null;
+          /**
+           * Format: int64
+           * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
+           * @default 1
+           */
+          status?: number | null;
+        };
       };
     };
     responses: {
@@ -1536,24 +1761,43 @@ export type operations = {
    */
   "request_signature-update-sign": {
     parameters: {
-      query?: {
-        /** @description Collection of users who must sign the document */
-        users?: string | null;
-        /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
-        uuid?: string | null;
-        /** @description Visible elements on document */
-        visibleElements?: string | null;
-        /** @description File object. */
-        file?: string | null;
-        /** @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending */
-        status?: number | null;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Collection of users who must sign the document
+           * @default []
+           */
+          users?: {
+            [key: string]: Record<string, never>;
+          } | null;
+          /** @description UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID. */
+          uuid?: string | null;
+          /** @description Visible elements on document */
+          visibleElements?: {
+            [key: string]: Record<string, never>;
+          } | null;
+          /**
+           * @description File object.
+           * @default []
+           */
+          file?: {
+            [key: string]: Record<string, never>;
+          } | null;
+          /**
+           * Format: int64
+           * @description Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
+           */
+          status?: number | null;
+        };
       };
     };
     responses: {
@@ -1576,16 +1820,6 @@ export type operations = {
   /** Sign a file using file Id */
   "sign_file-sign-using-file-id": {
     parameters: {
-      query: {
-        /** @description Signature method */
-        method: string;
-        /** @description List of visible elements */
-        elements?: string;
-        /** @description Identify value */
-        identifyValue?: string;
-        /** @description Token, commonly send by email */
-        token?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1594,6 +1828,31 @@ export type operations = {
         apiVersion: "v1";
         /** @description Id of LibreSign file */
         fileId: number;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description Signature method */
+          method: string;
+          /**
+           * @description List of visible elements
+           * @default []
+           */
+          elements?: {
+            [key: string]: Record<string, never>;
+          };
+          /**
+           * @description Identify value
+           * @default
+           */
+          identifyValue?: string;
+          /**
+           * @description Token, commonly send by email
+           * @default
+           */
+          token?: string;
+        };
       };
     };
     responses: {
@@ -1746,16 +2005,22 @@ export type operations = {
   /** Create signature element */
   "signature_elements-create-signature-element": {
     parameters: {
-      query: {
-        /** @description Element object */
-        elements: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description Element object */
+          elements: {
+            [key: string]: Record<string, never>;
+          };
+        };
       };
     };
     responses: {
@@ -1879,12 +2144,6 @@ export type operations = {
   /** Update signature element */
   "signature_elements-patch-signature-element": {
     parameters: {
-      query?: {
-        /** @description The type of signature element */
-        type?: string;
-        /** @description Element object */
-        file?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1893,6 +2152,24 @@ export type operations = {
         apiVersion: "v1";
         /** @description Node id of a Nextcloud file */
         nodeId: number;
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description The type of signature element
+           * @default
+           */
+          type?: string;
+          /**
+           * @description Element object
+           * @default []
+           */
+          file?: {
+            [key: string]: Record<string, never>;
+          };
+        };
       };
     };
     responses: {
@@ -1917,16 +2194,6 @@ export type operations = {
   /** Sign a file using file UUID */
   "sign_file-sign-using-uuid": {
     parameters: {
-      query: {
-        /** @description Signature method */
-        method: string;
-        /** @description List of visible elements */
-        elements?: string;
-        /** @description Identify value */
-        identifyValue?: string;
-        /** @description Token, commonly send by email */
-        token?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1935,6 +2202,31 @@ export type operations = {
         apiVersion: "v1";
         /** @description UUID of LibreSign file */
         uuid: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description Signature method */
+          method: string;
+          /**
+           * @description List of visible elements
+           * @default []
+           */
+          elements?: {
+            [key: string]: Record<string, never>;
+          };
+          /**
+           * @description Identify value
+           * @default
+           */
+          identifyValue?: string;
+          /**
+           * @description Token, commonly send by email
+           * @default
+           */
+          token?: string;
+        };
       };
     };
     responses: {
@@ -2056,20 +2348,32 @@ export type operations = {
    */
   "admin-generate-certificate-cfssl": {
     parameters: {
-      query: {
-        /** @description fields of root certificate */
-        rootCert: string;
-        /** @description URI of CFSSL API */
-        cfsslUri?: string;
-        /** @description Path of config files of CFSSL */
-        configPath?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description fields of root certificate */
+          rootCert: {
+            [key: string]: string;
+          };
+          /**
+           * @description URI of CFSSL API
+           * @default
+           */
+          cfsslUri?: string;
+          /**
+           * @description Path of config files of CFSSL
+           * @default
+           */
+          configPath?: string;
+        };
       };
     };
     responses: {
@@ -2095,18 +2399,27 @@ export type operations = {
    */
   "admin-generate-certificate-open-ssl": {
     parameters: {
-      query: {
-        /** @description fields of root certificate */
-        rootCert: string;
-        /** @description Path of config files of CFSSL */
-        configPath?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description fields of root certificate */
+          rootCert: {
+            [key: string]: string;
+          };
+          /**
+           * @description Path of config files of CFSSL
+           * @default
+           */
+          configPath?: string;
+        };
       };
     };
     responses: {
