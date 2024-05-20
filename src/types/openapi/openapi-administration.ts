@@ -41,6 +41,13 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    OCSMeta: {
+      status: string;
+      statuscode: number;
+      message?: string;
+      totalitems?: string;
+      itemsperpage?: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -93,14 +100,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Account not found */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -139,14 +156,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Account not found */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -171,7 +198,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -195,7 +227,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
