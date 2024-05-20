@@ -25,7 +25,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -63,7 +63,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Request failed
@@ -71,7 +71,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateUuid($uuid): JSONResponse {
+	public function validateUuid($uuid): DataResponse {
 		return $this->validate('Uuid', $uuid);
 	}
 
@@ -81,7 +81,7 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Request failed
@@ -89,7 +89,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateFileId(int $fileId): JSONResponse {
+	public function validateFileId(int $fileId): DataResponse {
 		return $this->validate('FileId', $fileId);
 	}
 
@@ -100,7 +100,7 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
 	 * @param mixed $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Request failed
@@ -108,7 +108,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validate(?string $type = null, $identifier = null): JSONResponse {
+	public function validate(?string $type = null, $identifier = null): DataResponse {
 		try {
 			if ($type === 'Uuid' && !empty($identifier)) {
 				try {
@@ -166,7 +166,7 @@ class FileController extends AEnvironmentAwareController {
 				->formatFile()
 		);
 
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 
 	/**
@@ -175,17 +175,17 @@ class FileController extends AEnvironmentAwareController {
 	 * @param array{} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function list($page = null, $length = null, ?array $filter = []): JSONResponse {
+	public function list($page = null, $length = null, ?array $filter = []): DataResponse {
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
 			->listAssociatedFilesOfSignFlow($page, $length, $filter);
-		return new JSONResponse($return, Http::STATUS_OK);
+		return new DataResponse($return, Http::STATUS_OK);
 	}
 
 	/**
@@ -198,7 +198,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param boolean $forceIcon Force to generate a new thumbnail
 	 * @param string $mode To force a given mimetype for the file
 	 * @param boolean $mimeFallback If we have no preview enabled, we can redirect to the mime icon if any
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -214,7 +214,7 @@ class FileController extends AEnvironmentAwareController {
 		bool $mimeFallback = false
 	) {
 		if ($nodeId === -1 || $x === 0 || $y === 0) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
 		try {
@@ -223,14 +223,14 @@ class FileController extends AEnvironmentAwareController {
 				->getMyLibresignFile($nodeId);
 			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
 		} catch (DoesNotExistException $e) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
 		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
 	}
 
 	/**
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|JSONResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
 	 */
 	private function fetchPreview(
 		Node $node,
@@ -242,10 +242,10 @@ class FileController extends AEnvironmentAwareController {
 		bool $mimeFallback = false,
 	) : Http\Response {
 		if (!($node instanceof File) || (!$forceIcon && !$this->preview->isAvailable($node))) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		if (!$node->isReadable()) {
-			return new JSONResponse([], Http::STATUS_FORBIDDEN);
+			return new DataResponse([], Http::STATUS_FORBIDDEN);
 		}
 
 		$storage = $node->getStorage();
@@ -254,7 +254,7 @@ class FileController extends AEnvironmentAwareController {
 			$share = $storage->getShare();
 			$attributes = $share->getAttributes();
 			if ($attributes !== null && $attributes->getAttribute('permissions', 'download') === false) {
-				return new JSONResponse([], Http::STATUS_FORBIDDEN);
+				return new DataResponse([], Http::STATUS_FORBIDDEN);
 			}
 		}
 
@@ -273,9 +273,9 @@ class FileController extends AEnvironmentAwareController {
 				}
 			}
 
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
@@ -287,7 +287,7 @@ class FileController extends AEnvironmentAwareController {
 	 * @param array{url?: string, base64?: string} $file File to save
 	 * @param string $name The name of file to sign
 	 * @param array{} $settings Settings of signature request
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data
@@ -295,7 +295,7 @@ class FileController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function save(array $file, string $name = '', array $settings = []): JSONResponse {
+	public function save(array $file, string $name = '', array $settings = []): DataResponse {
 		try {
 			if (empty($name)) {
 				if (!empty($file['url'])) {
@@ -319,7 +319,7 @@ class FileController extends AEnvironmentAwareController {
 				'settings' => $settings
 			]);
 
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Success'),
 					'name' => $name,
@@ -331,7 +331,7 @@ class FileController extends AEnvironmentAwareController {
 				Http::STATUS_OK
 			);
 		} catch (\Exception $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $e->getMessage(),
 				],

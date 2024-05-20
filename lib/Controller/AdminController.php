@@ -17,7 +17,7 @@ use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
 use OCP\IL10N;
@@ -43,7 +43,7 @@ class AdminController extends Controller {
 	 * @param array<string, string> $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -53,7 +53,7 @@ class AdminController extends Controller {
 		array $rootCert,
 		string $cfsslUri = '',
 		string $configPath = ''
-	): JSONResponse {
+	): DataResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'cfssl',
 			'configPath' => trim($configPath),
@@ -66,7 +66,7 @@ class AdminController extends Controller {
 	 *
 	 * @param array<string, string> $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -75,7 +75,7 @@ class AdminController extends Controller {
 	public function generateCertificateOpenSsl(
 		array $rootCert,
 		string $configPath = ''
-	): JSONResponse {
+	): DataResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'openssl',
 			'configPath' => trim($configPath),
@@ -85,7 +85,7 @@ class AdminController extends Controller {
 	private function generateCertificate(
 		array $rootCert,
 		array $properties = [],
-	): JSONResponse {
+	): DataResponse {
 		try {
 			$names = [];
 			foreach ($rootCert['names'] as $item) {
@@ -97,11 +97,11 @@ class AdminController extends Controller {
 				$properties,
 			);
 
-			return new JSONResponse([
+			return new DataResponse([
 				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $exception->getMessage()
 				],
@@ -115,12 +115,12 @@ class AdminController extends Controller {
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
-	public function loadCertificate(): JSONResponse {
+	public function loadCertificate(): DataResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
 		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();
@@ -132,7 +132,7 @@ class AdminController extends Controller {
 		);
 		$certificate['generated'] = count($success) === count($configureResult);
 
-		return new JSONResponse($certificate);
+		return new DataResponse($certificate);
 	}
 
 	private function trimAndThrowIfEmpty(string $key, $value): string {
@@ -147,13 +147,13 @@ class AdminController extends Controller {
 	 *
 	 * Return the status of necessary configuration and tips to fix the problems.
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoCSRFRequired]
-	public function configureCheck(): JSONResponse {
-		return new JSONResponse(
+	public function configureCheck(): DataResponse {
+		return new DataResponse(
 			$this->configureCheckService->checkAll()
 		);
 	}

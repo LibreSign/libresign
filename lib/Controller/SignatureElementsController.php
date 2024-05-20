@@ -22,7 +22,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\FileDisplayResponse;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
@@ -50,7 +50,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Create signature element
 	 *
 	 * @param array<string, mixed> $elements Element object
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string, elements: array{}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string, elements: array{}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Invalid data
@@ -59,7 +59,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function createSignatureElement(array $elements): JSONResponse {
+	public function createSignatureElement(array $elements): DataResponse {
 		try {
 			$this->validateHelper->validateVisibleElements($elements, $this->validateHelper::TYPE_VISIBLE_ELEMENT_USER);
 			$this->accountService->saveVisibleElements(
@@ -68,14 +68,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				user: $this->userSession->getUser(),
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->n(
 					'Element created with success',
@@ -96,7 +96,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	/**
 	 * Get signature elements
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -105,10 +105,10 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function getSignatureElements(): JSONResponse {
+	public function getSignatureElements(): DataResponse {
 		$userId = $this->userSession->getUser()?->getUID();
 		try {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'elements' =>
 						(
@@ -120,7 +120,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Elements not found')
 				],
@@ -149,7 +149,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$this->sessionService->getSessionId()
 			);
 		} catch (DoesNotExistException $th) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 		$preview = $this->preview->getPreview(
 			file: $node,
@@ -173,15 +173,15 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function getSignatureElement(int $nodeId): JSONResponse {
+	public function getSignatureElement(int $nodeId): DataResponse {
 		$userId = $this->userSession->getUser()->getUID();
 		try {
-			return new JSONResponse(
+			return new DataResponse(
 				$this->signerElementsService->getUserElementByNodeId($userId, $nodeId),
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
 				],
@@ -196,7 +196,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * @param int $nodeId Node id of a Nextcloud file
 	 * @param string $type The type of signature element
 	 * @param array<string, mixed> $file Element object
-	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found
@@ -205,7 +205,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[PublicPage]
 	#[NoCSRFRequired]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): JSONResponse {
+	public function patchSignatureElement(int $nodeId, string $type = '', array $file = []): DataResponse {
 		try {
 			$element['nodeId'] = $nodeId;
 			if ($type) {
@@ -224,7 +224,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				$element['elementId'] = $userElement['id'];
 			}
 			$this->accountService->saveVisibleElement($element, $this->sessionService->getSessionId(), $user);
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element updated with success'),
 					'elements' =>
@@ -237,7 +237,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				Http::STATUS_OK
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage()
 				],
@@ -250,7 +250,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	 * Delete signature element
 	 *
 	 * @param int $nodeId Node id of a Nextcloud file
-	 * @return JSONResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{elements: array{}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Not found
@@ -259,7 +259,7 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[RequireSignRequestUuid(skipIfAuthenticated: true)]
-	public function deleteSignatureElement(int $nodeId): JSONResponse {
+	public function deleteSignatureElement(int $nodeId): DataResponse {
 		try {
 			$this->accountService->deleteSignatureElement(
 				user: $this->userSession->getUser(),
@@ -267,14 +267,14 @@ class SignatureElementsController extends AEnvironmentAwareController implements
 				sessionId: $this->sessionService->getSessionId(),
 			);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $this->l10n->t('Element not found')
 				],
 				Http::STATUS_NOT_FOUND
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Visible element deleted')
 			],

@@ -16,7 +16,7 @@ use OCA\Libresign\Service\RequestSignatureService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -43,7 +43,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param string $name The name of file to sign
 	 * @param string|null $callback URL that will receive a POST after the document is signed
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -51,7 +51,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1): JSONResponse {
+	public function request(array $file, array $users, string $name, ?string $callback = null, ?int $status = 1): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
 			'file' => $file,
@@ -73,14 +73,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				->showMessages()
 				->formatFile();
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success'),
 				'data' => $return
@@ -99,7 +99,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * @param array<string, mixed>|null $visibleElements Visible elements on document
 	 * @param array<string, mixed>|null $file File object.
 	 * @param integer|null $status Numeric code of status * 0 - no signers * 1 - signed * 2 - pending
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Unauthorized
@@ -107,7 +107,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null): JSONResponse {
+	public function updateSign(?array $users = [], ?string $uuid = null, ?array $visibleElements = null, ?array $file = [], ?int $status = null): DataResponse {
 		$user = $this->userSession->getUser();
 		$data = [
 			'uuid' => $uuid,
@@ -133,14 +133,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 				->showMessages()
 				->formatFile();
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success'),
 				'data' => $return
@@ -156,7 +156,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 *
 	 * @param integer $fileId Node id of a Nextcloud file
 	 * @param integer $signRequestId The sign request id
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
@@ -164,7 +164,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): JSONResponse {
+	public function deleteOneRequestSignatureUsingFileId(int $fileId, int $signRequestId): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -176,14 +176,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$this->validateHelper->validateIsSignerOfFile($signRequestId, $fileId);
 			$this->requestSignatureService->unassociateToUser($fileId, $signRequestId);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNAUTHORIZED
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success')
 			],
@@ -197,7 +197,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	 * You can only request exclusion as any sign
 	 *
 	 * @param integer $fileId Node id of a Nextcloud file
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Failed
@@ -205,7 +205,7 @@ class RequestSignatureController extends AEnvironmentAwareController {
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireManager]
-	public function deleteAllRequestSignatureUsingFileId(int $fileId): JSONResponse {
+	public function deleteAllRequestSignatureUsingFileId(int $fileId): DataResponse {
 		try {
 			$data = [
 				'userManager' => $this->userSession->getUser(),
@@ -216,14 +216,14 @@ class RequestSignatureController extends AEnvironmentAwareController {
 			$this->validateHelper->validateExistingFile($data);
 			$this->requestSignatureService->deleteRequestSignature($data);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_UNAUTHORIZED
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => $this->l10n->t('Success')
 			],

@@ -13,7 +13,7 @@ use OCA\Libresign\Middleware\Attribute\RequireManager;
 use OCA\Libresign\Service\IdentifyMethod\Account;
 use OCA\Libresign\Service\IdentifyMethod\Email;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\Collaboration\Collaborators\ISearch;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -41,21 +41,21 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 	 * @param array{} $search search params
 	 * @param int|null $page the number of page to return. Default: 1
 	 * @param int|null $limit Total of elements to return. Default: 25
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[RequireManager]
-	public function search(string $search = '', int $page = 1, int $limit = 25): JSONResponse {
+	public function search(string $search = '', int $page = 1, int $limit = 25): DataResponse {
 		$shareTypes = $this->getShareTypes();
 		$lookup = false;
 
 		// only search for string larger than a given threshold
 		$threshold = 1;
 		if (strlen($search) < $threshold) {
-			return new JSONResponse();
+			return new DataResponse();
 		}
 
 		$offset = $limit * ($page - 1);
@@ -68,7 +68,7 @@ class IdentifyAccountController extends AEnvironmentAwareController {
 		$return = $this->addHerselfEmail($return, $search);
 		$return = $this->excludeNotAllowed($return);
 
-		return new JSONResponse($return);
+		return new DataResponse($return);
 	}
 
 	private function getShareTypes(): array {
