@@ -192,7 +192,7 @@ export default {
 					window.location.href = url.href
 				})
 				.catch(({ response }) => {
-					this.errorMessage = response.data.message
+					this.errorMessage = response.data.ocs.data.message
 				})
 			this.loading = false
 		},
