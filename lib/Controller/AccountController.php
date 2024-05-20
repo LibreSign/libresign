@@ -46,7 +46,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IPreview;
 use OCP\IRequest;
@@ -87,7 +87,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $email email to the new account
 	 * @param string $password the password to then new account
 	 * @param string|null $signPassword The password to create certificate
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string,action: int, pdf: array{url: string},filename: string,description: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string,action: int, pdf: array{url: string},filename: string,description: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string,action: int}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Validation page not accessible if unauthenticated
@@ -97,7 +97,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[UseSession]
-	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): JSONResponse {
+	public function createToSign(string $uuid, string $email, string $password, ?string $signPassword): DataResponse {
 		try {
 			$data = [
 				'uuid' => $uuid,
@@ -132,7 +132,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			);
 			$this->loginChain->process($loginData);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 					'action' => JSActions::ACTION_DO_NOTHING
@@ -140,7 +140,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				Http::STATUS_UNPROCESSABLE_ENTITY
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			$data,
 			Http::STATUS_OK
 		);
@@ -151,7 +151,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $signPassword The password that will be used to encrypt the certificate file
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: Settings saved
 	 * 401: Failure to create PFX file
@@ -160,7 +160,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[NoCSRFRequired]
 	public function signatureGenerate(
 		string $signPassword
-	): JSONResponse {
+	): DataResponse {
 		try {
 			$identify = $this->userSession->getUser()->getEMailAddress();
 			if (!$identify) {
@@ -184,10 +184,10 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			);
 			$this->pkcs12Handler->savePfx($this->userSession->getUser()->getUID(), $certificate);
 
-			return new JSONResponse([], Http::STATUS_OK);
+			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$this->logger->error($exception->getMessage());
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $exception->getMessage()
 				],
@@ -201,17 +201,17 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param LibresignNewFile[] $files the list of files to add to profile
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array<empty>, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages:array{file: ?string, type: ?string, message: string}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: ?string, message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
 	 * 401: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function addFiles(array $files): JSONResponse {
+	public function addFiles(array $files): DataResponse {
 		try {
 			$this->accountService->addFilesToAccount($files, $this->userSession->getUser());
-			return new JSONResponse([], Http::STATUS_OK);
+			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
 			$exceptionData = json_decode($exception->getMessage());
 			if (isset($exceptionData->file)) {
@@ -227,12 +227,8 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 					'message' => $exception->getMessage()
 				];
 			}
-			return new JSONResponse(
-				[
-					'messages' => [
-						$message
-					]
-				],
+			return new DataResponse(
+				$message,
 				Http::STATUS_UNAUTHORIZED
 			);
 		}
@@ -243,19 +239,19 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param int $nodeId the nodeId of file to be delete
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
 	 *
 	 * 200: File deleted with success
 	 * 401: Failure to delete file from account
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function deleteFile(int $nodeId): JSONResponse {
+	public function deleteFile(int $nodeId): DataResponse {
 		try {
 			$this->accountService->deleteFileFromAccount($nodeId, $this->userSession->getUser());
-			return new JSONResponse([], Http::STATUS_OK);
+			return new DataResponse([], Http::STATUS_OK);
 		} catch (\Exception $exception) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'messages' => [
 						$exception->getMessage(),
@@ -271,7 +267,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * Validates API access data and returns the authenticated user's data.
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{account: array{uuid: string, emailAddress: string, displayName: string},settings: array{}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{account: array{uid: string, emailAddress: string, displayName: string},settings: array{canRequestSign: bool,hasSignatureFile: bool}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid user or password
@@ -280,10 +276,10 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	#[CORS]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function me(): JSONResponse {
+	public function me(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					// TRANSLATORS error message when user that wants to access the API does not exists or used an invalid password
 					'message' => $this->l10n->t('Invalid user or password')
@@ -291,7 +287,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				Http::STATUS_NOT_FOUND
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'account' => [
 					'uid' => $user->getUID(),
@@ -310,20 +306,20 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function accountFileListToOwner(array $filter = [], ?int $page = null, ?int $length = null): JSONResponse {
+	public function accountFileListToOwner(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
 		try {
 			$filter['userId'] = $this->userSession->getUser()->getUID();
 			$return = $this->accountFileService->accountFileList($filter, $page, $length);
-			return new JSONResponse($return, Http::STATUS_OK);
+			return new DataResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage()
 				],
@@ -338,20 +334,20 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Account not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function accountFileListToApproval(array $filter = [], ?int $page = null, ?int $length = null): JSONResponse {
+	public function accountFileListToApproval(array $filter = [], ?int $page = null, ?int $length = null): DataResponse {
 		try {
 			$this->validateHelper->userCanApproveValidationDocuments($this->userSession->getUser());
 			$return = $this->accountFileService->accountFileList($filter, $page, $length);
-			return new JSONResponse($return, Http::STATUS_OK);
+			return new DataResponse($return, Http::STATUS_OK);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage()
 				],
@@ -365,14 +361,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string|null $phone the phone number to be defined. If null will remove the phone number
 	 *
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{data: array{userId: string, phone: string, message: string}}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 202: Settings saved
 	 * 404: Invalid data to update phone number
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function updateSettings(?string $phone = null): JSONResponse {
+	public function updateSettings(?string $phone = null): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$userAccount = $this->accountManager->getAccount($user);
@@ -387,14 +383,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			}
 			$this->accountManager->updateAccount($userAccount);
 		} catch (\Throwable $th) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $th->getMessage(),
 				],
 				Http::STATUS_NOT_FOUND
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'data' => [
 					'userId' => $user->getUID(),
@@ -410,15 +406,15 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Delete PFX file
 	 *
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>
 	 *
 	 * 202: Certificate deleted with success
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function deletePfx(): JSONResponse {
+	public function deletePfx(): DataResponse {
 		$this->accountService->deletePfx($this->userSession->getUser());
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				// TRANSLATORS Feedback to user after delete the certificate file that is used to sign documents with success
 				'message' => $this->l10n->t('Certificate file deleted with success.')
@@ -430,14 +426,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Upload PFX file
 	 *
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function uploadPfx(): JSONResponse {
+	public function uploadPfx(): DataResponse {
 		$file = $this->request->getUploadedFile('file');
 		try {
 			if (empty($file)) {
@@ -445,14 +441,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 			}
 			$this->accountService->uploadPfx($file, $this->userSession->getUser());
 		} catch (InvalidArgumentException|LibresignException $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $e->getMessage()
 				],
 				Http::STATUS_BAD_REQUEST
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				// TRANSLATORS Feedback to user after upload the certificate file that is used to sign documents with success
 				'message' => $this->l10n->t('Certificate file saved with success.')
@@ -469,25 +465,25 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param string $current Current password
 	 * @param string $new New password
 	 *
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function updatePfxPassword($current, $new): JSONResponse {
+	public function updatePfxPassword($current, $new): DataResponse {
 		try {
 			$this->accountService->updatePfxPassword($this->userSession->getUser(), $current, $new);
 		} catch (LibresignException $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $e->getMessage()
 				],
 				Http::STATUS_BAD_REQUEST
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				// TRANSLATORS Feedback to user after change the certificate file that is used to sign documents with success
 				'message' => $this->l10n->t('New password to sign documents has been created')
@@ -501,14 +497,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 *
 	 * @param string $password password of PFX file to decrypt the file and return his content
 	 *
-	 * @return JSONResponse<Http::STATUS_ACCEPTED, array{}, array{}>|JSONResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_ACCEPTED, array{}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
 	 * 202: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function readPfxData(string $password): JSONResponse {
+	public function readPfxData(string $password): DataResponse {
 		try {
 			$data = $this->accountService->readPfxData($this->userSession->getUser(), $password);
 			$array_map_recursive = function ($callback, $array) {
@@ -521,14 +517,14 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 				return mb_convert_encoding($text, 'UTF-8', 'UTF-8');
 			}, $data);
 		} catch (LibresignException $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'message' => $e->getMessage()
 				],
 				Http::STATUS_BAD_REQUEST
 			);
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			$data,
 			Http::STATUS_ACCEPTED
 		);

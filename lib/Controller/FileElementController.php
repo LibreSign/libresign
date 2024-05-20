@@ -30,7 +30,7 @@ use OCA\Libresign\Service\FileElementService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -57,14 +57,14 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
 	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when create visible element
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function post(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		$visibleElement = [
 			'elementId' => $elementId,
 			'type' => $type,
@@ -92,7 +92,7 @@ class FileElementController extends AEnvironmentAwareController {
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 		}
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 
 	/**
@@ -106,14 +106,14 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
 	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when patch visible element
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): JSONResponse {
+	public function patch(string $uuid, int $signRequestId, int $elementId = null, string $type = '', array $metadata = [], array $coordinates = []): DataResponse {
 		return $this->post($uuid, $signRequestId, $elementId, $type, $metadata, $coordinates);
 	}
 
@@ -125,14 +125,14 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param integer $signRequestId Id of sign request
-	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>|JSONResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when delete visible element or file not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function delete(string $uuid, int $elementId): JSONResponse {
+	public function delete(string $uuid, int $elementId): DataResponse {
 		try {
 			$this->validateHelper->validateExistingFile([
 				'uuid' => $uuid,
@@ -149,6 +149,6 @@ class FileElementController extends AEnvironmentAwareController {
 			];
 			$statusCode = $th->getCode() > 0 ? $th->getCode() : Http::STATUS_NOT_FOUND;
 		}
-		return new JSONResponse($return, $statusCode);
+		return new DataResponse($return, $statusCode);
 	}
 }

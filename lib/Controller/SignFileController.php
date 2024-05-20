@@ -40,7 +40,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -71,7 +71,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return JSONResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -81,7 +81,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireManager]
 	#[PublicPage]
-	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
+	public function signUsingFileId(int $fileId, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
 		return $this->sign($fileId, null, $method, $elements, $identifyValue, $token);
 	}
 
@@ -93,7 +93,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * @param array<string, mixed> $elements List of visible elements
 	 * @param string $identifyValue Identify value
 	 * @param string $token Token, commonly send by email
-	 * @return JSONResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{action: string, message: string, file: array{uuid: string}}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{action: string, errors: array{}}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Invalid data
@@ -103,11 +103,11 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
-	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
+	public function signUsingUuid(string $uuid, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
 		return $this->sign(null, $uuid, $method, $elements, $identifyValue, $token);
 	}
 
-	public function sign(int $fileId = null, string $signRequestUuid = null, string $method, array $elements = [], string $identifyValue = '', string $token = ''): JSONResponse {
+	public function sign(int $fileId = null, string $signRequestUuid = null, string $method, array $elements = [], string $identifyValue = '', string $token = ''): DataResponse {
 		try {
 			$user = $this->userSession->getUser();
 			$this->validateHelper->canSignWithIdentificationDocumentStatus(
@@ -137,7 +137,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				->setVisibleElements($elements)
 				->sign();
 
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'action' => JSActions::ACTION_SIGNED,
 					'message' => $this->l10n->t('File signed'),
@@ -148,7 +148,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 				Http::STATUS_OK
 			);
 		} catch (LibresignException $e) {
-			return new JSONResponse(
+			return new DataResponse(
 				[
 					'action' => JSActions::ACTION_DO_NOTHING,
 					'errors' => [$e->getMessage()]
@@ -173,7 +173,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 					$message = $this->l10n->t('Internal error. Contact admin.');
 			}
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'action' => $action,
 				'errors' => [$message]
@@ -186,7 +186,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Renew the signature method
 	 *
 	 * @param string $method Signature method
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 */
@@ -194,12 +194,12 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[CanSignRequestUuid]
-	public function signRenew(string $method): JSONResponse {
+	public function signRenew(string $method): DataResponse {
 		$this->signFileService->renew(
 			$this->getSignRequestEntity(),
 			$method,
 		);
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				// TRANSLATORS Message sent to signer when the sign link was expired and was possible to request to renew. The signer will see this message on the screen and nothing more.
 				'message' => $this->l10n->t('Renewed with success. Access the link again.'),
@@ -211,7 +211,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Get code to sign the document using UUID
 	 *
 	 * @param string $uuid UUID of LibreSign file
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -220,7 +220,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
-	public function getCodeUsingUuid(string $uuid): JSONResponse {
+	public function getCodeUsingUuid(string $uuid): DataResponse {
 		return $this->getCode($uuid);
 	}
 
@@ -228,7 +228,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	 * Get code to sign the document using FileID
 	 *
 	 * @param int $fileId Id of LibreSign file
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>|JSONResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Error
@@ -237,14 +237,14 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 	#[NoCSRFRequired]
 	#[RequireSigner]
 	#[PublicPage]
-	public function getCodeUsingFileId(int $fileId): JSONResponse {
+	public function getCodeUsingFileId(int $fileId): DataResponse {
 		return $this->getCode(null, $fileId);
 	}
 
 	/**
 	 * @todo validate if can request code
 	 */
-	private function getCode(string $uuid = null, int $fileId = null): JSONResponse {
+	private function getCode(string $uuid = null, int $fileId = null): DataResponse {
 		try {
 			try {
 				if ($fileId) {
@@ -273,7 +273,7 @@ class SignFileController extends AEnvironmentAwareController implements ISignatu
 			$message = $th->getMessage();
 			$statusCode = Http::STATUS_UNPROCESSABLE_ENTITY;
 		}
-		return new JSONResponse(
+		return new DataResponse(
 			[
 				'message' => [$message],
 			],

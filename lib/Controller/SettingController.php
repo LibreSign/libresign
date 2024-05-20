@@ -28,7 +28,7 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
 class SettingController extends AEnvironmentAwareController {
@@ -44,17 +44,17 @@ class SettingController extends AEnvironmentAwareController {
 	 *
 	 * Checks whether the root certificate has been configured by checking the Nextcloud configuration table to see if the root certificate settings have
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{hasRootCert: bool}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{hasRootCert: bool}, array{}>
 	 *
 	 * 200: OK
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function hasRootCert(): JSONResponse {
+	public function hasRootCert(): DataResponse {
 		$checkData = [
 			'hasRootCert' => $this->certificateEngineHandler->getEngine()->isSetupOk()
 		];
 
-		return new JSONResponse($checkData);
+		return new DataResponse($checkData);
 	}
 }
