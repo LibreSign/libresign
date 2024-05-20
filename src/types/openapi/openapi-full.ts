@@ -674,14 +674,19 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            message: string;
-            /** Format: int64 */
-            action: number;
-            pdf: {
-              url: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+                /** Format: int64 */
+                action: number;
+                pdf: {
+                  url: string;
+                };
+                filename: string;
+                description: string;
+              };
             };
-            filename: string;
-            description: string;
           };
         };
       };
@@ -689,9 +694,14 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            message: string;
-            /** Format: int64 */
-            action: number;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+                /** Format: int64 */
+                action: number;
+              };
+            };
           };
         };
       };
@@ -716,12 +726,20 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            account: {
-              uuid: string;
-              emailAddress: string;
-              displayName: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                account: {
+                  uid: string;
+                  emailAddress: string;
+                  displayName: string;
+                };
+                settings: {
+                  canRequestSign: boolean;
+                  hasSignatureFile: boolean;
+                };
+              };
             };
-            settings: Record<string, never>;
           };
         };
       };
@@ -729,7 +747,12 @@ export type operations = {
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -751,7 +774,12 @@ export type operations = {
       202: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -759,7 +787,12 @@ export type operations = {
       400: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -781,7 +814,12 @@ export type operations = {
       202: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -816,7 +854,12 @@ export type operations = {
       202: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -824,7 +867,12 @@ export type operations = {
       400: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -853,14 +901,24 @@ export type operations = {
       /** @description Certificate saved with success */
       202: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description No file provided or other problem with provided file */
       400: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -890,10 +948,15 @@ export type operations = {
       202: {
         content: {
           "application/json": {
-            data: {
-              userId: string;
-              phone: string;
-              message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                data: {
+                  userId: string;
+                  phone: string;
+                  message: string;
+                };
+              };
             };
           };
         };
@@ -902,7 +965,12 @@ export type operations = {
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -931,14 +999,24 @@ export type operations = {
       /** @description Settings saved */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failure to create PFX file */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -983,7 +1061,12 @@ export type operations = {
       202: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -991,7 +1074,12 @@ export type operations = {
       400: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1020,17 +1108,26 @@ export type operations = {
       /** @description Certificate saved with success */
       200: {
         content: {
-          "application/json": unknown;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: unknown;
+            };
+          };
         };
       };
       /** @description No file provided or other problem with provided file */
       401: {
         content: {
           "application/json": {
-            messages: {
-              file: string | null;
-              type: string | null;
-              message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                file: number | null;
+                type: string | null;
+                message: string;
+              };
             };
           };
         };
@@ -1063,14 +1160,24 @@ export type operations = {
       /** @description File deleted with success */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failure to delete file from account */
       401: {
         content: {
           "application/json": {
-            messages: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                messages: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1114,14 +1221,26 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                file: Record<string, never>;
+              };
+            };
+          };
         };
       };
       /** @description Account not found */
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1166,14 +1285,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failed to save data */
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1215,7 +1344,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1275,7 +1409,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1308,7 +1447,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1333,7 +1477,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1358,7 +1507,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1418,14 +1572,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failure when create visible element */
       404: {
         content: {
           "application/json": {
-            errors: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                errors: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1453,14 +1617,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failure when delete visible element or file not found */
       404: {
         content: {
           "application/json": {
-            errors: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                errors: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1518,14 +1692,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failure when patch visible element */
       404: {
         content: {
           "application/json": {
-            errors: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                errors: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1572,7 +1756,12 @@ export type operations = {
       /** @description Certificate saved with success */
       202: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1608,14 +1797,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1651,14 +1850,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Unauthorized */
       401: {
         content: {
           "application/json": {
-            messages: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                messages: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1695,7 +1904,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -1742,14 +1956,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Unauthorized */
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1804,14 +2028,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Unauthorized */
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1860,10 +2094,15 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            action: string;
-            message: string;
-            file: {
-              uuid: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                action: string;
+                message: string;
+                file: {
+                  uuid: string;
+                };
+              };
             };
           };
         };
@@ -1872,8 +2111,13 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            action: string;
-            errors: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                action: string;
+                errors: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1899,14 +2143,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failed */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1934,14 +2188,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Failed */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -1966,7 +2230,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            hasRootCert: boolean;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                hasRootCert: boolean;
+              };
+            };
           };
         };
       };
@@ -1988,7 +2257,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            elements: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -1996,7 +2270,12 @@ export type operations = {
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2028,8 +2307,13 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            message: string;
-            elements: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+                elements: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -2037,7 +2321,12 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2127,7 +2416,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            elements: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -2135,7 +2429,12 @@ export type operations = {
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2177,7 +2476,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            elements: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                elements: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -2185,7 +2489,12 @@ export type operations = {
       404: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2234,10 +2543,15 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            action: string;
-            message: string;
-            file: {
-              uuid: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                action: string;
+                message: string;
+                file: {
+                  uuid: string;
+                };
+              };
             };
           };
         };
@@ -2246,8 +2560,13 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            action: string;
-            errors: Record<string, never>;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                action: string;
+                errors: Record<string, never>;
+              };
+            };
           };
         };
       };
@@ -2272,7 +2591,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2296,7 +2620,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2304,7 +2633,12 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2328,7 +2662,12 @@ export type operations = {
       200: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2336,7 +2675,12 @@ export type operations = {
       422: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2380,14 +2724,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Account not found */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2426,14 +2780,24 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
       /** @description Account not found */
       401: {
         content: {
           "application/json": {
-            message: string;
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                message: string;
+              };
+            };
           };
         };
       };
@@ -2458,7 +2822,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };
@@ -2482,7 +2851,12 @@ export type operations = {
       /** @description OK */
       200: {
         content: {
-          "application/json": Record<string, never>;
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: Record<string, never>;
+            };
+          };
         };
       };
     };

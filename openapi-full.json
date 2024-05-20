@@ -857,36 +857,56 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message",
-                                        "action",
-                                        "pdf",
-                                        "filename",
-                                        "description"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "action": {
-                                            "type": "integer",
-                                            "format": "int64"
-                                        },
-                                        "pdf": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "url"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "url": {
-                                                    "type": "string"
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "action",
+                                                        "pdf",
+                                                        "filename",
+                                                        "description"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        },
+                                                        "pdf": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "url"
+                                                            ],
+                                                            "properties": {
+                                                                "url": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "filename": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        },
-                                        "filename": {
-                                            "type": "string"
-                                        },
-                                        "description": {
-                                            "type": "string"
                                         }
                                     }
                                 }
@@ -900,16 +920,36 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message",
-                                        "action"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "action": {
-                                            "type": "integer",
-                                            "format": "int64"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "action"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "action": {
+                                                            "type": "integer",
+                                                            "format": "int64"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -965,31 +1005,63 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "account",
-                                        "settings"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "account": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "uuid",
-                                                "emailAddress",
-                                                "displayName"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "uuid": {
-                                                    "type": "string"
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "emailAddress": {
-                                                    "type": "string"
-                                                },
-                                                "displayName": {
-                                                    "type": "string"
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "account",
+                                                        "settings"
+                                                    ],
+                                                    "properties": {
+                                                        "account": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "uid",
+                                                                "emailAddress",
+                                                                "displayName"
+                                                            ],
+                                                            "properties": {
+                                                                "uid": {
+                                                                    "type": "string"
+                                                                },
+                                                                "emailAddress": {
+                                                                    "type": "string"
+                                                                },
+                                                                "displayName": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "settings": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "canRequestSign",
+                                                                "hasSignatureFile"
+                                                            ],
+                                                            "properties": {
+                                                                "canRequestSign": {
+                                                                    "type": "boolean"
+                                                                },
+                                                                "hasSignatureFile": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        },
-                                        "settings": {
-                                            "type": "object"
                                         }
                                     }
                                 }
@@ -1003,11 +1075,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1064,11 +1156,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1082,11 +1194,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1166,11 +1298,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1184,11 +1336,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1243,11 +1415,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1321,7 +1513,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1333,11 +1545,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1411,25 +1643,45 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "data"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "data": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "userId",
-                                                "phone",
-                                                "message"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "userId": {
-                                                    "type": "string"
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "phone": {
-                                                    "type": "string"
-                                                },
-                                                "message": {
-                                                    "type": "string"
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "data": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "userId",
+                                                                "phone",
+                                                                "message"
+                                                            ],
+                                                            "properties": {
+                                                                "userId": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": "string"
+                                                                },
+                                                                "message": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1445,11 +1697,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1523,7 +1795,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1535,11 +1827,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1615,7 +1927,27 @@
                         "description": "Certificate saved with success",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {}
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -1626,27 +1958,40 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "messages"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "messages": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "file",
-                                                "type",
-                                                "message"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "file": {
-                                                    "type": "string",
-                                                    "nullable": true
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
                                                 },
-                                                "type": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "message": {
-                                                    "type": "string"
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "file",
+                                                        "type",
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "integer",
+                                                            "format": "int64",
+                                                            "nullable": true
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1721,7 +2066,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1733,11 +2098,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "messages"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "messages": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "messages"
+                                                    ],
+                                                    "properties": {
+                                                        "messages": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1826,11 +2211,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1844,11 +2249,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1937,7 +2362,35 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "file"
+                                                    ],
+                                                    "properties": {
+                                                        "file": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1949,11 +2402,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2046,7 +2519,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2058,11 +2551,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2146,7 +2659,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2254,7 +2787,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2330,7 +2883,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2394,7 +2967,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2459,7 +3052,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2569,7 +3182,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2581,11 +3214,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "errors"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "errors": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "errors": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2702,7 +3355,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2714,11 +3387,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "errors"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "errors": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "errors": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2792,7 +3485,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2804,11 +3517,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "errors"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "errors": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "errors": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -2895,7 +3628,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2974,7 +3727,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2986,11 +3759,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3073,7 +3866,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3085,11 +3898,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "messages"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "messages": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "messages"
+                                                    ],
+                                                    "properties": {
+                                                        "messages": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3170,7 +4003,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3271,7 +4124,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3283,11 +4156,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3390,7 +4283,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3402,11 +4315,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3472,7 +4405,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3484,11 +4437,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3591,25 +4564,45 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "action",
-                                        "message",
-                                        "file"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "action": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "file": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "uuid"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "uuid": {
-                                                    "type": "string"
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "message",
+                                                        "file"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "file": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "uuid"
+                                                            ],
+                                                            "properties": {
+                                                                "uuid": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -3625,15 +4618,35 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "action",
-                                        "errors"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "action": {
-                                            "type": "string"
-                                        },
-                                        "errors": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "string"
+                                                        },
+                                                        "errors": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3709,7 +4722,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3721,11 +4754,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3783,11 +4836,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "hasRootCert"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "hasRootCert": {
-                                            "type": "boolean"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "hasRootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "hasRootCert": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3867,15 +4940,35 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message",
-                                        "elements"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "elements": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message",
+                                                        "elements"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "elements": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3889,11 +4982,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3949,11 +5062,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "elements"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "elements": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "elements"
+                                                    ],
+                                                    "properties": {
+                                                        "elements": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -3967,11 +5100,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4251,11 +5404,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "elements"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "elements": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "elements"
+                                                    ],
+                                                    "properties": {
+                                                        "elements": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4269,11 +5442,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4339,11 +5532,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "elements"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "elements": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "elements"
+                                                    ],
+                                                    "properties": {
+                                                        "elements": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4357,11 +5570,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4465,25 +5698,45 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "action",
-                                        "message",
-                                        "file"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "action": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "file": {
+                                        "ocs": {
                                             "type": "object",
                                             "required": [
-                                                "uuid"
+                                                "meta",
+                                                "data"
                                             ],
                                             "properties": {
-                                                "uuid": {
-                                                    "type": "string"
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "message",
+                                                        "file"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "string"
+                                                        },
+                                                        "message": {
+                                                            "type": "string"
+                                                        },
+                                                        "file": {
+                                                            "type": "object",
+                                                            "required": [
+                                                                "uuid"
+                                                            ],
+                                                            "properties": {
+                                                                "uuid": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -4499,15 +5752,35 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "action",
-                                        "errors"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "action": {
-                                            "type": "string"
-                                        },
-                                        "errors": {
-                                            "type": "object"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "action",
+                                                        "errors"
+                                                    ],
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "string"
+                                                        },
+                                                        "errors": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4582,11 +5855,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4653,11 +5946,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4671,11 +5984,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4743,11 +6076,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4761,11 +6114,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4853,7 +6226,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -4865,11 +6258,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4952,7 +6365,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -4964,11 +6397,31 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "ocs"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "message"
+                                                    ],
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -5024,7 +6477,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -5078,7 +6551,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
