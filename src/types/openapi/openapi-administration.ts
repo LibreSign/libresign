@@ -61,20 +61,32 @@ export type operations = {
    */
   "admin-generate-certificate-cfssl": {
     parameters: {
-      query: {
-        /** @description fields of root certificate */
-        rootCert: string;
-        /** @description URI of CFSSL API */
-        cfsslUri?: string;
-        /** @description Path of config files of CFSSL */
-        configPath?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description fields of root certificate */
+          rootCert: {
+            [key: string]: string;
+          };
+          /**
+           * @description URI of CFSSL API
+           * @default
+           */
+          cfsslUri?: string;
+          /**
+           * @description Path of config files of CFSSL
+           * @default
+           */
+          configPath?: string;
+        };
       };
     };
     responses: {
@@ -100,18 +112,27 @@ export type operations = {
    */
   "admin-generate-certificate-open-ssl": {
     parameters: {
-      query: {
-        /** @description fields of root certificate */
-        rootCert: string;
-        /** @description Path of config files of CFSSL */
-        configPath?: string;
-      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @description fields of root certificate */
+          rootCert: {
+            [key: string]: string;
+          };
+          /**
+           * @description Path of config files of CFSSL
+           * @default
+           */
+          configPath?: string;
+        };
       };
     };
     responses: {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc4604e4c3d0f17f3feec0fe94971ff6",
+    "content-hash": "7416cc49c74264794d71208cbc466a4b",
     "packages": [],
     "packages-dev": [
         {
@@ -79,16 +79,16 @@
         },
         {
             "name": "nextcloud/openapi-extractor",
-            "version": "dev-main",
+            "version": "dev-develop",
             "source": {
                 "type": "git",
-                "url": "https://github.com/nextcloud/openapi-extractor.git",
-                "reference": "50acc06715d9ac182e40d31d19aa3e4de517e1da"
+                "url": "https://github.com/vitormattos/openapi-extractor.git",
+                "reference": "de770b2b4e8220f4a752f8ab31528352ecd48b67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nextcloud/openapi-extractor/zipball/50acc06715d9ac182e40d31d19aa3e4de517e1da",
-                "reference": "50acc06715d9ac182e40d31d19aa3e4de517e1da",
+                "url": "https://api.github.com/repos/vitormattos/openapi-extractor/zipball/de770b2b4e8220f4a752f8ab31528352ecd48b67",
+                "reference": "de770b2b4e8220f4a752f8ab31528352ecd48b67",
                 "shasum": ""
             },
             "require": {
@@ -101,7 +101,6 @@
             "require-dev": {
                 "nextcloud/coding-standard": "^1.2"
             },
-            "default-branch": true,
             "bin": [
                 "generate-spec",
                 "merge-specs"
@@ -127,10 +126,9 @@
                 ]
             },
             "support": {
-                "source": "https://github.com/nextcloud/openapi-extractor/tree/main",
-                "issues": "https://github.com/nextcloud/openapi-extractor/issues"
+                "source": "https://github.com/vitormattos/openapi-extractor/tree/develop"
             },
-            "time": "2024-04-15T07:08:14+00:00"
+            "time": "2024-05-16T16:37:15+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -192,16 +190,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "1.28.0",
+            "version": "1.29.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "cd06d6b1a1b3c75b0b83f97577869fd85a3cd4fb"
+                "reference": "536889f2b340489d328f5ffb7b02bb6b183ddedc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/cd06d6b1a1b3c75b0b83f97577869fd85a3cd4fb",
-                "reference": "cd06d6b1a1b3c75b0b83f97577869fd85a3cd4fb",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/536889f2b340489d328f5ffb7b02bb6b183ddedc",
+                "reference": "536889f2b340489d328f5ffb7b02bb6b183ddedc",
                 "shasum": ""
             },
             "require": {
@@ -233,9 +231,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.28.0"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/1.29.0"
             },
-            "time": "2024-04-03T18:51:33+00:00"
+            "time": "2024-05-06T12:04:23+00:00"
         }
     ],
     "aliases": [],
