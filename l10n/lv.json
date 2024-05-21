@@ -10,6 +10,8 @@
     "Account" : "Konts",
     "Invalid user" : "Nepareizs lietotājs",
     "Email" : "E-pasts",
+    "Invalid password" : "Nederīga parole",
+    "Customize your signatures" : "Pielāgot savus parakstus",
     "Text" : "Teksts",
     "Upload" : "Augšupielādēt",
     "Delete" : "Dzēst",
@@ -34,7 +36,8 @@
     "Profile picture" : "Profila attēls",
     "Create account" : "Izveidot kontu",
     "Password" : "Parole",
-    "Enter a password" : "Enter a password",
+    "Password Creation" : "Paroles izveidošana",
+    "Enter a password" : "Jāievada parole",
     "Page not found" : "Lapa nav atrasta",
     "Send" : "Sūtīt",
     "Password reset" : "Parole atiestatīta",
@@ -43,10 +46,13 @@
     "Repeat password" : "Atkārtojiet paroli",
     "Message" : "Ziņojums",
     "Resource" : "Resurss",
+    "Status of setup" : "Iestatīšanas stāvoklis",
+    "Customize default user folder" : "Pielāgot noklusējuma lietotāja mapi",
     "Yes" : "Jā",
     "No" : "Nē",
-    "Forgot password?" : "Aizmirsi paroli?",
+    "Forgot password?" : "Aizmirsta parole?",
     "Pending" : "Gaida",
-    "No date" : "No date"
+    "No date" : "No date",
+    "Requested by {name}, at {date}" : "Pieprasīja {name} {date}"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"
 }
