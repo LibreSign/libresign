@@ -2,6 +2,7 @@ OC.L10N.register(
     "libresign",
     {
     "Success" : "Rath",
+    "Settings saved" : "Socruithe sábháilte",
     "File is too big" : "Tá an comhad ró-mhór.",
     "File already exists" : "Tá an comhad ann cheana féin",
     "Upload" : "Uaslódáil",
