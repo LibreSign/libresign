@@ -4,22 +4,45 @@
 			<img :src="image" draggable="false">
 		</div>
 		<h1 class="title">
-			{{ t('libresign', 'Welcome to Libresign') }}
+			{{ t('libresign', 'Welcome to LibreSign') }}
 		</h1>
-		<p>{{ t('libresign', 'The admin hasn\'t set up LibreSign yet, please wait.') }}</p>
+		<NcButton v-if="isAdmin"
+			@click="finishSetup">
+			<template #icon>
+				<CogsIcon :size="20" />
+			</template>
+			{{ t('libresign', 'Finish the setup') }}
+		</NcButton>
+		<p v-else>
+			{{ t('libresign', 'The admin hasn\'t set up LibreSign yet, please wait.') }}
+		</p>
 	</div>
 </template>
 
 <script>
 
+import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
+import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
+import CogsIcon from 'vue-material-design-icons/Cogs.vue'
 import BackgroundImage from '../../img/logo-gray.svg'
 
 export default {
 	name: 'IncompleteCertification',
+	components: {
+		NcButton,
+		CogsIcon,
+	},
 	data() {
 		return {
 			image: BackgroundImage,
+			isAdmin: getCurrentUser().isAdmin,
 		}
+	},
+	methods: {
+		finishSetup() {
+			window.location.href = generateUrl('settings/admin/libresign')
+		},
 	},
 }
 </script>
