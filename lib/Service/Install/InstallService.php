@@ -379,7 +379,7 @@ class InstallService {
 	private function getLinuxDistributionToDownloadJava(): string {
 		$distribution = shell_exec('cat /etc/*-release');
 		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
-		if (isset($matches['ID']) && strtolower($matches['ID']) === 'alpine') {
+		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
 			return 'alpine-linux';
 		}
 		return 'linux';
