@@ -223,7 +223,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Belgeyi imzalamak için yeni parola oluşturulurken sorun çıktı. Lütfen BT yöneticiniz ile görüşün",
     "Page not found" : "Sayfa bulunamadı",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Ne yazık ki aradığınız sayfa bulunamadı. Silinmiş, taşınmış ya da geçici olarak kullanılamıyor olabilir.",
-    "Welcome to Libresign" : "Libresign uygulamasına hoş geldiniz",
     "The admin hasn't set up LibreSign yet, please wait." : "Yönetici henüz LibreSign uygulamasını kurmamış. Lütfen bekleyin.",
     "Certificate data" : "Sertifika verileri",
     "Issuer of certificate" : "Sertifikanın yayıncısı",

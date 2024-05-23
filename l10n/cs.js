@@ -208,7 +208,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Chyba při vytváření nového hesla – obraťte se na správce systému",
     "Page not found" : "Stránka nenalezena",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Je nám líto, ale stránka kterou hledáte neexistuje, byla odebrána, přesunuta nebo je dočasně nedostupná.",
-    "Welcome to Libresign" : "Vítejte v Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "Správce zatím ještě LibreSign nenastavil – vyčkejte prosím.",
     "Request Signatures" : "Požádat o podpisy",
     "Choose the file to request signatures." : "Pokud chcete požádat o podpisy, vyberte soubor.",

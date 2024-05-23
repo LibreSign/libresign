@@ -220,7 +220,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Feil ved oppretting av nytt passord, vennligst kontakt administratoren.",
     "Page not found" : "Siden ble ikke funnet",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Beklager, men siden du leter etter eksisterer ikke, er fjernet, flyttet eller er midlertidig utilgjengelig.",
-    "Welcome to Libresign" : "Velkommen til Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "Administratoren har ikke konfigurert LibreSign enda, vennligst vent.",
     "Certificate data" : "Sertifikatdata",
     "Issuer of certificate" : "Utsteder av sertifikat",

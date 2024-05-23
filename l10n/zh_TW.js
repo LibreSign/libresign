@@ -223,7 +223,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "無法建立新密碼，請聯絡管理員",
     "Page not found" : "找不到頁面",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "抱歉，但您正在尋找的頁面並不存在，可能已被移除、移動或暫時無法使用。",
-    "Welcome to Libresign" : "歡迎使用 Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "管理員尚未設定 LibreSign，請稍候。",
     "Certificate data" : "憑證資料",
     "Issuer of certificate" : "憑證頒發者",

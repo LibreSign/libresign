@@ -223,7 +223,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Грешка приликом креирања нове лозинке, молимо вас да се обратите администратору",
     "Page not found" : "Страна није нађена",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Жао нам је, изгледа да не постоји страница коју сте тражили, или је уклоњена, премештена или тренутно није доступна.",
-    "Welcome to Libresign" : "Добродошли у Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "Админ још увек није подесио LibreSign, молимо вас сачекајте.",
     "Certificate data" : "Подаци сертификата",
     "Issuer of certificate" : "Издавач сертификата",
