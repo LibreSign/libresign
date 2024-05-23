@@ -198,6 +198,10 @@ class AEngineHandler {
 		if (!empty($rootCert['names'])) {
 			foreach ($rootCert['names'] as $id => $customName) {
 				$longCustomName = $this->translateToLong($id);
+				// Prevent to save a property that don't exists
+				if (!property_exists($this, lcfirst($longCustomName))) {
+					continue;
+				}
 				$this->{'set' . ucfirst($longCustomName)}($customName['value']);
 			}
 		}
