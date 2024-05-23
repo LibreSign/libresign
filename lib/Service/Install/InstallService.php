@@ -325,12 +325,13 @@ class InstallService {
 		 * https://jdk.java.net/java-se-ri/8-MR3
 		 */
 		if (PHP_OS_FAMILY === 'Linux') {
+			$linuxDistribution = $this->getLinuxDistributionToDownloadJava();
 			$architecture = php_uname('m');
 			if ($architecture === 'x86_64') {
-				$compressedFileName = 'OpenJDK21U-jre_x64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$compressedFileName = 'OpenJDK21U-jre_x64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
 			} elseif ($architecture === 'aarch64') {
-				$compressedFileName = 'OpenJDK21U-jre_aarch64_linux_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
+				$compressedFileName = 'OpenJDK21U-jre_aarch64_' . $linuxDistribution . '_hotspot_' . self::JAVA_PARTIAL_VERSION . '.tar.gz';
 				$url = 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2+13/' . $compressedFileName;
 			}
 			$class = TAR::class;
@@ -354,6 +355,18 @@ class InstallService {
 
 		$this->appConfig->setAppValue('java_path', $extractDir . '/jdk-21.0.2+13-jre/bin/java');
 		$this->removeDownloadProgress();
+	}
+
+	/**
+	 * Return linux or alpine-linux
+	 */
+	private function getLinuxDistributionToDownloadJava(): string {
+		$distribution = shell_exec('cat /etc/*-release');
+		preg_match('/^ID=(?<version>.*)$/m', $distribution, $matches);
+		if (isset($matches['version']) && strtolower($matches['version']) === 'alpine') {
+			return 'alpine-linux';
+		}
+		return 'linux';
 	}
 
 	public function uninstallJava(): void {
