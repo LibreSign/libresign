@@ -16,6 +16,26 @@ Types of changes:
 ## 10.0.0-beta.1
 * 📲 New API documentation
 
+## 9.0.2 - 2024-05-10
+### New feature
+* feat: finish setup in https://github.com/LibreSign/libresign/pull/3039
+
+### Changed
+* Updated translations
+
+### Fixed
+* fix: check if is alpine by @backportbot-libresign in https://github.com/LibreSign/libresign/pull/3049
+
+## 8.0.2 - 2024-05-10
+### New feature
+* feat: finish setup in https://github.com/LibreSign/libresign/pull/3039
+
+### Changed
+* Updated translations
+
+### Fixed
+* fix: check if is alpine by @backportbot-libresign in https://github.com/LibreSign/libresign/pull/3049
+
 ## 9.0.1 - 2024-05-10
 ### Changed
 * Update translations
