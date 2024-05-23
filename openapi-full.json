@@ -2145,41 +2145,41 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "filter": {
-                                        "type": "object",
-                                        "default": [],
-                                        "description": "Filter params",
-                                        "properties": {
-                                            "approved": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    },
-                                    "page": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "the number of page to return"
-                                    },
-                                    "length": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "Total of elements to return"
-                                    }
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filter params",
+                        "schema": {
+                            "type": "object",
+                            "default": [],
+                            "properties": {
+                                "approved": {
+                                    "type": "string"
                                 }
                             }
                         }
-                    }
-                },
-                "parameters": [
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "the number of page to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "length",
+                        "in": "query",
+                        "description": "Total of elements to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2298,41 +2298,41 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "filter": {
-                                        "type": "object",
-                                        "default": [],
-                                        "description": "Filter params",
-                                        "properties": {
-                                            "approved": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    },
-                                    "page": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "the number of page to return"
-                                    },
-                                    "length": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "Total of elements to return"
-                                    }
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filter params",
+                        "schema": {
+                            "type": "object",
+                            "default": [],
+                            "properties": {
+                                "approved": {
+                                    "type": "string"
                                 }
                             }
                         }
-                    }
-                },
-                "parameters": [
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "the number of page to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "length",
+                        "in": "query",
+                        "description": "Total of elements to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2378,15 +2378,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object",
-                                                    "required": [
-                                                        "file"
-                                                    ],
-                                                    "properties": {
-                                                        "file": {
-                                                            "type": "object"
-                                                        }
-                                                    }
+                                                    "type": "object"
                                                 }
                                             }
                                         }
@@ -2600,36 +2592,36 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "page": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "the number of page to return"
-                                    },
-                                    "length": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "description": "Total of elements to return"
-                                    },
-                                    "filter": {
-                                        "type": "object",
-                                        "default": [],
-                                        "description": "Filter params"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "the number of page to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "length",
+                        "in": "query",
+                        "description": "Total of elements to return",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "Filter params",
+                        "schema": {
+                            "type": "object",
+                            "default": []
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2702,51 +2694,63 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "x": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "default": 32,
-                                        "description": "Width of generated file"
-                                    },
-                                    "y": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "default": 32,
-                                        "description": "Height of generated file"
-                                    },
-                                    "a": {
-                                        "type": "boolean",
-                                        "default": false,
-                                        "description": "Crop, boolean value, default false"
-                                    },
-                                    "forceIcon": {
-                                        "type": "boolean",
-                                        "default": true,
-                                        "description": "Force to generate a new thumbnail"
-                                    },
-                                    "mode": {
-                                        "type": "string",
-                                        "default": "fill",
-                                        "description": "To force a given mimetype for the file"
-                                    },
-                                    "mimeFallback": {
-                                        "type": "boolean",
-                                        "default": false,
-                                        "description": "If we have no preview enabled, we can redirect to the mime icon if any"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
+                    {
+                        "name": "x",
+                        "in": "query",
+                        "description": "Width of generated file",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 32
+                        }
+                    },
+                    {
+                        "name": "y",
+                        "in": "query",
+                        "description": "Height of generated file",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 32
+                        }
+                    },
+                    {
+                        "name": "a",
+                        "in": "query",
+                        "description": "Crop, boolean value, default false",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "forceIcon",
+                        "in": "query",
+                        "description": "Force to generate a new thumbnail",
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    {
+                        "name": "mode",
+                        "in": "query",
+                        "description": "To force a given mimetype for the file",
+                        "schema": {
+                            "type": "string",
+                            "default": "fill"
+                        }
+                    },
+                    {
+                        "name": "mimeFallback",
+                        "in": "query",
+                        "description": "If we have no preview enabled, we can redirect to the mime icon if any",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -2832,28 +2836,24 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "description": "The type of identifier could be Uuid or FileId"
-                                    },
-                                    "identifier": {
-                                        "type": "object",
-                                        "description": "The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "The type of identifier could be Uuid or FileId",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "identifier",
+                        "in": "query",
+                        "description": "The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
@@ -3567,38 +3567,38 @@
                         "basic_auth": []
                     }
                 ],
-                "requestBody": {
-                    "required": false,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "search": {
-                                        "type": "object",
-                                        "default": "",
-                                        "description": "search params"
-                                    },
-                                    "page": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "default": 1,
-                                        "description": "the number of page to return. Default: 1"
-                                    },
-                                    "limit": {
-                                        "type": "integer",
-                                        "format": "int64",
-                                        "nullable": true,
-                                        "default": 25,
-                                        "description": "Total of elements to return. Default: 25"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
                 "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "search params",
+                        "schema": {
+                            "type": "object",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "the number of page to return. Default: 1",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Total of elements to return. Default: 25",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "default": 25
+                        }
+                    },
                     {
                         "name": "apiVersion",
                         "in": "path",
