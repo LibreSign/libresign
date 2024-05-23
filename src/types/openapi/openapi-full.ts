@@ -1025,35 +1025,22 @@ export type operations = {
   /** List account files of authenticated account */
   "account-account-file-list-to-owner": {
     parameters: {
+      query?: {
+        /** @description Filter params */
+        filter?: {
+          approved?: string;
+        };
+        /** @description the number of page to return */
+        page?: number | null;
+        /** @description Total of elements to return */
+        length?: number | null;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * @description Filter params
-           * @default []
-           */
-          filter?: {
-            approved?: string;
-          };
-          /**
-           * Format: int64
-           * @description the number of page to return
-           */
-          page?: number | null;
-          /**
-           * Format: int64
-           * @description Total of elements to return
-           */
-          length?: number | null;
-        };
       };
     };
     responses: {
@@ -1186,35 +1173,22 @@ export type operations = {
   /** List account files that need to be approved */
   "account-account-file-list-to-approval": {
     parameters: {
+      query?: {
+        /** @description Filter params */
+        filter?: {
+          approved?: string;
+        };
+        /** @description the number of page to return */
+        page?: number | null;
+        /** @description Total of elements to return */
+        length?: number | null;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * @description Filter params
-           * @default []
-           */
-          filter?: {
-            approved?: string;
-          };
-          /**
-           * Format: int64
-           * @description the number of page to return
-           */
-          page?: number | null;
-          /**
-           * Format: int64
-           * @description Total of elements to return
-           */
-          length?: number | null;
-        };
       };
     };
     responses: {
@@ -1224,9 +1198,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: {
-                file: Record<string, never>;
-              };
+              data: Record<string, never>;
             };
           };
         };
@@ -1311,33 +1283,20 @@ export type operations = {
   /** List account files that need to be approved */
   "file-list": {
     parameters: {
+      query?: {
+        /** @description the number of page to return */
+        page?: number | null;
+        /** @description Total of elements to return */
+        length?: number | null;
+        /** @description Filter params */
+        filter?: Record<string, never>;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * Format: int64
-           * @description the number of page to return
-           */
-          page?: number | null;
-          /**
-           * Format: int64
-           * @description Total of elements to return
-           */
-          length?: number | null;
-          /**
-           * @description Filter params
-           * @default []
-           */
-          filter?: Record<string, never>;
-        };
       };
     };
     responses: {
@@ -1357,6 +1316,20 @@ export type operations = {
   /** Return the thumbnail of a LibreSign file */
   "file-get-thumbnail": {
     parameters: {
+      query?: {
+        /** @description Width of generated file */
+        x?: number;
+        /** @description Height of generated file */
+        y?: number;
+        /** @description Crop, boolean value, default false */
+        a?: boolean;
+        /** @description Force to generate a new thumbnail */
+        forceIcon?: boolean;
+        /** @description To force a given mimetype for the file */
+        mode?: string;
+        /** @description If we have no preview enabled, we can redirect to the mime icon if any */
+        mimeFallback?: boolean;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
@@ -1365,44 +1338,6 @@ export type operations = {
         apiVersion: "v1";
         /** @description The nodeId of document */
         nodeId: number;
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * Format: int64
-           * @description Width of generated file
-           * @default 32
-           */
-          x?: number;
-          /**
-           * Format: int64
-           * @description Height of generated file
-           * @default 32
-           */
-          y?: number;
-          /**
-           * @description Crop, boolean value, default false
-           * @default false
-           */
-          a?: boolean;
-          /**
-           * @description Force to generate a new thumbnail
-           * @default true
-           */
-          forceIcon?: boolean;
-          /**
-           * @description To force a given mimetype for the file
-           * @default fill
-           */
-          mode?: string;
-          /**
-           * @description If we have no preview enabled, we can redirect to the mime icon if any
-           * @default false
-           */
-          mimeFallback?: boolean;
-        };
       };
     };
     responses: {
@@ -1425,22 +1360,18 @@ export type operations = {
    */
   "file-validate": {
     parameters: {
+      query?: {
+        /** @description The type of identifier could be Uuid or FileId */
+        type?: string | null;
+        /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
+        identifier?: Record<string, never>;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /** @description The type of identifier could be Uuid or FileId */
-          type?: string | null;
-          /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
-          identifier?: Record<string, never>;
-        };
       };
     };
     responses: {
@@ -1721,35 +1652,20 @@ export type operations = {
    */
   "identify_account-search": {
     parameters: {
+      query?: {
+        /** @description search params */
+        search?: Record<string, never>;
+        /** @description the number of page to return. Default: 1 */
+        page?: number | null;
+        /** @description Total of elements to return. Default: 25 */
+        limit?: number | null;
+      };
       header: {
         /** @description Required to be true for the API request to pass */
         "OCS-APIRequest": boolean;
       };
       path: {
         apiVersion: "v1";
-      };
-    };
-    requestBody?: {
-      content: {
-        "application/json": {
-          /**
-           * @description search params
-           * @default
-           */
-          search?: Record<string, never>;
-          /**
-           * Format: int64
-           * @description the number of page to return. Default: 1
-           * @default 1
-           */
-          page?: number | null;
-          /**
-           * Format: int64
-           * @description Total of elements to return. Default: 25
-           * @default 25
-           */
-          limit?: number | null;
-        };
       };
     };
     responses: {
