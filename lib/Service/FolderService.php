@@ -158,7 +158,7 @@ class FolderService {
 			$data['settings']['separator'] = '_';
 			$data['settings']['folderPatterns'][] = [
 				'name' => 'date',
-				'setting' => 'Y-m-d\TH:i:s'
+				'setting' => 'Y-m-d\TH-i-s'
 			];
 			$data['settings']['folderPatterns'][] = [
 				'name' => 'name'
