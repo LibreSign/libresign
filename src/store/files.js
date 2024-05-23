@@ -1,22 +1,6 @@
-/*
- * @copyright Copyright (c) 2024 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import { defineStore } from 'pinia'
@@ -24,6 +8,8 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { set } from 'vue'
 import Moment from '@nextcloud/moment'
+import { useSignStore } from './sign.js'
+import { useSidebarStore } from './sidebar.js'
 
 export const useFilesStore = defineStore('files', {
 	state: () => {
@@ -32,6 +18,7 @@ export const useFilesStore = defineStore('files', {
 			selectedNodeId: 0,
 			identifyingSigner: false,
 			loading: false,
+			filterActive: 'all',
 		}
 	},
 
@@ -42,9 +29,22 @@ export const useFilesStore = defineStore('files', {
 		},
 		selectFile(nodeId) {
 			this.selectedNodeId = nodeId ?? 0
+			if (this.selectedNodeId === 0) {
+				const signStore = useSignStore()
+				signStore.reset()
+				return
+			}
+			const sidebarStore = useSidebarStore()
+			sidebarStore.activeRequestSignatureTab()
 		},
 		getFile() {
-			return this.files[this.selectedNodeId]
+			return this.files[this.selectedNodeId] ?? {}
+		},
+		async flushSelectedFile() {
+			const files = await this.getAllFiles({
+				nodeId: this.selectedNodeId,
+			})
+			this.addFile(files[this.selectedNodeId])
 		},
 		enableIdentifySigner() {
 			this.identifyingSigner = true
@@ -52,14 +52,35 @@ export const useFilesStore = defineStore('files', {
 		disableIdentifySigner() {
 			this.identifyingSigner = false
 		},
-		isSigned() {
+		hasSigners() {
 			if (this.selectedNodeId === 0) {
 				return false
 			}
 			if (!Object.hasOwn(this.getFile(), 'signers')) {
 				return false
 			}
-			return this.files[this.selectedNodeId].signers.filter(signer => signer.signed?.length > 0).length > 0
+			return this.files[this.selectedNodeId].signers.length > 0
+		},
+		isPartialSigned() {
+			if (this.selectedNodeId === 0) {
+				return false
+			}
+			if (!Object.hasOwn(this.getFile(), 'signers')) {
+				return false
+			}
+			return this.files[this.selectedNodeId].signers
+				.filter(signer => signer.signed?.length > 0).length > 0
+		},
+		isFullSigned() {
+			if (this.selectedNodeId === 0) {
+				return false
+			}
+			if (!Object.hasOwn(this.getFile(), 'signers')) {
+				return false
+			}
+			return this.files[this.selectedNodeId].signers.length > 0
+				&& this.files[this.selectedNodeId].signers
+					.filter(signer => signer.signed?.length > 0).length === this.files[this.selectedNodeId].signers.length
 		},
 		getSubtitle() {
 			if (this.selectedNodeId === 0) {
@@ -78,18 +99,16 @@ export const useFilesStore = defineStore('files', {
 			if (Object.hasOwn(this.files[nodeId], 'uuid')) {
 				return
 			}
-			this.loading = true
-			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
+			await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/validate/file_id/{fileId}', {
 				fileId: nodeId,
 			}))
-				.then(() => {
+				.then((response) => {
 					set(this.files, nodeId, response.data)
 					this.addUniqueIdentifierToAllSigners(this.files[nodeId].signers)
 				})
 				.catch(() => {
 					set(this.files[nodeId], 'signers', [])
 				})
-			this.loading = false
 		},
 		addUniqueIdentifierToAllSigners(signers) {
 			if (signers === undefined) {
@@ -135,27 +154,34 @@ export const useFilesStore = defineStore('files', {
 				this.files[this.selectedNodeId].signers.filter((i) => i.identify !== signer.identify),
 			)
 		},
-		async getAllFiles() {
-			try {
-				const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'))
-				response.data.data.forEach(file => {
-					this.addFile(file)
-				})
-			} catch (err) {
+		async getAllFiles(filter) {
+			const response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/file/list'), {
+				params: {
+					filter,
+				},
+			})
+			this.files = {}
+			response.data.data.forEach(file => {
+				this.addFile(file)
+			})
+			return this.files
+		},
+		filter(type) {
+			this.filterActive = type
+			if (type === 'pending') {
+				return Object.values(this.files).filter(
+					(a) => (a.status === 1 || a.status === 2)).sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1)
 			}
-		},
-		pendingFilter() {
-			return Object.values(this.files).filter(
-				(a) => (a.status === 2)).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		signedFilter() {
-			return Object.values(this.files).filter(
-				(a) => (a.status === 1)).sort(
-				(a, b) => (a.request_date < b.request_date) ? 1 : -1)
-		},
-		orderFiles() {
-			return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			if (type === 'signed') {
+				return Object.values(this.files).filter(
+					(a) => (a.status === 3)).sort(
+					(a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			}
+			if (type === 'all') {
+				this.filterActive = 'all'
+				return Object.values(this.files).sort((a, b) => (a.request_date < b.request_date) ? 1 : -1)
+			}
 		},
 	},
 })

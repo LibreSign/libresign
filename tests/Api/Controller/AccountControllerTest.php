@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\Tests\Api\ApiTestCase;
@@ -11,7 +17,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountCreateWithInvalidUuid() {
+	public function testAccountCreateWithInvalidUuid():void {
 		$this->createAccount('username', 'password');
 
 		$this->request
@@ -36,7 +42,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountCreateWithSuccess() {
+	public function testAccountCreateWithSuccess():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
 		$this->mockAppConfig([
 			'cfssl_bin' => '',
@@ -87,7 +93,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostProfileFilesWithInvalidData() {
+	public function testPostProfileFilesWithInvalidData():void {
 		$this->createAccount('username', 'password');
 
 		$this->request
@@ -115,7 +121,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostAccountAddFilesWithSuccess() {
+	public function testPostAccountAddFilesWithSuccess():void {
 		$this->createAccount('username', 'password');
 
 		$this->request
@@ -142,7 +148,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testMeWithoutAuthenticatedUser() {
+	public function testMeWithoutAuthenticatedUser():void {
 		$this->request
 			->withPath('/account/me')
 			->assertResponseCode(404);
@@ -153,7 +159,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testMeWithAuthenticatedUser() {
+	public function testMeWithAuthenticatedUser():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withPath('/account/me')
@@ -167,7 +173,7 @@ final class AccountControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testApprovalListWithSuccess() {
+	public function testApprovalListWithSuccess():void {
 		$this->createAccount('allowapprove', 'password', 'testGroup');
 
 		$this->mockAppConfig([

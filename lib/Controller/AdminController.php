@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Controller;
@@ -28,15 +12,15 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
-use OCA\Libresign\Service\ConfigureCheckService;
-use OCA\Libresign\Service\InstallService;
+use OCA\Libresign\Service\Install\ConfigureCheckService;
+use OCA\Libresign\Service\Install\InstallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Http\Response;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\IEventSource;
 use OCP\IEventSourceFactory;
+use OCP\IL10N;
 use OCP\IRequest;
 
 class AdminController extends Controller {
@@ -47,6 +31,7 @@ class AdminController extends Controller {
 		private InstallService $installService,
 		private CertificateEngineHandler $certificateEngineHandler,
 		private IEventSourceFactory $eventSourceFactory,
+		private IL10N $l10n,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 		$this->eventSource = $this->eventSourceFactory->create();
@@ -57,7 +42,7 @@ class AdminController extends Controller {
 		array $rootCert,
 		string $cfsslUri = '',
 		string $configPath = ''
-	): DataResponse {
+	): JSONResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'cfssl',
 			'configPath' => trim($configPath),
@@ -69,7 +54,7 @@ class AdminController extends Controller {
 	public function generateCertificateOpenSsl(
 		array $rootCert,
 		string $configPath = ''
-	): DataResponse {
+	): JSONResponse {
 		return $this->generateCertificate($rootCert, [
 			'engine' => 'openssl',
 			'configPath' => trim($configPath),
@@ -79,7 +64,7 @@ class AdminController extends Controller {
 	private function generateCertificate(
 		array $rootCert,
 		array $properties = [],
-	): DataResponse {
+	): JSONResponse {
 		try {
 			$names = [];
 			foreach ($rootCert['names'] as $item) {
@@ -91,11 +76,11 @@ class AdminController extends Controller {
 				$properties,
 			);
 
-			return new DataResponse([
+			return new JSONResponse([
 				'data' => $this->certificateEngineHandler->getEngine()->toArray(),
 			]);
 		} catch (\Exception $exception) {
-			return new DataResponse(
+			return new JSONResponse(
 				[
 					'message' => $exception->getMessage()
 				],
@@ -105,7 +90,7 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function loadCertificate(): DataResponse {
+	public function loadCertificate(): JSONResponse {
 		$engine = $this->certificateEngineHandler->getEngine();
 		$certificate = $engine->toArray();
 		$configureResult = $engine->configureCheck();
@@ -117,7 +102,7 @@ class AdminController extends Controller {
 		);
 		$certificate['generated'] = count($success) === count($configureResult);
 
-		return new DataResponse($certificate);
+		return new JSONResponse($certificate);
 	}
 
 	private function trimAndThrowIfEmpty(string $key, $value): string {
@@ -128,45 +113,50 @@ class AdminController extends Controller {
 	}
 
 	#[NoCSRFRequired]
-	public function downloadBinaries(): Response {
+	public function configureCheck(): JSONResponse {
+		return new JSONResponse(
+			$this->configureCheckService->checkAll()
+		);
+	}
+
+	#[NoCSRFRequired]
+	public function installAndValidate(): void {
 		try {
 			$async = \function_exists('proc_open');
 			$this->installService->installJava($async);
 			$this->installService->installJSignPdf($async);
 			$this->installService->installPdftk($async);
 			$this->installService->installCfssl($async);
-			return new DataResponse([]);
-		} catch (\Exception $exception) {
-			return new DataResponse(
-				[
-					'message' => $exception->getMessage()
-				],
-				Http::STATUS_UNAUTHORIZED
-			);
-		}
-	}
 
-	public function downloadStatus(): DataResponse {
-		$return = $this->installService->getTotalSize();
-		return new DataResponse($return);
-	}
-
-	public function configureCheck(): DataResponse {
-		return new DataResponse(
-			$this->configureCheckService->checkAll()
-		);
-	}
-
-	public function downloadStatusSse(): void {
-		while ($this->installService->isDownloadWip()) {
-			$totalSize = $this->installService->getTotalSize();
-			$this->eventSource->send('total_size', json_encode($totalSize));
+			$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+			$seconds = 0;
+			while ($this->installService->isDownloadWip()) {
+				$totalSize = $this->installService->getTotalSize();
+				$this->eventSource->send('total_size', json_encode($totalSize));
+				if ($errors = $this->installService->getErrorMessages()) {
+					$this->eventSource->send('errors', json_encode($errors));
+				}
+				usleep(200000); // 0.2 seconds
+				$seconds += 0.2;
+				if ($seconds === 5) {
+					$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
+					$seconds = 0;
+				}
+			}
 			if ($errors = $this->installService->getErrorMessages()) {
 				$this->eventSource->send('errors', json_encode($errors));
 			}
-			usleep(200000); // 0.2 seconds
+		} catch (\Exception $exception) {
+			$this->eventSource->send('errors', json_encode([
+				$this->l10n->t('Could not download binaries.'),
+				$exception->getMessage(),
+			]));
 		}
+
+		$this->eventSource->send('configure_check', $this->configureCheckService->checkAll());
 		$this->eventSource->send('done', '');
 		$this->eventSource->close();
+		// Nextcloud inject a lot of headers that is incompatible with SSE
+		exit();
 	}
 }

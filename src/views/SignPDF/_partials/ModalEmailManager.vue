@@ -1,75 +1,66 @@
 <template>
-	<NcModal size="normal"
-		:can-close="false"
-		@close="close">
-		<div class="modal__content">
-			<h2 class="modal__header">
-				{{ t('libresign', 'Sign with your email.') }}
-			</h2>
-
-			<div class="code-request">
-				<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
-					{{ signMethodsStore.blurredEmail() }}
-				</div>
-				<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode">
-					{{ t('libresign', 'Enter the code you received') }}
-					<NcTextField maxlength="6"
-						:value.sync="token"
-						:disabled="loading"
-						:label="t('libresign', 'Enter your code')"
-						:placeholder="t('libresign', 'Enter your code')"
-						name="code"
-						type="text">
-						<FormTextboxPasswordIcon :size="20" />
-					</NcTextField>
-				</div>
-				<NcTextField v-else
-					:disabled="loading"
-					:label="t('libresign', 'Email')"
-					:placeholder="t('libresign', 'Email')"
-					:helper-text="errorMessage"
-					:error="errorMessage.length > 0"
-					:value.sync="sendTo"
-					@input="onChangeEmail">
-					<EmailIcon :size="20" />
-				</NcTextField>
-
-				<div class="modal__button-row">
-					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
-						<template #icon>
-							<NcLoadingIcon v-if="loading" :size="20" />
-						</template>
-						{{ t('libresign', 'Request new code') }}
-					</NcButton>
-					<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
-						:disabled="loading || !canRequestCode"
-						type="primary"
-						@click="requestCode">
-						<template #icon>
-							<NcLoadingIcon v-if="loading" :size="20" />
-						</template>
-						{{ t('libresign', 'Request code.') }}
-					</NcButton>
-
-					<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
-						:disabled="!canSendCode"
-						type="primary"
-						@click="sendCode">
-						<template #icon>
-							<NcLoadingIcon v-if="loading" :size="20" />
-						</template>
-						{{ t('libresign', 'Send code.') }}
-					</NcButton>
-				</div>
-			</div>
+	<NcDialog size="normal"
+		:can-close="!loading"
+		:name="t('libresign', 'Sign with your email.')"
+		@closing="close">
+		<div v-if="signMethodsStore.blurredEmail().length > 0" class="email">
+			{{ signMethodsStore.blurredEmail() }}
 		</div>
-	</NcModal>
+		<div v-if="signMethodsStore.settings.emailToken.hasConfirmCode">
+			{{ t('libresign', 'Enter the code you received') }}
+			<NcTextField maxlength="6"
+				:value.sync="token"
+				:disabled="loading"
+				:label="t('libresign', 'Enter your code')"
+				:placeholder="t('libresign', 'Enter your code')"
+				name="code"
+				type="text">
+				<FormTextboxPasswordIcon :size="20" />
+			</NcTextField>
+		</div>
+		<NcTextField v-else
+			:disabled="loading"
+			:label="t('libresign', 'Email')"
+			:placeholder="t('libresign', 'Email')"
+			:helper-text="errorMessage"
+			:error="errorMessage.length > 0"
+			:value.sync="sendTo"
+			@input="onChangeEmail">
+			<EmailIcon :size="20" />
+		</NcTextField>
+		<template #actions>
+			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode" :disabled="loading && !canRequestCode" @click="requestNewCode">
+				<template #icon>
+					<NcLoadingIcon v-if="loading" :size="20" />
+				</template>
+				{{ t('libresign', 'Request new code') }}
+			</NcButton>
+			<NcButton v-if="!signMethodsStore.settings.emailToken.hasConfirmCode"
+				:disabled="loading || !canRequestCode"
+				type="primary"
+				@click="requestCode">
+				<template #icon>
+					<NcLoadingIcon v-if="loading" :size="20" />
+				</template>
+				{{ t('libresign', 'Request code.') }}
+			</NcButton>
+			<NcButton v-if="signMethodsStore.settings.emailToken.hasConfirmCode"
+				:disabled="!canSendCode"
+				type="primary"
+				@click="sendCode">
+				<template #icon>
+					<NcLoadingIcon v-if="loading" :size="20" />
+				</template>
+				{{ t('libresign', 'Send code.') }}
+			</NcButton>
+		</template>
+	</NcDialog>
 </template>
 
 <script>
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
@@ -81,6 +72,7 @@ import md5 from 'blueimp-md5'
 import { onError } from '../../../helpers/errors.js'
 import { validateEmail } from '../../../utils/validators.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
+import { useSignStore } from '../../../store/sign.js'
 
 const sanitizeNumber = val => {
 	val = val.replace(/\D/g, '')
@@ -90,28 +82,17 @@ const sanitizeNumber = val => {
 export default {
 	name: 'ModalEmailManager',
 	components: {
-		NcModal,
+		NcDialog,
 		NcTextField,
 		NcLoadingIcon,
 		FormTextboxPasswordIcon,
 		EmailIcon,
 		NcButton,
 	},
-	props: {
-		fileId: {
-			type: Number,
-			required: false,
-			default: 0,
-		},
-		uuid: {
-			type: String,
-			required: false,
-			default: '',
-		},
-	},
 	setup() {
+		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
-		return { signMethodsStore }
+		return { signStore, signMethodsStore }
 	},
 	data: () => ({
 		loading: false,
@@ -162,22 +143,27 @@ export default {
 			await this.$nextTick()
 
 			try {
-				if (this.fileId.length > 0) {
+				if (this.signStore.document.fileId) {
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', { fileId: this.fileId }),
+						generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}/code', {
+							fileId: this.signStore.document.fileId,
+						}),
 						{
 							identify: this.sendTo,
-							identifyMethod: 'email',
+							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
 						},
 					)
 					showSuccess(data.message)
 				} else {
+					const signer = this.signStore.document.signers.find(row => row.me) || {}
 					const { data } = await axios.post(
-						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', { uuid: this.uuid }),
+						generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}/code', {
+							uuid: signer.sign_uuid,
+						}),
 						{
 							identify: this.sendTo,
-							identifyMethod: 'email',
+							identifyMethod: this.signMethodsStore.settings.emailToken.identifyMethod,
 							signMethod: 'emailToken',
 						},
 					)
@@ -209,52 +195,4 @@ export default {
 	font-family: monospace;
 	text-align: center;
 }
-
-button {
-	width: 60%;
-	max-width: 200px;
-	margin-top: 5px;
-	margin-left: auto;
-	margin-right: auto;
-	display: block;
-
-}
-
-.code-request {
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	input {
-		font-family: monospace;
-		font-size: 1.3em;
-		width: 50%;
-		max-width: 250px;
-		height: auto !important;
-		display: block;
-		margin: 0 auto;
-	}
-}
-
-.modal {
-	&__content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 20px;
-		gap: 4px 0;
-	}
-	&__header {
-		font-weight: bold;
-		font-size: 20px;
-		margin-bottom: 12px;
-		line-height: 30px;
-		color: var(--color-text-light);
-	}
-	&__button-row {
-		display: flex;
-		width: 100%;
-		justify-content: space-between;
-	}
-}
-
 </style>

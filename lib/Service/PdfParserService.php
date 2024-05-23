@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Service;
@@ -42,7 +26,10 @@ class PdfParserService {
 	 * @psalm-return array{p: int, d?: non-empty-list<array{w: mixed, h: mixed}>}
 	 */
 	public function getMetadata(File $node): array {
-		$content = $node->getContent();
+		try {
+			$content = $node->getContent();
+		} catch (\Throwable $th) {
+		}
 		if (!$content) {
 			throw new LibresignException('Empty file.');
 		}
@@ -56,6 +43,9 @@ class PdfParserService {
 		try {
 			$output = $this->parsePdfOnlyWithPhp($tempFile);
 		} catch (\Throwable $th) {
+			if ($th->getMessage() === 'Secured pdf file are currently not supported.') {
+				throw new LibresignException('Secured pdf file are currently not supported.');
+			}
 			$this->logger->error('Impossible get metadata from this file: ' . $th->getMessage());
 			throw new LibresignException('Impossible get metadata from this file.');
 		}
@@ -72,6 +62,10 @@ class PdfParserService {
 		];
 		foreach ($pages as $page) {
 			$details = $page->getDetails();
+			if (!isset($details['MediaBox'])) {
+				$pages = $pdf->getObjectsByType('Pages');
+				$details = reset($pages)->getHeader()->getDetails();
+			}
 			$output['d'][] = [
 				'w' => $details['MediaBox'][2],
 				'h' => $details['MediaBox'][3]

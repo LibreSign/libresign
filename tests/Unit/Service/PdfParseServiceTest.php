@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Exception\LibresignException;
@@ -14,11 +20,11 @@ use Psr\Log\LoggerInterface;
  */
 final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private ITempManager $tempManager;
-	private LoggerInterface|MockObject $loggerInterface;
+	private LoggerInterface&MockObject $loggerInterface;
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->tempManager = \OC::$server->get(ITempManager::class);
+		$this->tempManager = \OCP\Server::get(ITempManager::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
 	}
 
@@ -68,7 +74,7 @@ final class PdfParseServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 				[
 					'p' => 1,
 					'd' => [
-						['w' => 595.276, 'h' => 841.89],
+						['w' => 595.275590551181, 'h' => 841.889763779528],
 					],
 				]
 			],

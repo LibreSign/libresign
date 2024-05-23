@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Service;
@@ -28,12 +12,14 @@ use OCA\Libresign\Exception\LibresignException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\Config\IUserMountCache;
+use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IAppData;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUser;
 
@@ -43,6 +29,7 @@ class FolderService {
 		private IRootFolder $root,
 		private IUserMountCache $userMountCache,
 		protected IAppDataFactory $appDataFactory,
+		protected IGroupManager $groupManager,
 		private IAppConfig $appConfig,
 		private IL10N $l10n,
 		private ?string $userId,
@@ -60,60 +47,76 @@ class FolderService {
 	}
 
 	/**
-	 * Get folder for user
-	 *
-	 * @psalm-suppress MixedReturnStatement
-	 * @psalm-suppress InvalidReturnStatement
-	 * @psalm-suppress MixedMethodCall
-	 */
-	public function getFolder(int $nodeId = null): Folder {
-		if ($nodeId) {
-			$mountsContainingFile = $this->userMountCache->getMountsForFileId($nodeId);
-			foreach ($mountsContainingFile as $fileInfo) {
-				$this->root->getByIdInPath($nodeId, $fileInfo->getMountPoint());
-			}
-			$node = $this->root->getById($nodeId);
-			if (!$node) {
-				throw new \Exception('Invalid node');
-			}
-			return $node[0]->getParent();
-		}
-
-		return $this->getOrCreateFolder();
-	}
-
-	/**
-	 * Finds a folder and creates it if non-existent
+	 * Get folder for user and creates it if non-existent
 	 *
 	 * @psalm-suppress MixedReturnStatement
 	 * @throws NotFoundException
 	 * @throws NotPermittedException
 	 */
-	private function getOrCreateFolder(): Folder {
+	public function getFolder(): Folder {
 		$path = $this->getLibreSignDefaultPath();
+		$containerFolder = $this->getContainerFolder();
+		if (!$containerFolder->nodeExists($path)) {
+			return $containerFolder->newFolder($path);
+		}
+		/** @var Folder */
+		return $containerFolder->get($path);
+	}
+
+	/**
+	 * @throws NotFoundException
+	 */
+	public function getFileById(int $nodeId = null): File {
+		if ($this->getUserId()) {
+			$folder = $this->root->getUserFolder($this->getUserId());
+			$file = $folder->getById($nodeId);
+			if ($file) {
+				/** @var File */
+				return current($file);
+			}
+		}
+		$path = $this->getLibreSignDefaultPath();
+		$containerFolder = $this->getContainerFolder();
+		if (!$containerFolder->nodeExists($path)) {
+			throw new NotFoundException('Invalid node');
+		}
+		/** @var Folder $folder */
+		$folder = $containerFolder->get($path);
+		$file = $folder->getById($nodeId);
+		/** @var File */
+		return current($file);
+	}
+
+	private function getContainerFolder(): Folder {
+		$withoutPermission = false;
 		if ($this->getUserId()) {
 			$containerFolder = $this->root->getUserFolder($this->getUserId());
+			// TODO: retrieve guest group name from app once exposed
+			if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
+				$withoutPermission = true;
+			} elseif (!$containerFolder->isUpdateable()) {
+				$withoutPermission = true;
+			}
 		} else {
+			$withoutPermission = true;
+		}
+		if ($withoutPermission) {
 			$containerFolder = $this->appData->getFolder('/');
 			$reflection = new \ReflectionClass($containerFolder);
 			$reflectionProperty = $reflection->getProperty('folder');
 			$reflectionProperty->setAccessible(true);
-			$containerFolder = $reflectionProperty->getValue($containerFolder);
+			return $reflectionProperty->getValue($containerFolder);
 		}
-		if ($containerFolder->nodeExists($path)) {
-			$folder = $containerFolder->get($path);
-		} else {
-			$folder = $containerFolder->newFolder($path);
-		}
-		return $folder;
+		return $this->root->getUserFolder($this->getUserId());
 	}
 
-	/**
-	 * @psalm-suppress MixedReturnStatement
-	 */
-	public function getLibreSignDefaultPath(): string {
+	private function getLibreSignDefaultPath(): string {
 		if (!$this->userId) {
 			return 'unauthenticated';
+		}
+		// TODO: retrieve guest group name from app once exposed
+		if ($this->groupManager->isInGroup($this->getUserId(), 'guest_app')) {
+			return 'guest_app/' . $this->getUserId();
 		}
 		$path = $this->appConfig->getUserValue($this->userId, 'folder');
 

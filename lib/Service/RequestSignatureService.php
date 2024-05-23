@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Service;
@@ -102,7 +86,7 @@ class RequestSignatureService {
 		$file->setUuid(UUIDUtil::getUUID());
 		$file->setCreatedAt(time());
 		$file->setName($data['name']);
-		$file->setMetadata(json_encode($this->getFileMetadata($node)));
+		$file->setMetadata($this->getFileMetadata($node));
 		if (!empty($data['callback'])) {
 			$file->setCallback($data['callback']);
 		}
@@ -118,6 +102,7 @@ class RequestSignatureService {
 	private function updateStatus(FileEntity $file, int $status): FileEntity {
 		if ($status > $file->getStatus()) {
 			$file->setStatus($status);
+			/** @var FileEntity */
 			return $this->fileMapper->update($file);
 		}
 		return $file;
@@ -192,17 +177,21 @@ class RequestSignatureService {
 				if (isset($user['identifyMethods'])) {
 					foreach ($user['identifyMethods'] as $identifyMethod) {
 						$return[] = $this->associateToSigner(
-							data: [
+							identifyMethods: [
 								$identifyMethod['method'] => $identifyMethod['value'],
 							],
-							user: $user,
+							displayName: $user['displayName'] ?? '',
+							description: $user['description'] ?? '',
+							notify: $user['notify'] ?? true,
 							fileId: $fileId,
 						);
 					}
 				} else {
 					$return[] = $this->associateToSigner(
-						data: $user['identify'],
-						user: $user,
+						identifyMethods: $user['identify'],
+						displayName: $user['displayName'] ?? '',
+						description: $user['description'] ?? '',
+						notify: $user['notify'] ?? true,
 						fileId: $fileId,
 					);
 				}
@@ -211,20 +200,43 @@ class RequestSignatureService {
 		return $return;
 	}
 
-	private function associateToSigner(array $data, array $user, int $fileId): SignRequestEntity {
-		$identifyMethods = $this->identifyMethod->getByUserData($data);
+	private function associateToSigner(array $identifyMethods, string $displayName, string $description, bool $notify, int $fileId): SignRequestEntity {
+		$identifyMethodsIncances = $this->identifyMethod->getByUserData($identifyMethods);
 		$signRequest = $this->getSignRequestByIdentifyMethod(
-			current($identifyMethods),
+			current($identifyMethodsIncances),
 			$fileId
 		);
-		$this->setDataToUser($signRequest, $user, $fileId);
+		$displayName = $this->getDisplayNameFromIdentifyMethodIfEmpty($identifyMethodsIncances, $displayName);
+		$this->setDataToUser($signRequest, $displayName, $description, $fileId);
 		$this->saveSignRequest($signRequest);
-		foreach ($identifyMethods as $identifyMethod) {
+		foreach ($identifyMethodsIncances as $identifyMethod) {
 			$identifyMethod->getEntity()->setSignRequestId($signRequest->getId());
-			$identifyMethod->willNotifyUser($user['notify'] ?? true);
+			$identifyMethod->willNotifyUser($notify);
 			$identifyMethod->save();
 		}
 		return $signRequest;
+	}
+
+	/**
+	 * @param IIdentifyMethod[] $identifyMethodsIncances
+	 * @param string $displayName
+	 * @return string
+	 */
+	private function getDisplayNameFromIdentifyMethodIfEmpty(array $identifyMethodsIncances, string $displayName): string {
+		if (!empty($displayName)) {
+			return $displayName;
+		}
+		foreach ($identifyMethodsIncances as $identifyMethod) {
+			if ($identifyMethod->getName() === 'account') {
+				return $this->userManager->get($identifyMethod->getEntity()->getIdentifierValue())->getDisplayName();
+			}
+		}
+		foreach ($identifyMethodsIncances as $identifyMethod) {
+			if ($identifyMethod->getName() !== 'account') {
+				return $identifyMethod->getEntity()->getIdentifierValue();
+			}
+		}
+		return '';
 	}
 
 	private function saveVisibleElements(array $data, FileEntity $file): array {
@@ -279,16 +291,16 @@ class RequestSignatureService {
 	/**
 	 * @psalm-suppress MixedMethodCall
 	 */
-	private function setDataToUser(SignRequestEntity $signRequest, array $user, int $fileId): void {
+	private function setDataToUser(SignRequestEntity $signRequest, string $displayName, string $description, int $fileId): void {
 		$signRequest->setFileId($fileId);
 		if (!$signRequest->getUuid()) {
 			$signRequest->setUuid(UUIDUtil::getUUID());
 		}
-		if (!empty($user['displayName'])) {
-			$signRequest->setDisplayName($user['displayName']);
+		if (!empty($displayName)) {
+			$signRequest->setDisplayName($displayName);
 		}
-		if (!empty($user['description'])) {
-			$signRequest->setDescription($user['description']);
+		if (!empty($description)) {
+			$signRequest->setDescription($description);
 		}
 		if (!$signRequest->getId()) {
 			$signRequest->setCreatedAt(time());

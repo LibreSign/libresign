@@ -31,12 +31,19 @@
 				@click="fillValidationUrl()"
 				@keypress.enter="validationUrlEnter()">
 		</p>
+		<p v-if="addFooter && isExtraSettingsEnabled">
+			<NcTextArea label="Footer template"
+				placeholder="A twig template to be used at footer of PDF. Will be rendered by mPDF."
+				:value.sync="footerTemplate"
+				@update:value="saveFooterTemplate" />
+		</p>
 	</NcSettingsSection>
 </template>
 <script>
 import { translate as t } from '@nextcloud/l10n'
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
+import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 export default {
@@ -44,6 +51,7 @@ export default {
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
+		NcTextArea,
 	},
 	data() {
 		return {
@@ -51,8 +59,10 @@ export default {
 			paternValidadeUrl: 'https://validador.librecode.coop/',
 			makeValidationUrlPrivate: false,
 			url: null,
-			addFooter: false,
-			writeQrcodeOnFooter: false,
+			addFooter: true,
+			writeQrcodeOnFooter: true,
+			isExtraSettingsEnabled: false,
+			footerTemplate: '',
 		}
 	},
 	created() {
@@ -67,30 +77,44 @@ export default {
 			this.getAddFooterData()
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
+			this.getExtraSettingsEnabled()
+		},
+		async getExtraSettingsEnabled() {
+			const isExtraSettingsEnabled = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/extra_settings'))
+			this.isExtraSettingsEnabled = !!isExtraSettingsEnabled.data.ocs.data.data
+			if (this.isExtraSettingsEnabled) {
+				this.getFooterTemplate()
+			}
 		},
 		async getMakeValidationUrlPrivate() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/make_validation_url_private'),
 			)
-			this.makeValidationUrlPrivate = !!response.data.ocs.data.data
+			this.makeValidationUrlPrivate = response.data.ocs.data.data === '1'
 		},
 		async getAddFooterData() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/add_footer'),
 			)
-			this.addFooter = !!response.data.ocs.data.data
+			this.addFooter = response.data.ocs.data.data !== '0'
 		},
 		async getWriteQrcodeOnFooter() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/write_qrcode_on_footer'),
 			)
-			this.writeQrcodeOnFooter = !!response.data.ocs.data.data
+			this.writeQrcodeOnFooter = response.data.ocs.data.data !== '0'
 		},
 		async getValidationUrlData() {
 			const response = await axios.get(
 				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/validation_site'),
 			)
 			this.placeHolderValidationUrl(response.data.ocs.data.data)
+		},
+		async getFooterTemplate() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_template',
+				))
+			this.footerTemplate = response.data.ocs.data.data
 		},
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
@@ -111,6 +135,9 @@ export default {
 					this.$refs.urlInput.value = this.url
 				}
 			}
+		},
+		saveFooterTemplate() {
+			OCP.AppConfig.setValue('libresign', 'footer_template', this.footerTemplate)
 		},
 	},
 }

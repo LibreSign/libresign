@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit\Helper;
 
 use OCA\Libresign\Db\AccountFile;
@@ -25,22 +31,22 @@ use OCP\Security\IHasher;
 use PHPUnit\Framework\MockObject\MockObject;
 
 final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	private IL10N|MockObject $l10n;
-	private SignRequestMapper|MockObject $signRequestMapper;
-	private FileMapper|MockObject $fileMapper;
-	private FileTypeMapper|MockObject $fileTypeMapper;
-	private FileElementMapper|MockObject $fileElementMapper;
-	private AccountFileMapper|MockObject $accountFileMapper;
-	private UserElementMapper|MockObject $userElementMapper;
-	private IdentifyMethodMapper|MockObject $identifyMethodMapper;
+	private IL10N&MockObject $l10n;
+	private SignRequestMapper&MockObject $signRequestMapper;
+	private FileMapper&MockObject $fileMapper;
+	private FileTypeMapper&MockObject $fileTypeMapper;
+	private FileElementMapper&MockObject $fileElementMapper;
+	private AccountFileMapper&MockObject $accountFileMapper;
+	private UserElementMapper&MockObject $userElementMapper;
+	private IdentifyMethodMapper&MockObject $identifyMethodMapper;
 	private IdentifyMethodService $identifyMethodService;
 	private IMimeTypeDetector $mimeTypeDetector;
 	private IHasher $hasher;
-	private IAppConfig|MockObject $appConfig;
-	private IGroupManager|MockObject $groupManager;
+	private IAppConfig&MockObject $appConfig;
+	private IGroupManager&MockObject $groupManager;
 	private IUserManager $userManager;
-	private IRootFolder|MockObject $root;
-	private IUserMountCache|MockObject $userMountCache;
+	private IRootFolder&MockObject $root;
+	private IUserMountCache&MockObject $userMountCache;
 
 	public function setUp(): void {
 		$this->l10n = $this->createMock(IL10N::class);
@@ -55,7 +61,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->userElementMapper = $this->createMock(UserElementMapper::class);
 		$this->identifyMethodMapper = $this->createMock(IdentifyMethodMapper::class);
 		$this->identifyMethodService = $this->createMock(IdentifyMethodService::class);
-		$this->mimeTypeDetector = \OC::$server->get(IMimeTypeDetector::class);
+		$this->mimeTypeDetector = \OCP\Server::get(IMimeTypeDetector::class);
 		$this->hasher = $this->createMock(IHasher::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
@@ -86,7 +92,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		return $validateHelper;
 	}
 
-	public function testValidateFileWithoutAllNecessaryData() {
+	public function testValidateFileWithoutAllNecessaryData():void {
 		$this->expectExceptionMessageMatches('/File type: %s. Specify a/');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['invalid'],
@@ -94,7 +100,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateFileWithInvalidFileId() {
+	public function testValidateFileWithInvalidFileId():void {
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->getValidateHelper()->validateFile([
 			'file' => ['fileId' => 'invalid'],
@@ -102,9 +108,9 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateFileWhenFileIdDoesNotExist() {
+	public function testValidateFileWhenFileIdDoesNotExist():void {
 		$this->expectExceptionMessage('Invalid fileID');
-		$this->root->method('getById')->will($this->returnCallback(function () {
+		$this->root->method('getById')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
 		$this->userMountCache
@@ -116,7 +122,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateNewFileUsingFileIdWithSuccess() {
+	public function testValidateNewFileUsingFileIdWithSuccess():void {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
 			->method('getMimeType')
@@ -134,22 +140,22 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument() {
+	public function testValidateNotRequestedSignWhenAlreadyAskedToSignThisDocument():void {
 		$this->signRequestMapper->method('getByNodeId')->will($this->returnValue('exists'));
 		$this->expectExceptionMessage('Already asked to sign this document');
 		$this->getValidateHelper()->validateNotRequestedSign(1);
 	}
 
-	public function testValidateNotRequestedSignWithSuccessWhenNotFound() {
-		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function () {
+	public function testValidateNotRequestedSignWithSuccessWhenNotFound():void {
+		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
 		$actual = $this->getValidateHelper()->validateNotRequestedSign(1);
 		$this->assertNull($actual);
 	}
 
-	public function testValidateLibreSignNodeIdWhenFileIdNotExists() {
-		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function () {
+	public function testValidateLibreSignNodeIdWhenFileIdNotExists():void {
+		$this->signRequestMapper->method('getByNodeId')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
 		$this->expectExceptionMessage('Invalid fileID');
@@ -159,7 +165,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateMimeTypeAcceptedByNodeId
 	 */
-	public function testValidateMimeTypeAcceptedByNodeId(string $mimetype, int $destination, string $exception) {
+	public function testValidateMimeTypeAcceptedByNodeId(string $mimetype, int $destination, string $exception):void {
 		$file = $this->createMock(\OCP\Files\File::class);
 		$file
 			->method('getMimeType')
@@ -179,7 +185,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		}
 	}
 
-	public function dataValidateMimeTypeAcceptedByNodeId() {
+	public function dataValidateMimeTypeAcceptedByNodeId():array {
 		return [
 			['invalid',         ValidateHelper::TYPE_TO_SIGN,             'Must be a fileID of %s format'],
 			['application/pdf', ValidateHelper::TYPE_TO_SIGN,             ''],
@@ -188,7 +194,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testValidateLibreSignNodeIdWhenSuccess() {
+	public function testValidateLibreSignNodeIdWhenSuccess():void {
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper
 			->method('getByFileId')
@@ -208,7 +214,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testCanRequestSignWithoutUserManager() {
+	public function testCanRequestSignWithoutUserManager():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->appConfig
@@ -218,7 +224,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
-	public function testCanRequestSignWithoutPermission() {
+	public function testCanRequestSignWithoutPermission():void {
 		$this->expectExceptionMessage('You are not allowed to request signing');
 
 		$this->appConfig = $this->createMock(IAppConfig::class);
@@ -232,7 +238,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->canRequestSign($user);
 	}
 
-	public function testValidateFileWithEmptyFile() {
+	public function testValidateFileWithEmptyFile():void {
 		$this->expectExceptionMessage('Empty file');
 
 		$this->getValidateHelper()->validateFile([
@@ -240,7 +246,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testValidateInvalidBase64File() {
+	public function testValidateInvalidBase64File():void {
 		$this->expectExceptionMessage('Invalid Base64 file');
 
 		$user = $this->createMock(\OCP\IUser::class);
@@ -254,7 +260,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateBase64
 	 */
-	public function testValidateBase64($base64, $type, $valid) {
+	public function testValidateBase64($base64, $type, $valid):void {
 		if (!$valid) {
 			$this->expectExceptionMessage('Invalid Base64 file');
 		}
@@ -297,7 +303,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testIRequestedSignThisFileWithInvalidRequester() {
+	public function testIRequestedSignThisFileWithInvalidRequester():void {
 		$this->expectExceptionMessage('You do not have permission for this action.');
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libresignFile
@@ -316,12 +322,12 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataProviderHaveValidMail
 	 */
-	public function testHaveValidMailWithDataProvider($data, $errorMessage) {
+	public function testHaveValidMailWithDataProvider($data, $errorMessage):void {
 		$this->expectExceptionMessage($errorMessage);
 		$this->getValidateHelper()->haveValidMail($data, ValidateHelper::TYPE_VISIBLE_ELEMENT_PDF);
 	}
 
-	public function dataProviderHaveValidMail() {
+	public function dataProviderHaveValidMail():array {
 		return [
 			[[], 'No user data'],
 			[[''], 'Email required'],
@@ -329,11 +335,11 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 	}
 
-	public function testSignerWasAssociatedWithNotLibreSignFileLoaded() {
+	public function testSignerWasAssociatedWithNotLibreSignFileLoaded():void {
 		$this->expectExceptionMessage('File not loaded');
 		$this->fileMapper
 			->method('getByFileId')
-			->will($this->returnCallback(function () {
+			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
 		$this->getValidateHelper()->signerWasAssociated([
@@ -341,7 +347,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testSignerWasAssociatedWithUnassociatedSigner() {
+	public function testSignerWasAssociatedWithUnassociatedSigner():void {
 		$this->expectExceptionMessage('No signature was requested to %s');
 		$libresignFile = $this->createMock(\OCA\Libresign\Db\File::class);
 		$libresignFile
@@ -358,21 +364,21 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		]);
 	}
 
-	public function testNotSignedWithFileNotLoaded() {
+	public function testNotSignedWithFileNotLoaded():void {
 		$this->expectExceptionMessage('File not loaded');
 		$this->fileMapper
 			->method('getByFileId')
-			->will($this->returnCallback(function () {
+			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
 		$this->getValidateHelper()->notSigned([]);
 	}
 
-	public function testValidateIfNodeIdExistsWhenGetFileThrowException() {
+	public function testValidateIfNodeIdExistsWhenGetFileThrowException():void {
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->root
 			->method('getById')
-			->will($this->returnCallback(function () {
+			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
 		$this->userMountCache
@@ -381,7 +387,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
-	public function testValidateIfNodeIdExistsWithInvalidFile() {
+	public function testValidateIfNodeIdExistsWithInvalidFile():void {
 		$this->expectExceptionMessage('Invalid fileID');
 		$this->root
 			->method('getById')
@@ -392,7 +398,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->getValidateHelper()->validateIfNodeIdExists(171);
 	}
 
-	public function testValidateIfNodeIdExistsWithSuccess() {
+	public function testValidateIfNodeIdExistsWithSuccess():void {
 		$this->root
 			->method('getById')
 			->willReturn(['file']);
@@ -403,30 +409,30 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testValidateFileUuidWithInvalidUuid() {
+	public function testValidateFileUuidWithInvalidUuid():void {
 		$this->expectExceptionMessage('Invalid UUID file');
-		$this->fileMapper->method('getByUuid')->will($this->returnCallback(function () {
+		$this->fileMapper->method('getByUuid')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
 		$this->getValidateHelper()->validateFileUuid(['uuid' => 'invalid']);
 	}
 
-	public function testValidateFileUuidWithValidUuid() {
+	public function testValidateFileUuidWithValidUuid():void {
 		$file = $this->createMock(\OCA\Libresign\Db\File::class);
 		$this->fileMapper->method('getByUuid')->will($this->returnValue($file));
 		$actual = $this->getValidateHelper()->validateFileUuid(['uuid' => 'valid']);
 		$this->assertNull($actual);
 	}
 
-	public function testInvalidFileType() {
+	public function testInvalidFileType():void {
 		$this->expectExceptionMessage('Invalid file type.');
 		$this->fileTypeMapper
 			->method('getTypes')
 			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
-		$this->getValidateHelper()->validateFileTypeExists(0);
+		$this->getValidateHelper()->validateFileTypeExists('0');
 	}
 
-	public function testValidFileType() {
+	public function testValidFileType():void {
 		$this->fileTypeMapper
 			->method('getTypes')
 			->willReturn(["IDENTIFICATION" => ["type" => "IDENTIFICATION"]]);
@@ -434,45 +440,45 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function testUserHasFileWithType() {
+	public function testUserHasFileWithType():void {
 		$this->expectExceptionMessage('A file of this type has been associated.');
 		$file = $this->createMock(AccountFile::class);
 		$this->accountFileMapper
 			->method('getByUserAndType')
 			->willReturn($file);
-		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
+		$this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
 	}
 
-	public function testUserHasNoFileWithThisType() {
+	public function testUserHasNoFileWithThisType():void {
 		$this->accountFileMapper
 			->method('getByUserAndType')
-			->will($this->returnCallback(function () {
+			->will($this->returnCallback(function ():void {
 				throw new \Exception('not found');
 			}));
-		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', ValidateHelper::TYPE_TO_SIGN);
+		$actual = $this->getValidateHelper()->validateUserHasNoFileWithThisType('username', (string) ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
-	public function testIsSignerOfFile() {
+	public function testIsSignerOfFile():void {
 		$actual = $this->getValidateHelper()->validateIsSignerOfFile(1, 1);
 		$this->assertNull($actual);
 	}
 
-	public function testNotASignerOfFile() {
+	public function testNotASignerOfFile():void {
 		$this->expectExceptionMessage('Signer not associated to this file');
-		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->will($this->returnCallback(function () {
+		$this->signRequestMapper->method('getByFileIdAndSignRequestId')->will($this->returnCallback(function ():void {
 			throw new \Exception('not found');
 		}));
 		$this->getValidateHelper()->validateIsSignerOfFile(1, 1);
 	}
 
-	public function testValidateVisibleElementsWithInvalidElementType() {
+	public function testValidateVisibleElementsWithInvalidElementType():void {
 		$this->expectExceptionMessage('Visible elements need to be an array');
 		$actual = $this->getValidateHelper()->validateVisibleElements(null, ValidateHelper::TYPE_TO_SIGN);
 		$this->assertNull($actual);
 	}
 
-	public function testValidateVisibleElementsWithSuccess() {
+	public function testValidateVisibleElementsWithSuccess():void {
 		$elements = [[
 			'type' => 'signature',
 			'file' => [
@@ -486,7 +492,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataElementType
 	 */
-	public function testValidateElementType(array $element, string $exception) {
+	public function testValidateElementType(array $element, string $exception):void {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
@@ -494,7 +500,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataElementType() {
+	public function dataElementType():array {
 		return [
 			[['type' => 'signature'], ''],
 			[['type' => 'initial'], ''],
@@ -509,12 +515,12 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateElementCoordinates
 	 */
-	public function testValidateElementCoordinates(array $element) {
+	public function testValidateElementCoordinates(array $element):void {
 		$actual = $this->getValidateHelper()->validateElementCoordinates($element);
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateElementCoordinates() {
+	public function dataValidateElementCoordinates():array {
 		return [
 			[[]],
 			[['coordinates' => ['page' => 1]]]
@@ -524,7 +530,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateElementPage
 	 */
-	public function testValidateElementPage(array $element, string $exception) {
+	public function testValidateElementPage(array $element, string $exception):void {
 		if ($exception) {
 			$this->expectExceptionMessage($exception);
 		}
@@ -532,7 +538,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateElementPage() {
+	public function dataValidateElementPage():array {
 		return [
 			[['coordinates' => ['page' => '']], 'Page number must be an integer'],
 			[['coordinates' => ['page' => 0]], 'Page must be equal to or greater than 1']
@@ -542,7 +548,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	/**
 	 * @dataProvider dataValidateExistingFile
 	 */
-	public function testValidateExistingFile($dataFile, $uuid, $exception) {
+	public function testValidateExistingFile($dataFile, $uuid, $exception):void {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn(1);
 		$data = [
@@ -597,7 +603,7 @@ final class ValidateHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		$this->assertNull($actual);
 	}
 
-	public function dataValidateExistingFile() {
+	public function dataValidateExistingFile():array {
 		return [
 			[[],                            'uuid', ''],
 			[['file' => []],                '',     'Invalid fileID'],

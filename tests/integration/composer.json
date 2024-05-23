@@ -9,7 +9,7 @@
         "rpkamp/mailhog-behat-extension": "^1.0"
     },
     "require-dev": {
-        "libresign/nextcloud-behat": "^0.9.0"
+        "libresign/nextcloud-behat": "^0"
     },
     "config": {
         "allow-plugins": {

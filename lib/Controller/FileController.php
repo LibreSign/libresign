@@ -2,44 +2,41 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Controller;
 
+use OCA\Files_Sharing\SharedStorage;
 use OCA\Libresign\AppInfo\Application;
+use OCA\Libresign\Db\SignRequestMapper;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
+use OCA\Libresign\Service\IdentifyMethodService;
 use OCA\Libresign\Service\SessionService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
+use OCP\Files\File;
+use OCP\Files\IRootFolder;
+use OCP\Files\Node;
+use OCP\Files\NotFoundException;
 use OCP\IL10N;
+use OCP\IPreview;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 class FileController extends Controller {
@@ -49,6 +46,12 @@ class FileController extends Controller {
 		private LoggerInterface $logger,
 		private IUserSession $userSession,
 		private SessionService $sessionService,
+		private SignRequestMapper $signRequestMapper,
+		private IdentifyMethodService $identifyMethodService,
+		private AccountService $accountService,
+		private IRootFolder $root,
+		private IPreview $preview,
+		private IMimeIconProvider $mimeIconProvider,
 		private FileService $fileService,
 		private ValidateHelper $validateHelper
 	) {
@@ -135,11 +138,88 @@ class FileController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function list($page = null, $length = null): JSONResponse {
+	public function list($page = null, $length = null, ?array $filter = []): JSONResponse {
 		$return = $this->fileService
 			->setMe($this->userSession->getUser())
-			->listAssociatedFilesOfSignFlow($page, $length);
+			->listAssociatedFilesOfSignFlow($page, $length, $filter);
 		return new JSONResponse($return, Http::STATUS_OK);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function getThumbnail(
+		int $nodeId = -1,
+		int $x = 32,
+		int $y = 32,
+		bool $a = false,
+		bool $forceIcon = true,
+		string $mode = 'fill',
+		bool $mimeFallback = false
+	) {
+		if ($nodeId === -1 || $x === 0 || $y === 0) {
+			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		try {
+			$myLibreSignFile = $this->fileService
+				->setMe($this->userSession->getUser())
+				->getMyLibresignFile($nodeId);
+			$node = $this->accountService->getPdfByUuid($myLibreSignFile->getUuid());
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+		}
+
+		return $this->fetchPreview($node, $x, $y, $a, $forceIcon, $mode, $mimeFallback);
+	}
+
+	/**
+	 * @return FileDisplayResponse<Http::STATUS_OK, array{Content-Type: string}>|JSONResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_FORBIDDEN|Http::STATUS_NOT_FOUND, array<empty>, array{}>|RedirectResponse<Http::STATUS_SEE_OTHER, array{}>
+	 */
+	private function fetchPreview(
+		Node $node,
+		int $x,
+		int $y,
+		bool $a,
+		bool $forceIcon,
+		string $mode,
+		bool $mimeFallback = false,
+	) : Http\Response {
+		if (!($node instanceof File) || (!$forceIcon && !$this->preview->isAvailable($node))) {
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+		}
+		if (!$node->isReadable()) {
+			return new JSONResponse([], Http::STATUS_FORBIDDEN);
+		}
+
+		$storage = $node->getStorage();
+		if ($storage->instanceOfStorage(SharedStorage::class)) {
+			/** @var SharedStorage $storage */
+			$share = $storage->getShare();
+			$attributes = $share->getAttributes();
+			if ($attributes !== null && $attributes->getAttribute('permissions', 'download') === false) {
+				return new JSONResponse([], Http::STATUS_FORBIDDEN);
+			}
+		}
+
+		try {
+			$f = $this->preview->getPreview($node, $x, $y, !$a, $mode);
+			$response = new FileDisplayResponse($f, Http::STATUS_OK, [
+				'Content-Type' => $f->getMimeType(),
+			]);
+			$response->cacheFor(3600 * 24, false, true);
+			return $response;
+		} catch (NotFoundException $e) {
+			// If we have no preview enabled, we can redirect to the mime icon if any
+			if ($mimeFallback) {
+				if ($url = $this->mimeIconProvider->getMimeIconUrl($node->getMimeType())) {
+					return new RedirectResponse($url);
+				}
+			}
+
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
+		} catch (\InvalidArgumentException $e) {
+			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
+		}
 	}
 
 	#[NoAdminRequired]

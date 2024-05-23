@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use OCA\Libresign\Tests\Api\ApiTestCase;
@@ -12,7 +18,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateUsignUuidWithInvalidData() {
+	public function testValidateUsignUuidWithInvalidData():void {
 		$this->mockAppConfig([]);
 
 		$this->request
@@ -27,7 +33,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateUsignFileIdWithInvalidData() {
+	public function testValidateUsignFileIdWithInvalidData():void {
 		$this->request
 			->withPath('/file/validate/file_id/171')
 			->assertResponseCode(404);
@@ -40,7 +46,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateWithSuccessUsingUnloggedUser() {
+	public function testValidateWithSuccessUsingUnloggedUser():void {
 		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -70,7 +76,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testValidateWithSuccessUsingSigner() {
+	public function testValidateWithSuccessUsingSigner():void {
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
 		$this->mockAppConfig([
@@ -112,7 +118,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testControllerListWithEmptyData() {
+	public function testControllerListWithEmptyData():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withRequestHeader([
@@ -128,7 +134,7 @@ final class FileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSendNewFile() {
+	public function testSendNewFile():void {
 		$this->createAccount('allowrequestsign', 'password');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',

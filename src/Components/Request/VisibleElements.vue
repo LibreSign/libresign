@@ -1,19 +1,20 @@
 <template>
-	<NcModal v-if="modal"
-		class="view-sign-detail"
-		app-name="libresign"
-		@close="closeModal">
-		<div class="sign-details">
+	<NcDialog v-if="modal"
+		:name="document.name"
+		size="normal"
+		@closing="closeModal">
+		<div v-if="filesStore.loading">
+			<NcLoadingIcon :size="64" :name="t('libresign', 'Loading file')" />
+		</div>
+		<div v-else class="sign-details">
 			<h2>
-				{{ document.name }}
-				<br>
 				<Chip :state="isDraft ? 'warning' : 'default'">
 					{{ statusLabel }}
 				</Chip>
 			</h2>
 			<p>
 				<small>
-					{{ t('libresign', 'Select each signer to define their signature positions') }}
+					{{ t('libresign', 'Click the page to add visible signature, then select a signer to set their signature position') }}
 				</small>
 			</p>
 			<ul class="view-sign-detail__sidebar">
@@ -39,12 +40,7 @@
 				{{ t('libresign', 'Sign') }}
 			</NcButton>
 		</div>
-		<div v-if="filesStore.loading"
-			class="image-page">
-			<NcLoadingIcon :size="64" name="Loading" />
-			<p>{{ t('libresign', 'Loading file') }}</p>
-		</div>
-		<div v-else class="image-page">
+		<div class="image-page">
 			<PdfEditor ref="pdfEditor"
 				width="100%"
 				height="100%"
@@ -52,7 +48,8 @@
 				@pdf-editor:end-init="updateSigners"
 				@pdf-editor:on-delete-signer="onDeleteSigner" />
 		</div>
-		<NcDialog :open.sync="showConfirm"
+		<NcDialog v-if="showConfirm"
+			:open.sync="showConfirm"
 			:name="t('libresign', 'Confirm')"
 			:can-close="!loading"
 			:message="t('libresign', 'Request signatures?')">
@@ -72,7 +69,7 @@
 				</NcButton>
 			</template>
 		</NcDialog>
-	</NcModal>
+	</NcDialog>
 </template>
 
 <script>
@@ -80,14 +77,13 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { subscribe, unsubscribe, emit } from '@nextcloud/event-bus'
 import { SIGN_STATUS } from '../../domains/sign/enum.js'
 import Signer from '../Signers/Signer.vue'
 import { showResponseError } from '../../helpers/errors.js'
-import { SignatureImageDimensions } from '../Draw/index.js'
+import { SignatureImageDimensions } from '../Draw/options.js'
 import Chip from '../Chip.vue'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import PdfEditor from '../PdfEditor/PdfEditor.vue'
@@ -96,7 +92,6 @@ import { useFilesStore } from '../../store/files.js'
 export default {
 	name: 'VisibleElements',
 	components: {
-		NcModal,
 		NcDialog,
 		Signer,
 		Chip,
@@ -175,9 +170,11 @@ export default {
 				return
 			}
 			this.modal = true
+			this.filesStore.loading = true
 		},
 		closeModal() {
 			this.modal = false
+			this.filesStore.loading = true
 		},
 		onError(err) {
 			if (err.response) {
@@ -186,18 +183,21 @@ export default {
 
 			return showError(err.message)
 		},
-		updateSigners() {
+		updateSigners(data) {
 			this.document.signers.forEach(signer => {
 				if (this.document.visibleElements) {
 					this.document.visibleElements.forEach(element => {
 						if (element.signRequestId === signer.signRequestId) {
 							const object = structuredClone(signer)
+							element.coordinates.ury = Math.round(data.measurement[element.coordinates.page].height)
+								- element.coordinates.ury
 							object.element = element
 							this.$refs.pdfEditor.addSigner(object)
 						}
 					})
 				}
 			})
+			this.filesStore.loading = false
 		},
 		onSelectSigner(signer) {
 			signer.element = {
@@ -221,10 +221,10 @@ export default {
 			}))
 		},
 		async goToSign() {
-			await this.save()
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
-
-			window.location.href = route.href
+			if (await this.save()) {
+				const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.document.settings.signerFileUuid } })
+				window.location.href = route.href
+			}
 		},
 		async save() {
 			try {
@@ -232,6 +232,7 @@ export default {
 				const visibleElements = []
 				Object.entries(this.$refs.pdfEditor.$refs.vuePdfEditor.allObjects).forEach(entry => {
 					const [pageNumber, page] = entry
+					const measurement = this.$refs.pdfEditor.$refs.vuePdfEditor.$refs['page' + pageNumber][0].getCanvasMeasurement()
 					page.forEach(function(element) {
 						visibleElements.push({
 							type: 'signature',
@@ -239,16 +240,16 @@ export default {
 							elementId: element.signer.element.elementId,
 							coordinates: {
 								page: parseInt(pageNumber) + 1,
-								width: element.width,
-								height: element.height,
-								llx: element.x,
-								lly: element.y + element.height,
-								ury: element.y,
-								urx: element.x + element.width,
+								width: parseInt(element.width),
+								height: parseInt(element.height),
+								llx: parseInt(element.x),
+								lly: parseInt(measurement.canvasHeight - element.y),
+								ury: parseInt(measurement.canvasHeight - element.y - element.height),
+								urx: parseInt(element.x + element.width),
 							},
 						})
 					})
-				})
+				}, this)
 				const response = await axios.patch(generateOcsUrl('/apps/libresign/api/v1/request-signature'), {
 					users: this.filesStore.getFile().signers,
 					// Only add to array if not empty
@@ -261,31 +262,29 @@ export default {
 				this.showConfirm = false
 				showSuccess(t('libresign', response.data.message))
 				this.closeModal()
+				emit('libresign:visible-elements-saved')
 			} catch (err) {
+				this.loading = false
 				this.onError(err)
+				return false
 			}
 			this.loading = false
+			return true
 		},
 	},
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .image-page {
-	.py-12,.p-5 {
+	::v-deep .py-12{
+		all: unset;
+	}
+	::v-deep .p-5 {
 		all: unset;
 	}
 }
-
 .modal-container {
-	.dialog {
-		height: unset;
-	}
-}
-</style>
-
-<style lang="scss" scoped>
-.view-sign-detail {
 	&--sidebar {
 		width: 300px;
 	}

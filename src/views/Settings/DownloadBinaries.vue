@@ -5,18 +5,16 @@
 				{{ error }}
 			</p>
 		</NcNoteCard>
-		<div class="settings-section">
-			<NcButton class="primary"
-				type="primary"
-				native-type="submit"
-				:disabled="downloadInProgress"
-				@click="downloadAllBinaries">
-				<template #icon>
-					<NcLoadingIcon v-if="downloadInProgress" :size="20" />
-				</template>
-				{{ labelDownloadAllBinaries }}
-			</NcButton>
-		</div>
+		<NcButton class="primary"
+			type="primary"
+			native-type="submit"
+			:disabled="downloadInProgress"
+			@click="installAndValidate">
+			<template #icon>
+				<NcLoadingIcon v-if="downloadInProgress" :size="20" />
+			</template>
+			{{ labelDownloadAllBinaries }}
+		</NcButton>
 
 		<div v-for="(progress, service) in downloadStatus"
 			:key="service">
@@ -34,10 +32,11 @@ import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
 import NcProgressBar from '@nextcloud/vue/dist/Components/NcProgressBar.js'
-import { showError } from '@nextcloud/dialogs'
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { generateOcsUrl } from '@nextcloud/router'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import axios from '@nextcloud/axios'
 import { set } from 'vue'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'DownloadBinaries',
@@ -47,6 +46,10 @@ export default {
 		NcButton,
 		NcNoteCard,
 		NcProgressBar,
+	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
 	},
 	data() {
 		return {
@@ -63,38 +66,28 @@ export default {
 		}
 	},
 	mounted() {
-		this.$root.$on('after-config-check', data => {
-			if (this.downloadInProgress) {
-				return
-			}
-			const java = data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
-			const jsignpdf = data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
-			const cfssl = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
-			if (!java
-				|| !jsignpdf
-				|| !cfssl
-			) {
-				this.changeState('need download')
-			} else {
-				this.changeState('done')
-			}
-		})
+		subscribe('libresign:config-check', this.configureCheck)
+	},
+	beforeUnmount() {
+		unsubscribe('libresign:config-check')
 	},
 	methods: {
-		async downloadAllBinaries() {
+		async configureCheck() {
 			this.changeState('in progress')
-			axios.get(
-				generateOcsUrl('/apps/libresign/api/v1/admin/download-binaries'),
-			)
-				.then(() => {
-					this.downloadStatusSse()
-				})
-				.catch(({ response }) => {
-					showError(t('libresign', 'Could not download binaries.'))
-					if (typeof response?.data === 'object' && response?.data.message.length > 0) {
-						showError(t('libresign', response.data.message))
+			axios.get(generateOcsUrl('/apps/libresign/api/v1/admin/configure-check'))
+				.then(({ data }) => {
+					this.configureCheckStore.items = data
+					const java = data.filter((o) => o.resource === 'java' && o.status === 'error').length === 0
+					const jsignpdf = data.filter((o) => o.resource === 'jsignpdf' && o.status === 'error').length === 0
+					const cfssl = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
+					if (!java
+						|| !jsignpdf
+						|| !cfssl
+					) {
+						this.changeState('need download')
+					} else {
+						this.changeState('done')
 					}
-					this.changeState('need download')
 				})
 		},
 		changeState(state) {
@@ -117,25 +110,27 @@ export default {
 				this.description = t('libresign', 'Binaries downloaded')
 			}
 		},
-		downloadStatusSse() {
+		installAndValidate() {
 			const self = this
-			const updateEventSource = new OC.EventSource(generateUrl('/apps/libresign/api/v1/admin/download-status-sse'))
+			const updateEventSource = new OC.EventSource(generateOcsUrl('/apps/libresign/api/v1/admin/install-and-validate'))
+			this.changeState('in progress')
 			updateEventSource.listen('total_size', function(message) {
 				const downloadStatus = JSON.parse(message)
 				Object.keys(downloadStatus).forEach(service => {
 					set(self.downloadStatus, service, downloadStatus[service])
 				})
 			})
+			updateEventSource.listen('configure_check', function(items) {
+				set(self.configureCheckStore, 'items', items)
+			})
 			updateEventSource.listen('errors', function(message) {
 				self.errors = JSON.parse(message)
+				self.changeState('need download')
 			})
 			updateEventSource.listen('done', function() {
 				self.downloadStatus = {}
 				self.changeState('waiting check')
-				self.$root.$emit('config-check')
 			})
-
-			this.$root.$emit('config-check')
 		},
 	},
 }

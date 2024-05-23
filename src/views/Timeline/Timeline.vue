@@ -1,19 +1,23 @@
 <template>
 	<div class="container-timeline">
 		<div class="content-timeline">
-			<div class="filtered">
-				<a :class="filterActive === 3 ? 'allFiles active' : 'allFiles'" @click="changeFilter(3)">
-					{{ t('libresign', 'All Files') }}
-				</a>
-				<a :class="filterActive === 1 ? 'pending active': 'pending'" @click="changeFilter(1)">
-					{{ t('libresign', 'Pending') }}
-				</a>
-				<a :class="filterActive === 2 ? 'signed active' : 'signed'" @click="changeFilter(2)">
-					{{ t('libresign', 'Signed') }}
-				</a>
-			</div>
+			<TopBar :sidebar-toggle="true">
+				<template #filter>
+					<div class="filtered">
+						<a :class="filesStore.filterActive === 'all' ? 'allFiles active' : 'allFiles'" @click="changeFilter('all')">
+							{{ t('libresign', 'All Files') }}
+						</a>
+						<a :class="filesStore.filterActive === 'pending' ? 'pending active': 'pending'" @click="changeFilter('pending')">
+							{{ t('libresign', 'Pending') }}
+						</a>
+						<a :class="filesStore.filterActive === 'signed' ? 'signed active' : 'signed'" @click="changeFilter('signed')">
+							{{ t('libresign', 'Signed') }}
+						</a>
+					</div>
+				</template>
+			</TopBar>
 			<ul v-if="emptyContentFile ===false">
-				<File v-for="file in filterFile"
+				<File v-for="file in fileList"
 					:key="file.nodeId"
 					:node-id="file.nodeId"
 					:class="{'file-details': true, 'active': file.nodeId === filesStore.file?.file?.nodeId}" />
@@ -32,11 +36,13 @@
 import File from '../../Components/File/File.vue'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import FolderIcon from 'vue-material-design-icons/Folder.vue'
+import TopBar from '../../Components/TopBar/TopBar.vue'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
 	name: 'Timeline',
 	components: {
+		TopBar,
 		File,
 		NcEmptyContent,
 		FolderIcon,
@@ -48,49 +54,31 @@ export default {
 	data() {
 		return {
 			loading: false,
-			fileFilter: [],
-			filterActive: 3,
+			filesFiltered: [],
 		}
 	},
 	computed: {
-		filterFile: {
+		fileList: {
 			get() {
-				if (this.fileFilter.length === 0) {
-					return this.filesStore.orderFiles()
-				}
-				return this.fileFilter.slice().sort(
+				return this.filesFiltered.slice().sort(
 					(a, b) => (a.request_date < b.request_date) ? 1 : -1,
 				)
 			},
 			set(value) {
-				this.fileFilter = value
+				this.filesFiltered = value
 			},
 		},
 		emptyContentFile() {
-			return this.filterFile.length <= 0
+			return this.fileList.length <= 0
 		},
 	},
-	created() {
-		this.filesStore.getAllFiles()
+	async created() {
+		await this.filesStore.getAllFiles()
+		this.changeFilter('all')
 	},
 	methods: {
-		changeFilter(filter) {
-			switch (filter) {
-			case 1:
-				this.filterFile = this.filesStore.pendingFilter()
-				this.filterActive = 1
-				break
-			case 2:
-				this.filterFile = this.filesStore.signedFilter()
-				this.filterActive = 2
-				break
-			case 3:
-				this.filterFile = this.filesStore.orderFiles()
-				this.filterActive = 3
-				break
-			default:
-				break
-			}
+		changeFilter(type) {
+			this.fileList = this.filesStore.filter(type)
 		},
 	},
 }
@@ -110,9 +98,8 @@ export default {
 
 		.filtered {
 			display: flex;
-			width: 100%;
 			justify-content: flex-end;
-			padding: 10px;
+			padding: 5px;
 
 			a {
 				padding: 6px;

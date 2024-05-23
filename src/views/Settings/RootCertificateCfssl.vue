@@ -22,7 +22,7 @@
 -->
 
 <template>
-	<NcSettingsSection v-if="isThisEngine && loaded && cfsslBinariesOk"
+	<NcSettingsSection v-if="isThisEngine && loaded && configureCheckStore.cfsslBinariesOk()"
 		:name="name"
 		:description="description">
 		<div v-if="configureOk" id="tableRootCertificateCfssl" class="form-libresign">
@@ -49,23 +49,21 @@
 			<NcButton type="primary" @click="showModal">
 				{{ t('libresign', 'Regenerate root certificate') }}
 			</NcButton>
-			<NcModal v-if="modal"
-				@close="closeModal">
-				<div class="modal__content">
-					<h2>{{ t('libresign', 'Confirm') }}</h2>
-					{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
-					<div class="grid">
-						<NcButton type="error"
-							@click="clearAndShowForm">
-							{{ t('libresign', 'Yes') }}
-						</NcButton>
-						<NcButton type="primary"
-							@click="closeModal">
-							{{ t('libresign', 'No') }}
-						</NcButton>
-					</div>
-				</div>
-			</NcModal>
+			<NcDialog v-if="modal"
+				:name="t('libresign', 'Confirm')"
+				@closing="closeModal">
+				{{ t('libresign', 'Regenerate root certificate will invalidate all signatures keys. Do you confirm this action?') }}
+				<template #actions>
+					<NcButton type="error"
+						@click="clearAndShowForm">
+						{{ t('libresign', 'Yes') }}
+					</NcButton>
+					<NcButton type="primary"
+						@click="closeModal">
+						{{ t('libresign', 'No') }}
+					</NcButton>
+				</template>
+			</NcDialog>
 		</div>
 		<div v-else-if="!configureOk" id="formRootCertificate" class="form-libresign">
 			<div class="form-group">
@@ -114,33 +112,35 @@
 <script>
 import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import { generateOcsUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { loadState } from '@nextcloud/initial-state'
 import CertificateCustonOptions from './CertificateCustonOptions.vue'
 import { selectCustonOption } from '../../helpers/certification.js'
+import { useConfigureCheckStore } from '../../store/configureCheck.js'
 
 export default {
 	name: 'RootCertificateCfssl',
 	components: {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
-		NcModal,
+		NcDialog,
 		NcButton,
 		NcTextField,
 		CertificateCustonOptions,
 	},
+	setup() {
+		const configureCheckStore = useConfigureCheckStore()
+		return { configureCheckStore }
+	},
 	data() {
 		return {
-			cfsslBinariesOk: false,
-			loaded: false,
-			configureOk: false,
 			isThisEngine: loadState('libresign', 'certificate_engine') === 'cfssl',
 			modal: false,
 			certificate: {
@@ -150,6 +150,7 @@ export default {
 				},
 				cfsslUri: '',
 				configPath: '',
+				generated: false,
 			},
 			error: false,
 			customData: false,
@@ -159,15 +160,18 @@ export default {
 			formDisabled: false,
 		}
 	},
+	computed: {
+		configureOk() {
+			return this.configureCheckStore.isConfigureOk('cfssl') || this.certificate.configPath.length > 0
+		},
+		loaded() {
+			return this.configureCheckStore.items.length > 0
+		},
+	},
 	async mounted() {
 		this.loadRootCertificate()
 		subscribe('libresign:certificate-engine:changed', this.changeEngine)
 		subscribe('libresign:update:certificateToSave', this.updateNames)
-		this.$root.$on('after-config-check', data => {
-			this.cfsslBinariesOk = data.filter((o) => o.resource === 'cfssl' && o.status === 'error').length === 0
-			this.configureOk = data.filter((o) => o.resource === 'cfssl-configure' && o.status === 'error').length === 0
-			this.loaded = true
-		})
 	},
 	beforeUnmount() {
 		unsubscribe('libresign:certificate-engine:changed')
@@ -193,12 +197,15 @@ export default {
 			this.modal = false
 		},
 		clearAndShowForm() {
-			this.certificate.rootCert.commonName = ''
-			this.certificate.rootCert.names = []
-			this.certificate.cfsslUri = ''
-			this.certificate.configPath = ''
+			this.certificate = {
+				rootCert: {
+					commonName: '',
+					names: [],
+				},
+				cfsslUri: '',
+				configPath: '',
+			}
 			this.customData = false
-			this.configureOk = false
 			this.formDisabled = false
 			this.modal = false
 			this.submitLabel = t('libresign', 'Generate root certificate')
@@ -217,7 +224,7 @@ export default {
 				}
 				this.certificate = response.data.data
 				this.afterCertificateGenerated()
-				this.$root.$emit('config-check')
+				emit('libresign:config-check')
 				return
 			} catch (e) {
 				console.error(e)
@@ -251,9 +258,8 @@ export default {
 					throw new Error(response.data)
 				}
 				this.certificate = response.data
-				this.configureOk = this.certificate.generated
 				this.customData = loadState('libresign', 'config_path').length > 0 && (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
-				if (this.configureOk) {
+				if (this.certificate.generated) {
 					this.afterCertificateGenerated()
 					return
 				}
@@ -295,20 +301,6 @@ export default {
 
 .form-heading--required:after {
 	content:" *";
-}
-
-.modal__content {
-	margin: 50px;
-	text-align: center;
-
-	.grid {
-		display: flex;
-		flex-direction: row;
-		align-self: flex-end;
-		button {
-			margin: 10px;
-		}
-	}
 }
 
 @media screen and (max-width: 500px){

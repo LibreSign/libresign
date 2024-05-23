@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use Jeidison\JSignPDF\JSignPDF;
@@ -13,8 +19,8 @@ use Psr\Log\LoggerInterface;
  */
 final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private JSignPdfHandler $class;
-	private IAppConfig|MockObject $appConfig;
-	private LoggerInterface|MockObject $loggerInterface;
+	private IAppConfig&MockObject $appConfig;
+	private LoggerInterface&MockObject $loggerInterface;
 	public function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->loggerInterface = $this->createMock(LoggerInterface::class);
@@ -24,7 +30,7 @@ final class JSignPdfHandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testSignExistingFileSuccess() {
+	public function testSignExistingFileSuccess():void {
 		$inputFile = $this->createMock(\OC\Files\Node\File::class);
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');

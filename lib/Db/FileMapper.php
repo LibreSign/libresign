@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Db;
@@ -66,6 +50,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -91,6 +76,7 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -112,21 +98,22 @@ class FileMapper extends QBMapper {
 				$qb->expr()->eq('sr.uuid', $qb->createNamedParameter($uuid))
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
 	}
 
 	/**
-	 * Return LibreSign file by fileId
+	 * Return LibreSign file by nodeId
 	 */
-	public function getByFileId(?int $fileId = null): File {
-		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $fileId || $f->getSignedNodeId() === $fileId);
+	public function getByFileId(?int $nodeId = null): File {
+		$exists = array_filter($this->file, fn ($f) => $f->getNodeId() === $nodeId || $f->getSignedNodeId() === $nodeId);
 		if (!empty($exists)) {
 			return current($exists);
 		}
 		foreach ($this->file as $file) {
-			if ($file->getNodeId() === $fileId) {
+			if ($file->getNodeId() === $nodeId) {
 				return $file;
 			}
 		}
@@ -136,11 +123,12 @@ class FileMapper extends QBMapper {
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->orX(
-					$qb->expr()->eq('node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
+					$qb->expr()->eq('node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('signed_node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 				)
 			);
 
+		/** @var File */
 		$file = $this->findEntity($qb);
 		$this->file[] = $file;
 		return $file;
@@ -162,6 +150,7 @@ class FileMapper extends QBMapper {
 		$cursor = $qb->executeQuery();
 		$return = [];
 		while ($row = $cursor->fetch()) {
+			/** @var File */
 			$file = $this->mapRowToEntity($row);
 			$this->file[] = $file;
 			$return[] = $file;

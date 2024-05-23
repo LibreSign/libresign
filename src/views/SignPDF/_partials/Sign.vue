@@ -1,9 +1,7 @@
 <template>
 	<div class="document-sign">
 		<div class="sign-elements">
-			<figure v-for="element in elements" :key="`element-${element.documentElementId}`">
-				<PreviewSignature :src="element.url" />
-			</figure>
+			<Signatures v-if="hasSignatures" />
 		</div>
 		<div v-if="!loading" class="button-wrapper">
 			<div v-if="ableToSign" class="button-wrapper">
@@ -42,79 +40,63 @@
 				</p>
 			</div>
 		</div>
-		<NcModal v-if="signMethodsStore.needClickToSign() && signMethodsStore.modal.clickToSign"
+		<NcDialog v-if="signMethodsStore.modal.clickToSign"
 			:can-close="!loading"
-			@close="signMethodsStore.closeModal('clickToSign')">
-			<div class="modal__content">
-				<h2 class="modal__header">
+			:name="t('libresign', 'Confirm')"
+			@closing="signMethodsStore.closeModal('clickToSign')">
+			{{ t('libresign', 'Confirm your signature') }}
+			<template #actions>
+				<NcButton :disabled="loading"
+					@click="signMethodsStore.closeModal('clickToSign')">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+				<NcButton type="primary"
+					:disabled="loading"
+					@click="signWithClick">
+					<template #icon>
+						<NcLoadingIcon v-if="loading" :size="20" />
+					</template>
 					{{ t('libresign', 'Confirm') }}
-				</h2>
-				{{ t('libresign', 'Confirm your signature') }}
-				<div class="modal__button-row">
-					<NcButton :disabled="loading"
-						@click="signMethodsStore.closeModal('clickToSign')">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-					<NcButton type="primary"
-						:disabled="loading"
-						@click="signWithClick">
-						<template #icon>
-							<NcLoadingIcon v-if="loading" :size="20" />
-						</template>
-						{{ t('libresign', 'Confirm') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
-		<NcModal v-if="signMethodsStore.modal.password"
+				</NcButton>
+			</template>
+		</NcDialog>
+		<NcDialog v-if="signMethodsStore.modal.password"
 			:can-close="!loading"
-			@close="signMethodsStore.closeModal('password')">
-			<div class="modal__content">
-				<h2 class="modal__header">
-					{{ t('libresign', 'Confirm your signature') }}
-				</h2>
-				{{ t('libresign', 'Subscription password.') }}
-				<NcPasswordField :value.sync="signPassword" type="password" />
-				<div class="modal__button-row">
-					<NcButton @click="signMethodsStore.closeModal('password')">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-					<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
-						{{ t('libresign', 'Sign the document.') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
+			:name="t('libresign', 'Confirm your signature')"
+			@closing="onCloseConfirmPassword">
+			{{ t('libresign', 'Subscription password.') }}
+			<NcPasswordField :value.sync="signPassword" type="password" />
+			<a id="lost-password" @click="toggleManagePassword">{{ t('libresign', 'Forgot password?') }}</a>
+			<ManagePassword v-if="showManagePassword" />
+			<template #actions>
+				<NcButton type="primary" :disabled="signPassword.length < 3" @click="signWithPassword()">
+					{{ t('libresign', 'Sign the document.') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 		<Draw v-if="signMethodsStore.modal.createSignature"
 			:draw-editor="true"
 			:text-editor="true"
 			:file-editor="true"
+			:sign-request-uuid="signRequestUuid"
 			type="signature"
 			@save="saveSignature"
 			@close="signMethodsStore.closeModal('createSignature')" />
-		<NcModal v-if="signMethodsStore.modal.createPassword"
-			@close="signMethodsStore.closeModal('createPassword')">
-			<CreatePassword @password:created="signMethodsStore.hasSignatureFile"
-				@close="signMethodsStore.closeModal('createPassword')" />
-		</NcModal>
+		<CreatePassword @password:created="signMethodsStore.setHasSignatureFile" />
 		<SMSManager v-if="signMethodsStore.modal.sms"
 			:phone-number="user?.account?.phoneNumber"
-			:uuid="uuid"
-			:file-id="document.fileId"
 			@change="signWithSMSCode"
 			@update:phone="val => $emit('update:phone', val)"
 			@close="signMethodsStore.closeModal('sms')" />
 
 		<EmailManager v-if="signMethodsStore.modal.emailToken"
-			:uuid="uuid"
-			:file-id="document.fileId"
 			@change="signWithEmailToken"
 			@close="signMethodsStore.closeModal('emailToken')" />
 	</div>
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import axios from '@nextcloud/axios'
@@ -124,84 +106,69 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { onError } from '../../../helpers/errors.js'
 import SMSManager from './ModalSMSManager.vue'
 import EmailManager from './ModalEmailManager.vue'
-import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
+import Signatures from '../../../views/Account/partials/Signatures.vue'
 import Draw from '../../../Components/Draw/Draw.vue'
 import NcPasswordField from '@nextcloud/vue/dist/Components/NcPasswordField.js'
 import CreatePassword from '../../../views/CreatePassword.vue'
+import { useSignStore } from '../../../store/sign.js'
 import { useSignMethodsStore } from '../../../store/signMethods.js'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
+import { useSidebarStore } from '../../../store/sidebar.js'
+import ManagePassword from '../../Account/partials/ManagePassword.vue'
 
 export default {
 	name: 'Sign',
 	components: {
-		NcModal,
+		NcDialog,
 		NcButton,
 		NcLoadingIcon,
 		NcPasswordField,
 		CreatePassword,
 		SMSManager,
 		EmailManager,
-		PreviewSignature,
+		Signatures,
 		Draw,
-	},
-	props: {
-		uuid: {
-			type: String,
-			required: true,
-		},
-		document: {
-			type: Object,
-			required: true,
-		},
-		docType: {
-			type: String,
-			required: false,
-			default: 'default',
-		},
+		ManagePassword,
 	},
 	setup() {
+		const signStore = useSignStore()
 		const signMethodsStore = useSignMethodsStore()
 		const signatureElementsStore = useSignatureElementsStore()
-		return { signMethodsStore, signatureElementsStore }
+		const sidebarStore = useSidebarStore()
+		return { signStore, signMethodsStore, signatureElementsStore, sidebarStore }
 	},
 	data() {
-		this.signatureElementsStore.loadSignatures()
 		return {
 			loading: true,
 			user: {
 				account: { uid: '', displayName: '' },
 			},
-			modalCreatePassword: false,
-			modalSignWithPassword: false,
 			signPassword: '',
+			showManagePassword: false,
 		}
 	},
 	computed: {
 		elements() {
-			const signer = this.document?.signers.find(row => row.me) || {}
+			const signer = this.signStore.document?.signers.find(row => row.me) || {}
 
 			if (!signer.signRequestId) {
 				return []
 			}
 
-			const visibleElements = (this.document?.visibleElements || [])
+			const visibleElements = (signer.visibleElements || [])
 				.filter(row => {
 					return this.signatureElementsStore.hasSignatureOfType(row.type)
 						&& row.signRequestId === signer.signRequestId
 				})
-			const element = visibleElements
-				.map(el => ({
-					documentElementId: el.elementId,
-					profileFileId: this.signatureElementsStore.signs[el.type].file.fileId,
-					url: this.signatureElementsStore.signs[el.type].file.url + '?_t=' + Date.now(),
-				}))
-			return element
+			return visibleElements
 		},
 		hasSignatures() {
 			return this.elements.length > 0
 		},
 		needCreateSignature() {
-			return this.document?.visibleElements.length > 0
+			const signer = this.signStore.document?.signers.find(row => row.me) || {}
+			return !!signer.signRequestId
+				&& signer.visibleElements.length > 0
 				&& !this.hasSignatures
 		},
 		ableToSign() {
@@ -213,9 +180,15 @@ export default {
 			}
 			return true
 		},
+		signRequestUuid() {
+			const signer = this.signStore.document.signers.find(row => row.me) || {}
+			return signer.sign_uuid
+		},
 	},
 	mounted() {
 		this.loading = true
+		this.signatureElementsStore.signRequestUuid = this.signRequestUuid
+		this.signatureElementsStore.loadSignatures()
 
 		Promise.all([
 			this.loadUser(),
@@ -235,6 +208,13 @@ export default {
 				}
 			}
 		},
+		toggleManagePassword() {
+			this.showManagePassword = !this.showManagePassword
+		},
+		onCloseConfirmPassword() {
+			this.showManagePassword = false
+			this.signMethodsStore.closeModal('password')
+		},
 		saveSignature() {
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
@@ -244,25 +224,25 @@ export default {
 			this.signMethodsStore.closeModal('createSignature')
 		},
 		async signWithClick() {
-			this.signDocument({
+			await this.signDocument({
 				method: 'clickToSign',
 			})
 		},
 		async signWithPassword() {
-			return this.signDocument({
+			await this.signDocument({
 				method: 'password',
-				identifyValue: this.signPassword,
+				token: this.signPassword,
 			})
 		},
 		async signWithSMSCode(token) {
-			return this.signDocument({
+			await this.signDocument({
 				method: 'sms',
 				token,
 			})
 		},
 		async signWithEmailToken() {
-			return this.signDocument({
-				method: 'email',
+			await this.signDocument({
+				method: this.signMethodsStore.settings.emailToken.identifyMethod,
 				token: this.signMethodsStore.settings.emailToken.token,
 			})
 		},
@@ -271,25 +251,28 @@ export default {
 			if (this.elements.length > 0) {
 				payload.elements = this.elements
 					.map(row => ({
-						documentElementId: row.documentElementId,
-						profileFileId: row.profileFileId,
+						documentElementId: row.elementId,
+						profileNodeId: this.signatureElementsStore.signs[row.type].file.nodeId,
 					}))
 			}
-			try {
-				let url = ''
-				if (this.document.fileId > 0) {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{fileId}', { fileId: this.document.fileId })
-				} else {
-					url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.uuid })
-				}
-
-				const { data } = await axios.post(url, payload)
-				if (data?.action === 3500) { // ACTION_SIGNED
-					this.$emit('signed', data)
-				}
-			} catch (err) {
-				onError(err)
+			let url = ''
+			if (this.signStore.document.fileId > 0) {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/file_id/{nodeId}', { fileId: this.signStore.document.nodeId })
+			} else {
+				url = generateOcsUrl('/apps/libresign/api/v1/sign/uuid/{uuid}', { uuid: this.signRequestUuid })
 			}
+
+			await axios.post(url, payload)
+				.then(({ data }) => {
+					if (data.action === 3500) { // ACTION_SIGNED
+						this.signMethodsStore.closeModal(payload.method)
+						this.sidebarStore.hideSidebar()
+						this.$emit('signed', data)
+					}
+				})
+				.catch((err) => {
+					onError(err)
+				})
 			this.loading = false
 		},
 		confirmSignDocument() {
@@ -306,7 +289,7 @@ export default {
 				return
 			}
 			if (this.signMethodsStore.needCreatePassword()) {
-				this.signMethodsStore.showModal('password')
+				this.signMethodsStore.showModal('createPassword')
 				return
 			}
 			if (this.signMethodsStore.needSignWithPassword()) {

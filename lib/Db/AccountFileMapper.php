@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Db;
@@ -58,6 +42,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('file_type', $qb->createNamedParameter($type))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 
@@ -72,6 +57,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('lf.node_id', $qb->createNamedParameter($nodeId, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 
@@ -84,6 +70,7 @@ class AccountFileMapper extends QBMapper {
 				$qb->expr()->eq('file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT))
 			);
 
+		/** @var AccountFile */
 		return $this->findEntity($qb);
 	}
 
@@ -97,7 +84,7 @@ class AccountFileMapper extends QBMapper {
 		$pagination->setCurrentPage($page);
 		$currentPageResults = $pagination->getCurrentPageResults();
 
-		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfAccountFile', ['uuid' => '_replace_']);
+		$url = $this->urlGenerator->linkToRoute('libresign.page.getPdfFile', ['uuid' => '_replace_']);
 		$url = str_replace('_replace_', '', $url);
 
 		$data = [];
@@ -136,6 +123,7 @@ class AccountFileMapper extends QBMapper {
 				'f.uuid',
 				'f.name',
 				'f.callback',
+				'f.status',
 				'f.node_id',
 				'f.created_at',
 				'af.file_type',

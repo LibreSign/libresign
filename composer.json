@@ -1,72 +1,62 @@
 {
-  "name": "libresign/libresign",
-  "description": "libresign",
-  "type": "project",
-  "license": "AGPL",
-  "require": {
-    "endroid/qr-code": "^4.6",
-    "iio/libmergepdf": "dev-move-tcpdi-parser-to-package",
-    "jsignpdf/jsignpdf-php": "^1.2",
-    "mikehaertl/php-pdftk": "^0.13.0",
-    "pagerfanta/pagerfanta": "^3.6",
-    "smalot/pdfparser": "^2.4",
-    "symfony/console": "^5.4",
-    "tecnickcom/tcpdf": "^6.4",
-    "wobeto/email-blur": "^1.0"
-  },
-  "require-dev": {
-    "bamarni/composer-bin-plugin": "^1.8",
-    "nextcloud/ocp": "dev-master",
-    "roave/security-advisories": "dev-latest"
-  },
-  "config": {
-    "autoloader-suffix": "Libresign",
-    "optimize-autoloader": true,
-    "classmap-authoritative": true,
-    "sort-packages": true,
-    "allow-plugins": {
-      "bamarni/composer-bin-plugin": true
-    },
-    "platform": {
-      "php": "8.0.2"
-    }
-  },
-  "scripts": {
-    "bin": "echo 'bin not installed'",
-    "lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
-    "cs:check": "php-cs-fixer fix --dry-run --diff",
-    "cs:fix": "php-cs-fixer fix",
-    "psalm": "psalm --threads=1",
-    "psalm:update-baseline": "psalm --threads=1 --update-baseline --set-baseline=tests/psalm-baseline.xml",
-    "psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
-    "post-install-cmd": [
-      "@composer bin all install --ansi",
-      "composer dump-autoload"
-    ],
-    "post-update-cmd": [
-      "composer dump-autoload"
-    ]
-  },
-  "extra": {
-    "bamarni-bin": {
-        "bin-links": true,
-        "forward-command": true
-    }
-  },
-  "autoload": {
-    "psr-4": {
-      "OCA\\Libresign\\": "lib/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "OCP\\": "vendor/nextcloud/ocp/OCP"
-    }
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/LibreCodeCoop/libmergepdf"
-    }
-  ]
+	"require": {
+		"endroid/qr-code": "^5.0",
+		"jsignpdf/jsignpdf-php": "^1.2",
+		"mikehaertl/php-pdftk": "^0.13.0",
+		"mpdf/mpdf": "^8.2",
+		"pagerfanta/pagerfanta": "^4.5",
+		"smalot/pdfparser": "^2.4",
+		"twig/twig": "^3.9",
+		"wobeto/email-blur": "^1.0"
+	},
+	"require-dev": {
+		"bamarni/composer-bin-plugin": "^1.8",
+		"nextcloud/ocp": "dev-master",
+		"roave/security-advisories": "dev-latest"
+	},
+	"config": {
+		"autoloader-suffix": "Libresign",
+		"optimize-autoloader": true,
+		"classmap-authoritative": true,
+		"sort-packages": true,
+		"allow-plugins": {
+			"bamarni/composer-bin-plugin": true
+		},
+		"platform": {
+			"php": "8.1"
+		}
+	},
+	"scripts": {
+		"bin": "echo 'bin not installed'",
+		"lint": "find . -name \\*.php -not -path './vendor/*' -not -path './build/*' -print0 | xargs -0 -n1 php -l",
+		"cs:check": "php-cs-fixer fix --dry-run --diff",
+		"cs:fix": "php-cs-fixer fix",
+		"psalm": "psalm --threads=1",
+		"psalm:update-baseline": "psalm --threads=1 --update-baseline --set-baseline=tests/psalm-baseline.xml",
+		"psalm:clear": "psalm --clear-cache && psalm --clear-global-cache",
+		"post-install-cmd": [
+			"@composer bin all install --ansi",
+			"composer dump-autoload"
+		],
+		"post-update-cmd": [
+			"composer dump-autoload"
+		],
+		"test:unit": "vendor/bin/phpunit --colors=always"
+	},
+	"extra": {
+		"bamarni-bin": {
+			"bin-links": true,
+			"forward-command": true
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"OCA\\Libresign\\": "lib/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"OCP\\": "vendor/nextcloud/ocp/OCP"
+		}
+	}
 }

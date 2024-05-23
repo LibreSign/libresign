@@ -1,27 +1,34 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit\Helper;
 
+use OC\DB\ResultAdapter;
 use OCA\Libresign\Helper\Pagination;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
-	public function testWithOnePage() {
+	public function testWithOnePage():void {
 		$queryBuilder = $this->createMock(IQueryBuilder::class);
 		$queryBuilder
 			->method('getType')
 			->willReturn(0);
-		$result = new class {
-			public function fetch() {
-				return ['total_results' => 1];
-			}
-		};
+
+		$result = $this->createMock(ResultAdapter::class);
+		$result
+			->method('fetch')
+			->willReturn(['total_results' => 1]);
 		$queryBuilder
-			->method('execute')
+			->method('executeQuery')
 			->willReturn($result);
 		$pagination = new Pagination(
 			$queryBuilder,
-			function () {
+			function ():void {
 			}
 		);
 		$actual = $pagination->getPagination(1, 10);
@@ -35,22 +42,23 @@ class PaginationHelperTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		];
 		$this->assertEquals($expected, $actual);
 	}
-	public function testWithTwoPages() {
+
+	public function testWithTwoPages():void {
 		$queryBuilder = $this->createMock(IQueryBuilder::class);
 		$queryBuilder
 			->method('getType')
 			->willReturn(0);
-		$result = new class {
-			public function fetch() {
-				return ['total_results' => 2];
-			}
-		};
+
+		$result = $this->createMock(ResultAdapter::class);
+		$result
+			->method('fetch')
+			->willReturn(['total_results' => 2]);
 		$queryBuilder
-			->method('execute')
+			->method('executeQuery')
 			->willReturn($result);
 		$pagination = new Pagination(
 			$queryBuilder,
-			function () {
+			function ():void {
 			}
 		);
 		$pagination->setRootPath('/root/list');

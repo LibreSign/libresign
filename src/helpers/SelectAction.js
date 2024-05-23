@@ -22,32 +22,37 @@
  */
 
 import { loadState } from '@nextcloud/initial-state'
+import { isExternal } from '../helpers/isExternal.js'
 
 const redirectURL = loadState('libresign', 'redirect', 'Home')
 
-export const selectAction = (action) => {
+export const selectAction = (action, to, from) => {
+	const isExternalRoute = isExternal(to, from)
+	const external = isExternalRoute ? 'External' : ''
 	switch (action) {
 	case 1000: // ACTION_REDIRECT
 		window.location.replace(redirectURL.toString())
 		break
 	case 1500: // ACTION_CREATE_ACCOUNT
-		return 'CreateAccount'
+		return 'CreateAccount' + external
 	case 2000: // ACTION_DO_NOTHING
-		return 'DefaultPageError'
+		return 'DefaultPageError' + external
 	case 2500: // ACTION_SIGN
-		return 'SignPDF'
+		return 'SignPDF' + external
+	case 2625: // ACTION_SIGN_INTERNAL
+		return 'SignPDF' + external
 	case 2750: // ACTION_SIGN_ACCOUNT_FILE
-		return 'AccountFileApprove'
+		return 'AccountFileApprove' + external
 	case 3000: // ACTION_SHOW_ERROR
-		return 'DefaultPageSuccess'
+		return 'DefaultPageError' + external
 	case 3500: // ACTION_SIGNED
-		return 'DefaultPageSuccess'
+		return 'ValidationFile' + external
 	case 4000: // ACTION_CREATE_SIGNATURE_PASSWORD
-		return 'CreatePassword'
+		return 'CreatePassword' + external
 	case 4500: // ACTION_RENEW_EMAIL
-		return 'RenewEmail'
+		return 'RenewEmail' + external
 	case 5000: // ACTION_INCOMPLETE_SETUP
-		return 'incomplete'
+		return 'Incomplete' + external
 	default:
 		break
 	}

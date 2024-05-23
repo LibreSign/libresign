@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use donatj\MockWebServer\Response;
@@ -13,7 +19,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithInvalidFileToSign() {
+	public function testSignUsingFileIdWithInvalidFileToSign():void {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$this->mockAppConfig([
 			'groups_request_sign' => '["admin","testGroup"]',
@@ -40,7 +46,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithInvalidUuidToSign() {
+	public function testSignUsingFileIdWithInvalidUuidToSign():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
@@ -63,7 +69,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithAlreadySignedFile() {
+	public function testSignUsingFileIdWithAlreadySignedFile():void {
 		$user = $this->createAccount('username', 'password');
 
 		$user->setEMailAddress('person@test.coop');
@@ -81,7 +87,7 @@ final class SignFileControllerTest extends ApiTestCase {
 		]);
 		$signers = $this->getSignersFromFileId($file->getId());
 		$signers[0]->setSigned(time());
-		$signRequest = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+		$signRequest = \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class);
 		$signRequest->update($signers[0]);
 
 		$this->request
@@ -105,7 +111,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithNotFoundFile() {
+	public function testSignUsingFileIdWithNotFoundFile():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$user = $this->createAccount('username', 'password');
 
@@ -122,7 +128,7 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$folderService = \OC::$server->get(\OCA\Libresign\Service\FolderService::class);
+		$folderService = \OCP\Server::get(\OCA\Libresign\Service\FolderService::class);
 		$libresignFolder = $folderService->getFolder();
 		$libresignFolder->delete();
 
@@ -148,7 +154,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithoutPfx() {
+	public function testSignUsingFileIdWithoutPfx():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$user = $this->createAccount('username', 'password');
 
@@ -188,7 +194,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithEmptyCertificatePassword() {
+	public function testSignUsingFileIdWithEmptyCertificatePassword():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$this->mockAppConfig([
 			'cfssl_bin' => '',
@@ -216,15 +222,16 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate(
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$certificate = $pkcs12Handler->generateCertificate(
 			[
-				'identify' => 'person@test.coop',
+				'host' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
 			'username'
 		);
+		$pkcs12Handler->savePfx('person@test.coop', $certificate);
 
 		$signers = $this->getSignersFromFileId($file->getId());
 		$this->request
@@ -247,7 +254,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testSignUsingFileIdWithSuccess() {
+	public function testSignUsingFileIdWithSuccess():void {
 		$this->markTestSkipped('Neet to assign visible elements to signrequest and not to nextcloud account');
 		$this->mockAppConfig([
 			'cfssl_bin' => '',
@@ -275,21 +282,22 @@ final class SignFileControllerTest extends ApiTestCase {
 			],
 			'userManager' => $user,
 		]);
-		$pkcs12Handler = \OC::$server->get(\OCA\Libresign\Handler\Pkcs12Handler::class);
-		$pkcs12Handler->generateCertificate(
+		$pkcs12Handler = \OCP\Server::get(\OCA\Libresign\Handler\Pkcs12Handler::class);
+		$certificate = $pkcs12Handler->generateCertificate(
 			[
-				'identify' => 'person@test.coop',
+				'host' => 'person@test.coop',
 				'name' => 'John Doe',
 			],
 			'secretPassword',
 			'username'
 		);
+		$pkcs12Handler->savePfx('person@test.coop', $certificate);
 
 		$mock = $this->createMock(JSignPDF::class);
 		$mock->method('sign')->willReturn('content');
-		$jsignHandler = \OC::$server->get(\OCA\Libresign\Handler\JSignPdfHandler::class);
+		$jsignHandler = \OCP\Server::get(\OCA\Libresign\Handler\JSignPdfHandler::class);
 		$jsignHandler->setJSignPdf($mock);
-		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler) {
+		\OC::$server->registerService(\OCA\Libresign\Handler\JSignPdfHandler::class, function () use ($jsignHandler):\OCA\Libresign\Handler\JSignPdfHandler {
 			return $jsignHandler;
 		});
 
@@ -312,7 +320,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostRegisterWithValidationFailure() {
+	public function testPostRegisterWithValidationFailure():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('POST')
@@ -336,7 +344,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPostRegisterWithSuccess() {
+	public function testPostRegisterWithSuccess():void {
 		$this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockAppConfig([
@@ -373,7 +381,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPatchRegisterWithValidationFailure() {
+	public function testPatchRegisterWithValidationFailure():void {
 		$this->createAccount('username', 'password');
 		$this->request
 			->withMethod('PATCH')
@@ -396,7 +404,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testPatchRegisterWithSuccess() {
+	public function testPatchRegisterWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 
 		$this->mockAppConfig([
@@ -444,7 +452,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountSignatureEndpointWithSuccess() {
+	public function testAccountSignatureEndpointWithSuccess():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure');
 		$user = $this->createAccount('username', 'password');
 		$user->setEMailAddress('person@test.coop');
@@ -489,7 +497,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testAccountSignatureEndpointWithFailure() {
+	public function testAccountSignatureEndpointWithFailure():void {
 		$this->createAccount('username', 'password');
 
 		$this->request
@@ -510,7 +518,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdSignRequestIdWithSuccess() {
+	public function testDeleteSignFileIdSignRequestIdWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -543,7 +551,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteSignFileIdSignRequestIdWithError() {
+	public function testDeleteSignFileIdSignRequestIdWithError():void {
 		$user = $this->createAccount('username', 'password');
 
 		$this->request
@@ -560,7 +568,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteUsingSignFileIdWithSuccess() {
+	public function testDeleteUsingSignFileIdWithSuccess():void {
 		$user = $this->createAccount('allowrequestsign', 'password', 'testGroup');
 		$file = $this->requestSignFile([
 			'file' => ['base64' => base64_encode(file_get_contents(__DIR__ . '/../../fixtures/small_valid.pdf'))],
@@ -592,7 +600,7 @@ final class SignFileControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testDeleteUsingSignFileIdWithError() {
+	public function testDeleteUsingSignFileIdWithError():void {
 		$user = $this->createAccount('username', 'password');
 
 		$this->request

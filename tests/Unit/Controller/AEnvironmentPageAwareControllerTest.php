@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Tests\Unit;
@@ -43,7 +27,7 @@ class MockController extends AEnvironmentPageAwareController {
  * @group DB
  */
 final class AEnvironmentPageAwareControllerTest extends TestCase {
-	private IRequest|MockObject $request;
+	private IRequest&MockObject $request;
 	private SignFileService $signFileService;
 	private IL10N $l10n;
 	private IUserSession $userSession;
@@ -59,9 +43,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 				],
 			],
 		]);
-		$this->signFileService = \OC::$server->get(SignFileService::class);
-		$this->l10n = \OC::$server->get(IL10NFactory::class)->get(Application::APP_ID);
-		$this->userSession = \OC::$server->get(IUserSession::class);
+		$this->signFileService = \OCP\Server::get(SignFileService::class);
+		$this->l10n = \OCP\Server::get(IL10NFactory::class)->get(Application::APP_ID);
+		$this->userSession = \OCP\Server::get(IUserSession::class);
 
 		$this->controller = new MockController(
 			$this->request,
@@ -100,9 +84,9 @@ final class AEnvironmentPageAwareControllerTest extends TestCase {
 
 		$this->userSession->setUser($user);
 
-		$root = \OC::$server->get(IRootFolder::class);
+		$root = \OCP\Server::get(IRootFolder::class);
 		$nextcloudFile = $root->getById($file->getNodeId());
-		$trashManager = \OC::$server->get(ITrashManager::class);
+		$trashManager = \OCP\Server::get(ITrashManager::class);
 		$trashManager->pauseTrash();
 		$nextcloudFile[0]->delete();
 

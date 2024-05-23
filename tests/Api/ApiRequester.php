@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Api;
 
 use ByJG\ApiTools\AbstractRequester;
@@ -17,18 +23,14 @@ use Symfony\Component\Routing\RequestContext;
  * Request handler based on ByJG HttpClient (WebRequest)
  */
 class ApiRequester extends AbstractRequester {
-	/**
-	 * @param RequestInterface $request
-	 * @return Response|ResponseInterface
-	 */
-	protected function handleRequest(RequestInterface $request) {
+	protected function handleRequest(RequestInterface $request):Response|ResponseInterface {
 		$this->setupRequest($request);
 		$body = $this->doRequest();
 
 		$response = Response::getInstance(http_response_code());
 		$response = $response->withBody(new Stream($body));
 
-		$headers = xdebug_get_headers();
+		$headers = \xdebug_get_headers();
 		foreach ($headers as $header) {
 			$header = explode(': ', $header, 2);
 			$response = $response->withHeader($header[0], $header[1]);
@@ -47,7 +49,7 @@ class ApiRequester extends AbstractRequester {
 		return $handler;
 	}
 
-	private function setupRequest(RequestInterface $request) {
+	private function setupRequest(RequestInterface $request):void {
 		$request = $request->withHeader("User-Agent", "ByJG Swagger Test");
 		$server = [
 			'REQUEST_URI' => $request->getUri()->getPath(),
@@ -82,23 +84,23 @@ class ApiRequester extends AbstractRequester {
 				vfsStream::setup('home');
 				$stream = vfsStream::url('home/test.txt');
 				file_put_contents($stream, $request->getBody()->getContents());
-			} else {
-				$vars['post'] = $request->getBody()->getContents();
+			} elseif ($request->getMethod() === 'POST') {
+				$vars['post'] = json_decode($request->getBody()->getContents(), true);
 			}
 		}
 		$mockRequest = new Request(
 			$vars,
-			\OC::$server->get(IRequestId::class),
-			\OC::$server->get(\OCP\IConfig::class),
-			\OC::$server->get(\OC\Security\CSRF\CsrfTokenManager::class),
+			\OCP\Server::get(IRequestId::class),
+			\OCP\Server::get(\OCP\IConfig::class),
+			\OCP\Server::get(\OC\Security\CSRF\CsrfTokenManager::class),
 			$stream
 		);
-		\OC::$server->registerService(IRequest::class, function () use ($mockRequest) {
+		\OC::$server->registerService(IRequest::class, function () use ($mockRequest):IRequest {
 			return $mockRequest;
 		});
 		\OC::$CLI = false;
 
-		$router = \OC::$server->get(\OC\Route\Router::class);
+		$router = \OCP\Server::get(\OC\Route\Router::class);
 		$reflectionClass = new \ReflectionClass($router);
 		$property = $reflectionClass->getProperty('context');
 		$property->setAccessible(true);

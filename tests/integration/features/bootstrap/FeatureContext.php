@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
@@ -14,35 +20,78 @@ use rpkamp\Behat\MailhogExtension\Service\OpenedEmailStorage;
 class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAwareContext {
 	private array $signer = [];
 	private array $file = [];
-	private array $fields = [];
+	private static array $environments = [];
+	private array $customHeaders = [];
 	private OpenedEmailStorage $openedEmailStorage;
 
 	/**
 	 * @BeforeSuite
 	 */
-	public static function beforeSuite(BeforeSuiteScope $scope) {
-		exec('php ../../../../occ config:system:set debug --value true --type boolean', $output);
-	}
-
-	/**
-	 * @BeforeFeature
-	 */
-	public static function BeforeFeature(): void {
-		self::runCommand('libresign:developer:reset --all');
+	public static function beforeSuite(BeforeSuiteScope $scope):void {
+		if (get_current_user() !== exec('whoami')) {
+			throw new Exception(sprintf("Have files that %s is the owner and the user that is running this test is %s, is necessary to be the same user.\n You should prefix your command to run the behat test with 'runuser -u %s'", get_current_user(), exec('whoami'), get_current_user()));
+		}
+		self::runCommand('config:system:set debug --value true --type boolean');
 		self::runCommand('app:enable --force notifications');
 	}
 
 	/**
-	 * @When run the command :command
+	 * @BeforeScenario
 	 */
-	public static function runCommand($command): void {
+	public static function BeforeScenario(): void {
+		self::$environments = [];
+		self::runCommand('libresign:developer:reset --all');
+	}
+
+	/**
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)"$/
+	 */
+	public static function runCommand(string $command): array {
 		$console = realpath(__DIR__ . '/../../../../../../console.php');
 		$owner = posix_getpwuid(fileowner($console));
 		$fullCommand = 'php ' . $console . ' ' . $command;
 		if (posix_getuid() !== $owner['uid']) {
 			$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
 		}
-		exec($fullCommand, $output);
+		if (!empty(self::$environments)) {
+			$fullCommand = http_build_query(self::$environments, '', ' ') . ' ' . $fullCommand;
+		}
+		$fullCommand .= '  2>&1';
+		exec($fullCommand, $output, $resultCode);
+		return [
+			'output' => $output,
+			'resultCode' => $resultCode,
+		];
+	}
+
+	/**
+	 * @When /^run the command "(?P<command>(?:[^"]|\\")*)" with result code (\d+)$/
+	 */
+	public static function runCommandWithResultCode(string $command, int $resultCode = 0): void {
+		$return = self::runCommand($command);
+		Assert::assertEquals($resultCode, $return['resultCode'], print_r($return, true));
+	}
+
+	/**
+	 * @Given create an environment :name with value :value to be used by occ command
+	 */
+	public static function createAnEnvironmentWithValueToBeUsedByOccCommand($name, $value):void {
+		self::$environments[$name] = $value;
+	}
+
+	/**
+	 * @When guest :guest exists
+	 */
+	public function assureGuestExists(string $guest): void {
+		$response = $this->userExists($guest);
+		if ($response->getStatusCode() !== 200) {
+			$this->createAnEnvironmentWithValueToBeUsedByOccCommand('OC_PASS', '123456');
+			$this->runCommandWithResultCode('guests:add admin ' . $guest . ' --password-from-env', 0);
+			// Set a display name different than the user ID to be able to
+			// ensure in the tests that the right value was returned.
+			$this->setUserDisplayName($guest);
+			$this->createdUsers[] = $guest;
+		}
 	}
 
 	public function setOpenedEmailStorage(OpenedEmailStorage $storage): void {
@@ -56,50 +105,19 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 				$options
 			);
 		}
+		$headers = array_merge($headers, $this->customHeaders);
 		parent::sendRequest($verb, $url, $body, $headers, $options);
 	}
 
 	/**
-	 * @Then /^the signer "([^"]*)" have a file to sign$/
+	 * @Given /^set the custom http header "([^"]*)" with "([^"]*)" as value to next request$/
 	 */
-	public function theSignerHaveAFileToSign(string $signer): void {
-		$this->setCurrentUser($signer);
-		$this->sendOCSRequest('get', '/apps/libresign/api/v1/file/list');
-		$response = json_decode($this->response->getBody()->getContents(), true);
-		Assert::assertGreaterThan(0, $response['data'], 'Haven\'t files to sign');
-		$this->signer = [];
-		$this->file = [];
-		foreach (array_reverse($response['data']) as $file) {
-			$currentSigner = array_filter($file['signers'], function ($signer): bool {
-				return $signer['me'];
-			});
-			if (count($currentSigner) === 1) {
-				$this->signer = end($currentSigner);
-				$this->file = $file;
-				break;
-			}
+	public function setTheCustomHttpHeaderAsValueToNextRequest(string $header, string $value):void {
+		if (empty($value)) {
+			unset($this->customHeaders[$header]);
+			return;
 		}
-		Assert::assertGreaterThan(1, $this->signer, $signer . ' don\'t will sign a file');
-		Assert::assertGreaterThan(1, $this->file, 'The /file/list didn\'t returned a file assigned to ' . $signer);
-	}
-
-	/**
-	 * @Then /^the file to sign contains$/
-	 *
-	 * @param string $name
-	 */
-	public function theFileToSignContains(TableNode $table): void {
-		if (!$this->file) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->file);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			Assert::assertEquals($value['value'], $this->file[$value['key']]);
-		}
+		$this->customHeaders[$header] = $this->parseText($value);
 	}
 
 	protected function beforeRequest(string $fullUrl, array $options): array {
@@ -109,74 +127,16 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		return [$fullUrl, $options];
 	}
 
-	protected function parseFormParams(array $options): array {
-		if (!empty($options['form_params'])) {
-			$this->parseTextRcursive($options['form_params']);
-		}
-		return $options;
-	}
-
-	private function parseTextRcursive(&$array): array {
-		array_walk_recursive($array, function (&$value) {
-			if (is_string($value)) {
-				$value = $this->parseText($value);
-			} elseif ($value instanceof \stdClass) {
-				$value = (array) $value;
-				$value = json_decode(json_encode($this->parseTextRcursive($value)));
-			}
-		});
-		return $array;
-	}
-
 	protected function parseText(string $text): string {
-		$patterns = [
-			'/<SIGN_UUID>/',
-			'/<FILE_UUID>/',
-			'/<BASE_URL>/',
-		];
-		$replacements = [
-			$this->signer['sign_uuid'] ?? null,
-			$this->file['uuid'] ?? $this->getFileUuidFromText($text),
-			$this->baseUrl . '/index.php',
-		];
-		foreach ($this->fields as $key => $value) {
+		$fields = $this->fields;
+		$fields['BASE_URL'] = $this->baseUrl . '/index.php';
+		foreach ($fields as $key => $value) {
 			$patterns[] = '/<' . $key . '>/';
 			$replacements[] = $value;
 		}
 		$text = preg_replace($patterns, $replacements, $text);
+		$text = parent::parseText($text);
 		return $text;
-	}
-
-	private function getFileUuidFromText(string $text): ?string {
-		if (!$this->isJson($text)) {
-			return '';
-		}
-		$json = json_decode($text, true);
-		if (isset($json['sign']['uuid']) && $json['sign']['uuid']) {
-			return $this->file['uuid'] = $json['sign']['uuid'];
-		}
-		return '';
-	}
-
-	/**
-	 * @Given the signer contains
-	 */
-	public function theSignerContains(TableNode $table): void {
-		if (!$this->signer) {
-			$this->theSignerHaveAFileToSign($this->currentUser);
-		}
-		$expectedValues = $table->getColumnsHash();
-		foreach ($expectedValues as $value) {
-			Assert::assertArrayHasKey($value['key'], $this->signer);
-			if ($value['value'] === '<IGNORE>') {
-				continue;
-			}
-			$actual = $this->signer[$value['key']];
-			if (is_array($this->signer[$value['key']]) || is_object($this->signer[$value['key']])) {
-				$actual = json_encode($actual);
-			}
-			Assert::assertEquals($value['value'], $actual, sprintf('The actual value of key "%s" is different of expected', $value['key']));
-		}
 	}
 
 	/**
@@ -191,7 +151,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 		$openedEmail = $this->openedEmailStorage->getOpenedEmail();
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)"/', $openedEmail->body, $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 
 	/**
@@ -199,30 +159,12 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	 */
 	public function iSendAFileToBeSigned(TableNode $body): void {
 		$this->sendOCSRequest('post', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$this->file['uuid'] = $realResponseArray['data']['uuid'];
-	}
-
-	/**
-	 * @When I change the file
-	 */
-	public function iChangeTheFile(TableNode $body): void {
-		$newBody = [];
-		foreach ($body->getTable() as $key => $row) {
-			$newBody[$key] = $row;
-			if ($row[1] === '<FILE_UUID>') {
-				$newBody[$key][1] = $this->file['uuid'];
-			}
-		}
-		$body = new TableNode($newBody);
-		$this->sendOCSRequest('patch', '/apps/libresign/api/v1/request-signature', $body);
-		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
 	}
 
 	/**
 	 * @When follow the link on opened email
 	 */
-	public function iDoSomethingWithTheOpenedEmail(): void {
+	public function followTheLinkOnOpenedEmail(): void {
 		if (!$this->openedEmailStorage->hasOpenedEmail()) {
 			throw new RuntimeException('No email opened, unable to do something!');
 		}
@@ -247,7 +189,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	public function theResponseOfFileListMatchWith(PyStringNode $expected): void {
 		$this->response->getBody()->seek(0);
 		$realResponseArray = json_decode($this->response->getBody()->getContents(), true);
-		$expectedArray = json_decode($expected, true);
+		$expectedArray = json_decode((string) $expected, true);
 		Assert::assertArrayHasKey('pagination', $realResponseArray, 'The response have not pagination');
 		Assert::assertJsonStringEqualsJsonString(json_encode($expectedArray['pagination']), json_encode($realResponseArray['pagination']));
 		Assert::assertArrayHasKey('data', $realResponseArray);
@@ -272,40 +214,25 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 	}
 
 	/**
-	 * @When fetch field :path from prevous JSON response
-	 */
-	public function fetchFieldFromPreviousJsonResponse(string $path): void {
-		$this->response->getBody()->seek(0);
-		$responseArray = json_decode($this->response->getBody()->getContents(), true);
-		$keys = explode('.', $path);
-		$value = $responseArray;
-		foreach ($keys as $key) {
-			Assert::assertArrayHasKey($key, $value, 'Key [' . $key . '] of path [' . $path . '] not found.');
-			$value = $value[$key];
-		}
-		$this->fields[$path] = $value;
-	}
-
-	/**
 	 * @When /^wait for ([0-9]+) (second|seconds)$/
 	 */
-	public function waitForXSecond($seconds): void {
+	public function waitForXSecond(int $seconds): void {
 		sleep($seconds);
 	}
 
 	/**
 	 * @When user :user has the following notifications
-	 *
-	 * @param string $user
-	 * @param TableNode|null $body
 	 */
-	public function userNotifications(string $user, TableNode $body = null): void {
+	public function userNotifications(string $user, TableNode|null $body = null): void {
 		$this->setCurrentUser($user);
 		$this->sendOCSRequest(
 			'GET', '/apps/notifications/api/v2/notifications'
 		);
 
 		$jsonBody = json_decode($this->response->getBody()->getContents(), true);
+		if ($this->response->getStatusCode() === 500) {
+			throw new Exception('Internal failure when access notifications endpoint');
+		}
 		$data = $jsonBody['ocs']['data'];
 
 		if ($body === null) {
@@ -319,7 +246,7 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 			foreach ($data as $actual) {
 				$actualIntersect = array_filter(
 					$actual,
-					function ($k) use ($expected) {
+					function ($k) use ($expected):bool {
 						return isset($expected[$k]);
 					},
 					ARRAY_FILTER_USE_KEY,
@@ -349,18 +276,18 @@ class FeatureContext extends NextcloudApiContext implements OpenedEmailStorageAw
 
 		$found = array_filter(
 			$data,
-			function ($notification) {
-				return $notification['subject'] === 'There is a file for you to sign';
+			function ($notification):bool {
+				return $notification['subject'] === 'admin requested your signature on document';
 			}
 		);
 		if (empty($found)) {
-			throw new Exception('Notification with the subject [There is a file for you to sign] not found');
+			throw new Exception('Notification with the subject [admin requested your signature on document] not found');
 		}
 		$found = current($found);
 
 
 		preg_match('/p\/sign\/(?<uuid>[\w-]+)$/', $found['link'], $matches);
 		Assert::assertArrayHasKey('uuid', $matches, 'UUID not found on email');
-		$this->signer['sign_uuid'] = $matches['uuid'];
+		$this->fields['SIGN_UUID'] = $matches['uuid'];
 	}
 }

@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Controller;
@@ -46,8 +30,8 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
-use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
@@ -100,6 +84,7 @@ class PageController extends AEnvironmentPageAwareController {
 			$this->initialState->provideInitialState('can_request_sign', false);
 		}
 
+		$this->provideSignerSignatues();
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 		$this->initialState->provideInitialState('identify_methods', $this->identifyMethodService->getIdentifyMethodsSettings());
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
@@ -110,6 +95,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$policy = new ContentSecurityPolicy();
 		$policy->allowEvalScript(true);
+		$policy->addAllowedFrameDomain('\'self\'');
 		$response->setContentSecurityPolicy($policy);
 
 		return $response;
@@ -124,29 +110,56 @@ class PageController extends AEnvironmentPageAwareController {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	public function incomplete(): TemplateResponse {
+		Util::addScript(Application::APP_ID, 'libresign-main');
+		$response = new TemplateResponse(Application::APP_ID, 'main');
+		return $response;
+	}
+
+	#[PublicPage]
+	#[NoCSRFRequired]
+	public function incompleteP(): TemplateResponse {
+		Util::addScript(Application::APP_ID, 'libresign-main');
+		$response = new TemplateResponse(Application::APP_ID, 'main', [], TemplateResponse::RENDER_AS_BASE);
+		return $response;
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	#[RequireSetupOk(template: 'main')]
 	public function indexFPath(): TemplateResponse {
 		return $this->index();
 	}
 
-	/**
-	 * Show signature page
-	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[RequireSetupOk]
 	#[PublicPage]
 	#[RequireSignRequestUuid]
-	public function sign($uuid): TemplateResponse {
+	public function signF(string $uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
+		return $this->index();
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
+	public function signFPath(string $uuid): TemplateResponse {
+		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN_INTERNAL);
+		return $this->index();
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[RequireSetupOk]
+	#[PublicPage]
+	#[RequireSignRequestUuid]
+	public function sign(string $uuid): TemplateResponse {
 		$this->initialState->provideInitialState('action', JSActions::ACTION_SIGN);
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession->getUser())
-		);
-		$this->initialState->provideInitialState('signer',
-			$this->signFileService->getSignerData(
-				$this->userSession->getUser(),
-				$this->getSignRequestEntity(),
-			)
 		);
 		$this->initialState->provideInitialState('filename', $this->getFileEntity()->getName());
 		$file = $this->fileService
@@ -159,16 +172,15 @@ class PageController extends AEnvironmentPageAwareController {
 			->formatFile();
 		$this->initialState->provideInitialState('status', $file['status']);
 		$this->initialState->provideInitialState('statusText', $file['statusText']);
-		$this->initialState->provideInitialState('visibleElements', $file['visibleElements']);
 		$this->initialState->provideInitialState('signers', $file['signers']);
+		$this->initialState->provideInitialState('sign_request_uuid', $uuid);
 		$this->provideSignerSignatues();
-		$signatureMethods = $this->identifyMethodService->getSignMethodsOfIdentifiedFactors($this->getSignRequestEntity()->getId());
-		$this->initialState->provideInitialState('signature_methods', $signatureMethods);
 		$this->initialState->provideInitialState('token_length', TokenService::TOKEN_LENGTH);
 		$this->initialState->provideInitialState('description', $this->getSignRequestEntity()->getDescription() ?? '');
 		$this->initialState->provideInitialState('pdf',
 			$this->signFileService->getFileUrl('url', $this->getFileEntity(), $this->getNextcloudFile(), $uuid)
 		);
+		$this->initialState->provideInitialState('nodeId', $this->getFileEntity()->getNodeId());
 
 		Util::addScript(Application::APP_ID, 'libresign-external');
 		$response = new TemplateResponse(Application::APP_ID, 'external', [], TemplateResponse::RENDER_AS_BASE);
@@ -254,7 +266,7 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of file to get PDF
 	 *
-	 * @return DataResponse|FileDisplayResponse
+	 * @return JSONResponse|FileDisplayResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -266,7 +278,7 @@ class PageController extends AEnvironmentPageAwareController {
 		try {
 			$file = $this->accountService->getPdfByUuid($uuid);
 		} catch (DoesNotExistException $th) {
-			return new DataResponse([], Http::STATUS_NOT_FOUND);
+			return new JSONResponse([], Http::STATUS_NOT_FOUND);
 		}
 
 		$resp = new FileDisplayResponse($file);
@@ -278,7 +290,7 @@ class PageController extends AEnvironmentPageAwareController {
 	/**
 	 * Use UUID of user to get PDF
 	 *
-	 * @return DataResponse|FileDisplayResponse
+	 * @return FileDisplayResponse
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -286,7 +298,7 @@ class PageController extends AEnvironmentPageAwareController {
 	#[PublicPage]
 	#[RequireSetupOk]
 	#[AnonRateLimit(limit: 30, period: 60)]
-	public function getPdfAccountFile($uuid) {
+	public function getPdfFile($uuid) {
 		$this->throwIfValidationPageNotAccessible();
 		$resp = new FileDisplayResponse($this->getNextcloudFile());
 		$resp->addHeader('Content-Type', 'application/pdf');
@@ -374,9 +386,16 @@ class PageController extends AEnvironmentPageAwareController {
 		$this->throwIfValidationPageNotAccessible();
 		try {
 			$this->signFileService->getFileByUuid($uuid);
+			$this->fileService->setFileByType('uuid', $uuid);
 		} catch (DoesNotExistException $e) {
-			$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
-			$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+			try {
+				$signRequest = $this->signFileService->getSignRequest($uuid);
+				$libresignFile = $this->signFileService->getFile($signRequest->getFileId());
+				$this->fileService->setFile($libresignFile);
+			} catch (DoesNotExistException $e) {
+				$this->initialState->provideInitialState('action', JSActions::ACTION_DO_NOTHING);
+				$this->initialState->provideInitialState('errors', [$this->l10n->t('Invalid UUID')]);
+			}
 		}
 		$this->initialState->provideInitialState('config',
 			$this->accountService->getConfig($this->userSession?->getUser())
@@ -384,9 +403,7 @@ class PageController extends AEnvironmentPageAwareController {
 
 		$this->initialState->provideInitialState('legal_information', $this->appConfig->getAppValue('legal_information'));
 
-		$this->fileService
-			->setFileByType('uuid', $uuid)
-			->showSigners();
+		$this->fileService->showSigners();
 		$this->initialState->provideInitialState('file_info', $this->fileService->formatFile());
 
 		Util::addScript(Application::APP_ID, 'libresign-validation');

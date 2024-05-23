@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Command\Configure;
@@ -94,19 +78,19 @@ class Cfssl extends Base {
 			throw new InvalidArgumentException('Invalid Comon Name');
 		}
 		if ($input->getOption('ou')) {
-			$names[] = ['id' => 'OU', 'value' => $input->getOption('ou')];
+			$names['OU'] = ['value' => $input->getOption('ou')];
 		}
 		if ($input->getOption('o')) {
-			$names[] = ['id' => 'O', 'value' => $input->getOption('o')];
+			$names['O'] = ['value' => $input->getOption('o')];
 		}
 		if ($input->getOption('c')) {
-			$names[] = ['id' => 'C', 'value' => $input->getOption('c')];
+			$names['C'] = ['value' => $input->getOption('c')];
 		}
 		if ($input->getOption('l')) {
-			$names[] = ['id' => 'L', 'value' => $input->getOption('l')];
+			$names['L'] = ['value' => $input->getOption('l')];
 		}
 		if ($input->getOption('st')) {
-			$names[] = ['id' => 'ST', 'value' => $input->getOption('st')];
+			$names['ST'] = ['value' => $input->getOption('st')];
 		}
 
 		if (PHP_OS_FAMILY === 'Windows') {
@@ -123,7 +107,7 @@ class Cfssl extends Base {
 		$configPath = $input->getOption('config-path');
 
 		$this->installService->generate(
-			$commonName,
+			(string) $commonName,
 			$names,
 			[
 				'engine' => 'cfssl',

@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Handler;
@@ -49,7 +33,7 @@ class CfsslServerHandler {
 		array $names,
 		string $configPath
 	): void {
-		$filename = $configPath . self::CSR_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CSR_FILE;
 		$content = [
 			'CN' => $commonName,
 			'key' => [
@@ -57,10 +41,9 @@ class CfsslServerHandler {
 				'size' => 2048,
 			],
 		];
-		foreach ($names as $name) {
-			$content['names'][0][$name['id']] = $name['value'];
+		foreach ($names as $id => $name) {
+			$content['names'][0][$id] = $name['value'];
 		}
-		
 		$response = file_put_contents($filename, json_encode($content));
 		if ($response === false) {
 			throw new LibresignException(
@@ -72,7 +55,7 @@ class CfsslServerHandler {
 	}
 
 	private function putConfigServer(string $key, string $configPath): void {
-		$filename = $configPath . self::CONFIG_FILE;
+		$filename = $configPath . DIRECTORY_SEPARATOR . self::CONFIG_FILE;
 		$content = [
 			'signing' => [
 				'profiles' => [
@@ -82,7 +65,10 @@ class CfsslServerHandler {
 						'usages' => [
 							"signing",
 							"digital signature",
-							"cert sign"
+							"cert sign",
+							"key encipherment",
+							"client auth",
+							"email protection"
 						],
 					],
 				],

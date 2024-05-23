@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 use OCA\Libresign\Handler\Pkcs7Handler;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -17,7 +23,7 @@ final class Pkcs7HandlerTest extends \OCA\Libresign\Tests\Unit\TestCase {
 			->getMock();
 	}
 
-	public function testSignWithSuccess() {
+	public function testSignWithSuccess():void {
 		$handler = $this->getInstance(['getP7sFile']);
 
 		$p7sFile = $this->createMock(\OCP\Files\File::class);

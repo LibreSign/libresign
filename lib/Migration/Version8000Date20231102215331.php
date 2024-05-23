@@ -3,30 +3,14 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Migration;
 
 use Closure;
+use OC\DB\Exceptions\DbalException;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
@@ -140,7 +124,7 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 				->values([
 					'id' => $qbRestore->createNamedParameter($row['id'], IQueryBuilder::PARAM_INT),
 					'file_id' => $qbRestore->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT),
-					'uuid' => $qbRestore->createNamedParameter($row['uuid'], IQueryBuilder::PARAM_INT),
+					'uuid' => $qbRestore->createNamedParameter($row['uuid']),
 					'display_name' => $qbRestore->createNamedParameter($row['display_name']),
 					'description' => $qbRestore->createNamedParameter($row['description']),
 					'created_at' => $qbRestore->createNamedParameter($row['created_at'], IQueryBuilder::PARAM_INT),
@@ -151,14 +135,20 @@ class Version8000Date20231102215331 extends SimpleMigrationStep {
 		}
 		$cursor->closeCursor();
 
-		$qb = $this->connection->getQueryBuilder();
-		$qb->update('libresign_file_element')
-			->set('sign_request_id', 'file_user_id')
-			->executeStatement();
+		try {
+			$qb = $this->connection->getQueryBuilder();
+			$qb->update('libresign_file_element')
+				->set('sign_request_id', 'file_user_id')
+				->executeStatement();
+		} catch (DbalException $e) {
+		}
 
-		$qb = $this->connection->getQueryBuilder();
-		$qb->update('libresign_identify_method')
-			->set('sign_request_id', 'file_user_id')
-			->executeStatement();
+		try {
+			$qb = $this->connection->getQueryBuilder();
+			$qb->update('libresign_identify_method')
+				->set('sign_request_id', 'file_user_id')
+				->executeStatement();
+		} catch (DbalException $e) {
+		}
 	}
 }

@@ -4,7 +4,7 @@
 			<h2>
 				<slot name="title" />
 			</h2>
-			<NcActions :inline="2">
+			<NcActions v-if="isSignatureLoaded" :inline="2">
 				<NcActionButton v-if="hasSignature" @click="removeSignature">
 					<template #icon>
 						<DeleteIcon :size="20" />
@@ -19,7 +19,9 @@
 		</header>
 
 		<div v-if="hasSignature">
-			<PreviewSignature :src="imgSrc" />
+			<PreviewSignature :src="imgSrc"
+				:sign-request-uuid="signatureElementsStore.signRequestUuid"
+				@loaded="signatureLoaded" />
 		</div>
 		<div v-else class="no-signatures" @click="edit">
 			<slot name="no-signatures" />
@@ -41,7 +43,6 @@ import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import DeleteIcon from 'vue-material-design-icons/Delete.vue'
 import DrawIcon from 'vue-material-design-icons/Draw.vue'
 import PreviewSignature from '../../../Components/PreviewSignature/PreviewSignature.vue'
-import { startsWith } from 'lodash-es'
 import Draw from '../../../Components/Draw/Draw.vue'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { useSignatureElementsStore } from '../../../store/signatureElements.js'
@@ -68,24 +69,28 @@ export default {
 	},
 	data: () => ({
 		isEditing: false,
+		isSignatureLoaded: false,
 	}),
 	computed: {
 		hasSignature() {
 			return this.signatureElementsStore.hasSignatureOfType(this.type)
 		},
 		imgSrc() {
-			if (startsWith('data:', this.signatureElementsStore.signs[this.type].value)) {
+			if (this.signatureElementsStore.signs[this.type]?.value?.startsWith('data:')) {
 				return this.signatureElementsStore.signs[this.type].value
 			}
 			return `${this.signatureElementsStore.signs[this.type].file.url}&_t=${Date.now()}`
 		},
 	},
 	methods: {
+		signatureLoaded() {
+			this.isSignatureLoaded = true
+		},
 		edit() {
 			this.isEditing = true
 		},
 		async removeSignature() {
-			this.signatureElementsStore.delete(this.type)
+			await this.signatureElementsStore.delete(this.type)
 			if (this.signatureElementsStore.success.length) {
 				showSuccess(this.signatureElementsStore.success)
 			} else if (this.signatureElementsStore.error.length) {
@@ -108,10 +113,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.signature-modal {
-	background-color: red;
-}
-
 .signature-fav{
 	margin: 10px;
 

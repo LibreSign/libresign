@@ -2,6 +2,7 @@
 	<VuePdfEditor ref="vuePdfEditor"
 		width="100%"
 		height="100%"
+		class="vue-pdf-editor"
 		:show-choose-file-btn="false"
 		:show-customize-editor="false"
 		:show-line-size-select="false"
@@ -90,5 +91,14 @@ audio, canvas, embed, iframe, img, object, svg, video {
 
 canvas {
 	border-bottom: 2px solid #eee;
+}
+</style>
+
+<style lang="scss" scoped>
+.vue-pdf-editor {
+	overflow: unset !important;
+	min-height: 0;
+	position: unset !important;
+	display: flex;
 }
 </style>

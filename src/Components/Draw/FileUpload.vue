@@ -37,26 +37,26 @@
 			</div>
 		</div>
 
-		<NcModal v-if="modal" @close="cancel">
-			<div class="modal-confirm">
-				<h1>{{ t('libresign', 'Confirm your signature') }}</h1>
-				<img :src="imageData">
-				<div class="actions-modal">
-					<NcButton type="primary" @click="saveSignature">
-						{{ t('libresign', 'Save') }}
-					</NcButton>
-					<NcButton @click="cancel">
-						{{ t('libresign', 'Cancel') }}
-					</NcButton>
-				</div>
-			</div>
-		</NcModal>
+		<NcDialog v-if="modal"
+			:name="t('libresign', 'Confirm your signature')"
+			@closing="cancel">
+			<img :src="imageData">
+			<template #actions>
+				<NcButton type="primary" @click="saveSignature">
+					{{ t('libresign', 'Save') }}
+				</NcButton>
+				<NcButton @click="cancel">
+					{{ t('libresign', 'Cancel') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 import { SignatureImageDimensions } from './options.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { isEmpty } from 'lodash-es'
@@ -65,7 +65,7 @@ export default {
 	components: {
 		NcButton,
 		Cropper,
-		NcModal,
+		NcDialog,
 	},
 	data() {
 		return {
@@ -132,6 +132,12 @@ export default {
 	> img {
 		max-width: 100%;
 	}
+	.action-buttons{
+		justify-content: end;
+		display: flex;
+		box-sizing: border-box;
+		grid-gap: 10px;
+	}
 }
 
 .file-input-container {
@@ -141,39 +147,11 @@ export default {
 		display: none;
 	}
 }
-.action-buttons{
-	justify-content: end;
-	display: flex;
-	box-sizing: border-box;
-	grid-gap: 10px;
-}
-.actions-modal{
-	display: flex;
-	flex-direction: row;
-	align-self: flex-end;
-	box-sizing: border-box;
-	grid-gap: 10px;
-}
-.modal-confirm{
-	z-index: 100000;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	margin: 15px;
+img{
+	padding: 20px;
 
-	h1{
-		font-size: 1.4rem;
-		font-weight: bold;
-		margin: 10px;
-	}
-
-	img{
-		padding: 20px;
-
-		@media screen and (max-width: 650px){
-			width: 100%;
-		}
+	@media screen and (max-width: 650px){
+		width: 100%;
 	}
 }
 </style>

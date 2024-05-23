@@ -20,7 +20,7 @@
 
 <script>
 import FileIcon from 'vue-material-design-icons/File.vue'
-import { generateUrl } from '@nextcloud/router'
+import { generateUrl, generateOcsUrl } from '@nextcloud/router'
 import { useFilesStore } from '../../store/files.js'
 
 export default {
@@ -57,23 +57,27 @@ export default {
 			if (this.backgroundFailed === true) {
 				return null
 			}
-			try {
-				const previewUrl = generateUrl('/core/preview?fileId={fileid}', {
+			let previewUrl = ''
+			if (this.filesStore.files[this.currentNodeId]?.uuid?.length > 0) {
+				previewUrl = generateOcsUrl('/apps/libresign/api/v1/file/thumbnail/{nodeId}', {
+					nodeId: this.currentNodeId,
+				})
+			} else {
+				previewUrl = window.location.origin + generateUrl('/core/preview?fileId={fileid}', {
 					fileid: this.currentNodeId,
 				})
-				const url = new URL(window.location.origin + previewUrl)
-
-				// Request tiny previews
-				url.searchParams.set('x', this.gridMode ? '128' : '32')
-				url.searchParams.set('y', this.gridMode ? '128' : '32')
-				url.searchParams.set('mimeFallback', 'true')
-
-				// Handle cropping
-				url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
-				return url.href
-			} catch (e) {
-				return null
 			}
+
+			const url = new URL(previewUrl)
+
+			// Request tiny previews
+			url.searchParams.set('x', this.gridMode ? '128' : '32')
+			url.searchParams.set('y', this.gridMode ? '128' : '32')
+			url.searchParams.set('mimeFallback', 'true')
+
+			// Handle cropping
+			url.searchParams.set('a', this.cropPreviews === true ? '0' : '1')
+			return url
 		},
 	},
 	methods: {

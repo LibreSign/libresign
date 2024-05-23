@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 $requirements = [
 	'apiVersion' => '{apiVersion}',
 	'path' => '.+',
@@ -24,5 +29,6 @@ return array_merge_recursive(
 	include(__DIR__ . '/routes/routesPageController.php'),
 	include(__DIR__ . '/routes/routesRequestSignatureController.php'),
 	include(__DIR__ . '/routes/routesSettingsController.php'),
+	include(__DIR__ . '/routes/routesSignatureElementsController.php'),
 	include(__DIR__ . '/routes/routesSignFileController.php'),
 );

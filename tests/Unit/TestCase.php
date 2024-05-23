@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit;
 
 use donatj\MockWebServer\MockWebServer;
@@ -19,38 +25,39 @@ class TestCase extends \Test\TestCase {
 	private signRequestMapper $signRequestMapper;
 	private array $users = [];
 
-	public function mockAppConfig($config) {
+	public function mockAppConfig($config):void {
 		\OC::$server->registerParameter('appName', 'libresign');
-		$service = \OC::$server->get(\OCP\IAppConfig::class);
+		$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		if (!$service instanceof AppConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IAppConfig::class, function () {
+			\OC::$server->registerService(\OCP\IAppConfig::class, function ():AppConfigOverwrite {
 				return new AppConfigOverwrite(
-					\OC::$server->get(\OCP\IDBConnection::class),
-					\OC::$server->get(\Psr\Log\LoggerInterface::class),
+					\OCP\Server::get(\OCP\IDBConnection::class),
+					\OCP\Server::get(\Psr\Log\LoggerInterface::class),
+					\OCP\Server::get(\OCP\Security\ICrypto::class),
 				);
 			});
-			$service = \OC::$server->get(\OCP\IAppConfig::class);
+			$service = \OCP\Server::get(\OCP\IAppConfig::class);
 		}
 		if (is_subclass_of($service, \OCP\IAppConfig::class)) {
 			foreach ($config as $key => $value) {
 				if (is_array($value) || is_object($value)) {
 					$value = json_encode($value);
 				}
-				$service->setValueMixed('libresign', $key, $value);
+				$service->setValueMixed('libresign', $key, (string) $value);
 			}
 			return;
 		}
 	}
 
-	public function mockConfig($config) {
-		$service = \OC::$server->get(\OCP\IConfig::class);
+	public function mockConfig($config):void {
+		$service = \OCP\Server::get(\OCP\IConfig::class);
 		if (!$service instanceof AllConfigOverwrite) {
-			\OC::$server->registerService(\OCP\IConfig::class, function () {
+			\OC::$server->registerService(\OCP\IConfig::class, function ():AllConfigOverwrite {
 				$configOverwrite = new ConfigOverwrite(\OC::$configDir);
 				$systemConfig = new SystemConfig($configOverwrite);
 				return new AllConfigOverwrite($systemConfig);
 			});
-			$service = \OC::$server->get(\OCP\IConfig::class);
+			$service = \OCP\Server::get(\OCP\IConfig::class);
 		}
 		if (is_subclass_of($service, IConfig::class)) {
 			foreach ($config as $app => $keys) {
@@ -71,6 +78,9 @@ class TestCase extends \Test\TestCase {
 		$methods = $reflector->getMethods();
 		foreach ($methods as $method) {
 			$docblock = $reflector->getMethod($method->getName())->getDocComment();
+			if (!$docblock) {
+				return false;
+			}
 			if (preg_match('#@depends ' . $this->getName(false) . '\n#s', $docblock)) {
 				return true;
 			}
@@ -81,6 +91,9 @@ class TestCase extends \Test\TestCase {
 	public function iDependOnOthers(): bool {
 		$reflector = new \ReflectionClass(\get_class($this));
 		$docblock = $reflector->getMethod($this->getName(false))->getDocComment();
+		if (!$docblock) {
+			return false;
+		}
 		if (preg_match('#@depends #s', $docblock)) {
 			return true;
 		}
@@ -111,7 +124,7 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function cleanDatabase(): void {
-		$db = \OC::$server->get(\OCP\IDBConnection::class);
+		$db = \OCP\Server::get(\OCP\IDBConnection::class);
 		if (!$db) {
 			return;
 		}
@@ -127,12 +140,8 @@ class TestCase extends \Test\TestCase {
 
 	/**
 	 * Create user
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @return \OC\User\User
 	 */
-	public function createAccount($username, $password, $groupName = 'testGroup') {
+	public function createAccount(string $username, string $password, string $groupName = 'testGroup'):\OC\User\User {
 		$this->users[] = $username;
 		$this->mockConfig([
 			'core' => [
@@ -140,8 +149,8 @@ class TestCase extends \Test\TestCase {
 			]
 		]);
 
-		$userManager = \OC::$server->get(\OCP\IUserManager::class);
-		$groupManager = \OC::$server->get(\OCP\IGroupManager::class);
+		$userManager = \OCP\Server::get(\OCP\IUserManager::class);
+		$groupManager = \OCP\Server::get(\OCP\IGroupManager::class);
 
 		$user = $userManager->get($username);
 		if (!$user) {
@@ -162,14 +171,14 @@ class TestCase extends \Test\TestCase {
 		$this->users[] = $username;
 	}
 
-	public function deleteUsers() {
+	public function deleteUsers():void {
 		foreach ($this->users as $username) {
 			$this->deleteUserIfExists($username);
 		}
 	}
 
 	public function deleteUserIfExists($username): void {
-		$user = \OC::$server->get(\OCP\IUserManager::class)->get($username);
+		$user = \OCP\Server::get(\OCP\IUserManager::class)->get($username);
 		if ($user) {
 			try {
 				$user->delete();
@@ -179,8 +188,8 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function getBinariesFromCache(): void {
-		/** @var \OCA\Libresign\Service\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\InstallService::class);
+		/** @var \OCA\Libresign\Service\Install\InstallService */
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		$cachePath = preg_replace('/\/.*\/appdata_[a-z0-9]*/', \OC::$server->getTempManager()->getTempBaseDir(), $appPath);
 		if (!file_exists($cachePath)) {
@@ -193,8 +202,8 @@ class TestCase extends \Test\TestCase {
 	}
 
 	private function backupBinaries(): void {
-		/** @var \OCA\Libresign\Service\InstallService */
-		$install = \OC::$server->get(\OCA\Libresign\Service\InstallService::class);
+		/** @var \OCA\Libresign\Service\Install\InstallService */
+		$install = \OCP\Server::get(\OCA\Libresign\Service\Install\InstallService::class);
 		$appPath = $install->getFullPath();
 		if (!is_readable($appPath)) {
 			return;
@@ -221,11 +230,11 @@ class TestCase extends \Test\TestCase {
 				if ($item->isDir()) {
 					mkdir($newDest);
 				} else {
-					copy($item, $newDest);
+					copy($item->getPathname(), $newDest);
 				}
 			}
-			if (fileperms($item) !== fileperms($newDest)) {
-				chmod($newDest, fileperms($item));
+			if (fileperms($item->getPathname()) !== fileperms($newDest)) {
+				chmod($newDest, fileperms($item->getPathname()));
 			}
 		}
 	}
@@ -246,7 +255,7 @@ class TestCase extends \Test\TestCase {
 			'commonName' => 'CommonName',
 			'country' => 'Brazil',
 			'organization' => 'Organization',
-			'organizationUnit' => 'organizationUnit',
+			'organizationalUnit' => 'organizationalUnit',
 			'cfsslUri' => self::$server->getServerRoot() . '/api/v1/cfssl/'
 		]);
 
@@ -272,7 +281,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	private function getRequestSignatureService(): \OCA\Libresign\Service\RequestSignatureService {
 		if (!isset($this->requestSignatureService)) {
-			$this->requestSignatureService = \OC::$server->get(\OCA\Libresign\Service\RequestSignatureService::class);
+			$this->requestSignatureService = \OCP\Server::get(\OCA\Libresign\Service\RequestSignatureService::class);
 		}
 		return $this->requestSignatureService;
 	}
@@ -286,7 +295,7 @@ class TestCase extends \Test\TestCase {
 	 */
 	private function getSignRequestMapper(): \OCA\Libresign\Db\SignRequestMapper {
 		if (!isset($this->signRequestMapper)) {
-			$this->signRequestMapper = \OC::$server->get(\OCA\Libresign\Db\SignRequestMapper::class);
+			$this->signRequestMapper = \OCP\Server::get(\OCA\Libresign\Db\SignRequestMapper::class);
 		}
 		return $this->signRequestMapper;
 	}

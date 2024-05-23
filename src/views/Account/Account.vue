@@ -1,149 +1,62 @@
 <template>
-	<NcContent class="container-account" app-name="libresign">
-		<div class="content-account">
-			<div class="user">
-				<UserImage v-bind="{ user }" />
-				<div class="details">
-					<div class="user-details">
-						<h3>{{ t('libresign', 'Details') }}</h3>
-						<div class="user-display-name icon-user">
-							<p>{{ user.displayName }}</p>
-						</div>
-					</div>
-					<div class="user-password">
-						<h3>{{ t('libresign', 'Certificate') }}</h3>
-						<div class="user-display-password icon-password">
-							<NcButton @click="uploadCertificate()">
-								{{ t('libresign', 'Upload certificate') }}
-							</NcButton>
-							<NcButton v-if="getHasPfx" @click="deleteCertificate()">
-								{{ t('libresign', 'Delete certificate') }}
-							</NcButton>
-							<NcButton v-if="certificateEngine !== 'none' && !getHasPfx" @click="handleModal(true)">
-								{{ t('libresign', 'Create certificate') }}
-							</NcButton>
-							<NcButton v-else-if="getHasPfx" @click="handleModal(true)">
-								{{ t('librsign', 'Change password') }}
-							</NcButton>
-						</div>
-						<NcModal v-if="modal"
-							@close="handleModal(false)">
-							<CreatePassword v-if="!getHasPfx" @close="handleModal(false)" />
-							<ResetPassword v-if="getHasPfx" @close="handleModal(false)" />
-						</NcModal>
+	<div class="content-account">
+		<div class="user">
+			<UserImage v-bind="{ user }" />
+			<div class="details">
+				<div class="user-details">
+					<h3>{{ t('libresign', 'Details') }}</h3>
+					<div class="user-display-name icon-user">
+						<p>{{ user.displayName }}</p>
 					</div>
 				</div>
-			</div>
-
-			<div class="user">
-				<Signatures />
-				<Documents />
+				<div class="user-password">
+					<h3>{{ t('libresign', 'Certificate') }}</h3>
+					<ManagePassword />
+				</div>
 			</div>
 		</div>
-	</NcContent>
+
+		<div class="user">
+			<Signatures />
+			<Documents />
+		</div>
+	</div>
 </template>
 
 <script>
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import { getCurrentUser } from '@nextcloud/auth'
-import { loadState } from '@nextcloud/initial-state'
-import axios from '@nextcloud/axios'
-import { generateOcsUrl } from '@nextcloud/router'
-import { showError, showSuccess } from '@nextcloud/dialogs'
-import { mapGetters } from 'vuex'
-import CreatePassword from '../CreatePassword.vue'
-import ResetPassword from '../ResetPassword.vue'
 import UserImage from './partials/UserImage.vue'
 import Signatures from './partials/Signatures.vue'
 import Documents from './partials/Documents.vue'
+import ManagePassword from './partials/ManagePassword.vue'
 
 export default {
 	name: 'Account',
 
 	components: {
-		NcModal,
-		NcContent,
-		NcButton,
-		CreatePassword,
-		ResetPassword,
 		Signatures,
 		UserImage,
 		Documents,
+		ManagePassword,
 	},
 
 	data() {
 		return {
 			user: getCurrentUser(),
-			modal: false,
-			certificateEngine: loadState('libresign', 'certificate_engine', ''),
 		}
-	},
-
-	computed: {
-		...mapGetters({
-			getHasPfx: 'getHasPfx',
-		}),
-	},
-	mounted() {
-		this.$store.commit('setHasPfx', loadState('libresign', 'config', {})?.hasSignatureFile ?? false)
-	},
-	methods: {
-		uploadCertificate() {
-			const input = document.createElement('input')
-			// @todo PFX file, didn't worked, wrong code
-			input.accept = 'application/x-pkcs12'
-			input.type = 'file'
-
-			input.onchange = async (ev) => {
-				const file = ev.target.files[0]
-
-				if (file) {
-					this.doUpload(file)
-				}
-
-				input.remove()
-			}
-
-			input.click()
-		},
-		async doUpload(file) {
-			try {
-				const formData = new FormData()
-				formData.append('file', file)
-				const response = await axios.post(generateOcsUrl('/apps/libresign/api/v1/account/pfx'), formData)
-				showSuccess(response.data.message)
-				if (this.$store) {
-					this.$store.commit('setHasPfx', true)
-				}
-			} catch (err) {
-				showError(err.response.data.message)
-			}
-		},
-		async deleteCertificate() {
-			const response = await axios.delete(generateOcsUrl('/apps/libresign/api/v1/account/pfx'))
-			showSuccess(response.data.message)
-			if (this.$store) {
-				this.$store.commit('setHasPfx', false)
-			}
-		},
-		handleModal(status) {
-			this.modal = status
-		},
 	},
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
-.container-account{
+.app-content{
 	display: flex;
 	flex-direction: row;
 
 	.content-account{
 		width: 100%;
-		margin: 10px;
+		margin-top: 50px;
 		display: flex;
 		height: 100%;
 
@@ -194,23 +107,6 @@ export default {
 			.user-password{
 				display: flex;
 				flex-direction: column;
-
-				.user-display-password[class*='icon']{
-					display: flex;
-					background-position: 0px 10px;
-					opacity: 0.7;
-					margin-right: 10%;
-					margin-bottom: 12px;
-					margin-top: 12px;
-					width: 100%;
-					padding-left: 30px;
-					margin-left: 15px;
-					align-items: center;
-
-					button {
-						min-width: 150px;
-					}
-				}
 			}
 		}
 

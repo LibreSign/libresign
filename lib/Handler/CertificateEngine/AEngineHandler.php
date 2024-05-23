@@ -2,29 +2,13 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Handler\CertificateEngine;
 
-use OCA\Libresign\Exception\EmptyRootCertificateException;
+use OCA\Libresign\Exception\EmptyCertificateException;
 use OCA\Libresign\Exception\InvalidPasswordException;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\MagicGetterSetterTrait;
@@ -33,6 +17,10 @@ use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\IAppData;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use OCP\IConfig;
+use OCP\IDateTimeFormatter;
+use OCP\ITempManager;
+use OpenSSLAsymmetricKey;
+use OpenSSLCertificate;
 use ReflectionClass;
 
 /**
@@ -52,8 +40,8 @@ use ReflectionClass;
  * @method string getLocality()
  * @method IEngineHandler setOrganization(string $organization)
  * @method string getOrganization()
- * @method IEngineHandler setOrganizationUnit(string $organizationUnit)
- * @method string getOrganizationUnit()
+ * @method IEngineHandler setOrganizationalUnit(string $organizationalUnit)
+ * @method string getOrganizationalUnit()
  * @method string getName()
  */
 class AEngineHandler {
@@ -66,7 +54,7 @@ class AEngineHandler {
 	protected string $state = '';
 	protected string $locality = '';
 	protected string $organization = '';
-	protected string $organizationUnit = '';
+	protected string $organizationalUnit = '';
 	protected string $password = '';
 	protected string $configPath = '';
 	protected string $engine = '';
@@ -76,13 +64,18 @@ class AEngineHandler {
 		protected IConfig $config,
 		protected IAppConfig $appConfig,
 		protected IAppDataFactory $appDataFactory,
+		protected IDateTimeFormatter $dateTimeFormatter,
+		protected ITempManager $tempManager,
 	) {
 		$this->appData = $appDataFactory->get('libresign');
 	}
 
-	public function generateCertificate(string $certificate, string $privateKey): string {
+	protected function exportToPkcs12(
+		OpenSSLCertificate|string $certificate,
+		OpenSSLAsymmetricKey|OpenSSLCertificate|string $privateKey
+	): string {
 		if (empty($certificate) || empty($privateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
 		$certContent = null;
 		try {
@@ -105,15 +98,65 @@ class AEngineHandler {
 
 	public function updatePassword(string $certificate, string $currentPrivateKey, string $newPrivateKey): string {
 		if (empty($certificate) || empty($currentPrivateKey) || empty($newPrivateKey)) {
-			throw new EmptyRootCertificateException();
+			throw new EmptyCertificateException();
 		}
-		openssl_pkcs12_read($certificate, $certContent, $currentPrivateKey);
-		if (empty($certContent)) {
-			throw new InvalidPasswordException();
-		}
+		$certContent = $this->opensslPkcs12Read($certificate, $currentPrivateKey);
 		$this->setPassword($newPrivateKey);
-		$certContent = self::generateCertificate($certContent['cert'], $certContent['pkey']);
+		$certContent = self::exportToPkcs12($certContent['cert'], $certContent['pkey']);
 		return $certContent;
+	}
+
+	public function readCertificate(string $certificate, string $privateKey): array {
+		if (empty($certificate) || empty($privateKey)) {
+			throw new EmptyCertificateException();
+		}
+		$certContent = $this->opensslPkcs12Read($certificate, $privateKey);
+		$parsed = openssl_x509_parse(openssl_x509_read($certContent['cert']));
+
+		$return['name'] = $parsed['name'];
+		$return['subject'] = $parsed['subject'];
+		$return['issuer'] = $parsed['issuer'];
+		$return['extensions'] = $parsed['extensions'];
+		$return['validate'] = [
+			'from' => $this->dateTimeFormatter->formatDateTime($parsed['validFrom_time_t']),
+			'to' => $this->dateTimeFormatter->formatDateTime($parsed['validTo_time_t']),
+		];
+		return $return;
+	}
+
+	public function opensslPkcs12Read(string &$certificate, string $privateKey): array {
+		openssl_pkcs12_read($certificate, $certContent, $privateKey);
+		if (!empty($certContent)) {
+			return $certContent;
+		}
+		/**
+		 * Reference:
+		 *
+		 * https://github.com/php/php-src/issues/12128
+		 * https://www.php.net/manual/en/function.openssl-pkcs12-read.php#128992
+		 */
+		$msg = openssl_error_string();
+		if ($msg === 'error:0308010C:digital envelope routines::unsupported') {
+			$tempPassword = $this->tempManager->getTemporaryFile();
+			$tempEncriptedOriginal = $this->tempManager->getTemporaryFile();
+			$tempEncriptedRepacked = $this->tempManager->getTemporaryFile();
+			$tempDecrypted = $this->tempManager->getTemporaryFile();
+			file_put_contents($tempPassword, $privateKey);
+			file_put_contents($tempEncriptedOriginal, $certificate);
+			shell_exec(<<<REPACK_COMMAND
+				cat $tempPassword | openssl pkcs12 -legacy -in $tempEncriptedOriginal -nodes -out $tempDecrypted -passin stdin &&
+				cat $tempPassword | openssl pkcs12 -in $tempDecrypted -export -out $tempEncriptedRepacked -passout stdin
+				REPACK_COMMAND
+			);
+			$certificateRepacked = file_get_contents($tempEncriptedRepacked);
+			$this->tempManager->clean();
+			openssl_pkcs12_read($certificateRepacked, $certContent, $privateKey);
+			if (!empty($certContent)) {
+				$certificate = $certificateRepacked;
+				return $certContent;
+			}
+		}
+		throw new InvalidPasswordException();
 	}
 
 	public function translateToLong($name): string {
@@ -129,7 +172,7 @@ class AEngineHandler {
 			case 'O':
 				return 'Organization';
 			case 'OU':
-				return 'OrganizationUnit';
+				return 'OrganizationalUnit';
 		}
 		return '';
 	}
@@ -183,7 +226,13 @@ class AEngineHandler {
 		$dataDir = $this->config->getSystemValue('datadirectory', \OC::$SERVERROOT . '/data/');
 		$this->configPath = $dataDir . '/' . $this->getInternalPathOfFolder($folder);
 		if (!is_dir($this->configPath)) {
-			exec('mkdir -p "' . $this->configPath . '"');
+			$currentFile = realpath(__DIR__);
+			$owner = posix_getpwuid(fileowner($currentFile));
+			$fullCommand = 'mkdir -p "' . $this->configPath . '"';
+			if (posix_getuid() !== $owner['uid']) {
+				$fullCommand = 'runuser -u ' . $owner['name'] . ' -- ' . $fullCommand;
+			}
+			exec($fullCommand);
 		}
 		return $this->configPath;
 	}
@@ -216,13 +265,13 @@ class AEngineHandler {
 		return $name;
 	}
 
-	private function getNames(): array {
+	protected function getNames(): array {
 		$names = [
 			'C' => $this->getCountry(),
 			'ST' => $this->getState(),
 			'L' => $this->getLocality(),
 			'O' => $this->getOrganization(),
-			'OU' => $this->getOrganizationUnit(),
+			'OU' => $this->getOrganizationalUnit(),
 		];
 		$names = array_filter($names, function ($v) {
 			return !empty($v);

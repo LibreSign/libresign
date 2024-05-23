@@ -29,7 +29,7 @@
 		<ConfigureCheck />
 		<RootCertificateCfssl />
 		<RootCertificateOpenSsl />
-		<IdentifierFactor />
+		<IdentificationFactors />
 		<ExpirationRules />
 		<Validation />
 		<AllowedGroups />
@@ -55,7 +55,7 @@ import LegalInformation from './LegalInformation.vue'
 import IdentificationDocuments from './IdentificationDocuments.vue'
 import CollectMetadata from './CollectMetadata.vue'
 import DefaultUserFolder from './DefaultUserFolder.vue'
-import IdentifierFactor from './IdentifierFactor.vue'
+import IdentificationFactors from './IdentificationFactors.vue'
 
 export default {
 	name: 'Settings',
@@ -67,7 +67,7 @@ export default {
 		ConfigureCheck,
 		RootCertificateCfssl,
 		RootCertificateOpenSsl,
-		IdentifierFactor,
+		IdentificationFactors,
 		ExpirationRules,
 		Validation,
 		AllowedGroups,

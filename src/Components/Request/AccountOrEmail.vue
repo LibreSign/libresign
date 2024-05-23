@@ -96,9 +96,9 @@ export default {
 			search = search.trim()
 			this.loading = true
 
-			let request = null
+			let response = null
 			try {
-				request = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
+				response = await axios.get(generateOcsUrl('/apps/libresign/api/v1/identify-account/search'), {
 					params: {
 						search,
 					},
@@ -108,7 +108,7 @@ export default {
 				return
 			}
 
-			this.options = request.data.ocs.data
+			this.options = response.data
 			this.loading = false
 		},
 	},

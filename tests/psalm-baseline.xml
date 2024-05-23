@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
   <file src="lib/AppInfo/Application.php">
-    <InvalidArgument occurrences="3">
+    <InvalidArgument occurrences="5">
+      <code>registerEventListener</code>
+      <code>registerEventListener</code>
       <code>registerEventListener</code>
       <code>registerEventListener</code>
       <code>registerEventListener</code>
@@ -30,15 +32,19 @@
       <code>Base</code>
     </MissingDependency>
   </file>
+  <file src="lib/Controller/FileController.php">
+    <UndefinedClass occurrences="1">
+      <code>SharedStorage</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="2">
+      <code>$share</code>
+      <code>$storage</code>
+    </UndefinedDocblockClass>
+  </file>
   <file src="lib/Controller/PageController.php">
     <InvalidThrow occurrences="1">
       <code>throw new NotLoggedInException();</code>
     </InvalidThrow>
-  </file>
-  <file src="lib/Controller/SignFileController.php">
-    <UndefinedClass occurrences="1">
-      <code>SmsTransmissionException</code>
-    </UndefinedClass>
   </file>
   <file src="lib/Db/PagerFantaQueryAdapter.php">
     <InvalidArgument occurrences="1">
@@ -47,6 +53,14 @@
     <UndefinedDocblockClass occurrences="2">
       <code>callable(QueryBuilder): void</code>
       <code>callable(QueryBuilder): void</code>
+    </UndefinedDocblockClass>
+  </file>
+  <file src="lib/Db/SignRequestMapper.php">
+    <UndefinedClass occurrences="1">
+      <code>PostgreSQLPlatform</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="1">
+      <code>$qb-&gt;getConnection()-&gt;getDatabasePlatform()</code>
     </UndefinedDocblockClass>
   </file>
   <file src="lib/Files/TemplateLoader.php">
@@ -70,6 +84,15 @@
       <code>$schema-&gt;dropTable('libresign_file_user')</code>
     </UndefinedDocblockClass>
   </file>
+  <file src="lib/Migration/Version8000Date20240405142042.php">
+    <UndefinedClass occurrences="2">
+      <code>JsonType</code>
+      <code>PostgreSQLPlatform</code>
+    </UndefinedClass>
+    <UndefinedDocblockClass occurrences="1">
+      <code>$schema-&gt;getDatabasePlatform()</code>
+    </UndefinedDocblockClass>
+  </file>
   <file src="lib/Service/AccountService.php">
     <UndefinedClass occurrences="5">
       <code>$this-&gt;newUserMail</code>
@@ -79,7 +102,7 @@
       <code>private</code>
     </UndefinedClass>
   </file>
-  <file src="lib/Service/InstallService.php">
+  <file src="lib/Service/Install/InstallService.php">
     <UndefinedClass occurrences="1">
       <code>Process</code>
     </UndefinedClass>

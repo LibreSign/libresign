@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Helper;
@@ -295,17 +279,15 @@ class ValidateHelper {
 			if (!array_key_exists('documentElementId', $elements)) {
 				throw new LibresignException($this->l10n->t('Field %s not found', ['documentElementId']));
 			}
-			if (!array_key_exists('profileElementId', $elements)
-				&& !array_key_exists('profileFileId', $elements)
-			) {
-				throw new LibresignException($this->l10n->t('Field %s not found', ['profileElementId, profileFileId']));
+			if (!array_key_exists('profileNodeId', $elements)) {
+				throw new LibresignException($this->l10n->t('Field %s not found', ['profileNodeId']));
 			}
 			$this->validateSignerIsOwnerOfPdfVisibleElement($elements['documentElementId'], $signRequest);
 			if ($user instanceof IUser) {
 				try {
-					$this->userElementMapper->findOne(['id' => $elements['profileElementId'], 'user_id' => $user->getUID()]);
+					$this->userElementMapper->findOne(['file_id' => $elements['profileNodeId'], 'user_id' => $user->getUID()]);
 				} catch (\Throwable $th) {
-					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileElementId']));
+					throw new LibresignException($this->l10n->t('Field %s does not belong to user', $elements['profileNodeId']));
 				}
 			}
 		}
@@ -732,7 +714,9 @@ class ValidateHelper {
 			}
 		}
 		if (empty($identifyMethods)) {
-			$identifyMethod = $this->identifyMethodService->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
+			$identifyMethod = $this->identifyMethodService
+				->setCurrentIdentifyMethod()
+				->getInstanceOfIdentifyMethod($identifyMethodName, $identifyValue);
 		} else {
 			$identifyMethod = current($identifyMethods);
 		}

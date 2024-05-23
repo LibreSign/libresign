@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Api\Controller;
 
 use donatj\MockWebServer\Response;
@@ -13,7 +19,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testLoadCertificate() {
+	public function testLoadCertificate():void {
 		$this->createAccount('admintest', 'password', 'admin');
 		$this->request
 			->withRequestHeader([
@@ -27,7 +33,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testGenerateCertificateWithSuccess() {
+	public function testGenerateCertificateWithSuccess():void {
 		$this->markTestSkipped('Need to reimplement this test, stated to failure after add multiple certificate engine');
 		// Mock data
 		$this->createAccount('admintest', 'password', 'admin');
@@ -66,9 +72,9 @@ final class AdminControllerTest extends ApiTestCase {
 		$this->assertRequest();
 
 		// Test if settings has been saved
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'cfssl_uri'), $cfsslConfig['cfsslUri']);
-		$this->assertEquals(\OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'config_path'), $cfsslConfig['configPath']);
-		$rootCert = \OC::$server->get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
+		$this->assertEquals(\OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'cfssl_uri'), $cfsslConfig['cfsslUri']);
+		$this->assertEquals(\OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'config_path'), $cfsslConfig['configPath']);
+		$rootCert = \OCP\Server::get(\OC\AllConfig::class)->getAppValue('libresign', 'rootCert');
 		$this->assertEqualsCanonicalizing(
 			$cfsslConfig['rootCert'],
 			json_decode($rootCert, true)
@@ -88,7 +94,7 @@ final class AdminControllerTest extends ApiTestCase {
 	/**
 	 * @runInSeparateProcess
 	 */
-	public function testGenerateCertificateWithFailure() {
+	public function testGenerateCertificateWithFailure():void {
 		// Configure request
 		$this->createAccount('admintest', 'password', 'admin');
 		$this->request

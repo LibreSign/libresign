@@ -1,0 +1,23 @@
+{ "translations": {
+    "deleted" : "Pozuldy",
+    "Dismiss notification" : "Duýduryşy ýapyň",
+    "File not found" : "Faýl tapylmady",
+    "Upload" : "Ýüklemek",
+    "Delete" : "Pozmak",
+    "Save" : "Saklamak",
+    "Cancel" : "ýatyrmak",
+    "Files" : "Faýllar",
+    "Settings" : "Sazlamalar",
+    "Name" : "Ady",
+    "Open sidebar" : "Gapdal paneli açyň",
+    "Details" : "Jikme-jiklikler",
+    "Type" : "Görnüşi",
+    "Choose" : "saýlamak",
+    "Password" : "Açarsöz",
+    "Enter a password" : "Paroly giriziň",
+    "Send" : "Iber",
+    "Yes" : "Hawa",
+    "No" : "Ýok",
+    "Pending" : "Garaşylýar"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

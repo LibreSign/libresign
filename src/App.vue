@@ -22,55 +22,8 @@
 -->
 
 <template>
-	<NcContent app-name="libresign">
-		<NcAppNavigation :class="{'icon-loading' : loading }">
-			<template #list>
-				<NcAppNavigationItem v-if="back_to_signature"
-					class="back_to_signature"
-					icon="icon-history"
-					:name="t('libresign', 'Back to sign')"
-					@click="goToSign" />
-
-				<NcAppNavigationItem v-if="canRequestSign"
-					id="request-files"
-					:to="{name: 'requestFiles'}"
-					:name="t('libresign', 'Request')"
-					@click="unselectFile">
-					<template #icon>
-						<FileSignIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
-				<NcAppNavigationItem id="sign-files"
-					:to="{ name: 'signFiles' }"
-					:name="t('libresign', 'Files')"
-					@click="unselectFile">
-					<template #icon>
-						<FolderIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
-				<NcAppNavigationItem id="validation"
-					:to="{name: 'validation'}"
-					:name="t('libresign', 'Validate')"
-					@click="unselectFile">
-					<template #icon>
-						<FileCheckIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
-
-				<NcAppNavigationItem v-if="config.identificationDocumentsFlow && config.isApprover"
-					:to="{name: 'DocsAccountValidation'}"
-					:name="t('libresign', 'Documents Validation')">
-					<template #icon>
-						<AccountCheckIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
-			</template>
-			<template #footer>
-				<NcAppNavigationSettings :title="t('libresign', 'Settings')">
-					<CroppedLayoutSettings />
-				</NcAppNavigationSettings>
-			</template>
-		</NcAppNavigation>
+	<NcContent app-name="libresign" :class="{'sign-external-page': isSignExternalPage}">
+		<LeftSidebar />
 		<NcAppContent :class="{'icon-loading' : loading }">
 			<router-view v-if="!loading" :key="$route.name " :loading.sync="loading" />
 			<NcEmptyContent v-if="isRoot" :description="t('libresign', 'LibreSign, digital signature app for Nextcloud.')">
@@ -85,82 +38,48 @@
 
 <script>
 import NcContent from '@nextcloud/vue/dist/Components/NcContent.js'
-import NcAppNavigation from '@nextcloud/vue/dist/Components/NcAppNavigation.js'
-import NcAppNavigationItem from '@nextcloud/vue/dist/Components/NcAppNavigationItem.js'
-import NcAppNavigationSettings from '@nextcloud/vue/dist/Components/NcAppNavigationSettings.js'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import LogoLibreSign from './../img/logo-gray.svg'
-import CroppedLayoutSettings from './Components/Settings/CroppedLayoutSettings.vue'
-import RightSidebar from './Components/File/RightSidebar.vue'
-import { loadState } from '@nextcloud/initial-state'
-import FileSignIcon from 'vue-material-design-icons/FileSign.vue'
-import FolderIcon from 'vue-material-design-icons/Folder.vue'
-import FileCheckIcon from 'vue-material-design-icons/FileCheck.vue'
-import AccountCheckIcon from 'vue-material-design-icons/AccountCheck.vue'
-import { useFilesStore } from './store/files.js'
+import LeftSidebar from './Components/LeftSidebar/LeftSidebar.vue'
+import RightSidebar from './Components/RightSidebar/RightSidebar.vue'
 
 export default {
 	name: 'App',
 	components: {
 		NcContent,
-		NcAppNavigation,
-		NcAppNavigationItem,
-		NcAppNavigationSettings,
 		NcAppContent,
 		NcEmptyContent,
-		CroppedLayoutSettings,
+		LeftSidebar,
 		RightSidebar,
-		FileSignIcon,
-		FolderIcon,
-		FileCheckIcon,
-		AccountCheckIcon,
-	},
-	setup() {
-		const filesStore = useFilesStore()
-		return { filesStore }
 	},
 	data() {
 		return {
-			canRequestSign: loadState('libresign', 'can_request_sign', false),
-			config: loadState('libresign', 'config', {
-				hasSignatureFile: false,
-				identificationDocumentsFlow: false,
-				isApprover: false,
-				phoneNumber: '',
-			}),
 			loading: false,
 			LogoLibreSign,
 		}
 	},
 	computed: {
-		back_to_signature() {
-			return this.$route.query._back_to_signature
-		},
 		isRoot() {
 			return this.$route.path === '/'
 		},
-	},
-	methods: {
-		unselectFile() {
-			this.filesStore.selectFile()
-		},
-		goToSign() {
-			const route = this.$router.resolve({ name: 'SignPDF', params: { uuid: this.back_to_signature } })
-
-			window.location = route.href
+		isSignExternalPage() {
+			return this.$route.path.startsWith('/p/')
 		},
 	},
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.sign-external-page {
+	width: 100%;
+	height: 100%;
+	margin: unset;
+	box-sizing: unset;
+	border-radius: unset;
+}
 .app-libresign {
 	.app-navigation {
-		.back_to_signature
-			.app-navigation-entry__title {
-			color: var(--color-warning, #eca700);
-		}
 		.app-navigation-entry.active {
 			background-color: var(--color-primary-element) !important;
 			.app-navigation-entry-link{

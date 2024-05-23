@@ -3,27 +3,32 @@
 		<div class="container-request">
 			<header>
 				<h1>{{ t('libresign', 'Request Signatures') }}</h1>
-				<p>{{ t('libresign', 'Choose the file to request signatures.') }}</p>
+				<p v-if="!sidebarStore.isVisible()">
+					{{ t('libresign', 'Choose the file to request signatures.') }}
+				</p>
 			</header>
 			<div class="content-request">
 				<File v-show="filesStore.selectedNodeId > 0"
 					status="0"
 					status-text="none" />
-				<NcButton :wide="true"
+				<NcButton v-if="!sidebarStore.isVisible()"
+					:wide="true"
 					@click="showModalUploadFromUrl()">
 					{{ t('libresign', 'Upload from URL') }}
 					<template #icon>
 						<LinkIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton :wide="true"
+				<NcButton v-if="!sidebarStore.isVisible()"
+					:wide="true"
 					@click="showFilePicker = true">
 					{{ t('libresign', 'Choose from Files') }}
 					<template #icon>
 						<FolderIcon :size="20" />
 					</template>
 				</NcButton>
-				<NcButton :wide="true"
+				<NcButton v-if="!sidebarStore.isVisible()"
+					:wide="true"
 					@click="uploadFile">
 					{{ t('libresign', 'Upload') }}
 					<template #icon>
@@ -39,21 +44,19 @@
 			:buttons="filePickerButtons"
 			:mimetype-filter="['application/pdf']"
 			@close="showFilePicker = false" />
-		<NcModal v-if="modalUploadFromUrl"
-			@close="closeModalUploadFromUrl">
-			<div class="modal__content">
-				<h2>{{ t('libresign', 'URL of a PDF file') }}</h2>
-				<NcNoteCard v-for="message in error"
-					:key="message"
-					type="error">
-					{{ message }}
-				</NcNoteCard>
-				<div class="form-group">
-					<NcTextField :label="t('libresign', 'URL of a PDF file')"
-						:value.sync="pdfUrl">
-						<LinkIcon :size="20" />
-					</NcTextField>
-				</div>
+		<NcDialog v-if="modalUploadFromUrl"
+			:name="t('libresign', 'URL of a PDF file')"
+			@closing="closeModalUploadFromUrl">
+			<NcNoteCard v-for="message in error"
+				:key="message"
+				type="error">
+				{{ message }}
+			</NcNoteCard>
+			<NcTextField :label="t('libresign', 'URL of a PDF file')"
+				:value.sync="pdfUrl">
+				<LinkIcon :size="20" />
+			</NcTextField>
+			<template #actions>
 				<NcButton :disabled="!canUploadFronUrl"
 					type="primary"
 					@click="uploadUrl">
@@ -63,15 +66,16 @@
 						<CloudUploadIcon v-else :size="20" />
 					</template>
 				</NcButton>
-			</div>
-		</NcModal>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 <script>
 import { FilePickerVue as FilePicker } from '@nextcloud/dialogs/filepicker.js'
 import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
 import NcNoteCard from '@nextcloud/vue/dist/Components/NcNoteCard.js'
@@ -84,6 +88,7 @@ import File from '../Components/File/File.vue'
 import { filesService } from '../domains/files/index.js'
 import { onError } from '../helpers/errors.js'
 import { useFilesStore } from '../store/files.js'
+import { useSidebarStore } from '../store/sidebar.js'
 
 const PDF_MIME_TYPE = 'application/pdf'
 
@@ -99,7 +104,7 @@ export default {
 	name: 'Request',
 	components: {
 		FilePicker,
-		NcModal,
+		NcDialog,
 		NcTextField,
 		NcButton,
 		NcNoteCard,
@@ -112,7 +117,8 @@ export default {
 	},
 	setup() {
 		const filesStore = useFilesStore()
-		return { filesStore }
+		const sidebarStore = useSidebarStore()
+		return { filesStore, sidebarStore }
 	},
 	data() {
 		return {
@@ -149,10 +155,18 @@ export default {
 			}
 		},
 	},
+	async mounted() {
+		subscribe('libresign:visible-elements-saved', this.closeSidebar)
+		this.filesStore.disableIdentifySigner()
+	},
 	beforeUnmount() {
+		unsubscribe('libresign:visible-elements-saved')
 		this.filesStore.selectFile()
 	},
 	methods: {
+		closeSidebar() {
+			this.filesStore.selectFile()
+		},
 		showModalUploadFromUrl() {
 			this.modalUploadFromUrl = true
 		},
@@ -178,7 +192,6 @@ export default {
 				onError(err)
 				return
 			}
-			await this.closeModalUploadFromUrl()
 			this.closeModalUploadFromUrl()
 			this.loading = false
 		},
@@ -247,21 +260,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.modal__content {
-	margin: 50px;
-}
-
-.modal__content h2 {
-	text-align: center;
-}
-
-.form-group {
-	margin: calc(var(--default-grid-baseline) * 4) 0;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-}
-
 .container{
 	display: flex;
 	flex-direction: row;
@@ -298,20 +296,5 @@ export default {
 		gap: 12px; flex: 1;
 		flex-direction: column;
 	}
-}
-
-.empty-content{
-	p{
-		margin: 10px;
-	}
-}
-
-button {
-	background-position-x: 8%;
-	padding: 13px 13px 13px 45px;
-}
-
-h2 {
-	font-weight: bold;
 }
 </style>

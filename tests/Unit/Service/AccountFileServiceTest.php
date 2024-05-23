@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 namespace OCA\Libresign\Tests\Unit\Service;
 
 use OCA\Libresign\Db\AccountFileMapper;
@@ -11,7 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 	private AccountFileService $service;
-	private AccountFileMapper|MockObject $accountFileMapper;
+	private AccountFileMapper&MockObject $accountFileMapper;
 	private IAppConfig $appConfig;
 
 	public function setUp(): void {
@@ -23,7 +29,7 @@ final class AccountFileServiceTest extends \OCA\Libresign\Tests\Unit\TestCase {
 		);
 	}
 
-	public function testAddFileWithSuccess() {
+	public function testAddFileWithSuccess():void {
 		$file = $this->createMock(File::class);
 		$file->method('__call')
 			->with($this->equalTo('getId'), $this->anything())

@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2023 Vitor Mattos <vitor@php.rio>
- *
- * @author Vitor Mattos <vitor@php.rio>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2020-2024 LibreCode coop and contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 namespace OCA\Libresign\Service;
@@ -47,8 +31,10 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Config\IMountProviderCollection;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
+use OCP\Files\Folder;
 use OCP\Files\IMimeTypeDetector;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -88,6 +74,7 @@ class AccountService {
 		private Pkcs12Handler $pkcs12Handler,
 		private IGroupManager $groupManager,
 		private AccountFileService $accountFileService,
+		private SignerElementsService $signerElementsService,
 		private UserElementMapper $userElementMapper,
 		private FolderService $folderService,
 		private IClientService $clientService,
@@ -227,14 +214,15 @@ class AccountService {
 		}
 
 		if ($signPassword) {
-			$this->pkcs12Handler->generateCertificate(
+			$certificate = $this->pkcs12Handler->generateCertificate(
 				[
-					'identify' => $newUser->getPrimaryEMailAddress(),
+					'host' => $newUser->getPrimaryEMailAddress(),
 					'name' => $newUser->getDisplayName()
 				],
 				$signPassword,
 				$newUser->getDisplayName()
 			);
+			$this->pkcs12Handler->savePfx($newUser->getPrimaryEMailAddress(), $certificate);
 		}
 	}
 
@@ -283,7 +271,7 @@ class AccountService {
 	public function getPdfByUuid(string $uuid): File {
 		$fileData = $this->fileMapper->getByUuid($uuid);
 
-		if ($fileData->getStatus() === FileEntity::STATUS_SIGNED) {
+		if (in_array($fileData->getStatus(), [FileEntity::STATUS_PARTIAL_SIGNED, FileEntity::STATUS_SIGNED])) {
 			$nodeId = $fileData->getSignedNodeId();
 		} else {
 			$nodeId = $fileData->getNodeId();
@@ -297,20 +285,26 @@ class AccountService {
 			throw new DoesNotExistException('Not found');
 		}
 		$file = current($nodes);
+		if (!$file instanceof File) {
+			throw new DoesNotExistException('Not found');
+		}
 		return $file;
 	}
 
 	public function getFileByNodeIdAndSessionId(int $nodeId, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		if (!$rootSignatureFolder->nodeExists($sessionId)) {
+			try {
+				return $this->folderService->getFileById($nodeId);
+			} catch (NotFoundException $th) {
+				throw new DoesNotExistException('Not found');
+			}
+		}
+		try {
+			return $this->folderService->getFileById($nodeId);
+		} catch (NotFoundException $th) {
 			throw new DoesNotExistException('Not found');
 		}
-		$nodes = $rootSignatureFolder->getById($nodeId);
-		if (empty($nodes)) {
-			throw new DoesNotExistException('Not found');
-		}
-		$file = current($nodes);
-		return $file;
 	}
 
 	public function canRequestSign(?IUser $user = null): bool {
@@ -375,9 +369,7 @@ class AccountService {
 			return;
 		}
 		$userElement = $this->userElementMapper->findOne(['id' => $data['elementId']]);
-		$userFolder = $this->folderService->getFolder($userElement->getFileId());
-		/** @var \OCP\Files\File */
-		$file = $userFolder->getById($userElement->getFileId())[0];
+		$file = $this->folderService->getFileById($userElement->getFileId());
 		$file->putContent($this->getFileRaw($data));
 	}
 
@@ -401,12 +393,35 @@ class AccountService {
 	}
 
 	private function saveFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
+		if ($data['nodeId']) {
+			return $this->updateFileOfVisibleElementUsingSession($data, $sessionId);
+		}
+		return $this->createFileOfVisibleElementUsingSession($data, $sessionId);
+	}
+
+	private function updateFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
+		$fileList = $this->signerElementsService->getElementsFromSession();
+		$element = array_filter($fileList, function (File $element) use ($data) {
+			return $element->getId() === $data['nodeId'];
+		});
+		$element = current($element);
+		if (!$element instanceof File) {
+			throw new \Exception($this->l10n->t('File not found'));
+		}
+		$element->putContent($this->getFileRaw($data));
+		return $element;
+	}
+
+	private function createFileOfVisibleElementUsingSession(array $data, string $sessionId): File {
 		$rootSignatureFolder = $this->folderService->getFolder();
 		$folderName = $sessionId;
 		if ($rootSignatureFolder->nodeExists($folderName)) {
-			throw new \Exception($this->l10n->t('File already exists'));
+			/** @var Folder $folderToFile */
+			$folderToFile = $rootSignatureFolder->get($folderName);
+		} else {
+			/** @var Folder $folderToFile */
+			$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		}
-		$folderToFile = $rootSignatureFolder->newFolder($folderName);
 		$filename = implode(
 			'_',
 			[
@@ -460,9 +475,25 @@ class AccountService {
 		return $content;
 	}
 
-	public function deleteSignatureElement(string $userId, int $elementId): void {
-		$element = $this->userElementMapper->findOne(['id' => $elementId, 'user_id' => $userId]);
-		$this->userElementMapper->delete($element);
+	public function deleteSignatureElement(?IUser $user, string $sessionId, int $nodeId): void {
+		if ($user instanceof IUser) {
+			$element = $this->userElementMapper->findOne([
+				'file_id' => $nodeId,
+				'user_id' => $user->getUID(),
+			]);
+			$this->userElementMapper->delete($element);
+			try {
+				$file = $this->folderService->getFileById($element->getFileId());
+				$file->delete();
+			} catch (NotFoundException $e) {
+			}
+		} else {
+			$rootSignatureFolder = $this->folderService->getFolder();
+			$folderName = $sessionId;
+			if ($rootSignatureFolder->nodeExists($folderName)) {
+				$rootSignatureFolder->delete($folderName);
+			}
+		}
 	}
 
 	/**
@@ -510,6 +541,17 @@ class AccountService {
 	public function updatePfxPassword(IUser $user, string $current, string $new): void {
 		try {
 			$pfx = $this->pkcs12Handler->updatePassword($user->getUID(), $current, $new);
+		} catch (InvalidPasswordException $e) {
+			throw new LibresignException($this->l10n->t('Invalid user or password'));
+		}
+	}
+
+	/**
+	 * @throws LibresignException when have not a certificate file
+	 */
+	public function readPfxData(IUser $user, string $password): array {
+		try {
+			return $this->pkcs12Handler->readCertificate($user->getUID(), $password);
 		} catch (InvalidPasswordException $e) {
 			throw new LibresignException($this->l10n->t('Invalid user or password'));
 		}
