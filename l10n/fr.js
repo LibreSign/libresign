@@ -218,7 +218,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Erreur lors de la création du nouveau mot de passe, veuillez contacter l'administrateur",
     "Page not found" : "Page non trouvée",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Désolé, la page que vous cherchez n'existe plus, a été supprimée, déplacée ou est temporairement indisponible.",
-    "Welcome to Libresign" : "Bienvenue sur Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "L'administrateur n'a pas encore configuré LibreSign, veuillez patienter.",
     "Certificate data" : "Données du certificat",
     "Issuer of certificate" : "Émetteur du certificat",
