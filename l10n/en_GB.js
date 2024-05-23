@@ -223,7 +223,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "Error creating new password, please contact the administrator",
     "Page not found" : "Page not found",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable.",
-    "Welcome to Libresign" : "Welcome to Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "The admin hasn't set up LibreSign yet, please wait.",
     "Certificate data" : "Certificate data",
     "Issuer of certificate" : "Issuer of certificate",

@@ -223,7 +223,6 @@ OC.L10N.register(
     "Error creating new password, please contact the administrator" : "خطأ في إنشاء كلمة مرور جديدة، يرجى الاتصال بالمسؤول",
     "Page not found" : "الصفحة غير موجودة",
     "Sorry but the page you are looking for does not exist, has been removed, moved or is temporarily unavailable." : "نأسف ولكن الصفحة التي تبحث عنها غير موجودة أو تمت إزالتها أو نقلها أو أنها غير متاحة مؤقتًا.",
-    "Welcome to Libresign" : "أهلا بكم في نظام التوقيع الالكتروني \"ليبر ساين\" Libresign",
     "The admin hasn't set up LibreSign yet, please wait." : "لم يقم المشرف بتنصيب نظام التوقيع الالكتروني \"ليبر ساين\" Libresign حتى الآن. يرجى الانتظار. ",
     "Certificate data" : "بيانات الشهادة",
     "Issuer of certificate" : "مُصدِر الشهادة",
