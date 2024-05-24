@@ -9,14 +9,6 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
- * @psalm-type LibresignNewFile = array{
- *     file: array{
- *         fileId?: int,
- *         base64?: string,
- *     },
- *     name?: string,
- *     type?: string,
- * }
  * @psalm-type LibresignFile = array{
  *     account: array{
  *         uid: string,
@@ -42,6 +34,24 @@ namespace OCA\Libresign;
  *         uuid: string,
  *         signers: LibresignSigner[],
  *     },
+ * }
+ * @psalm-type LibresignNewFile = array{
+ *     file: array{
+ *         fileId?: int,
+ *         base64?: string,
+ *     },
+ *     name?: string,
+ *     type?: string,
+ * }
+ * @psalm-type LibresignRootCertificateName = array{
+ *     id: string,
+ *     value: string,
+ * }
+ * @psalm-type LibresignRootCertificate = array{
+ *     commonName: string,
+ *     names: LibresignRootCertificateName[],
+ *     name?: string,
+ *     type?: string,
  * }
  * @psalm-type LibresignSigner = array{
  *     email: string,

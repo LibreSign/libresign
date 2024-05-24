@@ -219,17 +219,17 @@ export default {
 					this.getDataToSave(),
 				)
 
-				if (!response.data || response.data.message) {
-					throw new Error(response.data)
+				if (!response.data.ocs.data || response.data.ocs.data.message) {
+					throw new Error(response.data.ocs.data)
 				}
-				this.certificate = response.data.data
+				this.certificate = response.data.ocs.data.data
 				this.afterCertificateGenerated()
 				emit('libresign:config-check')
 				return
 			} catch (e) {
 				console.error(e)
-				if (e.response.data.message) {
-					showError(t('libresign', 'Could not generate certificate.') + '\n' + e.response.data.message)
+				if (e.response.data.ocs.data.message) {
+					showError(t('libresign', 'Could not generate certificate.') + '\n' + e.response.data.ocs.data.message)
 				} else {
 					showError(t('libresign', 'Could not generate certificate.'))
 				}
@@ -254,10 +254,10 @@ export default {
 				const response = await axios.get(
 					generateOcsUrl('/apps/libresign/api/v1/admin/certificate'),
 				)
-				if (!response.data || response.data.message) {
-					throw new Error(response.data)
+				if (!response.data.ocs.data || response.data.ocs.data.message) {
+					throw new Error(response.data.ocs.data)
 				}
-				this.certificate = response.data
+				this.certificate = response.data.ocs.data
 				this.customData = loadState('libresign', 'config_path').length > 0 && (this.certificate?.cfsslUri?.length > 0 || this.certificate.configPath.length > 0)
 				if (this.certificate.generated) {
 					this.afterCertificateGenerated()

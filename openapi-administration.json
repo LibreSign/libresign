@@ -43,6 +43,45 @@
                         "type": "string"
                     }
                 }
+            },
+            "RootCertificate": {
+                "type": "object",
+                "required": [
+                    "commonName",
+                    "names"
+                ],
+                "properties": {
+                    "commonName": {
+                        "type": "string"
+                    },
+                    "names": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RootCertificateName"
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RootCertificateName": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "value"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                }
             }
         }
     },
@@ -392,7 +431,23 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "configPath",
+                                                        "rootCert",
+                                                        "generated"
+                                                    ],
+                                                    "properties": {
+                                                        "configPath": {
+                                                            "type": "string"
+                                                        },
+                                                        "rootCert": {
+                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        },
+                                                        "generated": {
+                                                            "type": "boolean"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
