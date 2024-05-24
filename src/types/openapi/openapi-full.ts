@@ -2682,7 +2682,12 @@ export type operations = {
         "application/json": {
           /** @description fields of root certificate */
           rootCert: {
-            [key: string]: string;
+            commonName: string;
+            names: {
+              [key: string]: {
+                value: string;
+              };
+            };
           };
           /**
            * @description URI of CFSSL API
@@ -2704,7 +2709,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                configPath: string;
+                rootCert: components["schemas"]["RootCertificate"];
+              };
             };
           };
         };
@@ -2743,7 +2751,12 @@ export type operations = {
         "application/json": {
           /** @description fields of root certificate */
           rootCert: {
-            [key: string]: string;
+            commonName: string;
+            names: {
+              [key: string]: {
+                value: string;
+              };
+            };
           };
           /**
            * @description Path of config files of CFSSL

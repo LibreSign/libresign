@@ -115,8 +115,28 @@
                                     "rootCert": {
                                         "type": "object",
                                         "description": "fields of root certificate",
-                                        "additionalProperties": {
-                                            "type": "string"
+                                        "required": [
+                                            "commonName",
+                                            "names"
+                                        ],
+                                        "properties": {
+                                            "commonName": {
+                                                "type": "string"
+                                            },
+                                            "names": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "value"
+                                                    ],
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     "cfsslUri": {
@@ -180,7 +200,19 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "configPath",
+                                                        "rootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "configPath": {
+                                                            "type": "string"
+                                                        },
+                                                        "rootCert": {
+                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -259,8 +291,28 @@
                                     "rootCert": {
                                         "type": "object",
                                         "description": "fields of root certificate",
-                                        "additionalProperties": {
-                                            "type": "string"
+                                        "required": [
+                                            "commonName",
+                                            "names"
+                                        ],
+                                        "properties": {
+                                            "commonName": {
+                                                "type": "string"
+                                            },
+                                            "names": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "value"
+                                                    ],
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     },
                                     "configPath": {
