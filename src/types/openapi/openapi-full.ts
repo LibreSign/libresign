@@ -372,6 +372,16 @@ export type components = {
       last: string | null;
       first: string | null;
     };
+    RootCertificate: {
+      commonName: string;
+      names: components["schemas"]["RootCertificateName"][];
+      name?: string;
+      type?: string;
+    };
+    RootCertificateName: {
+      id: string;
+      value: string;
+    };
     Signer: {
       email: string;
       description: string | null;
@@ -2792,7 +2802,11 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                configPath: string;
+                rootCert: components["schemas"]["RootCertificate"];
+                generated: boolean;
+              };
             };
           };
         };

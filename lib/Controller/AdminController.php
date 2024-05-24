@@ -12,9 +12,9 @@ use OCA\Libresign\AppInfo\Application;
 use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Handler\CertificateEngine\Handler as CertificateEngineHandler;
 use OCA\Libresign\Helper\ConfigureCheckHelper;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\Install\ConfigureCheckService;
 use OCA\Libresign\Service\Install\InstallService;
-use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
@@ -23,7 +23,10 @@ use OCP\IEventSourceFactory;
 use OCP\IL10N;
 use OCP\IRequest;
 
-class AdminController extends Controller {
+/**
+ * @psalm-import-type LibresignRootCertificate from ResponseDefinitions
+ */
+class AdminController extends AEnvironmentAwareController {
 	private IEventSource $eventSource;
 	public function __construct(
 		IRequest $request,
@@ -115,7 +118,7 @@ class AdminController extends Controller {
 	 *
 	 * Return all data of root certificate and a field called `generated` with a boolean value.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate, generated: boolean}, array{}>
 	 *
 	 * 200: OK
 	 */
