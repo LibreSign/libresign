@@ -55,8 +55,8 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
-	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
-	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
+	 * @param array{} $metadata Metadata of visible elements to associate with the document
+	 * @param array{} $coordinates Coortinates of a visible element on PDF
 	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
 	 *
 	 * 200: OK
@@ -104,8 +104,8 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param integer $signRequestId Id of sign request
 	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
-	 * @param array<string, mixed> $metadata Metadata of visible elements to associate with the document
-	 * @param array<string, mixed> $coordinates Coortinates of a visible element on PDF
+	 * @param array{} $metadata Metadata of visible elements to associate with the document
+	 * @param array{} $coordinates Coortinates of a visible element on PDF
 	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
 	 *
 	 * 200: OK
