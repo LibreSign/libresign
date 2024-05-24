@@ -48,6 +48,16 @@ export type components = {
       totalitems?: string;
       itemsperpage?: string;
     };
+    RootCertificate: {
+      commonName: string;
+      names: components["schemas"]["RootCertificateName"][];
+      name?: string;
+      type?: string;
+    };
+    RootCertificateName: {
+      id: string;
+      value: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -201,7 +211,11 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                configPath: string;
+                rootCert: components["schemas"]["RootCertificate"];
+                generated: boolean;
+              };
             };
           };
         };
