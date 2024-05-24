@@ -290,12 +290,59 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    File: {
+      account: {
+        uid: string;
+        displayName: string;
+      };
+      file_type: {
+        type: string;
+        name: string;
+        description: string | null;
+      };
+      request_date: string;
+      file: {
+        name: string;
+        status: string;
+        statusText: string;
+        request_date: string;
+        file: {
+          type: string;
+          /** Format: int64 */
+          nodeId: number;
+          url: string;
+        };
+        callback: string | null;
+        uuid: string;
+        signers: components["schemas"]["Signer"][];
+      };
+    };
     OCSMeta: {
       status: string;
       statuscode: number;
       message?: string;
       totalitems?: string;
       itemsperpage?: string;
+    };
+    Pagination: {
+      /** Format: int64 */
+      total: number;
+      current: string | null;
+      next: string | null;
+      prev: string | null;
+      last: string | null;
+      first: string | null;
+    };
+    Signer: {
+      email: string;
+      description: string | null;
+      displayName: string;
+      request_sign_date: string;
+      sign_date: string | null;
+      uid: string;
+      /** Format: int64 */
+      signRequestId: number;
+      identifyMethod: string;
     };
   };
   responses: never;
@@ -1006,13 +1053,14 @@ export type operations = {
     };
     responses: {
       /** @description Certificate saved with success */
-      202: {
+      200: {
         content: {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                message: string;
+                pagination: components["schemas"]["Pagination"];
+                data: components["schemas"]["File"][] | null;
               };
             };
           };
@@ -1159,7 +1207,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                pagination: components["schemas"]["Pagination"];
+                data: components["schemas"]["File"][] | null;
+              };
             };
           };
         };

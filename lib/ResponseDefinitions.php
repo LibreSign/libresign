@@ -17,6 +17,50 @@ namespace OCA\Libresign;
  *     name?: string,
  *     type?: string,
  * }
+ * @psalm-type LibresignFile = array{
+ *     account: array{
+ *         uid: string,
+ *         displayName: string,
+ *     },
+ *     file_type: array{
+ *         type: string,
+ *         name: string,
+ *         description: ?string,
+ *     },
+ *     request_date: string,
+ *     file: array{
+ *         name: string,
+ *         status: string,
+ *         statusText: string,
+ *         request_date: string,
+ *         file: array{
+ *             type: string,
+ *             nodeId: int,
+ *             url: string,
+ *         },
+ *         callback: ?string,
+ *         uuid: string,
+ *         signers: LibresignSigner[],
+ *     },
+ * }
+ * @psalm-type LibresignSigner = array{
+ *     email: string,
+ *     description: ?string,
+ *     displayName: string,
+ *     request_sign_date: string,
+ *     sign_date: ?string,
+ *     uid: string,
+ *     signRequestId: int,
+ *     identifyMethod: string,
+ * }
+ * @psalm-type LibresignPagination = array{
+ *     total: int,
+ *     current: ?string,
+ *     next: ?string,
+ *     prev: ?string,
+ *     last: ?string,
+ *     first: ?string,
+ * }
  */
 class ResponseDefinitions {
 }
