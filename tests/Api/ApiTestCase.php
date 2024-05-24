@@ -23,7 +23,6 @@ use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use OCA\Libresign\Tests\Unit\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Yaml\Yaml;
 
 class ApiTestCase extends TestCase {
 	/**
