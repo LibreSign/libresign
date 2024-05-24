@@ -59,10 +59,10 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using CFSSL engine
 	 *
-	 * @param array<string, string> $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
 	 * @param string $cfsslUri URI of CFSSL API
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
@@ -83,9 +83,9 @@ class AdminController extends AEnvironmentAwareController {
 	/**
 	 * Generate certificate using OpenSSL engine
 	 *
-	 * @param array<string, string> $rootCert fields of root certificate
+	 * @param array{commonName: string, names: array<string, array{value:string}>} $rootCert fields of root certificate
 	 * @param string $configPath Path of config files of CFSSL
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{configPath: string, rootCert: LibresignRootCertificate}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Account not found
