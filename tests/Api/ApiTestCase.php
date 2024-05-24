@@ -18,7 +18,6 @@ use ByJG\ApiTools\OpenApi\OpenApiSchema;
 use ByJG\Util\Psr7\MessageException;
 use ByJG\Util\Psr7\Response;
 use OCA\Libresign\Tests\Unit\TestCase;
-use Symfony\Component\Yaml\Yaml;
 
 class ApiTestCase extends TestCase {
 	/**
