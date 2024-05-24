@@ -290,6 +290,18 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    Coordinate: {
+      /** Format: int64 */
+      page: number;
+      /** Format: int64 */
+      urx: number;
+      /** Format: int64 */
+      ury: number;
+      /** Format: int64 */
+      llx: number;
+      /** Format: int64 */
+      lly: number;
+    };
     File: {
       account: {
         uid: string;
@@ -317,6 +329,12 @@ export type components = {
         signers: components["schemas"]["Signer"][];
       };
     };
+    IdentifyMethod: {
+      method: string;
+      value: string;
+      /** Format: int64 */
+      mandatory: number;
+    };
     OCSMeta: {
       status: string;
       statuscode: number;
@@ -333,16 +351,36 @@ export type components = {
       last: string | null;
       first: string | null;
     };
+    Settings: {
+      canSign: boolean;
+      canRequestSign: boolean;
+      signerFileUuid: string | null;
+      hasSignatureFile?: boolean;
+      phoneNumber: string;
+    };
     Signer: {
-      email: string;
+      email?: string;
       description: string | null;
       displayName: string;
       request_sign_date: string;
-      sign_date: string | null;
-      uid: string;
+      signed: string | null;
+      sign_date?: string | null;
+      sign_uuid?: string;
+      me: boolean;
+      uid?: string;
       /** Format: int64 */
       signRequestId: number;
-      identifyMethod: string;
+      identifyMethod?: string;
+      identifyMethods?: components["schemas"]["IdentifyMethod"][];
+      visibleElements?: components["schemas"]["VisibleElement"][];
+    };
+    VisibleElement: {
+      /** Format: int64 */
+      elementId: number;
+      /** Format: int64 */
+      signRequestId: number;
+      type: string;
+      coordinates: components["schemas"]["Coordinate"];
     };
   };
   responses: never;
@@ -1301,7 +1339,10 @@ export type operations = {
         /** @description Total of elements to return */
         length?: number | null;
         /** @description Filter params */
-        filter?: Record<string, never>;
+        filter?: {
+          signer_uuid?: string;
+          nodeId?: string;
+        };
       };
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1318,7 +1359,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                pagination: components["schemas"]["Pagination"];
+                data: components["schemas"]["File"][] | null;
+              };
             };
           };
         };
@@ -1376,7 +1420,7 @@ export type operations = {
         /** @description The type of identifier could be Uuid or FileId */
         type?: string | null;
         /** @description The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer */
-        identifier?: Record<string, never>;
+        identifier?: string | number;
       };
       header: {
         /** @description Required to be true for the API request to pass */
@@ -1393,7 +1437,51 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                file: string;
+                name: string;
+                url?: string;
+                /** Format: int64 */
+                nodeId: number;
+                request_date: string;
+                requested_by: {
+                  uid: string;
+                  displayName: string;
+                };
+                /** Format: int64 */
+                status: number;
+                statusText: string;
+                uuid: string;
+                signers: components["schemas"]["Signer"][];
+                /** Format: int64 */
+                action?: number;
+                errors?: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
+            };
+          };
+        };
+      };
+      /** @description Request failed */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
             };
           };
         };
@@ -1423,7 +1511,51 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                file: string;
+                name: string;
+                url?: string;
+                /** Format: int64 */
+                nodeId: number;
+                request_date: string;
+                requested_by: {
+                  uid: string;
+                  displayName: string;
+                };
+                /** Format: int64 */
+                status: number;
+                statusText: string;
+                uuid: string;
+                signers: components["schemas"]["Signer"][];
+                /** Format: int64 */
+                action?: number;
+                errors?: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
+            };
+          };
+        };
+      };
+      /** @description Request failed */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
             };
           };
         };
@@ -1453,7 +1585,51 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                file: string;
+                name: string;
+                url?: string;
+                /** Format: int64 */
+                nodeId: number;
+                request_date: string;
+                requested_by: {
+                  uid: string;
+                  displayName: string;
+                };
+                /** Format: int64 */
+                status: number;
+                statusText: string;
+                uuid: string;
+                signers: components["schemas"]["Signer"][];
+                /** Format: int64 */
+                action?: number;
+                errors?: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
+            };
+          };
+        };
+      };
+      /** @description Request failed */
+      404: {
+        content: {
+          "application/json": {
+            ocs: {
+              meta: components["schemas"]["OCSMeta"];
+              data: {
+                /** Format: int64 */
+                action: number;
+                errors: string[];
+                settings: components["schemas"]["Settings"];
+                messages?: {
+                    type: string;
+                    message: string;
+                  }[];
+              };
             };
           };
         };
