@@ -181,6 +181,38 @@
                     }
                 }
             },
+            "NextcloudFile": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "name",
+                    "id",
+                    "etag",
+                    "path",
+                    "type"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "etag": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -2176,7 +2208,7 @@
                                         "type": "array",
                                         "description": "the list of files to add to profile",
                                         "items": {
-                                            "$ref": "#/components/schemas/NewFile"
+                                            "$ref": "#/components/schemas/AccountFile"
                                         }
                                     }
                                 }
@@ -2765,16 +2797,8 @@
                                 ],
                                 "properties": {
                                     "file": {
-                                        "type": "object",
-                                        "description": "File to save",
-                                        "properties": {
-                                            "url": {
-                                                "type": "string"
-                                            },
-                                            "base64": {
-                                                "type": "string"
-                                            }
-                                        }
+                                        "$ref": "#/components/schemas/NewFile",
+                                        "description": "File to save"
                                     },
                                     "name": {
                                         "type": "string",
@@ -2782,9 +2806,9 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "type": "object",
+                                        "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
-                                        "description": "Settings of signature request"
+                                        "description": "Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method."
                                     }
                                 }
                             }
@@ -2837,7 +2861,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/NextcloudFile"
                                                 }
                                             }
                                         }

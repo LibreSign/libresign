@@ -335,6 +335,15 @@ export type components = {
       /** Format: int64 */
       mandatory: number;
     };
+    NextcloudFile: {
+      message: string;
+      name: string;
+      /** Format: int64 */
+      id: number;
+      etag: string;
+      path: string;
+      type: string;
+    };
     OCSMeta: {
       status: string;
       statuscode: number;
@@ -1134,7 +1143,7 @@ export type operations = {
       content: {
         "application/json": {
           /** @description the list of files to add to profile */
-          files: components["schemas"]["NewFile"][];
+          files: components["schemas"]["AccountFile"][];
         };
       };
     };
@@ -1286,20 +1295,17 @@ export type operations = {
       content: {
         "application/json": {
           /** @description File to save */
-          file: {
-            url?: string;
-            base64?: string;
-          };
+          file: components["schemas"]["NewFile"];
           /**
            * @description The name of file to sign
            * @default
            */
           name?: string;
           /**
-           * @description Settings of signature request
+           * @description Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
            * @default []
            */
-          settings?: Record<string, never>;
+          settings?: components["schemas"]["FolderSettings"];
         };
       };
     };
@@ -1310,7 +1316,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["NextcloudFile"];
             };
           };
         };

@@ -9,6 +9,11 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
+ * @psalm-type LibresignAccountFile = array{
+ *     file: LibresignNewFile,
+ *     name?: string,
+ *     type?: string,
+ * }
  * @psalm-type LibresignCoordinate = array{
  *     page: int,
  *     urx: int,
@@ -42,18 +47,31 @@ namespace OCA\Libresign;
  *         signers: LibresignSigner[],
  *     },
  * }
+ * @psalm-type LibresignFolderSettings = array{
+ *     folderName?: string,
+ *     separator?: string,
+ *     folderPatterns?: array{
+ *         name: string,
+ *         setting?: string,
+ *     }
+ * }
  * @psalm-type LibresignIdentifyMethod = array{
  *     method: string,
  *     value: string,
  *     mandatory: int,
  * }
  * @psalm-type LibresignNewFile = array{
- *     file: array{
- *         fileId?: int,
- *         base64?: string,
- *     },
- *     name?: string,
- *     type?: string,
+ *     base64?: string,
+ *     fileId?: int,
+ *     url?: string,
+ * }
+ * @psalm-type LibresignNextcloudFile = array{
+ *     message: string,
+ *     name: string,
+ *     id: int,
+ *     etag: string,
+ *     path: string,
+ *     type: string,
  * }
  * @psalm-type LibresignPagination = array{
  *     total: int,
