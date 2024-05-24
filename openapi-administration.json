@@ -371,7 +371,19 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "configPath",
+                                                        "rootCert"
+                                                    ],
+                                                    "properties": {
+                                                        "configPath": {
+                                                            "type": "string"
+                                                        },
+                                                        "rootCert": {
+                                                            "$ref": "#/components/schemas/RootCertificate"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
