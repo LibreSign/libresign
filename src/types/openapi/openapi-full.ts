@@ -320,6 +320,11 @@ export type webhooks = Record<string, never>;
 
 export type components = {
   schemas: {
+    AccountFile: {
+      file: components["schemas"]["NewFile"];
+      name?: string;
+      type?: string;
+    };
     Coordinate: {
       /** Format: int64 */
       page: number;
@@ -359,6 +364,14 @@ export type components = {
         signers: components["schemas"]["Signer"][];
       };
     };
+    FolderSettings: {
+      folderName?: string;
+      separator?: string;
+      folderPatterns?: {
+        name: string;
+        setting?: string;
+      };
+    };
     IdentifyMethod: {
       method: string;
       value: string;
@@ -366,13 +379,19 @@ export type components = {
       mandatory: number;
     };
     NewFile: {
-      file: {
-        /** Format: int64 */
-        fileId?: number;
-        base64?: string;
-      };
-      name?: string;
-      type?: string;
+      base64?: string;
+      /** Format: int64 */
+      fileId?: number;
+      url?: string;
+    };
+    NextcloudFile: {
+      message: string;
+      name: string;
+      /** Format: int64 */
+      id: number;
+      etag: string;
+      path: string;
+      type: string;
     };
     OCSMeta: {
       status: string;
@@ -1183,7 +1202,7 @@ export type operations = {
       content: {
         "application/json": {
           /** @description the list of files to add to profile */
-          files: components["schemas"]["NewFile"][];
+          files: components["schemas"]["AccountFile"][];
         };
       };
     };
@@ -1335,20 +1354,17 @@ export type operations = {
       content: {
         "application/json": {
           /** @description File to save */
-          file: {
-            url?: string;
-            base64?: string;
-          };
+          file: components["schemas"]["NewFile"];
           /**
            * @description The name of file to sign
            * @default
            */
           name?: string;
           /**
-           * @description Settings of signature request
+           * @description Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
            * @default []
            */
-          settings?: Record<string, never>;
+          settings?: components["schemas"]["FolderSettings"];
         };
       };
     };
@@ -1359,7 +1375,7 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: components["schemas"]["NextcloudFile"];
             };
           };
         };
