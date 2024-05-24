@@ -20,6 +20,23 @@
             }
         },
         "schemas": {
+            "AccountFile": {
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "properties": {
+                    "file": {
+                        "$ref": "#/components/schemas/NewFile"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                }
+            },
             "Coordinate": {
                 "type": "object",
                 "required": [
@@ -161,6 +178,31 @@
                     }
                 }
             },
+            "FolderSettings": {
+                "type": "object",
+                "properties": {
+                    "folderName": {
+                        "type": "string"
+                    },
+                    "separator": {
+                        "type": "string"
+                    },
+                    "folderPatterns": {
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "setting": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "IdentifyMethod": {
                 "type": "object",
                 "required": [
@@ -183,23 +225,44 @@
             },
             "NewFile": {
                 "type": "object",
+                "properties": {
+                    "base64": {
+                        "type": "string"
+                    },
+                    "fileId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                }
+            },
+            "NextcloudFile": {
+                "type": "object",
                 "required": [
-                    "file"
+                    "message",
+                    "name",
+                    "id",
+                    "etag",
+                    "path",
+                    "type"
                 ],
                 "properties": {
-                    "file": {
-                        "type": "object",
-                        "properties": {
-                            "fileId": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "base64": {
-                                "type": "string"
-                            }
-                        }
+                    "message": {
+                        "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "etag": {
+                        "type": "string"
+                    },
+                    "path": {
                         "type": "string"
                     },
                     "type": {
@@ -2241,7 +2304,7 @@
                                         "type": "array",
                                         "description": "the list of files to add to profile",
                                         "items": {
-                                            "$ref": "#/components/schemas/NewFile"
+                                            "$ref": "#/components/schemas/AccountFile"
                                         }
                                     }
                                 }
@@ -2830,16 +2893,8 @@
                                 ],
                                 "properties": {
                                     "file": {
-                                        "type": "object",
-                                        "description": "File to save",
-                                        "properties": {
-                                            "url": {
-                                                "type": "string"
-                                            },
-                                            "base64": {
-                                                "type": "string"
-                                            }
-                                        }
+                                        "$ref": "#/components/schemas/NewFile",
+                                        "description": "File to save"
                                     },
                                     "name": {
                                         "type": "string",
@@ -2847,9 +2902,9 @@
                                         "description": "The name of file to sign"
                                     },
                                     "settings": {
-                                        "type": "object",
+                                        "$ref": "#/components/schemas/FolderSettings",
                                         "default": [],
-                                        "description": "Settings of signature request"
+                                        "description": "Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method."
                                     }
                                 }
                             }
@@ -2902,7 +2957,7 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/NextcloudFile"
                                                 }
                                             }
                                         }

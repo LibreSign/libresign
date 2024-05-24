@@ -40,8 +40,11 @@ use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignSigner from ResponseDefinitions
+ * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignFolderSettings from ResponseDefinitions
+ * @psalm-import-type LibresignNextcloudFile from ResponseDefinitions
  * @psalm-import-type LibresignSettings from ResponseDefinitions
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
  */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
@@ -292,10 +295,10 @@ class FileController extends AEnvironmentAwareController {
 	 *
 	 * Send a new file to Nextcloud and return the fileId to request to sign usign fileId
 	 *
-	 * @param array{url?: string, base64?: string} $file File to save
+	 * @param LibresignNewFile $file File to save
 	 * @param string $name The name of file to sign
-	 * @param array{} $settings Settings of signature request
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
+	 * @param LibresignFolderSettings $settings Settings to define the pattern to store the file. See more informations at FolderService::getFolderName method.
+	 * @return DataResponse<Http::STATUS_OK, LibresignNextcloudFile, array{}>|DataResponse<Http::STATUS_UNPROCESSABLE_ENTITY, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 422: Failed to save data

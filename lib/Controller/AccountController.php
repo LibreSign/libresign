@@ -39,7 +39,7 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignAccountFile from ResponseDefinitions
  * @psalm-import-type LibresignFile from ResponseDefinitions
  * @psalm-import-type LibresignPagination from ResponseDefinitions
  */
@@ -185,7 +185,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Add files to account profile
 	 *
-	 * @param LibresignNewFile[] $files the list of files to add to profile
+	 * @param LibresignAccountFile[] $files the list of files to add to profile
 	 *
 	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: ?string, message: string}, array{}>
 	 *
