@@ -23,7 +23,7 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -36,7 +36,7 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid data to validate file', $body['errors'][0]);
+		$this->assertEquals('Invalid data to validate file', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -64,9 +64,9 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertFalse($body['signers'][0]['me'], "It's me");
-		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
-		$this->assertFalse($body['settings']['canSign'], 'Can permission to sign');
+		$this->assertFalse($body['ocs']['data']['signers'][0]['me'], "It's me");
+		$this->assertFalse($body['ocs']['data']['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertFalse($body['ocs']['data']['settings']['canSign'], 'Can permission to sign');
 	}
 
 	/**
@@ -106,9 +106,9 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertTrue($body['signers'][0]['me'], "It's me");
-		$this->assertFalse($body['settings']['canRequestSign'], 'Can permission to request sign');
-		$this->assertTrue($body['settings']['canSign'], 'Can permission to sign');
+		$this->assertTrue($body['ocs']['data']['signers'][0]['me'], "It's me");
+		$this->assertFalse($body['ocs']['data']['settings']['canRequestSign'], 'Can permission to request sign');
+		$this->assertTrue($body['ocs']['data']['settings']['canSign'], 'Can permission to sign');
 	}
 
 	/**
@@ -124,7 +124,7 @@ final class FileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertCount(0, $body['data']);
+		$this->assertCount(0, $body['ocs']['data']['data']);
 	}
 
 	/**

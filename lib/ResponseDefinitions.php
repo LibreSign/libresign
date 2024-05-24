@@ -9,6 +9,13 @@ declare(strict_types=1);
 namespace OCA\Libresign;
 
 /**
+ * @psalm-type LibresignCoordinate = array{
+ *     page: int,
+ *     urx: int,
+ *     ury: int,
+ *     llx: int,
+ *     lly: int,
+ * }
  * @psalm-type LibresignFile = array{
  *     account: array{
  *         uid: string,
@@ -35,6 +42,11 @@ namespace OCA\Libresign;
  *         signers: LibresignSigner[],
  *     },
  * }
+ * @psalm-type LibresignIdentifyMethod = array{
+ *     method: string,
+ *     value: string,
+ *     mandatory: int,
+ * }
  * @psalm-type LibresignNewFile = array{
  *     file: array{
  *         fileId?: int,
@@ -42,6 +54,14 @@ namespace OCA\Libresign;
  *     },
  *     name?: string,
  *     type?: string,
+ * }
+ * @psalm-type LibresignPagination = array{
+ *     total: int,
+ *     current: ?string,
+ *     next: ?string,
+ *     prev: ?string,
+ *     last: ?string,
+ *     first: ?string,
  * }
  * @psalm-type LibresignRootCertificateName = array{
  *     id: string,
@@ -53,23 +73,33 @@ namespace OCA\Libresign;
  *     name?: string,
  *     type?: string,
  * }
+ * @psalm-type LibresignSettings = array{
+ *     canSign: bool,
+ *     canRequestSign: bool,
+ *     signerFileUuid: ?string,
+ *     hasSignatureFile?: bool,
+ *     phoneNumber: string,
+ * }
  * @psalm-type LibresignSigner = array{
- *     email: string,
+ *     email?: string,
  *     description: ?string,
  *     displayName: string,
  *     request_sign_date: string,
- *     sign_date: ?string,
- *     uid: string,
+ *     signed: ?string,
+ *     sign_date?: ?string,
+ *     sign_uuid?: string,
+ *     me: bool,
+ *     uid?: string,
  *     signRequestId: int,
- *     identifyMethod: string,
+ *     identifyMethod?: string,
+ *     identifyMethods?: LibresignIdentifyMethod[],
+ *     visibleElements?: LibresignVisibleElement[],
  * }
- * @psalm-type LibresignPagination = array{
- *     total: int,
- *     current: ?string,
- *     next: ?string,
- *     prev: ?string,
- *     last: ?string,
- *     first: ?string,
+ * @psalm-type LibresignVisibleElement = array{
+ *     elementId: int,
+ *     signRequestId: int,
+ *     type: string,
+ *     coordinates: LibresignCoordinate,
  * }
  */
 class ResponseDefinitions {

@@ -31,6 +31,7 @@ use OCA\Libresign\Exception\LibresignException;
 use OCA\Libresign\Helper\JSActions;
 use OCA\Libresign\Helper\ValidateHelper;
 use OCA\Libresign\Middleware\Attribute\RequireManager;
+use OCA\Libresign\ResponseDefinitions;
 use OCA\Libresign\Service\AccountService;
 use OCA\Libresign\Service\FileService;
 use OCA\Libresign\Service\IdentifyMethodService;
@@ -54,6 +55,10 @@ use OCP\IUserSession;
 use OCP\Preview\IMimeIconProvider;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @psalm-import-type LibresignSigner from ResponseDefinitions
+ * @psalm-import-type LibresignSettings from ResponseDefinitions
+ */
 class FileController extends AEnvironmentAwareController {
 	public function __construct(
 		IRequest $request,
@@ -79,15 +84,16 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string $uuid The UUID of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
+	 * 404: Request failed
 	 * 422: Request failed
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
-	public function validateUuid($uuid): DataResponse {
+	public function validateUuid(string $uuid): DataResponse {
 		return $this->validate('Uuid', $uuid);
 	}
 
@@ -97,9 +103,10 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param int $fileId The identifier value of the LibreSign file
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
+	 * 404: Request failed
 	 * 422: Request failed
 	 */
 	#[NoAdminRequired]
@@ -115,10 +122,11 @@ class FileController extends AEnvironmentAwareController {
 	 * Validate a file returning file data.
 	 *
 	 * @param string|null $type The type of identifier could be Uuid or FileId
-	 * @param mixed $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @param string|int $identifier The identifier value, could be string or integer, if UUID will be a string, if FileId will be an integer
+	 * @return DataResponse<Http::STATUS_OK, array{file: string, name: string, url?: string, nodeId: int, request_date: string, requested_by: array{uid: string, displayName: string}, status: int, statusText: string, uuid: string, signers: LibresignSigner[], action?: int, errors?: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{action: int, errors: string[], settings: LibresignSettings, messages?: array{type: string, message: string}[]}, array{}>
 	 *
 	 * 200: OK
+	 * 404: Request failed
 	 * 422: Request failed
 	 */
 	#[NoAdminRequired]
@@ -188,10 +196,10 @@ class FileController extends AEnvironmentAwareController {
 	/**
 	 * List account files that need to be approved
 	 *
-	 * @param array{} $filter Filter params
+	 * @param array{signer_uuid?: string, nodeId?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>
 	 *
 	 * 200: OK
 	 */
