@@ -40,6 +40,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @psalm-import-type LibresignNewFile from ResponseDefinitions
+ * @psalm-import-type LibresignFile from ResponseDefinitions
+ * @psalm-import-type LibresignPagination from ResponseDefinitions
  */
 class AccountController extends AEnvironmentAwareController implements ISignatureUuid {
 	use LibresignTrait;
@@ -290,9 +292,9 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_ACCEPTED, array{message: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{message: string}, array{}>
 	 *
-	 * 202: Certificate saved with success
+	 * 200: Certificate saved with success
 	 * 400: No file provided or other problem with provided file
 	 */
 	#[NoAdminRequired]
@@ -318,7 +320,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	 * @param array{approved?: string} $filter Filter params
 	 * @param int|null $page the number of page to return
 	 * @param int|null $length Total of elements to return
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{pagination: LibresignPagination, data: ?LibresignFile[]}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Account not found

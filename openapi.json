@@ -20,6 +20,115 @@
             }
         },
         "schemas": {
+            "File": {
+                "type": "object",
+                "required": [
+                    "account",
+                    "file_type",
+                    "request_date",
+                    "file"
+                ],
+                "properties": {
+                    "account": {
+                        "type": "object",
+                        "required": [
+                            "uid",
+                            "displayName"
+                        ],
+                        "properties": {
+                            "uid": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "file_type": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "name",
+                            "description"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "request_date": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "status",
+                            "statusText",
+                            "request_date",
+                            "file",
+                            "callback",
+                            "uuid",
+                            "signers"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "statusText": {
+                                "type": "string"
+                            },
+                            "request_date": {
+                                "type": "string"
+                            },
+                            "file": {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "nodeId",
+                                    "url"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string"
+                                    },
+                                    "nodeId": {
+                                        "type": "integer",
+                                        "format": "int64"
+                                    },
+                                    "url": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "callback": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "uuid": {
+                                "type": "string"
+                            },
+                            "signers": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Signer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "OCSMeta": {
                 "type": "object",
                 "required": [
@@ -40,6 +149,85 @@
                         "type": "string"
                     },
                     "itemsperpage": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Pagination": {
+                "type": "object",
+                "required": [
+                    "total",
+                    "current",
+                    "next",
+                    "prev",
+                    "last",
+                    "first"
+                ],
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "current": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "prev": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "last": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "first": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "Signer": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "description",
+                    "displayName",
+                    "request_sign_date",
+                    "sign_date",
+                    "uid",
+                    "signRequestId",
+                    "identifyMethod"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "request_sign_date": {
+                        "type": "string"
+                    },
+                    "sign_date": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "uid": {
+                        "type": "string"
+                    },
+                    "signRequestId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "identifyMethod": {
                         "type": "string"
                     }
                 }
@@ -2178,7 +2366,7 @@
                     }
                 ],
                 "responses": {
-                    "202": {
+                    "200": {
                         "description": "Certificate saved with success",
                         "content": {
                             "application/json": {
@@ -2201,11 +2389,19 @@
                                                 "data": {
                                                     "type": "object",
                                                     "required": [
-                                                        "message"
+                                                        "pagination",
+                                                        "data"
                                                     ],
                                                     "properties": {
-                                                        "message": {
-                                                            "type": "string"
+                                                        "pagination": {
+                                                            "$ref": "#/components/schemas/Pagination"
+                                                        },
+                                                        "data": {
+                                                            "type": "array",
+                                                            "nullable": true,
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/File"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -2352,7 +2548,23 @@
                                                     "$ref": "#/components/schemas/OCSMeta"
                                                 },
                                                 "data": {
-                                                    "type": "object"
+                                                    "type": "object",
+                                                    "required": [
+                                                        "pagination",
+                                                        "data"
+                                                    ],
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "$ref": "#/components/schemas/Pagination"
+                                                        },
+                                                        "data": {
+                                                            "type": "array",
+                                                            "nullable": true,
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/File"
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
