@@ -30,7 +30,7 @@ OC.L10N.register(
     "Open sidebar" : "Atvērt sānjoslu",
     "Details" : "Detaļas",
     "Certificate" : "Sertifikāts",
-    "Type" : "Tips",
+    "Type" : "Veids",
     "Status" : "Status",
     "Actions" : "Darbības",
     "Choose" : "Izvēlies",
