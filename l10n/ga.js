@@ -7,6 +7,7 @@ OC.L10N.register(
     "File already exists" : "Tá an comhad ann cheana féin",
     "Invalid user" : "Úsáideoir neamhbhailí",
     "Email" : "Ríomhphost",
+    "Text" : "Téacs",
     "Upload" : "Uaslódáil",
     "Change color" : "Athraigh dath",
     "Delete" : "Scrios",
