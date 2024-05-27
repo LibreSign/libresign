@@ -92,7 +92,7 @@ class FileElementController extends AEnvironmentAwareController {
 	 * @param string $type The type of element to create, sginature, sinitial, date, datetime, text
 	 * @param array{} $metadata Metadata of visible elements to associate with the document
 	 * @param LibresignCoordinate $coordinates Coortinates of a visible element on PDF
-	 * @return DataResponse<Http::STATUS_OK, array{fileElementId: integer}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when patch visible element
@@ -109,9 +109,8 @@ class FileElementController extends AEnvironmentAwareController {
 	 * Delete visible element of a specific file
 	 *
 	 * @param string $uuid UUID of sign request. The signer UUID is what the person receives via email when asked to sign. This is not the file UUID.
-	 * @param integer|null $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
-	 * @param integer $signRequestId Id of sign request
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: array{}}, array{}>
+	 * @param integer $elementId ID of visible element. Each element has an ID that is returned on validation endpoints.
+	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{errors: string[]}, array{}>
 	 *
 	 * 200: OK
 	 * 404: Failure when delete visible element or file not found
