@@ -11,10 +11,15 @@ namespace OCA\Libresign;
 /**
  * @psalm-type LibresignCoordinate = array{
  *     page: int,
- *     urx: int,
- *     ury: int,
- *     llx: int,
- *     lly: int,
+ *     urx?: int,
+ *     ury?: int,
+ *     llx?: int,
+ *     lly?: int,
+ *     top?: int,
+ *     left?: int,
+ *     width?: int,
+ *     height?: int,
+ *     page?: int,
  * }
  * @psalm-type LibresignFile = array{
  *     account: array{

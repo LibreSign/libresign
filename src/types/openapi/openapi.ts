@@ -294,13 +294,21 @@ export type components = {
       /** Format: int64 */
       page: number;
       /** Format: int64 */
-      urx: number;
+      urx?: number;
       /** Format: int64 */
-      ury: number;
+      ury?: number;
       /** Format: int64 */
-      llx: number;
+      llx?: number;
       /** Format: int64 */
-      lly: number;
+      lly?: number;
+      /** Format: int64 */
+      top?: number;
+      /** Format: int64 */
+      left?: number;
+      /** Format: int64 */
+      width?: number;
+      /** Format: int64 */
+      height?: number;
     };
     File: {
       account: {
@@ -1685,7 +1693,7 @@ export type operations = {
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: Record<string, never>;
+          coordinates?: components["schemas"]["Coordinate"];
         };
       };
     };
@@ -1696,7 +1704,10 @@ export type operations = {
           "application/json": {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
-              data: Record<string, never>;
+              data: {
+                /** Format: int64 */
+                fileElementId: number;
+              };
             };
           };
         };
@@ -1708,7 +1719,7 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                errors: Record<string, never>;
+                errors: string[];
               };
             };
           };
