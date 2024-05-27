@@ -1142,7 +1142,7 @@ export type operations = {
     requestBody: {
       content: {
         "application/json": {
-          /** @description the list of files to add to profile */
+          /** @description The list of files to add to profile */
           files: components["schemas"]["AccountFile"][];
         };
       };
@@ -1680,16 +1680,12 @@ export type operations = {
            * @description Metadata of visible elements to associate with the document
            * @default []
            */
-          metadata?: {
-            [key: string]: Record<string, never>;
-          };
+          metadata?: Record<string, never>;
           /**
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: {
-            [key: string]: Record<string, never>;
-          };
+          coordinates?: Record<string, never>;
         };
       };
     };
@@ -1800,16 +1796,12 @@ export type operations = {
            * @description Metadata of visible elements to associate with the document
            * @default []
            */
-          metadata?: {
-            [key: string]: Record<string, never>;
-          };
+          metadata?: Record<string, never>;
           /**
            * @description Coortinates of a visible element on PDF
            * @default []
            */
-          coordinates?: {
-            [key: string]: Record<string, never>;
-          };
+          coordinates?: Record<string, never>;
         };
       };
     };

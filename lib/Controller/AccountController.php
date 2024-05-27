@@ -201,8 +201,7 @@ class AccountController extends AEnvironmentAwareController implements ISignatur
 	/**
 	 * Add files to account profile
 	 *
-	 * @param LibresignAccountFile[] $files the list of files to add to profile
-	 *
+	 * @param LibresignAccountFile[] $files The list of files to add to profile
 	 * @return DataResponse<Http::STATUS_OK, array<empty>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{file: ?int, type: ?string, message: string}, array{}>
 	 *
 	 * 200: Certificate saved with success
