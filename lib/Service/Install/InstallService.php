@@ -340,7 +340,7 @@ class InstallService {
 		}
 		$folder = $this->getFolder();
 		$checksumUrl = $url . '.sha256.txt';
-		$hash = $this->getHash($folder, 'java', $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
+		$hash = $this->getHash($folder, 'java_' . $linuxDistribution . '_' . $architecture, $compressedFileName, self::JAVA_PARTIAL_VERSION, $checksumUrl);
 		try {
 			$compressedFile = $javaFolder->getFile($compressedFileName);
 		} catch (NotFoundException $th) {
@@ -667,7 +667,14 @@ class InstallService {
 			if (!$hashes) {
 				throw new LibresignException('Failute to download hash file. URL: ' . $checksumUrl);
 			}
-			$fileObject = $folder->newFile($hashFileName, $hashes);
+			try {
+				$fileObject = $folder->newFile($hashFileName, $hashes);
+			} catch (\Throwable $th) {
+				throw new LibresignException(
+					'Failute to create hash file: ' . $hashFileName . '. ' .
+					'File corrupted or not found. Run "occ files:scan-app-data libresign".'
+				);
+			}
 		}
 		try {
 			$hashes = $fileObject->getContent();
