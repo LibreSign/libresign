@@ -33,8 +33,8 @@ class NotifyController extends AEnvironmentAwareController {
 	 * Notify signers of a file
 	 *
 	 * @param integer $fileId The identifier value of LibreSign file
-	 * @param array<string, mixed> $signers Signers data
-	 * @return DataResponse<Http::STATUS_OK, array{}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{}}, array{}>
+	 * @param array{email: string}[] $signers Signers data
+	 * @return DataResponse<Http::STATUS_OK, array{message: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{messages: array{type: 'danger', message: string}[]}, array{}>
 	 *
 	 * 200: OK
 	 * 401: Unauthorized
