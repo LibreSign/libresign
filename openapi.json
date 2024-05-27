@@ -5479,7 +5479,8 @@
                                                     ],
                                                     "properties": {
                                                         "action": {
-                                                            "type": "string"
+                                                            "type": "integer",
+                                                            "format": "int64"
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -5532,10 +5533,14 @@
                                                     ],
                                                     "properties": {
                                                         "action": {
-                                                            "type": "string"
+                                                            "type": "integer",
+                                                            "format": "int64"
                                                         },
                                                         "errors": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -6613,7 +6618,8 @@
                                                     ],
                                                     "properties": {
                                                         "action": {
-                                                            "type": "string"
+                                                            "type": "integer",
+                                                            "format": "int64"
                                                         },
                                                         "message": {
                                                             "type": "string"
@@ -6666,10 +6672,14 @@
                                                     ],
                                                     "properties": {
                                                         "action": {
-                                                            "type": "string"
+                                                            "type": "integer",
+                                                            "format": "int64"
                                                         },
                                                         "errors": {
-                                                            "type": "object"
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     }
                                                 }

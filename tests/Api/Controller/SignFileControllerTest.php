@@ -36,7 +36,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -59,7 +59,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Invalid UUID', $body['errors'][0]);
+		$this->assertEquals('Invalid UUID', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -101,7 +101,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File already signed.', $body['errors'][0]);
+		$this->assertEquals('File already signed.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -144,7 +144,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('File not found', $body['errors'][0]);
+		$this->assertEquals('File not found', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -183,8 +183,8 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals(200, $body['action']);
-		$this->assertEquals('Empty identify data.', $body['errors'][0]);
+		$this->assertEquals(200, $body['ocs']['data']['action']);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -244,7 +244,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('Empty identify data.', $body['errors'][0]);
+		$this->assertEquals('Empty identify data.', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -334,7 +334,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
+		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -371,7 +371,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$body['data']['users'][] = ['email' => 'user@test.coop'];
+		$body['ocs']['data']['data']['users'][] = ['email' => 'user@test.coop'];
 	}
 
 	/**
@@ -394,7 +394,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$this->assertEquals('You are not allowed to request signing', $body['errors'][0]);
+		$this->assertEquals('You are not allowed to request signing', $body['ocs']['data']['errors'][0]);
 	}
 
 	/**
@@ -442,7 +442,7 @@ final class SignFileControllerTest extends ApiTestCase {
 
 		$response = $this->assertRequest();
 		$body = json_decode($response->getBody()->getContents(), true);
-		$body['data']['users'][] = ['email' => 'user@test.coop'];
+		$body['ocs']['data']['data']['users'][] = ['email' => 'user@test.coop'];
 	}
 
 	/**

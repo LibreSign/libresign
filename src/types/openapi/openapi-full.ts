@@ -2275,7 +2275,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                action: string;
+                /** Format: int64 */
+                action: number;
                 message: string;
                 file: {
                   uuid: string;
@@ -2292,8 +2293,9 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                action: string;
-                errors: Record<string, never>;
+                /** Format: int64 */
+                action: number;
+                errors: string[];
               };
             };
           };
@@ -2724,7 +2726,8 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                action: string;
+                /** Format: int64 */
+                action: number;
                 message: string;
                 file: {
                   uuid: string;
@@ -2741,8 +2744,9 @@ export type operations = {
             ocs: {
               meta: components["schemas"]["OCSMeta"];
               data: {
-                action: string;
-                errors: Record<string, never>;
+                /** Format: int64 */
+                action: number;
+                errors: string[];
               };
             };
           };
